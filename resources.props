@@ -16,7 +16,7 @@
   </ItemGroup>
   
   <ItemGroup Condition="Exists('$(StringResourcesPath)') AND '$(OmitResources)'!='true'">
-    <Compile Include="$(CommonPath)/System/SR.cs">
+    <Compile Include="$(CommonPath)/CoreWCF/SR.cs">
 	  <Visible>true</Visible>
 	  <Link>Resources/Common/SR.cs</Link>
 	</Compile>

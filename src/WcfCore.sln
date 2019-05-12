@@ -6,17 +6,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0B5D4C83-181
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{73CF9B6D-0B40-422E-8F55-9D0C134E9E37}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ServiceModel.Http", "Microsoft.ServiceModel.Http\src\Microsoft.ServiceModel.Http.csproj", "{5261B584-C338-4573-B4A0-F76C56D89F6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Primitives", "CoreWCF.Primitives\src\CoreWCF.Primitives.csproj", "{A2BBD98A-0862-414F-93A4-BAE0AE9AD654}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ServiceModel.NetTcp", "Microsoft.ServiceModel.NetTcp\src\Microsoft.ServiceModel.NetTcp.csproj", "{58568DAD-EF5D-4CA9-9812-2FAE30B849DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Http", "CoreWCF.Http\src\CoreWCF.Http.csproj", "{5261B584-C338-4573-B4A0-F76C56D89F6C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ServiceModel.Http.Tests", "Microsoft.ServiceModel.Http\tests\Microsoft.ServiceModel.Http.Tests.csproj", "{7C01D118-BD40-4B0D-8728-6D61ED623081}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.NetTcp", "CoreWCF.NetTcp\src\CoreWCF.NetTcp.csproj", "{58568DAD-EF5D-4CA9-9812-2FAE30B849DB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ServiceModel.NetTcp.Tests", "Microsoft.ServiceModel.NetTcp\tests\Microsoft.ServiceModel.NetTcp.Tests.csproj", "{5C693BE3-CD4A-40C9-8105-93681BF5B5A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Http.Tests", "CoreWCF.Http\tests\CoreWCF.Http.Tests.csproj", "{7C01D118-BD40-4B0D-8728-6D61ED623081}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ServiceModel.Primitives.Tests", "Microsoft.ServiceModel.Primitives\tests\Microsoft.ServiceModel.Primitives.Tests.csproj", "{0BAAF301-23F3-49AC-B167-B8A88565F95B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.NetTcp.Tests", "CoreWCF.NetTcp\tests\CoreWCF.NetTcp.Tests.csproj", "{5C693BE3-CD4A-40C9-8105-93681BF5B5A6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ServiceModel.Primitives", "Microsoft.ServiceModel.Primitives\src\Microsoft.ServiceModel.Primitives.csproj", "{A2BBD98A-0862-414F-93A4-BAE0AE9AD654}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Primitives.Tests", "CoreWCF.Primitives\tests\CoreWCF.Primitives.Tests.csproj", "{0BAAF301-23F3-49AC-B167-B8A88565F95B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{083F2ED2-5D26-4EEB-A410-29ADCC0C4B42}"
 EndProject

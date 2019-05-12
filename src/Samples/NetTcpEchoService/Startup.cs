@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.ServiceModel.Configuration;
+using CoreWCF.Configuration;
 
 
 namespace NetTcpEchoServiceSample
@@ -18,7 +18,7 @@ namespace NetTcpEchoServiceSample
             app.UseServiceModel(builder =>
             {
                 builder.AddService<EchoService>();
-                builder.AddServiceEndpoint<EchoService, IEchoService>(new Microsoft.ServiceModel.NetTcpBinding(), "/nettcp.svc");
+                builder.AddServiceEndpoint<EchoService, IEchoService>(new CoreWCF.NetTcpBinding(), "/nettcp.svc");
             });
         }
     }

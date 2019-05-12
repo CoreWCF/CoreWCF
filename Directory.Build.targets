@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <ItemGroup Condition="!('$(AssemblyName.EndsWith(`Tests`))'=='true' OR '$(AssemblyName.EndsWith(`Sample`))'=='true')">
-    <Compile Include="$(CommonPath)/**/*.cs" Exclude="$(CommonPath)/System\SR.cs">
+    <Compile Include="$(CommonPath)/**/*.cs" Exclude="$(CommonPath)/CoreWCF\SR.cs">
       <Visible>true</Visible>
 	  <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>

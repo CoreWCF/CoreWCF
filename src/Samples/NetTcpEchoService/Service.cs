@@ -1,4 +1,4 @@
-﻿using Microsoft.ServiceModel;
+﻿using CoreWCF;
 using System.IO;
 using System.Threading.Tasks;
 

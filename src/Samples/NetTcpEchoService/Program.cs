@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.ServiceModel.Configuration;
+using CoreWCF.Configuration;
 using System;
 
 namespace NetTcpEchoServiceSample
