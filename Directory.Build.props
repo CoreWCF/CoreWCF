@@ -10,7 +10,7 @@
     <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
     <!-- <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'==''">$(ObjDir)</BaseIntermediateOutputPath> -->
     <BaseIntermediateOutputPath>$(ObjDir)$(MSBuildProjectName)/</BaseIntermediateOutputPath>
-	<MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
+ 	  <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
     <ProjectAssetsFile>$(BaseIntermediateOutputPath)/project.assets.json</ProjectAssetsFile>
   </PropertyGroup>
 
@@ -23,6 +23,9 @@
   <!-- Set up some common paths -->
   <PropertyGroup>
     <CommonPath>$(SourceDir)Common/src</CommonPath>
+    <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
+    <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
+    <IsTestProject>$(AssemblyName.EndsWith(`Tests`))</IsTestProject>
   </PropertyGroup>
 
   <!-- Set up the default output and intermediate paths -->
