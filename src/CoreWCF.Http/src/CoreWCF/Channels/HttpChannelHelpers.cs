@@ -695,8 +695,8 @@ namespace CoreWCF.Channels
         Stream GetWrappedOutputStream()
         {
             const int ChunkSize = 32768;    // buffer size used for synchronous writes
-            const int BufferSize = 16384;   // buffer size used for asynchronous writes
-            const int BufferCount = 4;      // buffer count used for asynchronous writes
+            // const int BufferSize = 16384;   // buffer size used for asynchronous writes
+            // const int BufferCount = 4;      // buffer count used for asynchronous writes
 
             // Writing an HTTP request chunk has a high fixed cost, so use BufferedStream to avoid writing 
             // small ones. 

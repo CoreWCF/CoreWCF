@@ -54,9 +54,7 @@ namespace CoreWCF
             if (identity == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("identity");
 
-            // PreSharp Bug: Parameter 'identity.ResourceType' to this public method must be validated: A null-dereference can occur here.
-#pragma warning suppress 56506 // Claim.ClaimType will never return null
-            if (!identity.ClaimType.Equals(ClaimTypes.Spn))
+            if (!ClaimTypes.Spn.Equals(identity.ClaimType))
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.UnrecognizedClaimTypeForIdentity, identity.ClaimType, ClaimTypes.Spn));
 
             base.Initialize(identity);
@@ -116,7 +114,7 @@ namespace CoreWCF
                                 }
                             }
                         }
-#pragma warning suppress 56500 // covered by FxCOP
+#pragma warning disable 56500 // covered by FxCOP
                         catch (Exception e)
                         {
                             // Always immediately rethrow fatal exceptions.

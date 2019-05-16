@@ -223,7 +223,7 @@ namespace CoreWCF.Channels
             message.Properties.AllowOutputBatching = false;
             this.httpOutput = GetHttpOutputCore(message);
 
-            return true;
+            return closeOnReceivedEof;
         }
 
         protected override async Task OnReplyAsync(Message message, CancellationToken token)
@@ -337,7 +337,7 @@ namespace CoreWCF.Channels
         class AspNetCoreHttpContext : HttpRequestContext
         {
             HttpContext _aspNetContext;
-            byte[] webSocketInternalBuffer;
+            // byte[] webSocketInternalBuffer;
 
             public AspNetCoreHttpContext(IHttpTransportFactorySettings settings, HttpContext aspNetContext)
                 : base(settings, null)
