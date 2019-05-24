@@ -142,7 +142,7 @@ namespace CoreWCF.Dispatcher
             //}
             //else
             //{
-                ResponseActivityId = Guid.Empty;
+            ResponseActivityId = Guid.Empty;
             //}
 
             //InvokeNotification = new MessageRpcInvokeNotification(/*this.Activity,*/ this.channelHandler);
@@ -462,68 +462,68 @@ namespace CoreWCF.Dispatcher
             MessageRpc result = this;
             //using (ServiceModelActivity.BoundOperation(this.Activity))
             //{
-                bool completed = true;
+            // bool completed = true;
 
-                    OperationContext originalContext;
-                    OperationContext.Holder contextHolder;
+            OperationContext originalContext;
+            OperationContext.Holder contextHolder;
+            if (!isOperationContextSet)
+            {
+                contextHolder = OperationContext.CurrentHolder;
+                originalContext = contextHolder.Context;
+            }
+            else
+            {
+                contextHolder = null;
+                originalContext = null;
+            }
+            IncrementBusyCount();
+
+            try
+            {
+                if (!isOperationContextSet)
+                {
+                    contextHolder.Context = OperationContext;
+                }
+
+                this = await AsyncProcessor(this);
+
+                OperationContext.SetClientReply(null, false);
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+                if (!ProcessError(e) && FaultInfo.Fault == null)
+                {
+                    Abort();
+                }
+            }
+            finally
+            {
+                try
+                {
+                    DecrementBusyCount();
+
                     if (!isOperationContextSet)
                     {
-                        contextHolder = OperationContext.CurrentHolder;
-                        originalContext = contextHolder.Context;
+                        contextHolder.Context = originalContext;
                     }
-                    else
+
+                    OperationContext.ClearClientReplyNoThrow();
+                }
+                catch (Exception e)
+                {
+                    if (Fx.IsFatal(e))
                     {
-                        contextHolder = null;
-                        originalContext = null;
+                        throw;
                     }
-                    IncrementBusyCount();
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperFatal(e.Message, e);
+                }
+            }
 
-                    try
-                    {
-                        if (!isOperationContextSet)
-                        {
-                            contextHolder.Context = OperationContext;
-                        }
-
-                        this = await AsyncProcessor(this);
-
-                        OperationContext.SetClientReply(null, false);
-                    }
-                    catch (Exception e)
-                    {
-                        if (Fx.IsFatal(e))
-                        {
-                            throw;
-                        }
-                        if (!ProcessError(e) && FaultInfo.Fault == null)
-                        {
-                            Abort();
-                        }
-                    }
-                    finally
-                    {
-                        try
-                        {
-                            DecrementBusyCount();
-
-                            if (!isOperationContextSet)
-                            {
-                                contextHolder.Context = originalContext;
-                            }
-
-                            OperationContext.ClearClientReplyNoThrow();
-                        }
-                        catch (Exception e)
-                        {
-                            if (Fx.IsFatal(e))
-                            {
-                                throw;
-                            }
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperFatal(e.Message, e);
-                        }
-                    }
-
-                return this;
+            return this;
             //}
         }
 
@@ -552,11 +552,11 @@ namespace CoreWCF.Dispatcher
             // Only increment the counter on the service side.
             //if (Host != null)
             //{
-                //Host.IncrementBusyCount();
-                //if (AspNetEnvironment.Current.TraceIncrementBusyCountIsEnabled())
-                //{
-                //    AspNetEnvironment.Current.TraceIncrementBusyCount(SR.Format(SR.ServiceBusyCountTrace, this.Operation.Action));
-                //}
+            //Host.IncrementBusyCount();
+            //if (AspNetEnvironment.Current.TraceIncrementBusyCountIsEnabled())
+            //{
+            //    AspNetEnvironment.Current.TraceIncrementBusyCount(SR.Format(SR.ServiceBusyCountTrace, this.Operation.Action));
+            //}
             //}
         }
 
@@ -566,10 +566,10 @@ namespace CoreWCF.Dispatcher
             //if (Host != null)
             //{
             //    Host.DecrementBusyCount();
-                //if (AspNetEnvironment.Current.TraceDecrementBusyCountIsEnabled())
-                //{
-                //    AspNetEnvironment.Current.TraceDecrementBusyCount(SR.Format(SR.ServiceBusyCountTrace, this.Operation.Action));
-                //}
+            //if (AspNetEnvironment.Current.TraceDecrementBusyCountIsEnabled())
+            //{
+            //    AspNetEnvironment.Current.TraceDecrementBusyCount(SR.Format(SR.ServiceBusyCountTrace, this.Operation.Action));
+            //}
             //}
         }
     }

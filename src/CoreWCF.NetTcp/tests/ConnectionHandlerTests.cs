@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using CoreWCF.Channels.Framing;
@@ -53,7 +54,7 @@ public static class ConnectionHandlerTests
             });
             app.Run(async (context) =>
             {
-                //await context.Response.WriteAsync("Hello World!");
+                await context.Response.WriteAsync("Hello World!");
             });
         }
     }
