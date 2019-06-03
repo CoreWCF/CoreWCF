@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectDir>$(MSBuildThisFileDirectory)</ProjectDir>
+    <SourceDir>$(ProjectDir)src/</SourceDir>
+    <!-- <RestorePackagesPath>$(ProjectDir)packages/</RestorePackagesPath> -->
+	
+    <!-- Output directories -->
+    <BinDir Condition="'$(BinDir)'==''">$(ProjectDir)bin/</BinDir>
+    <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
+    <!-- <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'==''">$(ObjDir)</BaseIntermediateOutputPath> -->
+    <BaseIntermediateOutputPath>$(ObjDir)$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+ 	  <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
+    <ProjectAssetsFile>$(BaseIntermediateOutputPath)/project.assets.json</ProjectAssetsFile>
+  </PropertyGroup>
+
+  <!-- BaseIntermediateOutputPath is used in C:\Program Files\dotnet\sdk\2.0.0-alpha-004853\15.0\Microsoft.Common.props to import any project extensions
+       before our own project can import/change anything. It's used to set MSBuildProjectExtensionsPath and import ProjectFileName.nuget.g.[props|targets].
+	   As we're moving the BaseIntermediateOutputPath, these extensions don't get placed where they are expected to be and aren't loaded. Now the paths
+	   have been corrected, any project extensions now need to be imported. -->
+  <!-- <Import Project="$(MSBuildProjectExtensionsPath)$(MSBuildProjectFile).*.props" Condition="'$(ImportProjectExtensionProps)' == 'true' and exists('$(MSBuildProjectExtensionsPath)')" /> -->
+
+  <!-- Set up some common paths -->
+  <PropertyGroup>
+    <CommonPath>$(SourceDir)Common/src</CommonPath>
+    <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
+    <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
+    <IsTestProject>$(AssemblyName.EndsWith(`Tests`))</IsTestProject>
+  </PropertyGroup>
+
+  <!-- Set up the default output and intermediate paths -->
+  <PropertyGroup>
+    <OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(MSBuildProjectName)/</OutputPath>
+    <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(BaseIntermediateOutputPath)</IntermediateOutputRootPath>
+    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)$(MSBuildProjectName)/</IntermediateOutputPath>
+  </PropertyGroup>
+  
+  <!-- Disable the default embedded resource behavior as we have a naming convention which is different than what the SDK uses -->
+  <PropertyGroup>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+  </PropertyGroup>
+  
+  <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
+</Project>
