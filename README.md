@@ -16,7 +16,7 @@ Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for details.
 This project has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
 For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
-Core WCF is Copyright &copy; 2019 [Tiberiu Covaci](https://tibi.me) and other contributors under the [MIT license](LICENSE.txt).
+Core WCF is Copyright &copy; 2019 .NET Foundation and other contributors under the [MIT license](LICENSE.txt).
 
 ### .NET Foundation
 
