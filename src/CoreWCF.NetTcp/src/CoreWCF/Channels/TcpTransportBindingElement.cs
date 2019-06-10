@@ -55,7 +55,7 @@ namespace CoreWCF.Channels
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 if (value.PolicyEnforcement == PolicyEnforcement.Always &&
@@ -74,40 +74,11 @@ namespace CoreWCF.Channels
             return new TcpTransportBindingElement(this);
         }
 
-        public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
-        {
-            if (context == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
-            }
-
-            if (!CanBuildChannelListener<TChannel>(context))
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("TChannel", SR.Format(SR.ChannelTypeNotSupported, typeof(TChannel)));
-            }
-
-            TcpChannelListener listener;
-            if (typeof(TChannel) == typeof(IReplyChannel))
-            {
-                listener = new TcpReplyChannelListener(this, context);
-            }
-            else if (typeof(TChannel) == typeof(IDuplexSessionChannel))
-            {
-                listener = new TcpDuplexChannelListener(this, context);
-            }
-            else
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("TChannel", SR.Format(SR.ChannelTypeNotSupported, typeof(TChannel)));
-            }
-
-            return (IChannelListener<TChannel>)(object)listener;
-        }
-
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
             // TODO: Decide whether to support DeliveryRequirementsAttribute
             //if (typeof(T) == typeof(IBindingDeliveryCapabilities))

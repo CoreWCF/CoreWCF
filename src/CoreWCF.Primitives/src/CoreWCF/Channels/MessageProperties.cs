@@ -41,7 +41,7 @@ namespace CoreWCF.Channels
         internal MessageProperties(KeyValuePair<string, object>[] array)
         {
             if (array == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("array");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(array));
             CopyProperties(array);
         }
 
@@ -285,7 +285,7 @@ namespace CoreWCF.Channels
                 ThrowDisposed();
 
             if (property == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("property");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(property));
             UpdateProperty(name, property, true);
         }
 
@@ -340,7 +340,7 @@ namespace CoreWCF.Channels
             // should be reflected in MergeProperties as well.
             if (properties == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("properties");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
             if (disposed)
@@ -378,7 +378,7 @@ namespace CoreWCF.Channels
             // should be reflected in MergeProperties as well.
             if (properties == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("properties");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
             if (disposed)
@@ -437,7 +437,7 @@ namespace CoreWCF.Channels
                 ThrowDisposed();
 
             if (name == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             int index = FindProperty(name);
             switch (index)
             {
@@ -547,7 +547,7 @@ namespace CoreWCF.Channels
                 ThrowDisposed();
 
             if (name == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
 
             int index = FindProperty(name);
             switch (index)
@@ -609,7 +609,7 @@ namespace CoreWCF.Channels
         void UpdateProperty(string name, object value, bool mustNotExist)
         {
             if (name == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             int index = FindProperty(name);
             if (index != NotFoundIndex)
             {
@@ -726,7 +726,7 @@ namespace CoreWCF.Channels
                 ThrowDisposed();
 
             if (array == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("array");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(array));
             if (array.Length < propertyCount)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.MessagePropertiesArraySize0));
             if (index < 0 || index > array.Length - propertyCount)

@@ -38,10 +38,10 @@ namespace CoreWCF.Dispatcher
         public ClientOperation(ClientRuntime parent, string name, string action, string replyAction)
         {
             if (parent == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parent");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
 
             if (name == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
 
             this.parent = parent;
             this.name = name;

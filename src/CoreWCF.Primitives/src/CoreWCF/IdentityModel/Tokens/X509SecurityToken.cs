@@ -44,9 +44,9 @@ namespace CoreWCF.IdentityModel.Tokens
         internal X509SecurityToken(X509Certificate2 certificate, string id, bool clone, bool disposable)
         {
             if (certificate == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
             if (id == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("id");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
 
             this.id = id;
             this.certificate = clone ? new X509Certificate2(certificate) : certificate;

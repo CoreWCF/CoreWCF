@@ -15,7 +15,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (certificate == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
             }
 
             this.certificate = new X509Certificate2(certificate);
@@ -25,7 +25,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (findValue == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("findValue");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(findValue));
             }
 
             X509Store store = new X509Store(storeName, storeLocation);

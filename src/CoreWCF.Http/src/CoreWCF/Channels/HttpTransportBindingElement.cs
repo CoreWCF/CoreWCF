@@ -30,36 +30,6 @@ namespace CoreWCF.Channels
         // [System.ComponentModel.DefaultValueAttribute((System.ServiceModel.TransferMode)(0))]
         public TransferMode TransferMode { get; set; }
         // public System.ServiceModel.Channels.WebSocketTransportSettings WebSocketSettings { get { return default(System.ServiceModel.Channels.WebSocketTransportSettings); } set { } }
-        // public override System.ServiceModel.Channels.IChannelFactory<TChannel> BuildChannelFactory<TChannel>(System.ServiceModel.Channels.BindingContext context) { return default(System.ServiceModel.Channels.IChannelFactory<TChannel>); }
-        public override bool CanBuildChannelListener<TChannel>(BindingContext context)
-        {
-            if (typeof(TChannel) == typeof(IReplyChannel))
-            {
-                return true;
-                //return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always;
-            }
-            //else if (typeof(TChannel) == typeof(IDuplexSessionChannel))
-            //{
-            //    return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Never;
-            //}
-            return false;
-        }
-
-        public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
-        {
-            if (context == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
-            }
-
-            if (!CanBuildChannelListener<TChannel>(context))
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(
-                    "TChannel", SR.Format(SR.CouldnTCreateChannelForChannelType2, context.Binding.Name, typeof(TChannel)));
-            }
-
-            return null;
-        }
 
         public override BindingElement Clone()
         {

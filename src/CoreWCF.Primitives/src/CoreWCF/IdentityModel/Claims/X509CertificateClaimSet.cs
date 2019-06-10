@@ -32,7 +32,7 @@ namespace CoreWCF.IdentityModel.Claims
         internal X509CertificateClaimSet(X509Certificate2 certificate, bool clone)
         {
             if (certificate == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
             this.certificate = clone ? new X509Certificate2(certificate) : certificate;
         }
 
@@ -305,7 +305,7 @@ namespace CoreWCF.IdentityModel.Claims
             public X500DistinguishedNameClaimSet(X500DistinguishedName x500DistinguishedName)
             {
                 if (x500DistinguishedName == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("x500DistinguishedName");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(x500DistinguishedName));
 
                 identity = new X509Identity(x500DistinguishedName);
                 List<Claim> claims = new List<Claim>(2);

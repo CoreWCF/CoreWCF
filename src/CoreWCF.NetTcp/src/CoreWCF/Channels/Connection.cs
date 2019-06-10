@@ -479,7 +479,7 @@ namespace CoreWCF.Channels
         {
             if (state == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("state");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(state));
             }
 
             var tcs = state as TaskCompletionSource<bool>;
@@ -541,7 +541,7 @@ namespace CoreWCF.Channels
         {
             if (state == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("state");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(state));
             }
 
             var tcs = state as TaskCompletionSource<int>;
@@ -959,7 +959,7 @@ namespace CoreWCF.Channels
         {
             if (buffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("buffer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(buffer));
             }
 
             ValidateBufferBounds(buffer.Length, offset, size);

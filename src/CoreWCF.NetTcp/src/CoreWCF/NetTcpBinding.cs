@@ -84,7 +84,7 @@ namespace CoreWCF
             set
             {
                 if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 value.CopyTo(encoding.ReaderQuotas);
             }
         }
@@ -108,7 +108,7 @@ namespace CoreWCF
             set
             {
                 if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 security = value;
             }
         }

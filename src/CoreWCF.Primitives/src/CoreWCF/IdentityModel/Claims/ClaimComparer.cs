@@ -24,7 +24,7 @@ namespace CoreWCF.IdentityModel.Claims
         public static IEqualityComparer<Claim> GetComparer(string claimType)
         {
             if (claimType == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claimType");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claimType));
             if (claimType == ClaimTypes.Dns)
                 return Dns;
             if (claimType == ClaimTypes.Hash)
@@ -145,7 +145,7 @@ namespace CoreWCF.IdentityModel.Claims
         public int GetHashCode(Claim claim)
         {
             if (claim == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claim");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
 
             return claim.ClaimType.GetHashCode() ^ claim.Right.GetHashCode()
                 ^ ((claim.Resource == null) ? 0 : resourceComparer.GetHashCode(claim.Resource));

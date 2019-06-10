@@ -33,12 +33,12 @@ namespace CoreWCF.Channels
         {
             if (connection == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("connection");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(connection));
             }
 
             if (closedCallback == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("closedCallback");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(closedCallback));
             }
 
             this.connection = connection;

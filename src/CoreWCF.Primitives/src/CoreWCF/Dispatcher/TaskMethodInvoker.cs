@@ -210,7 +210,7 @@ namespace CoreWCF.Dispatcher
 
                 if (returnValue == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("task");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("Task");
                 }
 
                 var returnValueTask = returnValue as Task;

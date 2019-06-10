@@ -32,7 +32,7 @@ namespace CoreWCF.IdentityModel.Policy
         public UnconditionalPolicy(ClaimSet issuance, DateTime expirationTime)
         {
             if (issuance == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("issuance");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuance));
 
             Initialize(ClaimSet.System, issuance, null, expirationTime);
         }
@@ -40,7 +40,7 @@ namespace CoreWCF.IdentityModel.Policy
         public UnconditionalPolicy(ReadOnlyCollection<ClaimSet> issuances, DateTime expirationTime)
         {
             if (issuances == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("issuances");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuances));
 
             Initialize(ClaimSet.System, null, issuances, expirationTime);
         }

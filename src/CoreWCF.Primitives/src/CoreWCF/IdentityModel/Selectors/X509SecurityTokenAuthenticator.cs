@@ -42,7 +42,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (validator == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("validator");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
             }
 
             this.validator = validator;

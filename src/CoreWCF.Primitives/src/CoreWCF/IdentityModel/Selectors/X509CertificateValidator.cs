@@ -71,14 +71,14 @@ namespace CoreWCF.IdentityModel.Selectors
         public static X509CertificateValidator CreateChainTrustValidator(bool useMachineContext, X509ChainPolicy chainPolicy)
         {
             if (chainPolicy == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("chainPolicy");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(chainPolicy));
             return new ChainTrustValidator(useMachineContext, chainPolicy, X509CertificateChain.DefaultChainPolicyOID);
         }
 
         public static X509CertificateValidator CreatePeerOrChainTrustValidator(bool useMachineContext, X509ChainPolicy chainPolicy)
         {
             if (chainPolicy == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("chainPolicy");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(chainPolicy));
             return new PeerOrChainTrustValidator(useMachineContext, chainPolicy);
         }
 
@@ -89,7 +89,7 @@ namespace CoreWCF.IdentityModel.Selectors
             public override void Validate(X509Certificate2 certificate)
             {
                 if (certificate == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
             }
         }
 
@@ -98,7 +98,7 @@ namespace CoreWCF.IdentityModel.Selectors
             public override void Validate(X509Certificate2 certificate)
             {
                 if (certificate == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
 
                 Exception exception;
                 if (!TryValidate(certificate, out exception))
@@ -185,7 +185,7 @@ namespace CoreWCF.IdentityModel.Selectors
             public override void Validate(X509Certificate2 certificate)
             {
                 if (certificate == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
 
                 X509Chain chain = new X509Chain();
                 if (chainPolicy != null)
@@ -236,7 +236,7 @@ namespace CoreWCF.IdentityModel.Selectors
             public override void Validate(X509Certificate2 certificate)
             {
                 if (certificate == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
 
                 Exception exception;
                 if (peer.TryValidate(certificate, out exception))

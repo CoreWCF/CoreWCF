@@ -104,7 +104,7 @@ namespace CoreWCF.Channels
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 _messageVersion = value;
@@ -121,22 +121,12 @@ namespace CoreWCF.Channels
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 TextEncoderDefaults.ValidateEncoding(value);
                 _writeEncoding = value;
             }
-        }
-
-        public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
-        {
-            return InternalBuildChannelListener<TChannel>(context);
-        }
-
-        public override bool CanBuildChannelListener<TChannel>(BindingContext context)
-        {
-            return InternalCanBuildChannelListener<TChannel>(context);
         }
 
         public override BindingElement Clone()
@@ -153,7 +143,7 @@ namespace CoreWCF.Channels
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
             if (typeof(T) == typeof(XmlDictionaryReaderQuotas))
             {

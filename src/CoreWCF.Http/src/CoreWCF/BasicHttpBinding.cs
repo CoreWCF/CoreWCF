@@ -18,17 +18,6 @@ namespace CoreWCF
             set { _messageEncoding = value; }
         }
 
-        public override IChannelListener<TChannel> BuildChannelListener<TChannel>(Uri listenUriBaseAddress,
-            string listenUriRelativeAddress, ListenUriMode listenUriMode, BindingParameterCollection parameters)
-        {
-            throw new PlatformNotSupportedException("BuildChannelListener not supported for HTTP");
-        }
-
-        public override bool CanBuildChannelListener<TChannel>(BindingParameterCollection parameters)
-        {
-            return false;
-        }
-
         public override BindingElementCollection CreateBindingElements()
         {
             CheckSettings();

@@ -103,7 +103,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             this.filters.Add(filter, data);
@@ -130,7 +130,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             Add((ActionMessageFilter)filter, data);
@@ -257,7 +257,7 @@ namespace CoreWCF.Dispatcher
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             MessageFilter f = InnerMatch(message);
@@ -275,7 +275,7 @@ namespace CoreWCF.Dispatcher
         {
             if (messageBuffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageBuffer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
             MessageFilter f = null;
@@ -303,7 +303,7 @@ namespace CoreWCF.Dispatcher
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             filter = InnerMatch(message);
@@ -314,7 +314,7 @@ namespace CoreWCF.Dispatcher
         {
             if (messageBuffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageBuffer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
             Message msg = messageBuffer.CreateMessage();
@@ -333,12 +333,12 @@ namespace CoreWCF.Dispatcher
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
 
             int count = results.Count;
@@ -350,12 +350,12 @@ namespace CoreWCF.Dispatcher
         {
             if (messageBuffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageBuffer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
 
             Message msg = messageBuffer.CreateMessage();
@@ -375,12 +375,12 @@ namespace CoreWCF.Dispatcher
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
 
             int count = results.Count;
@@ -392,12 +392,12 @@ namespace CoreWCF.Dispatcher
         {
             if (messageBuffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageBuffer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
 
             Message msg = messageBuffer.CreateMessage();
@@ -417,7 +417,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             if (this.filters.Remove(filter))
@@ -451,7 +451,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             ActionMessageFilter aFilter = filter as ActionMessageFilter;

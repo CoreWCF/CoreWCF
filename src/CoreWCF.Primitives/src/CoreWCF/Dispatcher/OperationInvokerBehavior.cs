@@ -22,11 +22,11 @@ namespace CoreWCF.Dispatcher
         {
             if (dispatch == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("dispatch");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatch));
             }
             if (description == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("description");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
             }
 
             if (description.TaskMethod != null)

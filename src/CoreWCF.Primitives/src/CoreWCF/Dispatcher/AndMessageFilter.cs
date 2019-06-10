@@ -10,9 +10,9 @@ namespace CoreWCF.Dispatcher
         public AndMessageFilter(MessageFilter filter1, MessageFilter filter2)
         {
             if (filter1 == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter1");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter1));
             if (filter2 == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter2");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter2));
 
             this.filter1 = filter1;
             this.filter2 = filter2;
@@ -43,7 +43,7 @@ namespace CoreWCF.Dispatcher
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             return filter1.Match(message) && filter2.Match(message);
@@ -53,7 +53,7 @@ namespace CoreWCF.Dispatcher
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             if (filter1.Match(message))
@@ -72,7 +72,7 @@ namespace CoreWCF.Dispatcher
         {
             if (messageBuffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageBuffer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
             return filter1.Match(messageBuffer) && filter2.Match(messageBuffer);

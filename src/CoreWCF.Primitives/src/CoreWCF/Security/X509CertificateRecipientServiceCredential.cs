@@ -43,7 +43,7 @@ namespace CoreWCF.Security
         {
             if (subjectName == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("subjectName");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(subjectName));
             }
             SetCertificate(storeLocation, storeName, DefaultFindType, subjectName);
         }
@@ -52,7 +52,7 @@ namespace CoreWCF.Security
         {
             if (findValue == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("findValue");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(findValue));
             }
             ThrowIfImmutable();
             certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);

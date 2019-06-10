@@ -60,7 +60,7 @@ namespace CoreWCF.Description
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 if (value.Length == 0)

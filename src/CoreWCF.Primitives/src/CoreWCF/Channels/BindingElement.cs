@@ -14,22 +14,6 @@ namespace CoreWCF.Channels
 
         public abstract BindingElement Clone();
 
-        public virtual IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context) where TChannel : class, IChannel
-        {
-            if (context == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
-
-            return context.BuildInnerChannelListener<TChannel>();
-        }
-
-        public virtual bool CanBuildChannelListener<TChannel>(BindingContext context) where TChannel : class, IChannel
-        {
-            if (context == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
-
-            return context.CanBuildInnerChannelListener<TChannel>();
-        }
-
         public abstract T GetProperty<T>(BindingContext context) where T : class;
 
         internal T GetIndividualProperty<T>() where T : class

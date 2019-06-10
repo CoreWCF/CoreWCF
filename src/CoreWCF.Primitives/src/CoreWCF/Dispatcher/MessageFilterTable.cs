@@ -138,7 +138,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             if (filters.ContainsKey(filter))
@@ -396,7 +396,7 @@ namespace CoreWCF.Dispatcher
         {
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
             int count = results.Count;
             int pri = int.MinValue;
@@ -418,7 +418,7 @@ namespace CoreWCF.Dispatcher
         {
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
             int count = results.Count;
             int pri = int.MinValue;
@@ -506,7 +506,7 @@ namespace CoreWCF.Dispatcher
         {
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
             int count = results.Count;
             int pri = int.MinValue;
@@ -528,7 +528,7 @@ namespace CoreWCF.Dispatcher
         {
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
             int count = results.Count;
             int pri = int.MinValue;

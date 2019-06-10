@@ -112,7 +112,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 identityVerifier = value;
@@ -290,16 +290,18 @@ namespace CoreWCF.Dispatcher
 
         public void EnsurePumping()
         {
-            lock (ThisLock)
-            {
-                if (!syncPumpEnabled)
-                {
-                    if (!ChannelHandler.HasRegisterBeenCalled)
-                    {
-                        ChannelHandler.Register(ChannelHandler);
-                    }
-                }
-            }
+            // TODO: Resolve this method being called and remove method
+            throw new PlatformNotSupportedException();
+            //lock (ThisLock)
+            //{
+            //    if (!syncPumpEnabled)
+            //    {
+            //        if (!ChannelHandler.HasRegisterBeenCalled)
+            //        {
+            //            ChannelHandler.Register(ChannelHandler);
+            //        }
+            //    }
+            //}
         }
 
         public async Task<TryAsyncResult<RequestContext>> TryReceiveAsync(CancellationToken token)

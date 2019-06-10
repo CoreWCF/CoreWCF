@@ -30,12 +30,12 @@ namespace CoreWCF.Channels
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             }
 
             if (dataProvider == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("dataProvider");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dataProvider));
             }
 
             if (dataProviders == null)
@@ -76,7 +76,7 @@ namespace CoreWCF.Channels
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
             return TryGet(message.Properties, out property);
         }
@@ -99,12 +99,12 @@ namespace CoreWCF.Channels
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             }
 
             if (dataProvider == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("dataProvider");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dataProvider));
             }
 
             CorrelationDataMessageProperty data = null;

@@ -486,7 +486,7 @@ namespace CoreWCF.Dispatcher
             protected override void InsertItem(int index, EndpointDispatcher item)
             {
                 if (item == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
 
                 owner.OnAddEndpoint(item);
                 base.InsertItem(index, item);

@@ -77,7 +77,7 @@ namespace CoreWCF.Dispatcher
             : base(description, dataContractFormatAttribute.Style == OperationFormatStyle.Rpc, false/*isEncoded*/)
         {
             if (description == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("description");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
 
             this.serializerFactory = serializerFactory ?? new DataContractSerializerOperationBehavior(description);
             foreach (Type type in description.KnownTypes)

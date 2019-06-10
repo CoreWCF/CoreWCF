@@ -243,28 +243,11 @@ namespace CoreWCF.Channels
             }
         }
 
-        public override bool CanBuildChannelListener<TChannel>(BindingContext context)
-        {
-            if (context == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
-            }
-
-            if (TransferMode == TransferMode.Buffered)
-            {
-                return (typeof(TChannel) == typeof(IDuplexSessionChannel));
-            }
-            else
-            {
-                return (typeof(TChannel) == typeof(IReplyChannel));
-            }
-        }
-
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
 
             if (typeof(T) == typeof(TransferMode))

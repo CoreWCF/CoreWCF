@@ -64,18 +64,18 @@ namespace CoreWCF.Channels
         public static ActionHeader Create(string action, AddressingVersion addressingVersion)
         {
             if (action == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("action");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             return new ActionHeader(action, addressingVersion);
         }
 
         public static ActionHeader Create(XmlDictionaryString dictionaryAction, AddressingVersion addressingVersion)
         {
             if (dictionaryAction == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("action");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             return new DictionaryActionHeader(dictionaryAction, addressingVersion);
         }
 
@@ -186,9 +186,9 @@ namespace CoreWCF.Channels
         public static FromHeader Create(EndpointAddress from, AddressingVersion addressingVersion)
         {
             if (from == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("from");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(from));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             return new FromHeader(from, addressingVersion);
         }
 
@@ -283,9 +283,9 @@ namespace CoreWCF.Channels
         public static FaultToHeader Create(EndpointAddress faultTo, AddressingVersion addressingVersion)
         {
             if (faultTo == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("faultTo");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultTo));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             return new FaultToHeader(faultTo, addressingVersion);
         }
 
@@ -394,7 +394,7 @@ namespace CoreWCF.Channels
         public static ToHeader Create(Uri toUri, XmlDictionaryString dictionaryTo, AddressingVersion addressingVersion)
         {
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
 
             if (((object)toUri == (object)addressingVersion.AnonymousUri))
             {
@@ -414,7 +414,7 @@ namespace CoreWCF.Channels
         {
             if ((object)to == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("to");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(to));
             }
             else if ((object)to == (object)addressingVersion.AnonymousUri)
             {
@@ -595,9 +595,9 @@ namespace CoreWCF.Channels
         public static ReplyToHeader Create(EndpointAddress replyTo, AddressingVersion addressingVersion)
         {
             if (replyTo == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("replyTo");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(replyTo));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             return new ReplyToHeader(replyTo, addressingVersion);
         }
 
@@ -695,9 +695,9 @@ namespace CoreWCF.Channels
         public static MessageIDHeader Create(UniqueId messageId, AddressingVersion addressingVersion)
         {
             if (object.ReferenceEquals(messageId, null))
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             return new MessageIDHeader(messageId, addressingVersion);
         }
 
@@ -793,20 +793,20 @@ namespace CoreWCF.Channels
         public static RelatesToHeader Create(UniqueId messageId, AddressingVersion addressingVersion)
         {
             if (object.ReferenceEquals(messageId, null))
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             return new RelatesToHeader(messageId, addressingVersion);
         }
 
         public static RelatesToHeader Create(UniqueId messageId, AddressingVersion addressingVersion, Uri relationshipType)
         {
             if (object.ReferenceEquals(messageId, null))
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             if (relationshipType == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("relationshipType");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(relationshipType));
             if (relationshipType == ReplyRelationshipType)
             {
                 return new RelatesToHeader(messageId, addressingVersion);

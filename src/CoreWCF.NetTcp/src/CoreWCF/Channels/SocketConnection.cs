@@ -70,7 +70,7 @@ namespace CoreWCF.Channels
 
             if (socket == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("socket");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(socket));
             }
 
             Fx.Assert(connectionBufferPool != null, "Argument connectionBufferPool cannot be null");

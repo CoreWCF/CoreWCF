@@ -124,7 +124,7 @@ namespace CoreWCF.Channels
             public bool TryLookup(string value, out XmlDictionaryString result)
             {
                 if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 if (value == to.Value)
                 {
                     result = to;
@@ -148,7 +148,7 @@ namespace CoreWCF.Channels
             public bool TryLookup(XmlDictionaryString value, out XmlDictionaryString result)
             {
                 if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 if (value == to)
                 {
                     result = to;

@@ -34,12 +34,12 @@ namespace CoreWCF.Channels
         {
             if (envelopeVersion == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("envelopeVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(envelopeVersion));
             }
 
             if (addressingVersion == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             }
 
             if (envelopeVersion == EnvelopeVersion.Soap12)
@@ -138,7 +138,7 @@ namespace CoreWCF.Channels
             if (messageVersion == null)
             {
                 Fx.Assert("Invalid (null) messageVersion value");
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
             }
             if (addressing == null)
             {

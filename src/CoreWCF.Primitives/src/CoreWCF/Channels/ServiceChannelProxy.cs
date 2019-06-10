@@ -120,7 +120,7 @@ namespace CoreWCF.Channels
         {
             if (args == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("args");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(args));
             }
 
             if (targetMethod == null)

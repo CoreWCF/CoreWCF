@@ -21,7 +21,7 @@ namespace CoreWCF.IdentityModel.Tokens
         public UserNameSecurityToken(string userName, string password, string id)
         {
             if (userName == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("userName");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(userName));
             if (userName == string.Empty)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.UserNameCannotBeEmpty);
 

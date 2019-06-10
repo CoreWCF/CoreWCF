@@ -33,7 +33,7 @@ namespace CoreWCF.Description
         {
             if (item == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
             }
             base.InsertItem(index, item);
         }
@@ -42,7 +42,7 @@ namespace CoreWCF.Description
         {
             if (item == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
             }
             base.SetItem(index, item);
         }

@@ -30,7 +30,7 @@ namespace CoreWCF.Dispatcher
         {
             if (xmlSerializerFaultContractInfos == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("xmlSerializerFaultContractInfos");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlSerializerFaultContractInfos));
             }
             this.xmlSerializerFaultContractInfos = xmlSerializerFaultContractInfos;
         }

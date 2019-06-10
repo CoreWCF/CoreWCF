@@ -14,7 +14,7 @@ namespace CoreWCF
         public X509CertificateEndpointIdentity(X509Certificate2 certificate)
         {
             if (certificate == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
 
             base.Initialize(new Claim(ClaimTypes.Thumbprint, certificate.GetCertHash(), Rights.PossessProperty));
 
@@ -24,10 +24,10 @@ namespace CoreWCF
         public X509CertificateEndpointIdentity(X509Certificate2 primaryCertificate, X509Certificate2Collection supportingCertificates)
         {
             if (primaryCertificate == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("primaryCertificate");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(primaryCertificate));
 
             if (supportingCertificates == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("supportingCertificates");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(supportingCertificates));
 
             base.Initialize(new Claim(ClaimTypes.Thumbprint, primaryCertificate.GetCertHash(), Rights.PossessProperty));
 
@@ -42,7 +42,7 @@ namespace CoreWCF
         internal X509CertificateEndpointIdentity(XmlDictionaryReader reader)
         {
             if (reader == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
 
             reader.MoveToContent();
             if (reader.IsEmptyElement)
@@ -76,7 +76,7 @@ namespace CoreWCF
         internal override void WriteContentsTo(XmlDictionaryWriter writer)
         {
             if (writer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
 
             writer.WriteStartElement(XD.XmlSignatureDictionary.Prefix.Value, XD.XmlSignatureDictionary.KeyInfo, XD.XmlSignatureDictionary.Namespace);
             writer.WriteStartElement(XD.XmlSignatureDictionary.Prefix.Value, XD.XmlSignatureDictionary.X509Data, XD.XmlSignatureDictionary.Namespace);

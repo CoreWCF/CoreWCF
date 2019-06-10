@@ -64,7 +64,7 @@ namespace CoreWCF
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 if (value.PolicyEnforcement == PolicyEnforcement.Always &&

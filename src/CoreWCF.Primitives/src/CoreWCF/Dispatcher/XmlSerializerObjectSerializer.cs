@@ -23,7 +23,7 @@ namespace CoreWCF.Dispatcher
         {
             if (qualifiedName == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("qualifiedName");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(qualifiedName));
             }
             Initialize(type, qualifiedName.Name, qualifiedName.Namespace, xmlSerializer);
         }
@@ -32,7 +32,7 @@ namespace CoreWCF.Dispatcher
         {
             if (type == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("type");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(type));
             }
             rootType = type;
             this.rootName = rootName;

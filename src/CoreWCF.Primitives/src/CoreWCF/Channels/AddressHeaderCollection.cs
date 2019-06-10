@@ -52,7 +52,7 @@ namespace CoreWCF.Channels
         public void AddHeadersTo(Message message)
         {
             if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
 
             for (int i = 0; i < InternalCount; i++)
             {

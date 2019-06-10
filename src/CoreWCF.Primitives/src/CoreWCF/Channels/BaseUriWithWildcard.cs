@@ -167,12 +167,12 @@ namespace CoreWCF.Channels
 
             if (binding == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("binding");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(binding));
             }
 
             if (path == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("path");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(path));
             }
 
             if (protocol.Equals(UriEx.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))

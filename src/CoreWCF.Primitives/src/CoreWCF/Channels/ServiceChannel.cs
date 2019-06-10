@@ -53,7 +53,7 @@ namespace CoreWCF.Channels
         {
             if (binder == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("binder");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(binder));
             }
 
             this.messageVersion = binding.MessageVersion;

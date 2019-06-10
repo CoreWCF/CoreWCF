@@ -37,7 +37,7 @@ namespace CoreWCF.IdentityModel.Tokens
             : base(certificate, id, clone)
         {
             if (windowsIdentity == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("windowsIdentity");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
 
             this.authenticationType = authenticationType;
             this.windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;

@@ -18,7 +18,7 @@ namespace CoreWCF.Security
         {
             if (parent == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parent");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             }
             this.parent = parent;
         }
@@ -32,7 +32,7 @@ namespace CoreWCF.Security
         {
             if (version == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SecurityTokenManagerCannotCreateSerializerForVersion, version)));
@@ -231,7 +231,7 @@ namespace CoreWCF.Security
         //SamlSecurityTokenAuthenticator CreateSamlTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver outOfBandTokenResolver)
         //{
         //    if (recipientRequirement == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("recipientRequirement");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(recipientRequirement));
 
         //    Collection<SecurityToken> outOfBandTokens = new Collection<SecurityToken>();
         //    if (parent.ServiceCertificate.Certificate != null)
@@ -304,7 +304,7 @@ namespace CoreWCF.Security
         {
             if (tokenRequirement == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenRequirement");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenRequirement));
             }
             string tokenType = tokenRequirement.TokenType;
             outOfBandTokenResolver = null;
@@ -458,7 +458,7 @@ namespace CoreWCF.Security
         {
             if (requirement == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("requirement");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(requirement));
             }
 
             RecipientServiceModelSecurityTokenRequirement recipientRequirement = requirement as RecipientServiceModelSecurityTokenRequirement;
@@ -483,7 +483,7 @@ namespace CoreWCF.Security
         {
             if (tokenRequirement == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenRequirement");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenRequirement));
             }
             if (tokenRequirement is RecipientServiceModelSecurityTokenRequirement)
             {

@@ -67,7 +67,7 @@ namespace CoreWCF.Channels
             {
                 if (buffer == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("buffer");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(buffer));
                 }
 
                 innerBufferManager.ReturnBuffer(buffer);

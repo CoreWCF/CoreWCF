@@ -266,7 +266,7 @@ namespace CoreWCF.Dispatcher
         internal InstanceProvider(CreateInstanceDelegate creator)
         {
             if (creator == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("creator");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(creator));
 
             this.creator = creator;
         }

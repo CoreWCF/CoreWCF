@@ -40,11 +40,11 @@ namespace CoreWCF.Dispatcher
         {
             if (operation == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("operation");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operation));
             }
             if (parent == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parent");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             }
             if (operation.Invoker == null)
             {

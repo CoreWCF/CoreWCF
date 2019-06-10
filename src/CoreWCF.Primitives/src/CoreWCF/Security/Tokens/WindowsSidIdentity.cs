@@ -11,7 +11,7 @@ namespace CoreWCF.Security.Tokens
 
         public WindowsSidIdentity(SecurityIdentifier sid)
         {
-            SecurityIdentifier = sid ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("sid");
+            SecurityIdentifier = sid ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(sid));
             AuthenticationType = string.Empty;
         }
 

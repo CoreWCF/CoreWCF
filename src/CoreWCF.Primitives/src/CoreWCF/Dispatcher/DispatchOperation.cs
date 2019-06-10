@@ -23,9 +23,9 @@ namespace CoreWCF.Dispatcher
         public DispatchOperation(DispatchRuntime parent, string name, string action)
         {
             if (parent == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parent");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             if (name == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
 
             Parent = parent;
             this.name = name;

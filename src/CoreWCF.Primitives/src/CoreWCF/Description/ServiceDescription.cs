@@ -31,7 +31,7 @@ namespace CoreWCF.Description
         public ServiceDescription(IEnumerable<ServiceEndpoint> endpoints) : this()
         {
             if (endpoints == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("endpoints");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpoints));
 
             foreach (ServiceEndpoint endpoint in endpoints)
                 _endpoints.Add(endpoint);

@@ -28,7 +28,7 @@ namespace CoreWCF.Description
         public XmlSerializerOperationBehavior(OperationDescription operation, XmlSerializerFormatAttribute attribute)
         {
             if (operation == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("operation");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operation));
             Reflector parentReflector = new Reflector(operation.DeclaringContract.Namespace, operation.DeclaringContract.ContractType);
             reflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
@@ -126,10 +126,10 @@ namespace CoreWCF.Description
         void IOperationBehavior.ApplyDispatchBehavior(OperationDescription description, DispatchOperation dispatch)
         {
             if (description == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("description");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
 
             if (dispatch == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("dispatch");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatch));
 
             if (dispatch.Formatter == null)
             {
@@ -158,10 +158,10 @@ namespace CoreWCF.Description
         void IOperationBehavior.ApplyClientBehavior(OperationDescription description, ClientOperation proxy)
         {
             if (description == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("description");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
 
             if (proxy == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("proxy");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxy));
 
             if (proxy.Formatter == null)
             {
@@ -822,11 +822,11 @@ namespace CoreWCF.Description
                 {
                     if (faultContractInfo == null)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("faultContractInfo");
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultContractInfo));
                     }
                     if (faultContractElementName == null)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("faultContractElementName");
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultContractElementName));
                     }
                     this.faultContractInfo = faultContractInfo;
                     this.serializerStub = serializerStub;

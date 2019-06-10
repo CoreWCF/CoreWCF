@@ -43,7 +43,7 @@ namespace CoreWCF.Channels
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 identityVerifier = value;
@@ -77,28 +77,6 @@ namespace CoreWCF.Channels
             }
         }
 
-        public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
-        {
-            if (context == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
-            }
-
-            context.BindingParameters.Add(this);
-            return context.BuildInnerChannelListener<TChannel>();
-        }
-
-        public override bool CanBuildChannelListener<TChannel>(BindingContext context)
-        {
-            if (context == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
-            }
-
-            context.BindingParameters.Add(this);
-            return context.CanBuildInnerChannelListener<TChannel>();
-        }
-
         public override BindingElement Clone()
         {
             return new SslStreamSecurityBindingElement(this);
@@ -108,7 +86,7 @@ namespace CoreWCF.Channels
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
             if (typeof(T) == typeof(ISecurityCapabilities))
             {

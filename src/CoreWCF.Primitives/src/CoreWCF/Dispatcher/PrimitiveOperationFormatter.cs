@@ -35,7 +35,7 @@ namespace CoreWCF.Dispatcher
         public PrimitiveOperationFormatter(OperationDescription description, bool isRpc)
         {
             if (description == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("description");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
 
             OperationFormatter.Validate(description, isRpc, false/*isEncoded*/);
 
@@ -282,7 +282,7 @@ namespace CoreWCF.Dispatcher
         public static bool IsContractSupported(OperationDescription description)
         {
             if (description == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("description");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
 
             OperationDescription operation = description;
             MessageDescription requestMessage = description.Messages[0];
@@ -383,10 +383,10 @@ namespace CoreWCF.Dispatcher
         public Message SerializeRequest(MessageVersion messageVersion, object[] parameters)
         {
             if (messageVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
 
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
 
             return Message.CreateMessage(messageVersion, GetActionHeader(messageVersion.Addressing), new PrimitiveRequestBodyWriter(parameters, this));
         }
@@ -394,10 +394,10 @@ namespace CoreWCF.Dispatcher
         public Message SerializeReply(MessageVersion messageVersion, object[] parameters, object result)
         {
             if (messageVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
 
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
 
             return Message.CreateMessage(messageVersion, GetReplyActionHeader(messageVersion.Addressing), new PrimitiveResponseBodyWriter(parameters, result, this));
         }

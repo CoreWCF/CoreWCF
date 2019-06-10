@@ -27,7 +27,7 @@ namespace CoreWCF.Dispatcher
             if (channel == null)
             {
                 Fx.Assert("ReplyChannelBinder.ReplyChannelBinder: (channel != null)");
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("channel");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channel));
             }
             this.channel = channel;
             this.listenUri = listenUri;

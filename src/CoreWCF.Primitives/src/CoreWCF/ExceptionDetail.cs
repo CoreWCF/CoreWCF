@@ -12,7 +12,7 @@ namespace CoreWCF
         {
             if (exception == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("exception");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exception));
             }
 
             HelpLink = exception.HelpLink;

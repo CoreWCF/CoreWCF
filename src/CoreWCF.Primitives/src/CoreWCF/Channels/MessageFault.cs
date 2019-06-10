@@ -174,12 +174,12 @@ namespace CoreWCF.Channels
         {
             if (writer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
 
             if (version == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             }
 
             if (version == EnvelopeVersion.Soap12)

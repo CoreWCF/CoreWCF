@@ -50,7 +50,7 @@ namespace CoreWCF.IdentityModel.Claims
         public override bool ContainsClaim(Claim claim)
         {
             if (claim == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claim");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
 
             for (int i = 0; i < claims.Count; ++i)
             {
@@ -87,9 +87,9 @@ namespace CoreWCF.IdentityModel.Claims
         protected void Initialize(ClaimSet issuer, IList<Claim> claims)
         {
             if (issuer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("issuer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuer));
             if (claims == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claims");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claims));
 
             this.issuer = issuer;
             this.claims = claims;

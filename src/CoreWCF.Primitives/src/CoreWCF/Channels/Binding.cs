@@ -28,7 +28,7 @@ namespace CoreWCF.Channels
             }
             if (ns == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("ns");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(ns));
             }
 
             if (ns.Length > 0)
@@ -83,7 +83,7 @@ namespace CoreWCF.Channels
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 if (value.Length > 0)
@@ -169,28 +169,18 @@ namespace CoreWCF.Channels
             }
         }
 
-        public virtual IChannelListener<TChannel> BuildChannelListener<TChannel>(Uri listenUriBaseAddress, string listenUriRelativeAddress, ListenUriMode listenUriMode, BindingParameterCollection parameters)
-            where TChannel : class, IChannel
-        {
-            EnsureInvariants();
-            BindingContext context = new BindingContext(new CustomBinding(this), parameters, listenUriBaseAddress, listenUriRelativeAddress, listenUriMode);
-            IChannelListener<TChannel> channelListener = context.BuildInnerChannelListener<TChannel>();
-            context.ValidateBindingElementsConsumed();
-            ValidateSecurityCapabilities(channelListener.GetProperty<ISecurityCapabilities>(), parameters);
+        // TODO: Ensure any validation logic here is executed in new pipeline
+        //public virtual IChannelListener<TChannel> BuildChannelListener<TChannel>(Uri listenUriBaseAddress, string listenUriRelativeAddress, ListenUriMode listenUriMode, BindingParameterCollection parameters)
+        //    where TChannel : class, IChannel
+        //{
+        //    EnsureInvariants();
+        //    BindingContext context = new BindingContext(new CustomBinding(this), parameters, listenUriBaseAddress, listenUriRelativeAddress, listenUriMode);
+        //    IChannelListener<TChannel> channelListener = context.BuildInnerChannelListener<TChannel>();
+        //    context.ValidateBindingElementsConsumed();
+        //    ValidateSecurityCapabilities(channelListener.GetProperty<ISecurityCapabilities>(), parameters);
 
-            return channelListener;
-        }
-
-        internal bool CanBuildChannelListener<TChannel>(params object[] parameters) where TChannel : class, IChannel
-        {
-            return CanBuildChannelListener<TChannel>(new BindingParameterCollection(parameters));
-        }
-
-        public virtual bool CanBuildChannelListener<TChannel>(BindingParameterCollection parameters) where TChannel : class, IChannel
-        {
-            BindingContext context = new BindingContext(new CustomBinding(this), parameters);
-            return context.CanBuildInnerChannelListener<TChannel>();
-        }
+        //    return channelListener;
+        //}
 
         //public CoreWCF.Channels.IChannelFactory<TChannel> BuildChannelFactory<TChannel>(params object[] parameters) { return default(CoreWCF.Channels.IChannelFactory<TChannel>); } // Client
         //public virtual CoreWCF.Channels.IChannelFactory<TChannel> BuildChannelFactory<TChannel>(CoreWCF.Channels.BindingParameterCollection parameters) { return default(CoreWCF.Channels.IChannelFactory<TChannel>); } // Client

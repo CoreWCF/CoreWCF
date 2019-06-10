@@ -22,9 +22,9 @@ namespace CoreWCF.IdentityModel.Tokens
         public RsaSecurityToken(RSA rsa, string id)
         {
             if (rsa == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("rsa");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
             if (id == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("id");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             this.rsa = rsa;
             this.id = id;
             effectiveTime = DateTime.UtcNow;

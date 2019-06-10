@@ -130,9 +130,9 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(MessageVersion version, string action, object body, XmlObjectSerializer serializer)
         {
             if (version == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             if (serializer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
             return new BodyWriterMessage(version, action, new XmlObjectSerializerBodyWriter(body, serializer));
         }
 
@@ -144,9 +144,9 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(MessageVersion version, string action, XmlDictionaryReader body)
         {
             if (body == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("body");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(body));
             if (version == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
 
             return CreateMessage(version, action, new XmlReaderBodyWriter(body, version.Envelope));
         }
@@ -154,9 +154,9 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(MessageVersion version, string action, BodyWriter body)
         {
             if (version == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             if (body == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("body");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(body));
             return new BodyWriterMessage(version, action, body);
         }
 
@@ -172,7 +172,7 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(MessageVersion version, string action)
         {
             if (version == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             return new BodyWriterMessage(version, action, EmptyBodyWriter.Value);
         }
 
@@ -191,9 +191,9 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(XmlDictionaryReader envelopeReader, int maxSizeOfHeaders, MessageVersion version)
         {
             if (envelopeReader == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("envelopeReader");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(envelopeReader));
             if (version == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             Message message = new StreamedMessage(envelopeReader, maxSizeOfHeaders, version);
             return message;
         }
@@ -256,7 +256,7 @@ namespace CoreWCF.Channels
         public T GetBody<T>(XmlObjectSerializer serializer)
         {
             if (serializer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
             return GetBodyCore<T>(GetReaderAtBodyContents(), serializer);
         }
 

@@ -40,7 +40,7 @@ namespace CoreWCF.Description
         {
             if (other == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("other");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
             }
             userName = new UserNamePasswordServiceCredential(other.userName);
             clientCertificate = new X509CertificateInitiatorServiceCredential(other.clientCertificate);
@@ -114,7 +114,7 @@ namespace CoreWCF.Description
                 ThrowIfImmutable();
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 exceptionMapper = value;
             }
@@ -153,7 +153,7 @@ namespace CoreWCF.Description
         {
             if (parameters == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
             }
             // throw if bindingParameters already has a SecurityCredentialsManager
             SecurityCredentialsManager otherCredentialsManager = parameters.Find<SecurityCredentialsManager>();

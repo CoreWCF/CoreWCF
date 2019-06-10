@@ -156,7 +156,7 @@ namespace CoreWCF.Security
         {
             if (target == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("target");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(target));
             }
             target.ChannelParts.IsBodyIncluded = ChannelParts.IsBodyIncluded;
             foreach (XmlQualifiedName headerType in ChannelParts.HeaderTypes)

@@ -90,7 +90,7 @@ namespace CoreWCF.Security
             if (_isReadOnly)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             if (specification == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("specification");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(specification));
 
             _isBodyIncluded |= specification.IsBodyIncluded;
 
@@ -178,7 +178,7 @@ namespace CoreWCF.Security
         internal bool IsHeaderIncluded(MessageHeader header)
         {
             if (header == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("header");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(header));
 
             return IsHeaderIncluded(header.Name, header.Namespace);
         }
@@ -186,9 +186,9 @@ namespace CoreWCF.Security
         internal bool IsHeaderIncluded(string name, string ns)
         {
             if (name == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             if (ns == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("ns");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(ns));
 
             if (_headerTypes != null)
             {

@@ -25,7 +25,7 @@ namespace CoreWCF
         {
             if (authorizationPolicies == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("authorizationPolicies");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
             }
             authorizationContext = null;
             this.authorizationPolicies = authorizationPolicies;
@@ -40,11 +40,11 @@ namespace CoreWCF
         {
             if (authorizationContext == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("authorizationContext");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationContext));
             }
             if (authorizationPolicies == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("authorizationPolicies");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
             }
             this.authorizationContext = authorizationContext;
             this.authorizationPolicies = authorizationPolicies;

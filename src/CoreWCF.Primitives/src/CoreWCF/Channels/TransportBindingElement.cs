@@ -78,7 +78,7 @@ namespace CoreWCF.Channels
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
 
 

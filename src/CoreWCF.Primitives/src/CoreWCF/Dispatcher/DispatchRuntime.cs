@@ -56,7 +56,7 @@ namespace CoreWCF.Dispatcher
         {
             if (endpointDispatcher == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("endpointDispatcher");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
             }
 
             this.endpointDispatcher = endpointDispatcher;
@@ -69,7 +69,7 @@ namespace CoreWCF.Dispatcher
         {
             if (proxyRuntime == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("proxyRuntime");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxyRuntime));
             }
 
             this.proxyRuntime = proxyRuntime;
@@ -548,7 +548,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
                 lock (ThisLock)
@@ -872,7 +872,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (item == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
                 outer.InvalidateRuntime();
@@ -889,7 +889,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (item == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
                 outer.InvalidateRuntime();
@@ -922,7 +922,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (item == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
                 if (item.Parent != outer)
                 {
@@ -943,7 +943,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (item == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
                 if (item.Parent != outer)
                 {
