@@ -18,10 +18,8 @@ namespace CoreWCF.Channels
     {
         HttpOutput httpOutput;
         bool errorGettingHttpInput;
-        //HttpChannelListener listener;
         SecurityMessageProperty securityProperty;
         //EventTraceActivity eventTraceActivity;
-        //HttpPipeline httpPipeline;
         //ServerWebSocketTransportDuplexSessionChannel webSocketChannel;
 
         protected HttpRequestContext(IHttpTransportFactorySettings settings, Message requestMessage)
@@ -56,10 +54,6 @@ namespace CoreWCF.Channels
         //}
 
         internal IHttpTransportFactorySettings HttpTransportSettings { get; }
-        //internal HttpChannelListener Listener
-        //{
-        //    get { return this.listener; }
-        //}
 
         //internal EventTraceActivity EventTraceActivity
         //{

@@ -23,7 +23,6 @@ namespace CoreWCF.Dispatcher
         ServiceHostBase host;
         //bool isTransactedReceive;
         //bool asynchronousTransactedAcceptEnabled;
-        //readonly IChannelListener listener;
         //int maxTransactedBatchSize;
         MessageVersion messageVersion;
         //SynchronizedChannelCollection<IChannel> pendingChannels; // app has not yet seen these.

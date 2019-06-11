@@ -182,11 +182,6 @@ namespace CoreWCF.Channels
         //    return channelListener;
         //}
 
-        //public CoreWCF.Channels.IChannelFactory<TChannel> BuildChannelFactory<TChannel>(params object[] parameters) { return default(CoreWCF.Channels.IChannelFactory<TChannel>); } // Client
-        //public virtual CoreWCF.Channels.IChannelFactory<TChannel> BuildChannelFactory<TChannel>(CoreWCF.Channels.BindingParameterCollection parameters) { return default(CoreWCF.Channels.IChannelFactory<TChannel>); } // Client
-        //public bool CanBuildChannelFactory<TChannel>(params object[] parameters) { return default(bool); }
-        //public virtual bool CanBuildChannelFactory<TChannel>(CoreWCF.Channels.BindingParameterCollection parameters) { return default(bool); }
-
         public abstract BindingElementCollection CreateBindingElements();
 
         public T GetProperty<T>(BindingParameterCollection parameters)
