@@ -30,11 +30,11 @@ namespace CoreWCF.Channels
                 Uri toUri;
                 if (to.IsAnonymous)
                 {
-                    toUri = this.messageVersion.Addressing.AnonymousUri();
+                    toUri = this.messageVersion.Addressing.AnonymousUri;
                 }
                 else if (to.IsNone)
                 {
-                    toUri = this.messageVersion.Addressing.NoneUri();
+                    toUri = this.messageVersion.Addressing.NoneUri;
                 }
                 else
                 {

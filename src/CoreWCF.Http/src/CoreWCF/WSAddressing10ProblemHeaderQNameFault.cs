@@ -23,15 +23,15 @@ namespace CoreWCF
             {
                 code = FaultCode.CreateSenderFaultCode(
                     new FaultCode(Addressing10Strings.InvalidAddressingHeader,
-                                  AddressingVersion.WSAddressing10.Namespace(),
+                                  AddressingVersion.WSAddressing10.Namespace,
                                   new FaultCode(Addressing10Strings.InvalidCardinality,
-                                                AddressingVersion.WSAddressing10.Namespace())));
+                                                AddressingVersion.WSAddressing10.Namespace)));
             }
             else
             {
                 code = FaultCode.CreateSenderFaultCode(
                     new FaultCode(Addressing10Strings.MessageAddressingHeaderRequired,
-                                  AddressingVersion.WSAddressing10.Namespace()));
+                                  AddressingVersion.WSAddressing10.Namespace));
             }
 
             reason = new FaultReason(new FaultReasonText(e.Message, CultureInfo.CurrentCulture.Name));
@@ -43,7 +43,7 @@ namespace CoreWCF
         {
             invalidHeaderName = AddressingStrings.Action;
             code = FaultCode.CreateSenderFaultCode(
-                new FaultCode(Addressing10Strings.ActionMismatch, AddressingVersion.WSAddressing10.Namespace()));
+                new FaultCode(Addressing10Strings.ActionMismatch, AddressingVersion.WSAddressing10.Namespace));
             reason = new FaultReason(new FaultReasonText(e.Message, CultureInfo.CurrentCulture.Name));
             actor = "";
             node = "";
@@ -101,8 +101,8 @@ namespace CoreWCF
 
         protected override void OnWriteDetailContents(XmlDictionaryWriter writer)
         {
-            writer.WriteStartElement(Addressing10Strings.ProblemHeaderQName, AddressingVersion.WSAddressing10.Namespace());
-            writer.WriteQualifiedName(invalidHeaderName, AddressingVersion.WSAddressing10.Namespace());
+            writer.WriteStartElement(Addressing10Strings.ProblemHeaderQName, AddressingVersion.WSAddressing10.Namespace);
+            writer.WriteQualifiedName(invalidHeaderName, AddressingVersion.WSAddressing10.Namespace);
             writer.WriteEndElement();
         }
 
@@ -130,7 +130,7 @@ namespace CoreWCF
 
             public override string Namespace
             {
-                get { return AddressingVersion.WSAddressing10.Namespace(); }
+                get { return AddressingVersion.WSAddressing10.Namespace; }
             }
 
             protected override void OnWriteStartHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)

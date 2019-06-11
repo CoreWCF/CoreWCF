@@ -45,7 +45,7 @@ namespace CoreWCF.Channels
             Addressing200408Strings.Anonymous, XD.Addressing200408Dictionary.Anonymous, null,
             Addressing200408Strings.FaultAction, Addressing200408Strings.DefaultFaultAction);
 
-        internal string Namespace { get; }
+        public string Namespace { get; }
 
         internal XmlDictionaryString DictionaryNamespace { get; }
 
@@ -53,11 +53,11 @@ namespace CoreWCF.Channels
 
         internal XmlDictionaryString DictionaryAnonymous { get; }
 
-        internal Uri AnonymousUri { get; }
+        public Uri AnonymousUri { get; }
 
-        internal Uri NoneUri { get; }
+        public Uri NoneUri { get; }
 
-        internal string FaultAction { get; } // the action for addressing faults
+        public string FaultAction { get; } // the action for addressing faults
 
         internal string DefaultFaultAction { get; } // a default string that can be used for non-addressing faults
 

@@ -200,7 +200,7 @@ namespace CoreWCF.Channels
                         (HttpTransportSettings.AnonymousUriPrefixMatcher as HttpAnonymousUriPrefixMatcher) == null ||
                         !(HttpTransportSettings.AnonymousUriPrefixMatcher as HttpAnonymousUriPrefixMatcher).IsAnonymousUri(message.Headers.To))
                     {
-                        message.Headers.To = message.Version.Addressing.AnonymousUri();
+                        message.Headers.To = message.Version.Addressing.AnonymousUri;
                     }
                 }
                 else if (message.Version.Addressing == AddressingVersion.WSAddressing10
