@@ -52,7 +52,7 @@ namespace CoreWCF.Configuration
                 if (invokeMethods.Length > 1)
                 {
                     // TODO: String resources
-                    throw new InvalidOperationException($"Resources.FormatException_UseMiddleMutlipleInvokes({OnConnectedAsyncMethodName}");
+                    throw new InvalidOperationException($"Resources.FormatException_UseMiddleMultipleInvokes({OnConnectedAsyncMethodName}");
                 }
 
                 if (invokeMethods.Length == 0)
