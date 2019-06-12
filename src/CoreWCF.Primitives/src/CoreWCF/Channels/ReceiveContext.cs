@@ -197,7 +197,7 @@ namespace CoreWCF.Channels
             finally
             {
                 // Case 1: State validation fails, release the lock.
-                // Case 2: No trasaction, the state can never be reverted, release the lock.
+                // Case 2: No transaction, the state can never be reverted, release the lock.
                 // Case 3: Transaction, keep the lock until we know the transaction outcome (OnTransactionStatusNotification).
                 if (!success /*|| Transaction.Current == null*/)
                 {
@@ -246,7 +246,7 @@ namespace CoreWCF.Channels
             finally
             {
                 // Case 1: State validation fails, release the lock.
-                // Case 2: No trasaction, the state can never be reverted, release the lock.
+                // Case 2: No transaction, the state can never be reverted, release the lock.
                 // Case 3: Transaction, keep the lock until we know the transaction outcome (OnTransactionStatusNotification).
                 if (!success /*|| Transaction.Current == null*/)
                 {
