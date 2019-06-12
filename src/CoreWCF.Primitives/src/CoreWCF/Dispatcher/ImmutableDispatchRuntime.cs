@@ -1207,7 +1207,7 @@ namespace CoreWCF.Dispatcher
         //        {
         //            if (FxTrace.Trace.IsEnd2EndActivityTracingEnabled && rpc.EventTraceActivity != null)
         //            {
-        //                // Propogate the ActivityId to the service operation
+        //                // Propagate the ActivityId to the service operation
         //                EventTraceActivityHelper.SetOnThread(rpc.EventTraceActivity);
         //            }
         //        }
