@@ -90,7 +90,7 @@ namespace CoreWCF.Dispatcher
         //{
         //    // ensure we're running at full throttle, the BeginTryReceive calls we make below on the
         //    // IChannelBinder will typically complete future calls to BeginTryReceive made by CannelHandler
-        //    // corollary to that is that most times these calls will be completed sycnhronously
+        //    // corollary to that is that most times these calls will be completed synchronously
         //    while (!this.pendingResults.IsFull)
         //    {
         //        ReceiveScopeSignalGate receiveScope = new ReceiveScopeSignalGate(this);
