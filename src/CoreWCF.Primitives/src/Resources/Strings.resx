@@ -2737,7 +2737,7 @@
   <data name = "TimeoutServiceChannelConcurrentOpen2" xml:space="preserve">
     <value>Opening the {0} channel timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name = "TimeSpanMustbeGreaterThanTimeSpanZero" xml:space="preserve">
+  <data name = "TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
     <value>TimeSpan must be greater than TimeSpan.Zero.</value>
   </data>
   <data name = "TimeSpanCannotBeLessThanTimeSpanZero" xml:space="preserve">
