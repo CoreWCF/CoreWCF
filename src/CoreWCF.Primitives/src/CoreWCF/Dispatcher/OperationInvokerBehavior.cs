@@ -38,8 +38,8 @@ namespace CoreWCF.Dispatcher
                 if (description.BeginMethod != null)
                 {
                     // both sync and async methods are present on the contract, check the preference
-                    //OperationBehaviorAttribute operationBehaviorAttribue = description.Behaviors.Find<OperationBehaviorAttribute>();
-                    //if ((operationBehaviorAttribue != null) && operationBehaviorAttribue.PreferAsyncInvocation)
+                    //OperationBehaviorAttribute operationBehaviorAttribute = description.Behaviors.Find<OperationBehaviorAttribute>();
+                    //if ((operationBehaviorAttribute != null) && operationBehaviorAttribute.PreferAsyncInvocation)
                     //{
                     //    dispatch.Invoker = new AsyncMethodInvoker(description.BeginMethod, description.EndMethod);
                     //}
