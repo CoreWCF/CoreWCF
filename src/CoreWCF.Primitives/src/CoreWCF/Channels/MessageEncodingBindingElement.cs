@@ -39,37 +39,13 @@ namespace CoreWCF.Channels
         //            return context.CanBuildInnerChannelFactory<TChannel>();
         //        }
 
-        internal IChannelListener<TChannel> InternalBuildChannelListener<TChannel>(BindingContext context)
-            where TChannel : class, IChannel
-        {
-            if (context == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
-            }
-
-            context.BindingParameters.Add(this);
-            return context.BuildInnerChannelListener<TChannel>();
-        }
-
-        internal bool InternalCanBuildChannelListener<TChannel>(BindingContext context)
-            where TChannel : class, IChannel
-        {
-            if (context == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
-            }
-
-            context.BindingParameters.Add(this);
-            return context.CanBuildInnerChannelListener<TChannel>();
-        }
-
         public abstract MessageEncoderFactory CreateMessageEncoderFactory();
 
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
             if (typeof(T) == typeof(MessageVersion))
             {

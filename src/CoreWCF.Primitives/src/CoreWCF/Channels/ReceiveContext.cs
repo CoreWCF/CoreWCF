@@ -37,7 +37,7 @@ namespace CoreWCF.Channels
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             bool result = TryGet(message.Properties, out property);
@@ -53,7 +53,7 @@ namespace CoreWCF.Channels
         {
             if (properties == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("properties");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
             property = null;

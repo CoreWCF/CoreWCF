@@ -219,23 +219,6 @@ namespace CoreWCF.Channels
                     channelType == typeof(IDuplexSessionChannel));
         }
 
-        public static Exception CantCreateListenerException(IEnumerable<Type> supportedChannels, IEnumerable<Type> requiredChannels, string bindingName)
-        {
-            string contractChannelTypesString = "";
-            string bindingChannelTypesString = "";
-
-            Exception exception = BindingContractMismatchException(supportedChannels, requiredChannels, bindingName,
-                ref contractChannelTypesString, ref bindingChannelTypesString);
-
-            if (exception == null)
-            {
-                // none of the obvious speculations about the failure holds, so we fall back to the generic error message
-                exception = new InvalidOperationException(SR.Format(SR.EndpointListenerRequirementsCannotBeMetBy3,bindingName, contractChannelTypesString, bindingChannelTypesString));
-            }
-
-            return exception;
-        }
-
         public static Exception CantCreateChannelException(IEnumerable<Type> supportedChannels, IEnumerable<Type> requiredChannels, string bindingName)
         {
             string contractChannelTypesString = "";

@@ -38,7 +38,7 @@ namespace CoreWCF.Dispatcher
                    shared)
         {
             if (dispatchRuntime == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("dispatchRuntime");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatchRuntime));
 
             this.dispatchRuntime = dispatchRuntime;
             this.shared = shared;
@@ -137,7 +137,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 InvalidateRuntime();
 
@@ -463,7 +463,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (item == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
                 outer.InvalidateRuntime();
@@ -480,7 +480,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (item == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
                 outer.InvalidateRuntime();
@@ -512,7 +512,7 @@ namespace CoreWCF.Dispatcher
             protected override void InsertItem(int index, ClientOperation item)
             {
                 if (item == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 if (item.Parent != outer)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxMismatchedOperationParent);
 
@@ -529,7 +529,7 @@ namespace CoreWCF.Dispatcher
             protected override void SetItem(int index, ClientOperation item)
             {
                 if (item == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("item");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 if (item.Parent != outer)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxMismatchedOperationParent);
 

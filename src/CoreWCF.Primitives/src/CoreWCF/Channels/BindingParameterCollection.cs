@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
         internal BindingParameterCollection(params object[] parameters)
         {
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
 
             for (int i = 0; i < parameters.Length; i++)
             {
@@ -27,7 +27,7 @@ namespace CoreWCF.Channels
         internal BindingParameterCollection(BindingParameterCollection parameters)
         {
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
 
             for (int i = 0; i < parameters.Count; i++)
             {

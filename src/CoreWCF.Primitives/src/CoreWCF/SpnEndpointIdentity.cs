@@ -44,7 +44,7 @@ namespace CoreWCF
         public SpnEndpointIdentity(string spnName)
         {
             if (spnName == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("spnName");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(spnName));
 
             base.Initialize(Claim.CreateSpnClaim(spnName));
         }
@@ -52,7 +52,7 @@ namespace CoreWCF
         public SpnEndpointIdentity(Claim identity)
         {
             if (identity == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("identity");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(identity));
 
             if (!ClaimTypes.Spn.Equals(identity.ClaimType))
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.UnrecognizedClaimTypeForIdentity, identity.ClaimType, ClaimTypes.Spn));
@@ -63,7 +63,7 @@ namespace CoreWCF
         internal override void WriteContentsTo(XmlDictionaryWriter writer)
         {
             if (writer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
 
             writer.WriteElementString(XD.AddressingDictionary.Spn, XD.AddressingDictionary.IdentityExtensionNamespace, (string)IdentityClaim.Resource);
         }

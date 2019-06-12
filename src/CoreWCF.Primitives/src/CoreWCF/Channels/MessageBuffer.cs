@@ -21,7 +21,7 @@ namespace CoreWCF.Channels
         public virtual void WriteMessage(Stream stream)
         {
             if (stream == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("stream");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
             Message message = CreateMessage();
             using (message)
             {

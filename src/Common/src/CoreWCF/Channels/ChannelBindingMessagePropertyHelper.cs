@@ -6,7 +6,7 @@
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             return TryGet(message.Properties, out property);
@@ -16,7 +16,7 @@
         {
             if (properties == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("properties");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
             property = null;
@@ -35,7 +35,7 @@
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             channelBindingProperty.AddTo(message.Properties);
@@ -47,7 +47,7 @@
             var dummy = channelBindingProperty.ChannelBinding;
             if (properties == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("properties");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
             properties.Add(ChannelBindingMessageProperty.Name, channelBindingProperty);

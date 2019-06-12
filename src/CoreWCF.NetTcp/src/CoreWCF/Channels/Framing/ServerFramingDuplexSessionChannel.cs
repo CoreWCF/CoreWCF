@@ -91,7 +91,7 @@ namespace CoreWCF.Channels.Framing
 
         protected FramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings, bool exposeConnectionProperty)
     : this(settings, new EndpointAddress(connection.ServiceDispatcher.BaseAddress), connection.Via,
-    EndpointAddress.AnonymousAddress, connection.MessageEncoder.MessageVersion.Addressing.AnonymousUri(), exposeConnectionProperty)
+    EndpointAddress.AnonymousAddress, connection.MessageEncoder.MessageVersion.Addressing.AnonymousUri, exposeConnectionProperty)
         {
             Session = FramingConnectionDuplexSession.CreateSession(this, connection.StreamUpgradeAcceptor);
         }
@@ -220,7 +220,6 @@ namespace CoreWCF.Channels.Framing
         IDuplexSession _duplexSession;
         bool _isInputSessionClosed;
         bool _isOutputSessionClosed;
-        SynchronizedMessageSource _messageSource;
         EndpointAddress _localAddress;
         ChannelBinding _channelBindingToken;
 
@@ -592,11 +591,11 @@ namespace CoreWCF.Channels.Framing
                 Uri toUri;
                 if (_to.IsAnonymous)
                 {
-                    toUri = MessageVersion.Addressing.AnonymousUri();
+                    toUri = MessageVersion.Addressing.AnonymousUri;
                 }
                 else if (_to.IsNone)
                 {
-                    toUri = MessageVersion.Addressing.NoneUri();
+                    toUri = MessageVersion.Addressing.NoneUri;
                 }
                 else
                 {

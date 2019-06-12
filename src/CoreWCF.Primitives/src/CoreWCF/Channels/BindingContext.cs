@@ -86,21 +86,6 @@ namespace CoreWCF.Channels
         }
 
         public BindingElementCollection RemainingBindingElements => _remainingBindingElements;
-        //public CoreWCF.Channels.IChannelFactory<TChannel> BuildInnerChannelFactory<TChannel>() { return default(CoreWCF.Channels.IChannelFactory<TChannel>); } // Client
-        //public bool CanBuildInnerChannelFactory<TChannel>() { return default(bool); } // Client
-
-        public IChannelListener<TChannel> BuildInnerChannelListener<TChannel>()
-            where TChannel : class, IChannel
-        {
-            return RemoveNextElement().BuildChannelListener<TChannel>(this);
-        }
-
-        public bool CanBuildInnerChannelListener<TChannel>()
-            where TChannel : class, IChannel
-        {
-            BindingContext clone = Clone();
-            return clone.RemoveNextElement().CanBuildChannelListener<TChannel>(clone);
-        }
 
         public T GetInnerProperty<T>()
             where T : class

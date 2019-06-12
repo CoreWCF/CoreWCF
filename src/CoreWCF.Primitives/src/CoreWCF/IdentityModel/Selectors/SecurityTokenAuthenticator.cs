@@ -16,7 +16,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
             return CanValidateTokenCore(token);
         }
@@ -25,7 +25,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
             if (!CanValidateToken(token))
             {

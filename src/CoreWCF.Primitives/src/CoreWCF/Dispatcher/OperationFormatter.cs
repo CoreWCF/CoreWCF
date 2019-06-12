@@ -97,7 +97,7 @@ namespace CoreWCF.Dispatcher
         public object DeserializeReply(Message message, object[] parameters)
         {
             if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
 
             if (parameters == null)
                 throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)), message);
@@ -161,7 +161,7 @@ namespace CoreWCF.Dispatcher
         public void DeserializeRequest(Message message, object[] parameters)
         {
             if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
 
             if (parameters == null)
                 throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)), message);
@@ -247,10 +247,10 @@ namespace CoreWCF.Dispatcher
             object[] parts = null;
 
             if (messageVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
 
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
             if (requestDescription.IsTypedMessage)
             {
                 TypedMessageParts typedMessageParts = new TypedMessageParts(parameters[0], requestDescription);
@@ -278,10 +278,10 @@ namespace CoreWCF.Dispatcher
             object resultPart = null;
 
             if (messageVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
 
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
 
             if (replyDescription.IsTypedMessage)
             {

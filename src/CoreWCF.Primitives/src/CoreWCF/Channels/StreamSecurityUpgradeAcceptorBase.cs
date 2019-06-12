@@ -22,7 +22,7 @@ namespace CoreWCF.Channels
         {
             if (stream == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("stream");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
             }
 
             (stream, remoteSecurity) = await OnAcceptUpgradeAsync(stream);

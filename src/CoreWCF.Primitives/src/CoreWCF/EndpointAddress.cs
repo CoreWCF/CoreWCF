@@ -87,7 +87,7 @@ namespace CoreWCF
         {
             if (uri == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("uri");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(uri));
             }
 
             Uri u = new Uri(uri);
@@ -104,7 +104,7 @@ namespace CoreWCF
         {
             if (uri == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("uri");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(uri));
             }
 
             Init(uri, identity, addressHeaders);
@@ -119,7 +119,7 @@ namespace CoreWCF
         //{
         //    if (uri == null)
         //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("uri");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(uri));
         //    }
 
         //    Init(uri, identity, headers, null, -1, -1, -1);
@@ -129,7 +129,7 @@ namespace CoreWCF
         {
             if (uri == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("uri");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(uri));
             }
 
             XmlBuffer buffer = null;
@@ -298,7 +298,7 @@ namespace CoreWCF
         public void ApplyTo(Message message)
         {
             if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
 
             Uri uri = Uri;
             if (IsAnonymous)
@@ -533,7 +533,7 @@ namespace CoreWCF
         internal static EndpointAddress ReadFrom(XmlDictionaryReader reader, out AddressingVersion version)
         {
             if (reader == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
 
             reader.ReadFullStartElement();
             reader.MoveToContent();
@@ -571,7 +571,7 @@ namespace CoreWCF
         internal static EndpointAddress ReadFrom(XmlDictionaryReader reader, XmlDictionaryString localName, XmlDictionaryString ns, out AddressingVersion version)
         {
             if (reader == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
 
             reader.ReadFullStartElement(localName, ns);
             reader.MoveToContent();
@@ -608,9 +608,9 @@ namespace CoreWCF
         //public static EndpointAddress ReadFrom(AddressingVersion addressingVersion, XmlReader reader, string localName, string ns)
         //{
         //    if (reader == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
         //    if (addressingVersion == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
 
         //    XmlDictionaryReader dictReader = XmlDictionaryReader.CreateDictionaryReader(reader);
         //    dictReader.ReadFullStartElement(localName, ns);
@@ -622,9 +622,9 @@ namespace CoreWCF
         public static EndpointAddress ReadFrom(AddressingVersion addressingVersion, XmlDictionaryReader reader)
         {
             if (reader == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
             if (addressingVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
 
             reader.ReadFullStartElement();
             EndpointAddress ea = ReadFromDriver(addressingVersion, reader);
@@ -635,9 +635,9 @@ namespace CoreWCF
         //public static EndpointAddress ReadFrom(AddressingVersion addressingVersion, XmlDictionaryReader reader, XmlDictionaryString localName, XmlDictionaryString ns)
         //{
         //    if (reader == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
         //    if (addressingVersion == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
 
         //    reader.ReadFullStartElement(localName, ns);
         //    EndpointAddress ea = ReadFromDriver(addressingVersion, reader);
@@ -839,12 +839,12 @@ namespace CoreWCF
         {
             if (writer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
 
             if (addressingVersion == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressingVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
             }
 
             if (addressingVersion == AddressingVersion.WSAddressing10)
@@ -965,7 +965,7 @@ namespace CoreWCF
         {
             if (address == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("address");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
 
             epr = address;

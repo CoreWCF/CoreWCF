@@ -66,9 +66,9 @@ namespace CoreWCF.IdentityModel.Claims
         public virtual bool ContainsClaim(Claim claim, IEqualityComparer<Claim> comparer)
         {
             if (claim == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claim");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
             if (comparer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("comparer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(comparer));
 
             IEnumerable<Claim> claims = FindClaims(null, null);
             if (claims != null)
@@ -85,7 +85,7 @@ namespace CoreWCF.IdentityModel.Claims
         public virtual bool ContainsClaim(Claim claim)
         {
             if (claim == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claim");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
 
             IEnumerable<Claim> claims = FindClaims(claim.ClaimType, claim.Right);
             if (claims != null)

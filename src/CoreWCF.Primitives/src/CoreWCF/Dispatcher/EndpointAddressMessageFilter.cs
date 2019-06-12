@@ -24,7 +24,7 @@ namespace CoreWCF.Dispatcher
         {
             if (address == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("address");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
 
             this.address = address;
@@ -63,7 +63,7 @@ namespace CoreWCF.Dispatcher
         {
             if (messageBuffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageBuffer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
             Message msg = messageBuffer.CreateMessage();
@@ -81,7 +81,7 @@ namespace CoreWCF.Dispatcher
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             // To

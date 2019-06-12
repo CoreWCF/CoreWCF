@@ -159,7 +159,7 @@ namespace CoreWCF.Channels
         {
             if (upgradeAcceptor == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("upgradeAcceptor");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(upgradeAcceptor));
             }
 
             SslStreamSecurityUpgradeAcceptor sslupgradeAcceptor = upgradeAcceptor as SslStreamSecurityUpgradeAcceptor;

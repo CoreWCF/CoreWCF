@@ -18,10 +18,8 @@ namespace CoreWCF.Channels
     {
         HttpOutput httpOutput;
         bool errorGettingHttpInput;
-        //HttpChannelListener listener;
         SecurityMessageProperty securityProperty;
         //EventTraceActivity eventTraceActivity;
-        //HttpPipeline httpPipeline;
         //ServerWebSocketTransportDuplexSessionChannel webSocketChannel;
 
         protected HttpRequestContext(IHttpTransportFactorySettings settings, Message requestMessage)
@@ -56,10 +54,6 @@ namespace CoreWCF.Channels
         //}
 
         internal IHttpTransportFactorySettings HttpTransportSettings { get; }
-        //internal HttpChannelListener Listener
-        //{
-        //    get { return this.listener; }
-        //}
 
         //internal EventTraceActivity EventTraceActivity
         //{
@@ -200,7 +194,7 @@ namespace CoreWCF.Channels
                         (HttpTransportSettings.AnonymousUriPrefixMatcher as HttpAnonymousUriPrefixMatcher) == null ||
                         !(HttpTransportSettings.AnonymousUriPrefixMatcher as HttpAnonymousUriPrefixMatcher).IsAnonymousUri(message.Headers.To))
                     {
-                        message.Headers.To = message.Version.Addressing.AnonymousUri();
+                        message.Headers.To = message.Version.Addressing.AnonymousUri;
                     }
                 }
                 else if (message.Version.Addressing == AddressingVersion.WSAddressing10

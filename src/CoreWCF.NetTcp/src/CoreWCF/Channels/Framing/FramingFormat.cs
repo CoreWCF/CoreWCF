@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CoreWCF.Channels
+namespace CoreWCF.Channels.Framing
 {
     /*
         Message Framing BNF:

@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
         {
             if (string.IsNullOrEmpty(address))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("address");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
 
             if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)

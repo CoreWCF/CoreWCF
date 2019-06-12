@@ -128,10 +128,10 @@ namespace CoreWCF.Description
         void IOperationBehavior.ApplyDispatchBehavior(OperationDescription description, DispatchOperation dispatch)
         {
             if (description == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("description");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
 
             if (dispatch == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("dispatch");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatch));
 
             if (dispatch.Formatter != null)
                 return;
@@ -146,10 +146,10 @@ namespace CoreWCF.Description
         void IOperationBehavior.ApplyClientBehavior(OperationDescription description, ClientOperation proxy)
         {
             if (description == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("description");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
 
             if (proxy == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("proxy");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxy));
 
             if (proxy.Formatter != null)
                 return;

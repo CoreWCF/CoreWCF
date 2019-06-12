@@ -31,7 +31,7 @@ namespace CoreWCF.Dispatcher
         {
             if (actions == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("actions");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actions));
             }
 
             Init(actions);
@@ -87,7 +87,7 @@ namespace CoreWCF.Dispatcher
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             return InnerMatch(message);
@@ -97,7 +97,7 @@ namespace CoreWCF.Dispatcher
         {
             if (messageBuffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageBuffer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
             Message msg = messageBuffer.CreateMessage();

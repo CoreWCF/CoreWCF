@@ -266,9 +266,9 @@ namespace CoreWCF.Channels
             public TextMessageEncoder(MessageVersion version, Encoding writeEncoding, int maxReadPoolSize, int maxWritePoolSize, XmlDictionaryReaderQuotas quotas)
             {
                 if (version == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
                 if (writeEncoding == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writeEncoding");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writeEncoding));
 
                 TextEncoderDefaults.ValidateEncoding(writeEncoding);
                 this.writeEncoding = writeEncoding;
@@ -362,7 +362,7 @@ namespace CoreWCF.Channels
             {
                 if (contentType == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contentType");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contentType));
                 }
 
                 if (base.IsContentTypeSupported(contentType))

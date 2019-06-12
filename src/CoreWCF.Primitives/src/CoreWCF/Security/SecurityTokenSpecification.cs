@@ -17,7 +17,7 @@ namespace CoreWCF.Security
             this.token = token;
             if (tokenPolicies == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenPolicies");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenPolicies));
             }
             this.tokenPolicies = tokenPolicies;
         }

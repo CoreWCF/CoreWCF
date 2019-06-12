@@ -41,7 +41,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (tokenToBeRenewed == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenToBeRenewed");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenToBeRenewed));
             }
             SecurityToken token = RenewTokenCore(timeout, tokenToBeRenewed);
             if (token == null)
@@ -55,7 +55,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (tokenToBeRenewed == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenToBeRenewed");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenToBeRenewed));
             }
             SecurityToken token = await RenewTokenCoreAsync(tokenToBeRenewed, timeout);
             if (token == null)
@@ -69,7 +69,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
             CancelTokenCore(timeout, token);
         }
@@ -78,7 +78,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
             return CancelTokenCoreAsync(token, timeout);
         }

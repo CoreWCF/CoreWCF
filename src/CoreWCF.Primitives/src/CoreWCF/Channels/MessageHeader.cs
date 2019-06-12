@@ -39,7 +39,7 @@ namespace CoreWCF.Channels
         {
             if (messageVersion == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
             }
 
             return true;
@@ -98,9 +98,9 @@ namespace CoreWCF.Channels
         public void WriteHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
             if (writer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             if (messageVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
             OnWriteStartHeader(writer, messageVersion);
             OnWriteHeaderContents(writer, messageVersion);
             writer.WriteEndElement();
@@ -109,9 +109,9 @@ namespace CoreWCF.Channels
         public void WriteStartHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
             if (writer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             if (messageVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
             OnWriteStartHeader(writer, messageVersion);
         }
 
@@ -124,9 +124,9 @@ namespace CoreWCF.Channels
         public void WriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
             if (writer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             if (messageVersion == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
             OnWriteHeaderContents(writer, messageVersion);
         }
 
@@ -181,7 +181,7 @@ namespace CoreWCF.Channels
         public static MessageHeader CreateHeader(string name, string ns, object value, XmlObjectSerializer serializer, bool mustUnderstand, string actor, bool relay)
         {
             if (serializer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
 
             return new XmlObjectSerializerHeader(name, ns, value, serializer, mustUnderstand, actor, relay);
         }
@@ -318,7 +318,7 @@ namespace CoreWCF.Channels
         {
             if (actor == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("actor");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
             }
 
             this.mustUnderstand = mustUnderstand;
@@ -353,7 +353,7 @@ namespace CoreWCF.Channels
         {
             if (null == name)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             }
 
             if (name.Length == 0)
@@ -363,7 +363,7 @@ namespace CoreWCF.Channels
 
             if (ns == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("ns");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(ns));
             }
             if (ns.Length > 0)
             {
@@ -378,7 +378,7 @@ namespace CoreWCF.Channels
         {
             if (messageVersion == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageVersion");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
             }
 
             if (messageVersion.Envelope == EnvelopeVersion.Soap12)

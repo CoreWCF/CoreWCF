@@ -26,9 +26,9 @@ namespace CoreWCF.Security
         internal bool CheckAccess(EndpointAddress reference, Message message)
         {
             if (reference == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reference");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reference));
             if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
 
             EndpointIdentity identity;
             if (!TryGetIdentity(reference, out identity))
@@ -79,7 +79,7 @@ namespace CoreWCF.Security
         {
             if (authorizationPolicies == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("authorizationPolicies");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
             }
             AuthorizationContext ac = AuthorizationContext.CreateDefaultAuthorizationContext(authorizationPolicies);
             EnsureIdentity(serviceReference, ac, SR.IdentityCheckFailedForOutgoingMessage);
@@ -89,7 +89,7 @@ namespace CoreWCF.Security
         {
             if (authorizationContext == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("authorizationContext");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationContext));
             }
             EndpointIdentity identity;
             if (!TryGetIdentity(serviceReference, out identity))
@@ -177,7 +177,7 @@ namespace CoreWCF.Security
             public override bool TryGetIdentity(EndpointAddress reference, out EndpointIdentity identity)
             {
                 if (reference == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reference");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reference));
 
                 identity = reference.Identity;
 
@@ -254,10 +254,10 @@ namespace CoreWCF.Security
                 //EventTraceActivity eventTraceActivity = null;
 
                 if (identity == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("identity");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(identity));
 
                 if (authContext == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("authContext");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authContext));
 
 
                 //if (FxTrace.Trace.IsEnd2EndActivityTracingEnabled)

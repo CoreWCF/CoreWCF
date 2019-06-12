@@ -23,7 +23,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (clauses == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("clauses");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(clauses));
             }
             this.clauses = new List<SecurityKeyIdentifierClause>(clauses.Length);
             for (int i = 0; i < clauses.Length; i++)

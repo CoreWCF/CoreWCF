@@ -232,7 +232,7 @@ namespace CoreWCF.Security
         //internal string GetEncryptionKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
         //{
         //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
         //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
         //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
@@ -244,7 +244,7 @@ namespace CoreWCF.Security
         //internal int GetEncryptionKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
         //{
         //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
         //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
         //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
@@ -261,7 +261,7 @@ namespace CoreWCF.Security
         //internal void GetKeyWrapAlgorithm(SecurityToken token, out string keyWrapAlgorithm, out XmlDictionaryString keyWrapAlgorithmDictionaryString)
         //{
         //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
         //    if (SecurityUtils.IsSupportedAlgorithm(this.DefaultSymmetricKeyWrapAlgorithm, token))
         //    {
@@ -307,7 +307,7 @@ namespace CoreWCF.Security
         //internal string GetSignatureKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
         //{
         //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
         //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
         //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
@@ -319,7 +319,7 @@ namespace CoreWCF.Security
         //internal int GetSignatureKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
         //{
         //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
         //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
         //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))

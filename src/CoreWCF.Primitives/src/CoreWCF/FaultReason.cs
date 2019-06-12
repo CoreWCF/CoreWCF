@@ -12,7 +12,7 @@ namespace CoreWCF
         public FaultReason(FaultReasonText translation)
         {
             if (translation == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("translation");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(translation));
 
             Init(translation);
         }

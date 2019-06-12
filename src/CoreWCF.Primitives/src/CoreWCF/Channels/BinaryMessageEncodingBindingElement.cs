@@ -79,7 +79,7 @@ namespace CoreWCF.Channels
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 if (value.Envelope != BinaryEncoderDefaults.EnvelopeVersion)
                 {
@@ -136,7 +136,7 @@ namespace CoreWCF.Channels
             set
             {
                 if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 value.CopyTo(readerQuotas);
             }
         }
@@ -187,17 +187,13 @@ namespace CoreWCF.Channels
             }
         }
 
-        public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
-        {
-            VerifyCompression(context);
-            SetMaxReceivedMessageSizeFromTransport(context);
-            return InternalBuildChannelListener<TChannel>(context);
-        }
-
-        public override bool CanBuildChannelListener<TChannel>(BindingContext context)
-        {
-            return InternalCanBuildChannelListener<TChannel>(context);
-        }
+        // TODO: Make sure this verifcation code is executed during pipeline build
+        //public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
+        //{
+        //    VerifyCompression(context);
+        //    SetMaxReceivedMessageSizeFromTransport(context);
+        //    return InternalBuildChannelListener<TChannel>(context);
+        //}
 
         public override BindingElement Clone()
         {
@@ -221,7 +217,7 @@ namespace CoreWCF.Channels
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
             if (typeof(T) == typeof(XmlDictionaryReaderQuotas))
             {

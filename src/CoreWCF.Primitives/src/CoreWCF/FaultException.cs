@@ -61,7 +61,7 @@ namespace CoreWCF
             : base(FaultException.GetSafeReasonText(GetReason(fault)))
         {
             if (fault == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
 
             code = fault.Code;
             reason = fault.Reason;
@@ -121,12 +121,12 @@ namespace CoreWCF
         {
             if (messageFault == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageFault");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageFault));
             }
 
             if (faultDetailTypes == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("faultDetailTypes");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultDetailTypes));
             }
             DataContractSerializerFaultFormatter faultFormatter = new DataContractSerializerFaultFormatter(faultDetailTypes);
             return faultFormatter.Deserialize(messageFault, action);

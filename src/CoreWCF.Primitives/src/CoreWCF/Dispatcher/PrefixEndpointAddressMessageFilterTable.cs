@@ -24,7 +24,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             Add((PrefixEndpointAddressMessageFilter)filter, data);
@@ -34,7 +34,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             Fx.Assert("EndpointAddressMessageFilter cannot be added to PrefixEndpointAddressMessageFilterTable");
@@ -45,7 +45,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             filters.Add(filter, data);
@@ -93,7 +93,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             PrefixEndpointAddressMessageFilter pFilter = filter as PrefixEndpointAddressMessageFilter;
@@ -109,7 +109,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             Fx.Assert("EndpointAddressMessageFilter cannot be removed from PrefixEndpointAddressMessageFilterTable");
@@ -120,7 +120,7 @@ namespace CoreWCF.Dispatcher
         {
             if (filter == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("filter");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
             if (!filters.Remove(filter))

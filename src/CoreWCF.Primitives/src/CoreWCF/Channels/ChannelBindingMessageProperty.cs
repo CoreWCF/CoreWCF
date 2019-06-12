@@ -14,7 +14,7 @@ namespace CoreWCF.Channels
 
         public ChannelBindingMessageProperty(ChannelBinding channelBinding, bool ownsCleanup)
         {
-            this.channelBinding = channelBinding ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("channelBinding");
+            this.channelBinding = channelBinding ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelBinding));
             refCount = 1;
             thisLock = new object();
             this.ownsCleanup = ownsCleanup;

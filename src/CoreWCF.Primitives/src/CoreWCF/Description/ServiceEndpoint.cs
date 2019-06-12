@@ -22,14 +22,14 @@ namespace CoreWCF.Description
         public ServiceEndpoint(ContractDescription contract)
         {
             if (contract == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contract");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
             _contract = contract;
         }
 
         public ServiceEndpoint(ContractDescription contract, Binding binding, EndpointAddress address)
         {
             if (contract == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contract");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
 
             _contract = contract;
             _binding = binding;
@@ -73,7 +73,7 @@ namespace CoreWCF.Description
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 _contract = value;
             }

@@ -89,7 +89,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 ThrowIfDisposedOrImmutable();
                 addressFilter = value;
@@ -114,7 +114,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 ThrowIfDisposedOrImmutable();
                 contractFilter = value;
@@ -250,7 +250,7 @@ namespace CoreWCF.Dispatcher
         {
             if (channelDispatcher == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("channelDispatcher");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelDispatcher));
             }
 
             if (this.channelDispatcher != null)

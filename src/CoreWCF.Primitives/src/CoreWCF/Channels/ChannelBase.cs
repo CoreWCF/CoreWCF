@@ -11,7 +11,7 @@ namespace CoreWCF.Channels
         {
             if (channelManager == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("channelManager");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelManager));
             }
 
             this.channelManager = channelManager;
@@ -67,18 +67,6 @@ namespace CoreWCF.Channels
 
         public virtual T GetProperty<T>() where T : class
         {
-            //IChannelFactory factory = this.channelManager as IChannelFactory;
-            //if (factory != null)
-            //{
-            //    return factory.GetProperty<T>();
-            //}
-
-            IChannelListener listener = channelManager as IChannelListener;
-            if (listener != null)
-            {
-                return listener.GetProperty<T>();
-            }
-
             return null;
         }
 

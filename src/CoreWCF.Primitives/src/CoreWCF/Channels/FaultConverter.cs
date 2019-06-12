@@ -17,11 +17,11 @@ namespace CoreWCF.Channels
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
             if (fault == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
             }
 
             bool created = OnTryCreateException(message, fault, out exception);

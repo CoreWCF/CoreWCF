@@ -39,9 +39,9 @@ namespace CoreWCF.Dispatcher
         internal ProxyOperationRuntime(ClientOperation operation, ImmutableClientRuntime parent)
         {
             if (operation == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("operation");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operation));
             if (parent == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parent");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
 
             _parent = parent;
             _formatter = operation.Formatter;

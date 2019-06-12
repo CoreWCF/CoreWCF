@@ -28,7 +28,7 @@ namespace CoreWCF.Channels
         public Task SendAsync(Message message, CancellationToken token)
         {
             if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
 
             if(token.IsCancellationRequested)
             {

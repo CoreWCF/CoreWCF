@@ -16,7 +16,7 @@ namespace CoreWCF.IdentityModel.Selectors
         public CustomUserNameSecurityTokenAuthenticator(UserNamePasswordValidator validator)
         {
             if (validator == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("validator");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
             this.validator = validator;
         }
 
@@ -33,7 +33,7 @@ namespace CoreWCF.IdentityModel.Selectors
             public UserNameClaimSet(string userName, string authType)
             {
                 if (userName == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("userName");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(userName));
 
                 identity = SecurityUtils.CreateIdentity(userName, authType);
 

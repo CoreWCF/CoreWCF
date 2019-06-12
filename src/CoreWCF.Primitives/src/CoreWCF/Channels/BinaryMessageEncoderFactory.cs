@@ -604,7 +604,7 @@ namespace CoreWCF.Channels
             {
                 if (bufferManager == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bufferManager");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
                 }
 
                 CompressionFormat compressionFormat = CheckContentType(contentType);
@@ -660,7 +660,7 @@ namespace CoreWCF.Channels
             {
                 if (stream == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("stream");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
                 }
 
                 CompressionFormat compressionFormat = CheckContentType(contentType);
@@ -682,12 +682,12 @@ namespace CoreWCF.Channels
             {
                 if (message == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
                 }
 
                 if (bufferManager == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bufferManager");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
                 }
 
                 if (maxMessageSize < 0)
