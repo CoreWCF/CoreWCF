@@ -44,7 +44,7 @@ namespace CoreWCF.Channels
         {
             // Supporting a passed in cancellationToken as well as honoring the timeout token in this class would require
             // creating a linked token source on every call which is extra allocation and needs disposal. As this is an 
-            // internal classs, it's okay to add this extra constraint to usage of this method.
+            // internal class, it's okay to add this extra constraint to usage of this method.
             Fx.Assert(!cancellationToken.CanBeCanceled, "cancellationToken shouldn't be cancellable");
             var cancelToken = _timeoutHelper.GetCancellationToken();
             return await base.ReadAsync(buffer, offset, count, cancelToken);
@@ -71,7 +71,7 @@ namespace CoreWCF.Channels
         {
             // Supporting a passed in cancellationToken as well as honoring the timeout token in this class would require
             // creating a linked token source on every call which is extra allocation and needs disposal. As this is an 
-            // internal classs, it's okay to add this extra constraint to usage of this method.
+            // internal class, it's okay to add this extra constraint to usage of this method.
             Fx.Assert(!cancellationToken.CanBeCanceled, "cancellationToken shouldn't be cancellable");
             var cancelToken = _timeoutHelper.GetCancellationToken();
             await base.WriteAsync(buffer, offset, count, cancelToken);
