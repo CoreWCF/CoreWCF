@@ -19,11 +19,11 @@ namespace CoreWCF.Channels
 
         public async Task<bool> WaitForMessageAsync(CancellationToken token)
         {
-            bool lockAquired = false;
+            bool lockAcquired = false;
             try
             {
                 await sourceLock.WaitAsync(token);
-                lockAquired = true;
+                lockAcquired = true;
                 return await source.WaitForMessageAsync(token);
             }
             catch (OperationCanceledException)
@@ -35,18 +35,18 @@ namespace CoreWCF.Channels
             }
             finally
             {
-                if(lockAquired)
+                if(lockAcquired)
                     sourceLock.Release();
             }
         }
 
         public async Task<Message> ReceiveAsync(CancellationToken token)
         {
-            bool lockAquired = false;
+            bool lockAcquired = false;
             try
             {
                 await sourceLock.WaitAsync(token);
-                lockAquired = true;
+                lockAcquired = true;
                 return await source.ReceiveAsync(token);
             }
             catch (OperationCanceledException)
@@ -58,7 +58,7 @@ namespace CoreWCF.Channels
             }
             finally
             {
-                if(lockAquired)
+                if(lockAcquired)
                     sourceLock.Release();
             }
         }
