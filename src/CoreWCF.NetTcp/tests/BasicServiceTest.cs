@@ -113,7 +113,7 @@ public static class BasicServiceTest
 
     //public class Startup : BaseStartup<Services.EchoService, ServiceContract.IEchoService>
     //{
-    //    public override string SerivceBaseAddress => "/BasicWcfService";
+    //    public override string ServiceBaseAddress => "/BasicWcfService";
     //    public override Binding Binding => new NetTcpBinding
     //                { Security = new CoreWCF.NetTcpSecurity
     //                    { Mode = CoreWCF.SecurityMode.None }
