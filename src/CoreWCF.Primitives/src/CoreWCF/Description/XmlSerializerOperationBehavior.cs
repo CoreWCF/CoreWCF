@@ -758,7 +758,7 @@ namespace CoreWCF.Description
 
                 XmlSerializer[] GenerateSerializers()
                 {
-                    //this.Mappings may have duplicate mappings (for e.g. samed message contract is used by more than one operation)
+                    //this.Mappings may have duplicate mappings (for e.g. same message contract is used by more than one operation)
                     //XmlSerializer.FromMappings require unique mappings. The following code uniquifies, calls FromMappings and deuniquifies
                     List<XmlMembersMapping> uniqueMappings = new List<XmlMembersMapping>();
                     int[] uniqueIndexes = new int[Mappings.Count];
