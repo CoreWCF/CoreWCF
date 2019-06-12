@@ -30,9 +30,9 @@ namespace CoreWCF.Channels
                   ITransportFactorySettings settings,
                   EndpointAddress localAddress,
                   Uri localVia,
-                  EndpointAddress remoteAddresss,
+                  EndpointAddress remoteAddress,
                   Uri via)
-                : base(manager, remoteAddresss, via, settings.ManualAddressing, settings.MessageVersion)
+                : base(manager, remoteAddress, via, settings.ManualAddressing, settings.MessageVersion)
         {
             this.localAddress = localAddress;
             this.localVia = localVia;

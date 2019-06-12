@@ -3972,7 +3972,7 @@
   <data name = "SFxSetEnableFaultsOnChannelDispatcher0" xml:space="preserve">
     <value>This property sets EnableFaults on the client. To set EnableFaults on the server, use ChannelDispatcher's EnableFaults.</value>
   </data>
-  <data name = "SFxSetManualAddresssingOnChannelDispatcher0" xml:space="preserve">
+  <data name = "SFxSetManualAddressingOnChannelDispatcher0" xml:space="preserve">
     <value>This property sets ManualAddressing on the client. To set ManualAddressing on the server, use ChannelDispatcher's ManualAddressing.</value>
   </data>
   <data name = "SFxNoBatchingForSession" xml:space="preserve">
