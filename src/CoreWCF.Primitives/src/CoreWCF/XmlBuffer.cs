@@ -67,7 +67,7 @@ namespace CoreWCF
         {
             get
             {
-                Fx.Assert(_bufferState == BufferState.Reading, "Buffer size shuold only be retrieved during Reading state");
+                Fx.Assert(_bufferState == BufferState.Reading, "Buffer size should only be retrieved during Reading state");
                 return _buffer.Length;
             }
         }
