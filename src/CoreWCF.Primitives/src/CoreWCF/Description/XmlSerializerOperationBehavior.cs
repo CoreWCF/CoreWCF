@@ -424,8 +424,8 @@ namespace CoreWCF.Description
                         key = message.MessageType.FullName + ":" + IsEncoded + ":" + IsRpc;
                     XmlMembersMapping headersMapping = LoadHeadersMapping(message, key + ":Headers");
                     info.SetHeaders(parent.generation.AddSerializer(headersMapping));
-                    MessagePartDescriptionCollection rpcEncodedTypedMessgeBodyParts;
-                    info.SetBody(parent.generation.AddSerializer(LoadBodyMapping(message, key, out rpcEncodedTypedMessgeBodyParts)), rpcEncodedTypedMessgeBodyParts);
+                    MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts;
+                    info.SetBody(parent.generation.AddSerializer(LoadBodyMapping(message, key, out rpcEncodedTypedMessageBodyParts)), rpcEncodedTypedMessageBodyParts);
                     CreateHeaderDescriptionTable(message, info, headersMapping);
                     return info;
                 }
