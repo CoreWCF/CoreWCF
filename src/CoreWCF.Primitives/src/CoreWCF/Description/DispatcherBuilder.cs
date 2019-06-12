@@ -131,49 +131,6 @@ namespace CoreWCF.Description
             return new Uri(baseUri, path);
         }
 
-        void GetBaseAndRelativeAddresses(ServiceHostBase serviceHost, Uri listenUri, string scheme, out Uri listenUriBaseAddress, out string listenUriRelativeAddress)
-        {
-            // set the ListenUri (old EndpointListener EnsureListenUri() logic)
-            listenUriBaseAddress = listenUri;
-            listenUriRelativeAddress = string.Empty;
-
-            if (serviceHost.InternalBaseAddresses.Contains(scheme))
-            {
-                Uri baseAddress = serviceHost.InternalBaseAddresses[scheme];
-                if (!baseAddress.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
-                {
-                    baseAddress = new Uri(baseAddress.AbsoluteUri + "/");
-                }
-                string baseAddressString = baseAddress.ToString();
-                string thisAddressString = listenUri.ToString();
-                if (thisAddressString.StartsWith(baseAddressString, StringComparison.OrdinalIgnoreCase))
-                {
-                    listenUriBaseAddress = baseAddress;
-                    listenUriRelativeAddress = thisAddressString.Substring(baseAddressString.Length);
-                }
-            }
-        }
-
-        //This method generates the BindingParameterCollection in the same way it is created during DispatcherBuilder.InitializeServiceHost
-        internal static BindingParameterCollection GetBindingParameters(ServiceHostBase serviceHost, Collection<ServiceEndpoint> endpoints)
-        {
-            BindingParameterCollection parameters = new BindingParameterCollection();
-            parameters.Add(new ThreadSafeMessageFilterTable<EndpointAddress>());
-
-            foreach (IServiceBehavior behavior in serviceHost.Description.Behaviors)
-            {
-                behavior.AddBindingParameters(serviceHost.Description, serviceHost, endpoints, parameters);
-            }
-
-            foreach (ServiceEndpoint endpoint in endpoints)
-            {
-                AddBindingParametersForSecurityContractInformation(endpoint, parameters);
-                AddBindingParameters(endpoint, parameters);
-            }
-
-            return parameters;
-        }
-
         internal static ListenUriInfo GetListenUriInfoForEndpoint(ServiceHostBase host, ServiceEndpoint endpoint)
         {
             Uri listenUri = EnsureListenUri(host, endpoint);
@@ -243,14 +200,6 @@ namespace CoreWCF.Description
                     AddBindingParametersForSecurityContractInformation(endpoint, parameters);
                     AddBindingParameters(endpoint, parameters);
                 }
-
-                // build IChannelListener and ChannelDispatcher
-                //IChannelListener listener;
-                //Type channelType = BuildChannelListener(stuff.Value,
-                //                                             serviceHost,
-                //                                             listenUri,
-                //                                             listenUriMode,
-                //                                             out listener);
 
                 XmlQualifiedName bindingQname = new XmlQualifiedName(binding.Name, binding.Namespace);
                 ChannelDispatcher channelDispatcher = new ChannelDispatcher(listenUri, binding, bindingQname.ToString(), binding);
@@ -561,52 +510,6 @@ namespace CoreWCF.Description
             }
         }
 
-        internal static Type[] GetSupportedChannelTypes(ContractDescription contractDescription)
-        {
-            if (contractDescription == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractDescription));
-            }
-
-            ChannelRequirements reqs;
-            ChannelRequirements.ComputeContractRequirements(contractDescription, out reqs);
-            Type[] supportedChannels = ChannelRequirements.ComputeRequiredChannels(ref reqs);
-            // supportedChannels is client-side, need to make server-side
-            for (int i = 0; i < supportedChannels.Length; i++)
-            {
-                if (supportedChannels[i] == typeof(IRequestChannel))
-                {
-                    supportedChannels[i] = typeof(IReplyChannel);
-                }
-                else if (supportedChannels[i] == typeof(IRequestSessionChannel))
-                {
-                    supportedChannels[i] = typeof(IReplySessionChannel);
-                }
-                else if (supportedChannels[i] == typeof(IOutputChannel))
-                {
-                    supportedChannels[i] = typeof(IInputChannel);
-                }
-                else if (supportedChannels[i] == typeof(IOutputSessionChannel))
-                {
-                    supportedChannels[i] = typeof(IInputSessionChannel);
-                }
-                else if (supportedChannels[i] == typeof(IDuplexChannel))
-                {
-                    // no-op; duplex is its own dual
-                }
-                else if (supportedChannels[i] == typeof(IDuplexSessionChannel))
-                {
-                    // no-op; duplex is its own dual
-                }
-                else
-                {
-                    throw Fx.AssertAndThrowFatal("DispatcherBuilder.GetSupportedChannelTypes: Unexpected channel type");
-                }
-            }
-
-            return supportedChannels;
-        }
-
         static bool HaveCommonInitiatingActions(EndpointFilterProvider x, EndpointFilterProvider y, out string commonAction)
         {
             commonAction = null;
@@ -674,50 +577,12 @@ namespace CoreWCF.Description
             return dispatchers;
         }
 
-
-        //public static Func<RequestContext, CancellationToken, Task> BuildDispatcher<TService, TContract>() where TService : class
-        //{
-        //    var serviceHost = new ServiceHostObjectModel<TService>();
-        //    // Any user supplied IServiceBehaviors can be applied now
-        //    if (!serviceHost.ReflectedContracts.TryGetValue(typeof(TContract), out ContractDescription contract))
-        //    {
-        //        throw new ArgumentException($"Service type {typeof(TService)} doesn't implement interface {typeof(TContract)}");
-        //    }
-
-        //    // TODO: Plumb through binding and endpoint address
-        //    var binding = new CustomBinding("BindingName", "BindingNS");
-        //    var endpointAddress = new EndpointAddress("http://localhost/dummy");
-        //    var serviceEndpoint = new ServiceEndpoint(contract, binding, endpointAddress);
-        //    serviceHost.Description.Endpoints.Add(serviceEndpoint);
-        //    InitializeServiceHost(serviceHost.Description, serviceHost);
-        //    //var channelDispatcher = new ChannelDispatcher("bindingName", (IDefaultCommunicationTimeouts)null);
-        //    //var endpointDispatcher = BuildEndpointDispatcher(serviceHost.Description, serviceEndpoint);
-        //    //channelDispatcher.Endpoints.Add(endpointDispatcher);
-        //    //serviceHost.ChannelDispatchers.Add(channelDispatcher);
-        //    // TODO: Add error checking to make sure property chain is correctly populated with objects
-        //    var dispatchRuntime = ((ChannelDispatcher)serviceHost.ChannelDispatchers[0]).Endpoints[0].DispatchRuntime;
-        //    return (context, token) => 
-        //    {
-        //        return DispatchAsync(context, dispatchRuntime, token);
-        //    };
-        //}
-
         public static void ApplyBindingInformationFromEndpointToDispatcher(ServiceEndpoint serviceEndpoint, EndpointDispatcher endpointDispatcher)
         {
             endpointDispatcher.ChannelDispatcher.ReceiveSynchronously = false; // No sync code for .Net Core
             endpointDispatcher.ChannelDispatcher.ManualAddressing = IsManualAddressing(serviceEndpoint.Binding);
             endpointDispatcher.ChannelDispatcher.EnableFaults = true;
             endpointDispatcher.ChannelDispatcher.MessageVersion = serviceEndpoint.Binding.MessageVersion;
-        }
-
-        public static void ApplyBindingInformationFromEndpointToClient(ServiceEndpoint serviceEndpoint, ClientRuntime behavior)
-        {
-            behavior.ManualAddressing = IsManualAddressing(serviceEndpoint.Binding);
-            behavior.EnableFaults = true;
-            if (serviceEndpoint.Contract.IsDuplex())
-            {
-                behavior.CallbackDispatchRuntime.ChannelDispatcher.MessageVersion = serviceEndpoint.Binding.MessageVersion;
-            }
         }
 
         private static bool IsManualAddressing(Binding binding)

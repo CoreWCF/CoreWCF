@@ -9,40 +9,24 @@ namespace CoreWCF.Dispatcher
 {
     class ImmutableDispatchRuntime
     {
-        //readonly AuthenticationBehavior authenticationBehavior;
-        //readonly AuthorizationBehavior authorizationBehavior;
+        readonly AuthenticationBehavior authenticationBehavior;
+        readonly AuthorizationBehavior authorizationBehavior;
         readonly int correlationCount;
         readonly ConcurrencyBehavior concurrency;
         readonly IDemuxer demuxer;
         readonly ErrorBehavior error;
         readonly bool enableFaults;
-        //readonly bool ignoreTransactionFlow;
         //readonly bool impersonateOnSerializingReply;
         readonly IInputSessionShutdown[] inputSessionShutdownHandlers;
         readonly InstanceBehavior instance;
         readonly bool isOnServer;
         readonly bool manualAddressing;
         readonly IDispatchMessageInspector[] messageInspectors;
-        //readonly IRequestReplyCorrelator requestReplyCorrelator;
         //readonly SecurityImpersonationBehavior securityImpersonation;
         readonly TerminatingOperationBehavior terminate;
         readonly ThreadBehavior thread;
-        //readonly TransactionBehavior transaction;
         //readonly bool sendAsynchronously;
 
-        //readonly MessageRpcProcessor processMessage1;
-        //readonly MessageRpcProcessor processMessage11;
-        //readonly MessageRpcProcessor processMessage2;
-        //readonly MessageRpcProcessor processMessage3;
-        //readonly MessageRpcProcessor processMessage31;
-        //readonly MessageRpcProcessor processMessage4;
-        //readonly MessageRpcProcessor processMessage41;
-        //readonly MessageRpcProcessor processMessage5;
-        //readonly MessageRpcProcessor processMessage6;
-        //readonly MessageRpcProcessor processMessage7;
-        //readonly MessageRpcProcessor processMessage8;
-        //readonly MessageRpcProcessor processMessage9;
-        //readonly MessageRpcProcessor processMessageCleanup;
         readonly MessageRpcErrorHandler processMessageNonCleanupError;
         readonly MessageRpcErrorHandler processMessageCleanupError;
 
@@ -51,17 +35,10 @@ namespace CoreWCF.Dispatcher
         // TODO: Put the ThunkCallback back in
         static Action<Task,object> onReplyCompleted = OnReplyCompletedCallback;
 
-        //bool didTraceProcessMessage1 = false;
-        //bool didTraceProcessMessage2 = false;
-        //bool didTraceProcessMessage3 = false;
-        //bool didTraceProcessMessage31 = false;
-        //bool didTraceProcessMessage4 = false;
-        //bool didTraceProcessMessage41 = false;
-
         internal ImmutableDispatchRuntime(DispatchRuntime dispatch)
         {
-            //this.authenticationBehavior = AuthenticationBehavior.TryCreate(dispatch);
-            //this.authorizationBehavior = AuthorizationBehavior.TryCreate(dispatch);
+            authenticationBehavior = AuthenticationBehavior.TryCreate(dispatch);
+            authorizationBehavior = AuthorizationBehavior.TryCreate(dispatch);
             concurrency = new ConcurrencyBehavior(dispatch);
             error = new ErrorBehavior(dispatch.ChannelDispatcher);
             enableFaults = dispatch.EnableFaults;
@@ -77,8 +54,6 @@ namespace CoreWCF.Dispatcher
             terminate = TerminatingOperationBehavior.CreateIfNecessary(dispatch);
             thread = new ThreadBehavior(dispatch);
             ValidateMustUnderstand = dispatch.ValidateMustUnderstand;
-            //this.ignoreTransactionFlow = dispatch.IgnoreTransactionMessageProperty;
-            //this.transaction = TransactionBehavior.CreateIfNeeded(dispatch);
             //sendAsynchronously = dispatch.ChannelDispatcher.SendAsynchronously;
             ParameterInspectorCorrelationOffset = (dispatch.MessageInspectors.Count +
                 dispatch.MaxCallContextInitializers);
@@ -768,15 +743,17 @@ namespace CoreWCF.Dispatcher
                 rpc.SuccessfullyIncrementedActivity = true;
             }
 
-            //if (this.authenticationBehavior != null)
-            //{
-            //    this.authenticationBehavior.Authenticate(ref rpc);
-            //}
+            // TODO: Make authenticationBehavior Async
+            if (authenticationBehavior != null)
+            {
+                authenticationBehavior.Authenticate(ref rpc);
+            }
 
-            //if (this.authorizationBehavior != null)
-            //{
-            //    this.authorizationBehavior.Authorize(ref rpc);
-            //}
+            // TODO: Make authorizationBehavior Async
+            if (authorizationBehavior != null)
+            {
+                authorizationBehavior.Authorize(ref rpc);
+            }
 
             instance.EnsureInstanceContext(ref rpc);
             // TODO: Work out what function the pending list has and re-add/replace/remove functionality
@@ -786,43 +763,8 @@ namespace CoreWCF.Dispatcher
 
             AfterReceiveRequest(ref rpc);
 
-            //if (!this.ignoreTransactionFlow)
-            //{
-            //    // Transactions need to have the context in the message
-            //    rpc.TransactionMessageProperty = TransactionMessageProperty.TryGet(rpc.Request);
-            //}
-
             rpc = await concurrency.LockInstanceAsync(rpc);
-
             rpc.SuccessfullyLockedInstance = true;
-
-            // This also needs to happen after LockInstance, in case
-            // we are using an AutoComplete=false transaction.
-            //if (this.transaction != null)
-            //{
-            //    this.transaction.ResolveTransaction(ref rpc);
-            //    if (rpc.Operation.TransactionRequired)
-            //    {
-            //        this.transaction.SetCurrent(ref rpc);
-            //    }
-            //}
-
-            //rpc.NextProcessor = processMessage4;
-
-            //if (this.transaction != null)
-            //{
-            //    if (rpc.Operation.TransactionRequired)
-            //    {
-            //        ReceiveContextRPCFacet receiveContext = rpc.ReceiveContext;
-
-            //        if (receiveContext != null)
-            //        {
-            //            rpc.ReceiveContext = null;
-            //            receiveContext.Complete(this, ref rpc, TimeSpan.MaxValue, rpc.Transaction.Current);
-            //        }
-            //    }
-            //}
-            //rpc.NextProcessor = processMessage41;
 
             try
             {
@@ -843,15 +785,16 @@ namespace CoreWCF.Dispatcher
             // in-order delivery, so we can't receive the next message until we
             // have acquired the lock.
             //
-            // This also needs to happen after BindThread, since EricZ believes
+            // This also needs to happen after BindThread based on the assumption
             // that running on UI thread should guarantee in-order delivery if
             // the SynchronizationContext is single threaded.
             // Note: for IManualConcurrencyOperationInvoker, the invoke assumes full control over pumping.
             // TODO: This is the concurrency gate. If the service is concurrent, this allows another receive to happen. This mechanism needs replacing.
-            //if (concurrency.IsConcurrent(ref rpc))
-            //{
-            //    rpc.EnsureReceive();
-            //}
+
+            if (concurrency.IsConcurrent(ref rpc))
+            {
+                rpc.EnsureReceive();
+            }
 
             instance.EnsureServiceInstance(ref rpc);
 
@@ -1141,7 +1084,7 @@ namespace CoreWCF.Dispatcher
         {
             try
             {
-                this.error.ProvideMessageFault(ref rpc);
+                error.ProvideMessageFault(ref rpc);
             }
             catch (Exception e)
             {
@@ -1150,10 +1093,10 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                this.error.HandleError(e);
+                error.HandleError(e);
             }
 
-            this.PrepareReply(ref rpc);
+            PrepareReply(ref rpc);
         }
 
         void ProcessMessageCleanupError(ref MessageRpc rpc)

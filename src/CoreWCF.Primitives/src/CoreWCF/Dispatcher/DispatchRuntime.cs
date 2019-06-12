@@ -12,9 +12,9 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchRuntime
     {
-        //ServiceAuthenticationManager serviceAuthenticationManager;
-        //ServiceAuthorizationManager serviceAuthorizationManager;
-        //ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
+        ServiceAuthenticationManager serviceAuthenticationManager;
+        ServiceAuthorizationManager serviceAuthorizationManager;
+        ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
         //AuditLogLocation securityAuditLogLocation;
         ConcurrencyMode concurrencyMode;
         bool ensureOrderedDispatch;
@@ -35,9 +35,9 @@ namespace CoreWCF.Dispatcher
         ClientRuntime proxyRuntime;
         ImmutableDispatchRuntime runtime;
         SynchronizedCollection<IInstanceContextInitializer> instanceContextInitializers;
-        //bool isExternalPoliciesSet;
-        //bool isAuthenticationManagerSet;
-        //bool isAuthorizationManagerSet;
+        bool isExternalPoliciesSet;
+        bool isAuthenticationManagerSet;
+        bool isAuthorizationManagerSet;
         SynchronizationContext synchronizationContext;
         //PrincipalPermissionMode principalPermissionMode;
         //object roleProvider;
@@ -255,56 +255,56 @@ namespace CoreWCF.Dispatcher
         //    }
         //}
 
-        //internal ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
-        //{
-        //    get
-        //    {
-        //        return this.externalAuthorizationPolicies;
-        //    }
-        //    set
-        //    {
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.externalAuthorizationPolicies = value;
-        //            this.isExternalPoliciesSet = true;
-        //        }
-        //    }
-        //}
+        internal ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
+        {
+            get
+            {
+                return externalAuthorizationPolicies;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    externalAuthorizationPolicies = value;
+                    isExternalPoliciesSet = true;
+                }
+            }
+        }
 
-        //public ServiceAuthenticationManager ServiceAuthenticationManager
-        //{
-        //    get
-        //    {
-        //        return this.serviceAuthenticationManager;
-        //    }
-        //    set
-        //    {
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.serviceAuthenticationManager = value;
-        //            this.isAuthenticationManagerSet = true;
-        //        }
-        //    }
-        //}
+        public ServiceAuthenticationManager ServiceAuthenticationManager
+        {
+            get
+            {
+                return serviceAuthenticationManager;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    serviceAuthenticationManager = value;
+                    isAuthenticationManagerSet = true;
+                }
+            }
+        }
 
-        //public ServiceAuthorizationManager ServiceAuthorizationManager
-        //{
-        //    get
-        //    {
-        //        return this.serviceAuthorizationManager;
-        //    }
-        //    set
-        //    {
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.serviceAuthorizationManager = value;
-        //            this.isAuthorizationManagerSet = true;
-        //        }
-        //    }
-        //}
+        public ServiceAuthorizationManager ServiceAuthorizationManager
+        {
+            get
+            {
+                return serviceAuthorizationManager;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    serviceAuthorizationManager = value;
+                    isAuthorizationManagerSet = true;
+                }
+            }
+        }
 
         public bool AutomaticInputSessionShutdown
         {
@@ -586,22 +586,21 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        //internal bool RequiresAuthentication
-        //{
-        //    get
-        //    {
-        //        return this.isAuthenticationManagerSet;
-        //    }
-        //}
+        internal bool RequiresAuthentication
+        {
+            get
+            {
+                return isAuthenticationManagerSet;
+            }
+        }
 
-        //internal bool RequiresAuthorization
-        //{
-        //    get
-        //    {
-        //        return (this.isAuthorizationManagerSet || this.isExternalPoliciesSet ||
-        //            AuditLevel.Success == (this.serviceAuthorizationAuditLevel & AuditLevel.Success));
-        //    }
-        //}
+        internal bool RequiresAuthorization
+        {
+            get
+            {
+                return (isAuthorizationManagerSet || isExternalPoliciesSet);
+            }
+        }
 
         internal bool HasMatchAllOperation
         {

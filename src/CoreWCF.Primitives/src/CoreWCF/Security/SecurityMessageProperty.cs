@@ -18,7 +18,7 @@ namespace CoreWCF.Security
         //SecurityTokenSpecification recipientToken;
 
         ServiceSecurityContext securityContext;
-        //ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
+
         //string senderIdPrefix = "_";
         bool disposed = false;
 
@@ -41,17 +41,7 @@ namespace CoreWCF.Security
             }
         }
 
-        //public ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
-        //{
-        //    get
-        //    {
-        //        return this.externalAuthorizationPolicies;
-        //    }
-        //    set
-        //    {
-        //        this.externalAuthorizationPolicies = value;
-        //    }
-        //}
+        public ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies { get; set; }
 
         //public SecurityTokenSpecification ProtectionToken
         //{
@@ -198,23 +188,23 @@ namespace CoreWCF.Security
             return result;
         }
 
-        //public static SecurityMessageProperty GetOrCreate(Message message)
-        //{
-        //    if (message == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+        public static SecurityMessageProperty GetOrCreate(Message message)
+        {
+            if (message == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
 
-        //    SecurityMessageProperty result = null;
-        //    if (message.Properties != null)
-        //        result = message.Properties.Security;
+            SecurityMessageProperty result = null;
+            if (message.Properties != null)
+                result = message.Properties.Security;
 
-        //    if (result == null)
-        //    {
-        //        result = new SecurityMessageProperty();
-        //        message.Properties.Security = result;
-        //    }
+            if (result == null)
+            {
+                result = new SecurityMessageProperty();
+                message.Properties.Security = result;
+            }
 
-        //    return result;
-        //}
+            return result;
+        }
 
         //void AddAuthorizationPolicies(SecurityTokenSpecification spec, Collection<IAuthorizationPolicy> policies)
         //{

@@ -68,7 +68,7 @@ namespace CoreWCF.Dispatcher
             sendAsynchronously = true;
             //this.serviceThrottle = null;
             //transactionTimeout = TimeSpan.Zero;
-            maxPendingReceives = MultipleReceiveBinder.MultipleReceiveDefaults.MaxPendingReceives;
+            maxPendingReceives = 1;
         }
 
         public string BindingName { get; }
@@ -222,7 +222,7 @@ namespace CoreWCF.Dispatcher
 
         }
 
-        // TODO: Do we ignore? Find a way to propagate? Throw?
+        // TODO: Do we need to worry about this?
         public int MaxPendingReceives
         {
             get

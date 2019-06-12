@@ -18,6 +18,7 @@ using System.Globalization;
 using CoreWCF.Channels;
 using System.DirectoryServices.ActiveDirectory;
 using CoreWCF.Runtime;
+using System.Collections.Generic;
 
 namespace CoreWCF.Security
 {

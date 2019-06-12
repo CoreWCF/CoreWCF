@@ -333,6 +333,11 @@ namespace CoreWCF.Dispatcher
             }
         }
 
+        internal void EnsureReceive()
+        {
+            RequestContext.OnOperationInvoke();
+        }
+
         bool ProcessError(Exception e)
         {
             MessageRpcErrorHandler handler = ErrorProcessor;

@@ -22,10 +22,6 @@ namespace CoreWCF.Dispatcher
 
         internal static SynchronizationContext GetCurrentSynchronizationContext()
         {
-            //if (AspNetEnvironment.IsApplicationDomainHosted())
-            //{
-            //    return null;
-            //}
             return SynchronizationContext.Current;
         }
     }

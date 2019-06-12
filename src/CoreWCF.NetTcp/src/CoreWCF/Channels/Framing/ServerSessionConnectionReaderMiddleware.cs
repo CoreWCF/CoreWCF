@@ -51,8 +51,12 @@ namespace CoreWCF.Channels.Framing
                 {
                     return; // No more messages
                 }
+                var requestContext = new DuplexRequestContext(channel, message, connection.ServiceDispatcher.Binding);
                 // TODO: Create a correctly timing out ct
-                await serviceDispatcher.DispatchAsync(new DuplexRequestContext(channel, message, connection.ServiceDispatcher.Binding), channel, CancellationToken.None);
+                // We don't await DispatchAsync because in a concurrent service we want to read the next request before the previous
+                // request has finished.
+                _ = serviceDispatcher.DispatchAsync(requestContext, channel, CancellationToken.None);
+                await requestContext.OperationDispatching;
             }
         }
 
