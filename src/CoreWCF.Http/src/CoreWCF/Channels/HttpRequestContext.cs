@@ -391,7 +391,7 @@ namespace CoreWCF.Channels
                 //try
                 //{
                 //    // TODO: Work out how to close the HttpContext
-                //    // Most likely will be some mechanism to compelte the Task returned by the RequestDelegate
+                //    // Most likely will be some mechanism to complete the Task returned by the RequestDelegate
                 //    aspNetContext.Response.Close();
                 //}
                 //catch (HttpListenerException listenerException)
