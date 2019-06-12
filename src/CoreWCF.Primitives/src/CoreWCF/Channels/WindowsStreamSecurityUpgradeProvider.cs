@@ -169,7 +169,7 @@ namespace CoreWCF.Channels
 
                 // When NegotiateStream returns a WindowsIdentity the AuthenticationType is passed in the constructor to WindowsIdentity
                 // by it's internal NegoState class.  If this changes, then the call to remoteIdentity.AuthenticationType could fail if the 
-                // current process token doesn't have sufficient priviledges.  It is a first class exception, and caught by the CLR
+                // current process token doesn't have sufficient privileges.  It is a first class exception, and caught by the CLR
                 // null is returned.
                 SecurityToken token = new WindowsSecurityToken(remoteIdentity, SecurityUniqueId.Create().Value, remoteIdentity.AuthenticationType);
                 ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = authenticator.ValidateToken(token);
