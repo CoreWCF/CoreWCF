@@ -671,7 +671,7 @@ namespace CoreWCF.Description
             {
                 Fx.Assert("bad contract inheritance");
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-                    string.Format(CultureInfo.InvariantCulture, "Bad contract inheritence. Contract {0} does not implement {1}", declaringContract.ContractType.Name, contractDescription.ContractType.Name)
+                    string.Format(CultureInfo.InvariantCulture, "Bad contract inheritance. Contract {0} does not implement {1}", declaringContract.ContractType.Name, contractDescription.ContractType.Name)
                     ));
             }
 
