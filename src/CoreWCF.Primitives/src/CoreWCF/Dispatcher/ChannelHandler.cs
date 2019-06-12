@@ -1358,7 +1358,7 @@ namespace CoreWCF.Dispatcher
         }
 
         //Return: False denotes failure, Caller should discard the request.
-        //      : True denotes operation is sucessful.
+        //      : True denotes operation is successful.
         bool TryRetrievingInstanceContextCore(RequestContext request)
         {
             bool releasePump = true;
