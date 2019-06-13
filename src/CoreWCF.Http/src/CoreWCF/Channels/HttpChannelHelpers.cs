@@ -1578,7 +1578,7 @@ namespace CoreWCF.Channels
         //    public static void ValidateDigestCredential(ref NetworkCredential credential, TokenImpersonationLevel impersonationLevel)
         //    {
         //        // this is a work-around to VSWhidbey#470545 (Since the service always uses Impersonation,
-        //        // we mitigate EOP by preemtively not allowing Identification)
+        //        // we mitigate EOP by preemptively not allowing Identification)
         //        if (!SecurityUtils.IsDefaultNetworkCredential(credential))
         //        {
         //            // With a non-default credential, Digest will not honor a client impersonation constraint of 
