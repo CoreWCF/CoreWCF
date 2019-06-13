@@ -505,7 +505,7 @@ namespace CoreWCF.Security
                 }
                 else if (tokenType == ServiceModelSecurityTokenTypes.SecureConversation)
                 {
-                    throw new PlatformNotSupportedException("SecureConverstaion");
+                    throw new PlatformNotSupportedException("SecureConversation");
                     //SecurityBindingElement securityBindingElement = ((RecipientServiceModelSecurityTokenRequirement)tokenRequirement).SecureConversationSecurityBindingElement;
                     //if (securityBindingElement != null)
                     //{
