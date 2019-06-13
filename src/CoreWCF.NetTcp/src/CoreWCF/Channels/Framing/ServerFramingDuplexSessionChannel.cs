@@ -83,8 +83,8 @@ namespace CoreWCF.Channels.Framing
         bool exposeConnectionProperty;
 
         private FramingDuplexSessionChannel(ITransportFactorySettings settings,
-            EndpointAddress localAddress, Uri localVia, EndpointAddress remoteAddresss, Uri via, bool exposeConnectionProperty)
-            : base(settings, localAddress, localVia, remoteAddresss, via)
+            EndpointAddress localAddress, Uri localVia, EndpointAddress remoteAddress, Uri via, bool exposeConnectionProperty)
+            : base(settings, localAddress, localVia, remoteAddress, via)
         {
             this.exposeConnectionProperty = exposeConnectionProperty;
         }
@@ -227,9 +227,9 @@ namespace CoreWCF.Channels.Framing
           ITransportFactorySettings settings,
           EndpointAddress localAddress,
           Uri localVia,
-          EndpointAddress remoteAddresss,
+          EndpointAddress remoteAddress,
           Uri via)
-        : base(settings, remoteAddresss, via, settings.ManualAddressing, settings.MessageVersion)
+        : base(settings, remoteAddress, via, settings.ManualAddressing, settings.MessageVersion)
         {
             LocalAddress = localAddress;
             LocalVia = localVia;
