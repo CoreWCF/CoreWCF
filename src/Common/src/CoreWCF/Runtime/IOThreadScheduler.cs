@@ -498,7 +498,7 @@ namespace CoreWCF.Runtime
                 if ((gateSnapshot & Bits.LoHiBit) == 0)
                 {
                     // Whoops, a race.  The work item hasn't made it in yet.  In this context, returning a null callback
-                    // is treated like a degenrate work item (rather than an empty queue).  The enqueuing thread will
+                    // is treated like a degenerate work item (rather than an empty queue).  The enqueuing thread will
                     // notice this race and reschedule the real work in a new slot.  Do not reset the slot to zero,
                     // since it's still going to get enqueued into.  (The enqueueing thread will reset it.)
                     callback = null;
