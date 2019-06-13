@@ -22,15 +22,15 @@ public abstract class BaseStartup<TService, TContract> where TService : class
         //Assert.False(string.IsNullOrEmpty(address));
         //string netTcplisteningUrl = "net.tcp://localhost:11808";
         //UriBuilder uriBuilder = new UriBuilder(new Uri(netTcplisteningUrl));
-        //Debug.Assert(SerivceBaseAddress.StartsWith("/"), $"{nameof(SerivceBaseAddress)} must start with /");
-        //uriBuilder.Path = SerivceBaseAddress;
+        //Debug.Assert(ServiceBaseAddress.StartsWith("/"), $"{nameof(ServiceBaseAddress)} must start with /");
+        //uriBuilder.Path = ServiceBaseAddress;
         //Uri baseAddress = uriBuilder.Uri;
         //IService service = app.UseService<TService>(baseAddress);
         //service.UseServiceEndpoint<TContract>(Binding, RelativeEndpointAddress);
         //app.UseMiddleware<ServiceModelMiddleware>(app);
     }
 
-    public abstract string SerivceBaseAddress { get; }
+    public abstract string ServiceBaseAddress { get; }
 
     public abstract Binding Binding { get; }
 

@@ -47,7 +47,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        // TODO: Consider creating platform specific package which contains windows only implementations such as NTAuthChainTruse
+        // TODO: Consider creating platform specific package which contains windows only implementations such as NTAuthChainTrust
         internal static X509CertificateValidator NTAuthChainTrust
         {
             get

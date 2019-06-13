@@ -64,7 +64,7 @@ namespace CoreWCF.Channels
         //}
 
         // Note: This method will return null in the case where throwOnError is false, and a non-fatal error occurs.
-        // Please exercice caution when passing in throwOnError = false.  This should basically only be done in error
+        // Please exercise caution when passing in throwOnError = false.  This should basically only be done in error
         // code paths, or code paths where there is very good reason that you would not want this method to throw.
         // When passing in throwOnError = false, please handle the case where this method returns null.
         public HttpInput GetHttpInput(bool throwOnError)
@@ -391,7 +391,7 @@ namespace CoreWCF.Channels
                 //try
                 //{
                 //    // TODO: Work out how to close the HttpContext
-                //    // Most likely will be some mechanism to compelte the Task returned by the RequestDelegate
+                //    // Most likely will be some mechanism to complete the Task returned by the RequestDelegate
                 //    aspNetContext.Response.Close();
                 //}
                 //catch (HttpListenerException listenerException)

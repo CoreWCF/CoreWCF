@@ -15,7 +15,7 @@ namespace CoreWCF.Channels
         public BufferedMessageWriter()
         {
             stream = new BufferManagerOutputStream(SR.MaxSentMessageSizeExceeded);
-            InitMessagePredicter();
+            InitMessagePredictor();
         }
 
         protected abstract XmlDictionaryWriter TakeXmlWriter(Stream stream);
@@ -68,7 +68,7 @@ namespace CoreWCF.Channels
         {
         }
 
-        void InitMessagePredicter()
+        void InitMessagePredictor()
         {
             sizeHistory = new int[4];
             for (int i = 0; i < sizeHistoryCount; i++)

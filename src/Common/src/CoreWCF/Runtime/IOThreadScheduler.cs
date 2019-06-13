@@ -54,9 +54,9 @@ namespace CoreWCF.Runtime
 
         readonly Slot[] slotsLowPri;
 
-        // This field holds both the head (HiWord) and tail (LoWord) indicies into the slot array.  This limits each
+        // This field holds both the head (HiWord) and tail (LoWord) indices into the slot array.  This limits each
         // value to 64k.  In order to be able to distinguish wrapping the slot array (allowed) from wrapping the
-        // indicies relative to each other (not allowed), the size of the slot array is limited by an additional bit
+        // indices relative to each other (not allowed), the size of the slot array is limited by an additional bit
         // to 32k.
         //
         // The HiWord (head) holds the index of the last slot to have been scheduled into.  The LoWord (tail) holds
@@ -498,7 +498,7 @@ namespace CoreWCF.Runtime
                 if ((gateSnapshot & Bits.LoHiBit) == 0)
                 {
                     // Whoops, a race.  The work item hasn't made it in yet.  In this context, returning a null callback
-                    // is treated like a degenrate work item (rather than an empty queue).  The enqueuing thread will
+                    // is treated like a degenerate work item (rather than an empty queue).  The enqueuing thread will
                     // notice this race and reschedule the real work in a new slot.  Do not reset the slot to zero,
                     // since it's still going to get enqueued into.  (The enqueueing thread will reset it.)
                     callback = null;
@@ -586,7 +586,7 @@ namespace CoreWCF.Runtime
                 bool found = true;
                 while (found)
                 {
-                    // The callback can be null if synchronization misses result in unsuable slots.  Keep going onto
+                    // The callback can be null if synchronization misses result in unusable slots.  Keep going onto
                     // the next slot in such cases until there are no more slots.
                     if (callback != null)
                     {

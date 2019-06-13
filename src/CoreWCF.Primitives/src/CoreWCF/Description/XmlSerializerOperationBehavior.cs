@@ -424,8 +424,8 @@ namespace CoreWCF.Description
                         key = message.MessageType.FullName + ":" + IsEncoded + ":" + IsRpc;
                     XmlMembersMapping headersMapping = LoadHeadersMapping(message, key + ":Headers");
                     info.SetHeaders(parent.generation.AddSerializer(headersMapping));
-                    MessagePartDescriptionCollection rpcEncodedTypedMessgeBodyParts;
-                    info.SetBody(parent.generation.AddSerializer(LoadBodyMapping(message, key, out rpcEncodedTypedMessgeBodyParts)), rpcEncodedTypedMessgeBodyParts);
+                    MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts;
+                    info.SetBody(parent.generation.AddSerializer(LoadBodyMapping(message, key, out rpcEncodedTypedMessageBodyParts)), rpcEncodedTypedMessageBodyParts);
                     CreateHeaderDescriptionTable(message, info, headersMapping);
                     return info;
                 }
@@ -758,7 +758,7 @@ namespace CoreWCF.Description
 
                 XmlSerializer[] GenerateSerializers()
                 {
-                    //this.Mappings may have duplicate mappings (for e.g. samed message contract is used by more than one operation)
+                    //this.Mappings may have duplicate mappings (for e.g. same message contract is used by more than one operation)
                     //XmlSerializer.FromMappings require unique mappings. The following code uniquifies, calls FromMappings and deuniquifies
                     List<XmlMembersMapping> uniqueMappings = new List<XmlMembersMapping>();
                     int[] uniqueIndexes = new int[Mappings.Count];

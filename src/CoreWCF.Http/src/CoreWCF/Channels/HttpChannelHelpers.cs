@@ -65,7 +65,7 @@ namespace CoreWCF.Channels
         }
 
         // Note: This method will return null in the case where throwOnError is false, and a non-fatal error occurs.
-        // Please exercice caution when passing in throwOnError = false.  This should basically only be done in error
+        // Please exercise caution when passing in throwOnError = false.  This should basically only be done in error
         // code paths, or code paths where there is very good reason that you would not want this method to throw.
         // When passing in throwOnError = false, please handle the case where this method returns null.
         public Stream GetInputStream(bool throwOnError)
@@ -686,7 +686,7 @@ namespace CoreWCF.Channels
             if (shouldRecycleBuffer)
             {
                 // Only set this.bufferToRecycle if the HttpOutput owns the buffer, we will clean it up upon httpOutput.Close()
-                // Otherwise, caller of SerializeBufferedMessage assumes responsiblity for returning the buffer to the buffer pool
+                // Otherwise, caller of SerializeBufferedMessage assumes responsibility for returning the buffer to the buffer pool
                 this.bufferToRecycle = result.Array;
             }
             return result;
@@ -1578,7 +1578,7 @@ namespace CoreWCF.Channels
         //    public static void ValidateDigestCredential(ref NetworkCredential credential, TokenImpersonationLevel impersonationLevel)
         //    {
         //        // this is a work-around to VSWhidbey#470545 (Since the service always uses Impersonation,
-        //        // we mitigate EOP by preemtively not allowing Identification)
+        //        // we mitigate EOP by preemptively not allowing Identification)
         //        if (!SecurityUtils.IsDefaultNetworkCredential(credential))
         //        {
         //            // With a non-default credential, Digest will not honor a client impersonation constraint of 

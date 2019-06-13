@@ -127,7 +127,7 @@ namespace CoreWCF.Security
             {
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.TimeSpanMustbeGreaterThanTimeSpanZero));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))

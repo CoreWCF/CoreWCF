@@ -400,7 +400,7 @@ namespace CoreWCF.Security
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.SspiCredential)
             {
-                // if Transport Security, AuthenicationSchemes.Basic will look at parent.UserNameAuthentication settings.
+                // if Transport Security, AuthenticationSchemes.Basic will look at parent.UserNameAuthentication settings.
                 AuthenticationSchemes authenticationScheme;
                 bool authenticationSchemeIdentified = recipientRequirement.TryGetProperty<AuthenticationSchemes>(ServiceModelSecurityTokenRequirement.HttpAuthenticationSchemeProperty, out authenticationScheme);
                 if (authenticationSchemeIdentified &&
@@ -505,7 +505,7 @@ namespace CoreWCF.Security
                 }
                 else if (tokenType == ServiceModelSecurityTokenTypes.SecureConversation)
                 {
-                    throw new PlatformNotSupportedException("SecureConverstaion");
+                    throw new PlatformNotSupportedException("SecureConversation");
                     //SecurityBindingElement securityBindingElement = ((RecipientServiceModelSecurityTokenRequirement)tokenRequirement).SecureConversationSecurityBindingElement;
                     //if (securityBindingElement != null)
                     //{

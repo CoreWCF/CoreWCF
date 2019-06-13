@@ -166,7 +166,7 @@ namespace CoreWCF.Channels
                 if (value <= TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
-                        SR.TimeSpanMustbeGreaterThanTimeSpanZero));
+                        SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))

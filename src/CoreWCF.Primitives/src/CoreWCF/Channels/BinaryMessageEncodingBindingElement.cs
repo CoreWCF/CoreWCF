@@ -187,7 +187,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        // TODO: Make sure this verifcation code is executed during pipeline build
+        // TODO: Make sure this verification code is executed during pipeline build
         //public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
         //{
         //    VerifyCompression(context);

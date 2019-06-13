@@ -402,7 +402,7 @@ namespace CoreWCF.Channels
                     return AnonymousTo10;
                 else
                     //return AnonymousTo200408;
-                    throw new PlatformNotSupportedException($"Unsupported adressing version {addressingVersion.ToString()}");
+                    throw new PlatformNotSupportedException($"Unsupported addressing version {addressingVersion.ToString()}");
             }
             else
             {
