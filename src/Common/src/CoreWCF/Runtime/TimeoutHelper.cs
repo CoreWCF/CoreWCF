@@ -280,7 +280,7 @@ namespace CoreWCF.Runtime
 
             // To prevent s_tokenCache growing too large, we have to adjust the granularity of the our coalesce depending
             // on the value of millisecondsTimeout. The coalescing span scales proportionally with millisecondsTimeout which
-            // would garentee constant s_tokenCache size in the case where similar millisecondsTimeout values are accepted.
+            // would guarantee constant s_tokenCache size in the case where similar millisecondsTimeout values are accepted.
             // If the method is given a wildly different millisecondsTimeout values all the time, the dictionary would still
             // only grow logarithmically with respect to the range of the input values
 
