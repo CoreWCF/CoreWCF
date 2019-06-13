@@ -586,7 +586,7 @@ namespace CoreWCF.Runtime
                 bool found = true;
                 while (found)
                 {
-                    // The callback can be null if synchronization misses result in unsuable slots.  Keep going onto
+                    // The callback can be null if synchronization misses result in unusable slots.  Keep going onto
                     // the next slot in such cases until there are no more slots.
                     if (callback != null)
                     {
