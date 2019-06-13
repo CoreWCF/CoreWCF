@@ -686,7 +686,7 @@ namespace CoreWCF.Channels
             if (shouldRecycleBuffer)
             {
                 // Only set this.bufferToRecycle if the HttpOutput owns the buffer, we will clean it up upon httpOutput.Close()
-                // Otherwise, caller of SerializeBufferedMessage assumes responsiblity for returning the buffer to the buffer pool
+                // Otherwise, caller of SerializeBufferedMessage assumes responsibility for returning the buffer to the buffer pool
                 this.bufferToRecycle = result.Array;
             }
             return result;
