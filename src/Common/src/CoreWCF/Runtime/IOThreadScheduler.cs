@@ -54,9 +54,9 @@ namespace CoreWCF.Runtime
 
         readonly Slot[] slotsLowPri;
 
-        // This field holds both the head (HiWord) and tail (LoWord) indicies into the slot array.  This limits each
+        // This field holds both the head (HiWord) and tail (LoWord) indices into the slot array.  This limits each
         // value to 64k.  In order to be able to distinguish wrapping the slot array (allowed) from wrapping the
-        // indicies relative to each other (not allowed), the size of the slot array is limited by an additional bit
+        // indices relative to each other (not allowed), the size of the slot array is limited by an additional bit
         // to 32k.
         //
         // The HiWord (head) holds the index of the last slot to have been scheduled into.  The LoWord (tail) holds
