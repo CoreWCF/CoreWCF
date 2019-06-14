@@ -223,15 +223,15 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void BeforeSendReply(ref MessageRpc rpc, ref Exception exception, ref bool thereIsAnUnhandledException)
+        void BeforeSendReply(MessageRpc rpc, ref Exception exception, ref bool thereIsAnUnhandledException)
         {
             if (messageInspectors.Length > 0)
             {
-                BeforeSendReplyCore(ref rpc, ref exception, ref thereIsAnUnhandledException);
+                BeforeSendReplyCore(rpc, ref exception, ref thereIsAnUnhandledException);
             }
         }
 
-        internal void BeforeSendReplyCore(ref MessageRpc rpc, ref Exception exception, ref bool thereIsAnUnhandledException)
+        internal void BeforeSendReplyCore(MessageRpc rpc, ref Exception exception, ref bool thereIsAnUnhandledException)
         {
             int offset = MessageInspectorCorrelationOffset;
             for (int i = 0; i < messageInspectors.Length; i++)
@@ -372,7 +372,9 @@ namespace CoreWCF.Dispatcher
         {
             rpc.ErrorProcessor = processMessageNonCleanupError;
             rpc.AsyncProcessor = ProcessMessageAsync;
-            return rpc.ProcessAsync(isOperationContextSet);
+            var task = rpc.ProcessAsync(isOperationContextSet);
+            rpc._processCallReturned = true;
+            return task;
         }
 
         //        void EndFinalizeCorrelation(ref MessageRpc rpc)
@@ -459,9 +461,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal bool IsConcurrent(ref MessageRpc rpc)
+        internal bool IsConcurrent(MessageRpc rpc)
         {
-            return concurrency.IsConcurrent(ref rpc);
+            return concurrency.IsConcurrent(rpc);
         }
 
         internal void InputSessionFaulted(ServiceChannel channel)
@@ -556,7 +558,7 @@ namespace CoreWCF.Dispatcher
             resume.Resume(result);
         }
 
-        void PrepareReply(ref MessageRpc rpc)
+        void PrepareReply(MessageRpc rpc)
         {
             RequestContext context = rpc.OperationContext.RequestContext;
             Exception exception = null;
@@ -604,7 +606,7 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
-            BeforeSendReply(ref rpc, ref exception, ref thereIsAnUnhandledException);
+            BeforeSendReply(rpc, ref exception, ref thereIsAnUnhandledException);
 
             if (rpc.Operation.IsOneWay)
             {
@@ -737,7 +739,7 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
-            if (concurrency.IsConcurrent(ref rpc))
+            if (concurrency.IsConcurrent(rpc))
             {
                 rpc.Channel.IncrementActivity();
                 rpc.SuccessfullyIncrementedActivity = true;
@@ -763,7 +765,7 @@ namespace CoreWCF.Dispatcher
 
             AfterReceiveRequest(ref rpc);
 
-            rpc = await concurrency.LockInstanceAsync(rpc);
+            await concurrency.LockInstanceAsync(rpc);
             rpc.SuccessfullyLockedInstance = true;
 
             try
@@ -791,9 +793,15 @@ namespace CoreWCF.Dispatcher
             // Note: for IManualConcurrencyOperationInvoker, the invoke assumes full control over pumping.
             // TODO: This is the concurrency gate. If the service is concurrent, this allows another receive to happen. This mechanism needs replacing.
 
-            if (concurrency.IsConcurrent(ref rpc))
+            if (concurrency.IsConcurrent(rpc))
             {
                 rpc.EnsureReceive();
+                if(!rpc._processCallReturned)
+                {
+                    // To allow transport receive loop to get next request, the call to dispatch the current message needs to return.
+                    // If all previous await's have completed synchronously, execution needs to be forced to continue on another thread.
+                    await Task.Yield();
+                }
             }
 
             instance.EnsureServiceInstance(ref rpc);
@@ -838,7 +846,7 @@ namespace CoreWCF.Dispatcher
 
             try
             {
-                error.ProvideMessageFault(ref rpc);
+                error.ProvideMessageFault(rpc);
             }
             catch (Exception e)
             {
@@ -850,7 +858,7 @@ namespace CoreWCF.Dispatcher
                 error.HandleError(e);
             }
 
-            PrepareReply(ref rpc);
+            PrepareReply(rpc);
 
             if (rpc.CanSendReply)
             {
@@ -1076,15 +1084,21 @@ namespace CoreWCF.Dispatcher
                 //}
             }
 
-            error.HandleError(ref rpc);
+            error.HandleError(rpc);
+
+            if (!concurrency.IsConcurrent(rpc))
+            {
+                rpc.EnsureReceive();
+            }
+
             return rpc;
         }
 
-        void ProcessMessageNonCleanupError(ref MessageRpc rpc)
+        void ProcessMessageNonCleanupError(MessageRpc rpc)
         {
             try
             {
-                error.ProvideMessageFault(ref rpc);
+                error.ProvideMessageFault(rpc);
             }
             catch (Exception e)
             {
@@ -1096,12 +1110,12 @@ namespace CoreWCF.Dispatcher
                 error.HandleError(e);
             }
 
-            PrepareReply(ref rpc);
+            PrepareReply(rpc);
         }
 
-        void ProcessMessageCleanupError(ref MessageRpc rpc)
+        void ProcessMessageCleanupError(MessageRpc rpc)
         {
-            error.HandleError(ref rpc);
+            error.HandleError(rpc);
         }
 
         //        void ResolveTransactionOutcome(ref MessageRpc rpc)

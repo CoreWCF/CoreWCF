@@ -14,9 +14,11 @@ using System.Diagnostics;
 namespace CoreWCF.Dispatcher
 {
     delegate Task<MessageRpc> MessageRpcProcessor(MessageRpc rpc);
-    delegate void MessageRpcErrorHandler(ref MessageRpc rpc);
+    delegate void MessageRpcErrorHandler(MessageRpc rpc);
 
-    struct MessageRpc
+    // TODO: Pool MessageRpc objects. These are zero cost on .NET Framework as it's a struct but passing things by ref is problematic
+    // when using async/await. This causes an allocation per request so pool them to remove that allocation.
+    class MessageRpc
     {
         internal readonly ServiceChannel Channel;
         //internal readonly ChannelHandler channelHandler;
@@ -61,6 +63,7 @@ namespace CoreWCF.Dispatcher
         //internal IAspNetMessageProperty HostingProperty;
         //internal MessageRpcInvokeNotification InvokeNotification;
         //internal EventTraceActivity EventTraceActivity;
+        internal bool _processCallReturned;
 
         bool paused;
         bool switchedThreads;
@@ -372,7 +375,7 @@ namespace CoreWCF.Dispatcher
 
                 if (ErrorProcessor != null)
                 {
-                    ErrorProcessor(ref this);
+                    ErrorProcessor(this);
                 }
 
                 return (Error == null);
@@ -490,7 +493,7 @@ namespace CoreWCF.Dispatcher
                     contextHolder.Context = OperationContext;
                 }
 
-                this = await AsyncProcessor(this);
+                await AsyncProcessor(this);
 
                 OperationContext.SetClientReply(null, false);
             }

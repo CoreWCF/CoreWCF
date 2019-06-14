@@ -11,11 +11,12 @@ using System.Collections.Generic;
 using System.ServiceModel.Channels;
 using System.Text;
 using Xunit;
+using System.Threading;
 
 public static class ConnectionHandlerTests
 {
     [Fact]
-    public static void NetTcpClientConnection()
+    public static void SimpleNetTcpClientConnection()
     {
         string testString = new string('a', 3000);
         var host = CreateWebHostBuilder(new string[0]).Build();
@@ -23,7 +24,7 @@ public static class ConnectionHandlerTests
         {
             host.Start();
             var binding = new System.ServiceModel.NetTcpBinding();
-            var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(binding,
+            var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                 new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
             var channel = factory.CreateChannel();
             ((IChannel)channel).Open();
@@ -31,6 +32,27 @@ public static class ConnectionHandlerTests
             Assert.Equal(testString, result);
         }
     }
+
+    [Fact]
+    public static void ConcurrentNetTcpClientConnection()
+    {
+        string testString = new string('a', 3000);
+        var host = CreateWebHostBuilder(new string[0]).Build();
+        using (host)
+        {
+            host.Start();
+            var binding = new System.ServiceModel.NetTcpBinding();
+            var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
+            var channel = factory.CreateChannel();
+            ((IChannel)channel).Open();
+            var resultTask = channel.WaitForSecondRequestAsync();
+            channel.SecondRequest();
+            var waitResult = resultTask.GetAwaiter().GetResult();
+            Assert.True(waitResult, "SecondRequest wasn't executed concurrently");
+        }
+    }
+
 
     public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
         WebHost.CreateDefaultBuilder(args)
@@ -49,8 +71,8 @@ public static class ConnectionHandlerTests
         {
             app.UseServiceModel(builder =>
             {
-                builder.AddService<Services.EchoService>();
-                builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(new CoreWCF.NetTcpBinding(), "/nettcp.svc");
+                builder.AddService<Services.TestService>();
+                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(), "/nettcp.svc");
             });
             app.Run(async (context) =>
             {

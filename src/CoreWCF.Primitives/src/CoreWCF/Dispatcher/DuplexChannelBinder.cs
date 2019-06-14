@@ -51,6 +51,7 @@ namespace CoreWCF.Dispatcher
 
             this.channel = channel;
             this.listenUri = listenUri;
+            this.correlator = correlator;
             this.channel.Faulted += new EventHandler(OnFaulted);
             initialized = true;
         }

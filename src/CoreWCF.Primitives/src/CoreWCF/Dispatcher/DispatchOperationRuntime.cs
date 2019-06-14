@@ -426,7 +426,7 @@ namespace CoreWCF.Dispatcher
                     //IDisposable impersonationContext = null;
                     //IPrincipal originalPrincipal = null;
                     //bool isThreadPrincipalSet = false;
-                    bool isConcurrent = Parent.IsConcurrent(ref rpc);
+                    bool isConcurrent = Parent.IsConcurrent(rpc);
 
                     //try
                     //{

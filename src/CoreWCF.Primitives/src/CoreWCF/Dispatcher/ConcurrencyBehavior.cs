@@ -18,7 +18,7 @@ namespace CoreWCF.Dispatcher
             //this.supportsTransactedBatch = ConcurrencyBehavior.SupportsTransactedBatch(runtime.ChannelDispatcher);
         }
 
-        internal bool IsConcurrent(ref MessageRpc rpc)
+        internal bool IsConcurrent(MessageRpc rpc)
         {
             return IsConcurrent(concurrencyMode, enforceOrderedReceive, rpc.Channel.HasSession/*, this.supportsTransactedBatch*/);
         }
@@ -83,7 +83,7 @@ namespace CoreWCF.Dispatcher
             return false;
         }
 
-        internal async Task<MessageRpc> LockInstanceAsync(MessageRpc rpc)
+        internal async Task LockInstanceAsync(MessageRpc rpc)
         {
             if (concurrencyMode != ConcurrencyMode.Multiple)
             {
@@ -106,13 +106,12 @@ namespace CoreWCF.Dispatcher
                     await resource.EnqueueNewMessage();
                 }
 
+                // TODO: Throw this on setup
                 if (concurrencyMode == ConcurrencyMode.Reentrant)
                 {
-                    rpc.OperationContext.IsServiceReentrant = true;
+                    throw new NotSupportedException(nameof(ConcurrencyMode.Reentrant));
                 }
             }
-
-            return rpc;
         }
 
         internal void UnlockInstance(ref MessageRpc rpc)
