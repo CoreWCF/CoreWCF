@@ -29,7 +29,6 @@ namespace CoreWCF.Dispatcher
         IInstanceContextProvider instanceContextProvider;
         InstanceContext singleton;
         bool ignoreTransactionMessageProperty;
-        SynchronizedCollection<IDispatchMessageInspector> messageInspectors;
         OperationCollection operations;
         IDispatchOperationSelector operationSelector;
         ClientRuntime proxyRuntime;
@@ -43,36 +42,22 @@ namespace CoreWCF.Dispatcher
         //object roleProvider;
         Type type;
         DispatchOperation unhandled;
-        //bool transactionAutoCompleteOnSessionClose;
         //bool impersonateCallerForAllOperations;
         //bool impersonateOnSerializingReply;
-        //bool releaseServiceInstanceOnTransactionComplete;
         SharedRuntimeState shared;
         bool preserveMessage;
-        //bool requireClaimsPrincipalOnOperationContext;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
         {
-            if (endpointDispatcher == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
-            }
-
-            this.endpointDispatcher = endpointDispatcher;
-
+            this.endpointDispatcher = endpointDispatcher ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
             Fx.Assert(shared.IsOnServer, "Server constructor called on client?");
         }
 
         internal DispatchRuntime(ClientRuntime proxyRuntime, SharedRuntimeState shared)
             : this(shared)
         {
-            if (proxyRuntime == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxyRuntime));
-            }
-
-            this.proxyRuntime = proxyRuntime;
+            this.proxyRuntime = proxyRuntime ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxyRuntime));
             instanceProvider = new CallbackInstanceProvider();
             channelDispatcher = new ChannelDispatcher(shared);
             instanceContextProvider = InstanceContextProviderBase.GetProviderForMode(InstanceContextMode.PerSession, this);
@@ -87,17 +72,12 @@ namespace CoreWCF.Dispatcher
             operations = new OperationCollection(this);
 
             inputSessionShutdownHandlers = NewBehaviorCollection<IInputSessionShutdown>();
-            messageInspectors = NewBehaviorCollection<IDispatchMessageInspector>();
+            MessageInspectors = NewBehaviorCollection<IDispatchMessageInspector>();
             instanceContextInitializers = NewBehaviorCollection<IInstanceContextInitializer>();
             synchronizationContext = ThreadBehavior.GetCurrentSynchronizationContext();
 
             automaticInputSessionShutdown = true;
             //this.principalPermissionMode = ServiceAuthorizationBehavior.DefaultPrincipalPermissionMode;
-
-            //this.securityAuditLogLocation = ServiceSecurityAuditBehavior.defaultAuditLogLocation;
-            //this.suppressAuditFailure = ServiceSecurityAuditBehavior.defaultSuppressAuditFailure;
-            //this.serviceAuthorizationAuditLevel = ServiceSecurityAuditBehavior.defaultServiceAuthorizationAuditLevel;
-            //this.messageAuthenticationAuditLevel = ServiceSecurityAuditBehavior.defaultMessageAuthenticationAuditLevel;
 
             unhandled = new DispatchOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
             unhandled.InternalFormatter = MessageOperationFormatter.Instance;
@@ -175,85 +155,6 @@ namespace CoreWCF.Dispatcher
                 }
             }
         }
-
-        //public AuditLogLocation SecurityAuditLogLocation
-        //{
-        //    get
-        //    {
-        //        return this.securityAuditLogLocation;
-        //    }
-        //    set
-        //    {
-        //        if (!AuditLogLocationHelper.IsDefined(value))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
-        //        }
-
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.securityAuditLogLocation = value;
-        //        }
-        //    }
-        //}
-
-        //public bool SuppressAuditFailure
-        //{
-        //    get
-        //    {
-        //        return this.suppressAuditFailure;
-        //    }
-        //    set
-        //    {
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.suppressAuditFailure = value;
-        //        }
-        //    }
-        //}
-
-        //public AuditLevel ServiceAuthorizationAuditLevel
-        //{
-        //    get
-        //    {
-        //        return this.serviceAuthorizationAuditLevel;
-        //    }
-        //    set
-        //    {
-        //        if (!AuditLevelHelper.IsDefined(value))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
-        //        }
-
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.serviceAuthorizationAuditLevel = value;
-        //        }
-        //    }
-        //}
-
-        //public AuditLevel MessageAuthenticationAuditLevel
-        //{
-        //    get
-        //    {
-        //        return this.messageAuthenticationAuditLevel;
-        //    }
-        //    set
-        //    {
-        //        if (!AuditLevelHelper.IsDefined(value))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
-        //        }
-
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.messageAuthenticationAuditLevel = value;
-        //        }
-        //    }
-        //}
 
         internal ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
         {
@@ -380,22 +281,6 @@ namespace CoreWCF.Dispatcher
         //    }
         //}
 
-        //internal bool RequireClaimsPrincipalOnOperationContext
-        //{
-        //    get
-        //    {
-        //        return this.requireClaimsPrincipalOnOperationContext;
-        //    }
-        //    set
-        //    {
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.requireClaimsPrincipalOnOperationContext = value;
-        //        }
-        //    }
-        //}
-
         internal SynchronizedCollection<IInputSessionShutdown> InputSessionShutdownHandlers
         {
             get { return inputSessionShutdownHandlers; }
@@ -427,10 +312,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public SynchronizedCollection<IDispatchMessageInspector> MessageInspectors
-        {
-            get { return messageInspectors; }
-        }
+        public SynchronizedCollection<IDispatchMessageInspector> MessageInspectors { get; }
 
         public SynchronizedKeyedCollection<string, DispatchOperation> Operations
         {

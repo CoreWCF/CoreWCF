@@ -25,7 +25,7 @@ namespace CoreWCF.Dispatcher
         //bool asynchronousTransactedAcceptEnabled;
         //int maxTransactedBatchSize;
         MessageVersion messageVersion;
-        //SynchronizedChannelCollection<IChannel> pendingChannels; // app has not yet seen these.
+        SynchronizedChannelCollection<IChannel> pendingChannels; // app has not yet seen these.
         bool receiveSynchronously;
         bool sendAsynchronously;
         int maxPendingReceives;
@@ -111,6 +111,11 @@ namespace CoreWCF.Dispatcher
             get { return filterTable; }
         }
 
+        internal CommunicationObjectManager<IChannel> Channels
+        {
+            get { return channels; }
+        }
+
         public SynchronizedCollection<EndpointDispatcher> Endpoints
         {
             get { return endpointDispatchers; }
@@ -149,19 +154,6 @@ namespace CoreWCF.Dispatcher
             set;
         }
 
-        // TODO: Decide: Remove API/Make API do nothing/throw PNSE
-        public int MaxTransactedBatchSize
-        {
-            get
-            {
-                throw new PlatformNotSupportedException();
-            }
-            set
-            {
-                throw new PlatformNotSupportedException();
-            }
-        }
-
         //public ServiceThrottle ServiceThrottle
         //{
         //    get
@@ -183,6 +175,11 @@ namespace CoreWCF.Dispatcher
                 ThrowIfDisposedOrImmutable();
                 shared.ManualAddressing = value;
             }
+        }
+
+        internal SynchronizedChannelCollection<IChannel> PendingChannels
+        {
+            get { return pendingChannels; }
         }
 
         public bool ReceiveSynchronously

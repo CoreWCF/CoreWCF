@@ -422,7 +422,6 @@ namespace CoreWCF.Dispatcher
 
                     ValidateMustUnderstand(ref rpc);
 
-                    //IAsyncResult result = null;
                     //IDisposable impersonationContext = null;
                     //IPrincipal originalPrincipal = null;
                     //bool isThreadPrincipalSet = false;
@@ -430,32 +429,17 @@ namespace CoreWCF.Dispatcher
 
                     //try
                     //{
-                    if (parent.RequireClaimsPrincipalOnOperationContext)
-                    {
-                        SetClaimsPrincipalToOperationContext(rpc);
-                    }
-
                     //if (this.parent.SecurityImpersonation != null)
                     //{
                     //    this.parent.SecurityImpersonation.StartImpersonation(ref rpc, out impersonationContext, out originalPrincipal, out isThreadPrincipalSet);
                     //}
-                    //IManualConcurrencyOperationInvoker manualInvoker = this.Invoker as IManualConcurrencyOperationInvoker;
-
+                    if (parent.SecurityImpersonation != null)
+                    {
+                        parent.SecurityImpersonation
+                    }
                     if (isSynchronous)
                     {
-                        //if (manualInvoker != null && isConcurrent)
-                        //{
-                        //    if (this.bufferedReceiveEnabled)
-                        //    {
-                        //        rpc.OperationContext.IncomingMessageProperties.Add(
-                        //            BufferedReceiveMessageProperty.Name, new BufferedReceiveMessageProperty(ref rpc));
-                        //    }
-                        //    rpc.ReturnParameter = manualInvoker.Invoke(target, rpc.InputParameters, rpc.InvokeNotification, out rpc.OutputParameters);
-                        //}
-                        //else
-                        //{
                         rpc.ReturnParameter = Invoker.Invoke(target, rpc.InputParameters, out rpc.OutputParameters);
-                        //}
                     }
                     else
                     {
@@ -498,41 +482,6 @@ namespace CoreWCF.Dispatcher
             }
 
             return rpc;
-        }
-
-        void SetClaimsPrincipalToOperationContext(MessageRpc rpc)
-        {
-            // TODO: Reenable this code
-
-            //ServiceSecurityContext securityContext = rpc.SecurityContext;
-            //if (!rpc.HasSecurityContext)
-            //{
-            //    SecurityMessageProperty securityContextProperty = rpc.Request.Properties.Security;
-            //    if (securityContextProperty != null)
-            //    {
-            //        securityContext = securityContextProperty.ServiceSecurityContext;
-            //    }
-            //}
-
-            //if (securityContext != null)
-            //{
-            //    object principal;
-            //    if (securityContext.AuthorizationContext.Properties.TryGetValue(AuthorizationPolicy.ClaimsPrincipalKey, out principal))
-            //    {
-            //        ClaimsPrincipal claimsPrincipal = principal as ClaimsPrincipal;
-            //        if (claimsPrincipal != null)
-            //        {
-            //            //
-            //            // Always set ClaimsPrincipal to OperationContext.Current if identityModel pipeline is used.
-            //            //
-            //            OperationContext.Current.ClaimsPrincipal = claimsPrincipal;
-            //        }
-            //        else
-            //        {
-            //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.NoPrincipalSpecifiedInAuthorizationContext));
-            //        }
-            //    }
-            //}
         }
 
         void SerializeOutputs(ref MessageRpc rpc)

@@ -17,11 +17,19 @@ namespace CoreWCF.Dispatcher
     {
         public static readonly TimeSpan CloseAfterFaultTimeout = TimeSpan.FromSeconds(10);
         public const string MessageBufferPropertyName = "_RequestMessageBuffer_";
+        ServiceChannel _channel;
 
         internal bool HasRegisterBeenCalled
         {
             get { return false; }
         }
+
+        internal InstanceContext InstanceContext
+        {
+            get { return (_channel != null) ? _channel.InstanceContext : null; }
+        }
+
+        internal ServiceThrottle InstanceContextServiceThrottle { get; set; }
 
         struct RequestInfo
         {

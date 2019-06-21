@@ -150,11 +150,13 @@ namespace CoreWCF.Dispatcher
             return true;
         }
 
-        internal void EnsureInstanceContext(ref MessageRpc rpc)
+        internal void EnsureInstanceContext(MessageRpc rpc)
         {
             if (rpc.InstanceContext == null)
             {
                 rpc.InstanceContext = new InstanceContext(rpc.Host, false);
+                rpc.InstanceContext.ServiceThrottle = rpc.channelHandler.InstanceContextServiceThrottle;
+                rpc.MessageRpcOwnsInstanceContextThrottle = false;
             }
 
             rpc.OperationContext.SetInstanceContext(rpc.InstanceContext);
@@ -171,7 +173,7 @@ namespace CoreWCF.Dispatcher
                     }
                 }
             }
-            rpc.InstanceContext.BindRpc(ref rpc);
+            rpc.InstanceContext.BindRpc(rpc);
         }
 
         static ConstructorInfo GetConstructor(Type type)
@@ -219,7 +221,7 @@ namespace CoreWCF.Dispatcher
                 initializers[i].Initialize(instanceContext, message);
         }
 
-        internal void EnsureServiceInstance(ref MessageRpc rpc)
+        internal void EnsureServiceInstance(MessageRpc rpc)
         {
             if (rpc.Operation.ReleaseInstanceBeforeCall)
             {

@@ -21,7 +21,7 @@ namespace CoreWCF.Dispatcher
     class MessageRpc
     {
         internal readonly ServiceChannel Channel;
-        //internal readonly ChannelHandler channelHandler;
+        internal readonly ChannelHandler channelHandler;
         internal readonly object[] Correlation;
         internal readonly ServiceHostBase Host;
         internal readonly OperationContext OperationContext;
@@ -43,6 +43,7 @@ namespace CoreWCF.Dispatcher
         internal ErrorHandlerFaultInfo FaultInfo;
         internal bool HasSecurityContext;
         internal object Instance;
+        internal bool MessageRpcOwnsInstanceContextThrottle;
         internal MessageRpcProcessor AsyncProcessor;
         internal Collection<MessageHeaderInfo> NotUnderstoodHeaders;
         internal DispatchOperationRuntime Operation;

@@ -21,8 +21,7 @@ namespace CoreWCF
         private ConcurrencyInstanceContextFacet _concurrency;
         private ExtensionCollection<InstanceContext> _extensions;
         private readonly ServiceHostBase _host;
-        //QuotaThrottle quotaThrottle;
-        //ServiceThrottle serviceThrottle;
+        ServiceThrottle serviceThrottle;
         private int _instanceContextManagerIndex;
         //int instanceContextManagerIndex;
         private object _serviceInstanceLock = new object();
@@ -204,7 +203,25 @@ namespace CoreWCF
                 return _host;
             }
         }
-        
+
+        public int ManualFlowControlLimit
+        {
+            get => EnsureQuotaThrottle().Limit;
+            set => EnsureQuotaThrottle().SetLimit(value);
+        }
+
+        internal QuotaThrottle QuotaThrottle { get; private set; }
+
+        internal ServiceThrottle ServiceThrottle
+        {
+            get { return serviceThrottle; }
+            set
+            {
+                ThrowIfDisposed();
+                serviceThrottle = value;
+            }
+        }
+
         internal int InstanceContextManagerIndex
         {
             get { return _instanceContextManagerIndex; }
@@ -237,7 +254,7 @@ namespace CoreWCF
             return _channels.CloseInputAsync(token);
         }
 
-        internal void BindRpc(ref MessageRpc rpc)
+        internal void BindRpc(MessageRpc rpc)
         {
             ThrowIfClosed();
             _channels.IncrementActivityCount();
@@ -310,6 +327,19 @@ namespace CoreWCF
                 //    TD.CloseTimeout(e.Message);
                 //}
                 DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+            }
+        }
+
+        QuotaThrottle EnsureQuotaThrottle()
+        {
+            lock (ThisLock)
+            {
+                if (QuotaThrottle == null)
+                {
+                    QuotaThrottle = new QuotaThrottle(ThisLock);
+                    QuotaThrottle.Owner = "InstanceContext";
+                }
+                return QuotaThrottle;
             }
         }
 
@@ -400,6 +430,7 @@ namespace CoreWCF
         protected override void OnClosed()
         {
             base.OnClosed();
+            serviceThrottle?.DeactivateInstanceContext();
         }
 
         protected override void OnFaulted()
