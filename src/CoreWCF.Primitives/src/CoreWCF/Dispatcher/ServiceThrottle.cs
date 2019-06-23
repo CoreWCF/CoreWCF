@@ -247,7 +247,7 @@ namespace CoreWCF.Dispatcher
         //    this.servicePerformanceCounters.SetThrottleBase((int)ServicePerformanceCounters.PerfCounters.SessionsPercentMaxSessionsBase, _sessions.Capacity);
         //}
 
-        private async ValueTask PrivateAcquireCallAsync()
+        private async Task PrivateAcquireCallAsync()
         {
             if (_calls != null)
             {
@@ -268,7 +268,7 @@ namespace CoreWCF.Dispatcher
         //    }
         //}
 
-        private async ValueTask PrivateAcquireSessionAsync()
+        private async Task PrivateAcquireSessionAsync()
         {
             if (_sessions != null)
             {
@@ -276,7 +276,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private async ValueTask PrivateAcquireDynamicAsync()
+        private async Task PrivateAcquireDynamicAsync()
         {
             if (_dynamic != null)
             {
@@ -284,7 +284,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private async ValueTask PrivateAcquireInstanceContextAsync(ChannelHandler channel)
+        private async Task PrivateAcquireInstanceContextAsync(ChannelHandler channel)
         {
             if ((_instanceContexts != null) && (channel.InstanceContext == null))
             {
@@ -293,12 +293,12 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal ValueTask AcquireCall()
+        internal Task AcquireCallAsync()
         {
             return PrivateAcquireCallAsync();
         }
 
-        internal async ValueTask AcquireInstanceContextAndDynamicAsync(ChannelHandler channel, bool acquireInstanceContextThrottle)
+        internal async Task AcquireInstanceContextAndDynamicAsync(ChannelHandler channel, bool acquireInstanceContextThrottle)
         {
             // TODO: Lock removed. This code looks like it should be safe to execute without the lock. Need to verify.
             if (acquireInstanceContextThrottle)
@@ -309,7 +309,7 @@ namespace CoreWCF.Dispatcher
             await PrivateAcquireDynamicAsync();
         }
 
-        internal ValueTask AcquireSessionAsync()
+        internal Task AcquireSessionAsync()
         {
             return PrivateAcquireSessionAsync();
         }

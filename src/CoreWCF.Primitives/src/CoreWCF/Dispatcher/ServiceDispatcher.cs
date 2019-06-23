@@ -3,6 +3,7 @@ using CoreWCF.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,36 +12,27 @@ namespace CoreWCF.Dispatcher
 {
     internal class ServiceDispatcher : IServiceDispatcher
     {
-        private EndpointDispatcherTable _endpointDispatcherTable;
         private IRequestReplyCorrelator _requestReplyCorrelator;
 
-        public ServiceDispatcher(Uri baseAddress, Binding binding, EndpointDispatcherTable endpointDispatcherTable)
+        public ServiceDispatcher(ChannelDispatcher channelDispatcher)
         {
-            BaseAddress = baseAddress;
-            Binding = binding;
-            _endpointDispatcherTable = endpointDispatcherTable;
+            ChannelDispatcher = channelDispatcher;
             // TODO: Maybe make lazy
             _requestReplyCorrelator = new RequestReplyCorrelator();
         }
 
-        public Uri BaseAddress { get; }
+        public Uri BaseAddress => ChannelDispatcher.ListenUri;
 
-        public Binding Binding { get; }
+        public Binding Binding => ChannelDispatcher.Binding;
 
-        public Task DispatchAsync(RequestContext request, IChannel channel, CancellationToken token)
+        public ChannelDispatcher ChannelDispatcher { get; }
+
+        public EndpointDispatcherTable Endpoints => ChannelDispatcher.EndpointDispatcherTable;
+
+        public object ThisLock { get; } = new object();
+
+        public IServiceChannelDispatcher CreateServiceChannelDispatcher(IChannel channel)
         {
-            bool dummy;
-            var endpointDispatcher = _endpointDispatcherTable.Lookup(request.RequestMessage, out dummy);
-            return DispatchAsyncCore(request, channel, endpointDispatcher, token);
-        }
-
-        private Task DispatchAsyncCore(RequestContext request, IChannel channel, EndpointDispatcher endpointDispatcher, CancellationToken token)
-        {
-            var dispatchRuntime = endpointDispatcher.DispatchRuntime;
-            //EndpointDispatcher endpoint = dispatchRuntime.EndpointDispatcher;
-            //bool releasedPump = false;
-
-            ServiceChannel serviceChannel = null;
             var sessionIdleManager = channel.GetProperty<ServiceChannel.SessionIdleManager>();
             IChannelBinder binder = null;
             if (channel is IReplyChannel)
@@ -56,52 +48,11 @@ namespace CoreWCF.Dispatcher
                 binder = dcbinder;
             }
 
-            serviceChannel = new ServiceChannel(
-                binder,
-                endpointDispatcher,
-                Binding,
-                sessionIdleManager.UseIfNeeded(binder, Binding.ReceiveTimeout));
+            // TODO: Wire up wasChannelThrottled
+            var channelHandler = new ChannelHandler(Binding.MessageVersion, binder, channel.GetProperty<ServiceThrottle>(),
+             this, /*wasChannelThrottled*/ false, sessionIdleManager);
 
-            Message message = request.RequestMessage;
-            DispatchOperationRuntime operation = dispatchRuntime.GetOperation(ref message);
-            if (operation == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "No DispatchOperationRuntime found to process message.")));
-            }
-
-            // TODO: Wire in session open notification
-            //if (shouldRejectMessageWithOnOpenActionHeader && message.Headers.Action == OperationDescription.SessionOpenedAction)
-            //{
-            //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxNoEndpointMatchingAddressForConnectionOpeningMessage, message.Headers.Action, "Open")));
-            //}
-
-            // TODO: Session lifetime
-            //if (operation.IsTerminating && requestInfo.HasSession)
-            //{
-            //    isChannelTerminated = true;
-            //}
-
-            // TODO: Fix up whatever semantics OperationContext places on a host being passed
-            var currentOperationContext = new OperationContext(request, message, serviceChannel, /*host*/ null);
-
-            currentOperationContext.EndpointDispatcher = endpointDispatcher;
-
-            var existingInstanceContext = dispatchRuntime.InstanceContextProvider.GetExistingInstanceContext(request.RequestMessage, serviceChannel.Proxy as IContextChannel);
-            // TODO: Investigate consequences of cleanThread parameter
-            MessageRpc rpc = new MessageRpc(request, message, operation, serviceChannel, /*host*/ null,
-                /*cleanThread*/ true, currentOperationContext, existingInstanceContext /*, eventTraceActivity*/);
-
-            return operation.Parent.DispatchAsync(ref rpc, /*hasOperationContextBeenSet*/ false);
-            // TODO : Fix error handling
-            //catch (Exception e)
-            //{
-            //    if (Fx.IsFatal(e))
-            //    {
-            //        throw;
-            //    }
-            //    return HandleError(e, request, channel);
-            //}
+            return channelHandler;
         }
-
     }
 }

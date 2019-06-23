@@ -341,6 +341,26 @@ namespace CoreWCF.Dispatcher
             }
         }
 
+        internal void InitializeChannel(IClientChannel channel)
+        {
+            this.ThrowIfDisposedOrNotOpen();
+            try
+            {
+                for (int i = 0; i < ChannelInitializers.Count; ++i)
+                {
+                    ChannelInitializers[i].Initialize(channel);
+                }
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperCallback(e);
+            }
+        }
+
         internal void Init()
         {
             errorBehavior = new ErrorBehavior(this);

@@ -9,6 +9,7 @@ namespace CoreWCF.Dispatcher
         SynchronizedCollection<FaultContractInfo> faultContractInfos;
         IDispatchMessageFormatter formatter;
         IDispatchFaultFormatter faultFormatter;
+        ImpersonationOption impersonation;
         IOperationInvoker invoker;
         bool isTerminating;
         bool isSessionOpenNotificationEnabled;
@@ -22,15 +23,10 @@ namespace CoreWCF.Dispatcher
 
         public DispatchOperation(DispatchRuntime parent, string name, string action)
         {
-            if (parent == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            if (name == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
-
-            Parent = parent;
-            this.name = name;
+            Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
+            this.name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             this.action = action;
-            //this.impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
+            this.impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
             // Not necessary for basic functionality
             CallContextInitializers = parent.NewBehaviorCollection<ICallContextInitializer>();
             faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
@@ -120,6 +116,19 @@ namespace CoreWCF.Dispatcher
         }
 
         public bool IsOneWay { get; }
+
+        public ImpersonationOption Impersonation
+        {
+            get { return this.impersonation; }
+            set
+            {
+                lock (this.Parent.ThisLock)
+                {
+                    this.Parent.InvalidateRuntime();
+                    this.impersonation = value;
+                }
+            }
+        }
 
         internal bool HasNoDisposableParameters { get; set; }
 

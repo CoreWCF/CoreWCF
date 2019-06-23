@@ -3,6 +3,8 @@ using System.Threading;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
+using System.Security.Claims;
+using System.Security.Principal;
 
 namespace CoreWCF
 {
@@ -19,6 +21,7 @@ namespace CoreWCF
         Message request;
         InstanceContext instanceContext;
         bool isServiceReentrant = false;
+        internal IPrincipal threadPrincipal;
         MessageProperties outgoingMessageProperties;
         MessageHeaders outgoingMessageHeaders;
         MessageVersion outgoingMessageVersion;
@@ -237,6 +240,18 @@ namespace CoreWCF
             set { requestContext = value; }
         }
 
+        internal IPrincipal ThreadPrincipal
+        {
+            get { return this.threadPrincipal; }
+            set { this.threadPrincipal = value; }
+        }
+
+        public ClaimsPrincipal ClaimsPrincipal
+        {
+            get;
+            internal set;
+        }
+
         internal void ClearClientReplyNoThrow()
         {
             clientReply = null;
@@ -285,6 +300,7 @@ namespace CoreWCF
             request = null;
             extensions = null;
             instanceContext = null;
+            threadPrincipal = null;
             SetClientReply(null, false);
         }
 

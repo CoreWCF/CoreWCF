@@ -42,8 +42,7 @@ namespace CoreWCF.Channels.Framing
             var scope = _servicesScopeFactory.CreateScope();
             var channel = new ServerFramingDuplexSessionChannel(connection, settings, false, _servicesScopeFactory.CreateScope().ServiceProvider);
             await channel.OpenAsync();
-            var decoder = connection.ServerSessionDecoder;
-            var serviceDispatcher = connection.ServiceDispatcher;
+            var channelDispatcher = connection.ServiceDispatcher.CreateServiceChannelDispatcher(channel);
             while (true)
             {
                 Message message = await ReceiveMessageAsync(connection);
@@ -55,7 +54,8 @@ namespace CoreWCF.Channels.Framing
                 // TODO: Create a correctly timing out ct
                 // We don't await DispatchAsync because in a concurrent service we want to read the next request before the previous
                 // request has finished.
-                _ = serviceDispatcher.DispatchAsync(requestContext, channel, CancellationToken.None);
+                _ = channelDispatcher.DispatchAsync(requestContext, CancellationToken.None);
+                // TODO: Now there's a channel dispatcher, have that handle negotiateing a Task which completes when it's time to get the next request
                 await requestContext.OperationDispatching;
             }
         }

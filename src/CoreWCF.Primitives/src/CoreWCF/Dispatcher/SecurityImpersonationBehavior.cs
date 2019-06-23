@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
+﻿using CoreWCF.Description;
+using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
-using System.Runtime;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Security.Principal;
-using CoreWCF;
-using CoreWCF.Description;
-using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
-using System.Text;
+using System;
+using System.Collections.Generic;
+using System.DirectoryServices;
+using System.Runtime.CompilerServices;
+using System.Security.Principal;
 using System.Threading;
 using ClaimsIdentity = System.Security.Claims.ClaimsIdentity;
 using ClaimsPrincipal = System.Security.Claims.ClaimsPrincipal;
@@ -27,27 +21,25 @@ namespace CoreWCF.Dispatcher
         PrincipalPermissionMode principalPermissionMode;
         object roleProvider;
         bool impersonateCallerForAllOperations;
-        Dictionary<string, string> domainNameMap;
+        Dictionary<string, string> ncNameMap;
         Random random;
         const int maxDomainNameMapSize = 5;
 
         static WindowsPrincipal anonymousWindowsPrincipal;
-        AuditLevel auditLevel = ServiceSecurityAuditBehavior.defaultMessageAuthenticationAuditLevel;
-        AuditLogLocation auditLogLocation = ServiceSecurityAuditBehavior.defaultAuditLogLocation;
-        bool suppressAuditFailure = ServiceSecurityAuditBehavior.defaultSuppressAuditFailure;
+        static string s_directoryServerName = null;
+
+        //AuditLevel auditLevel = ServiceSecurityAuditBehavior.defaultMessageAuthenticationAuditLevel;
+        //AuditLogLocation auditLogLocation = ServiceSecurityAuditBehavior.defaultAuditLogLocation;
+        //bool suppressAuditFailure = ServiceSecurityAuditBehavior.defaultSuppressAuditFailure;
 
         SecurityImpersonationBehavior(DispatchRuntime dispatch)
         {
-            this.principalPermissionMode = dispatch.PrincipalPermissionMode;
-            this.impersonateCallerForAllOperations = dispatch.ImpersonateCallerForAllOperations;
-            this.auditLevel = dispatch.MessageAuthenticationAuditLevel;
-            this.auditLogLocation = dispatch.SecurityAuditLogLocation;
-            this.suppressAuditFailure = dispatch.SuppressAuditFailure;
-            if (dispatch.IsRoleProviderSet)
-            {
-                ApplyRoleProvider(dispatch);
-            }
-            this.domainNameMap = new Dictionary<string, string>(maxDomainNameMapSize, StringComparer.OrdinalIgnoreCase);
+            principalPermissionMode = dispatch.PrincipalPermissionMode;
+            impersonateCallerForAllOperations = dispatch.ImpersonateCallerForAllOperations;
+            //this.auditLevel = dispatch.MessageAuthenticationAuditLevel;
+            //this.auditLogLocation = dispatch.SecurityAuditLogLocation;
+            //this.suppressAuditFailure = dispatch.SuppressAuditFailure;
+            ncNameMap = new Dictionary<string, string>(maxDomainNameMapSize, StringComparer.OrdinalIgnoreCase);
         }
 
         public static SecurityImpersonationBehavior CreateIfNecessary(DispatchRuntime dispatch)
@@ -73,19 +65,8 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        void ApplyRoleProvider(DispatchRuntime dispatch)
-        {
-            this.roleProvider = dispatch.RoleProvider;
-        }
-
         static bool IsSecurityBehaviorNeeded(DispatchRuntime dispatch)
         {
-            if (AspNetEnvironment.Current.RequiresImpersonation)
-            {
-                return true;
-            }
-
             if (dispatch.PrincipalPermissionMode != PrincipalPermissionMode.None)
             {
                 return true;
@@ -108,6 +89,7 @@ namespace CoreWCF.Dispatcher
                     return false;
                 }
             }
+
             // contract allows impersonation. Return true if config requires it.
             return dispatch.ImpersonateCallerForAllOperations;
         }
@@ -120,19 +102,15 @@ namespace CoreWCF.Dispatcher
 
             ClaimsPrincipal claimsPrincipal = OperationContext.Current.ClaimsPrincipal;
 
-            if (this.principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
+            if (principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
             {
                 principal = (claimsPrincipal is WindowsPrincipal) ? claimsPrincipal : GetWindowsPrincipal(securityContext);
             }
-            else if (this.principalPermissionMode == PrincipalPermissionMode.UseAspNetRoles)
-            {
-                principal = new RoleProviderPrincipal(this.roleProvider, securityContext);
-            }
-            else if (this.principalPermissionMode == PrincipalPermissionMode.Custom)
+            else if (principalPermissionMode == PrincipalPermissionMode.Custom)
             {
                 principal = GetCustomPrincipal(securityContext);
             }
-            else if (this.principalPermissionMode == PrincipalPermissionMode.Always)
+            else if (principalPermissionMode == PrincipalPermissionMode.Always)
             {
                 principal = claimsPrincipal ?? new ClaimsPrincipal(new ClaimsIdentity());
             }
@@ -158,100 +136,100 @@ namespace CoreWCF.Dispatcher
             if (securityContext.AuthorizationContext.Properties.TryGetValue(SecurityUtils.Principal, out customPrincipal) && customPrincipal is IPrincipal)
                 return (IPrincipal)customPrincipal;
             else
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.NoPrincipalSpecifiedInAuthorizationContext)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.NoPrincipalSpecifiedInAuthorizationContext));
         }
 
-        internal bool IsSecurityContextImpersonationRequired(ref MessageRpc rpc)
+        internal bool IsSecurityContextImpersonationRequired(MessageRpc rpc)
         {
             return ((rpc.Operation.Impersonation == ImpersonationOption.Required)
-                || ((rpc.Operation.Impersonation == ImpersonationOption.Allowed) && this.impersonateCallerForAllOperations));
+                || ((rpc.Operation.Impersonation == ImpersonationOption.Allowed) && impersonateCallerForAllOperations));
         }
 
-        internal bool IsImpersonationEnabledOnCurrentOperation(ref MessageRpc rpc)
+        internal bool IsImpersonationEnabledOnCurrentOperation(MessageRpc rpc)
         {
-            return this.IsSecurityContextImpersonationRequired(ref rpc) ||
-                    AspNetEnvironment.Current.RequiresImpersonation ||
-                    this.principalPermissionMode != PrincipalPermissionMode.None;
+            return IsSecurityContextImpersonationRequired(rpc) ||
+                    principalPermissionMode != PrincipalPermissionMode.None;
         }
 
-        [Fx.Tag.SecurityNote(Critical = "Calls SecurityCritical method StartImpersonation2."
-            + "Caller must ensure that this method is called at an appropriate time and that impersonationContext out param is Dispose()'d correctly.")]
-        [SecurityCritical]
-        public void StartImpersonation(ref MessageRpc rpc, out IDisposable impersonationContext, out IPrincipal originalPrincipal, out bool isThreadPrincipalSet)
+        public T RunImpersonated<T>(MessageRpc rpc, Func<T> func)
         {
-            impersonationContext = null;
-            originalPrincipal = null;
-            isThreadPrincipalSet = false;
+            T returnValue = default(T);
+            IPrincipal originalPrincipal = null;
+            bool isThreadPrincipalSet = false;
             ServiceSecurityContext securityContext;
-            bool setThreadPrincipal = this.principalPermissionMode != PrincipalPermissionMode.None;
-            bool isSecurityContextImpersonationOn = IsSecurityContextImpersonationRequired(ref rpc);
+            bool setThreadPrincipal = principalPermissionMode != PrincipalPermissionMode.None;
+            bool isSecurityContextImpersonationOn = IsSecurityContextImpersonationRequired(rpc);
             if (setThreadPrincipal || isSecurityContextImpersonationOn)
-                securityContext = GetAndCacheSecurityContext(ref rpc);
+                securityContext = GetAndCacheSecurityContext(rpc);
             else
                 securityContext = null;
 
             if (setThreadPrincipal && securityContext != null)
-                originalPrincipal = this.SetCurrentThreadPrincipal(securityContext, out isThreadPrincipalSet);
+                originalPrincipal = SetCurrentThreadPrincipal(securityContext, out isThreadPrincipalSet);
 
-            if (isSecurityContextImpersonationOn || AspNetEnvironment.Current.RequiresImpersonation)
+            try
             {
-                impersonationContext = StartImpersonation2(ref rpc, securityContext, isSecurityContextImpersonationOn);
+                if (isSecurityContextImpersonationOn)
+                {
+                    returnValue = RunImpersonated2(rpc, securityContext, isSecurityContextImpersonationOn, func);
+                }
             }
+            finally
+            {
+                if (isThreadPrincipalSet)
+                {
+                    Thread.CurrentPrincipal = originalPrincipal;
+                }
+            }
+
+            return returnValue;
         }
 
-        [Fx.Tag.SecurityNote(Critical = "Calls SecurityCritical method HostedImpersonationContext.Impersonate."
-            + "Caller must ensure that this method is called at an appropriate time and that result is Dispose()'d correctly.")]
-        [SecurityCritical]
-        IDisposable StartImpersonation2(ref MessageRpc rpc, ServiceSecurityContext securityContext, bool isSecurityContextImpersonationOn)
+        private T RunImpersonated2<T>(MessageRpc rpc, ServiceSecurityContext securityContext, bool isSecurityContextImpersonationOn, Func<T> func)
         {
-            IDisposable impersonationContext = null;
+            T returnValue = default(T);
             try
             {
                 if (isSecurityContextImpersonationOn)
                 {
                     if (securityContext == null)
-                        throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.SFxSecurityContextPropertyMissingFromRequestMessage)), rpc.Request);
+                        throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.SFxSecurityContextPropertyMissingFromRequestMessage), rpc.Request);
 
                     WindowsIdentity impersonationToken = securityContext.WindowsIdentity;
                     if (impersonationToken.User != null)
                     {
-                        impersonationContext = impersonationToken.Impersonate();
+                        returnValue = WindowsIdentity.RunImpersonated(impersonationToken.AccessToken, func);
                     }
-                    else if (securityContext.PrimaryIdentity is WindowsSidIdentity)
+                    else if (securityContext.PrimaryIdentity is WindowsSidIdentity sidIdentity)
                     {
-                        WindowsSidIdentity sidIdentity = (WindowsSidIdentity)securityContext.PrimaryIdentity;
                         if (sidIdentity.SecurityIdentifier.IsWellKnown(WellKnownSidType.AnonymousSid))
                         {
-                            impersonationContext = new WindowsAnonymousIdentity().Impersonate();
+                            // This requires P/Invokes to achieve on Windows. Not sure how to achieve it on Linux. For now not supporting this.
+                            // A strategy is needed to cleanly move code which makes P/Invoke calls into a different package. One option might be
+                            // to request support in WindowsIdentity in a future release of .NET Core and require that to use this feature.
+                            throw new PlatformNotSupportedException("Anonymous impersonation");
                         }
                         else
                         {
                             string fullyQualifiedDomainName = GetUpnFromDownlevelName(sidIdentity.Name);
-                            using (WindowsIdentity windowsIdentity = new WindowsIdentity(fullyQualifiedDomainName, SecurityUtils.AuthTypeKerberos))
+                            using (WindowsIdentity windowsIdentity = new WindowsIdentity(fullyQualifiedDomainName))
                             {
-                                impersonationContext = windowsIdentity.Impersonate();
+                                returnValue = WindowsIdentity.RunImpersonated(windowsIdentity.AccessToken, func);
                             }
                         }
                     }
                     else
-                        throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.SecurityContextDoesNotAllowImpersonation, rpc.Operation.Action)), rpc.Request);
-                }
-                else if (AspNetEnvironment.Current.RequiresImpersonation)
-                {
-                    if (rpc.HostingProperty != null)
-                    {
-                        impersonationContext = rpc.HostingProperty.Impersonate();
-                    }
+                        throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityContextDoesNotAllowImpersonation, rpc.Operation.Action)), rpc.Request);
                 }
 
-                SecurityTraceRecordHelper.TraceImpersonationSucceeded(rpc.EventTraceActivity, rpc.Operation);
+                //SecurityTraceRecordHelper.TraceImpersonationSucceeded(rpc.EventTraceActivity, rpc.Operation);
 
                 // update the impersonation succeed audit
-                if (AuditLevel.Success == (this.auditLevel & AuditLevel.Success))
-                {
-                    SecurityAuditHelper.WriteImpersonationSuccessEvent(this.auditLogLocation,
-                        this.suppressAuditFailure, rpc.Operation.Name, SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext));
-                }
+                //if (AuditLevel.Success == (this.auditLevel & AuditLevel.Success))
+                //{
+                //    SecurityAuditHelper.WriteImpersonationSuccessEvent(this.auditLogLocation,
+                //        this.suppressAuditFailure, rpc.Operation.Name, SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext));
+                //}
             }
             catch (Exception ex)
             {
@@ -259,71 +237,39 @@ namespace CoreWCF.Dispatcher
                 {
                     throw;
                 }
-                SecurityTraceRecordHelper.TraceImpersonationFailed(rpc.EventTraceActivity, rpc.Operation, ex);
+                //SecurityTraceRecordHelper.TraceImpersonationFailed(rpc.EventTraceActivity, rpc.Operation, ex);
 
                 //
                 // Update the impersonation failure audit
                 // Copy SecurityAuthorizationBehavior.Audit level to here!!!
                 //
-                if (AuditLevel.Failure == (this.auditLevel & AuditLevel.Failure))
-                {
-                    try
-                    {
-                        string primaryIdentity;
-                        if (securityContext != null)
-                            primaryIdentity = SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext);
-                        else
-                            primaryIdentity = SecurityUtils.AnonymousIdentity.Name;
+//                if (AuditLevel.Failure == (this.auditLevel & AuditLevel.Failure))
+//                {
+//                    try
+//                    {
+//                        string primaryIdentity;
+//                        if (securityContext != null)
+//                            primaryIdentity = SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext);
+//                        else
+//                            primaryIdentity = SecurityUtils.AnonymousIdentity.Name;
 
-                        SecurityAuditHelper.WriteImpersonationFailureEvent(this.auditLogLocation,
-                            this.suppressAuditFailure, rpc.Operation.Name, primaryIdentity, ex);
-                    }
-#pragma warning suppress 56500
-                    catch (Exception auditException)
-                    {
-                        if (Fx.IsFatal(auditException))
-                            throw;
+//                        SecurityAuditHelper.WriteImpersonationFailureEvent(this.auditLogLocation,
+//                            this.suppressAuditFailure, rpc.Operation.Name, primaryIdentity, ex);
+//                    }
+//#pragma warning suppress 56500
+//                    catch (Exception auditException)
+//                    {
+//                        if (Fx.IsFatal(auditException))
+//                            throw;
 
-                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
-                    }
-                }
+//                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
+//                    }
+//                }
 
                 throw;
             }
 
-            return impersonationContext;
-        }
-
-        public void StopImpersonation(ref MessageRpc rpc, IDisposable impersonationContext, IPrincipal originalPrincipal, bool isThreadPrincipalSet)
-        {
-            try
-            {
-                if (IsSecurityContextImpersonationRequired(ref rpc) || AspNetEnvironment.Current.RequiresImpersonation)
-                {
-                    if (impersonationContext != null)
-                    {
-                        impersonationContext.Dispose();
-                    }
-                }
-
-                if (isThreadPrincipalSet)
-                {
-                    Thread.CurrentPrincipal = originalPrincipal;
-                }
-            }
-#pragma warning suppress 56500 // covered by FxCOP
-            catch
-            {
-                string message = null;
-                try
-                {
-                    message = SR.GetString(SR.SFxRevertImpersonationFailed0);
-                }
-                finally
-                {
-                    DiagnosticUtility.FailFast(message);
-                }
-            }
+            return returnValue;
         }
 
         IPrincipal GetWindowsPrincipal(ServiceSecurityContext securityContext)
@@ -339,7 +285,7 @@ namespace CoreWCF.Dispatcher
             return AnonymousWindowsPrincipal;
         }
 
-        ServiceSecurityContext GetAndCacheSecurityContext(ref MessageRpc rpc)
+        ServiceSecurityContext GetAndCacheSecurityContext(MessageRpc rpc)
         {
             ServiceSecurityContext securityContext = rpc.SecurityContext;
 
@@ -352,7 +298,7 @@ namespace CoreWCF.Dispatcher
                 {
                     securityContext = securityContextProperty.ServiceSecurityContext;
                     if (securityContext == null)
-                        throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.SecurityContextMissing, rpc.Operation.Name)), rpc.Request);
+                        throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityContextMissing, rpc.Operation.Name)), rpc.Request);
                 }
 
                 rpc.SecurityContext = securityContext;
@@ -364,80 +310,118 @@ namespace CoreWCF.Dispatcher
 
         string GetUpnFromDownlevelName(string downlevelName)
         {
+            // On Desktop this code calls SECUR32.DLL!TranslateName to translate just the domain part of the downlevel name (DOMAIN\username) to a canonical name.
+            // It then removes the trailing slash and joines username, '@' and the canonical name to create the Upn name. It then caches the DOMAIN -> canonical mapping
+            // to make future lookups quicker. This is wrong and only works by happy accident of convention. Here's the breaking scenario:
+            // 
+            // An organization Example Inc. has multiple domains for different departments in the company. Two of them are ENGINEERING and FINANCE. The format of the usernames
+            // in the domain are first name followed by initial of last name. The AD domain names for these are engineering.example.org and finance.example.org and are in the 
+            // same forest. The format of the UPN account names are firstname.lastname@example.org. The engineer employee Bob Smith has a domain username of ENGINEERING\bobs but
+            // his UPN name is bob.smith@example.org. The implementation on Desktop will translate his domain account name to bobs@engineering.example.org which is incorrect.
+            //
+            // The incorrect implementation on Desktop allows for a small cache which makes lookups really fast because of the assumptions made which will often work. When mapping
+            // the domain name correctly, every account mapping would need to be cached. For now we're only caching the domain to ncname lookup and each lookup will result in a
+            // call to the DC to get the mapping. There are two potential improvements that can be done here.
+            //   1. Use a MRU cache to cache the full mapping.
+            //   2. Further up the call stack we actually have the user SID. It might be better to lookup the user by SID instead.
+
             if (downlevelName == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("downlevelName");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(downlevelName));
             }
             int delimiterPos = downlevelName.IndexOf('\\');
             if ((delimiterPos < 0) || (delimiterPos == 0) || (delimiterPos == downlevelName.Length - 1))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.GetString(SR.DownlevelNameCannotMapToUpn, downlevelName)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.Format(SR.DownlevelNameCannotMapToUpn, downlevelName)));
             }
             string shortDomainName = downlevelName.Substring(0, delimiterPos + 1);
             string userName = downlevelName.Substring(delimiterPos + 1);
-            string fullDomainName;
+            string ncName = null;
             bool found;
 
             // 1) Read from cache
-            lock (this.domainNameMap)
+            lock (ncNameMap)
             {
-                found = this.domainNameMap.TryGetValue(shortDomainName, out fullDomainName);
+                found = ncNameMap.TryGetValue(shortDomainName, out ncName);
             }
 
             // 2) Not found, do expensive look up
-            if (!found)
+            if (!found || s_directoryServerName == null)
             {
-                uint capacity = 50;
-                StringBuilder fullyQualifiedDomainName = new StringBuilder((int)capacity);
-                if (!SafeNativeMethods.TranslateName(shortDomainName, EXTENDED_NAME_FORMAT.NameSamCompatible, EXTENDED_NAME_FORMAT.NameCanonical,
-                    fullyQualifiedDomainName, out capacity))
+                using (DirectoryEntry rootDse = new DirectoryEntry("LDAP://RootDSE"))
                 {
-                    int errorCode = Marshal.GetLastWin32Error();
-                    if (errorCode == (int)Win32Error.ERROR_INSUFFICIENT_BUFFER)
+                    // No need to re-check and/or update under lock as the retrieved value will be the same each time. There's no harm
+                    // if this is retrieved more than once.
+                    if (s_directoryServerName == null)
                     {
-                        fullyQualifiedDomainName = new StringBuilder((int)capacity);
-                        if (!SafeNativeMethods.TranslateName(shortDomainName, EXTENDED_NAME_FORMAT.NameSamCompatible, EXTENDED_NAME_FORMAT.NameCanonical,
-                            fullyQualifiedDomainName, out capacity))
-                        {
-                            errorCode = Marshal.GetLastWin32Error();
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.GetString(SR.DownlevelNameCannotMapToUpn, downlevelName), new Win32Exception(errorCode)));
-                        }
+                        s_directoryServerName = rootDse.Properties["dnsHostName"].Value.ToString();
                     }
-                    else
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.GetString(SR.DownlevelNameCannotMapToUpn, downlevelName), new Win32Exception(errorCode)));
-                    }
-                }
-                // trim the trailing / from fqdn
-                fullyQualifiedDomainName = fullyQualifiedDomainName.Remove(fullyQualifiedDomainName.Length - 1, 1);
-                fullDomainName = fullyQualifiedDomainName.ToString();
 
-                // 3) Save in cache (remove a random item if cache is full)
-                lock (this.domainNameMap)
-                {
-                    if (this.domainNameMap.Count >= maxDomainNameMapSize)
+                    if (!found)
                     {
-                        if (this.random == null)
+                        // Retrieve the Configuration Naming Context from RootDSE
+                        string configNC = rootDse.Properties["configurationNamingContext"].Value.ToString();
+
+                        DirectoryEntry configSearchRoot = new DirectoryEntry("LDAP://" + configNC);
+                        DirectorySearcher configSearch = new DirectorySearcher(configSearchRoot);
+                        configSearch.Filter = $"(&(NETBIOSName={shortDomainName})(objectClass=crossRef))";
+
+                        // Configure search to return ncname attribute
+                        configSearch.PropertiesToLoad.Add("ncname");
+
+                        SearchResult forestPartition = configSearch.FindOne();
+                        if (forestPartition == null)
                         {
-                            this.random = new Random(unchecked((int)DateTime.Now.Ticks));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.Format(SR.DownlevelNameCannotMapToUpn, downlevelName)));
                         }
-                        int victim = this.random.Next() % this.domainNameMap.Count;
-                        foreach (string key in this.domainNameMap.Keys)
+
+                        ncName = forestPartition.Properties["ncname"][0].ToString();
+
+                        // Save in cache (remove a random item if cache is full)
+                        lock (ncNameMap)
                         {
-                            if (victim <= 0)
+                            if (ncNameMap.Count >= maxDomainNameMapSize)
                             {
-                                this.domainNameMap.Remove(key);
-                                break;
+                                if (random == null)
+                                {
+                                    random = new Random(unchecked((int)DateTime.Now.Ticks));
+                                }
+                                int victim = random.Next() % ncNameMap.Count;
+                                foreach (string key in ncNameMap.Keys)
+                                {
+                                    if (victim <= 0)
+                                    {
+                                        ncNameMap.Remove(key);
+                                        break;
+                                    }
+                                    --victim;
+                                }
                             }
-                            --victim;
+                            ncNameMap[shortDomainName] = ncName;
                         }
                     }
-                    this.domainNameMap[shortDomainName] = fullDomainName;
                 }
             }
-            return userName + "@" + fullDomainName;
-        }
 
+            string ldapDomainEntryPath = @"LDAP://" + s_directoryServerName + @"/" + ncName;
+            using (DirectoryEntry domainEntry = new DirectoryEntry(ldapDomainEntryPath))
+            {
+                using (DirectorySearcher searcher = new DirectorySearcher(domainEntry))
+                {
+                    searcher.SearchScope = SearchScope.Subtree;
+                    searcher.PropertiesToLoad.Add("userPrincipalName");
+                    searcher.Filter = $"(&(objectClass=user)(samAccountName={userName}))";
+
+                    SearchResult userResult = searcher.FindOne();
+                    if (userResult == null)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.Format(SR.DownlevelNameCannotMapToUpn, downlevelName)));
+                    }
+
+                    return userResult.Properties["userPrincipalName"][0].ToString();
+                }
+            }
+        }
 
         class WindowsSidPrincipal : IPrincipal
         {
@@ -452,7 +436,7 @@ namespace CoreWCF.Dispatcher
 
             public IIdentity Identity
             {
-                get { return this.identity; }
+                get { return identity; }
             }
 
             public bool IsInRole(string role)
@@ -462,7 +446,7 @@ namespace CoreWCF.Dispatcher
 
                 NTAccount account = new NTAccount(role);
                 Claim claim = Claim.CreateWindowsSidClaim((SecurityIdentifier)account.Translate(typeof(SecurityIdentifier)));
-                AuthorizationContext authContext = this.securityContext.AuthorizationContext;
+                AuthorizationContext authContext = securityContext.AuthorizationContext;
                 for (int i = 0; i < authContext.ClaimSets.Count; i++)
                 {
                     ClaimSet claimSet = authContext.ClaimSets[i];
@@ -470,77 +454,6 @@ namespace CoreWCF.Dispatcher
                         return true;
                 }
                 return false;
-            }
-        }
-
-        class WindowsAnonymousIdentity
-        {
-            public IDisposable Impersonate()
-            {
-                // PreSharp Bug: Call 'Marshal.GetLastWin32Error' or 'Marshal.GetHRForLastWin32Error' before any other interop call.
-#pragma warning suppress 56523 // The LastWin32Error can be ignored here.
-                IntPtr threadHandle = SafeNativeMethods.GetCurrentThread();
-                SafeCloseHandle tokenHandle;
-                if (!SafeNativeMethods.OpenCurrentThreadToken(threadHandle, TokenAccessLevels.Impersonate, true, out tokenHandle))
-                {
-                    int error = Marshal.GetLastWin32Error();
-                    CoreWCF.Diagnostics.Utility.CloseInvalidOutSafeHandle(tokenHandle);
-                    if (error == (int)CoreWCF.ComIntegration.Win32Error.ERROR_NO_TOKEN)
-                    {
-                        tokenHandle = new SafeCloseHandle(IntPtr.Zero, false);
-                    }
-                    else
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new Win32Exception(error));
-                    }
-                }
-
-                if (!SafeNativeMethods.ImpersonateAnonymousUserOnCurrentThread(threadHandle))
-                {
-                    int error = Marshal.GetLastWin32Error();
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new Win32Exception(error));
-                }
-
-                return new ImpersonationContext(threadHandle, tokenHandle);
-            }
-
-            class ImpersonationContext : IDisposable
-            {
-                IntPtr threadHandle;
-                SafeCloseHandle tokenHandle;
-                bool disposed = false;
-
-                public ImpersonationContext(IntPtr threadHandle, SafeCloseHandle tokenHandle)
-                {
-                    this.threadHandle = threadHandle;
-                    this.tokenHandle = tokenHandle;
-                }
-
-                void Undo()
-                {
-                    // PreSharp Bug: Call 'Marshal.GetLastWin32Error' or 'Marshal.GetHRForLastWin32Error' before any other interop call.
-#pragma warning suppress 56523 // The LastWin32Error can be ignored here.
-                    Fx.Assert(this.threadHandle == SafeNativeMethods.GetCurrentThread(), "");
-                    // We are in the Dispose method. If a failure occurs we just have to ignore it.
-                    // PreSharp Bug: Call 'Marshal.GetLastWin32Error' or 'Marshal.GetHRForLastWin32Error' before any other interop call.
-                    // #pragma warning suppress 56523 // The LastWin32Error can be ignored here.
-                    if (!SafeNativeMethods.SetCurrentThreadToken(IntPtr.Zero, this.tokenHandle))
-                    {
-                        int error = Marshal.GetLastWin32Error();
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityException(SR.GetString(SR.RevertImpersonationFailure,
-                            new Win32Exception(error).Message)));
-                    }
-                    tokenHandle.Close();
-                }
-
-                public void Dispose()
-                {
-                    if (!this.disposed)
-                    {
-                        Undo();
-                    }
-                    this.disposed = true;
-                }
             }
         }
     }

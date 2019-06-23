@@ -571,7 +571,7 @@ namespace CoreWCF.Description
             {
                 var cd = cdb as ChannelDispatcher;
                 cd.Init();
-                dispatchers.Add(new ServiceDispatcher(cd.ListenUri, cd.Binding, cd.EndpointDispatcherTable));
+                dispatchers.Add(new ServiceDispatcher(cd));
             }
 
             return dispatchers;
@@ -585,7 +585,7 @@ namespace CoreWCF.Description
             endpointDispatcher.ChannelDispatcher.MessageVersion = serviceEndpoint.Binding.MessageVersion;
         }
 
-        private static bool IsManualAddressing(Binding binding)
+        internal static bool IsManualAddressing(Binding binding)
         {
             TransportBindingElement transport = binding.CreateBindingElements().Find<TransportBindingElement>();
             if (transport == null)

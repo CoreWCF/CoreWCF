@@ -55,7 +55,7 @@ namespace CoreWCF.Dispatcher
         internal TimeoutHelper ReplyTimeoutHelper;
         internal RequestReplyCorrelator.ReplyToInfo ReplyToInfo;
         internal MessageVersion RequestVersion;
-        //internal ServiceSecurityContext SecurityContext;
+        internal ServiceSecurityContext SecurityContext;
         internal InstanceContext InstanceContext;
         internal bool SuccessfullyBoundInstance;
         internal bool SuccessfullyIncrementedActivity;
@@ -72,7 +72,7 @@ namespace CoreWCF.Dispatcher
         SignalGate<IAsyncResult> invokeContinueGate;
 
         internal MessageRpc(RequestContext requestContext, Message request, DispatchOperationRuntime operation,
-            ServiceChannel channel, ServiceHostBase host, bool cleanThread,
+            ServiceChannel channel, ServiceHostBase host, ChannelHandler channelHandler, bool cleanThread,
             OperationContext operationContext, InstanceContext instanceContext/*, EventTraceActivity eventTraceActivity*/)
         {
             Fx.Assert((operationContext != null), "correwcf.Dispatcher.MessageRpc.MessageRpc(), operationContext == null");
@@ -88,8 +88,6 @@ namespace CoreWCF.Dispatcher
             //this.channelHandler = channelHandler;
             Correlation = EmptyArray.Allocate(operation.Parent.CorrelationCount);
             DidDeserializeRequestBody = false;
-            //this.TransactionMessageProperty = null;
-            //this.TransactedBatchContext = null;
             Error = null;
             ErrorProcessor = null;
             FaultInfo = new ErrorHandlerFaultInfo(request.Version.Addressing.DefaultFaultAction);
@@ -109,7 +107,7 @@ namespace CoreWCF.Dispatcher
             RequestVersion = request.Version;
             Reply = null;
             ReplyTimeoutHelper = new TimeoutHelper();
-            //this.SecurityContext = null;
+            SecurityContext = null;
             InstanceContext = instanceContext;
             SuccessfullyBoundInstance = false;
             SuccessfullyIncrementedActivity = false;
@@ -133,8 +131,6 @@ namespace CoreWCF.Dispatcher
                 ReplyToInfo = new RequestReplyCorrelator.ReplyToInfo();
             }
 
-            //this.HostingProperty = AspNetEnvironment.Current.GetHostingProperty(request, true);
-
             //if (DiagnosticUtility.ShouldUseActivity)
             //{
             //    this.Activity = TraceUtility.ExtractActivity(this.Request);
@@ -148,8 +144,6 @@ namespace CoreWCF.Dispatcher
             //{
             ResponseActivityId = Guid.Empty;
             //}
-
-            //InvokeNotification = new MessageRpcInvokeNotification(/*this.Activity,*/ this.channelHandler);
 
             //if (this.EventTraceActivity == null && FxTrace.Trace.IsEnd2EndActivityTracingEnabled)
             //{

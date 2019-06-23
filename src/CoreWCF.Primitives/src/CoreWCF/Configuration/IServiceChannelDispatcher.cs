@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace CoreWCF.Configuration
 {
-    public interface IServiceDispatcher
+    public interface IServiceChannelDispatcher
     {
-        Uri BaseAddress { get; }
-        Binding Binding { get; }
-        IServiceChannelDispatcher CreateServiceChannelDispatcher(IChannel channel);
+        Task DispatchAsync(RequestContext request, CancellationToken token);
     }
 }

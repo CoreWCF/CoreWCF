@@ -17,7 +17,7 @@ namespace CoreWCF.Dispatcher
         readonly IDemuxer _demuxer;
         readonly ErrorBehavior _error;
         readonly bool _enableFaults;
-        //readonly bool impersonateOnSerializingReply;
+        readonly bool impersonateOnSerializingReply;
         readonly IInputSessionShutdown[] _inputSessionShutdownHandlers;
         readonly bool _isOnServer;
         readonly bool _manualAddressing;
@@ -42,7 +42,7 @@ namespace CoreWCF.Dispatcher
             _manualAddressing = dispatch.ManualAddressing;
             _messageInspectors = EmptyArray<IDispatchMessageInspector>.ToArray(dispatch.MessageInspectors);
             // securityImpersonation = SecurityImpersonationBehavior.CreateIfNecessary(dispatch);
-            //this.impersonateOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
+            impersonateOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
             _terminate = TerminatingOperationBehavior.CreateIfNecessary(dispatch);
             _thread = new ThreadBehavior(dispatch);
             ValidateMustUnderstand = dispatch.ValidateMustUnderstand;
@@ -100,10 +100,10 @@ namespace CoreWCF.Dispatcher
 
         internal InstanceBehavior InstanceBehavior { get; }
 
-        //        internal bool IsImpersonationEnabledOnSerializingReply
-        //        {
-        //            get { return this.impersonateOnSerializingReply; }
-        //        }
+        internal bool IsImpersonationEnabledOnSerializingReply
+        {
+            get { return impersonateOnSerializingReply; }
+        }
 
         internal bool ManualAddressing
         {
@@ -279,7 +279,7 @@ namespace CoreWCF.Dispatcher
             return rpc;
         }
 
-        internal Task<MessageRpc> DispatchAsync(ref MessageRpc rpc, bool isOperationContextSet)
+        internal Task<MessageRpc> DispatchAsync(MessageRpc rpc, bool isOperationContextSet)
         {
             rpc.ErrorProcessor = _processMessageNonCleanupError;
             rpc.AsyncProcessor = ProcessMessageAsync;

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
+using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
 {
@@ -15,7 +16,7 @@ namespace CoreWCF.Dispatcher
         readonly ICallContextInitializer[] callContextInitializers;
         readonly IDispatchFaultFormatter faultFormatter;
         readonly IDispatchMessageFormatter formatter;
-        //readonly ImpersonationOption impersonation;
+        readonly ImpersonationOption impersonation;
         readonly IParameterInspector[] inspectors;
         readonly IOperationInvoker invoker;
         readonly bool isTerminating;
@@ -56,7 +57,7 @@ namespace CoreWCF.Dispatcher
             callContextInitializers = EmptyArray<ICallContextInitializer>.ToArray(operation.CallContextInitializers);
             inspectors = EmptyArray<IParameterInspector>.ToArray(operation.ParameterInspectors);
             faultFormatter = operation.FaultFormatter;
-            //this.impersonation = operation.Impersonation;
+            impersonation = operation.Impersonation;
             deserializeRequest = operation.DeserializeRequest;
             serializeReply = operation.SerializeReply;
             formatter = operation.Formatter;
@@ -151,10 +152,10 @@ namespace CoreWCF.Dispatcher
             get { return formatter; }
         }
 
-        //internal ImpersonationOption Impersonation
-        //{
-        //    get { return this.impersonation; }
-        //}
+        internal ImpersonationOption Impersonation
+        {
+            get { return impersonation; }
+        }
 
         internal IOperationInvoker Invoker
         {
@@ -226,7 +227,7 @@ namespace CoreWCF.Dispatcher
         //    get { return this.isInsideTransactedReceiveScope; }
         //}
 
-        void DeserializeInputs(ref MessageRpc rpc)
+        void DeserializeInputs(MessageRpc rpc)
         {
             //bool success = false;
             try
@@ -295,20 +296,20 @@ namespace CoreWCF.Dispatcher
 
                 //if (!success && MessageLogger.LoggingEnabled)
                 //{
-                //    MessageLogger.LogMessage(ref rpc.Request, MessageLoggingSource.Malformed);
+                //    MessageLogger.LogMessage(rpc.Request, MessageLoggingSource.Malformed);
                 //}
             }
         }
 
-        void InitializeCallContext(ref MessageRpc rpc)
+        void InitializeCallContext(MessageRpc rpc)
         {
             if (CallContextInitializers.Length > 0)
             {
-                InitializeCallContextCore(ref rpc);
+                InitializeCallContextCore(rpc);
             }
         }
 
-        void InitializeCallContextCore(ref MessageRpc rpc)
+        void InitializeCallContextCore(MessageRpc rpc)
         {
             IClientChannel channel = rpc.Channel.Proxy as IClientChannel;
             int offset = Parent.CallContextCorrelationOffset;
@@ -335,15 +336,15 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void UninitializeCallContext(ref MessageRpc rpc)
+        void UninitializeCallContext(MessageRpc rpc)
         {
             if (CallContextInitializers.Length > 0)
             {
-                UninitializeCallContextCore(ref rpc);
+                UninitializeCallContextCore(rpc);
             }
         }
 
-        void UninitializeCallContextCore(ref MessageRpc rpc)
+        void UninitializeCallContextCore(MessageRpc rpc)
         {
             IClientChannel channel = rpc.Channel.Proxy as IClientChannel;
             int offset = Parent.CallContextCorrelationOffset;
@@ -363,15 +364,15 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectInputs(ref MessageRpc rpc)
+        void InspectInputs(MessageRpc rpc)
         {
             if (ParameterInspectors.Length > 0)
             {
-                InspectInputsCore(ref rpc);
+                InspectInputsCore(rpc);
             }
         }
 
-        void InspectInputsCore(ref MessageRpc rpc)
+        void InspectInputsCore(MessageRpc rpc)
         {
             int offset = Parent.ParameterInspectorCorrelationOffset;
 
@@ -386,15 +387,15 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectOutputs(ref MessageRpc rpc)
+        void InspectOutputs(MessageRpc rpc)
         {
             if (ParameterInspectors.Length > 0)
             {
-                InspectOutputsCore(ref rpc);
+                InspectOutputsCore(rpc);
             }
         }
 
-        void InspectOutputsCore(ref MessageRpc rpc)
+        void InspectOutputsCore(MessageRpc rpc)
         {
             int offset = Parent.ParameterInspectorCorrelationOffset;
 
@@ -415,76 +416,51 @@ namespace CoreWCF.Dispatcher
             {
                 try
                 {
-                    InitializeCallContext(ref rpc);
+                    InitializeCallContext(rpc);
                     object target = rpc.Instance;
-                    DeserializeInputs(ref rpc);
-                    InspectInputs(ref rpc);
-
-                    ValidateMustUnderstand(ref rpc);
-
-                    //IDisposable impersonationContext = null;
-                    //IPrincipal originalPrincipal = null;
-                    //bool isThreadPrincipalSet = false;
-                    bool isConcurrent = Parent.IsConcurrent(rpc);
-
-                    //try
-                    //{
-                    //if (this.parent.SecurityImpersonation != null)
-                    //{
-                    //    this.parent.SecurityImpersonation.StartImpersonation(ref rpc, out impersonationContext, out originalPrincipal, out isThreadPrincipalSet);
-                    //}
+                    DeserializeInputs(rpc);
+                    InspectInputs(rpc);
+                    ValidateMustUnderstand(rpc);
                     if (parent.SecurityImpersonation != null)
                     {
-                        parent.SecurityImpersonation
-                    }
-                    if (isSynchronous)
-                    {
-                        rpc.ReturnParameter = Invoker.Invoke(target, rpc.InputParameters, out rpc.OutputParameters);
+                        await parent.SecurityImpersonation.RunImpersonated(rpc, async () =>
+                        {
+                            if (isSynchronous)
+                            {
+                                rpc.ReturnParameter = Invoker.Invoke(target, rpc.InputParameters, out rpc.OutputParameters);
+                            }
+                            else
+                            {
+                                (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
+                            }
+                        });
                     }
                     else
                     {
-                        (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
+                        if (isSynchronous)
+                        {
+                            rpc.ReturnParameter = Invoker.Invoke(target, rpc.InputParameters, out rpc.OutputParameters);
+                        }
+                        else
+                        {
+                            (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
+                        }
                     }
-                    //                    }
-                    //                    finally
-                    //                    {
-                    //                        try
-                    //                        {
-                    //                            if (this.parent.SecurityImpersonation != null)
-                    //                            {
-                    //                                this.parent.SecurityImpersonation.StopImpersonation(ref rpc, impersonationContext, originalPrincipal, isThreadPrincipalSet);
-                    //                            }
-                    //                        }
-                    //
-                    //                        catch
-                    //                        {
-                    //                            string message = null;
-                    //                            try
-                    //                            {
-                    //                                message = SR.SFxRevertImpersonationFailed0;
-                    //                            }
-                    //                            finally
-                    //                            {
-                    //                                DiagnosticUtility.FailFast(message);
-                    //                            }
-                    //                        }
-                    //                    }
 
-                    InspectOutputs(ref rpc);
-
-                    SerializeOutputs(ref rpc);
+                    InspectOutputs(rpc);
+                    SerializeOutputs(rpc);
                 }
                 catch { throw; } // Make sure user Exception filters are not impersonated.
                 finally
                 {
-                    UninitializeCallContext(ref rpc);
+                    UninitializeCallContext(rpc);
                 }
             }
 
             return rpc;
         }
 
-        void SerializeOutputs(ref MessageRpc rpc)
+        void SerializeOutputs(MessageRpc rpc)
         {
             if (!IsOneWay && parent.EnableFaults)
             {
@@ -575,15 +551,15 @@ namespace CoreWCF.Dispatcher
                 // a. reply message is not null.
                 // b. Impersonation is enabled on serializing Reply
 
-                //if (reply != null && this.parent.IsImpersonationEnabledOnSerializingReply)
-                //{
-                //    bool shouldImpersonate = this.parent.SecurityImpersonation != null && this.parent.SecurityImpersonation.IsImpersonationEnabledOnCurrentOperation(ref rpc);
-                //    if (shouldImpersonate)
-                //    {
-                //        reply.Properties.Add(ImpersonateOnSerializingReplyMessageProperty.Name, new ImpersonateOnSerializingReplyMessageProperty(ref rpc));
-                //        reply = new ImpersonatingMessage(reply);
-                //    }
-                //}
+                if (reply != null && this.parent.IsImpersonationEnabledOnSerializingReply)
+                {
+                    bool shouldImpersonate = this.parent.SecurityImpersonation != null && this.parent.SecurityImpersonation.IsImpersonationEnabledOnCurrentOperation(rpc);
+                    if (shouldImpersonate)
+                    {
+                        reply.Properties.Add(ImpersonateOnSerializingReplyMessageProperty.Name, new ImpersonateOnSerializingReplyMessageProperty(rpc));
+                        reply = new ImpersonatingMessage(reply);
+                    }
+                }
 
                 //if (MessageLogger.LoggingEnabled && null != reply)
                 //{
@@ -604,7 +580,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void ValidateMustUnderstand(ref MessageRpc rpc)
+        void ValidateMustUnderstand(MessageRpc rpc)
         {
             if (parent.ValidateMustUnderstand)
             {

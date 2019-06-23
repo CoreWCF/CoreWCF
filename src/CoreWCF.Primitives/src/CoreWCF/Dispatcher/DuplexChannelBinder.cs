@@ -278,7 +278,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        bool HandleRequestAsReplyCore(Message message)
+        private bool HandleRequestAsReplyCore(Message message)
         {
             IDuplexRequest request = correlator.Find<IDuplexRequest>(message, true);
             if (request != null)
@@ -286,6 +286,7 @@ namespace CoreWCF.Dispatcher
                 request.GotReply(message);
                 return true;
             }
+
             return false;
         }
 

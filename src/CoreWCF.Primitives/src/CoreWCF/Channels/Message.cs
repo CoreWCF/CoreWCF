@@ -414,6 +414,12 @@ namespace CoreWCF.Channels
             OnWriteBodyContents(writer);
         }
 
+        public Task WriteBodyContentsAsync(XmlDictionaryWriter writer)
+        {
+            EnsureWriteMessageState(writer);
+            return OnWriteBodyContentsAsync(writer);
+        }
+
         //public IAsyncResult BeginWriteBodyContents(XmlDictionaryWriter writer, AsyncCallback callback, object state)
         //{
         //    EnsureWriteMessageState(writer);

@@ -7,6 +7,7 @@ using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
+using CoreWCF.Description;
 
 namespace CoreWCF.Dispatcher
 {
@@ -38,12 +39,12 @@ namespace CoreWCF.Dispatcher
         bool isAuthenticationManagerSet;
         bool isAuthorizationManagerSet;
         SynchronizationContext synchronizationContext;
-        //PrincipalPermissionMode principalPermissionMode;
+        PrincipalPermissionMode principalPermissionMode;
         //object roleProvider;
         Type type;
         DispatchOperation unhandled;
-        //bool impersonateCallerForAllOperations;
-        //bool impersonateOnSerializingReply;
+        bool impersonateCallerForAllOperations;
+        bool impersonateOnSerializingReply;
         SharedRuntimeState shared;
         bool preserveMessage;
 
@@ -77,7 +78,7 @@ namespace CoreWCF.Dispatcher
             synchronizationContext = ThreadBehavior.GetCurrentSynchronizationContext();
 
             automaticInputSessionShutdown = true;
-            //this.principalPermissionMode = ServiceAuthorizationBehavior.DefaultPrincipalPermissionMode;
+            principalPermissionMode = ServiceAuthorizationBehavior.DefaultPrincipalPermissionMode;
 
             unhandled = new DispatchOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
             unhandled.InternalFormatter = MessageOperationFormatter.Instance;
@@ -249,37 +250,37 @@ namespace CoreWCF.Dispatcher
             get { return endpointDispatcher; }
         }
 
-        //public bool ImpersonateCallerForAllOperations
-        //{
-        //    get
-        //    {
-        //        return this.impersonateCallerForAllOperations;
-        //    }
-        //    set
-        //    {
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.impersonateCallerForAllOperations = value;
-        //        }
-        //    }
-        //}
+        public bool ImpersonateCallerForAllOperations
+        {
+            get
+            {
+                return impersonateCallerForAllOperations;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    impersonateCallerForAllOperations = value;
+                }
+            }
+        }
 
-        //public bool ImpersonateOnSerializingReply
-        //{
-        //    get
-        //    {
-        //        return this.impersonateOnSerializingReply;
-        //    }
-        //    set
-        //    {
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.impersonateOnSerializingReply = value;
-        //        }
-        //    }
-        //}
+        public bool ImpersonateOnSerializingReply
+        {
+            get
+            {
+                return impersonateOnSerializingReply;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    impersonateOnSerializingReply = value;
+                }
+            }
+        }
 
         internal SynchronizedCollection<IInputSessionShutdown> InputSessionShutdownHandlers
         {
@@ -332,19 +333,6 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        //public bool ReleaseServiceInstanceOnTransactionComplete
-        //{
-        //    get { return this.releaseServiceInstanceOnTransactionComplete; }
-        //    set
-        //    {
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.releaseServiceInstanceOnTransactionComplete = value;
-        //        }
-        //    }
-        //}
-
         internal SynchronizedCollection<IInstanceContextInitializer> InstanceContextInitializers
         {
             get { return instanceContextInitializers; }
@@ -363,26 +351,26 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        //public PrincipalPermissionMode PrincipalPermissionMode
-        //{
-        //    get
-        //    {
-        //        return this.principalPermissionMode;
-        //    }
-        //    set
-        //    {
-        //        if (!PrincipalPermissionModeHelper.IsDefined(value))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
-        //        }
+        public PrincipalPermissionMode PrincipalPermissionMode
+        {
+            get
+            {
+                return principalPermissionMode;
+            }
+            set
+            {
+                if (!PrincipalPermissionModeHelper.IsDefined(value))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                }
 
-        //        lock (this.ThisLock)
-        //        {
-        //            this.InvalidateRuntime();
-        //            this.principalPermissionMode = value;
-        //        }
-        //    }
-        //}
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    principalPermissionMode = value;
+                }
+            }
+        }
 
         //public RoleProvider RoleProvider
         //{
@@ -454,6 +442,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
+        // TODO: Only used for WF so remove
         public bool PreserveMessage
         {
             get { return preserveMessage; }

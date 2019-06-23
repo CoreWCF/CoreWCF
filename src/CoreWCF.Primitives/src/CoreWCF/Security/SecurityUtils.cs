@@ -99,8 +99,10 @@ namespace CoreWCF.Security
             }
         }
     }
-    public class SecurityUtils
+
+    internal class SecurityUtils
     {
+        public const string Principal = "Principal";
         public const string Identities = "Identities";
         static bool computedDomain;
         static string currentDomain;
