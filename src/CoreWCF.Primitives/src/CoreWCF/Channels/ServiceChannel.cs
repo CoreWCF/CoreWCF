@@ -92,16 +92,16 @@ namespace CoreWCF.Channels
 
         internal ServiceChannel(IChannelBinder binder,
                                 EndpointDispatcher endpointDispatcher,
-                                Binding binding,
+                                ServiceDispatcher serviceDispatcher,
                                 SessionIdleManager idleManager)
-            : this(binder, binding)
+            : this(binder, serviceDispatcher.Binding)
         {
             if (endpointDispatcher == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
             }
 
-            //this.channelDispatcher = channelDispatcher;
+            channelDispatcher = serviceDispatcher.ChannelDispatcher;
             this.endpointDispatcher = endpointDispatcher;
             clientRuntime = endpointDispatcher.DispatchRuntime.CallbackClientRuntime;
 

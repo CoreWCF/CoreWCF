@@ -12,41 +12,42 @@ namespace CoreWCF.Channels
     internal class RequestDelegateHandler
     {
         internal const long DefaultMaxBufferPoolSize = 512 * 1024;
-        private IServiceDispatcher _dispatcher;
+        private IServiceDispatcher _serviceDispatcher;
         private IDefaultCommunicationTimeouts _timeouts;
         private IServiceScopeFactory _servicesScopeFactory;
         private HttpTransportSettings _httpSettings;
         private IReplyChannel _replyChannel;
+        private IServiceChannelDispatcher _channelDispatcher;
 
-        public RequestDelegateHandler(IServiceDispatcher dispatcher, IServiceScopeFactory servicesScopeFactory)
+        public RequestDelegateHandler(IServiceDispatcher serviceDispatcher, IServiceScopeFactory servicesScopeFactory)
         {
-            _dispatcher = dispatcher;
-            _timeouts = _dispatcher.Binding;
+            _serviceDispatcher = serviceDispatcher;
+            _timeouts = _serviceDispatcher.Binding;
             _servicesScopeFactory = servicesScopeFactory;
             BuildHandler();
         }
 
         private void BuildHandler()
         {
-            var be = _dispatcher.Binding.CreateBindingElements();
+            var be = _serviceDispatcher.Binding.CreateBindingElements();
             var mebe = be.Find<MessageEncodingBindingElement>();
             if (mebe == null)
             {
-                throw new ArgumentException("Must provide a MessageEncodingBindingElement", nameof(_dispatcher.Binding));
+                throw new ArgumentException("Must provide a MessageEncodingBindingElement", nameof(_serviceDispatcher.Binding));
             }
 
             var tbe = be.Find<HttpTransportBindingElement>();
             if (tbe == null)
             {
-                throw new ArgumentException("Must provide a HttpTransportBindingElement", nameof(_dispatcher.Binding));
+                throw new ArgumentException("Must provide a HttpTransportBindingElement", nameof(_serviceDispatcher.Binding));
             }
 
             var httpSettings = new HttpTransportSettings();
             httpSettings.BufferManager = BufferManager.CreateBufferManager(DefaultMaxBufferPoolSize, tbe.MaxBufferSize);
-            httpSettings.OpenTimeout = _dispatcher.Binding.OpenTimeout;
-            httpSettings.ReceiveTimeout = _dispatcher.Binding.ReceiveTimeout;
-            httpSettings.SendTimeout = _dispatcher.Binding.SendTimeout;
-            httpSettings.CloseTimeout = _dispatcher.Binding.CloseTimeout;
+            httpSettings.OpenTimeout = _serviceDispatcher.Binding.OpenTimeout;
+            httpSettings.ReceiveTimeout = _serviceDispatcher.Binding.ReceiveTimeout;
+            httpSettings.SendTimeout = _serviceDispatcher.Binding.SendTimeout;
+            httpSettings.CloseTimeout = _serviceDispatcher.Binding.CloseTimeout;
             httpSettings.MaxBufferSize = tbe.MaxBufferSize;
             httpSettings.MaxReceivedMessageSize = tbe.MaxReceivedMessageSize;
             httpSettings.MessageEncoderFactory = mebe.CreateMessageEncoderFactory();
@@ -57,6 +58,7 @@ namespace CoreWCF.Channels
             _httpSettings = httpSettings;
             var scope = _servicesScopeFactory.CreateScope();
             _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider);
+            _channelDispatcher = _serviceDispatcher.CreateServiceChannelDispatcher(_replyChannel);
         }
 
         internal Task HandleRequest(HttpContext context)
@@ -73,7 +75,7 @@ namespace CoreWCF.Channels
                             new XmlException(SR.MessageIsEmpty)));
             }
             requestContext.SetMessage(requestMessage, requestException);
-            return _dispatcher.DispatchAsync(requestContext, _replyChannel, context.RequestAborted);
+            return _channelDispatcher.DispatchAsync(requestContext, context.RequestAborted);
         }
     }
 }

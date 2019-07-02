@@ -571,6 +571,9 @@ namespace CoreWCF.Description
             {
                 var cd = cdb as ChannelDispatcher;
                 cd.Init();
+                var openTask = cd.OpenAsync();
+                Fx.Assert(openTask.IsCompleted, "ChannelDispatcher should open synchronously");
+                openTask.GetAwaiter().GetResult();
                 dispatchers.Add(new ServiceDispatcher(cd));
             }
 

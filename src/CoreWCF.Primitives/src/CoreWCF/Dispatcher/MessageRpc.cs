@@ -85,7 +85,7 @@ namespace CoreWCF.Dispatcher
             TaskResult = null;
             CanSendReply = true;
             Channel = channel;
-            //this.channelHandler = channelHandler;
+            this.channelHandler = channelHandler;
             Correlation = EmptyArray.Allocate(operation.Parent.CorrelationCount);
             DidDeserializeRequestBody = false;
             Error = null;
@@ -204,8 +204,7 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                throw;
-                //channelHandler.HandleError(e);
+                channelHandler.HandleError(e);
             }
         }
 
@@ -263,9 +262,9 @@ namespace CoreWCF.Dispatcher
                 {
                     throw;
                 }
+
                 AbortRequestContext(context);
-                //channelHandler.HandleError(e);
-                throw;
+                channelHandler.HandleError(e);
             }
         }
 
@@ -283,8 +282,8 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    //channelHandler.HandleError(e);
-                    throw;
+
+                    channelHandler.HandleError(e);
                 }
             }
         }
@@ -305,8 +304,8 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    //channelHandler.HandleError(e);
-                    throw;
+
+                    channelHandler.HandleError(e);
                 }
             }
         }
@@ -325,8 +324,8 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    //channelHandler.HandleError(e);
-                    throw;
+
+                    channelHandler.HandleError(e);
                 }
             }
         }
@@ -418,10 +417,11 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        //channelHandler.HandleError(e);
-                        throw;
+
+                        channelHandler.HandleError(e);
                     }
                 }
+
                 ParametersDisposed = true;
             }
         }
@@ -446,19 +446,13 @@ namespace CoreWCF.Dispatcher
                             {
                                 throw;
                             }
-                            //channelHandler.HandleError(e);
-                            throw;
+
+                            channelHandler.HandleError(e);
                         }
                     }
                 }
             }
         }
-
-        //[MethodImpl(MethodImplOptions.NoInlining)]
-        //IDisposable ApplyHostingIntegrationContextNoInline()
-        //{
-        //    return this.HostingProperty.ApplyIntegrationContext();
-        //}
 
         internal async Task<MessageRpc> ProcessAsync(bool isOperationContextSet)
         {

@@ -28,12 +28,10 @@ namespace CoreWCF.Dispatcher
         private DuplexChannelBinder _duplexBinder;
         private bool _hasSession;
         private bool _isConcurrent;
-        private ErrorHandlingReceiver _receiver;
         private SessionIdleManager _idleManager;
         private SessionOpenNotification _sessionOpenNotification;
         private bool _needToCreateSessionOpenNotificationMessage;
         private RequestInfo _requestInfo;
-        private bool _hasRegisterBeenCalled;
         private bool _isChannelTerminated;
         private bool _shouldRejectMessageWithOnOpenActionHeader;
         private RequestContext _replied;
@@ -53,6 +51,7 @@ namespace CoreWCF.Dispatcher
             _hasSession = binder.HasSession;
             _isConcurrent = ConcurrencyBehavior.IsConcurrent(channelDispatcher, _hasSession);
 
+            // TODO: Work out if MultipleReceiveBinder is necessary
             //if (channelDispatcher.MaxPendingReceives > 1)
             //{
             //    // We need to preserve order if the ChannelHandler is not concurrent.
@@ -67,10 +66,7 @@ namespace CoreWCF.Dispatcher
                 _binder = new BufferedReceiveBinder(_binder);
             }
 
-            // TODO: Change this to ErrorHandlingDispatcher?
-            _receiver = new ErrorHandlingReceiver(_binder, channelDispatcher);
             _idleManager = idleManager;
-            //Fx.Assert((_idleManager != null) == (_binder.HasSession && channelDispatcher.DefaultCommunicationTimeouts.ReceiveTimeout != TimeSpan.MaxValue), "idle manager is present only when there is a session with a finite receive timeout");
 
              if (_binder.HasSession)
             {
@@ -88,10 +84,7 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        internal bool HasRegisterBeenCalled
-        {
-            get { return _hasRegisterBeenCalled; }
-        }
+        internal bool HasRegisterBeenCalled { get; }
 
         internal InstanceContext InstanceContext
         {
@@ -113,6 +106,7 @@ namespace CoreWCF.Dispatcher
         // Similar to HandleRequest on Desktop
         public async Task DispatchAsync(RequestContext request, CancellationToken token)
         {
+            _requestInfo.Cleanup();
             if (OperationContext.Current == null)
             {
                 OperationContext.Current = new OperationContext((ServiceHostBase)null);
@@ -192,7 +186,6 @@ namespace CoreWCF.Dispatcher
                     Fx.Assert("System.ServiceModel.Dispatcher.ChannelHandler.Dispatch(): (channel == null || dispatchBehavior == null)");
                 }
 
-                MessageBuffer buffer = null;
                 Message message = request.RequestMessage;
                 DispatchOperationRuntime operation = dispatchBehavior.GetOperation(ref message);
                 if (operation == null)
@@ -332,7 +325,8 @@ namespace CoreWCF.Dispatcher
                 {
                     if (endpoint.DatagramChannel == null)
                     {
-                        endpoint.DatagramChannel = new ServiceChannel(_binder, endpoint, _serviceDispatcher.Binding, _idleManager);
+                        endpoint.DatagramChannel = new ServiceChannel(_binder, endpoint, _serviceDispatcher, 
+                            _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
                         InitializeServiceChannel(endpoint.DatagramChannel);
                     }
                 }
@@ -354,7 +348,8 @@ namespace CoreWCF.Dispatcher
                         endpoint = GetEndpointDispatcher(message, out addressMatched);
                         if (endpoint != null)
                         {
-                            _channel = new ServiceChannel(_binder, endpoint, _serviceDispatcher.Binding, _idleManager);
+                            _channel = new ServiceChannel(_binder, endpoint, _serviceDispatcher, 
+                                _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
                             InitializeServiceChannel(_channel);
                         }
                     }
@@ -527,7 +522,6 @@ namespace CoreWCF.Dispatcher
             ErrorBehavior.ThrowAndCatch(exception);
             ErrorHandlerFaultInfo faultInfo = new ErrorHandlerFaultInfo(action);
             faultInfo.Fault = fault;
-            bool replied, replySentAsync;
             faultInfo = await ProvideFaultAndReplyFailureAsync(request, exception, faultInfo);
             HandleError(exception, ref faultInfo);
         }
@@ -723,12 +717,11 @@ namespace CoreWCF.Dispatcher
         //      : True denotes operation is sucessful.
         private async Task<bool> TryRetrievingInstanceContextCoreAsync(RequestContext request)
         {
-            bool releasePump = true;
             try
             {
                 if (!_requestInfo.EndpointLookupDone)
                 {
-                    EnsureChannelAndEndpointAsync(request);
+                    await EnsureChannelAndEndpointAsync(request);
                 }
 
                 if (_requestInfo.Channel == null)
@@ -742,7 +735,6 @@ namespace CoreWCF.Dispatcher
                     try
                     {
                         _requestInfo.ExistingInstanceContext = _requestInfo.DispatchRuntime.InstanceContextProvider.GetExistingInstanceContext(request.RequestMessage, transparentProxy);
-                        releasePump = false;
                     }
                     catch (Exception e)
                     {

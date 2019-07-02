@@ -12,6 +12,7 @@ using System.ServiceModel.Channels;
 using System.Text;
 using Xunit;
 using System.Threading;
+using System.Diagnostics;
 
 public static class ConnectionHandlerTests
 {
@@ -47,9 +48,10 @@ public static class ConnectionHandlerTests
             var channel = factory.CreateChannel();
             ((IChannel)channel).Open();
             var resultTask = channel.WaitForSecondRequestAsync();
+            Thread.Sleep(TimeSpan.FromSeconds(1));
             channel.SecondRequest();
             var waitResult = resultTask.GetAwaiter().GetResult();
-            Assert.True(waitResult, "SecondRequest wasn't executed concurrently");
+            Assert.True(waitResult, $"SecondRequest wasn't executed concurrently");
         }
     }
 

@@ -580,7 +580,7 @@ namespace CoreWCF.Dispatcher
                 _authorizationBehavior.Authorize(ref rpc);
             }
 
-            InstanceBehavior.EnsureInstanceContext(rpc);
+            await InstanceBehavior.EnsureInstanceContextAsync(rpc);
             TransferChannelFromPendingList(rpc);
             await AcquireDynamicInstanceContextAsync(rpc);
 
@@ -955,7 +955,8 @@ namespace CoreWCF.Dispatcher
                     }
                 }
 
-                channelDispatcher.PendingChannels.Remove(rpc.Channel.Binder.Channel);
+                // TODO: Do we need to keep track of pending channels with the new hosting model?
+                //channelDispatcher.PendingChannels.Remove(rpc.Channel.Binder.Channel);
             }
         }
 

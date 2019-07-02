@@ -1,4 +1,5 @@
 ﻿using CoreWCF;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Services
         public bool WaitForSecondRequest()
         {
             _mre.Reset();
-            return _mre.WaitOne(5000);
+            return _mre.WaitOne(TimeSpan.FromSeconds(10));
         }
 
         public void SecondRequest()

@@ -3,6 +3,8 @@ using System.Reflection;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Dispatcher
 {
@@ -14,8 +16,6 @@ namespace CoreWCF.Dispatcher
         IInstanceContextProvider instanceContextProvider;
         IInstanceProvider provider;
         InstanceContext singleton;
-        //bool transactionAutoCompleteOnSessionClose;
-        //bool releaseServiceInstanceOnTransactionComplete = true;
         bool isSynchronized;
         ImmutableDispatchRuntime immutableRuntime;
 
@@ -25,8 +25,6 @@ namespace CoreWCF.Dispatcher
             initializers = EmptyArray<IInstanceContextInitializer>.ToArray(dispatch.InstanceContextInitializers);
             provider = dispatch.InstanceProvider;
             singleton = dispatch.SingletonInstanceContext;
-        //    this.transactionAutoCompleteOnSessionClose = dispatch.TransactionAutoCompleteOnSessionClose;
-        //    this.releaseServiceInstanceOnTransactionComplete = dispatch.ReleaseServiceInstanceOnTransactionComplete;
             isSynchronized = (dispatch.ConcurrencyMode != ConcurrencyMode.Multiple);
             instanceContextProvider = dispatch.InstanceContextProvider;
 
@@ -150,7 +148,7 @@ namespace CoreWCF.Dispatcher
             return true;
         }
 
-        internal void EnsureInstanceContext(MessageRpc rpc)
+        internal async Task EnsureInstanceContextAsync(MessageRpc rpc)
         {
             if (rpc.InstanceContext == null)
             {
@@ -164,15 +162,22 @@ namespace CoreWCF.Dispatcher
 
             if (rpc.InstanceContext.State == CommunicationState.Created)
             {
+                Task openTask = null;
                 lock (rpc.InstanceContext.ThisLock)
                 {
                     if (rpc.InstanceContext.State == CommunicationState.Created)
                     {
                         var helper = new TimeoutHelper(rpc.Channel.CloseTimeout);
-                        rpc.InstanceContext.OpenAsync(helper.GetCancellationToken()).GetAwaiter().GetResult();
+                        // awaiting the task outside the lock is safe as OpenAsync will transition the state away from Created before
+                        // it returns an uncompleted Task.
+                        openTask = rpc.InstanceContext.OpenAsync(helper.GetCancellationToken());
+                        Fx.Assert(rpc.InstanceContext.State != CommunicationState.Created, "InstanceContext.OpenAsync should transition away from Created before returning a Task");
                     }
                 }
+
+                await openTask;
             }
+
             rpc.InstanceContext.BindRpc(rpc);
         }
 

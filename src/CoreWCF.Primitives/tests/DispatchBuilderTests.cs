@@ -1,5 +1,4 @@
-﻿//using Microsoft.Extensions.DependencyInjection;
-using Helpers;
+﻿using Helpers;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,12 +30,13 @@ public static class DispatchBuilderTests
         var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
         var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleService));
         Assert.Single(dispatchers);
-        var dispatcher = dispatchers[0];
-        Assert.Equal("foo", dispatcher.Binding.Scheme);
-        Assert.Equal(serviceAddress, dispatcher.BaseAddress.ToString());
-        var requestContext = TestRequestContext.Create(serviceAddress);
+        var serviceDispatcher = dispatchers[0];
+        Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
+        Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
         IChannel mockChannel = new MockReplyChannel(serviceProvider);
-        dispatcher.DispatchAsync(requestContext, mockChannel, CancellationToken.None).Wait();
+        var dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(mockChannel);
+        var requestContext = TestRequestContext.Create(serviceAddress);
+        dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
         requestContext.ValidateReply();
     }
 
@@ -60,12 +60,13 @@ public static class DispatchBuilderTests
         var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
         var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
         Assert.Single(dispatchers);
-        var dispatcher = dispatchers[0];
-        Assert.Equal("foo", dispatcher.Binding.Scheme);
-        Assert.Equal(serviceAddress, dispatcher.BaseAddress.ToString());
-        var requestContext = TestRequestContext.Create(serviceAddress);
+        var serviceDispatcher = dispatchers[0];
+        Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
+        Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
         IChannel mockChannel = new MockReplyChannel(serviceProvider);
-        dispatcher.DispatchAsync(requestContext, mockChannel, CancellationToken.None).Wait();
+        var dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(mockChannel);
+        var requestContext = TestRequestContext.Create(serviceAddress);
+        dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
         requestContext.ValidateReply();
     }
 
@@ -90,12 +91,13 @@ public static class DispatchBuilderTests
         var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
         var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
         Assert.Single(dispatchers);
-        var dispatcher = dispatchers[0];
-        Assert.Equal("foo", dispatcher.Binding.Scheme);
-        Assert.Equal(serviceAddress, dispatcher.BaseAddress.ToString());
-        var requestContext = TestRequestContext.Create(serviceAddress);
+        var serviceDispatcher = dispatchers[0];
+        Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
+        Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
         IChannel mockChannel = new MockReplyChannel(serviceProvider);
-        dispatcher.DispatchAsync(requestContext, mockChannel, CancellationToken.None).Wait();
+        var dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(mockChannel);
+        var requestContext = TestRequestContext.Create(serviceAddress);
+        dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
         requestContext.ValidateReply();
     }
 }
