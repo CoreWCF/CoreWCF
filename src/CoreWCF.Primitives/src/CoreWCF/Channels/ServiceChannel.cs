@@ -33,7 +33,7 @@ namespace CoreWCF.Channels
         readonly bool hasSession;
         readonly SessionIdleManager idleManager;
         InstanceContext instanceContext;
-        //ServiceThrottle instanceContextServiceThrottle;
+        ServiceThrottle instanceContextServiceThrottle;
         bool isPending;
         readonly bool isReplyChannel;
         EndpointAddress localAddress;
@@ -41,7 +41,7 @@ namespace CoreWCF.Channels
         readonly bool openBinder = false;
         TimeSpan operationTimeout;
         object proxy;
-        //ServiceThrottle serviceThrottle;
+        ServiceThrottle serviceThrottle;
         string terminatingOperationName;
         bool hasCleanedUpChannelCollections;
         //EventTraceActivity eventActivity;
@@ -92,16 +92,16 @@ namespace CoreWCF.Channels
 
         internal ServiceChannel(IChannelBinder binder,
                                 EndpointDispatcher endpointDispatcher,
-                                Binding binding,
+                                ServiceDispatcher serviceDispatcher,
                                 SessionIdleManager idleManager)
-            : this(binder, binding)
+            : this(binder, serviceDispatcher.Binding)
         {
             if (endpointDispatcher == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
             }
 
-            //this.channelDispatcher = channelDispatcher;
+            channelDispatcher = serviceDispatcher.ChannelDispatcher;
             this.endpointDispatcher = endpointDispatcher;
             clientRuntime = endpointDispatcher.DispatchRuntime.CallbackClientRuntime;
 
@@ -392,21 +392,21 @@ namespace CoreWCF.Channels
             set { instanceContext = value; }
         }
 
-        //internal ServiceThrottle InstanceContextServiceThrottle
-        //{
-        //    get { return this.instanceContextServiceThrottle; }
-        //    set { this.instanceContextServiceThrottle = value; }
-        //}
+        internal ServiceThrottle InstanceContextServiceThrottle
+        {
+            get { return this.instanceContextServiceThrottle; }
+            set { this.instanceContextServiceThrottle = value; }
+        }
 
-        //internal ServiceThrottle ServiceThrottle
-        //{
-        //    get { return this.serviceThrottle; }
-        //    set
-        //    {
-        //        this.ThrowIfDisposed();
-        //        this.serviceThrottle = value;
-        //    }
-        //}
+        internal ServiceThrottle ServiceThrottle
+        {
+            get { return this.serviceThrottle; }
+            set
+            {
+                this.ThrowIfDisposed();
+                this.serviceThrottle = value;
+            }
+        }
 
         void SetupInnerChannelFaultHandler()
         {

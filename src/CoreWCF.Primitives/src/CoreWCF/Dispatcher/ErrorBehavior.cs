@@ -30,7 +30,7 @@ namespace CoreWCF.Dispatcher
             messageVersion = MessageVersion.Soap11;
         }
 
-        void InitializeFault(ref MessageRpc rpc)
+        void InitializeFault(MessageRpc rpc)
         {
             Exception error = rpc.Error;
             FaultException fault = error as FaultException;
@@ -53,26 +53,26 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal void ProvideMessageFault(ref MessageRpc rpc)
+        internal void ProvideMessageFault(MessageRpc rpc)
         {
             if (rpc.Error != null)
             {
-                ProvideMessageFaultCore(ref rpc);
+                ProvideMessageFaultCore(rpc);
             }
         }
 
-        void ProvideMessageFaultCore(ref MessageRpc rpc)
+        void ProvideMessageFaultCore(MessageRpc rpc)
         {
             if (messageVersion != rpc.RequestVersion)
             {
                 Fx.Assert("CoreWCF.Dispatcher.ErrorBehavior.ProvideMessageFaultCore(): (this.messageVersion != rpc.RequestVersion)");
             }
 
-            InitializeFault(ref rpc);
+            InitializeFault(rpc);
 
             ProvideFault(rpc.Error, rpc.Channel.GetProperty<FaultConverter>(), ref rpc.FaultInfo);
 
-            ProvideMessageFaultCoreCoda(ref rpc);
+            ProvideMessageFaultCoreCoda(rpc);
         }
 
         void ProvideFaultOfLastResort(Exception error, ref ErrorHandlerFaultInfo faultInfo)
@@ -109,7 +109,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void ProvideMessageFaultCoreCoda(ref MessageRpc rpc)
+        void ProvideMessageFaultCoreCoda(MessageRpc rpc)
         {
             if (rpc.FaultInfo.Fault.Headers.Action == null)
             {
@@ -122,7 +122,7 @@ namespace CoreWCF.Dispatcher
         internal void ProvideOnlyFaultOfLastResort(ref MessageRpc rpc)
         {
             ProvideFaultOfLastResort(rpc.Error, ref rpc.FaultInfo);
-            ProvideMessageFaultCoreCoda(ref rpc);
+            ProvideMessageFaultCoreCoda(rpc);
         }
 
         internal void ProvideFault(Exception e, FaultConverter faultConverter, ref ErrorHandlerFaultInfo faultInfo)
@@ -164,15 +164,15 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal void HandleError(ref MessageRpc rpc)
+        internal void HandleError(MessageRpc rpc)
         {
             if (rpc.Error != null)
             {
-                HandleErrorCore(ref rpc);
+                HandleErrorCore(rpc);
             }
         }
 
-        void HandleErrorCore(ref MessageRpc rpc)
+        void HandleErrorCore(MessageRpc rpc)
         {
             bool handled = HandleErrorCommon(rpc.Error, ref rpc.FaultInfo);
             if (handled)

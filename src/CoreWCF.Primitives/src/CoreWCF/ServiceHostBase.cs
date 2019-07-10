@@ -30,7 +30,7 @@ namespace CoreWCF
         IInstanceContextManager instances;
         TimeSpan openTimeout = ServiceDefaults.OpenTimeout;
         ServiceCredentials readOnlyCredentials;
-        //ServiceAuthorizationBehavior readOnlyAuthorization;
+        ServiceAuthorizationBehavior readOnlyAuthorization;
         //ServiceAuthenticationBehavior readOnlyAuthentication;
         Dictionary<DispatcherBuilder.ListenUriInfo, Collection<ServiceEndpoint>> endpointsByListenUriInfo;
         int busyCount;
@@ -40,31 +40,30 @@ namespace CoreWCF
 
         protected ServiceHostBase()
         {
-            this.baseAddresses = new UriSchemeKeyedCollection(this.ThisLock);
-            this.channelDispatchers = new ChannelDispatcherCollection(this, this.ThisLock);
-            this.extensions = new ExtensionCollection<ServiceHostBase>(this, this.ThisLock);
-            this.instances = new InstanceContextManager(this.ThisLock);
+            baseAddresses = new UriSchemeKeyedCollection(ThisLock);
+            channelDispatchers = new ChannelDispatcherCollection(this, ThisLock);
+            extensions = new ExtensionCollection<ServiceHostBase>(this, ThisLock);
+            instances = new InstanceContextManager(ThisLock);
         }
 
-        // TODO: Bring in ServiceAuthorizationBehavior
-        //public ServiceAuthorizationBehavior Authorization
-        //{
-        //    get
-        //    {
-        //        if (this.Description == null)
-        //        {
-        //            return null;
-        //        }
-        //        else if (this.State == CommunicationState.Created || this.State == CommunicationState.Opening)
-        //        {
-        //            return EnsureAuthorization(this.Description);
-        //        }
-        //        else
-        //        {
-        //            return this.readOnlyAuthorization;
-        //        }
-        //    }
-        //}
+        public ServiceAuthorizationBehavior Authorization
+        {
+            get
+            {
+                if (Description == null)
+                {
+                    return null;
+                }
+                else if (State == CommunicationState.Created || State == CommunicationState.Opening)
+                {
+                    return EnsureAuthorization(Description);
+                }
+                else
+                {
+                    return readOnlyAuthorization;
+                }
+            }
+        }
 
         // TODO: Bring in ServiceAuthenticationBehavior
         //public ServiceAuthenticationBehavior Authentication
@@ -90,19 +89,19 @@ namespace CoreWCF
         {
             get
             {
-                externalBaseAddresses = new ReadOnlyCollection<Uri>(new List<Uri>(this.baseAddresses));
+                externalBaseAddresses = new ReadOnlyCollection<Uri>(new List<Uri>(baseAddresses));
                 return externalBaseAddresses;
             }
         }
 
         public ChannelDispatcherCollection ChannelDispatchers
         {
-            get { return this.channelDispatchers; }
+            get { return channelDispatchers; }
         }
 
         public TimeSpan CloseTimeout
         {
-            get { return this.closeTimeout; }
+            get { return closeTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
@@ -115,10 +114,10 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                lock (this.ThisLock)
+                lock (ThisLock)
                 {
-                    this.ThrowIfClosedOrOpened();
-                    this.closeTimeout = value;
+                    ThrowIfClosedOrOpened();
+                    closeTimeout = value;
                 }
             }
         }
@@ -146,32 +145,32 @@ namespace CoreWCF
 
         protected override TimeSpan DefaultCloseTimeout
         {
-            get { return this.CloseTimeout; }
+            get { return CloseTimeout; }
         }
 
         protected override TimeSpan DefaultOpenTimeout
         {
-            get { return this.OpenTimeout; }
+            get { return OpenTimeout; }
         }
 
         public ServiceDescription Description
         {
-            get { return this.description; }
+            get { return description; }
         }
 
         public IExtensionCollection<ServiceHostBase> Extensions
         {
-            get { return this.extensions; }
+            get { return extensions; }
         }
 
         protected internal IDictionary<string, ContractDescription> ImplementedContracts
         {
-            get { return this.implementedContracts; }
+            get { return implementedContracts; }
         }
 
         internal UriSchemeKeyedCollection InternalBaseAddresses
         {
-            get { return this.baseAddresses; }
+            get { return baseAddresses; }
         }
 
         public int ManualFlowControlLimit
@@ -182,7 +181,7 @@ namespace CoreWCF
 
         public TimeSpan OpenTimeout
         {
-            get { return this.openTimeout; }
+            get { return openTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
@@ -195,22 +194,22 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                lock (this.ThisLock)
+                lock (ThisLock)
                 {
-                    this.ThrowIfClosedOrOpened();
-                    this.openTimeout = value;
+                    ThrowIfClosedOrOpened();
+                    openTimeout = value;
                 }
             }
         }
 
         protected void AddBaseAddress(Uri baseAddress)
         {
-            if (this.initializeDescriptionHasFinished)
+            if (initializeDescriptionHasFinished)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.SFxCannotCallAddBaseAddress));
             }
-            this.baseAddresses.Add(baseAddress);
+            baseAddresses.Add(baseAddress);
         }
 
         public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, string address)
@@ -265,6 +264,33 @@ namespace CoreWCF
             throw new PlatformNotSupportedException();
         }
 
+        ServiceAuthorizationBehavior EnsureAuthorization(ServiceDescription description)
+        {
+            Fx.Assert(State == CommunicationState.Created || State == CommunicationState.Opening, "");
+            ServiceAuthorizationBehavior a = description.Behaviors.Find<ServiceAuthorizationBehavior>();
+
+            if (a == null)
+            {
+                a = new ServiceAuthorizationBehavior();
+                description.Behaviors.Add(a);
+            }
+
+            return a;
+        }
+
+        //ServiceAuthenticationBehavior EnsureAuthentication(ServiceDescription description)
+        //{
+        //    Fx.Assert(this.State == CommunicationState.Created || this.State == CommunicationState.Opening, "");
+        //    ServiceAuthenticationBehavior a = description.Behaviors.Find<ServiceAuthenticationBehavior>();
+
+        //    if (a == null)
+        //    {
+        //        a = new ServiceAuthenticationBehavior();
+        //        description.Behaviors.Add(a);
+        //    }
+        //    return a;
+        //}
+
         public int IncrementManualFlowControlLimit(int incrementBy)
         {
             throw new PlatformNotSupportedException();
@@ -282,7 +308,7 @@ namespace CoreWCF
             this.implementedContracts = implementedContracts;
 
             ApplyConfiguration();
-            this.initializeDescriptionHasFinished = true;
+            initializeDescriptionHasFinished = true;
         }
 
         // Configuration
@@ -334,7 +360,7 @@ namespace CoreWCF
 
             public ContractDescription ResolveContract(string contractName)
             {
-                return this.implementedContracts != null && this.implementedContracts.ContainsKey(contractName) ? this.implementedContracts[contractName] : null;
+                return implementedContracts != null && implementedContracts.ContainsKey(contractName) ? implementedContracts[contractName] : null;
             }
         }
 
@@ -360,7 +386,7 @@ namespace CoreWCF
 
                 if (contract == null)
                 {
-                    contract = this.behaviorContracts.ContainsKey(contractName) ? this.behaviorContracts[contractName] : null;
+                    contract = behaviorContracts.ContainsKey(contractName) ? behaviorContracts[contractName] : null;
                 }
 
                 return contract;

@@ -7,7 +7,7 @@ using System.Security.Principal;
 namespace CoreWCF.IdentityModel.Claims
 {
     [DataContract(Namespace = XsiConstants.Namespace)]
-    internal abstract class ClaimSet : IEnumerable<Claim>
+    public abstract class ClaimSet : IEnumerable<Claim>
     {
         static ClaimSet system;
         static ClaimSet windows;

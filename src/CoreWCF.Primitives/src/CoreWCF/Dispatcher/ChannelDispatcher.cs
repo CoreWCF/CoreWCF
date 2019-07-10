@@ -25,7 +25,6 @@ namespace CoreWCF.Dispatcher
         //bool asynchronousTransactedAcceptEnabled;
         //int maxTransactedBatchSize;
         MessageVersion messageVersion;
-        //SynchronizedChannelCollection<IChannel> pendingChannels; // app has not yet seen these.
         bool receiveSynchronously;
         bool sendAsynchronously;
         int maxPendingReceives;
@@ -61,6 +60,7 @@ namespace CoreWCF.Dispatcher
             endpointDispatchers = new EndpointDispatcherCollection(this);
             ChannelInitializers = NewBehaviorCollection<IChannelInitializer>();
             channels = new CommunicationObjectManager<IChannel>(ThisLock);
+            this.PendingChannels = new SynchronizedChannelCollection<IChannel>(ThisLock);
             ErrorHandlers = new Collection<IErrorHandler>();
             //this.isTransactedReceive = false;
             //this.asynchronousTransactedAcceptEnabled = false;
@@ -68,7 +68,7 @@ namespace CoreWCF.Dispatcher
             sendAsynchronously = true;
             //this.serviceThrottle = null;
             //transactionTimeout = TimeSpan.Zero;
-            maxPendingReceives = MultipleReceiveBinder.MultipleReceiveDefaults.MaxPendingReceives;
+            maxPendingReceives = 1;
         }
 
         public string BindingName { get; }
@@ -111,6 +111,11 @@ namespace CoreWCF.Dispatcher
             get { return filterTable; }
         }
 
+        internal CommunicationObjectManager<IChannel> Channels
+        {
+            get { return channels; }
+        }
+
         public SynchronizedCollection<EndpointDispatcher> Endpoints
         {
             get { return endpointDispatchers; }
@@ -149,19 +154,6 @@ namespace CoreWCF.Dispatcher
             set;
         }
 
-        // TODO: Decide: Remove API/Make API do nothing/throw PNSE
-        public int MaxTransactedBatchSize
-        {
-            get
-            {
-                throw new PlatformNotSupportedException();
-            }
-            set
-            {
-                throw new PlatformNotSupportedException();
-            }
-        }
-
         //public ServiceThrottle ServiceThrottle
         //{
         //    get
@@ -184,6 +176,8 @@ namespace CoreWCF.Dispatcher
                 shared.ManualAddressing = value;
             }
         }
+
+        internal SynchronizedChannelCollection<IChannel> PendingChannels { get; private set; }
 
         public bool ReceiveSynchronously
         {
@@ -222,7 +216,7 @@ namespace CoreWCF.Dispatcher
 
         }
 
-        // TODO: Do we ignore? Find a way to propagate? Throw?
+        // TODO: Do we need to worry about this?
         public int MaxPendingReceives
         {
             get
@@ -253,71 +247,12 @@ namespace CoreWCF.Dispatcher
 
         internal Binding Binding { get; }
 
-        //public IsolationLevel TransactionIsolationLevel
-        //{
-        //    get { return this.transactionIsolationLevel; }
-        //    set
-        //    {
-        //        switch (value)
-        //        {
-        //            case IsolationLevel.Serializable:
-        //            case IsolationLevel.RepeatableRead:
-        //            case IsolationLevel.ReadCommitted:
-        //            case IsolationLevel.ReadUncommitted:
-        //            case IsolationLevel.Unspecified:
-        //            case IsolationLevel.Chaos:
-        //            case IsolationLevel.Snapshot:
-        //                break;
-
-        //            default:
-        //                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
-        //        }
-
-        //        this.ThrowIfDisposedOrImmutable();
-        //        this.transactionIsolationLevel = value;
-        //        this.transactionIsolationLevelSet = true;
-        //    }
-        //}
-
-        //internal bool TransactionIsolationLevelSet
-        //{
-        //    get { return this.transactionIsolationLevelSet; }
-        //}
-
-        //public TimeSpan TransactionTimeout
-        //{
-        //    get
-        //    {
-        //        return this.transactionTimeout;
-        //    }
-        //    set
-        //    {
-        //        if (value < TimeSpan.Zero)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
-        //                SR.Format(SR.SFxTimeoutOutOfRange0)));
-        //        }
-
-        //        if (TimeoutHelper.IsTooLarge(value))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
-        //                SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
-        //        }
-
-        //        this.ThrowIfDisposedOrImmutable();
-        //        this.transactionTimeout = value;
-        //    }
-        //}
-
-
-        // TODO: Move this functionality somewhere else as this class is now OM only
         internal bool HandleError(Exception error)
         {
             ErrorHandlerFaultInfo dummy = new ErrorHandlerFaultInfo();
             return HandleError(error, ref dummy);
         }
 
-        // TODO: Move this functionality somewhere else as this class is now OM only
         internal bool HandleError(Exception error, ref ErrorHandlerFaultInfo faultInfo)
         {
             ErrorBehavior behavior;
@@ -341,6 +276,26 @@ namespace CoreWCF.Dispatcher
             else
             {
                 return false;
+            }
+        }
+
+        internal void InitializeChannel(IClientChannel channel)
+        {
+            this.ThrowIfDisposedOrNotOpen();
+            try
+            {
+                for (int i = 0; i < ChannelInitializers.Count; ++i)
+                {
+                    ChannelInitializers[i].Initialize(channel);
+                }
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperCallback(e);
             }
         }
 
@@ -440,7 +395,7 @@ namespace CoreWCF.Dispatcher
 
         protected override Task OnOpenAsync(CancellationToken token)
         {
-            throw new PlatformNotSupportedException();
+            return Task.CompletedTask;
         }
 
         // TODO: Move this functionality somewhere else as this class is now OM only

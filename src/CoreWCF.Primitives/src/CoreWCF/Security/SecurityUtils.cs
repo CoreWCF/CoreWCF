@@ -18,6 +18,7 @@ using System.Globalization;
 using CoreWCF.Channels;
 using System.DirectoryServices.ActiveDirectory;
 using CoreWCF.Runtime;
+using System.Collections.Generic;
 
 namespace CoreWCF.Security
 {
@@ -98,8 +99,10 @@ namespace CoreWCF.Security
             }
         }
     }
-    public class SecurityUtils
+
+    internal class SecurityUtils
     {
+        public const string Principal = "Principal";
         public const string Identities = "Identities";
         static bool computedDomain;
         static string currentDomain;

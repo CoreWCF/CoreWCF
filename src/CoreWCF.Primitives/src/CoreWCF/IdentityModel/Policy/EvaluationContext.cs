@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CoreWCF.IdentityModel.Policy
 {
-    internal abstract class EvaluationContext
+    public abstract class EvaluationContext
     {
         public abstract ReadOnlyCollection<ClaimSet> ClaimSets { get; }
         public abstract IDictionary<string, object> Properties { get; }

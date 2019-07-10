@@ -14,12 +14,14 @@ using System.Diagnostics;
 namespace CoreWCF.Dispatcher
 {
     delegate Task<MessageRpc> MessageRpcProcessor(MessageRpc rpc);
-    delegate void MessageRpcErrorHandler(ref MessageRpc rpc);
+    delegate void MessageRpcErrorHandler(MessageRpc rpc);
 
-    struct MessageRpc
+    // TODO: Pool MessageRpc objects. These are zero cost on .NET Framework as it's a struct but passing things by ref is problematic
+    // when using async/await. This causes an allocation per request so pool them to remove that allocation.
+    class MessageRpc
     {
         internal readonly ServiceChannel Channel;
-        //internal readonly ChannelHandler channelHandler;
+        internal readonly ChannelHandler channelHandler;
         internal readonly object[] Correlation;
         internal readonly ServiceHostBase Host;
         internal readonly OperationContext OperationContext;
@@ -41,6 +43,7 @@ namespace CoreWCF.Dispatcher
         internal ErrorHandlerFaultInfo FaultInfo;
         internal bool HasSecurityContext;
         internal object Instance;
+        internal bool MessageRpcOwnsInstanceContextThrottle;
         internal MessageRpcProcessor AsyncProcessor;
         internal Collection<MessageHeaderInfo> NotUnderstoodHeaders;
         internal DispatchOperationRuntime Operation;
@@ -52,7 +55,7 @@ namespace CoreWCF.Dispatcher
         internal TimeoutHelper ReplyTimeoutHelper;
         internal RequestReplyCorrelator.ReplyToInfo ReplyToInfo;
         internal MessageVersion RequestVersion;
-        //internal ServiceSecurityContext SecurityContext;
+        internal ServiceSecurityContext SecurityContext;
         internal InstanceContext InstanceContext;
         internal bool SuccessfullyBoundInstance;
         internal bool SuccessfullyIncrementedActivity;
@@ -61,6 +64,7 @@ namespace CoreWCF.Dispatcher
         //internal IAspNetMessageProperty HostingProperty;
         //internal MessageRpcInvokeNotification InvokeNotification;
         //internal EventTraceActivity EventTraceActivity;
+        internal bool _processCallReturned;
 
         bool paused;
         bool switchedThreads;
@@ -68,7 +72,7 @@ namespace CoreWCF.Dispatcher
         SignalGate<IAsyncResult> invokeContinueGate;
 
         internal MessageRpc(RequestContext requestContext, Message request, DispatchOperationRuntime operation,
-            ServiceChannel channel, ServiceHostBase host, bool cleanThread,
+            ServiceChannel channel, ServiceHostBase host, ChannelHandler channelHandler, bool cleanThread,
             OperationContext operationContext, InstanceContext instanceContext/*, EventTraceActivity eventTraceActivity*/)
         {
             Fx.Assert((operationContext != null), "correwcf.Dispatcher.MessageRpc.MessageRpc(), operationContext == null");
@@ -81,11 +85,9 @@ namespace CoreWCF.Dispatcher
             TaskResult = null;
             CanSendReply = true;
             Channel = channel;
-            //this.channelHandler = channelHandler;
+            this.channelHandler = channelHandler;
             Correlation = EmptyArray.Allocate(operation.Parent.CorrelationCount);
             DidDeserializeRequestBody = false;
-            //this.TransactionMessageProperty = null;
-            //this.TransactedBatchContext = null;
             Error = null;
             ErrorProcessor = null;
             FaultInfo = new ErrorHandlerFaultInfo(request.Version.Addressing.DefaultFaultAction);
@@ -105,7 +107,7 @@ namespace CoreWCF.Dispatcher
             RequestVersion = request.Version;
             Reply = null;
             ReplyTimeoutHelper = new TimeoutHelper();
-            //this.SecurityContext = null;
+            SecurityContext = null;
             InstanceContext = instanceContext;
             SuccessfullyBoundInstance = false;
             SuccessfullyIncrementedActivity = false;
@@ -129,8 +131,6 @@ namespace CoreWCF.Dispatcher
                 ReplyToInfo = new RequestReplyCorrelator.ReplyToInfo();
             }
 
-            //this.HostingProperty = AspNetEnvironment.Current.GetHostingProperty(request, true);
-
             //if (DiagnosticUtility.ShouldUseActivity)
             //{
             //    this.Activity = TraceUtility.ExtractActivity(this.Request);
@@ -144,8 +144,6 @@ namespace CoreWCF.Dispatcher
             //{
             ResponseActivityId = Guid.Empty;
             //}
-
-            //InvokeNotification = new MessageRpcInvokeNotification(/*this.Activity,*/ this.channelHandler);
 
             //if (this.EventTraceActivity == null && FxTrace.Trace.IsEnd2EndActivityTracingEnabled)
             //{
@@ -206,8 +204,7 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                throw;
-                //channelHandler.HandleError(e);
+                channelHandler.HandleError(e);
             }
         }
 
@@ -265,9 +262,9 @@ namespace CoreWCF.Dispatcher
                 {
                     throw;
                 }
+
                 AbortRequestContext(context);
-                //channelHandler.HandleError(e);
-                throw;
+                channelHandler.HandleError(e);
             }
         }
 
@@ -285,8 +282,8 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    //channelHandler.HandleError(e);
-                    throw;
+
+                    channelHandler.HandleError(e);
                 }
             }
         }
@@ -307,8 +304,8 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    //channelHandler.HandleError(e);
-                    throw;
+
+                    channelHandler.HandleError(e);
                 }
             }
         }
@@ -327,10 +324,15 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    //channelHandler.HandleError(e);
-                    throw;
+
+                    channelHandler.HandleError(e);
                 }
             }
+        }
+
+        internal void EnsureReceive()
+        {
+            RequestContext.OnOperationInvoke();
         }
 
         bool ProcessError(Exception e)
@@ -367,7 +369,7 @@ namespace CoreWCF.Dispatcher
 
                 if (ErrorProcessor != null)
                 {
-                    ErrorProcessor(ref this);
+                    ErrorProcessor(this);
                 }
 
                 return (Error == null);
@@ -415,10 +417,11 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        //channelHandler.HandleError(e);
-                        throw;
+
+                        channelHandler.HandleError(e);
                     }
                 }
+
                 ParametersDisposed = true;
             }
         }
@@ -443,19 +446,13 @@ namespace CoreWCF.Dispatcher
                             {
                                 throw;
                             }
-                            //channelHandler.HandleError(e);
-                            throw;
+
+                            channelHandler.HandleError(e);
                         }
                     }
                 }
             }
         }
-
-        //[MethodImpl(MethodImplOptions.NoInlining)]
-        //IDisposable ApplyHostingIntegrationContextNoInline()
-        //{
-        //    return this.HostingProperty.ApplyIntegrationContext();
-        //}
 
         internal async Task<MessageRpc> ProcessAsync(bool isOperationContextSet)
         {
@@ -485,7 +482,7 @@ namespace CoreWCF.Dispatcher
                     contextHolder.Context = OperationContext;
                 }
 
-                this = await AsyncProcessor(this);
+                await AsyncProcessor(this);
 
                 OperationContext.SetClientReply(null, false);
             }

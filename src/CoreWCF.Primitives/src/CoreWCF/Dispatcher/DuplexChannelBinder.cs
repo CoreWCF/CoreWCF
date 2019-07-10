@@ -51,6 +51,7 @@ namespace CoreWCF.Dispatcher
 
             this.channel = channel;
             this.listenUri = listenUri;
+            this.correlator = correlator;
             this.channel.Faulted += new EventHandler(OnFaulted);
             initialized = true;
         }
@@ -277,7 +278,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        bool HandleRequestAsReplyCore(Message message)
+        private bool HandleRequestAsReplyCore(Message message)
         {
             IDuplexRequest request = correlator.Find<IDuplexRequest>(message, true);
             if (request != null)
@@ -285,6 +286,7 @@ namespace CoreWCF.Dispatcher
                 request.GotReply(message);
                 return true;
             }
+
             return false;
         }
 
