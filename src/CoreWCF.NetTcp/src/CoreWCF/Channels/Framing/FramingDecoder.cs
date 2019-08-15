@@ -365,24 +365,17 @@ namespace CoreWCF.Channels.Framing
 
     abstract class FramingDecoder
     {
-        long streamPosition;
-
         protected FramingDecoder()
         {
         }
 
-        protected FramingDecoder(long streamPosition)
-        {
-            this.streamPosition = streamPosition;
-        }
-
         protected abstract string CurrentStateAsString { get; }
 
-        public long StreamPosition
-        {
-            get { return streamPosition; }
-            set { streamPosition = value; }
-        }
+        public virtual string ContentType { get { throw new NotImplementedException(); } }
+
+        public virtual Uri Via { get { throw new NotImplementedException(); } }
+
+        public abstract int Decode(ReadOnlySequence<byte> buffer);
 
         protected void ValidateFramingMode(FramingMode mode)
         {
@@ -458,7 +451,8 @@ namespace CoreWCF.Channels.Framing
 
         protected Exception CreateException(InvalidDataException innerException)
         {
-            return new ProtocolException(SR.Format(SR.FramingError, StreamPosition, CurrentStateAsString),
+            // TODO: Can the position still be recovered?
+            return new ProtocolException(SR.Format(SR.FramingError, /*StreamPosition*/ -1, CurrentStateAsString),
                 innerException);
         }
     }
@@ -477,7 +471,7 @@ namespace CoreWCF.Channels.Framing
             Reset();
         }
 
-        public int Decode(ReadOnlySequence<byte> buffer)
+        public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
             var data = buffer.First.Span;
@@ -665,7 +659,7 @@ namespace CoreWCF.Channels.Framing
             get { return currentState.ToString(); }
         }
 
-        public string ContentType
+        public override string ContentType
         {
             get
             {
@@ -675,7 +669,7 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        public Uri Via
+        public override Uri Via
         {
             get
             {
@@ -710,7 +704,7 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        public int Decode(ReadOnlySequence<byte> buffer)
+        public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
             var data = buffer.First.Span;
@@ -892,8 +886,7 @@ namespace CoreWCF.Channels.Framing
         int chunkSize;
         State currentState;
 
-        public SingletonMessageDecoder(long streamPosition)
-            : base(streamPosition)
+        public SingletonMessageDecoder()
         {
             sizeDecoder = new IntDecoder();
             currentState = State.ChunkStart;
@@ -927,7 +920,7 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        public int Decode(ReadOnlySequence<byte> buffer)
+        public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
             var data = buffer.First.Span;
@@ -988,7 +981,6 @@ namespace CoreWCF.Channels.Framing
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
-                StreamPosition += bytesConsumed;
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1042,7 +1034,7 @@ namespace CoreWCF.Channels.Framing
             get { return currentState.ToString(); }
         }
 
-        public Uri Via
+        public override Uri Via
         {
             get
             {
@@ -1052,7 +1044,7 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        public string ContentType
+        public override string ContentType
         {
             get
             {
@@ -1072,7 +1064,7 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        public int Decode(ReadOnlySequence<byte> buffer)
+        public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
             var data = buffer.First.Span;
@@ -1177,7 +1169,6 @@ namespace CoreWCF.Channels.Framing
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
-                StreamPosition += bytesConsumed;
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1219,15 +1210,14 @@ namespace CoreWCF.Channels.Framing
         State currentState;
         string contentType;
 
-        public ServerSingletonSizedDecoder(long streamPosition, int maxViaLength, int maxContentTypeLength)
-            : base(streamPosition)
+        public ServerSingletonSizedDecoder(int maxViaLength, int maxContentTypeLength)
         {
             viaDecoder = new ViaStringDecoder(maxViaLength);
             contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
             currentState = State.ReadingViaRecord;
         }
 
-        public int Decode(ReadOnlySequence<byte> buffer)
+        public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
             var data = buffer.First.Span;
@@ -1285,7 +1275,6 @@ namespace CoreWCF.Channels.Framing
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
-                StreamPosition += bytesConsumed;
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1296,7 +1285,6 @@ namespace CoreWCF.Channels.Framing
 
         public void Reset(long streamPosition)
         {
-            StreamPosition = streamPosition;
             currentState = State.ReadingViaRecord;
         }
 
@@ -1310,7 +1298,7 @@ namespace CoreWCF.Channels.Framing
             get { return currentState.ToString(); }
         }
 
-        public Uri Via
+        public override Uri Via
         {
             get
             {
@@ -1320,7 +1308,7 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        public string ContentType
+        public override string ContentType
         {
             get
             {
@@ -1359,324 +1347,5 @@ namespace CoreWCF.Channels.Framing
         EnvelopeEnd,
         ReadingEndRecord,
         End,
-    }
-
-    abstract class ClientFramingDecoder : FramingDecoder
-    {
-        ClientFramingDecoderState currentState;
-
-        protected ClientFramingDecoder(long streamPosition)
-            : base(streamPosition)
-        {
-            currentState = ClientFramingDecoderState.ReadingUpgradeRecord;
-        }
-
-        public ClientFramingDecoderState CurrentState
-        {
-            get
-            {
-                return currentState;
-            }
-
-            protected set
-            {
-                currentState = value;
-            }
-        }
-
-        protected override string CurrentStateAsString
-        {
-            get { return currentState.ToString(); }
-        }
-
-        public abstract string Fault
-        {
-            get;
-        }
-
-        public abstract int Decode(ReadOnlySequence<byte> buffer);
-    }
-
-    // Pattern: 
-    //   (UpgradeResponse, upgrade-bytes)*, (Ack | Fault),
-    //   ((EnvelopeStart, ReadingEnvelopeBytes*, EnvelopeEnd) | Fault)*, 
-    //   End
-    class ClientDuplexDecoder : ClientFramingDecoder
-    {
-        IntDecoder sizeDecoder;
-        FaultStringDecoder faultDecoder;
-        int envelopeBytesNeeded;
-        int envelopeSize;
-
-        public ClientDuplexDecoder(long streamPosition)
-            : base(streamPosition)
-        {
-            sizeDecoder = new IntDecoder();
-        }
-
-        public int EnvelopeSize
-        {
-            get
-            {
-                if (CurrentState < ClientFramingDecoderState.EnvelopeStart)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
-                return envelopeSize;
-            }
-        }
-
-        public override string Fault
-        {
-            get
-            {
-                if (CurrentState < ClientFramingDecoderState.Fault)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
-                return faultDecoder.Value;
-            }
-        }
-
-        public override int Decode(ReadOnlySequence<byte> buffer)
-        {
-            DecoderHelper.ValidateSize(buffer.Length);
-            var data = buffer.First.Span;
-            try
-            {
-                int bytesConsumed;
-                FramingRecordType recordType;
-                switch (CurrentState)
-                {
-                    case ClientFramingDecoderState.ReadingUpgradeRecord:
-                        recordType = (FramingRecordType)data[0];
-                        if (recordType == FramingRecordType.UpgradeResponse)
-                        {
-                            bytesConsumed = 1;
-                            base.CurrentState = ClientFramingDecoderState.UpgradeResponse;
-                        }
-                        else
-                        {
-                            bytesConsumed = 0;
-                            base.CurrentState = ClientFramingDecoderState.ReadingAckRecord;
-                        }
-                        break;
-                    case ClientFramingDecoderState.UpgradeResponse:
-                        bytesConsumed = 0;
-                        base.CurrentState = ClientFramingDecoderState.ReadingUpgradeRecord;
-                        break;
-                    case ClientFramingDecoderState.ReadingAckRecord:
-                        recordType = (FramingRecordType)data[0];
-                        if (recordType == FramingRecordType.Fault)
-                        {
-                            bytesConsumed = 1;
-                            faultDecoder = new FaultStringDecoder();
-                            base.CurrentState = ClientFramingDecoderState.ReadingFaultString;
-                            break;
-                        }
-                        ValidatePreambleAck(recordType);
-                        bytesConsumed = 1;
-                        base.CurrentState = ClientFramingDecoderState.Start;
-                        break;
-                    case ClientFramingDecoderState.Start:
-                        bytesConsumed = 0;
-                        base.CurrentState = ClientFramingDecoderState.ReadingEnvelopeRecord;
-                        break;
-                    case ClientFramingDecoderState.ReadingEnvelopeRecord:
-                        recordType = (FramingRecordType)data[0];
-                        if (recordType == FramingRecordType.End)
-                        {
-                            bytesConsumed = 1;
-                            base.CurrentState = ClientFramingDecoderState.End;
-                            break;
-                        }
-                        else if (recordType == FramingRecordType.Fault)
-                        {
-                            bytesConsumed = 1;
-                            faultDecoder = new FaultStringDecoder();
-                            base.CurrentState = ClientFramingDecoderState.ReadingFaultString;
-                            break;
-                        }
-                        ValidateRecordType(FramingRecordType.SizedEnvelope, recordType);
-                        bytesConsumed = 1;
-                        base.CurrentState = ClientFramingDecoderState.ReadingEnvelopeSize;
-                        sizeDecoder.Reset();
-                        break;
-                    case ClientFramingDecoderState.ReadingEnvelopeSize:
-                        bytesConsumed = sizeDecoder.Decode(buffer);
-                        if (sizeDecoder.IsValueDecoded)
-                        {
-                            base.CurrentState = ClientFramingDecoderState.EnvelopeStart;
-                            envelopeSize = sizeDecoder.Value;
-                            envelopeBytesNeeded = envelopeSize;
-                        }
-                        break;
-                    case ClientFramingDecoderState.EnvelopeStart:
-                        bytesConsumed = 0;
-                        base.CurrentState = ClientFramingDecoderState.ReadingEnvelopeBytes;
-                        break;
-                    case ClientFramingDecoderState.ReadingEnvelopeBytes:
-                        bytesConsumed = (int)buffer.Length;
-                        if (bytesConsumed > envelopeBytesNeeded)
-                            bytesConsumed = envelopeBytesNeeded;
-                        envelopeBytesNeeded -= bytesConsumed;
-                        if (envelopeBytesNeeded == 0)
-                            base.CurrentState = ClientFramingDecoderState.EnvelopeEnd;
-                        break;
-                    case ClientFramingDecoderState.EnvelopeEnd:
-                        bytesConsumed = 0;
-                        base.CurrentState = ClientFramingDecoderState.ReadingEnvelopeRecord;
-                        break;
-                    case ClientFramingDecoderState.ReadingFaultString:
-                        bytesConsumed = faultDecoder.Decode(buffer);
-                        if (faultDecoder.IsValueDecoded)
-                        {
-                            base.CurrentState = ClientFramingDecoderState.Fault;
-                        }
-                        break;
-                    case ClientFramingDecoderState.Fault:
-                        bytesConsumed = 0;
-                        base.CurrentState = ClientFramingDecoderState.ReadingEndRecord;
-                        break;
-                    case ClientFramingDecoderState.ReadingEndRecord:
-                        ValidateRecordType(FramingRecordType.End, (FramingRecordType)data[0]);
-                        bytesConsumed = 1;
-                        base.CurrentState = ClientFramingDecoderState.End;
-                        break;
-                    case ClientFramingDecoderState.End:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            CreateException(new InvalidDataException(SR.FramingAtEnd)));
-                    default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
-                }
-
-                StreamPosition += bytesConsumed;
-                return bytesConsumed;
-            }
-            catch (InvalidDataException e)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateException(e));
-            }
-        }
-    }
-
-    // Pattern: 
-    //   (UpgradeResponse, upgrade-bytes)*, (Ack | Fault),
-    //   End
-    class ClientSingletonDecoder : ClientFramingDecoder
-    {
-        FaultStringDecoder faultDecoder;
-
-        public ClientSingletonDecoder(long streamPosition)
-            : base(streamPosition)
-        {
-        }
-
-        public override string Fault
-        {
-            get
-            {
-                if (CurrentState < ClientFramingDecoderState.Fault)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
-                return faultDecoder.Value;
-            }
-        }
-
-        public override int Decode(ReadOnlySequence<byte> buffer)
-        {
-            DecoderHelper.ValidateSize(buffer.Length);
-            var data = buffer.First.Span;
-            try
-            {
-                int bytesConsumed;
-                FramingRecordType recordType;
-                switch (CurrentState)
-                {
-                    case ClientFramingDecoderState.ReadingUpgradeRecord:
-                        recordType = (FramingRecordType)data[0];
-                        if (recordType == FramingRecordType.UpgradeResponse)
-                        {
-                            bytesConsumed = 1;
-                            base.CurrentState = ClientFramingDecoderState.UpgradeResponse;
-                        }
-                        else
-                        {
-                            bytesConsumed = 0;
-                            base.CurrentState = ClientFramingDecoderState.ReadingAckRecord;
-                        }
-                        break;
-                    case ClientFramingDecoderState.UpgradeResponse:
-                        bytesConsumed = 0;
-                        base.CurrentState = ClientFramingDecoderState.ReadingUpgradeRecord;
-                        break;
-                    case ClientFramingDecoderState.ReadingAckRecord:
-                        recordType = (FramingRecordType)data[0];
-                        if (recordType == FramingRecordType.Fault)
-                        {
-                            bytesConsumed = 1;
-                            faultDecoder = new FaultStringDecoder();
-                            base.CurrentState = ClientFramingDecoderState.ReadingFaultString;
-                            break;
-                        }
-                        ValidatePreambleAck(recordType);
-                        bytesConsumed = 1;
-                        base.CurrentState = ClientFramingDecoderState.Start;
-                        break;
-
-                    case ClientFramingDecoderState.Start:
-                        bytesConsumed = 0;
-                        base.CurrentState = ClientFramingDecoderState.ReadingEnvelopeRecord;
-                        break;
-
-                    case ClientFramingDecoderState.ReadingEnvelopeRecord:
-                        recordType = (FramingRecordType)data[0];
-                        if (recordType == FramingRecordType.End)
-                        {
-                            bytesConsumed = 1;
-                            base.CurrentState = ClientFramingDecoderState.End;
-                            break;
-                        }
-                        else if (recordType == FramingRecordType.Fault)
-                        {
-                            bytesConsumed = 0;
-                            base.CurrentState = ClientFramingDecoderState.ReadingFault;
-                            break;
-                        }
-                        ValidateRecordType(FramingRecordType.UnsizedEnvelope, recordType);
-                        bytesConsumed = 1;
-                        base.CurrentState = ClientFramingDecoderState.EnvelopeStart;
-                        break;
-
-                    case ClientFramingDecoderState.EnvelopeStart:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            CreateException(new InvalidDataException(SR.FramingAtEnd)));
-
-                    case ClientFramingDecoderState.ReadingFault:
-                        recordType = (FramingRecordType)data[0];
-                        ValidateRecordType(FramingRecordType.Fault, recordType);
-                        bytesConsumed = 1;
-                        faultDecoder = new FaultStringDecoder();
-                        base.CurrentState = ClientFramingDecoderState.ReadingFaultString;
-                        break;
-                    case ClientFramingDecoderState.ReadingFaultString:
-                        bytesConsumed = faultDecoder.Decode(buffer);
-                        if (faultDecoder.IsValueDecoded)
-                        {
-                            base.CurrentState = ClientFramingDecoderState.Fault;
-                        }
-                        break;
-                    case ClientFramingDecoderState.Fault:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            CreateException(new InvalidDataException(SR.FramingAtEnd)));
-                    default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
-                }
-
-                StreamPosition += bytesConsumed;
-                return bytesConsumed;
-            }
-            catch (InvalidDataException e)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateException(e));
-            }
-        }
     }
 }

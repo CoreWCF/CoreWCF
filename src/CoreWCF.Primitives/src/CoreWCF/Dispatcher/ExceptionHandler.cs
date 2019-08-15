@@ -60,25 +60,17 @@ namespace CoreWCF.Dispatcher
 
         class HandlerWrapper : Fx.ExceptionHandler
         {
-            readonly ExceptionHandler handler;
-
             public HandlerWrapper(ExceptionHandler handler)
             {
                 Fx.Assert(handler != null, "Cannot wrap a null handler.");
-                this.handler = handler;
+                Handler = handler;
             }
 
-            public ExceptionHandler Handler
-            {
-                get
-                {
-                    return handler;
-                }
-            }
+            public ExceptionHandler Handler { get; }
 
             public override bool HandleException(Exception exception)
             {
-                return handler.HandleException(exception);
+                return Handler.HandleException(exception);
             }
         }
     }

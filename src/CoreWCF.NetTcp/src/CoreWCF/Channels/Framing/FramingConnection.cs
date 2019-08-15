@@ -7,12 +7,17 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Text;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
+using System.Diagnostics;
+using System.ComponentModel.Design;
 
 namespace CoreWCF.Channels.Framing
 {
     public class FramingConnection
     {
         private ConnectionContext _context;
+        private bool _doneReceiving;
+        private bool _doneSending;
 
         public FramingConnection(ConnectionContext context)
         {
@@ -28,8 +33,8 @@ namespace CoreWCF.Channels.Framing
         public PipeWriter Output => Transport.Output;
         public IDuplexPipe Transport { get; internal set; }
         public IDuplexPipe RawTransport => _context.Transport;
-        internal ServerSessionDecoder ServerSessionDecoder { get; set; }
-        public Uri Via => ServerSessionDecoder?.Via;
+        internal FramingDecoder FramingDecoder { get; set; }
+        public Uri Via => FramingDecoder?.Via;
         internal FramingMode FramingMode { get; set; }
         public MessageEncoder MessageEncoder { get; internal set; }
         public SecurityMessageProperty SecurityMessageProperty { get; internal set; }
@@ -38,5 +43,139 @@ namespace CoreWCF.Channels.Framing
         public int EnvelopeOffset { get; internal set; }
         public BufferManager BufferManager { get; internal set; }
         public int EnvelopeSize { get; internal set; }
+        public int MaxReceivedMessageSize { get; internal set; }
+        public int MaxBufferSize { get; internal set; }
+        public int ConnectionBufferSize { get; internal set; }
+        public TransferMode TransferMode { get; internal set; }
+
+        public void Abort() { _context.Abort(); }
+        public void Abort(Exception e) { _context.Abort(new ConnectionAbortedException(e.Message, e)); }
+        public void Abort(string reason) { _context.Abort(new ConnectionAbortedException(reason)); }
+
+        public Task DoneReceivingAsync(TimeSpan timeSpan)
+        {
+            //if (!_doneReceiving)
+            //{
+            //    _doneReceiving = true;
+
+            //    if (_doneSending)
+            //    {
+            //        return CloseAsync(timeSpan);
+            //    }
+            //}
+
+            return Task.CompletedTask;
+        }
+
+        public Task DoneSendingAsync()
+        {
+            //_doneSending = true;
+            //if (_doneReceiving)
+            //{
+            //    return CloseAsync(ServiceDispatcher.Binding.CloseTimeout);
+            //}
+
+            return Task.CompletedTask;
+        }
+
+        public Task CloseAsync(TimeSpan timeout)
+        {
+            // Closing should be async and should accept a timeout. There are improvements coming in future releases of .NET Core which support this.
+            Input.Complete();
+            Output.Complete();
+            return Task.CompletedTask;
+        }
+
+        public async Task SendFaultAsync(string faultString, TimeSpan sendTimeout, int maxRead)
+        {
+            //if (TD.ConnectionReaderSendFaultIsEnabled())
+            //{
+            //    TD.ConnectionReaderSendFault(faultString);
+            //}
+            var encodedFault = new EncodedFault(faultString);
+            var timeoutHelper = new TimeoutHelper(sendTimeout);
+            var ct = timeoutHelper.GetCancellationToken();
+            try
+            {
+                await Output.WriteAsync(encodedFault.EncodedBytes, ct);
+                await Output.FlushAsync();
+                // Connection will be closed on completion of Task returned from NetMessageFramingConnectionHandler.OnConnectedAsync
+            }
+            catch (CommunicationException e) // TODO: Consider exception filters to remvoe duplicate code
+            {
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                Abort(e);
+                return;
+            }
+            catch (OperationCanceledException e)
+            {
+                //if (TD.SendTimeoutIsEnabled())
+                //{
+                //    TD.SendTimeout(e.Message);
+                //}
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                Abort(e);
+                return;
+            }
+            catch (TimeoutException e)
+            {
+                //if (TD.SendTimeoutIsEnabled())
+                //{
+                //    TD.SendTimeout(e.Message);
+                //}
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                Abort(e);
+                return;
+            }
+
+            // make sure we read until EOF or a quota is hit
+            ReadResult readResult;
+            long readTotal = 0;
+            for (; ; )
+            {
+                try
+                {
+                    readResult = await Input.ReadAsync(ct);
+                }
+                catch (CommunicationException e) // TODO: Exception filters?
+                {
+                    DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    Abort(e);
+                    return;
+                }
+                // TODO: Standardize handling of OperationCanceledException/TimeoutException
+                catch (OperationCanceledException e)
+                {
+                    //if (TD.SendTimeoutIsEnabled())
+                    //{
+                    //    TD.SendTimeout(e.Message);
+                    //}
+                    DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    Abort(e);
+                    return;
+                }
+                catch (TimeoutException e)
+                {
+                    //if (TD.SendTimeoutIsEnabled())
+                    //{
+                    //    TD.SendTimeout(e.Message);
+                    //}
+                    DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    Abort(e);
+                    return;
+                }
+
+                if (readResult.IsCompleted)
+                    break;
+
+                readTotal += readResult.Buffer.Length;
+                Input.AdvanceTo(readResult.Buffer.End);
+                if (readTotal > maxRead || timeoutHelper.RemainingTime() <= TimeSpan.Zero)
+                {
+                    Abort();
+                    return;
+                }
+            }
+        }
     }
 }

@@ -23,6 +23,7 @@ namespace CoreWCF.Configuration
             services.TryAddSingleton<IDispatcherBuilder, DispatcherBuilderImpl>();
             services.AddScoped<ReplyChannelBinder>();
             services.AddScoped<DuplexChannelBinder>();
+            services.AddScoped<InputChannelBinder>();
             services.AddScoped<ServiceChannel.SessionIdleManager>();
 
             return services;

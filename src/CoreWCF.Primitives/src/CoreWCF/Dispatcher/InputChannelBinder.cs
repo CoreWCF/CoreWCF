@@ -12,7 +12,12 @@ namespace CoreWCF.Dispatcher
         IInputChannel channel;
         Uri listenUri;
 
-        internal InputChannelBinder(IInputChannel channel, Uri listenUri)
+        public InputChannelBinder()
+        {
+
+        }
+
+        internal void Init(IInputChannel channel, Uri listenUri)
         {
             if (!((channel != null)))
             {

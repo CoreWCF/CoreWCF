@@ -17,12 +17,12 @@ namespace CoreWCF.Dispatcher
         readonly IDemuxer _demuxer;
         readonly ErrorBehavior _error;
         readonly bool _enableFaults;
-        readonly bool impersonateOnSerializingReply;
+        readonly bool _impersonateOnSerializingReply;
         readonly IInputSessionShutdown[] _inputSessionShutdownHandlers;
         readonly bool _isOnServer;
         readonly bool _manualAddressing;
         readonly IDispatchMessageInspector[] _messageInspectors;
-        readonly SecurityImpersonationBehavior securityImpersonation;
+        readonly SecurityImpersonationBehavior _securityImpersonation;
         readonly TerminatingOperationBehavior _terminate;
         readonly ThreadBehavior _thread;
 
@@ -41,8 +41,9 @@ namespace CoreWCF.Dispatcher
             _isOnServer = dispatch.IsOnServer;
             _manualAddressing = dispatch.ManualAddressing;
             _messageInspectors = EmptyArray<IDispatchMessageInspector>.ToArray(dispatch.MessageInspectors);
-            // securityImpersonation = SecurityImpersonationBehavior.CreateIfNecessary(dispatch);
-            impersonateOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
+            _securityImpersonation = SecurityImpersonationBehavior.CreateIfNecessary(dispatch);
+            RequireClaimsPrincipalOnOperationContext = dispatch.RequireClaimsPrincipalOnOperationContext;
+            _impersonateOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
             _terminate = TerminatingOperationBehavior.CreateIfNecessary(dispatch);
             _thread = new ThreadBehavior(dispatch);
             ValidateMustUnderstand = dispatch.ValidateMustUnderstand;
@@ -102,8 +103,10 @@ namespace CoreWCF.Dispatcher
 
         internal bool IsImpersonationEnabledOnSerializingReply
         {
-            get { return impersonateOnSerializingReply; }
+            get { return _impersonateOnSerializingReply; }
         }
+
+        internal bool RequireClaimsPrincipalOnOperationContext { get; }
 
         internal bool ManualAddressing
         {
@@ -119,7 +122,7 @@ namespace CoreWCF.Dispatcher
 
         internal SecurityImpersonationBehavior SecurityImpersonation
         {
-            get { return this.securityImpersonation; }
+            get { return _securityImpersonation; }
         }
 
         internal bool ValidateMustUnderstand { get; }

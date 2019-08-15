@@ -531,6 +531,7 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
+        // TODO: Remove as unused and we're now using a push model
         public Task<bool> WaitForMessageAsync(CancellationToken token)
         {
             return channel.WaitForMessageAsync(token);

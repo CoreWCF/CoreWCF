@@ -39,7 +39,7 @@ namespace CoreWCF.Channels.Framing
                 MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
                 MessageEncoderFactory = connection.MessageEncoderFactory
             };
-            var scope = _servicesScopeFactory.CreateScope();
+
             var channel = new ServerFramingDuplexSessionChannel(connection, settings, false, _servicesScopeFactory.CreateScope().ServiceProvider);
             await channel.OpenAsync();
             var channelDispatcher = connection.ServiceDispatcher.CreateServiceChannelDispatcher(channel);
@@ -62,6 +62,7 @@ namespace CoreWCF.Channels.Framing
 
         private async Task<Message> ReceiveMessageAsync(FramingConnection connection)
         {
+            // TODO: Apply timeouts
             Message message;
             ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
             for (; ; )
@@ -111,7 +112,7 @@ namespace CoreWCF.Channels.Framing
 
         private void EnsureDecoderAtEof(FramingConnection connection)
         {
-            var decoder = connection.ServerSessionDecoder;
+            var decoder = connection.FramingDecoder as ServerSessionDecoder;
             if (!(decoder.CurrentState == ServerSessionDecoder.State.End || decoder.CurrentState == ServerSessionDecoder.State.EnvelopeEnd))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(decoder.CreatePrematureEOFException());
@@ -120,9 +121,8 @@ namespace CoreWCF.Channels.Framing
 
         private Message DecodeMessage(FramingConnection connection, ref ReadOnlySequence<byte> buffer)
         {
-            // TODO: plumb through from binding
-            int maxBufferSize = TransportDefaults.MaxBufferSize;
-            var decoder = connection.ServerSessionDecoder;
+            int maxBufferSize = connection.MaxBufferSize;
+            var decoder = (ServerSessionDecoder)connection.FramingDecoder;
             while (!connection.EOF && buffer.Length > 0)
             {
                 int bytesRead = decoder.Decode(buffer);
@@ -144,8 +144,8 @@ namespace CoreWCF.Channels.Framing
                         int envelopeSize = decoder.EnvelopeSize;
                         if (envelopeSize > maxBufferSize)
                         {
-                            // TODO: Sending faults
-                            //base.SendFault(FramingEncodingString.MaxMessageSizeExceededFault, timeout);
+                            // TODO: Remove synchronous wait. This is needed because the buffer is passed by ref.
+                            connection.SendFaultAsync(FramingEncodingString.MaxMessageSizeExceededFault, connection.ServiceDispatcher.Binding.SendTimeout, TransportDefaults.MaxDrainSize).GetAwaiter().GetResult();
 
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                 MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
@@ -165,7 +165,7 @@ namespace CoreWCF.Channels.Framing
                                 message = connection.MessageEncoder.ReadMessage(
                                     new ArraySegment<byte>(connection.EnvelopeBuffer.ToArray(), 0, connection.EnvelopeSize),
                                     connection.BufferManager, 
-                                    connection.ServerSessionDecoder.ContentType);
+                                    connection.FramingDecoder.ContentType);
                             }
                             catch (XmlException xmlException)
                             {

@@ -1,32 +1,30 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Configuration;
-using System.Buffers;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System;
+﻿using CoreWCF.Configuration;
 using CoreWCF.Runtime;
-using CoreWCF.Dispatcher;
+using System;
+using System.Buffers;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Channels.Framing
 {
-    internal class DuplexFramingMiddleware
+    internal class SingletonFramingMiddleware
     {
         private HandshakeDelegate _next;
 
-        public DuplexFramingMiddleware(HandshakeDelegate next)
+        public SingletonFramingMiddleware(HandshakeDelegate next)
         {
             _next = next;
         }
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            var decoder = new ServerSessionDecoder(ConnectionOrientedTransportDefaults.MaxViaSize, ConnectionOrientedTransportDefaults.MaxContentTypeSize);
+            var decoder = new ServerSingletonDecoder(ConnectionOrientedTransportDefaults.MaxViaSize, ConnectionOrientedTransportDefaults.MaxContentTypeSize);
             bool success = false;
 
             try
             {
                 ReadOnlySequence<byte> buffer;
-                while (decoder.CurrentState != ServerSessionDecoder.State.PreUpgradeStart)
+                while (decoder.CurrentState != ServerSingletonDecoder.State.PreUpgradeStart)
                 {
                     var readResult = await connection.Input.ReadAsync();
                     buffer = readResult.Buffer;
@@ -39,7 +37,7 @@ namespace CoreWCF.Channels.Framing
                             buffer = buffer.Slice(bytesDecoded);
                         }
 
-                        if (decoder.CurrentState == ServerSessionDecoder.State.PreUpgradeStart)
+                        if (decoder.CurrentState == ServerSingletonDecoder.State.PreUpgradeStart)
                         {
                             // We now know the Via address (which endpoint the client is connecting to).
                             // The connection now needs to be handled by the correct endpoint which can

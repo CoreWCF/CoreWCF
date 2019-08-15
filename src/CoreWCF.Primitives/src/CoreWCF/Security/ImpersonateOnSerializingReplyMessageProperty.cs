@@ -90,7 +90,7 @@ namespace CoreWCF.Security
                 {
                     DispatchRuntime dispatchRuntime = endpointDispatcher.DispatchRuntime;
                     ImmutableDispatchRuntime runtime = dispatchRuntime.GetRuntime();
-                    if (runtime != null && runtime.SecurityImpersonation != null)
+                    if (runtime?.SecurityImpersonation?.IsSecurityContextImpersonationRequired(_rpc) ?? false)
                     {
                         return runtime.SecurityImpersonation.RunImpersonated(_rpc, func);
                     }

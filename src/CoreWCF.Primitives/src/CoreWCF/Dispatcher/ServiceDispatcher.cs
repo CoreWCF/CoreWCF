@@ -47,6 +47,12 @@ namespace CoreWCF.Dispatcher
                 dcbinder.Init(channel as IDuplexSessionChannel, _requestReplyCorrelator, BaseAddress);
                 binder = dcbinder;
             }
+            else if (channel is IInputChannel)
+            {
+                var icbinder = channel.GetProperty<InputChannelBinder>();
+                icbinder.Init(channel as IInputChannel, BaseAddress);
+                binder = icbinder;
+            }
 
             // TODO: Wire up wasChannelThrottled
             var channelHandler = new ChannelHandler(Binding.MessageVersion, binder, channel.GetProperty<ServiceThrottle>(),

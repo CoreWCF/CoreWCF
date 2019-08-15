@@ -44,7 +44,16 @@ namespace CoreWCF.Channels.Framing
             handshakeBuilder.Map(connection => connection.FramingMode == FramingMode.Singleton,
                 configuration =>
                 {
-                    configuration.UseMiddleware<SingletonFramingFramingMiddleware>();
+                    configuration.UseMiddleware<SingletonFramingMiddleware>();
+                    configuration.Use(next => async (connection) =>
+                    {
+                        var addressTable = configuration.HandshakeServices.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
+                        var serviceHandshake = GetServiceHandshakeDelegate(addressTable, connection.Via);
+                        await serviceHandshake(connection);
+                        await next(connection);
+                    });
+                    configuration.UseMiddleware<ServerFramingSingletonMiddleware>();
+                    configuration.UseMiddleware<ServerSingletonConnectionReaderMiddleware>();
                 });
             return handshakeBuilder.Build();
         }
@@ -87,10 +96,12 @@ namespace CoreWCF.Channels.Framing
             var be = dispatcher.Binding.CreateBindingElements();
             var mebe = be.Find<MessageEncodingBindingElement>();
             MessageEncoderFactory mefact = mebe.CreateMessageEncoderFactory();
-            var tbe = be.Find<TransportBindingElement>();
+            var tbe = be.Find<ConnectionOrientedTransportBindingElement>();
             int maxReceivedMessageSize = (int)Math.Min(tbe.MaxReceivedMessageSize, int.MaxValue);
+            int maxBufferSize = tbe.MaxBufferSize;
             var bufferManager = BufferManager.CreateBufferManager(tbe.MaxBufferPoolSize, maxReceivedMessageSize);
-
+            var connectionBufferSize = tbe.ConnectionBufferSize;
+            var transferMode = tbe.TransferMode;
             var upgradeBindingElements = (from element in be where element is StreamUpgradeBindingElement select element).Cast<StreamUpgradeBindingElement>().ToList();
             StreamUpgradeProvider streamUpgradeProvider = null;
             ISecurityCapabilities securityCapabilities = null;
@@ -113,11 +124,13 @@ namespace CoreWCF.Channels.Framing
                 connection.SecurityCapabilities = securityCapabilities;
                 connection.ServiceDispatcher = dispatcher;
                 connection.BufferManager = bufferManager;
+                connection.MaxReceivedMessageSize = maxReceivedMessageSize;
+                connection.MaxBufferSize = maxBufferSize;
+                connection.ConnectionBufferSize = connectionBufferSize;
+                connection.TransferMode = transferMode;
                 return Task.CompletedTask;
             };
         }
-
-        internal UriPrefixTable<HandshakeDelegate> AddressTable { get; } = new UriPrefixTable<HandshakeDelegate>();
 
         internal static HandshakeDelegate GetServiceHandshakeDelegate(UriPrefixTable<HandshakeDelegate>  addressTable, Uri via)
         {

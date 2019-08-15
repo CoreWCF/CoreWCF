@@ -785,7 +785,6 @@ namespace CoreWCF.Dispatcher
             return true;
         }
 
-
         struct RequestInfo
         {
             public EndpointDispatcher Endpoint;

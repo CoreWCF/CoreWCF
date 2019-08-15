@@ -24,7 +24,8 @@ namespace CoreWCF.Channels.Framing
             bool success = false;
             try
             {
-                var decoder = connection.ServerSessionDecoder;
+                var decoder = connection.FramingDecoder as ServerSessionDecoder;
+                Fx.Assert(decoder != null, "FramingDecoder must be non-null and an instance of ServerSessionDecoder");
                 // first validate our content type
                 ValidateContentType(connection, decoder);
 
@@ -85,7 +86,7 @@ namespace CoreWCF.Channels.Framing
                             case ServerSessionDecoder.State.Start:
                                 SetupSecurityIfNecessary(connection);
 
-                                // we've finished the preamble. Ack and return.
+                                // we've finished the preamble. Ack and continue to the next middleware.
                                 await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes);
                                 await connection.Output.FlushAsync();
                                 connection.Input.AdvanceTo(buffer.Start);
@@ -100,14 +101,12 @@ namespace CoreWCF.Channels.Framing
             {
                 if (!success)
                 {
-                    // TODO: Work out abort code path
-                    //Connection.Abort();
+                    connection.Abort();
                 }
             }
         }
 
-
-        private static void ValidateContentType(FramingConnection connection, ServerSessionDecoder decoder)
+        private static void ValidateContentType(FramingConnection connection, FramingDecoder decoder)
         {
             var messageEncoderFactory = connection.MessageEncoderFactory;
             MessageEncoder messageEncoder = messageEncoderFactory.CreateSessionEncoder();
@@ -178,7 +177,6 @@ namespace CoreWCF.Channels.Framing
                 }
             }
         }
-
 
         private static void CreatePipelineFromStream(FramingConnection connection, Stream stream)
         {
