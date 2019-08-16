@@ -6,7 +6,6 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -51,6 +50,7 @@ namespace CoreWCF.Channels.Framing
             var requestContext = (StreamedFramingRequestContext)await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
             _ = channelDispatcher.DispatchAsync(requestContext, CancellationToken.None);
             await requestContext.ReplySent;
+            await Task.Delay(5);
         }
 
         public async Task<RequestContext> ReceiveRequestAsync(FramingConnection connection, TimeSpan timeout)

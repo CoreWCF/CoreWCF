@@ -60,9 +60,9 @@ namespace CoreWCF.Channels
                     {
                         // TODO: Might not be necessary to compare paths
                         var serverUri = new Uri(serverAddress);
-                        var serverAddressNormalized = string.Join(':',
+                        var serverAddressNormalized = string.Join(":",
                             serverUri.GetComponents(UriComponents.Port | UriComponents.Path, UriFormat.SafeUnescaped));
-                        var dispatcherAddressNormalized = string.Join(':',
+                        var dispatcherAddressNormalized = string.Join(":",
                             dispatcher.BaseAddress.GetComponents(UriComponents.Port | UriComponents.Path, UriFormat.SafeUnescaped));
                         if (dispatcherAddressNormalized.StartsWith(serverAddressNormalized, StringComparison.OrdinalIgnoreCase))
                         {

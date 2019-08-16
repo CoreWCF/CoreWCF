@@ -48,6 +48,7 @@ namespace CoreWCF.Channels.Framing
                 Message message = await ReceiveMessageAsync(connection);
                 if (message == null)
                 {
+                    await channel.CloseAsync();
                     return; // No more messages
                 }
                 var requestContext = new DuplexRequestContext(channel, message, connection.ServiceDispatcher.Binding);

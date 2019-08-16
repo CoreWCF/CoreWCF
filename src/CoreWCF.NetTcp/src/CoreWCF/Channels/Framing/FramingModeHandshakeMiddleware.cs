@@ -42,6 +42,14 @@ namespace CoreWCF.Channels.Framing
 
             connection.FramingMode = modeDecoder.Mode;
             await _next(connection);
+
+            // One .NET Framework, with the way that AspNetCore closes a connection, it sometimes doesn't send the
+            // final bytes if those bytes haven't been sent yet. Delaying completeing the connection to compensate.
+            await Task.Delay(5);
+
+            // AspNetCore 2.1 doesn't close the connection. 2.2+ does so these lines can eventually be rmoved.
+            connection.RawTransport.Input.Complete();
+            connection.RawTransport.Output.Complete();
         }
     }
 }
