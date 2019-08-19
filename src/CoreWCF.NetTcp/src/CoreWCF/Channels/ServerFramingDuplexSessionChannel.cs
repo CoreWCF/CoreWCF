@@ -6,8 +6,9 @@ using System.Security.Authentication.ExtendedProtection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Channels.Framing;
 
-namespace CoreWCF.Channels.Framing
+namespace CoreWCF.Channels
 {
     internal class ServerFramingDuplexSessionChannel : FramingDuplexSessionChannel
     {

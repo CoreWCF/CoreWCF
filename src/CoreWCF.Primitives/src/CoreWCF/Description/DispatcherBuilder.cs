@@ -549,11 +549,12 @@ namespace CoreWCF.Description
             // TODO: Create internal behavior which configures any extensibilities which exist in serviceProvider, eg IMessageInspector
             foreach (var endpointConfig in serviceConfig.Endpoints)
             {
-                if (!serviceHost.ReflectedContracts.TryGetValue(endpointConfig.Contract, out ContractDescription contract))
+                if (!serviceHost.ReflectedContracts.Contains(endpointConfig.Contract))
                 {
                     throw new ArgumentException($"Service type {typeof(TService)} doesn't implement interface {endpointConfig.Contract}");
                 }
 
+                ContractDescription contract = serviceHost.ReflectedContracts[endpointConfig.Contract];
                 var uri = serviceHost.MakeAbsoluteUri(endpointConfig.Address, endpointConfig.Binding);
                 var serviceEndpoint = new ServiceEndpoint(
                     contract,

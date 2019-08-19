@@ -47,6 +47,7 @@ namespace CoreWCF.Dispatcher
         bool impersonateOnSerializingReply;
         SharedRuntimeState shared;
         bool preserveMessage;
+        bool requireClaimsPrincipalOnOperationContext;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
@@ -76,10 +77,8 @@ namespace CoreWCF.Dispatcher
             MessageInspectors = NewBehaviorCollection<IDispatchMessageInspector>();
             instanceContextInitializers = NewBehaviorCollection<IInstanceContextInitializer>();
             synchronizationContext = ThreadBehavior.GetCurrentSynchronizationContext();
-
             automaticInputSessionShutdown = true;
             principalPermissionMode = ServiceAuthorizationBehavior.DefaultPrincipalPermissionMode;
-
             unhandled = new DispatchOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
             unhandled.InternalFormatter = MessageOperationFormatter.Instance;
             unhandled.InternalInvoker = new UnhandledActionInvoker(this);
@@ -278,6 +277,22 @@ namespace CoreWCF.Dispatcher
                 {
                     InvalidateRuntime();
                     impersonateOnSerializingReply = value;
+                }
+            }
+        }
+
+        internal bool RequireClaimsPrincipalOnOperationContext
+        {
+            get
+            {
+                return this.requireClaimsPrincipalOnOperationContext;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    this.requireClaimsPrincipalOnOperationContext = value;
                 }
             }
         }

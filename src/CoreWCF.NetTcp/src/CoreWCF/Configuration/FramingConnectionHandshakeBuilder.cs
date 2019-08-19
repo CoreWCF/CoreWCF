@@ -10,7 +10,6 @@ namespace CoreWCF.Configuration
     public class FramingConnectionHandshakeBuilder : IFramingConnectionHandshakeBuilder
     {
         private readonly IList<Func<HandshakeDelegate, HandshakeDelegate>> _components = new List<Func<HandshakeDelegate, HandshakeDelegate>>();
-        private FramingConnectionHandshakeBuilder connectionHandshakeBuilder;
 
         public FramingConnectionHandshakeBuilder(IServiceProvider serviceProvider)
         {

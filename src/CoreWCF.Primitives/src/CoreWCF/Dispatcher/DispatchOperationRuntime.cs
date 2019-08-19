@@ -421,7 +421,13 @@ namespace CoreWCF.Dispatcher
                     DeserializeInputs(rpc);
                     InspectInputs(rpc);
                     ValidateMustUnderstand(rpc);
-                    if (parent.SecurityImpersonation != null)
+
+                    if (parent.RequireClaimsPrincipalOnOperationContext)
+                    {
+                        SetClaimsPrincipalToOperationContext(rpc);
+                    }
+
+                    if (parent.SecurityImpersonation?.IsSecurityContextImpersonationRequired(rpc) ?? false)
                     {
                         await parent.SecurityImpersonation.RunImpersonated(rpc, async () =>
                         {
@@ -458,6 +464,41 @@ namespace CoreWCF.Dispatcher
             }
 
             return rpc;
+        }
+
+        void SetClaimsPrincipalToOperationContext(MessageRpc rpc)
+        {
+            // TODO: Reenable this code
+
+            //ServiceSecurityContext securityContext = rpc.SecurityContext;
+            //if (!rpc.HasSecurityContext)
+            //{
+            //    SecurityMessageProperty securityContextProperty = rpc.Request.Properties.Security;
+            //    if (securityContextProperty != null)
+            //    {
+            //        securityContext = securityContextProperty.ServiceSecurityContext;
+            //    }
+            //}
+
+            //if (securityContext != null)
+            //{
+            //    object principal;
+            //    if (securityContext.AuthorizationContext.Properties.TryGetValue(AuthorizationPolicy.ClaimsPrincipalKey, out principal))
+            //    {
+            //        ClaimsPrincipal claimsPrincipal = principal as ClaimsPrincipal;
+            //        if (claimsPrincipal != null)
+            //        {
+            //            //
+            //            // Always set ClaimsPrincipal to OperationContext.Current if identityModel pipeline is used.
+            //            //
+            //            OperationContext.Current.ClaimsPrincipal = claimsPrincipal;
+            //        }
+            //        else
+            //        {
+            //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.NoPrincipalSpecifiedInAuthorizationContext));
+            //        }
+            //    }
+            //}
         }
 
         void SerializeOutputs(MessageRpc rpc)

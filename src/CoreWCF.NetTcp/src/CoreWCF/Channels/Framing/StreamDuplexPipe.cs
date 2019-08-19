@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Server.Kestrel.Transport.Abstractions.Internal;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.IO.Pipelines;
-using System.Text;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Channels.Framing
@@ -80,13 +78,29 @@ namespace CoreWCF.Channels.Framing
                         }
                         else if (buffer.IsSingleSegment)
                         {
-                            await stream.WriteAsync(buffer.First);
+                            if (!MemoryMarshal.TryGetArray(buffer.First, out var segment))
+                            {
+                                throw new InvalidOperationException("Buffer backed by array was expected");
+                            }
+
+                            await stream.WriteAsync(segment.Array, segment.Offset, segment.Count);
+
+                            // Once we've moved past netstandard2.0, we can replace the code with this line:
+                            // await stream.WriteAsync(buffer.First);
                         }
                         else
                         {
                             foreach (var memory in buffer)
                             {
-                                await stream.WriteAsync(memory);
+                                if (!MemoryMarshal.TryGetArray(memory, out var segment))
+                                {
+                                    throw new InvalidOperationException("Buffer backed by array was expected");
+                                }
+
+                                await stream.WriteAsync(segment.Array, segment.Offset, segment.Count);
+
+                                // Once we've moved past netstandard2.0, we can replace the code with this line:
+                                // await stream.WriteAsync(memory);
                             }
                         }
                     }
@@ -122,7 +136,16 @@ namespace CoreWCF.Channels.Framing
                 {
 
                     var outputBuffer = Input.Writer.GetMemory(MinAllocBufferSize);
-                    var bytesRead = await stream.ReadAsync(outputBuffer);
+
+                    if (!MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>)outputBuffer, out var segment))
+                    {
+                        throw new InvalidOperationException("Buffer backed by array was expected");
+                    }
+                    var bytesRead = await stream.ReadAsync(segment.Array, segment.Offset, segment.Count);
+
+                    // Once we've moved past netstandard2.0, we can replace the code with this line:
+                    // var bytesRead = await stream.ReadAsync(outputBuffer);
+
                     Input.Writer.Advance(bytesRead);
 
                     if (bytesRead == 0)

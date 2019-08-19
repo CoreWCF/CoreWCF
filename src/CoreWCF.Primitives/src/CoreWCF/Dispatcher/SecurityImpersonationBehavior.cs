@@ -1,4 +1,4 @@
-﻿using CoreWCF.Description;
+using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
@@ -22,6 +22,7 @@ namespace CoreWCF.Dispatcher
         object roleProvider;
         bool impersonateCallerForAllOperations;
         Dictionary<string, string> ncNameMap;
+        //Dictionary<string, string> domainNameMap;
         Random random;
         const int maxDomainNameMapSize = 5;
 
@@ -265,7 +266,6 @@ namespace CoreWCF.Dispatcher
 //                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
 //                    }
 //                }
-
                 throw;
             }
 
