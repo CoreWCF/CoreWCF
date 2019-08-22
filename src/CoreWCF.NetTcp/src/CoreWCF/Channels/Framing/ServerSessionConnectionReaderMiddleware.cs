@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Net;
+using Microsoft.AspNetCore.Hosting;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -17,11 +19,13 @@ namespace CoreWCF.Channels.Framing
     {
         private HandshakeDelegate _next;
         private IServiceScopeFactory _servicesScopeFactory;
+        private IApplicationLifetime _appLifetime;
 
-        public ServerSessionConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory)
+        public ServerSessionConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory, IApplicationLifetime appLifetime)
         {
             _next = next;
             _servicesScopeFactory = servicesScopeFactory;
+            _appLifetime = appLifetime;
         }
 
         public async Task OnConnectedAsync(FramingConnection connection)
@@ -42,22 +46,28 @@ namespace CoreWCF.Channels.Framing
 
             var channel = new ServerFramingDuplexSessionChannel(connection, settings, false, _servicesScopeFactory.CreateScope().ServiceProvider);
             await channel.OpenAsync();
-            var channelDispatcher = connection.ServiceDispatcher.CreateServiceChannelDispatcher(channel);
-            while (true)
+            using (_appLifetime.ApplicationStopping.Register(() =>
+             {
+                 _ = channel.CloseAsync();
+             }))
             {
-                Message message = await ReceiveMessageAsync(connection);
-                if (message == null)
+                var channelDispatcher = connection.ServiceDispatcher.CreateServiceChannelDispatcher(channel);
+                while (true)
                 {
-                    await channel.CloseAsync();
-                    return; // No more messages
+                    Message message = await ReceiveMessageAsync(connection);
+                    if (message == null)
+                    {
+                        await channel.CloseAsync();
+                        return; // No more messages
+                    }
+                    var requestContext = new DuplexRequestContext(channel, message, connection.ServiceDispatcher.Binding);
+                    // TODO: Create a correctly timing out ct
+                    // We don't await DispatchAsync because in a concurrent service we want to read the next request before the previous
+                    // request has finished.
+                    _ = channelDispatcher.DispatchAsync(requestContext, CancellationToken.None);
+                    // TODO: Now there's a channel dispatcher, have that handle negotiateing a Task which completes when it's time to get the next request
+                    await requestContext.OperationDispatching;
                 }
-                var requestContext = new DuplexRequestContext(channel, message, connection.ServiceDispatcher.Binding);
-                // TODO: Create a correctly timing out ct
-                // We don't await DispatchAsync because in a concurrent service we want to read the next request before the previous
-                // request has finished.
-                _ = channelDispatcher.DispatchAsync(requestContext, CancellationToken.None);
-                // TODO: Now there's a channel dispatcher, have that handle negotiateing a Task which completes when it's time to get the next request
-                await requestContext.OperationDispatching;
             }
         }
 
@@ -108,6 +118,15 @@ namespace CoreWCF.Channels.Framing
             if (connection.SecurityMessageProperty != null)
             {
                 message.Properties.Security = (SecurityMessageProperty)connection.SecurityMessageProperty.CreateCopy();
+            }
+
+            IPEndPoint remoteEndPoint = connection.RemoteEndpoint;
+
+            // pipes will return null
+            if (remoteEndPoint != null)
+            {
+                var remoteEndpointProperty = new RemoteEndpointMessageProperty(remoteEndPoint);
+                message.Properties.Add(RemoteEndpointMessageProperty.Name, remoteEndpointProperty);
             }
         }
 

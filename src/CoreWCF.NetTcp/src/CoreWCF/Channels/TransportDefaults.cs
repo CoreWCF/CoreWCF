@@ -31,6 +31,7 @@ namespace CoreWCF.Channels
         internal static TimeSpan IdleTimeout { get { return TimeSpan.FromMinutes(2); } }
         internal static TimeSpan ChannelInitializationTimeout { get { return TimeSpan.FromSeconds(30); } }
         internal const int MaxContentTypeSize = 256;
+        internal const int MaxOutboundConnectionsPerEndpoint = 10;
         internal static TimeSpan MaxOutputDelay { get { return TimeSpan.FromMilliseconds(200); } }
 
         internal const int MaxViaSize = 2048;

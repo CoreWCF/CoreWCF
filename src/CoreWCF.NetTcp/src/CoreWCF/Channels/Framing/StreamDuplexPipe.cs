@@ -11,11 +11,13 @@ namespace CoreWCF.Channels.Framing
         private static readonly int MinAllocBufferSize = 4096;
 
         private readonly IDuplexPipe _transport;
+        private readonly Stream _stream;
 
         // TODO: Have a mechanism to stop wrapping as Net.Tcp allows you to unwrap a connection and make it raw again
         public StreamDuplexPipe(IDuplexPipe transport, Stream stream)
         {
             _transport = transport;
+            _stream = stream;
             Input = new Pipe(new PipeOptions
             (
                 readerScheduler: PipeScheduler.Inline,
@@ -72,6 +74,7 @@ namespace CoreWCF.Channels.Framing
                         {
                             if (result.IsCompleted)
                             {
+                                _stream.Dispose();
                                 break;
                             }
                             await stream.FlushAsync();
@@ -117,7 +120,6 @@ namespace CoreWCF.Channels.Framing
             finally
             {
                 Output.Reader.Complete();
-                _transport.Output.Complete();
             }
         }
 
@@ -170,9 +172,6 @@ namespace CoreWCF.Channels.Framing
             finally
             {
                 Input.Writer.Complete(error);
-                // The application could have ended the input pipe so complete
-                // the transport pipe as well
-                _transport.Input.Complete();
             }
         }
     }

@@ -60,10 +60,22 @@ namespace CoreWCF.Channels.Framing
                 }
 
                 // send back EOF and then recycle the connection
-                await _connection.Output.WriteAsync(SingletonEncoder.EndBytes, token);
-                await _connection.Output.FlushAsync(token);
-                // TODO: connection reuse
-                //this.connectionDemuxer.ReuseConnection(this.rawConnection, timeoutHelper.RemainingTime());
+                _connection.RawStream?.StartUnwrapRead();
+                try
+                {
+                    await _connection.Output.WriteAsync(SingletonEncoder.EndBytes, token);
+                    await _connection.Output.FlushAsync(token);
+                }
+                finally
+                {
+                    if (_connection.RawStream != null)
+                    {
+                        _connection.RawStream.FinishUnwrapRead();
+                        _connection.RawStream = null;
+                        _connection.Output.Complete();
+                        _connection.Input.Complete();
+                    }
+                }
 
                 // TODO: ChannelBinding
                 //ChannelBindingUtility.Dispose(ref this.channelBindingToken);
@@ -90,12 +102,6 @@ namespace CoreWCF.Channels.Framing
             }
 
             await StreamingConnectionHelper.WriteMessageAsync(message, _connection, false, _connection.ServiceDispatcher.Binding, token);
-            await DoneSendingAsync(token);
-        }
-
-        public Task DoneSendingAsync(CancellationToken token)
-        {
-            return _connection.DoneSendingAsync();
         }
 
         public Task ReplySent => _tcs.Task;
@@ -131,6 +137,7 @@ namespace CoreWCF.Channels.Framing
                     // TODO: Determine if timeout stream is needed as StreamingOutputConnectionStream implements some timeout functionality
                     //Stream writeTimeoutStream = new TimeoutStream(connectionStream, ref timeoutHelper);
                     messageEncoder.WriteMessage(message, connectionStream);
+                    await connection.Output.FlushAsync();
                 }
                 else
                 {
@@ -211,6 +218,7 @@ namespace CoreWCF.Channels.Framing
             var ct = timeoutHelper.GetCancellationToken();
             WriteChunkSizeAsync(1, ct).GetAwaiter().GetResult();
             _connection.Output.WriteAsync(new byte[] { value }, ct).GetAwaiter().GetResult();
+            _connection.Output.FlushAsync();
         }
 
         public override void Write(byte[] buffer, int offset, int count)

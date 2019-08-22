@@ -106,9 +106,22 @@ namespace CoreWCF.Channels
 
         protected override async Task CloseOutputSessionCoreAsync(CancellationToken token)
         {
-            var timeout = TimeoutHelper.GetOriginalTimeout(token);
-            await Connection.Output.WriteAsync(SessionEncoder.EndBytes, token);
-            await Connection.Output.FlushAsync();
+            Connection.RawStream?.StartUnwrapRead();
+            try
+            {
+                await Connection.Output.WriteAsync(SessionEncoder.EndBytes, token);
+                await Connection.Output.FlushAsync();
+            }
+            finally
+            {
+                if (Connection.RawStream != null)
+                {
+                    Connection.RawStream.FinishUnwrapRead();
+                    Connection.RawStream = null;
+                    Connection.Output.Complete();
+                    Connection.Input.Complete();
+                }
+            }
         }
 
         protected override Task CompleteCloseAsync(CancellationToken token)
@@ -124,19 +137,13 @@ namespace CoreWCF.Channels
             allowOutputBatching = message.Properties.AllowOutputBatching;
             messageData = EncodeMessage(message);
             await Connection.Output.WriteAsync(messageData, token);
-            if (!allowOutputBatching)
-            {
-                await Connection.Output.FlushAsync();
-            }
+            await Connection.Output.FlushAsync();
         }
 
         protected override async Task StartWritingBufferedMessageAsync(Message message, ArraySegment<byte> messageData, bool allowOutputBatching, CancellationToken token)
         {
             await Connection.Output.WriteAsync(messageData, token);
-            if (!allowOutputBatching)
-            {
-                await Connection.Output.FlushAsync();
-            }
+            await Connection.Output.FlushAsync();
         }
 
         protected override async Task CloseOutputAsync(CancellationToken token)

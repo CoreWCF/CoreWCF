@@ -1,4 +1,5 @@
 ﻿using CoreWCF;
+using CoreWCF.Channels;
 using System;
 using System.IO;
 using System.Threading;
@@ -25,6 +26,17 @@ namespace Services
         public void SecondRequest()
         {
             _mre.Set();
+        }
+
+        public string GetClientIpEndpoint()
+        {
+            if (OperationContext.Current.IncomingMessageProperties.TryGetValue(RemoteEndpointMessageProperty.Name, out object remoteEndpointObj))
+            {
+                var remoteEndpoint = remoteEndpointObj as RemoteEndpointMessageProperty;
+                return remoteEndpoint.Address.ToString() + ":" + remoteEndpoint.Port.ToString();
+            }
+
+            throw new Exception("Remote endpoint message property not found");
         }
     }
 }
