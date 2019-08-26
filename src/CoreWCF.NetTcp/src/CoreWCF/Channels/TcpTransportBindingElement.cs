@@ -7,25 +7,33 @@ namespace CoreWCF.Channels
 {
     public partial class TcpTransportBindingElement : ConnectionOrientedTransportBindingElement
     {
-        int listenBacklog;
-        ExtendedProtectionPolicy extendedProtectionPolicy;
+        int _listenBacklog;
+        ExtendedProtectionPolicy _extendedProtectionPolicy;
+        TcpConnectionPoolSettings _connectionPoolSettings;
 
         public TcpTransportBindingElement() : base()
         {
-            listenBacklog = TcpTransportDefaults.GetListenBacklog();
-            extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
+            _listenBacklog = TcpTransportDefaults.GetListenBacklog();
+            _connectionPoolSettings = new TcpConnectionPoolSettings();
+            _extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
         protected TcpTransportBindingElement(TcpTransportBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
-            listenBacklog = elementToBeCloned.listenBacklog;
-            extendedProtectionPolicy = elementToBeCloned.ExtendedProtectionPolicy;
+            _listenBacklog = elementToBeCloned._listenBacklog;
+            _connectionPoolSettings = elementToBeCloned._connectionPoolSettings.Clone();
+            _extendedProtectionPolicy = elementToBeCloned.ExtendedProtectionPolicy;
+        }
+
+        public TcpConnectionPoolSettings ConnectionPoolSettings
+        {
+            get { return _connectionPoolSettings; }
         }
 
         public int ListenBacklog
         {
             get
             {
-                return listenBacklog;
+                return _listenBacklog;
             }
 
             set
@@ -36,7 +44,7 @@ namespace CoreWCF.Channels
                         SR.ValueMustBePositive));
                 }
 
-                listenBacklog = value;
+                _listenBacklog = value;
             }
         }
 
@@ -49,7 +57,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return extendedProtectionPolicy;
+                return _extendedProtectionPolicy;
             }
             set
             {
@@ -65,7 +73,7 @@ namespace CoreWCF.Channels
                         new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported));
                 }
 
-                extendedProtectionPolicy = value;
+                _extendedProtectionPolicy = value;
             }
         }
 
@@ -94,6 +102,10 @@ namespace CoreWCF.Channels
             //{
             //    return (T)(object)new TransportCompressionSupportHelper();
             //}
+            else if (typeof(T) == typeof(IConnectionReuseHandler))
+            {
+                return (T)(object)new ConnectionReuseHandler(new TcpTransportBindingElement(this));
+            }
             else
             {
                 return base.GetProperty<T>(context);

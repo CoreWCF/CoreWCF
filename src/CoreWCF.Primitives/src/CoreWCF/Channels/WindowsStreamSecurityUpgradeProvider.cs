@@ -137,7 +137,7 @@ namespace CoreWCF.Channels
             protected override async Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
             {
                 // wrap stream
-                NegotiateStream negotiateStream = new NegotiateStream(stream);
+                NegotiateStream negotiateStream = new NegotiateStream(stream, true);
 
                 // authenticate
                 try

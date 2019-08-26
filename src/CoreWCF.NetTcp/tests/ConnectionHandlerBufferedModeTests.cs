@@ -76,6 +76,37 @@ public static class ConnectionHandlerBufferedModeTests
         }
     }
 
+    [Fact]
+    public static void MultipleClientsUsingPooledSocket()
+    {
+        var host = CreateWebHostBuilder(new string[0]).Build();
+        using (host)
+        {
+            host.Start();
+            var binding = new System.ServiceModel.NetTcpBinding()
+            {
+                OpenTimeout = TimeSpan.FromMinutes(20),
+                CloseTimeout = TimeSpan.FromMinutes(20),
+                SendTimeout = TimeSpan.FromMinutes(20),
+                ReceiveTimeout = TimeSpan.FromMinutes(20)
+            };
+            var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
+            var channel = factory.CreateChannel();
+            ((IChannel)channel).Open();
+            var clientIpEndpoint = channel.GetClientIpEndpoint();
+            ((IChannel)channel).Close();
+            for(int i = 0; i< 10; i++)
+            {
+                channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                var clientIpEndpoint2 = channel.GetClientIpEndpoint();
+                ((IChannel)channel).Close();
+                Assert.Equal(clientIpEndpoint, clientIpEndpoint2);
+            }
+        }
+    }
+
     public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
         WebHost.CreateDefaultBuilder(args)
         .UseNetTcp(8808)

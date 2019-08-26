@@ -25,5 +25,9 @@ namespace ClientContract
         [OperationContract(Name = "SecondRequest", Action = Constants.OPERATION_BASE + "SecondRequest",
             ReplyAction = Constants.OPERATION_BASE + "SecondRequestResponse")]
         void SecondRequest();
+
+        [OperationContract(Name = "GetClientIpEndpoint", Action = Constants.OPERATION_BASE + "GetClientIpEndpoint",
+            ReplyAction = Constants.OPERATION_BASE + "GetClientIpEndpointResponse")]
+        string GetClientIpEndpoint();
     }
 }

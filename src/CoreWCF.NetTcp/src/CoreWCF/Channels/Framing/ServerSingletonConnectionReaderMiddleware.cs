@@ -6,6 +6,7 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -50,7 +51,6 @@ namespace CoreWCF.Channels.Framing
             var requestContext = (StreamedFramingRequestContext)await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
             _ = channelDispatcher.DispatchAsync(requestContext, CancellationToken.None);
             await requestContext.ReplySent;
-            await Task.Delay(5);
         }
 
         public async Task<RequestContext> ReceiveRequestAsync(FramingConnection connection, TimeSpan timeout)
@@ -77,7 +77,6 @@ namespace CoreWCF.Channels.Framing
 
                 if (connection.EOF)
                 {
-                    await connection.DoneReceivingAsync(timeoutHelper.RemainingTime());
                     return (null, null);
                 }
 
@@ -92,7 +91,6 @@ namespace CoreWCF.Channels.Framing
 
                 if (connection.EOF)
                 {
-                    await connection.DoneReceivingAsync(timeoutHelper.RemainingTime());
                     return (null, null);
                 }
             }
@@ -135,15 +133,15 @@ namespace CoreWCF.Channels.Framing
         {
             message.Properties.Via = connection.Via;
             message.Properties.Security = (connection.SecurityMessageProperty != null) ? (SecurityMessageProperty)connection.SecurityMessageProperty.CreateCopy() : null;
-            // TODO: RemoteIPEndPoint
-            //IPEndPoint remoteEndPoint = connection.this.rawConnection.RemoteIPEndPoint;
+
+            IPEndPoint remoteEndPoint = connection.RemoteEndpoint;
 
             // pipes will return null
-            //if (remoteEndPoint != null)
-            //{
-            //    RemoteEndpointMessageProperty remoteEndpointProperty = new RemoteEndpointMessageProperty(remoteEndPoint);
-            //    message.Properties.Add(RemoteEndpointMessageProperty.Name, remoteEndpointProperty);
-            //}
+            if (remoteEndPoint != null)
+            {
+                var remoteEndpointProperty = new RemoteEndpointMessageProperty(remoteEndPoint);
+                message.Properties.Add(RemoteEndpointMessageProperty.Name, remoteEndpointProperty);
+            }
 
             // TODO: ChannelBindingToken
             //if (this.channelBindingToken != null)

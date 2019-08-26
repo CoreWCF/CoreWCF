@@ -10,15 +10,14 @@ using System.Threading.Tasks;
 using CoreWCF.Runtime;
 using System.Diagnostics;
 using System.ComponentModel.Design;
+using System.Net;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace CoreWCF.Channels.Framing
 {
     public class FramingConnection
     {
         private ConnectionContext _context;
-        private bool _doneReceiving;
-        private bool _doneSending;
-
         public FramingConnection(ConnectionContext context)
         {
             _context = context;
@@ -47,36 +46,47 @@ namespace CoreWCF.Channels.Framing
         public int MaxBufferSize { get; internal set; }
         public int ConnectionBufferSize { get; internal set; }
         public TransferMode TransferMode { get; internal set; }
+        public RawStream RawStream { get; internal set; }
+        public IPEndPoint RemoteEndpoint
+        {
+            get
+            {
+                var connectionFeature = _context.Features.Get<IHttpConnectionFeature>();
+                if (connectionFeature == null)
+                {
+                    return null;
+                }
+
+                return new IPEndPoint(connectionFeature.RemoteIpAddress, connectionFeature.RemotePort);
+            }
+        }
+
+        internal void Reset()
+        {
+            MessageEncoderFactory = null;
+            StreamUpgradeAcceptor = null;
+            SecurityCapabilities = null;
+            ServiceDispatcher = null;
+            Transport = RawTransport;
+            FramingDecoder = null;
+            FramingMode = default;
+            MessageEncoder = null;
+            SecurityMessageProperty = null;
+            EOF = false;
+            EnvelopeBuffer = null;
+            EnvelopeOffset = 0;
+            BufferManager = null;
+            EnvelopeSize = 0;
+            MaxReceivedMessageSize = 0;
+            MaxBufferSize = 0;
+            ConnectionBufferSize = 0;
+            TransferMode = default;
+            RawStream = null;
+        }
 
         public void Abort() { _context.Abort(); }
         public void Abort(Exception e) { _context.Abort(new ConnectionAbortedException(e.Message, e)); }
         public void Abort(string reason) { _context.Abort(new ConnectionAbortedException(reason)); }
-
-        public Task DoneReceivingAsync(TimeSpan timeSpan)
-        {
-            //if (!_doneReceiving)
-            //{
-            //    _doneReceiving = true;
-
-            //    if (_doneSending)
-            //    {
-            //        return CloseAsync(timeSpan);
-            //    }
-            //}
-
-            return Task.CompletedTask;
-        }
-
-        public Task DoneSendingAsync()
-        {
-            //_doneSending = true;
-            //if (_doneReceiving)
-            //{
-            //    return CloseAsync(ServiceDispatcher.Binding.CloseTimeout);
-            //}
-
-            return Task.CompletedTask;
-        }
 
         public Task CloseAsync(TimeSpan timeout)
         {
