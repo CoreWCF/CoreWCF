@@ -4,7 +4,7 @@ using CoreWCF.Description;
 namespace CoreWCF
 {
     // TODO: Make this public
-    internal abstract class MessageContractMemberAttribute : Attribute
+    public abstract class MessageContractMemberAttribute : Attribute
     {
         string _name;
         string _ns;

@@ -315,7 +315,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal IInstanceProvider InstanceProvider
+        public IInstanceProvider InstanceProvider
         {
             get { return instanceProvider; }
             set

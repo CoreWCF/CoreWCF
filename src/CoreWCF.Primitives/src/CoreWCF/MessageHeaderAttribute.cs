@@ -4,7 +4,7 @@ namespace CoreWCF
 {
     // TODO: Investigate making public
     [AttributeUsage(ServiceModelAttributeTargets.MessageMember, AllowMultiple = false, Inherited = false)]
-    internal class MessageHeaderAttribute : MessageContractMemberAttribute
+    public class MessageHeaderAttribute : MessageContractMemberAttribute
     {
         bool _mustUnderstand;
         bool _isMustUnderstandSet;

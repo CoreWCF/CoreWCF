@@ -2,7 +2,7 @@
 
 namespace CoreWCF.Dispatcher
 {
-    internal interface IInstanceProvider
+    public interface IInstanceProvider
     {
         object GetInstance(InstanceContext instanceContext);
         object GetInstance(InstanceContext instanceContext, Message message);
