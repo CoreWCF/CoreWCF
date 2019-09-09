@@ -3,7 +3,6 @@ using CoreWCF.Description;
 
 namespace CoreWCF
 {
-    // TODO: Make this public
     public abstract class MessageContractMemberAttribute : Attribute
     {
         string _name;

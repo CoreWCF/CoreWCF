@@ -2,7 +2,6 @@
 
 namespace CoreWCF
 {
-    // TODO: Make this public
     [AttributeUsage(ServiceModelAttributeTargets.MessageMember, Inherited = false)]
     public class MessageBodyMemberAttribute : MessageContractMemberAttribute
     {

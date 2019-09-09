@@ -2,7 +2,6 @@
 
 namespace CoreWCF
 {
-    // TODO: Investigate making public
     [AttributeUsage(ServiceModelAttributeTargets.MessageMember, AllowMultiple = false, Inherited = false)]
     public class MessageHeaderAttribute : MessageContractMemberAttribute
     {
