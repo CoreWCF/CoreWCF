@@ -2,9 +2,8 @@
 
 namespace CoreWCF
 {
-    // TODO: Make this public
     [AttributeUsage(ServiceModelAttributeTargets.MessageMember, Inherited = false)]
-    internal class MessageBodyMemberAttribute : MessageContractMemberAttribute
+    public class MessageBodyMemberAttribute : MessageContractMemberAttribute
     {
         int _order = -1;
         internal const string OrderPropertyName = "Order";
