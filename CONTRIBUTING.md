@@ -15,7 +15,7 @@ Core WCF is built on top of .NET Core 2.2.
 
 ## Building
 
-Run `dotnet restore` and `dotnet build` from the command line inside the src folder. This builds Core WCF.
+Run `dotnet build` from the command line inside the src folder. This builds Core WCF.
 
 ## Other discussions
 
