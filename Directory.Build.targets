@@ -2,11 +2,11 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
-    <Compile Include="$(CommonPath)/**/*.cs" Exclude="$(CommonPath)/CoreWCF\SR.cs">
+    <Compile Include="$(CommonPath)/**/*.cs" Exclude="$(CommonPath)/CoreWCF/SR.cs">
       <Visible>true</Visible>
-	    <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
+        <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
   </ItemGroup>
 
-  <Import Project="$(ProjectDir)resources.targets" Condition="Exists('$(ProjectDir)resources.targets') And '$(OmitResources)'!='true'" />
+  <Import Project="$(ProjectDir)resources.targets" Condition="Exists('$(ProjectDir)resources.targets') And '$(OmitResources)' != 'true'" />
 </Project>

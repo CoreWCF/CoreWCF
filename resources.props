@@ -2,23 +2,23 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)/Resources/</ResourcesSourceOutputDirectory>
-	<OmitResources Condition="!Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">true</OmitResources>
+    <OmitResources Condition="!Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">true</OmitResources>
     <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)Strings.resx</StringResourcesPath>
     <IntermediateResOutputFileFullPath Condition="'$(OmitResources)'!='true'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
     <DefineConstants Condition="'$(OmitResources)'!='true' And '$(ConfigurationGroup)' == 'Debug'">$(DefineConstants);DEBUGRESOURCES</DefineConstants>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'">
     <EmbeddedResource Include="$(StringResourcesPath)">
       <Visible>true</Visible>
       <LogicalName>FxResources.$(AssemblyName).SR.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
-  
+
   <ItemGroup Condition="Exists('$(StringResourcesPath)') AND '$(OmitResources)'!='true'">
     <Compile Include="$(CommonPath)/CoreWCF/SR.cs">
-	  <Visible>true</Visible>
-	  <Link>Resources/Common/SR.cs</Link>
-	</Compile>
+      <Visible>true</Visible>
+      <Link>Resources/Common/SR.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>
