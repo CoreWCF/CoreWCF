@@ -4,7 +4,7 @@ using CoreWCF.Description;
 namespace CoreWCF
 {
     [AttributeUsage(ServiceModelAttributeTargets.MessageContract, AllowMultiple = false)]
-    internal sealed class MessageContractAttribute : Attribute
+    public sealed class MessageContractAttribute : Attribute
     {
         bool isWrapped = true;
         string wrappedName;

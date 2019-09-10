@@ -1,7 +1,9 @@
 ﻿using CoreWCF;
 using CoreWCF.Channels;
+using ServiceContract;
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,6 +39,16 @@ namespace Services
             }
 
             throw new Exception("Remote endpoint message property not found");
+        }
+
+        public TestMessage TestMessageContract(TestMessage testMessage)
+        {
+            string text = new StreamReader(testMessage.Body, Encoding.UTF8).ReadToEnd();
+            return new TestMessage()
+            {
+                Header = testMessage.Header + " from server",
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(text + " from server"))
+            };
         }
     }
 }
