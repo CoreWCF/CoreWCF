@@ -154,34 +154,7 @@ namespace CoreWCF.Dispatcher
 
         public EndpointAddress EndpointAddress
         {
-            get
-            {
-                if (channelDispatcher == null)
-                {
-                    return originalAddress;
-                }
-
-                if ((originalAddress != null) && (originalAddress.Identity != null))
-                {
-                    return originalAddress;
-                }
-
-                if (originalAddress != null)
-                {
-                    return originalAddress;
-                }
-
-                EndpointAddressBuilder builder;
-                if (originalAddress != null)
-                {
-                    builder = new EndpointAddressBuilder(originalAddress);
-                    return builder.ToEndpointAddress();
-                }
-                else
-                {
-                    return null;
-                }
-            }
+            get { return originalAddress; }
         }
 
         public bool IsSystemEndpoint
