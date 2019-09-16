@@ -718,7 +718,7 @@ namespace CoreWCF.Channels
                 if (messageOffset > maxMessageSize)
                 {
                     string excMsg = SR.Format(SR.MaxSentMessageSizeExceeded, maxMessageSize);
-                    
+
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new QuotaExceededException(excMsg));
                 }
 
@@ -777,7 +777,7 @@ namespace CoreWCF.Channels
                 message.WriteMessage(xmlWriter);
                 xmlWriter.Flush();
 
-                
+
 
                 factory.ReturnStreamedWriter(xmlWriter);
                 if (compressionFormat != CompressionFormat.None)
@@ -1080,9 +1080,9 @@ namespace CoreWCF.Channels
 
         int GetPrefixOffset(char prefix)
         {
-            if (prefix < 'a' && prefix > 'z')
+            if (prefix < 'a' || prefix > 'z')
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("prefix", prefix,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(prefix), prefix,
                     SR.Format(SR.ValueMustBeInRange, 'a', 'z')));
             }
             return prefix - 'a';
