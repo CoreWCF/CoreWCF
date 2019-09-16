@@ -283,7 +283,7 @@ namespace CoreWCF.Runtime
         private static void OnAsyncCompletion(object state)
         {
             var tcs = state as TaskCompletionSource<bool>;
-            Fx.Assert(state != null, "Async state should be of type TaskCompletionSource<bool>");
+            Fx.Assert(tcs != null, "Async state should be of type TaskCompletionSource<bool>");
             tcs.TrySetResult(true);
         }
 
