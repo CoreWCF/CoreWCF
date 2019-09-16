@@ -32,7 +32,7 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        TraceUtility.ThrowHelperError(e, message);
+                        throw TraceUtility.ThrowHelperError(e, message);
                     }
                 }
             }
