@@ -386,7 +386,7 @@ namespace CoreWCF.Channels
                     {
                         return true;
                     }
-                    if (IsContentTypeSupported(contentType, htmlMediaType, atomMediaType))
+                    if (IsContentTypeSupported(contentType, htmlMediaType, htmlMediaType))
                     {
                         return true;
                     }
