@@ -102,5 +102,44 @@ namespace DispatchBuilder
             dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
             requestContext.ValidateReply();
         }
+
+    [Fact]
+    public static void BuildDispatcherWithConfiguration_XmlSerializer()
+    {
+        var serviceAddress = "http://localhost/dummy";
+
+        var services = new ServiceCollection();
+        services.AddServiceModelServices();
+
+        var serverAddressesFeature = new ServerAddressesFeature();
+        serverAddressesFeature.Addresses.Add(serviceAddress);
+
+        IServer server = new MockServer();
+        server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
+        services.AddSingleton(server);
+
+        var serviceProvider = services.BuildServiceProvider();
+        var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+        serviceBuilder.AddService<SimpleXmlSerializerService>();
+
+        var binding = new CustomBinding("BindingName", "BindingNS");
+        binding.Elements.Add(new MockTransportBindingElement());
+        serviceBuilder.AddServiceEndpoint<SimpleXmlSerializerService, ISimpleXmlSerializerService>(binding, serviceAddress);
+
+        var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
+        var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleXmlSerializerService));
+        Assert.Single(dispatchers);
+
+        var serviceDispatcher = dispatchers[0];
+        Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
+        Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
+
+        IChannel mockChannel = new MockReplyChannel(serviceProvider);
+        var dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(mockChannel);
+        var requestContext = XmlSerializerTestRequestContext.Create(serviceAddress);
+        dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
+        requestContext.ValidateReply();
+    }
+
     }
 }

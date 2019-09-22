@@ -1,6 +1,6 @@
 ﻿namespace CoreWCF
 {
-    internal enum OperationFormatStyle
+    public enum OperationFormatStyle
     {
         Document,
         Rpc,

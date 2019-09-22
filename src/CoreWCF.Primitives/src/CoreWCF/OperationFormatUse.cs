@@ -1,6 +1,6 @@
 ﻿namespace CoreWCF
 {
-    internal enum OperationFormatUse
+    public enum OperationFormatUse
     {
         Literal,
         Encoded,

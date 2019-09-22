@@ -2,7 +2,7 @@
 
 namespace CoreWCF
 {
-    internal sealed class XmlSerializerFormatAttribute : Attribute
+    public sealed class XmlSerializerFormatAttribute : Attribute
     {
         bool supportFaults = false;
         OperationFormatStyle style;
