@@ -1,4 +1,5 @@
 ﻿using CoreWCF.Channels;
+using CoreWCF.Primitives.Tests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -67,17 +68,18 @@ namespace Helpers
 
         internal static TestRequestContext Create(string toAddress)
         {
-            MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
-            var mef = mebe.CreateMessageEncoderFactory();
-            var me = mef.Encoder;
-            var requestMessageBytes = Encoding.UTF8.GetBytes(s_requestMessage);
-            var requestMessage = me.ReadMessage(new ArraySegment<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
+            //MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
+            //var mef = mebe.CreateMessageEncoderFactory();
+            //var me = mef.Encoder;
+            //var requestMessageBytes = Encoding.UTF8.GetBytes(s_requestMessage);
+            //var requestMessage = me.ReadMessage(new ArraySegment<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
+            var requestMessage = TestHelper.CreateEchoRequestMessage("aaaaa");
             requestMessage.Headers.To = new Uri(toAddress);
-            requestMessage.Headers.Action = "http://tempuri.org/ISimpleService/Echo";
+            //requestMessage.Headers.Action = "http://tempuri.org/ISimpleService/Echo";
             return new TestRequestContext(requestMessage);
         }
 
-        private static string s_requestMessage = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal static string s_requestMessage = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"">
   <s:Body>
     <Echo xmlns=""http://tempuri.org/"">
