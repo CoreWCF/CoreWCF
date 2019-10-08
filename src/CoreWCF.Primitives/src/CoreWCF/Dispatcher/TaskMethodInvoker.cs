@@ -80,9 +80,8 @@ namespace CoreWCF.Dispatcher
             {
                 //AsyncMethodInvoker.GetActivityInfo(ref activity, ref boundOperation);
 
-                Task<Tuple<object, object[]>> invokeTask = result as Task<Tuple<object, object[]>>;
-
-                if (invokeTask == null)
+                var asyncResult = result as TaskHelpers.AsyncResult<Tuple<object, object[]>>;
+                if (asyncResult == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxInvalidCallbackIAsyncResult);
                 }
@@ -91,16 +90,16 @@ namespace CoreWCF.Dispatcher
                 Tuple<object, object[]> tuple = null;
                 Task task = null;
 
-                if (invokeTask.IsFaulted)
+                if (asyncResult.IsFaulted)
                 {
-                    Fx.Assert(invokeTask.Exception != null, "Task.IsFaulted guarantees non-null exception.");
-                    ae = invokeTask.Exception;
+                    Fx.Assert(asyncResult.Exception != null, "Task.IsFaulted guarantees non-null exception.");
+                    ae = asyncResult.Exception;
                 }
                 else
                 {
-                    Fx.Assert(invokeTask.IsCompleted, "Task.Result is expected to be completed");
+                    Fx.Assert(asyncResult.IsCompleted, "Task.Result is expected to be completed");
 
-                    tuple = invokeTask.Result;
+                    tuple = asyncResult.GetResult();
                     task = tuple.Item1 as Task;
 
                     if (task == null)
@@ -132,7 +131,7 @@ namespace CoreWCF.Dispatcher
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
                     }
 
-                    invokeTask.GetAwaiter().GetResult();
+                    asyncResult.GetResult();
                 }
 
                 // Task cancellation without an exception indicates failure but we have no
