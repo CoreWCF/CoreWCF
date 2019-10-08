@@ -30,35 +30,25 @@ namespace CoreWCF.Runtime
         // In the EndMethod, you would use ToApmEnd<TResult> to ensure the correct exception handling
         // This will handle throwing exceptions in the correct place and ensure the IAsyncResult contains the provided
         // state object
-        public static IAsyncResult ToApm<T>(this Task<T> task,
-                                   AsyncCallback callback,
-                                   object state)
+        public static IAsyncResult ToApm<T>(this Task<T> task, AsyncCallback callback, object state)
             => ToApm<T>(new ValueTask<T>(task), callback, state);
 
         /// <summary>
         /// Helper method to convert from Task async method to "APM" (IAsyncResult with Begin/End calls)
         /// </summary>
-        public static IAsyncResult ToApm<T>(this ValueTask<T> task,
-                                    AsyncCallback callback,
-                                    object state)
+        public static IAsyncResult ToApm<T>(this ValueTask<T> task, AsyncCallback callback, object state)
         {
             var result = new AsyncResult<T>(task, callback, state);
             if (result.CompletedSynchronously)
             {
                 result.ExecuteCallback();
-                return result;
             }
-            else
+            else if (callback != null)
             {
-                task.AsTask()
-                    .ContinueWith((res, asyncResult) =>
-                    {
-                        ((AsyncResult<T>)asyncResult).ExecuteCallback();
-                    },
-                result,
-                CancellationToken.None,
-                TaskContinuationOptions.HideScheduler,
-                TaskScheduler.Default);
+                task.AsTask().ContinueWith((res, asyncResult) =>
+                {
+                    ((AsyncResult<T>)asyncResult).ExecuteCallback();
+                }, result, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
             }
 
             return result;
@@ -67,26 +57,19 @@ namespace CoreWCF.Runtime
         /// <summary>
         /// Helper method to convert from Task async method to "APM" (IAsyncResult with Begin/End calls)
         /// </summary>
-        public static IAsyncResult ToApm(this Task task,
-                                    AsyncCallback callback,
-                                    object state)
+        public static IAsyncResult ToApm(this Task task, AsyncCallback callback, object state)
         {
             var result = new AsyncResult(task, callback, state);
             if (result.CompletedSynchronously)
             {
                 result.ExecuteCallback();
-                return result;
             }
-            else
+            else if (callback != null)
             {
                 task.ContinueWith((res, asyncResult) =>
-                    {
-                        ((AsyncResult)asyncResult).ExecuteCallback();
-                    },
-                result,
-                CancellationToken.None,
-                TaskContinuationOptions.HideScheduler,
-                TaskScheduler.Default);
+                {
+                    ((AsyncResult)asyncResult).ExecuteCallback();
+                }, result, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
             }
 
             return result;
@@ -116,50 +99,40 @@ namespace CoreWCF.Runtime
             }
         }
 
-        internal class AsyncResult : IAsyncResult
+        private class AsyncResult : IAsyncResult
         {
             private readonly Task _task;
-            private readonly object _asyncState;
             private readonly AsyncCallback _asyncCallback;
 
             public AsyncResult(Task task, AsyncCallback asyncCallback, object asyncState)
             {
-                Debug.Assert(asyncCallback != null);
-
                 _task = task;
                 _asyncCallback = asyncCallback;
-                _asyncState = asyncState;
+                AsyncState = asyncState;
                 CompletedSynchronously = task.IsCompleted;
             }
 
             public void GetResult() => _task.GetAwaiter().GetResult();
 
-            // Calls the async callback with this
-            public void ExecuteCallback() => _asyncCallback(this);
+            public void ExecuteCallback() => _asyncCallback?.Invoke(this);
 
-            #region IAsyncResult implementation forwarded to Task implementation
-            object IAsyncResult.AsyncState => _asyncState;
+            public object AsyncState { get; }
             WaitHandle IAsyncResult.AsyncWaitHandle => ((IAsyncResult)_task).AsyncWaitHandle;
 
             public bool CompletedSynchronously { get; }
             public bool IsCompleted => _task.IsCompleted;
-
-            #endregion
         }
 
         internal class AsyncResult<T> : IAsyncResult
         {
             private readonly ValueTask<T> _task;
-            private readonly object _asyncState;
             private readonly AsyncCallback _asyncCallback;
 
             public AsyncResult(ValueTask<T> task, AsyncCallback asyncCallback, object asyncState)
             {
-                Debug.Assert(asyncCallback != null);
-
                 _task = task;
                 _asyncCallback = asyncCallback;
-                _asyncState = asyncState;
+                AsyncState = asyncState;
                 CompletedSynchronously = task.IsCompleted;
             }
 
@@ -168,17 +141,13 @@ namespace CoreWCF.Runtime
             public bool IsFaulted => _task.IsFaulted;
             public AggregateException Exception => _task.AsTask().Exception;
 
-            // Calls the async callback with this
-            public void ExecuteCallback() => _asyncCallback(this);
-
-            #region IAsyncResult implementation forwarded to Task implementation
-            object IAsyncResult.AsyncState => _asyncState;
+            // Calls the async callback with this as parameter
+            public void ExecuteCallback() => _asyncCallback?.Invoke(this);
+            public object AsyncState { get; }
             WaitHandle IAsyncResult.AsyncWaitHandle => !CompletedSynchronously ? ((IAsyncResult)_task.AsTask()).AsyncWaitHandle : throw new NotImplementedException();
 
             public bool CompletedSynchronously { get; }
             public bool IsCompleted => _task.IsCompleted;
-
-            #endregion
         }
 
         // Awaitable helper to await a maximum amount of time for a task to complete. If the task doesn't
