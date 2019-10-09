@@ -1,0 +1,6 @@
+assembly-versioning-scheme: Major
+mode: ContinuousDeployment
+branches:
+  master: {}
+ignore:
+  sha: []
