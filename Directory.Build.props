@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ProjectDir>$(MSBuildThisFileDirectory)</ProjectDir>
     <SourceDir>$(ProjectDir)src/</SourceDir>
-    
+
     <!-- Output directories -->
     <BinDir Condition="'$(BinDir)'==''">$(ProjectDir)bin/</BinDir>
     <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
@@ -26,11 +26,16 @@
     <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(BaseIntermediateOutputPath)</IntermediateOutputRootPath>
     <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)$(MSBuildProjectName)/</IntermediateOutputPath>
   </PropertyGroup>
-  
+
   <!-- Disable the default embedded resource behavior as we have a naming convention which is different than what the SDK uses -->
   <PropertyGroup>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
-  
+
+  <!-- Disable packaging for samples project -->
+  <PropertyGroup Condition="'$(IsSampleProject)' == 'true'">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
   <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
 </Project>
