@@ -12,7 +12,7 @@ pool:
 variables:
   buildConfiguration: 'Release'
   solution: 'src/CoreWCF.sln'
-  OS: 'Windows' # needed to run both netcore and net472
+#  OS: 'Windows' # needed to run both netcore and net472, not enabled since net472 hangs
 
 steps:
 - task: GitVersion@4
@@ -38,15 +38,8 @@ steps:
   inputs:
     command: test
     projects: '$(solution)'
-    arguments: '--configuration $(buildConfiguration) --no-build --collect "Code coverage" -f netcoreapp2.1'
+    arguments: '--configuration $(buildConfiguration) --no-build --collect "Code coverage"'
 
-
-- task: DotNetCoreCLI@2
-  displayName: Test net472
-  inputs:
-    command: test
-    projects: '$(solution)'
-    arguments: '--configuration $(buildConfiguration) --no-build --collect "Code coverage" -f net472'
 - task: DotNetCoreCLI@2
   displayName: Pack
   inputs:
