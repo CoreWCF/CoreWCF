@@ -36,19 +36,19 @@ namespace CoreWCF.Runtime
         /// <summary>
         /// Helper method to convert from Task async method to "APM" (IAsyncResult with Begin/End calls)
         /// </summary>
-        public static IAsyncResult ToApm<T>(this ValueTask<T> task, AsyncCallback callback, object state)
+        public static IAsyncResult ToApm<T>(this ValueTask<T> valueTask, AsyncCallback callback, object state)
         {
-            var result = new AsyncResult<T>(task, callback, state);
+            var result = new AsyncResult<T>(valueTask, callback, state);
             if (result.CompletedSynchronously)
             {
                 result.ExecuteCallback();
             }
             else if (callback != null)
             {
-                task.AsTask().ContinueWith((res, asyncResult) =>
+                valueTask.AsTask().ContinueWith((_, asyncResult) =>
                 {
                     ((AsyncResult<T>)asyncResult).ExecuteCallback();
-                }, result, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
+                }, result, CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
             }
 
             return result;
@@ -66,10 +66,10 @@ namespace CoreWCF.Runtime
             }
             else if (callback != null)
             {
-                task.ContinueWith((res, asyncResult) =>
+                task.ContinueWith((_, asyncResult) =>
                 {
                     ((AsyncResult)asyncResult).ExecuteCallback();
-                }, result, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
+                }, result, CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
             }
 
             return result;

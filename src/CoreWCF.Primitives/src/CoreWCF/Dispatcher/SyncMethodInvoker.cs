@@ -68,7 +68,6 @@ namespace CoreWCF.Dispatcher
             return tuple.Item1;
         }
 
-        // This should be changed to ValueTuple instead
         private Task<Tuple<object, object[]>> InvokeAsync(object instance, object[] inputs)
         {
             EnsureIsInitialized();

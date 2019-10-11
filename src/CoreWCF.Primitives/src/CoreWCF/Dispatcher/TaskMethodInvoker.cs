@@ -80,6 +80,9 @@ namespace CoreWCF.Dispatcher
             {
                 //AsyncMethodInvoker.GetActivityInfo(ref activity, ref boundOperation);
 
+                // This code would benefith from a rewrite to call TaskHelpers.ToApmEnd<Tuple<object, object[]>>
+                // When doing so make sure there is enought test coverage se PR comment at link below for a good starting point
+                // https://github.com/CoreWCF/CoreWCF/pull/54/files/8db6ff9ad6940a1056363defd1f6449adee56e1a#r333826132
                 var asyncResult = result as TaskHelpers.AsyncResult<Tuple<object, object[]>>;
                 if (asyncResult == null)
                 {
@@ -131,6 +134,7 @@ namespace CoreWCF.Dispatcher
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
                     }
 
+                    // Rethrow inner exception as is
                     asyncResult.GetResult();
                 }
 
