@@ -48,7 +48,7 @@ namespace CoreWCF.Runtime
                 valueTask.AsTask().ContinueWith((_, asyncResult) =>
                 {
                     ((AsyncResult<T>)asyncResult).ExecuteCallback();
-                }, result, CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
+                }, result, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
             }
 
             return result;
@@ -69,7 +69,7 @@ namespace CoreWCF.Runtime
                 task.ContinueWith((_, asyncResult) =>
                 {
                     ((AsyncResult)asyncResult).ExecuteCallback();
-                }, result, CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
+                }, result, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
             }
 
             return result;
