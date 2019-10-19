@@ -45,10 +45,12 @@ namespace CoreWCF.Runtime
             }
             else if (callback != null)
             {
-                valueTask.AsTask().ContinueWith((_, asyncResult) =>
-                {
-                    ((AsyncResult<T>)asyncResult).ExecuteCallback();
-                }, result, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                // We use OnCompleted rather than ContinueWith in order to avoid running synchronously
+                // if the task has already completed by the time we get here. 
+                // This will allocate a delegate and some extra data to add it as a TaskContinuation
+                valueTask.ConfigureAwait(false)
+                    .GetAwaiter()
+                    .OnCompleted(result.ExecuteCallback);
             }
 
             return result;
@@ -66,10 +68,12 @@ namespace CoreWCF.Runtime
             }
             else if (callback != null)
             {
-                task.ContinueWith((_, asyncResult) =>
-                {
-                    ((AsyncResult)asyncResult).ExecuteCallback();
-                }, result, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                // We use OnCompleted rather than ContinueWith in order to avoid running synchronously
+                // if the task has already completed by the time we get here. 
+                // This will allocate a delegate and some extra data to add it as a TaskContinuation
+                task.ConfigureAwait(false)
+                    .GetAwaiter()
+                    .OnCompleted(result.ExecuteCallback);
             }
 
             return result;
