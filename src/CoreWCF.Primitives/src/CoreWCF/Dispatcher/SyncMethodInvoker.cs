@@ -63,13 +63,7 @@ namespace CoreWCF.Dispatcher
 
         public object InvokeEnd(object instance, out object[] outputs, IAsyncResult result)
         {
-            var task = result as Task<Tuple<object, object[]>>;
-            if (task == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.SFxInvalidCallbackIAsyncResult));
-            }
-
-            var tuple = task.Result;
+            var tuple = TaskHelpers.ToApmEnd<Tuple<object, object[]>>(result);
             outputs = tuple.Item2;
             return tuple.Item1;
         }
@@ -145,8 +139,8 @@ namespace CoreWCF.Dispatcher
                 //    {
                 //        WcfEventSource.Instance.OperationInvoked(eventTraceActivity, MethodName, TraceUtility.GetCallerInfo(OperationContext.Current));
                 //    }
-                    returnValue = _invokeDelegate(instance, inputs, outputs);
-                    //callSucceeded = true;
+                returnValue = _invokeDelegate(instance, inputs, outputs);
+                //callSucceeded = true;
                 //}
             }
             catch (FaultException)
