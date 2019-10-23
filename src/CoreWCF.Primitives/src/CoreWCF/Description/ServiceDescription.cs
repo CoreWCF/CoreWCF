@@ -136,7 +136,7 @@ namespace CoreWCF.Description
             description.ServiceType = typeof(TService);
 
             AddBehaviors<TService>(description);
-            SetupSingleton(description, (TService)null, false);
+            SetupSingleton(description, (TService)null);
             return description;
         }
 
@@ -147,10 +147,9 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceImplementation));
             }
 
-            // TODO: What if the concrete type is different that the generic type?
-            Type serviceType = typeof(TService); //serviceImplementation.GetType();
             ServiceDescription description = new ServiceDescription();
-            description.ServiceType = serviceType;
+            // TODO: What if the concrete type is different that the generic type?
+            description.ServiceType = typeof(TService); //serviceImplementation.GetType();
 
             if (serviceImplementation is IServiceBehavior)
             {
@@ -158,7 +157,7 @@ namespace CoreWCF.Description
             }
 
             AddBehaviors<TService>(description);
-            SetupSingleton(description, serviceImplementation, true);
+            SetupSingleton(description, serviceImplementation);
             return description;
         }
 
@@ -235,21 +234,18 @@ namespace CoreWCF.Description
             }
         }
 
-        static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation, bool isWellKnown) where TService : class
+        static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation) where TService : class
         {
             ServiceBehaviorAttribute serviceBehavior = EnsureBehaviorAttribute(serviceDescription);
             Type type = serviceDescription.ServiceType;
-            if ((implementation == null) && (serviceBehavior.InstanceContextMode == InstanceContextMode.Single))
+            if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
             {
-                implementation = CreateImplementation<TService>();
-            }
+                if (implementation == null)
+                {
+                    // implementation will only be null if not provided using DI
+                    implementation = CreateImplementation<TService>();
+                }
 
-            if (isWellKnown)
-            {
-                serviceBehavior.SetWellKnownSingleton(implementation);
-            }
-            else if ((implementation != null) && (serviceBehavior.InstanceContextMode == InstanceContextMode.Single))
-            {
                 serviceBehavior.SetWellKnownSingleton(implementation);
             }
         }

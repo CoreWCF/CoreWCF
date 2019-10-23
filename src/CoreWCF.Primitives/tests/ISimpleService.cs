@@ -5,7 +5,7 @@ using System.Text;
 namespace CoreWCF.Primitives.Tests
 {
     [ServiceContract]
-    interface ISimpleService
+    public interface ISimpleService
     {
         [OperationContract]
         string Echo(string echo);

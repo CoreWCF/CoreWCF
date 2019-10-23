@@ -6,6 +6,7 @@ using System.Text;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Channels;
 using CoreWCF.Description;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF
 {
@@ -13,9 +14,11 @@ namespace CoreWCF
     {
         private IDisposable _disposableInstance;
         private TService _singletonInstance;
+        private readonly IServiceProvider _serviceProvider;
 
-        public ServiceHostObjectModel(Uri[] baseAddresses)
+        public ServiceHostObjectModel(IServiceProvider serviceProvider, Uri[] baseAddresses)
         {
+            _serviceProvider = serviceProvider;
             InitializeDescription(new UriSchemeKeyedCollection(baseAddresses));
         }
 
@@ -26,9 +29,9 @@ namespace CoreWCF
             InitializeDescription(new UriSchemeKeyedCollection(baseAddresses));
         }
 
-        public TService SingletonInstance { get; }
+        public TService SingletonInstance { get; private set; }
 
-        internal object DisposableInstance
+        internal override object DisposableInstance
         {
             get
             {
@@ -41,16 +44,40 @@ namespace CoreWCF
         protected override ServiceDescription CreateDescription(out IDictionary<string, ContractDescription> implementedContracts)
         {
             ServiceDescription description;
-            if (SingletonInstance != null)
+            TService instance = _serviceProvider.GetService(typeof(TService)) as TService;
+            if (instance != null)
             {
-                description = ServiceDescription.GetService(SingletonInstance);
+                description = ServiceDescription.GetService(instance);
             }
             else
             {
                 description = ServiceDescription.GetService<TService>();
             }
 
+            // Any user supplied IServiceBehaviors can be applied now
+            var serviceBehaviors = _serviceProvider.GetServices<IServiceBehavior>();
+            foreach (var behavior in serviceBehaviors)
+            {
+                description.Behaviors.Add(behavior);
+            }
+
             ServiceBehaviorAttribute serviceBehavior = description.Behaviors.Find<ServiceBehaviorAttribute>();
+            if (instance != null)
+            {
+                if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
+                {
+                    SingletonInstance = instance;
+                }
+                else
+                {
+                    serviceBehavior.InstanceProvider = new DependencyInjectionInstanceProvider(_serviceProvider, typeof(TService));
+                    if (instance is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                }
+            }
+
             TService serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetWellKnownSingleton();
             if (serviceInstanceUsedAsABehavior == null)
             {

@@ -66,22 +66,6 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        //internal bool TransactionAutoCompleteOnSessionClose
-        //{
-        //    get
-        //    {
-        //        return this.transactionAutoCompleteOnSessionClose;
-        //    }
-        //}
-
-        //internal bool ReleaseServiceInstanceOnTransactionComplete
-        //{
-        //    get
-        //    {
-        //        return this.releaseServiceInstanceOnTransactionComplete;
-        //    }
-        //}
-
         internal IInstanceContextProvider InstanceContextProvider
         {
             get
@@ -117,7 +101,7 @@ namespace CoreWCF.Dispatcher
 
                 try
                 {
-                    context.UnbindRpc(ref rpc);
+                    context.UnbindRpc(rpc);
                 }
                 catch (Exception e)
                 {

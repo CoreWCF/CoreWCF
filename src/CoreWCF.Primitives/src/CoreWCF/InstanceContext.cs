@@ -23,13 +23,10 @@ namespace CoreWCF
         private readonly ServiceHostBase _host;
         ServiceThrottle serviceThrottle;
         private int _instanceContextManagerIndex;
-        //int instanceContextManagerIndex;
         private object _serviceInstanceLock = new object();
         private SynchronizationContext _synchronizationContext;
-        //TransactionInstanceContextFacet transaction;
         private object _userObject;
         private bool _wellKnown;
-        //SynchronizedCollection<IChannel> wmiChannels;
         private bool _isUserCreated;
 
         public InstanceContext(object implementation)
@@ -62,11 +59,10 @@ namespace CoreWCF
 
         internal InstanceContext(ServiceHostBase host, bool isUserCreated)
         {
-            // TODO: Why is it required that host != null?
-            //if (host == null)
-            //{
-            //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
-            //}
+            if (host == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
+            }
 
             _host = host;
             _autoClose = true;
@@ -402,10 +398,10 @@ namespace CoreWCF
             }
 
             // TODO: Re-home InstanceContextManager and have a reference to it here.
-            //if (_host != null)
-            //{
-            //    _host.BindInstance(this);
-            //}
+            if (_host != null)
+            {
+                _host.BindInstance(this);
+            }
         }
 
         private static void NotifyEmpty(InstanceContext instanceContext)
@@ -473,15 +469,14 @@ namespace CoreWCF
             {
                 object oldUserObject = Interlocked.Exchange(ref _userObject, newUserObject);
 
-                // TODO: Make DisposableInstance accessible via some other mechanism
-                //if ((oldUserObject != null) && (_host != null) && !Equals(oldUserObject, _host.DisposableInstance))
-                //{
-                //    _behavior.ReleaseInstance(this, oldUserObject);
-                //}
+                if ((oldUserObject != null) && (_host != null) && !Equals(oldUserObject, _host.DisposableInstance))
+                {
+                    _behavior.ReleaseInstance(this, oldUserObject);
+                }
             }
         }
 
-        internal void UnbindRpc(ref MessageRpc rpc)
+        internal void UnbindRpc(MessageRpc rpc)
         {
             if (rpc.InstanceContext == this && rpc.SuccessfullyBoundInstance)
             {
@@ -494,10 +489,10 @@ namespace CoreWCF
             SetUserObject(null);
 
             // TODO: Re-home InstanceContextManager and have a reference to it here.
-            //if (_host != null)
-            //{
-            //    _host.UnbindInstance(this);
-            //}
+            if (_host != null)
+            {
+                _host.UnbindInstance(this);
+            }
         }
     }
 }

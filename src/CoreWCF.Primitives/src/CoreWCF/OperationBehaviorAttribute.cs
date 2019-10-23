@@ -8,12 +8,39 @@ namespace CoreWCF
     public sealed class OperationBehaviorAttribute : Attribute, IOperationBehavior
     {
         internal const ImpersonationOption DefaultImpersonationOption = ImpersonationOption.NotAllowed;
-        private bool _autoDisposeParameters;
+        ImpersonationOption _impersonation = ImpersonationOption.NotAllowed;
+        ReleaseInstanceMode _releaseInstance = ReleaseInstanceMode.None;
 
-        public bool AutoDisposeParameters
+        public bool AutoDisposeParameters { get; set; }
+
+        public ImpersonationOption Impersonation
         {
-            get { return _autoDisposeParameters; }
-            set { _autoDisposeParameters = value; }
+            get
+            {
+                return _impersonation;
+            }
+            set
+            {
+                if (!ImpersonationOptionHelper.IsDefined(value))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                }
+                _impersonation = value;
+            }
+        }
+
+        public ReleaseInstanceMode ReleaseInstanceMode
+        {
+            get { return _releaseInstance; }
+            set
+            {
+                if (!ReleaseInstanceModeHelper.IsDefined(value))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                }
+
+                _releaseInstance = value;
+            }
         }
 
         void IOperationBehavior.AddBindingParameters(OperationDescription operationDescription, BindingParameterCollection bindingParameters) { }
@@ -25,22 +52,23 @@ namespace CoreWCF
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
             }
+
             if (dispatch == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatch));
             }
-            //if (description.IsServerInitiated() && this.releaseInstance != ReleaseInstanceMode.None)
-            //{
-            //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-            //        SR.Format(SR.SFxOperationBehaviorAttributeReleaseInstanceModeDoesNotApplyToCallback,
-            //        description.Name)));
-            //}
-            //dispatch.TransactionRequired = this.autoEnlistTransaction;
-            //dispatch.TransactionAutoComplete = this.autoCompleteTransaction;
-            dispatch.AutoDisposeParameters = _autoDisposeParameters;
-            //dispatch.ReleaseInstanceBeforeCall = (this.releaseInstance & ReleaseInstanceMode.BeforeCall) != 0;
-            //dispatch.ReleaseInstanceAfterCall = (this.releaseInstance & ReleaseInstanceMode.AfterCall) != 0;
-            //dispatch.Impersonation = this.Impersonation;
+
+            if (description.IsServerInitiated() && _releaseInstance != ReleaseInstanceMode.None)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
+                    SR.Format(SR.SFxOperationBehaviorAttributeReleaseInstanceModeDoesNotApplyToCallback,
+                    description.Name)));
+            }
+
+            dispatch.AutoDisposeParameters = AutoDisposeParameters;
+            dispatch.ReleaseInstanceBeforeCall = (_releaseInstance & ReleaseInstanceMode.BeforeCall) != 0;
+            dispatch.ReleaseInstanceAfterCall = (_releaseInstance & ReleaseInstanceMode.AfterCall) != 0;
+            dispatch.Impersonation = Impersonation;
         }
 
         void IOperationBehavior.ApplyClientBehavior(OperationDescription description, ClientOperation proxy)
