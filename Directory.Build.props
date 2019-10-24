@@ -34,7 +34,7 @@
   
   <!-- Common NuGet package properties -->
   <PropertyGroup>
-    <PackageVersion>0.0.1-alpha</PackageVersion>
+    <PackageVersion Condition="'$(PackageVersion)'==''">0.0.1-alpha</PackageVersion>
   </PropertyGroup>
   
   <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
