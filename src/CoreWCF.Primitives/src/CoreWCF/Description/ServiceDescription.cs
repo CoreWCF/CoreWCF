@@ -244,9 +244,12 @@ namespace CoreWCF.Description
                 {
                     // implementation will only be null if not provided using DI
                     implementation = CreateImplementation<TService>();
+                    serviceBehavior.SetHiddenSingleton(implementation);
                 }
-
-                serviceBehavior.SetWellKnownSingleton(implementation);
+                else
+                {
+                    serviceBehavior.SetWellKnownSingleton(implementation);
+                }
             }
         }
 

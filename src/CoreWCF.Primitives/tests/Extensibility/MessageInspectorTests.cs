@@ -1,4 +1,5 @@
-﻿using CoreWCF.Channels;
+﻿using CoreWCF;
+using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using CoreWCF.Primitives.Tests.Helpers;

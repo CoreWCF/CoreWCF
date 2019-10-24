@@ -22,13 +22,6 @@ namespace CoreWCF
             InitializeDescription(new UriSchemeKeyedCollection(baseAddresses));
         }
 
-        public ServiceHostObjectModel(TService singletonInstance, Uri[] baseAddresses)
-        {
-            SingletonInstance = singletonInstance ?? throw new ArgumentNullException(nameof(singletonInstance));
-
-            InitializeDescription(new UriSchemeKeyedCollection(baseAddresses));
-        }
-
         public TService SingletonInstance { get; private set; }
 
         internal override object DisposableInstance
@@ -44,7 +37,7 @@ namespace CoreWCF
         protected override ServiceDescription CreateDescription(out IDictionary<string, ContractDescription> implementedContracts)
         {
             ServiceDescription description;
-            TService instance = _serviceProvider.GetService(typeof(TService)) as TService;
+            TService instance = _serviceProvider.GetService<TService>();
             if (instance != null)
             {
                 description = ServiceDescription.GetService(instance);
@@ -62,6 +55,28 @@ namespace CoreWCF
             }
 
             ServiceBehaviorAttribute serviceBehavior = description.Behaviors.Find<ServiceBehaviorAttribute>();
+            object serviceInstanceUsedAsABehavior = serviceBehavior.GetWellKnownSingleton();
+            if (serviceInstanceUsedAsABehavior == null)
+            {
+                serviceInstanceUsedAsABehavior = serviceBehavior.GetHiddenSingleton();
+                _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
+            }
+
+            if ((typeof(IServiceBehavior).IsAssignableFrom(typeof(TService)) || typeof(IContractBehavior).IsAssignableFrom(typeof(TService)))
+                && serviceInstanceUsedAsABehavior == null)
+            {
+                if (instance == null)
+                {
+                    serviceInstanceUsedAsABehavior = ServiceDescription.CreateImplementation<TService>();
+                }
+                else
+                {
+                    serviceInstanceUsedAsABehavior = instance;
+                }
+
+                _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
+            }
+
             if (instance != null)
             {
                 if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
@@ -71,28 +86,14 @@ namespace CoreWCF
                 else
                 {
                     serviceBehavior.InstanceProvider = new DependencyInjectionInstanceProvider(_serviceProvider, typeof(TService));
-                    if (instance is IDisposable disposable)
+                    if (serviceInstanceUsedAsABehavior == null && instance is IDisposable disposable)
                     {
                         disposable.Dispose();
                     }
                 }
             }
 
-            TService serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetWellKnownSingleton();
-            if (serviceInstanceUsedAsABehavior == null)
-            {
-                serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetHiddenSingleton();
-                _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
-            }
-
-            if ((typeof(IServiceBehavior).IsAssignableFrom(typeof(TService)) || typeof(IContractBehavior).IsAssignableFrom(typeof(TService)))
-                && serviceInstanceUsedAsABehavior == null)
-            {
-                serviceInstanceUsedAsABehavior = ServiceDescription.CreateImplementation<TService>();
-                _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
-            }
-
-            if (SingletonInstance == null)
+            if (instance == null)
             {
                 if (serviceInstanceUsedAsABehavior is IServiceBehavior)
                 {
