@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CoreWCF;
 
-namespace CoreWCF.Primitives.Tests
+[ServiceContract]
+public interface ISimpleService
 {
-    [ServiceContract]
-    interface ISimpleService
-    {
-        [OperationContract]
-        string Echo(string echo);
-    }
+    [OperationContract]
+    string Echo(string echo);
 }

@@ -6,28 +6,31 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Xunit;
 
-public static class SimpleTest
+namespace BasicHttp
 {
-    [Fact]
-    public static void BasicHttpRequestReplyEchoString()
+    public static class SimpleTest
     {
-        string testString = new string('a', 3000);
-        var host = CreateWebHostBuilder(new string[0]).Build();
-        using (host)
+        [Fact]
+        public static void BasicHttpRequestReplyEchoString()
         {
-            host.Start();
-            var httpBinding = new System.ServiceModel.BasicHttpBinding();
-            var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-            var channel = factory.CreateChannel();
-            var result = channel.EchoString(testString);
-            Assert.Equal(testString, result);
+            string testString = new string('a', 3000);
+            var host = CreateWebHostBuilder(new string[0]).Build();
+            using (host)
+            {
+                host.Start();
+                var httpBinding = new System.ServiceModel.BasicHttpBinding();
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+                var channel = factory.CreateChannel();
+                var result = channel.EchoString(testString);
+                Assert.Equal(testString, result);
+            }
         }
-    }
 
-    public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-        WebHost.CreateDefaultBuilder(args)
-            .UseKestrel()
-            .UseUrls("http://localhost:8080")
-            .UseStartup<Startup>();
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseKestrel()
+                .UseUrls("http://localhost:8080")
+                .UseStartup<Startup>();
+    }
 }

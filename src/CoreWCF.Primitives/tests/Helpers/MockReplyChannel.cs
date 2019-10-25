@@ -19,13 +19,16 @@ namespace Helpers
 
         public EndpointAddress LocalAddress => throw new NotImplementedException();
 
-        public CommunicationState State => CommunicationState.Opened;
+        public CommunicationState State { get; set; } = CommunicationState.Opened;
 
+#pragma warning disable CS0067 // "The event is never used"
+        // These are required to implement IReplyChannel
         public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
+#pragma warning restore CS0067
 
         public void Abort()
         {
@@ -34,12 +37,13 @@ namespace Helpers
 
         public Task CloseAsync()
         {
-            throw new NotImplementedException();
+            return CloseAsync(CancellationToken.None);
         }
 
         public Task CloseAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            State = CommunicationState.Closed;
+            return Task.CompletedTask;
         }
 
         public T GetProperty<T>() where T : class

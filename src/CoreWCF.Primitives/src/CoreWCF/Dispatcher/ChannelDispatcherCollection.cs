@@ -16,7 +16,15 @@ namespace CoreWCF.Dispatcher
 
         protected override void ClearItems()
         {
-            throw new PlatformNotSupportedException();
+            ChannelDispatcherBase[] array = new ChannelDispatcherBase[Count];
+            CopyTo(array, 0);
+            base.ClearItems();
+
+            if (service != null)
+            {
+                foreach (ChannelDispatcherBase channelDispatcher in array)
+                    service.OnRemoveChannelDispatcher(channelDispatcher);
+            }
         }
 
         protected override void InsertItem(int index, ChannelDispatcherBase item)
@@ -25,6 +33,8 @@ namespace CoreWCF.Dispatcher
             {
                 if (service.State == CommunicationState.Closed)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(service.GetType().ToString()));
+
+                service.OnAddChannelDispatcher(item);
             }
 
             base.InsertItem(index, item);
@@ -34,6 +44,8 @@ namespace CoreWCF.Dispatcher
         {
             ChannelDispatcherBase channelDispatcher = Items[index];
             base.RemoveItem(index);
+            if (service != null)
+                service.OnRemoveChannelDispatcher(channelDispatcher); 
         }
 
         protected override void SetItem(int index, ChannelDispatcherBase item)
@@ -44,6 +56,9 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(service.GetType().ToString()));
             }
 
+            if (service != null)
+                service.OnAddChannelDispatcher(item);
+
             ChannelDispatcherBase old;
 
             lock (SyncRoot)
@@ -51,6 +66,9 @@ namespace CoreWCF.Dispatcher
                 old = Items[index];
                 base.SetItem(index, item);
             }
+
+            if (service != null)
+                service.OnRemoveChannelDispatcher(old);
         }
     }
 }

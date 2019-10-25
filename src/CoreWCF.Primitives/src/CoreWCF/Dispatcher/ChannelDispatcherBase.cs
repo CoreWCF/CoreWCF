@@ -10,8 +10,18 @@ namespace CoreWCF.Dispatcher
     {
         public abstract ServiceHostBase Host { get; }
 
+        internal void AttachInternal(ServiceHostBase host)
+        {
+            Attach(host);
+        }
+
         protected virtual void Attach(ServiceHostBase host)
         {
+        }
+
+        internal void DetachInternal(ServiceHostBase host)
+        {
+            Detach(host);
         }
 
         protected virtual void Detach(ServiceHostBase host)
