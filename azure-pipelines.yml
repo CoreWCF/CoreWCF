@@ -1,0 +1,53 @@
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  solution: 'src/CoreWCF.sln'
+
+steps:
+# Enable GitVersion as after CI builds are working
+# - task: GitVersion@4
+#   displayName: GitVersion
+#   inputs:
+#     preferBundledVersion: true
+
+- task: DotNetCoreCLI@2
+  displayName: Restore
+  inputs:
+    command: restore
+    projects: '$(solution)'
+
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    command: build
+    projects: '$(solution)'
+    arguments: '--configuration $(buildConfiguration) --no-restore'
+
+- task: DotNetCoreCLI@2
+  displayName: Test netcoreapp2.1
+  inputs:
+    command: test
+    projects: '$(solution)'
+    publishTestResults: true
+    configuration: $(buildConfiguration)
+    nobuild: true
+    arguments: '--collect "Code coverage"'
+
+- task: DotNetCoreCLI@2
+  displayName: Pack
+  inputs:
+    command: 'pack'
+    packagesToPack: '$(solution)'
+    nobuild: true
+    versioningScheme: 'byBuildNumber'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
