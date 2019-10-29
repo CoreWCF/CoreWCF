@@ -3,11 +3,30 @@
 trigger:
 - master
 
-pool:
-  vmImage: 'windows-latest'
+strategy:
+  matrix:
+    Windows_netcore2.1:
+      imageName: 'windows-latest'
+      targetFramework: 'netcoreapp2.1'
+    Windows_netcore3.0:
+      imageName: 'windows-latest'
+      targetFramework: 'netcoreapp3.0'
+    # Windows_netfx:
+    #   imageName: 'windows-latest'
+    #   targetFramework: 'net472'
+    # Linux_netcore2.1:
+    #   imageName: 'ubuntu-latest'
+    #   targetFramework: 'netcoreapp2.1'
+    # Linux_netcore3.0:
+    #   imageName: 'ubuntu-latest'
+    #   targetFramework: 'netcoreapp3.0'
 
+pool:
+  vmImage: $(imageName)
+
+#TODO: Add this to the matrix to run Release and Debug
 variables:
-  buildConfiguration: 'Release'
+  buildConfiguration: 'Debug'
   solution: 'src/CoreWCF.sln'
 
 steps:
@@ -28,25 +47,27 @@ steps:
   inputs:
     command: build
     projects: '$(solution)'
-    arguments: '--configuration $(buildConfiguration) --no-restore'
+    arguments: '--configuration $(buildConfiguration) --framework $(targetFramework) --no-restore'
 
 - task: DotNetCoreCLI@2
-  displayName: Test netcoreapp2.1
+  displayName: Test $(targetFramework)
+  timeoutInMinutes: 10
   inputs:
     command: test
     projects: '$(solution)'
     publishTestResults: true
     configuration: $(buildConfiguration)
     nobuild: true
-    arguments: '--collect "Code coverage"'
+    arguments: '--framework $(targetFramework)'
+#    arguments: '--collect "Code coverage"  --framework $(targetFramework)'
 
-- task: DotNetCoreCLI@2
-  displayName: Pack
-  inputs:
-    command: 'pack'
-    packagesToPack: '$(solution)'
-    nobuild: true
-    versioningScheme: 'byBuildNumber'
+# - task: DotNetCoreCLI@2
+#   displayName: Pack
+#   inputs:
+#     command: 'pack'
+#     packagesToPack: '$(solution)'
+#     nobuild: true
+#     versioningScheme: 'byBuildNumber'
 
 - task: PublishBuildArtifacts@1
   inputs:
