@@ -8,9 +8,9 @@ strategy:
     Windows_netcore2.1:
       imageName: 'windows-latest'
       targetFramework: 'netcoreapp2.1'
-    Windows_netcore3.0:
-      imageName: 'windows-latest'
-      targetFramework: 'netcoreapp3.0'
+    # Windows_netcore3.0:
+    #   imageName: 'windows-latest'
+    #   targetFramework: 'netcoreapp3.0'
     # Windows_netfx:
     #   imageName: 'windows-latest'
     #   targetFramework: 'net472'
@@ -28,6 +28,9 @@ pool:
 variables:
   buildConfiguration: 'Debug'
   solution: 'src/CoreWCF.sln'
+  nettcptests: 'src/CoreWCF.NetTcp/tests/CoreWCF.NetTcp.Tests.csproj'
+  httptests: 'src/CoreWCF.Http/tests/CoreWCF.Http.Tests.csproj'
+  primitivestests: 'src/CoreWCF.Primitives/tests/CoreWCF.Primitives.Tests.csproj'
 
 steps:
 # Enable GitVersion as after CI builds are working
@@ -50,11 +53,33 @@ steps:
     arguments: '--configuration $(buildConfiguration) --no-restore'
 
 - task: DotNetCoreCLI@2
-  displayName: Test $(targetFramework)
-  timeoutInMinutes: 10
+  displayName: Test NetTcp $(targetFramework)
+  timeoutInMinutes: 2
   inputs:
     command: test
-    projects: '$(solution)'
+    projects: '$(nettcptests)'
+    publishTestResults: true
+    configuration: $(buildConfiguration)
+    nobuild: true
+    arguments: '--framework $(targetFramework)'
+
+- task: DotNetCoreCLI@2
+  displayName: Test Http $(targetFramework)
+  timeoutInMinutes: 2
+  inputs:
+    command: test
+    projects: '$(httptests)'
+    publishTestResults: true
+    configuration: $(buildConfiguration)
+    nobuild: true
+    arguments: '--framework $(targetFramework)'
+
+- task: DotNetCoreCLI@2
+  displayName: Test Primitives $(targetFramework)
+  timeoutInMinutes: 2
+  inputs:
+    command: test
+    projects: '$(primitivestests)'
     publishTestResults: true
     configuration: $(buildConfiguration)
     nobuild: true
