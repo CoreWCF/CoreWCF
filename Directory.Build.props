@@ -15,6 +15,7 @@
   <!-- Set up some common paths -->
   <PropertyGroup>
     <CommonPath>$(SourceDir)Common/src</CommonPath>
+    <CommonTestPath>$(SourceDir)Common/tests</CommonTestPath>
     <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
     <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
     <IsTestProject>$(AssemblyName.EndsWith(`Tests`))</IsTestProject>
