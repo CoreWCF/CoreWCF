@@ -1,155 +1,184 @@
 ﻿using CoreWCF.Configuration;
-using Microsoft.AspNetCore;
+using Helpers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.ServiceModel.Channels;
-using System.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ConnectionHandler
 {
-    public static class ConnectionHandlerStreamedModeTests
+    public class ConnectionHandlerStreamedModeTests
     {
-        [Fact]
-        public static void SimpleNetTcpClientConnection()
+        private ITestOutputHelper _output;
+
+        public ConnectionHandlerStreamedModeTests(ITestOutputHelper output)
         {
-            string testString = new string('a', 3000);
-            var host = CreateWebHostBuilder(new string[0]).Build();
-            using (host)
-            {
-                host.Start();
-                var binding = new System.ServiceModel.NetTcpBinding
-                {
-                    TransferMode = System.ServiceModel.TransferMode.Streamed
-                };
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                    new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
-                var channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                var result = channel.EchoString(testString);
-                ((IChannel)channel).Close();
-                Assert.Equal(testString, result);
-            }
+            _output = output;
         }
 
         [Fact]
-        public static void MultipleClientsNonConcurrentNetTcpClientConnection()
+        public void SimpleNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            var host = CreateWebHostBuilder(new string[0]).Build();
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
+                ClientContract.ITestService channel = null;
                 host.Start();
-                var binding = new System.ServiceModel.NetTcpBinding
+                try
                 {
-                    TransferMode = System.ServiceModel.TransferMode.Streamed
-                };
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                    new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
-                var channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                var result = channel.EchoString(testString);
-                ((IChannel)channel).Close();
-                Assert.Equal(testString, result);
-                channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                result = channel.EchoString(testString);
-                ((IChannel)channel).Close();
-                Assert.Equal(testString, result);
-            }
-        }
-
-        [Fact]
-        public static void SingleClientMultipleRequestsNetTcpClientConnection()
-        {
-            string testString = new string('a', 3000);
-            var host = CreateWebHostBuilder(new string[0]).Build();
-            using (host)
-            {
-                host.Start();
-                var binding = new System.ServiceModel.NetTcpBinding
-                {
-                    TransferMode = System.ServiceModel.TransferMode.Streamed
-                };
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                    new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
-                var channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                var result = channel.EchoString(testString);
-                Assert.Equal(testString, result);
-                result = channel.EchoString(testString);
-                ((IChannel)channel).Close();
-                Assert.Equal(testString, result);
-            }
-        }
-
-        [Fact]
-        public static void MultipleClientsUsingPooledSocket()
-        {
-            var host = CreateWebHostBuilder(new string[0]).Build();
-            using (host)
-            {
-                host.Start();
-                var binding = new System.ServiceModel.NetTcpBinding()
-                {
-                    OpenTimeout = TimeSpan.FromMinutes(20),
-                    CloseTimeout = TimeSpan.FromMinutes(20),
-                    SendTimeout = TimeSpan.FromMinutes(20),
-                    ReceiveTimeout = TimeSpan.FromMinutes(20)
-                };
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                    new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
-                var channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                var clientIpEndpoint = channel.GetClientIpEndpoint();
-                ((IChannel)channel).Close();
-                for (int i = 0; i < 10; i++)
-                {
+                    var binding = ClientHelper.GetStreamedModeBinding();
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var clientIpEndpoint2 = channel.GetClientIpEndpoint();
+                    var result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
-                    Assert.Equal(clientIpEndpoint, clientIpEndpoint2);
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
             }
         }
 
         [Fact]
-        public static void SingleClientsUsingPooledSocketForMultipleRequests()
+        public void MultipleClientsNonConcurrentNetTcpClientConnection()
         {
-            var host = CreateWebHostBuilder(new string[0]).Build();
+            string testString = new string('a', 3000);
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
+                ClientContract.ITestService channel = null;
                 host.Start();
-                var binding = new System.ServiceModel.NetTcpBinding()
+                try
                 {
-                    OpenTimeout = TimeSpan.FromMinutes(20),
-                    CloseTimeout = TimeSpan.FromMinutes(20),
-                    SendTimeout = TimeSpan.FromMinutes(20),
-                    ReceiveTimeout = TimeSpan.FromMinutes(20)
-                };
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                    new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
-                var channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                var clientIpEndpoint = channel.GetClientIpEndpoint();
-                for (int i = 0; i < 10; i++)
-                {
-                    var clientIpEndpoint2 = channel.GetClientIpEndpoint();
-                    Assert.Equal(clientIpEndpoint, clientIpEndpoint2);
+                    var binding = ClientHelper.GetStreamedModeBinding();
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    var result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                    factory.Close();
                 }
-                ((IChannel)channel).Close();
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
             }
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-            .UseNetTcp(8808)
-            .UseStartup<Startup>();
+        [Fact]
+        public void SingleClientMultipleRequestsNetTcpClientConnection()
+        {
+            string testString = new string('a', 3000);
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
+                ClientContract.ITestService channel = null;
+                host.Start();
+                try
+                {
+                    var binding = ClientHelper.GetStreamedModeBinding();
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    var result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
+
+        [Fact]
+        public void MultipleClientsUsingPooledSocket()
+        {
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
+                ClientContract.ITestService channel = null;
+                host.Start();
+                try
+                {
+                    var binding = ClientHelper.GetStreamedModeBinding();
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    var clientIpEndpoint = channel.GetClientIpEndpoint();
+                    ((IChannel)channel).Close();
+                    for (int i = 0; i < 10; i++)
+                    {
+                        channel = factory.CreateChannel();
+                        ((IChannel)channel).Open();
+                        var clientIpEndpoint2 = channel.GetClientIpEndpoint();
+                        Assert.Equal(clientIpEndpoint, clientIpEndpoint2);
+                        ((IChannel)channel).Close();
+                    }
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
+
+        [Fact]
+        public void SingleClientsUsingPooledSocketForMultipleRequests()
+        {
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
+                ClientContract.ITestService channel = null;
+                host.Start();
+                try
+                {
+                    var binding = ClientHelper.GetStreamedModeBinding();
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/nettcp.svc")));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    var clientIpEndpoint = channel.GetClientIpEndpoint();
+                    for (int i = 0; i < 10; i++)
+                    {
+                        var clientIpEndpoint2 = channel.GetClientIpEndpoint();
+                        Assert.Equal(clientIpEndpoint, clientIpEndpoint2);
+                    }
+                ((IChannel)channel).Close();
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
 
         public class Startup
         {
