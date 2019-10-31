@@ -8,12 +8,13 @@ strategy:
     Windows_netcore2.1:
       imageName: 'windows-latest'
       targetFramework: 'netcoreapp2.1'
-    # Windows_netcore3.0:
-    #   imageName: 'windows-latest'
-    #   targetFramework: 'netcoreapp3.0'
-    # Windows_netfx:
-    #   imageName: 'windows-latest'
-    #   targetFramework: 'net472'
+    Windows_netcore3.0:
+      imageName: 'windows-latest'
+      targetFramework: 'netcoreapp3.0'
+    Windows_netfx:
+      imageName: 'windows-latest'
+      targetFramework: 'net472'
+    # There are known problems on Linux which need to be fixed before enabling running on Linux
     # Linux_netcore2.1:
     #   imageName: 'ubuntu-latest'
     #   targetFramework: 'netcoreapp2.1'
@@ -24,8 +25,8 @@ strategy:
 pool:
   vmImage: $(imageName)
 
-#TODO: Add this to the matrix to run Release and Debug
 variables:
+#TODO: Add this to the matrix to run Release and Debug
   buildConfiguration: 'Debug'
   solution: 'src/CoreWCF.sln'
   nettcptests: 'src/CoreWCF.NetTcp/tests/CoreWCF.NetTcp.Tests.csproj'
@@ -33,7 +34,7 @@ variables:
   primitivestests: 'src/CoreWCF.Primitives/tests/CoreWCF.Primitives.Tests.csproj'
 
 steps:
-# Enable GitVersion as after CI builds are working
+# Enable GitVersion after CI builds are working
 # - task: GitVersion@4
 #   displayName: GitVersion
 #   inputs:
@@ -62,72 +63,6 @@ steps:
     configuration: $(buildConfiguration)
     nobuild: true
     arguments: '--framework $(targetFramework)'
-
-# - task: DotNetCoreCLI@2
-#   displayName: Test NetTcp $(targetFramework)
-#   timeoutInMinutes: 2
-#   inputs:
-#     command: test
-#     projects: '$(nettcptests)'
-#     publishTestResults: true
-#     configuration: $(buildConfiguration)
-#     nobuild: true
-#     arguments: '--framework $(targetFramework)'
-
-# - task: DotNetCoreCLI@2
-#   displayName: Test Http $(targetFramework)
-#   timeoutInMinutes: 2
-#   inputs:
-#     command: test
-#     projects: '$(httptests)'
-#     publishTestResults: true
-#     configuration: $(buildConfiguration)
-#     nobuild: true
-#     arguments: '--framework $(targetFramework)'
-
-# - task: DotNetCoreCLI@2
-#   displayName: Test Primitives $(targetFramework)
-#   timeoutInMinutes: 2
-#   inputs:
-#     command: test
-#     projects: '$(primitivestests)'
-#     publishTestResults: true
-#     configuration: $(buildConfiguration)
-#     nobuild: true
-#     arguments: '--framework $(targetFramework)'
-
-# - task: DotNetCoreCLI@2
-#   displayName: Test Primitives $(targetFramework)
-#   timeoutInMinutes: 2
-#   inputs:
-#     command: test
-#     projects: '$(primitivestests)'
-#     publishTestResults: true
-#     configuration: $(buildConfiguration)
-#     nobuild: true
-#     arguments: '--framework $(targetFramework) --filter DisplayName~DispatchBuilderTests'
-
-# - task: DotNetCoreCLI@2
-#   displayName: Test Primitives $(targetFramework)
-#   timeoutInMinutes: 2
-#   inputs:
-#     command: test
-#     projects: '$(primitivestests)'
-#     publishTestResults: true
-#     configuration: $(buildConfiguration)
-#     nobuild: true
-#     arguments: '--framework $(targetFramework) --filter DisplayName~MessageInspectorTests'
-
-# - task: DotNetCoreCLI@2
-#   displayName: Test Primitives $(targetFramework)
-#   timeoutInMinutes: 2
-#   inputs:
-#     command: test
-#     projects: '$(primitivestests)'
-#     publishTestResults: true
-#     configuration: $(buildConfiguration)
-#     nobuild: true
-#     arguments: '--framework $(targetFramework) --filter DisplayName~ServiceInstanceContextModeTests'
 
 # - task: DotNetCoreCLI@2
 #   displayName: Pack
