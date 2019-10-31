@@ -52,27 +52,27 @@ steps:
     projects: '$(solution)'
     arguments: '--configuration $(buildConfiguration) --no-restore'
 
-- task: DotNetCoreCLI@2
-  displayName: Test NetTcp $(targetFramework)
-  timeoutInMinutes: 2
-  inputs:
-    command: test
-    projects: '$(nettcptests)'
-    publishTestResults: true
-    configuration: $(buildConfiguration)
-    nobuild: true
-    arguments: '--framework $(targetFramework)'
+# - task: DotNetCoreCLI@2
+#   displayName: Test NetTcp $(targetFramework)
+#   timeoutInMinutes: 2
+#   inputs:
+#     command: test
+#     projects: '$(nettcptests)'
+#     publishTestResults: true
+#     configuration: $(buildConfiguration)
+#     nobuild: true
+#     arguments: '--framework $(targetFramework)'
 
-- task: DotNetCoreCLI@2
-  displayName: Test Http $(targetFramework)
-  timeoutInMinutes: 2
-  inputs:
-    command: test
-    projects: '$(httptests)'
-    publishTestResults: true
-    configuration: $(buildConfiguration)
-    nobuild: true
-    arguments: '--framework $(targetFramework)'
+# - task: DotNetCoreCLI@2
+#   displayName: Test Http $(targetFramework)
+#   timeoutInMinutes: 2
+#   inputs:
+#     command: test
+#     projects: '$(httptests)'
+#     publishTestResults: true
+#     configuration: $(buildConfiguration)
+#     nobuild: true
+#     arguments: '--framework $(targetFramework)'
 
 - task: DotNetCoreCLI@2
   displayName: Test Primitives $(targetFramework)
@@ -83,8 +83,19 @@ steps:
     publishTestResults: true
     configuration: $(buildConfiguration)
     nobuild: true
-    arguments: '--framework $(targetFramework)'
+    arguments: '--framework $(targetFramework) --filter DisplayName~DispatchBuilderTests'
 #    arguments: '--collect "Code coverage"  --framework $(targetFramework)'
+
+- task: DotNetCoreCLI@2
+  displayName: Test Primitives $(targetFramework)
+  timeoutInMinutes: 2
+  inputs:
+    command: test
+    projects: '$(primitivestests)'
+    publishTestResults: true
+    configuration: $(buildConfiguration)
+    nobuild: true
+    arguments: '--framework $(targetFramework) --filter DisplayName~MessageInspectorTests'
 
 # - task: DotNetCoreCLI@2
 #   displayName: Pack
