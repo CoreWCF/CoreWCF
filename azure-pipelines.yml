@@ -52,6 +52,17 @@ steps:
     projects: '$(solution)'
     arguments: '--configuration $(buildConfiguration) --no-restore'
 
+- task: DotNetCoreCLI@2
+  displayName: Test $(targetFramework)
+  timeoutInMinutes: 2
+  inputs:
+    command: test
+    projects: '$(solution)'
+    publishTestResults: true
+    configuration: $(buildConfiguration)
+    nobuild: true
+    arguments: '--framework $(targetFramework)'
+
 # - task: DotNetCoreCLI@2
 #   displayName: Test NetTcp $(targetFramework)
 #   timeoutInMinutes: 2
@@ -74,16 +85,16 @@ steps:
 #     nobuild: true
 #     arguments: '--framework $(targetFramework)'
 
-- task: DotNetCoreCLI@2
-  displayName: Test Primitives $(targetFramework)
-  timeoutInMinutes: 2
-  inputs:
-    command: test
-    projects: '$(primitivestests)'
-    publishTestResults: true
-    configuration: $(buildConfiguration)
-    nobuild: true
-    arguments: '--framework $(targetFramework)'
+# - task: DotNetCoreCLI@2
+#   displayName: Test Primitives $(targetFramework)
+#   timeoutInMinutes: 2
+#   inputs:
+#     command: test
+#     projects: '$(primitivestests)'
+#     publishTestResults: true
+#     configuration: $(buildConfiguration)
+#     nobuild: true
+#     arguments: '--framework $(targetFramework)'
 
 # - task: DotNetCoreCLI@2
 #   displayName: Test Primitives $(targetFramework)
