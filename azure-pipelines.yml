@@ -74,6 +74,17 @@ steps:
 #     nobuild: true
 #     arguments: '--framework $(targetFramework)'
 
+# - task: DotNetCoreCLI@2
+#   displayName: Test Primitives $(targetFramework)
+#   timeoutInMinutes: 2
+#   inputs:
+#     command: test
+#     projects: '$(primitivestests)'
+#     publishTestResults: true
+#     configuration: $(buildConfiguration)
+#     nobuild: true
+#     arguments: '--framework $(targetFramework)'
+
 - task: DotNetCoreCLI@2
   displayName: Test Primitives $(targetFramework)
   timeoutInMinutes: 2
@@ -83,29 +94,29 @@ steps:
     publishTestResults: true
     configuration: $(buildConfiguration)
     nobuild: true
-    arguments: '--framework $(targetFramework)'
+    arguments: '--framework $(targetFramework) --filter DisplayName~DispatchBuilderTests'
 
-# - task: DotNetCoreCLI@2
-#   displayName: Test Primitives $(targetFramework)
-#   timeoutInMinutes: 2
-#   inputs:
-#     command: test
-#     projects: '$(primitivestests)'
-#     publishTestResults: true
-#     configuration: $(buildConfiguration)
-#     nobuild: true
-#     arguments: '--framework $(targetFramework) --filter DisplayName~DispatchBuilderTests'
+- task: DotNetCoreCLI@2
+  displayName: Test Primitives $(targetFramework)
+  timeoutInMinutes: 2
+  inputs:
+    command: test
+    projects: '$(primitivestests)'
+    publishTestResults: true
+    configuration: $(buildConfiguration)
+    nobuild: true
+    arguments: '--framework $(targetFramework) --filter DisplayName~MessageInspectorTests'
 
-# - task: DotNetCoreCLI@2
-#   displayName: Test Primitives $(targetFramework)
-#   timeoutInMinutes: 2
-#   inputs:
-#     command: test
-#     projects: '$(primitivestests)'
-#     publishTestResults: true
-#     configuration: $(buildConfiguration)
-#     nobuild: true
-#     arguments: '--framework $(targetFramework) --filter DisplayName~MessageInspectorTests'
+- task: DotNetCoreCLI@2
+  displayName: Test Primitives $(targetFramework)
+  timeoutInMinutes: 2
+  inputs:
+    command: test
+    projects: '$(primitivestests)'
+    publishTestResults: true
+    configuration: $(buildConfiguration)
+    nobuild: true
+    arguments: '--framework $(targetFramework) --filter DisplayName~ServiceInstanceContextModeTests'
 
 # - task: DotNetCoreCLI@2
 #   displayName: Pack
