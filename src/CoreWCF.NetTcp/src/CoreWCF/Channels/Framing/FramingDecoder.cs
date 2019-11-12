@@ -526,12 +526,17 @@ namespace CoreWCF.Channels.Framing
             currentState = State.ReadingVersionRecord;
         }
 
-        internal async Task ReadModeAsync(PipeReader inputPipe)
+        internal async Task<bool> ReadModeAsync(PipeReader inputPipe)
         {
             ReadOnlySequence<byte> buffer;
             while (true)
             {
                 var readResult = await inputPipe.ReadAsync();
+                if (readResult.IsCompleted)
+                {
+                    return false;
+                }
+                
                 buffer = readResult.Buffer;
                 
                 while(buffer.Length > 0)
@@ -565,7 +570,7 @@ namespace CoreWCF.Channels.Framing
                     if (CurrentState == State.Done)
                     {
                         inputPipe.AdvanceTo(buffer.Start);
-                        return;
+                        return true;
                     }
                 }
 

@@ -2,23 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Helpers;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace BasicHttp
 {
-    public static class SimpleTest
+    public class SimpleTest
     {
+        private ITestOutputHelper _output;
+
+        public SimpleTest(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
-        public static void BasicHttpRequestReplyEchoString()
+        public void BasicHttpRequestReplyEchoString()
         {
             string testString = new string('a', 3000);
-            var host = CreateWebHostBuilder(new string[0]).Build();
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = new System.ServiceModel.BasicHttpBinding();
+                var httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
                 var channel = factory.CreateChannel();
@@ -26,11 +36,5 @@ namespace BasicHttp
                 Assert.Equal(testString, result);
             }
         }
-
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseKestrel()
-                .UseUrls("http://localhost:8080")
-                .UseStartup<Startup>();
     }
 }
