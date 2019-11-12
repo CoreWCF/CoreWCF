@@ -15,6 +15,7 @@
   <!-- Set up some common paths -->
   <PropertyGroup>
     <CommonPath>$(SourceDir)Common/src</CommonPath>
+    <CommonTestPath>$(SourceDir)Common/tests</CommonTestPath>
     <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
     <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
     <IsTestProject>$(AssemblyName.EndsWith(`Tests`))</IsTestProject>
@@ -30,6 +31,11 @@
   <!-- Disable the default embedded resource behavior as we have a naming convention which is different than what the SDK uses -->
   <PropertyGroup>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+  </PropertyGroup>
+  
+  <!-- Common NuGet package properties -->
+  <PropertyGroup>
+    <PackageVersion Condition="'$(PackageVersion)'==''">0.0.1-alpha</PackageVersion>
   </PropertyGroup>
   
   <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
