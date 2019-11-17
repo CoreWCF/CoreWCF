@@ -30,6 +30,11 @@ namespace CoreWCF
         [DefaultValue(null)]
         public string Namespace { get; set; }
 
+        internal IInstanceProvider InstanceProvider
+        {
+            set { _instanceProvider = value; }
+        }
+
         [DefaultValue(AddressFilterMode.Exact)]
         public AddressFilterMode AddressFilterMode
         {

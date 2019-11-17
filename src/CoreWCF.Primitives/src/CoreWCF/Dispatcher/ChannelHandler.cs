@@ -18,7 +18,8 @@ namespace CoreWCF.Dispatcher
     {
         public static readonly TimeSpan CloseAfterFaultTimeout = TimeSpan.FromSeconds(10);
         public const string MessageBufferPropertyName = "_RequestMessageBuffer_";
-        ServiceChannel _channel;
+        private ServiceChannel _channel;
+        private bool _doneReceiving;
         private ServiceDispatcher _serviceDispatcher;
         private MessageVersion _messageVersion;
         private bool _isManualAddressing;
@@ -26,6 +27,7 @@ namespace CoreWCF.Dispatcher
         private ServiceThrottle _throttle;
         private bool _wasChannelThrottled;
         private DuplexChannelBinder _duplexBinder;
+        private readonly ServiceHostBase _host;
         private bool _hasSession;
         private bool _isConcurrent;
         private SessionIdleManager _idleManager;
@@ -36,6 +38,7 @@ namespace CoreWCF.Dispatcher
         private bool _shouldRejectMessageWithOnOpenActionHeader;
         private RequestContext _replied;
         private bool _isCallback;
+        private bool _incrementedActivityCountInConstructor;
 
         internal ChannelHandler(MessageVersion messageVersion, IChannelBinder binder, ServiceThrottle throttle,
              ServiceDispatcher serviceDispatcher, bool wasChannelThrottled, SessionIdleManager idleManager)
@@ -47,6 +50,7 @@ namespace CoreWCF.Dispatcher
             _binder = binder;
             _throttle = throttle;
             _wasChannelThrottled = wasChannelThrottled;
+            _host = channelDispatcher.Host;
             _duplexBinder = binder as DuplexChannelBinder;
             _hasSession = binder.HasSession;
             _isConcurrent = ConcurrencyBehavior.IsConcurrent(channelDispatcher, _hasSession);
@@ -79,8 +83,8 @@ namespace CoreWCF.Dispatcher
             // TODO: Wire up lifetime management in place of listener state
             //if (this.listener.State == CommunicationState.Opened)
             //{
-            //    this.listener.ChannelDispatcher.Channels.IncrementActivityCount();
-            //    this.incrementedActivityCountInConstructor = true;
+            _serviceDispatcher.ChannelDispatcher.Channels.IncrementActivityCount();
+            _incrementedActivityCountInConstructor = true;
             //}
         }
 
@@ -103,18 +107,39 @@ namespace CoreWCF.Dispatcher
             get { return this; }
         }
 
+        public async Task CloseBinderAsync()
+        {
+            try
+            {
+                await _binder.Channel.CloseAsync();
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+
+                HandleError(e);
+            }
+        }
+
         // Similar to HandleRequest on Desktop
         public async Task DispatchAsync(RequestContext request, CancellationToken token)
         {
+            // TODO: Implement all the exception handling cases from ErrorHandlingReceiver.TryReceive down stack in the transport.
+            // The transport implementation will need to send a null request to signal closing of the session/channel.
             _requestInfo.Cleanup();
             if (OperationContext.Current == null)
             {
-                OperationContext.Current = new OperationContext((ServiceHostBase)null);
+                OperationContext.Current = new OperationContext(_host);
             }
             else
             {
                 OperationContext.Current.Recycle(); 
             }
+
+            await HandleReceiveCompleteAsync(request);
 
             if (HandleRequestAsReply(request))
             {
@@ -159,6 +184,53 @@ namespace CoreWCF.Dispatcher
             _requestInfo.ChannelHandlerOwnsInstanceContextThrottle = (_requestInfo.ExistingInstanceContext == null);
 
             await DispatchAsyncCore(request, true, OperationContext.Current);
+        }
+
+        private async Task HandleReceiveCompleteAsync(RequestContext request)
+        {
+            // TODO: Add support for needToCreateSessionOpenNotificationMessage, probably in constructor
+            try
+            {
+                if (_channel != null)
+                {
+                    _channel.HandleReceiveComplete(request);
+                }
+                else
+                {
+                    if (request == null && _hasSession)
+                    {
+                        bool close;
+                        lock (ThisLock)
+                        {
+                            close = !_doneReceiving;
+                            _doneReceiving = true;
+                        }
+
+                        if (close)
+                        {
+                            await CloseBinderAsync();
+
+                            if (_idleManager != null)
+                            {
+                                _idleManager.CancelTimer();
+                            }
+
+                            ServiceThrottle throttle = _throttle;
+                            if (throttle != null)
+                            {
+                                throttle.DeactivateChannel();
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                if ((request == null) && _incrementedActivityCountInConstructor)
+                {
+                    _serviceDispatcher.ChannelDispatcher.Channels.DecrementActivityCount();
+                }
+            }
         }
 
         private bool HandleRequestAsReply(RequestContext request)
@@ -221,7 +293,7 @@ namespace CoreWCF.Dispatcher
                     currentOperationContext.EndpointDispatcher = endpoint;
                 }
 
-                MessageRpc rpc = new MessageRpc(request, message, operation, channel, /*host*/ null,
+                MessageRpc rpc = new MessageRpc(request, message, operation, channel, _host,
                     this, cleanThread, currentOperationContext, _requestInfo.ExistingInstanceContext);
 
                 // passing responsibility for call throttle to MessageRpc

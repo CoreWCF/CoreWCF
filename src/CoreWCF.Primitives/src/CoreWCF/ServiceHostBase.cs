@@ -202,6 +202,14 @@ namespace CoreWCF
             }
         }
 
+        internal virtual object DisposableInstance
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         protected void AddBaseAddress(Uri baseAddress)
         {
             if (initializeDescriptionHasFinished)
@@ -250,6 +258,21 @@ namespace CoreWCF
         public virtual ReadOnlyCollection<ServiceEndpoint> AddDefaultEndpoints()
         {
             throw new PlatformNotSupportedException();
+        }
+
+        internal virtual void BindInstance(InstanceContext instance)
+        {
+            this.instances.Add(instance);
+            //if (null != this.servicePerformanceCounters)
+            //{
+            //    lock (this.ThisLock)
+            //    {
+            //        if (null != this.servicePerformanceCounters)
+            //        {
+            //            this.servicePerformanceCounters.ServiceInstanceCreated();
+            //        }
+            //    }
+            //}
         }
 
         void IDisposable.Dispose()
@@ -302,11 +325,8 @@ namespace CoreWCF
             {
                 this.baseAddresses.Add(baseAddress);
             }
-            IDictionary<string, ContractDescription> implementedContracts = null;
-            ServiceDescription description = CreateDescription(out implementedContracts);
-            this.description = description;
-            this.implementedContracts = implementedContracts;
 
+            description = CreateDescription(out implementedContracts);
             ApplyConfiguration();
             initializeDescriptionHasFinished = true;
         }
@@ -322,12 +342,20 @@ namespace CoreWCF
             throw new PlatformNotSupportedException();
         }
 
+        internal void OnAddChannelDispatcher(ChannelDispatcherBase channelDispatcher)
+        {
+            lock (ThisLock)
+            {
+                ThrowIfClosedOrOpened();
+                channelDispatcher.AttachInternal(this);
+                channelDispatcher.Faulted += new EventHandler(OnChannelDispatcherFaulted);
+            }
+        }
+
         protected override Task OnCloseAsync(CancellationToken cancellationToken)
         {
             throw new PlatformNotSupportedException();
         }
-
-
 
         protected override Task OnOpenAsync(CancellationToken cancellationToken)
         {
@@ -343,10 +371,39 @@ namespace CoreWCF
         {
             throw new PlatformNotSupportedException();
         }
-        
+
+        internal void OnRemoveChannelDispatcher(ChannelDispatcherBase channelDispatcher)
+        {
+            lock (ThisLock)
+            {
+                ThrowIfClosedOrOpened();
+                channelDispatcher.DetachInternal(this);
+            }
+        }
+
+        void OnChannelDispatcherFaulted(object sender, EventArgs e)
+        {
+            Fault();
+        }
+
         protected void ReleasePerformanceCounters()
         {
             throw new PlatformNotSupportedException();
+        }
+
+        internal virtual void UnbindInstance(InstanceContext instance)
+        {
+            this.instances.Remove(instance);
+            //if (null != this.servicePerformanceCounters)
+            //{
+            //    lock (this.ThisLock)
+            //    {
+            //        if (null != this.servicePerformanceCounters)
+            //        {
+            //            this.servicePerformanceCounters.ServiceInstanceRemoved();
+            //        }
+            //    }
+            //}
         }
 
         class ImplementedContractsContractResolver : IContractResolver

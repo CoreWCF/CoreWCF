@@ -1,11 +1,12 @@
-﻿using CoreWCF.Channels;
+﻿using CoreWCF;
+using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using CoreWCF.Primitives.Tests.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace CoreWCF.Primitives.Tests.Extensibility
+namespace Extensibility
 {
     public class MessageInspectorTests
     {
@@ -16,7 +17,7 @@ namespace CoreWCF.Primitives.Tests.Extensibility
             var inspector = new TestDispatchMessageInspector();
             var behavior = new TestServiceBehavior { DispatchMessageInspector = inspector };
             services.AddSingleton<IServiceBehavior>(behavior);
-            ExtensibilityTestHelper.BuildDispatcherAndCallService(services);
+            TestHelper.BuildDispatcherAndCallDefaultService(services);
             Assert.True(inspector.AfterReceiveCalled);
             Assert.True(inspector.BeforeSendCalled);
             Assert.True(inspector.CorrelationStateMatch);
@@ -31,7 +32,7 @@ namespace CoreWCF.Primitives.Tests.Extensibility
             var behavior = new TestServiceBehavior { DispatchMessageInspector = inspector };
             services.AddSingleton<IServiceBehavior>(behavior);
             var service = new DispatcherTestService();
-            ExtensibilityTestHelper.BuildDispatcherAndCallService(services, service);
+            TestHelper.BuildDispatcherAndCallService(services, service);
             Assert.Equal(replacementEchoString, service.ReceivedEcho);
         }
     }

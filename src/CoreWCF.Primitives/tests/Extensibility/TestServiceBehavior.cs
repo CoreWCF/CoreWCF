@@ -1,9 +1,10 @@
-﻿using CoreWCF.Channels;
+﻿using CoreWCF;
+using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using System.Collections.ObjectModel;
 
-namespace CoreWCF.Primitives.Tests.Extensibility
+namespace Extensibility
 {
     public class TestServiceBehavior : IServiceBehavior
     {

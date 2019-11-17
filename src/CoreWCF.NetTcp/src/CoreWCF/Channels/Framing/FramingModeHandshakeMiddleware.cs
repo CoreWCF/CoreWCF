@@ -36,7 +36,10 @@ namespace CoreWCF.Channels.Framing
                     var modeDecoder = new ServerModeDecoder();
                     try
                     {
-                        await modeDecoder.ReadModeAsync(inputPipe);
+                        if (!await modeDecoder.ReadModeAsync(inputPipe))
+                        {
+                            break; // Input pipe closed
+                        }
                     }
                     catch (CommunicationException e)
                     {

@@ -15,9 +15,11 @@ namespace CoreWCF.Description
 {
     internal class DispatcherBuilder
     {
-        private static void ValidateDescription(ServiceDescription description, ServiceHostBase serviceHost)
+        private static void ValidateDescription(ServiceHostBase serviceHost)
         {
+            var description = serviceHost.Description;
             description.EnsureInvariants();
+            // TODO: Reenable SecurityValidationBehavior validation
             //(SecurityValidationBehavior.Instance as IServiceBehavior).Validate(description, serviceHost);
             (new UniqueContractNameValidationBehavior() as IServiceBehavior).Validate(description, serviceHost);
             for (int i = 0; i < description.Behaviors.Count; i++)
@@ -137,13 +139,15 @@ namespace CoreWCF.Description
             return new ListenUriInfo(listenUri, endpoint.ListenUriMode);
         }
 
-        internal static void InitializeServiceHost(ServiceDescription description, ServiceHostBase serviceHost)
+        internal static void InitializeServiceHost(ServiceHostBase serviceHost)
         {
+            var description = serviceHost.Description;
             if (serviceHost.ImplementedContracts != null && serviceHost.ImplementedContracts.Count > 0)
             {
                 EnsureThereAreApplicationEndpoints(description);
             }
-            ValidateDescription(description, serviceHost);
+
+            ValidateDescription(serviceHost);
 
             Dictionary<ListenUriInfo, StuffPerListenUriInfo> stuffPerListenUriInfo
                 = new Dictionary<ListenUriInfo, StuffPerListenUriInfo>();
@@ -529,22 +533,7 @@ namespace CoreWCF.Description
             var serviceBuilder = services.GetRequiredService<IServiceBuilder>();
             var serverUriAddresses = serviceBuilder.BaseAddresses.ToArray();
             ServiceHostObjectModel < TService > serviceHost;
-            TService singletonInstance = services.GetService<TService>();
-            if (singletonInstance == null)
-            {
-                serviceHost = new ServiceHostObjectModel<TService>(serverUriAddresses);
-            }
-            else
-            {
-                serviceHost = new ServiceHostObjectModel<TService>(singletonInstance, serverUriAddresses);
-            }
-
-            // Any user supplied IServiceBehaviors can be applied now
-            var serviceBehaviors = services.GetServices<IServiceBehavior>();
-            foreach (var behavior in serviceBehaviors)
-            {
-                serviceHost.Description.Behaviors.Add(behavior);
-            }
+            serviceHost = new ServiceHostObjectModel<TService>(services, serverUriAddresses);
 
             // TODO: Create internal behavior which configures any extensibilities which exist in serviceProvider, eg IMessageInspector
             foreach (var endpointConfig in serviceConfig.Endpoints)
@@ -564,7 +553,7 @@ namespace CoreWCF.Description
                 serviceHost.Description.Endpoints.Add(serviceEndpoint);
             }
 
-            InitializeServiceHost(serviceHost.Description, serviceHost);
+            InitializeServiceHost(serviceHost);
 
             // TODO: Add error checking to make sure property chain is correctly populated with objects
             var dispatchers = new List<IServiceDispatcher>(serviceHost.ChannelDispatchers.Count);
