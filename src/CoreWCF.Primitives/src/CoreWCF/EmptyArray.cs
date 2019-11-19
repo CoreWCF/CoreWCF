@@ -16,7 +16,8 @@ namespace CoreWCF
 
             return new T[n];
         }
-        internal static T[] ToArray(IList<T> collection)
+
+        internal static T[] ToArray(ICollection<T> collection)
         {
             if (collection.Count == 0)
             {
