@@ -188,7 +188,7 @@ namespace CoreWCF.Dispatcher
             get { return name; }
         }
 
-        internal SynchronizedCollection<IParameterInspector> ParameterInspectors { get; }
+        public ICollection<IParameterInspector> ParameterInspectors { get; }
 
         public DispatchRuntime Parent { get; }
 
