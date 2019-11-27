@@ -60,7 +60,7 @@ namespace CoreWCF.Dispatcher
 
         public IAsyncResult InvokeBegin(object instance, object[] inputs, AsyncCallback callback, object state)
         {
-            return ToApm(InvokeAsync(instance, inputs), callback, state);
+            return InvokeAsync(instance, inputs).ToApm(callback, state);
         }
 
         public object InvokeEnd(object instance, out object[] outputs, IAsyncResult result)
@@ -259,64 +259,6 @@ namespace CoreWCF.Dispatcher
                     //AsyncMethodInvoker.StopOperationInvokePerformanceCounters(callFailed, callFaulted, TaskMethod.Name);
                 }
             }
-        }
-
-        // Helper method when implementing an APM wrapper around a Task based async method which returns a result. 
-        // In the BeginMethod method, you would call use ToApm to wrap a call to MethodAsync:
-        //     return MethodAsync(params).ToApm(callback, state);
-        // In the EndMethod, you would use ToApmEnd<TResult> to ensure the correct exception handling
-        // This will handle throwing exceptions in the correct place and ensure the IAsyncResult contains the provided
-        // state object
-        private static Task<TResult> ToApm<TResult>(Task<TResult> task, AsyncCallback callback, object state)
-        {
-            // When using APM, the returned IAsyncResult must have the passed in state object stored in AsyncState. This
-            // is so the callback can regain state. If the incoming task already holds the state object, there's no need
-            // to create a TaskCompletionSource to ensure the returned (IAsyncResult)Task has the right state object.
-            // This is a performance optimization for this special case.
-            if (task.AsyncState == state)
-            {
-                if (callback != null)
-                {
-                    task.ContinueWith((antecedent, obj) =>
-                    {
-                        AsyncCallback callbackObj = (AsyncCallback)obj;
-                        callbackObj(antecedent);
-                    }, callback, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
-                }
-
-                return task;
-            }
-
-            // Need to create a TaskCompletionSource so that the returned Task object has the correct AsyncState value.
-            var tcs = new TaskCompletionSource<TResult>(state);
-            var continuationState = Tuple.Create(tcs, callback);
-
-            task.ContinueWith((antecedent, obj) =>
-            {
-                Tuple<TaskCompletionSource<TResult>, AsyncCallback> tuple = (Tuple<TaskCompletionSource<TResult>, AsyncCallback>)obj;
-                TaskCompletionSource<TResult> tcsObj = tuple.Item1;
-                AsyncCallback callbackObj = tuple.Item2;
-
-                if (antecedent.IsFaulted)
-                {
-                    tcsObj.TrySetException(antecedent.Exception.InnerException);
-                }
-                else if (antecedent.IsCanceled)
-                {
-                    tcsObj.TrySetCanceled();
-                }
-                else
-                {
-                    tcsObj.TrySetResult(antecedent.Result);
-                }
-
-                if (callbackObj != null)
-                {
-                    callbackObj(tcsObj.Task);
-                }
-            }, continuationState, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
-
-            return tcs.Task;
         }
 
         private void EnsureIsInitialized()
