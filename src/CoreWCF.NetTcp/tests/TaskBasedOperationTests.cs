@@ -148,13 +148,12 @@ namespace AsyncServices
             app.UseServiceModel(builder =>
             {
                 builder.AddService<Services.TaskService>();
-                builder.AddServiceEndpoint<Services.TaskService, Contract.ITaskService>(new CoreWCF.NetTcpBinding(), BufferedRelatveAddress);
-                builder.AddServiceEndpoint<Services.TaskService, Contract.ITaskService>(new CoreWCF.NetTcpBinding(), StreamedRelatveAddress);
+                builder.AddServiceEndpoint<Services.TaskService, Contract.ITaskService>(new CoreWCF.NetTcpBinding(CoreWCF.SecurityMode.None), BufferedRelatveAddress);
                 builder.AddServiceEndpoint<Services.TaskService, Contract.ITaskService>(
-                    new CoreWCF.NetTcpBinding
+                    new CoreWCF.NetTcpBinding(CoreWCF.SecurityMode.None)
                     {
                         TransferMode = CoreWCF.TransferMode.Streamed
-                    }, "/nettcp.svc");
+                    }, StreamedRelatveAddress);
             });
         }
     }
