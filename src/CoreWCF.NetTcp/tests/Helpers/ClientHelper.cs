@@ -9,16 +9,16 @@ namespace Helpers
     {
         private static TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
-        public static NetTcpBinding GetBufferedModeBinding()
+        public static NetTcpBinding GetBufferedModeBinding(SecurityMode securityMode = SecurityMode.None)
         {
-            var binding = new NetTcpBinding();
+            var binding = new NetTcpBinding(securityMode);
             ApplyDebugTimeouts(binding);
             return binding;
         }
 
-        public static NetTcpBinding GetStreamedModeBinding()
+        public static NetTcpBinding GetStreamedModeBinding(SecurityMode securityMode = SecurityMode.None)
         {
-            var binding = new NetTcpBinding
+            var binding = new NetTcpBinding(securityMode)
             {
                 TransferMode = TransferMode.Streamed
             };

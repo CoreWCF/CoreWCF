@@ -15,12 +15,44 @@ namespace ConnectionHandler
 {
     public class ConnectionHandlerBufferedModeTests
     {
-        private const string NetTcpServiceUri = "net.tcp://localhost:8808/nettcp.svc";
+        private const string NetTcpServiceBaseUri = "net.tcp://localhost:8808";
+        private const string WindowsAuthNetTcpServiceUri = NetTcpServiceBaseUri + Startup.WindowsAuthRelativePath;
+        private const string NoAuthNetTcpServiceUri = NetTcpServiceBaseUri + Startup.NoSecurityRelativePath;
         private ITestOutputHelper _output;
 
         public ConnectionHandlerBufferedModeTests(ITestOutputHelper output)
         {
             _output = output;
+        }
+
+        [Fact]
+        [Trait("Category", "WindowsOnly")]
+        public void SimpleNetTcpClientConnectionWindowsAuth()
+        {
+            string testString = new string('a', 3000);
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
+                ClientContract.ITestService channel = null;
+                host.Start();
+                try
+                {
+                    var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri(WindowsAuthNetTcpServiceUri)));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    var result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
         }
 
         [Fact]
@@ -37,7 +69,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var result = channel.EchoString(testString);
@@ -66,7 +98,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var result = channel.EchoString(testString);
@@ -99,7 +131,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var resultTask = channel.WaitForSecondRequestAsync();
@@ -130,7 +162,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var clientIpEndpoint = channel.GetClientIpEndpoint();
@@ -165,7 +197,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var message = new ClientContract.TestMessage()
@@ -188,6 +220,9 @@ namespace ConnectionHandler
 
         public class Startup
         {
+            public const string WindowsAuthRelativePath = "/nettcp.svc/windows-auth";
+            public const string NoSecurityRelativePath = "/nettcp.svc/security-none";
+
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
@@ -198,7 +233,8 @@ namespace ConnectionHandler
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
-                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(), "/nettcp.svc");
+                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(), WindowsAuthRelativePath);
+                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(CoreWCF.SecurityMode.None), NoSecurityRelativePath);
                 });
             }
         }

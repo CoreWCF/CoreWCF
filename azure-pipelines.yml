@@ -8,19 +8,23 @@ strategy:
     Windows_netcore2.1:
       imageName: 'windows-latest'
       targetFramework: 'netcoreapp2.1'
+      testArgs: ''
     Windows_netcore3.0:
       imageName: 'windows-latest'
       targetFramework: 'netcoreapp3.0'
+      testArgs: ''
     Windows_netfx:
       imageName: 'windows-latest'
       targetFramework: 'net472'
-    # There are known problems on Linux which need to be fixed before enabling running on Linux
-    # Linux_netcore2.1:
-    #   imageName: 'ubuntu-latest'
-    #   targetFramework: 'netcoreapp2.1'
-    # Linux_netcore3.0:
-    #   imageName: 'ubuntu-latest'
-    #   targetFramework: 'netcoreapp3.0'
+      testArgs: ''
+    Linux_netcore2.1:
+      imageName: 'ubuntu-latest'
+      targetFramework: 'netcoreapp2.1'
+      testArgs: '--filter Category!=WindowsOnly'
+    Linux_netcore3.0:
+      imageName: 'ubuntu-latest'
+      targetFramework: 'netcoreapp3.0'
+      testArgs: '--filter Category!=WindowsOnly'
 
 pool:
   vmImage: $(imageName)
@@ -62,7 +66,7 @@ steps:
     publishTestResults: true
     configuration: $(buildConfiguration)
     nobuild: true
-    arguments: '--framework $(targetFramework)'
+    arguments: '--framework $(targetFramework) $(testArgs)'
 
 # - task: DotNetCoreCLI@2
 #   displayName: Pack
