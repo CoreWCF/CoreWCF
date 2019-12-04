@@ -1,12 +1,9 @@
-﻿using System;
+﻿using CoreWCF;
 
-namespace CoreWCF.Primitives.Tests
+[XmlSerializerFormat]
+[ServiceContract]
+interface ISimpleXmlSerializerService
 {
-    [XmlSerializerFormat]
-    [ServiceContract]
-    interface ISimpleXmlSerializerService
-    {
-        [OperationContract]
-        string Echo(string echo);
-    }
+    [OperationContract]
+    string Echo(string echo);
 }
