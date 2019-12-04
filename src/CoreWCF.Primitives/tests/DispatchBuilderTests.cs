@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
-using CoreWCF.Primitives.Tests;
 using System.Threading;
 using Xunit;
 

@@ -265,7 +265,6 @@ namespace CoreWCF
             IChannel proxy = (IChannel)channel.Proxy;
             _channels.AddIncomingChannel(proxy);
 
-            // CSDMain 265783: Memory Leak on Chat Stress test scenario
             // There's a race condition while on one thread we received a new request from underlying sessionful channel
             // and on another thread we just aborted the channel. So the channel will be added to the IncomingChannels list of 
             // ServiceChannelManager and never get a chance to be removed.
