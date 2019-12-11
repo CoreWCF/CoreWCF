@@ -1,81 +1,206 @@
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
 trigger:
 - master
 
-strategy:
-  matrix:
-    Windows_netcore2.1:
-      imageName: 'windows-latest'
-      targetFramework: 'netcoreapp2.1'
-      testArgs: ''
-    Windows_netcore3.0:
-      imageName: 'windows-latest'
-      targetFramework: 'netcoreapp3.0'
-      testArgs: ''
-    Windows_netfx:
-      imageName: 'windows-latest'
-      targetFramework: 'net472'
-      testArgs: ''
-    Linux_netcore2.1:
-      imageName: 'ubuntu-latest'
-      targetFramework: 'netcoreapp2.1'
-      testArgs: '--filter Category!=WindowsOnly'
-    Linux_netcore3.0:
-      imageName: 'ubuntu-latest'
-      targetFramework: 'netcoreapp3.0'
-      testArgs: '--filter Category!=WindowsOnly'
-
-pool:
-  vmImage: $(imageName)
-
 variables:
-#TODO: Add this to the matrix to run Release and Debug
-  buildConfiguration: 'Debug'
-  solution: 'src/CoreWCF.sln'
-  nettcptests: 'src/CoreWCF.NetTcp/tests/CoreWCF.NetTcp.Tests.csproj'
-  httptests: 'src/CoreWCF.Http/tests/CoreWCF.Http.Tests.csproj'
-  primitivestests: 'src/CoreWCF.Primitives/tests/CoreWCF.Primitives.Tests.csproj'
+  _solution: 'src/CoreWCF.sln'
+  _libraryProjects: 'src/CoreWCF.*/src/CoreWCF.*.csproj'
+  _testProjects: '**/*.Tests.csproj'
 
-steps:
-# Enable GitVersion after CI builds are working
-# - task: GitVersion@4
-#   displayName: GitVersion
-#   inputs:
-#     preferBundledVersion: true
-
-- task: DotNetCoreCLI@2
-  displayName: Restore
-  inputs:
-    command: restore
-    projects: '$(solution)'
-
-- task: DotNetCoreCLI@2
+stages:
+- stage: Build
   displayName: Build
-  inputs:
-    command: build
-    projects: '$(solution)'
-    arguments: '--configuration $(buildConfiguration) --no-restore'
+  jobs:
+  - job: Build
+    strategy:
+      matrix:
+        Release:
+          _buildConfig: 'Release'
+        Debug:
+          _buildConfig: 'Debug'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+      # GitVersion task broken as of 2019-12-10. See https://github.com/GitTools/GitVersion/issues/1855
+      - task: DotNetCoreCLI@2
+        displayName: 'Install gitversion'
+        inputs:
+          command: 'custom'
+          custom: 'tool'
+          arguments: 'install -g gitversion.tool'
 
-- task: DotNetCoreCLI@2
-  displayName: Test $(targetFramework)
-  timeoutInMinutes: 2
-  inputs:
-    command: test
-    projects: '$(solution)'
-    publishTestResults: true
-    configuration: $(buildConfiguration)
-    nobuild: true
-    arguments: '--framework $(targetFramework) $(testArgs)'
+      - task: DotNetCoreCLI@2
+        displayName: 'Gitversion setup'
+        inputs:
+          command: 'custom'
+          custom: 'gitversion'
+          arguments: '/output buildserver'
+    
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: 'build'
+          projects: $(_libraryProjects)
+          arguments: '--configuration $(_buildConfig) /t:restore'
 
-# - task: DotNetCoreCLI@2
-#   displayName: Pack
-#   inputs:
-#     command: 'pack'
-#     packagesToPack: '$(solution)'
-#     nobuild: true
-#     versioningScheme: 'byBuildNumber'
+      - task: DotNetCoreCLI@2
+        displayName: Build $(_buildConfig)
+        inputs:
+          command: 'build'
+          projects: $(_libraryProjects)
+          arguments: '--no-restore --configuration $(_buildConfig)'
+      - publish: $(System.DefaultWorkingDirectory)/bin
+        artifact: $(_buildConfig)Build
+        
+- stage: Test
+  displayName: Run Tests
+  dependsOn: Build
+  jobs:
+  - job: TestRelease
+    strategy:
+      matrix:
+        Windows_netcore2.1:
+          imageName: 'windows-latest'
+          targetFramework: 'netcoreapp2.1'
+          testArgs: ''
+        Windows_netcore3.0:
+          imageName: 'windows-latest'
+          targetFramework: 'netcoreapp3.0'
+          testArgs: ''
+        Windows_netfx:
+          imageName: 'windows-latest'
+          targetFramework: 'net472'
+          testArgs: ''
+        Linux_netcore2.1:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'netcoreapp2.1'
+          testArgs: '--filter Category!=WindowsOnly'
+        Linux_netcore3.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'netcoreapp3.0'
+          testArgs: '--filter Category!=WindowsOnly'
+    displayName: Test Release
+    pool:
+      vmImage: $(imageName)
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download build artifacts
+      inputs:
+        source: current
+        artifact: ReleaseBuild
+        path: $(System.DefaultWorkingDirectory)/bin
+    - task: DotNetCoreCLI@2
+      displayName: Restore packages
+      inputs:
+        command: 'build'
+        projects: $(_testProjects)
+        arguments: '--configuration Release /t:restore'
+    - task: DotNetCoreCLI@2
+      displayName: Build test projects
+      inputs:
+        command: 'build'
+        projects: $(_testProjects)
+        arguments: '--configuration Release --framework $(targetFramework)'
+    - task: DotNetCoreCLI@2
+      displayName: Run Tests
+      timeoutInMinutes: 2
+      inputs:
+        command: 'test'
+        projects: $(_testProjects)
+        publishTestResults: true
+        arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+  - job: TestDebug
+    strategy:
+      matrix:
+        Windows_netcore2.1:
+          imageName: 'windows-latest'
+          targetFramework: 'netcoreapp2.1'
+          testArgs: ''
+        Windows_netcore3.0:
+          imageName: 'windows-latest'
+          targetFramework: 'netcoreapp3.0'
+          testArgs: ''
+        Windows_netfx:
+          imageName: 'windows-latest'
+          targetFramework: 'net472'
+          testArgs: ''
+        Linux_netcore2.1:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'netcoreapp2.1'
+          testArgs: '--filter Category!=WindowsOnly'
+        Linux_netcore3.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'netcoreapp3.0'
+          testArgs: '--filter Category!=WindowsOnly'
+    displayName: Test Debug
+    pool:
+      vmImage: $(imageName)
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download build artifacts
+      inputs:
+        source: current
+        artifact: DebugBuild
+        path: $(System.DefaultWorkingDirectory)/bin
+    - task: DotNetCoreCLI@2
+      displayName: Restore packages
+      inputs:
+        command: 'build'
+        projects: $(_testProjects)
+        arguments: '--configuration Debug /t:restore'
+    - task: DotNetCoreCLI@2
+      displayName: Build test projects
+      inputs:
+        command: 'build'
+        projects: $(_testProjects)
+        arguments: '--configuration Debug --framework $(targetFramework)'
+    - task: DotNetCoreCLI@2
+      displayName: Run Tests
+      timeoutInMinutes: 2
+      inputs:
+        command: 'test'
+        projects: $(_testProjects)
+        publishTestResults: true
+        arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
+- stage: Pack
+  dependsOn: Test
+  displayName: Create Packages
+  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI', 'Manual'))
+  jobs:
+  - job: Pack
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download build artifacts
+      inputs:
+        source: current
+        artifact: ReleaseBuild
+        path: $(System.DefaultWorkingDirectory)/bin
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: 'build'
+        projects: $(_libraryProjects)
+        arguments: '--configuration Release /t:restore'
+    - task: DotNetCoreCLI@2
+      displayName: Create packages
+      inputs:
+        command: 'pack'
+        configurationToPack: Release
+        searchPatternPack: $(_libraryProjects)
+        outputDir: '$(Build.ArtifactStagingDirectory)/Packages'
+        nobuild: true
+        includesymbols: true
+        arguments: '--no-restore'
+    - task: NuGetAuthenticate@0
+      displayName: NuGet Authenticate
+    - task: NuGetCommand@2
+      displayName: 'NuGet push'
+      inputs:
+        command: push
+        feedPublish: 'CoreWCF/CoreWCF'
+        verbosityPush: Detailed
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/Packages/*.*'
+        allowPackageConflicts: true
+        publishPackageMetadata: true
