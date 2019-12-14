@@ -4,7 +4,21 @@ Core WCF is a port of Windows Communication Framework (WCF) to .NET Core. The go
 
 ### How do I get started?
 
+There are pre-release packages available from a NuGet feed hosted in Azure DevOps. You can download the packages by adding the following package source to your list of feeds.
 
+    https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json
+
+If you are using a nuget.config file with only the default nuget.org package source, after adding the CoreWCF feed it would like like this:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+    <add key="CoreWCF" value="https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json" />
+  </packageSources>
+</configuration>
+```
 ### How do I contribute?
 
 Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for details.
