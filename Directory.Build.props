@@ -50,12 +50,11 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <RepositoryUrl>https://github.com/CoreWCF/CoreWCF</RepositoryUrl>
   </PropertyGroup>
-  
-  <!-- Common version-related properties -->
-  <PropertyGroup>
-    <VersionPrefix Condition="'$(VersionPrefix)'==''">0.0.3</VersionPrefix>
-    <VersionSuffix Condition="'$(VersionSuffix)'==''">alpha</VersionSuffix>
+
+  <PropertyGroup Condition="$(IsTestProject) AND '$(CollectCoverage)' == 'true'">
+    <CoverletOutput Condition="'$(CoverletOutputDir)' != '' AND '$(CoverletOutput)' == ''">$(CoverletOutputDir)/$(MSBuildProjectName).xml</CoverletOutput>
+	<CoverletOutputFormat Condition="'$(CoverletOutputFormat)' == ''">cobertura</CoverletOutputFormat>
   </PropertyGroup>
-  
+
   <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
 </Project>

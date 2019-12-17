@@ -5,6 +5,7 @@ variables:
   _solution: 'src/CoreWCF.sln'
   _libraryProjects: 'src/CoreWCF.*/src/CoreWCF.*.csproj'
   _testProjects: '**/*.Tests.csproj'
+  disable.coverage.autogenerate: 'true'
 
 stages:
 - stage: Build
@@ -21,12 +22,13 @@ stages:
       vmImage: 'windows-latest'
     steps:
       # GitVersion task broken as of 2019-12-10. See https://github.com/GitTools/GitVersion/issues/1855
+      # Installing the GitVersion tool and running it directly as a workaround
       - task: DotNetCoreCLI@2
         displayName: 'Install gitversion'
         inputs:
           command: 'custom'
           custom: 'tool'
-          arguments: 'install -g gitversion.tool'
+          arguments: 'install -g gitversion.tool --version 5.1.2'
 
       - task: DotNetCoreCLI@2
         displayName: 'Gitversion setup'
@@ -108,7 +110,6 @@ stages:
         projects: $(_testProjects)
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
-
   - job: TestDebug
     strategy:
       matrix:
@@ -162,6 +163,58 @@ stages:
         projects: $(_testProjects)
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
+  - job: CodeCoverage
+    displayName: Code Coverage
+    pool:
+      vmImage: 'windows-latest'
+    dependsOn: 
+    - TestDebug
+    - TestRelease
+    steps:
+    - script: set PATH=%PATH%;%USERPROFILE%\.dotnet\tools
+      displayName: Add dotnet tools folder to path
+    - task: DotNetCoreCLI@2
+      displayName: 'Install ReportGenerator'
+      inputs:
+        command: 'custom'
+        custom: 'tool'
+        arguments: 'install -g dotnet-reportgenerator-globaltool --version 4.3.9'
+    - task: DownloadPipelineArtifact@2
+      displayName: Download build artifacts
+      inputs:
+        source: current
+        artifact: ReleaseBuild
+        path: $(System.DefaultWorkingDirectory)/bin
+    - task: DotNetCoreCLI@2
+      displayName: Restore packages
+      inputs:
+        command: 'build'
+        projects: $(_testProjects)
+        arguments: '--configuration Release /t:restore'
+    - task: DotNetCoreCLI@2
+      displayName: Build test projects
+      inputs:
+        command: 'build'
+        projects: $(_testProjects)
+        arguments: '--configuration Release --framework netcoreapp2.1'
+    - task: DotNetCoreCLI@2
+      displayName: Run Tests with Coverage
+      timeoutInMinutes: 2
+      inputs:
+        command: 'test'
+        projects: $(_testProjects)
+        publishTestResults: true
+        arguments: '--no-restore --no-build --configuration Release --framework netcoreapp2.1 /p:CollectCoverage=true /p:CoverletOutputDir=$(Build.ArtifactStagingDirectory)/Coverage'
+    - script: reportgenerator "-reports:$(Build.ArtifactStagingDirectory)/Coverage/*.xml" "-targetdir:$(Build.ArtifactStagingDirectory)/Coverage/Report" -reporttypes:HtmlInline_AzurePipelines;Cobertura;Badges
+      displayName: 'Generate Coverage Report'
+    - task: PublishCodeCoverageResults@1
+      displayName: Publish Code Coverage report
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: $(Build.ArtifactStagingDirectory)/Coverage/Report/Cobertura.xml
+        # To make the task not regenerate the report an environment variable was added to the pipeline in Azure DevOps; "disable.coverage.autogenerate: 'true'"
+        # see: https://github.com/danielpalme/ReportGenerator/wiki/Integration#attention
+        reportDirectory: $(Build.ArtifactStagingDirectory)/Coverage/Report/
 - stage: Pack
   dependsOn: Test
   displayName: Create Packages
