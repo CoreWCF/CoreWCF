@@ -1,6 +1,7 @@
 ﻿using CoreWCF;
 using CoreWCF.Channels;
 using CoreWCF.Description;
+using DispatcherClient;
 using Extensibility;
 using Helpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +19,7 @@ namespace DependencyInjection
         {
             SingleInstanceContextSimpleService.ClearCounts();
             var serviceInstance = new SingleInstanceContextSimpleService();
-            var factory = ExtensibilityHelper.CreateChannelFactory<SingleInstanceContextSimpleService, ISimpleService>(
+            var factory = DispatcherHelper.CreateChannelFactory<SingleInstanceContextSimpleService, ISimpleService>(
                 (services) =>
                 {
                     services.AddSingleton(serviceInstance);
@@ -42,7 +43,7 @@ namespace DependencyInjection
         public static void InstanceContextMode_Single_NoInjection()
         {
             SingleInstanceContextSimpleService.ClearCounts();
-            var factory = ExtensibilityHelper.CreateChannelFactory<SingleInstanceContextSimpleService, ISimpleService>();
+            var factory = DispatcherHelper.CreateChannelFactory<SingleInstanceContextSimpleService, ISimpleService>();
             factory.Open();
             var channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
@@ -62,7 +63,7 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerCall()
         {
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var factory = ExtensibilityHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehavior, ISimpleService>(
+            var factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehavior, ISimpleService>(
                 (services) =>
                 {
                     services.AddTransient<PerCallInstanceContextSimpleServiceAndBehavior>();
@@ -92,7 +93,7 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerCall_NoInjection()
         {
             PerCallInstanceContextSimpleService.ClearCounts();
-            var factory = ExtensibilityHelper.CreateChannelFactory<PerCallInstanceContextSimpleService, ISimpleService>();
+            var factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleService, ISimpleService>();
             factory.Open();
             var channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
@@ -113,7 +114,7 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerCall_WithBehavior_NoInjection()
         {
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var factory = ExtensibilityHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehavior, ISimpleService>();
+            var factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehavior, ISimpleService>();
             factory.Open();
             var channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
@@ -139,7 +140,7 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerSession()
         {
             PerSessionInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var factory = ExtensibilityHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehavior, ISimpleSessionService>(
+            var factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehavior, ISimpleSessionService>(
                 (services) =>
                 {
                     services.AddTransient<PerSessionInstanceContextSimpleServiceAndBehavior>();
@@ -170,7 +171,7 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerSession_NoInjection()
         {
             PerSessionInstanceContextSimpleService.ClearCounts();
-            var factory = ExtensibilityHelper.CreateChannelFactory<PerSessionInstanceContextSimpleService, ISimpleSessionService>();
+            var factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleService, ISimpleSessionService>();
             factory.Open();
             var channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
@@ -193,7 +194,7 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerSession_WithBehavior_NoInjection()
         {
             PerSessionInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var factory = ExtensibilityHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehavior, ISimpleSessionService>();
+            var factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehavior, ISimpleSessionService>();
             factory.Open();
             var channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
