@@ -20,8 +20,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Primitives.Tests", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DAAE6286-93E2-4F2B-81D2-A32A9F024595}"
 	ProjectSection(SolutionItems) = preProject
+		..\azure-pipelines.yml = ..\azure-pipelines.yml
 		..\Directory.Build.props = ..\Directory.Build.props
 		..\Directory.Build.targets = ..\Directory.Build.targets
+		..\GitVersion.yml = ..\GitVersion.yml
 		..\resources.props = ..\resources.props
 		..\resources.targets = ..\resources.targets
 	EndProjectSection
