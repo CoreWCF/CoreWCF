@@ -338,21 +338,21 @@ namespace CoreWCF.Description
 
     static internal class ServiceReflector
     {
-                internal const BindingFlags ServiceModelBindingFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
-                internal const string BeginMethodNamePrefix = "Begin";
-                internal const string EndMethodNamePrefix = "End";
-                internal static readonly Type VoidType = typeof(void);
-                internal const string AsyncMethodNameSuffix = "Async";
-                internal static readonly Type taskType = typeof(Task);
-                internal static readonly Type taskTResultType = typeof(Task<>);
-                internal static readonly Type CancellationTokenType = typeof(CancellationToken);
-                internal static readonly Type IProgressType = typeof(IProgress<>);
-                static readonly Type asyncCallbackType = typeof(AsyncCallback);
-                static readonly Type asyncResultType = typeof(IAsyncResult);
-                static readonly Type objectType = typeof(object);
-                static readonly Type OperationContractAttributeType = typeof(OperationContractAttribute);
-
-
+        internal const BindingFlags ServiceModelBindingFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+        internal const string BeginMethodNamePrefix = "Begin";
+        internal const string EndMethodNamePrefix = "End";
+        internal static readonly Type VoidType = typeof(void);
+        internal const string AsyncMethodNameSuffix = "Async";
+        internal static readonly Type taskType = typeof(Task);
+        internal static readonly Type taskTResultType = typeof(Task<>);
+        internal static readonly Type CancellationTokenType = typeof(CancellationToken);
+        internal static readonly Type IProgressType = typeof(IProgress<>);
+        static readonly Type asyncCallbackType = typeof(AsyncCallback);
+        static readonly Type asyncResultType = typeof(IAsyncResult);
+        static readonly Type objectType = typeof(object);
+        static readonly Type OperationContractAttributeType = typeof(OperationContractAttribute);
+        internal const string SMServiceContractAttributeFullName = "System.ServiceModel.ServiceContractAttribute";
+        internal const string SMOperationContractAttributeFullName = "System.ServiceModel.OperationContractAttribute";
 
         static internal Type GetOperationContractProviderType(MethodInfo method)
         {
@@ -370,12 +370,33 @@ namespace CoreWCF.Description
             return null;
         }
 
+        internal static bool IsServiceContractAttributeDefined(Type type)
+        {
+            // Fast path for CoreWCF.ServiceContractAttribute
+            if (type.IsDefined(typeof(ServiceContractAttribute), false))
+            {
+                return true;
+            }
+
+            // GetCustomAttributesData doesn't traverse the inheritence chain so this is the equivalent of IsDefined(..., false)
+            var cadList = type.GetCustomAttributesData();
+            foreach(var cad in cadList)
+            {
+                if(cad.AttributeType.FullName.Equals(SMServiceContractAttributeFullName))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // returns the set of root interfaces for the service class (meaning doesn't include callback ifaces)
         static internal List<Type> GetInterfaces<TService>() where TService : class
         {
             List<Type> types = new List<Type>();
             bool implicitContract = false;
-            if (typeof(TService).IsDefined(typeof(ServiceContractAttribute), false))
+            if (IsServiceContractAttributeDefined(typeof(TService)))
             {
                 implicitContract = true;
                 types.Add(typeof(TService));
@@ -399,7 +420,7 @@ namespace CoreWCF.Description
             }
             foreach (Type t in typeof(TService).GetInterfaces())
             {
-                if (t.IsDefined(typeof(ServiceContractAttribute), false))
+                if (IsServiceContractAttributeDefined(t))
                 {
                     if (implicitContract)
                     {
@@ -466,8 +487,7 @@ namespace CoreWCF.Description
 
                 // where the exception is CustomAttributeFormatException and the InnerException is a TargetInvocationException, 
                 // drill into the InnerException as this will provide a better error experience (fewer nested InnerExceptions)
-                // CustomerAttributeFormatException only exists from .Net Standard 1.7, so using base type FormatException instead.
-                if (e is FormatException && e.InnerException != null)
+                if (e is CustomAttributeFormatException && e.InnerException != null)
                 {
                     e = e.InnerException;
                     if (e is TargetInvocationException && e.InnerException != null)
@@ -478,7 +498,7 @@ namespace CoreWCF.Description
 
                 TypeInfo typeInfo = attrProvider.TypeInfo;
                 MethodInfo method = attrProvider.MethodInfo;
-                //ParameterInfo param = attrProvider as ParameterInfo;
+                ParameterInfo param = attrProvider.ParameterInfo;
                 // there is no good way to know if this is a return type attribute
                 if (typeInfo != null)
                 {
@@ -487,23 +507,21 @@ namespace CoreWCF.Description
                 }
                 else if (method != null)
                 {
-                    // Changed ReflectedType to DeclaringType as ReflectedType isn't available until .Net standard 1.7
-                    // TODO: Consider changing back if project is changed to target .Net standard 1.7 or later
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.Format(SR.SFxErrorReflectingOnMethod3,
-                                     attrType.Name, method.Name, method.DeclaringType.Name), e));
+                                     attrType.Name, method.Name, method.ReflectedType.Name), e));
 
                 }
-                //else if (param != null)
-                //{
-                //    method = param.Member as MethodInfo;
-                //    if (method != null)
-                //    {
-                //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-                //            SR.Format(SR.SFxErrorReflectingOnParameter4,
-                //                         attrType.Name, param.Name, method.Name, method.ReflectedType.Name), e));
-                //    }
-                //}
+                else if (param != null)
+                {
+                    method = param.Member as MethodInfo;
+                    if (method != null)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
+                            SR.Format(SR.SFxErrorReflectingOnParameter4,
+                                         attrType.Name, param.Name, method.Name, method.ReflectedType.Name), e));
+                    }
+                }
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.Format(SR.SFxErrorReflectionOnUnknown1, attrType.Name), e));
             }

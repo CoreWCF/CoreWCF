@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CoreWCF.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -77,25 +78,112 @@ namespace CoreWCF.Description
             if (attributes == null || attributes.Length == 0)
                 return attributes;
 
-            return attributes.Where(attribute => attributeType.IsAssignableFrom(attribute.GetType())).ToArray();
+            object[] result = attributes.Where(attribute => attributeType.IsAssignableFrom(attribute.GetType())).ToArray();
 
-            // TODO: Revert once issue dotnet/coreclr#8794 is fixed
-            //switch (this.ProviderType)
-            //{
-            //    case AttributeProviderType.Type:
-            //        return this.Type.GetTypeInfo().GetCustomAttributes(attributeType, inherit).ToArray();
-            //    case AttributeProviderType.MethodInfo:
-            //        return this.MethodInfo.GetCustomAttributes(attributeType, inherit).ToArray();
-            //    case AttributeProviderType.MemberInfo:
-            //        return this.MemberInfo.GetCustomAttributes(attributeType, inherit).ToArray();
-            //    case AttributeProviderType.ParameterInfo:
-            //        //GetCustomAttributes could return null instead of empty collection for a known System.Reflection issue, workaround the issue by explicitly checking the null
-            //        IEnumerable<Attribute> customAttributes = null;
-            //        customAttributes = this.ParameterInfo.GetCustomAttributes(attributeType, inherit);
-            //        return customAttributes == null ? null : customAttributes.ToArray();
-            //}
-            //Contract.Assert(false, "This should never execute.");
-            //throw new InvalidOperationException();
+            if (result.Length == 0)
+            {
+                // Only if we don't find the CoreWCF attribute, look for the S.SM attribute
+                if (attributeType == typeof(ServiceContractAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMServiceContractAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelServiceContractAttribute(result[i]);
+                    }
+                }
+                else if (attributeType == typeof(OperationContractAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMOperationContractAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelOperationContractAttribute(result[i]);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static ServiceContractAttribute ConvertFromServiceModelServiceContractAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMServiceContractAttributeFullName), "Expected attribute of type S.SM.ServiceContractAttribute");
+            bool hasProtectionLevel = GetProperty<bool>(attr, "HasProtectionLevel");
+            if (hasProtectionLevel)
+            {
+                // ProtectionLevel isn't supported yet so if it was set on the S.SM.SCA, then we can't do the mapping so throw
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new PlatformNotSupportedException("System.ServiceModel.ServiceContractAttribute.ProtectionLevel"));
+            }
+
+            var sca = new ServiceContractAttribute();
+            string tmpStr = GetProperty<string>(attr, nameof(ServiceContractAttribute.ConfigurationName));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                sca.ConfigurationName = tmpStr;
+            }
+
+            tmpStr = GetProperty<string>(attr, nameof(ServiceContractAttribute.Name));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                sca.Name = tmpStr;
+            }
+
+            sca.Namespace = GetProperty<string>(attr, nameof(ServiceContractAttribute.Namespace));
+            sca.SessionMode = GetProperty<SessionMode>(attr, nameof(ServiceContractAttribute.SessionMode));
+            sca.CallbackContract = GetProperty<Type>(attr, nameof(ServiceContractAttribute.CallbackContract));
+            return sca;
+        }
+
+        private static OperationContractAttribute ConvertFromServiceModelOperationContractAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMOperationContractAttributeFullName), "Expected attribute of type S.SM.OperationContractAttribute");
+            bool hasProtectionLevel = GetProperty<bool>(attr, "HasProtectionLevel");
+            if (hasProtectionLevel)
+            {
+                // ProtectionLevel isn't supported yet so if it was set on the S.SM.SCA, then we can't do the mapping so throw
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new PlatformNotSupportedException("System.ServiceModel.OperationContractAttribute.ProtectionLevel"));
+            }
+
+            var oca = new OperationContractAttribute();
+            string tmpStr = GetProperty<string>(attr, nameof(OperationContractAttribute.Name));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                oca.Name = tmpStr;
+            }
+
+            tmpStr = GetProperty<string>(attr, nameof(OperationContractAttribute.Action));
+            if (tmpStr != null) // String.Empty apparently is fine
+            {
+                oca.Action = tmpStr;
+            }
+
+            tmpStr = GetProperty<string>(attr, nameof(OperationContractAttribute.ReplyAction));
+            if (tmpStr != null) // String.Empty apparently is fine
+            {
+                oca.ReplyAction = tmpStr;
+            }
+
+            oca.AsyncPattern = GetProperty<bool>(attr, nameof(OperationContractAttribute.AsyncPattern));
+            oca.IsOneWay = GetProperty<bool>(attr, nameof(OperationContractAttribute.IsOneWay));
+            // TODO: IsInitiating and IsTerminating
+            return oca;
+        }
+
+        private static TProp GetProperty<TProp>(object obj, string propName)
+        {
+            Fx.Assert(obj != null, "Expected non-null object");
+            PropertyInfo propInfo;
+            if (typeof(TProp).IsEnum)
+            {
+                propInfo = obj.GetType().GetProperty(propName);
+                Fx.Assert(propInfo != null, $"Could not find property with name {propName} on object of type {obj.GetType().FullName}");
+                return (TProp)Enum.ToObject(typeof(TProp), propInfo.GetValue(obj));
+            }
+            else
+            {
+                propInfo = obj.GetType().GetProperty(propName, typeof(TProp));
+                Fx.Assert(propInfo != null, $"Could not find property with name {propName} of type {typeof(TProp).FullName} on object of type {obj.GetType().FullName}");
+                return (TProp)propInfo.GetValue(obj);
+            }
         }
 
         public bool IsDefined(Type attributeType, bool inherit)
