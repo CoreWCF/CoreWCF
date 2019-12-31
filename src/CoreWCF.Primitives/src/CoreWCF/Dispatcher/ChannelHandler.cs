@@ -141,6 +141,11 @@ namespace CoreWCF.Dispatcher
 
             await HandleReceiveCompleteAsync(request);
 
+            if (request == null)
+            {
+                return;
+            }
+
             if (HandleRequestAsReply(request))
             {
                 return;
