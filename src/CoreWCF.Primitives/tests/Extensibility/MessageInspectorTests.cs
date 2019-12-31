@@ -2,6 +2,7 @@
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
+using DispatcherClient;
 using Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -35,7 +36,7 @@ namespace Extensibility
             var inspector = new MessageReplacingDispatchMessageInspector(replacementEchoString);
             var behavior = new TestServiceBehavior { DispatchMessageInspector = inspector };
             var service = new DispatcherTestService();
-            var factory = ExtensibilityHelper.CreateChannelFactory<DispatcherTestService, ISimpleService>(
+            var factory = DispatcherHelper.CreateChannelFactory<DispatcherTestService, ISimpleService>(
                 (services) =>
                 {
                     services.AddSingleton<IServiceBehavior>(behavior);
