@@ -2,7 +2,7 @@
 
 namespace CoreWCF
 {
-    internal static class ServiceModelAttributeTargets
+    internal static class CoreWCFAttributeTargets
     {
         public const AttributeTargets ServiceContract = AttributeTargets.Interface | AttributeTargets.Class;
         public const AttributeTargets OperationContract = AttributeTargets.Method;

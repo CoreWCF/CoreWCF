@@ -3,7 +3,7 @@ using CoreWCF.Description;
 
 namespace CoreWCF
 {
-    [AttributeUsage(ServiceModelAttributeTargets.ServiceContract, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(CoreWCFAttributeTargets.ServiceContract, Inherited = false, AllowMultiple = false)]
     public sealed class ServiceContractAttribute : Attribute
     {
         Type _callbackContract;
