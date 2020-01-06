@@ -2,7 +2,7 @@
 
 namespace CoreWCF
 {
-    [AttributeUsage(ServiceModelAttributeTargets.Parameter, Inherited = false)]
+    [AttributeUsage(CoreWCFAttributeTargets.Parameter, Inherited = false)]
     internal sealed class MessageParameterAttribute : Attribute
     {
         string name;

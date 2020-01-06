@@ -4,7 +4,7 @@ using CoreWCF.Description;
 
 namespace CoreWCF
 {
-    [AttributeUsage(ServiceModelAttributeTargets.OperationContract)]
+    [AttributeUsage(CoreWCFAttributeTargets.OperationContract)]
     public sealed class OperationContractAttribute : Attribute
     {
         string _name;
