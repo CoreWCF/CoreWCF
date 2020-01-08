@@ -1,6 +1,7 @@
 using System;
 using CoreWCF.Runtime;
 using CoreWCF.Description;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
@@ -169,23 +170,42 @@ namespace CoreWCF.Channels
             }
         }
 
-        // TODO: Ensure any validation logic here is executed in new pipeline
-        //public virtual IChannelListener<TChannel> BuildChannelListener<TChannel>(Uri listenUriBaseAddress, string listenUriRelativeAddress, ListenUriMode listenUriMode, BindingParameterCollection parameters)
-        //    where TChannel : class, IChannel
-        //{
-        //    EnsureInvariants();
-        //    BindingContext context = new BindingContext(new CustomBinding(this), parameters, listenUriBaseAddress, listenUriRelativeAddress, listenUriMode);
-        //    IChannelListener<TChannel> channelListener = context.BuildInnerChannelListener<TChannel>();
-        //    context.ValidateBindingElementsConsumed();
-        //    ValidateSecurityCapabilities(channelListener.GetProperty<ISecurityCapabilities>(), parameters);
+        public virtual bool CanBuildServiceDispatcher<TChannel>(BindingParameterCollection parameters) where TChannel : class, IChannel
+        {
+            BindingContext context = new BindingContext(new CustomBinding(this), parameters);
+            return context.CanBuildNextServiceDispatcher<TChannel>();
+        }
 
-        //    return channelListener;
-        //}
+        public virtual IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingParameterCollection parameters, IServiceDispatcher dispatcher)
+where TChannel : class, IChannel
+        {
+            UriBuilder listenUriBuilder = new UriBuilder(this.Scheme, DnsCache.MachineName);
+            return BuildServiceDispatcher<TChannel>(listenUriBuilder.Uri, string.Empty, parameters, dispatcher);
+        }
+
+        public virtual IServiceDispatcher BuildServiceDispatcher<TChannel>(Uri listenUriBaseAddress, BindingParameterCollection parameters, IServiceDispatcher dispatcher)
+where TChannel : class, IChannel
+        {
+            return BuildServiceDispatcher<TChannel>(listenUriBaseAddress, string.Empty, parameters, dispatcher);
+        }
+
+        public virtual IServiceDispatcher BuildServiceDispatcher<TChannel>(Uri listenUriBaseAddress, string listenUriRelativeAddress, BindingParameterCollection parameters, IServiceDispatcher dispatcher)
+            where TChannel : class, IChannel
+        {
+            EnsureInvariants();
+            BindingContext context = new BindingContext(new CustomBinding(this), parameters, listenUriBaseAddress, listenUriRelativeAddress);
+            IServiceDispatcher serviceDispatcher = context.BuildNextServiceDispatcher<TChannel>(dispatcher);
+            context.ValidateBindingElementsConsumed();
+
+            // TODO: Work out how to validate security capabilities
+            //this.ValidateSecurityCapabilities(serviceDispatcher.GetProperty<ISecurityCapabilities>(), parameters);
+
+            return serviceDispatcher;
+        }
 
         public abstract BindingElementCollection CreateBindingElements();
 
-        public T GetProperty<T>(BindingParameterCollection parameters)
-    where T : class
+        public T GetProperty<T>(BindingParameterCollection parameters) where T : class
         {
             BindingContext context = new BindingContext(new CustomBinding(this), parameters);
             return context.GetInnerProperty<T>();

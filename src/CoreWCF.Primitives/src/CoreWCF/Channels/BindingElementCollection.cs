@@ -141,5 +141,16 @@ namespace CoreWCF.Channels
 
             base.SetItem(index, item);
         }
+
+        internal BindingElementCollection Reverse()
+        {
+            var bec = new BindingElementCollection();
+            for(int i = Count - 1; i >= 0; i--)
+            {
+                bec.Add(this[i]);
+            }
+
+            return bec;
+        }
     }
 }

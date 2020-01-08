@@ -23,6 +23,7 @@ namespace CoreWCF.Configuration
             // Using default port
             webHostBuilder.ConfigureServices(services =>
             {
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<ITransportServiceBuilder, NetTcpTransportServiceBuilder>());
                 services.AddSingleton(NetMessageFramingConnectionHandler.BuildAddressTable);
                 services.AddNetTcpServices(new IPEndPoint(IPAddress.Any, port));
                 services.AddTransient<IFramingConnectionHandshakeBuilder, FramingConnectionHandshakeBuilder>();

@@ -7,6 +7,12 @@ using CoreWCF.Collections.Generic;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Hosting.Server;
+using System.Threading.Tasks;
+using System.Threading;
+using CoreWCF.Configuration;
+using System.Linq;
 
 namespace CoreWCF
 {
@@ -15,11 +21,13 @@ namespace CoreWCF
         private IDisposable _disposableInstance;
         private TService _singletonInstance;
         private readonly IServiceProvider _serviceProvider;
+        private IServerAddressesFeature _serverAddresses;
 
-        public ServiceHostObjectModel(IServiceProvider serviceProvider, Uri[] baseAddresses)
+        public ServiceHostObjectModel(IServiceProvider serviceProvider, IServer server, IServiceBuilder serviceBuilder)
         {
             _serviceProvider = serviceProvider;
-            InitializeDescription(new UriSchemeKeyedCollection(baseAddresses));
+            _serverAddresses = server.Features.Get<IServerAddressesFeature>();
+            InitializeDescription(new UriSchemeKeyedCollection(serviceBuilder.BaseAddresses.ToArray()));
         }
 
         public TService SingletonInstance { get; private set; }
@@ -216,6 +224,7 @@ namespace CoreWCF
 
         internal Uri MakeAbsoluteUri(Uri uri, Binding binding)
         {
+            EnsureBaseAddresses();
             Uri result = uri;
             if (!result.IsAbsoluteUri)
             {
@@ -223,13 +232,48 @@ namespace CoreWCF
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxCustomBindingWithoutTransport));
                 }
+
                 result = GetVia(binding.Scheme, result, InternalBaseAddresses);
                 if (result == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxEndpointNoMatchingScheme, binding.Scheme, binding.Name, GetBaseAddressSchemes(InternalBaseAddresses))));
+                    UriBuilder listenUriBuilder = new UriBuilder(binding.Scheme, DnsCache.MachineName);
+                    result = new Uri(listenUriBuilder.Uri, uri);
                 }
             }
+
             return result;
+        }
+
+        private void EnsureBaseAddresses()
+        {
+            if (_serverAddresses != null)
+            {
+                foreach(var addr in _serverAddresses.Addresses)
+                {
+                    var uri = new Uri(addr);
+                    bool skip = false;
+                    foreach(var baseAddress in InternalBaseAddresses)
+                    {
+                        if (baseAddress.Port == uri.Port && baseAddress.Scheme != uri.Scheme)
+                        {
+                            // ASP.NET Core adds net.tcp uri's as http{s} uri's
+                            skip = true;
+                            break;
+                        }
+                    }
+                    if (!skip && !InternalBaseAddresses.Contains(uri))
+                    {
+
+                        InternalBaseAddresses.Add(uri);
+                    }
+                }
+
+                if (_serverAddresses.Addresses.Count > 0)
+                {
+                    // It was populated by ASP.NET Core so can skip re-adding in future.
+                    _serverAddresses = null;
+                }
+            }
         }
 
         internal static String GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
@@ -295,5 +339,16 @@ namespace CoreWCF
             return new Uri(baseUri, path);
         }
 
+        protected override void OnAbort() { }
+
+        protected override Task OnCloseAsync(CancellationToken token)
+        {
+            return Task.CompletedTask;
+        }
+
+        protected override Task OnOpenAsync(CancellationToken token)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

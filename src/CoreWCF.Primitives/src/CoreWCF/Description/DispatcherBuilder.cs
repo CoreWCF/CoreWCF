@@ -668,8 +668,8 @@ namespace CoreWCF.Description
         {
             var serviceBuilder = services.GetRequiredService<IServiceBuilder>();
             var serverUriAddresses = serviceBuilder.BaseAddresses.ToArray();
-            ServiceHostObjectModel < TService > serviceHost;
-            serviceHost = new ServiceHostObjectModel<TService>(services, serverUriAddresses);
+            ServiceHostObjectModel<TService> serviceHost;
+            serviceHost = services.GetRequiredService<ServiceHostObjectModel<TService>>();
 
             // TODO: Create internal behavior which configures any extensibilities which exist in serviceProvider, eg IMessageInspector
             foreach (var endpointConfig in serviceConfig.Endpoints)
@@ -680,6 +680,7 @@ namespace CoreWCF.Description
                 }
 
                 ContractDescription contract = serviceHost.ReflectedContracts[endpointConfig.Contract];
+
                 var uri = serviceHost.MakeAbsoluteUri(endpointConfig.Address, endpointConfig.Binding);
                 var serviceEndpoint = new ServiceEndpoint(
                     contract,

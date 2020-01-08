@@ -4,6 +4,9 @@ using CoreWCF.Channels;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Net;
+using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace CoreWCF.Configuration
 {
@@ -21,33 +24,36 @@ namespace CoreWCF.Configuration
                 throw new ArgumentNullException(nameof(configureServices));
             }
 
+            var loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger(nameof(ServiceModelApplicationBuilderExtensions));
             var serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
             configureServices(serviceBuilder);
 
-            var transportMiddlewareTypes = new HashSet<Type>();
+            var transportServiceBuilders = app.ApplicationServices.GetServices<ITransportServiceBuilder>();
+            var transportServiceBuilderSeenTypes = new HashSet<Type>();
+            foreach (var transportServiceBuilder in transportServiceBuilders)
+            {
+                if (!transportServiceBuilderSeenTypes.Contains(transportServiceBuilder.GetType()))
+                {
+                    logger.LogDebug($"Calling {transportServiceBuilder.GetType().FullName}.Configure");
+                    transportServiceBuilder.Configure(app);
+                    transportServiceBuilderSeenTypes.Add(transportServiceBuilder.GetType());
+                }
+            }
+
             foreach (var serviceConfig in serviceBuilder.ServiceConfigurations)
             {
                 foreach (var serviceEndpoint in serviceConfig.Endpoints)
                 {
-                    var be = serviceEndpoint.Binding.CreateBindingElements();
-                    var tbe = be.Find<TransportBindingElement>();
-                    // TODO : Error handling if TBE doesn't exist
-                    var transportMiddlewareType = tbe.MiddlewareType;
-                    if (transportMiddlewareTypes.Contains(transportMiddlewareType))
-                        continue;
-                    transportMiddlewareTypes.Add(transportMiddlewareType);
-                    string scheme = tbe.Scheme;
-                    if ("http".Equals(scheme, StringComparison.OrdinalIgnoreCase) ||
-                        "https".Equals(scheme, StringComparison.OrdinalIgnoreCase))
+                    var transportServiceBuilder = serviceEndpoint.Binding.GetProperty<ITransportServiceBuilder>(new BindingParameterCollection());
+                    // Check if this transport service builder type has already been used in this app
+                    if (transportServiceBuilder != null && !transportServiceBuilderSeenTypes.Contains(transportServiceBuilder.GetType()))
                     {
-                        app.UseMiddleware(transportMiddlewareType, app);
+                        //Console.WriteLine($"Found ITransportServiceBuilder of type {transportServiceBuilder.GetType().FullName}");
+                        logger.LogDebug($"Calling {transportServiceBuilder.GetType().FullName}.Configure");
+                        transportServiceBuilder.Configure(app);
+                        transportServiceBuilderSeenTypes.Add(transportServiceBuilder.GetType());
                     }
-                    else
-                    {
-                        // Not implemented yet. Commented code is for how things will work in the future.
-                        //svc.UseMiddleware(transportMiddlewareType);
-                    }
-
                 }
             }
 
