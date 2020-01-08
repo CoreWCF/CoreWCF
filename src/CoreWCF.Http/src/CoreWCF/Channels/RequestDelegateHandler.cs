@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.AspNetCore.Builder;
 
 namespace CoreWCF.Channels
 {
@@ -26,6 +27,8 @@ namespace CoreWCF.Channels
             _servicesScopeFactory = servicesScopeFactory;
             BuildHandler();
         }
+
+        internal WebSocketOptions WebSocketOptions { get; set; }
 
         private void BuildHandler()
         {
@@ -56,9 +59,33 @@ namespace CoreWCF.Channels
             httpSettings.KeepAliveEnabled = tbe.KeepAliveEnabled;
             httpSettings.AnonymousUriPrefixMatcher = new HttpAnonymousUriPrefixMatcher();
             _httpSettings = httpSettings;
-            var scope = _servicesScopeFactory.CreateScope();
-            _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider);
-            _channelDispatcher = _serviceDispatcher.CreateServiceChannelDispatcher(_replyChannel);
+            WebSocketOptions = CreateWebSocketOptions(tbe);
+            if (WebSocketOptions != null)
+            {
+                // TODO: Create duplex WebSocket channel
+            }
+            else
+            {
+                _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider);
+                _channelDispatcher = _serviceDispatcher.CreateServiceChannelDispatcher(_replyChannel);
+            }
+        }
+
+        private WebSocketOptions CreateWebSocketOptions(HttpTransportBindingElement tbe)
+        {
+            // TODO: Is a check for IDuplexSessionChannel also needed?
+            bool canUseWebSockets = tbe.WebSocketSettings.TransportUsage == WebSocketTransportUsage.Always ||
+                (tbe.WebSocketSettings.TransportUsage == WebSocketTransportUsage.WhenDuplex && _serviceDispatcher.SupportedChannelTypes.Contains(typeof(IDuplexChannel)));
+            if (!canUseWebSockets)
+            {
+                return null;
+            }
+
+            return new WebSocketOptions
+            {
+                ReceiveBufferSize = WebSocketHelper.GetReceiveBufferSize(tbe.MaxReceivedMessageSize),
+                KeepAliveInterval = tbe.WebSocketSettings.GetEffectiveKeepAliveInterval()
+            };
         }
 
         internal Task HandleRequest(HttpContext context)

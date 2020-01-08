@@ -4,32 +4,23 @@ namespace CoreWCF.Channels
 {
     class SecurityCapabilities : ISecurityCapabilities
     {
-        internal bool supportsServerAuth;
-        internal bool supportsClientAuth;
-        internal bool supportsClientWindowsIdentity;
-        internal ProtectionLevel requestProtectionLevel;
-        internal ProtectionLevel responseProtectionLevel;
-
         public SecurityCapabilities(bool supportsClientAuth, bool supportsServerAuth, bool supportsClientWindowsIdentity,
             ProtectionLevel requestProtectionLevel, ProtectionLevel responseProtectionLevel)
         {
-            this.supportsClientAuth = supportsClientAuth;
-            this.supportsServerAuth = supportsServerAuth;
-            this.supportsClientWindowsIdentity = supportsClientWindowsIdentity;
-            this.requestProtectionLevel = requestProtectionLevel;
-            this.responseProtectionLevel = responseProtectionLevel;
+            SupportsClientAuthentication = supportsClientAuth;
+            SupportsServerAuthentication = supportsServerAuth;
+            SupportsClientWindowsIdentity = supportsClientWindowsIdentity;
+            SupportedRequestProtectionLevel = requestProtectionLevel;
+            SupportedResponseProtectionLevel = responseProtectionLevel;
         }
 
-        public ProtectionLevel SupportedRequestProtectionLevel { get { return requestProtectionLevel; } }
-        public ProtectionLevel SupportedResponseProtectionLevel { get { return responseProtectionLevel; } }
-        public bool SupportsClientAuthentication { get { return supportsClientAuth; } }
-        public bool SupportsClientWindowsIdentity { get { return supportsClientWindowsIdentity; } }
-        public bool SupportsServerAuthentication { get { return supportsServerAuth; } }
+        public ProtectionLevel SupportedRequestProtectionLevel { get; }
+        public ProtectionLevel SupportedResponseProtectionLevel { get; }
+        public bool SupportsClientAuthentication { get; }
+        public bool SupportsClientWindowsIdentity { get; }
+        public bool SupportsServerAuthentication { get; }
 
-        static SecurityCapabilities None
-        {
-            get { return new SecurityCapabilities(false, false, false, ProtectionLevel.None, ProtectionLevel.None); }
-        }
+        static SecurityCapabilities None => new SecurityCapabilities(false, false, false, ProtectionLevel.None, ProtectionLevel.None);
 
         internal static bool IsEqual(ISecurityCapabilities capabilities1, ISecurityCapabilities capabilities2)
         {

@@ -11,6 +11,7 @@ namespace CoreWCF.Configuration
     {
         Uri BaseAddress { get; }
         Binding Binding { get; }
+        ICollection<Type> SupportedChannelTypes { get; }
         IServiceChannelDispatcher CreateServiceChannelDispatcher(IChannel channel);
     }
 }

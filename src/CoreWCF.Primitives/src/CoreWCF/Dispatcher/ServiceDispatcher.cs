@@ -29,6 +29,8 @@ namespace CoreWCF.Dispatcher
 
         public EndpointDispatcherTable Endpoints => ChannelDispatcher.EndpointDispatcherTable;
 
+        public ICollection<Type> SupportedChannelTypes => ChannelDispatcher.SupportedChannelTypes;
+
         public object ThisLock { get; } = new object();
 
         public IServiceChannelDispatcher CreateServiceChannelDispatcher(IChannel channel)

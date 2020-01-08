@@ -1,22 +1,24 @@
 using System;
 using CoreWCF.Channels;
-using CoreWCF.Description;
 
 namespace CoreWCF
 {
     public class BasicHttpBinding : HttpBindingBase
     {
-        private WSMessageEncoding _messageEncoding = BasicHttpBindingDefaults.MessageEncoding;
+        private BasicHttpSecurity _basicHttpSecurity;
 
-        //public BasicHttpBinding(System.ServiceModel.BasicHttpSecurityMode securityMode) { }
-        //public System.ServiceModel.BasicHttpSecurity Security { get { return default(CoreWCF.BasicHttpSecurity); } set { } }
-        //public override CoreWCF.Channels.IChannelFactory<TChannel> BuildChannelFactory<TChannel>(CoreWCF.Channels.BindingParameterCollection parameters) { return default(CoreWCF.Channels.IChannelFactory<TChannel>); }
+        public BasicHttpBinding() : this(BasicHttpSecurityMode.None) { }
 
-        internal WSMessageEncoding MessageEncoding
+        public BasicHttpBinding(BasicHttpSecurityMode securityMode)
+            : base()
         {
-            get { return _messageEncoding; }
-            set { _messageEncoding = value; }
+            Initialize();
+            _basicHttpSecurity.Mode = securityMode;
         }
+
+        internal WSMessageEncoding MessageEncoding { get; set; } = BasicHttpBindingDefaults.MessageEncoding;
+
+        internal override BasicHttpSecurity BasicHttpSecurity => _basicHttpSecurity;
 
         public override BindingElementCollection CreateBindingElements()
         {
@@ -26,12 +28,6 @@ namespace CoreWCF
             BindingElementCollection bindingElements = new BindingElementCollection();
             
             // order of BindingElements is important
-            // add security (*optional)
-            //SecurityBindingElement wsSecurity = BasicHttpSecurity.CreateMessageSecurity();
-            //if (wsSecurity != null)
-            //{
-            //    bindingElements.Add(wsSecurity);
-            //}
             // add encoding
             if (MessageEncoding == WSMessageEncoding.Text)
                 bindingElements.Add(TextMessageEncodingBindingElement);
@@ -39,6 +35,11 @@ namespace CoreWCF
             bindingElements.Add(GetTransport());
 
             return bindingElements.Clone();
+        }
+
+        void Initialize()
+        {
+            _basicHttpSecurity = new BasicHttpSecurity();
         }
     }
 }

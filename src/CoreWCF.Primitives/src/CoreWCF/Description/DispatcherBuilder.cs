@@ -149,10 +149,8 @@ namespace CoreWCF.Description
 
             ValidateDescription(serviceHost);
 
-            Dictionary<ListenUriInfo, StuffPerListenUriInfo> stuffPerListenUriInfo
-                = new Dictionary<ListenUriInfo, StuffPerListenUriInfo>();
-            Dictionary<EndpointAddress, Collection<EndpointInfo>> endpointInfosPerEndpointAddress
-                = new Dictionary<EndpointAddress, Collection<EndpointInfo>>();
+            var stuffPerListenUriInfo = new Dictionary<ListenUriInfo, StuffPerListenUriInfo>();
+            var endpointInfosPerEndpointAddress = new Dictionary<EndpointAddress, Collection<EndpointInfo>>();
 
             // Ensure ListenUri and group endpoints per ListenUri
             for (int i = 0; i < description.Endpoints.Count; i++)
@@ -170,6 +168,7 @@ namespace CoreWCF.Description
             foreach (KeyValuePair<ListenUriInfo, StuffPerListenUriInfo> stuff in stuffPerListenUriInfo)
             {
                 Uri listenUri = stuff.Key.ListenUri;
+                ListenUriMode listenUriMode = stuff.Key.ListenUriMode;
                 BindingParameterCollection parameters = stuff.Value.Parameters;
                 Binding binding = stuff.Value.Endpoints[0].Binding;
                 EndpointIdentity identity = stuff.Value.Endpoints[0].Address.Identity;
@@ -205,8 +204,10 @@ namespace CoreWCF.Description
                     AddBindingParameters(endpoint, parameters);
                 }
 
-                XmlQualifiedName bindingQname = new XmlQualifiedName(binding.Name, binding.Namespace);
-                ChannelDispatcher channelDispatcher = new ChannelDispatcher(listenUri, binding, bindingQname.ToString(), binding);
+                List<Type> channelTypes = GetSupportedChannelTypes(stuff.Value);
+
+                var bindingQname = new XmlQualifiedName(binding.Name, binding.Namespace);
+                var channelDispatcher = new ChannelDispatcher(listenUri, binding, bindingQname.ToString(), binding, channelTypes);
                 //channelDispatcher.SetEndpointAddressTable(endpointAddressTable);
                 stuff.Value.ChannelDispatcher = channelDispatcher;
 
@@ -222,10 +223,9 @@ namespace CoreWCF.Description
                     {
                         endpointInfosPerEndpointAddress.Add(endpoint.Address, new Collection<EndpointInfo>());
                     }
+
                     endpointInfosPerEndpointAddress[endpoint.Address].Add(new EndpointInfo(endpoint, dispatcher, /*provider*/ null));
-
                     channelDispatcher.Endpoints.Add(dispatcher);
-
                 } // end foreach "endpoint"
 
                 serviceHost.ChannelDispatchers.Add(channelDispatcher);
@@ -325,6 +325,144 @@ namespace CoreWCF.Description
                     }
                 }
             }
+        }
+
+        private static List<Type> GetSupportedChannelTypes(StuffPerListenUriInfo stuff)
+        {
+            Binding originalBinding = stuff.Endpoints[0].Binding;
+            CustomBinding binding = new CustomBinding(originalBinding);
+
+            // All types are supported to start
+            bool reply = true;
+            bool replySession = true;
+            bool input = true;
+            bool inputSession = true;
+            bool duplex = true;
+            bool duplexSession = true;
+            string sessionContractName = null;
+            string datagramContractName = null;
+            // each endpoint adds constraints
+            for (int i = 0; i < stuff.Endpoints.Count; ++i)
+            {
+                ContractDescription contract = stuff.Endpoints[i].Contract;
+                if (contract.SessionMode == SessionMode.Required)
+                {
+                    sessionContractName = contract.Name;
+                }
+                if (contract.SessionMode == SessionMode.NotAllowed)
+                {
+                    datagramContractName = contract.Name;
+                }
+
+                System.Collections.IList endpointTypes = GetSupportedChannelTypes(contract);
+                if (!endpointTypes.Contains(typeof(IReplyChannel)))
+                {
+                    reply = false;
+                }
+                if (!endpointTypes.Contains(typeof(IReplySessionChannel)))
+                {
+                    replySession = false;
+                }
+                if (!endpointTypes.Contains(typeof(IInputChannel)))
+                {
+                    input = false;
+                }
+                if (!endpointTypes.Contains(typeof(IInputSessionChannel)))
+                {
+                    inputSession = false;
+                }
+                if (!endpointTypes.Contains(typeof(IDuplexChannel)))
+                {
+                    duplex = false;
+                }
+                if (!endpointTypes.Contains(typeof(IDuplexSessionChannel)))
+                {
+                    duplexSession = false;
+                }
+            }
+
+            if ((sessionContractName != null) && (datagramContractName != null))
+            {
+                string text = SR.Format(SR.SFxCannotRequireBothSessionAndDatagram3, datagramContractName, sessionContractName, binding.Name);
+                Exception error = new InvalidOperationException(text);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
+            }
+
+            // TODO: Restrict list further based on SessionMode constraints
+
+            var supportedChannelTypes = new List<Type>();
+            if (input)
+            {
+                supportedChannelTypes.Add(typeof(IInputChannel));
+            }
+            if (inputSession)
+            {
+                supportedChannelTypes.Add(typeof(IInputSessionChannel));
+            }
+            if (reply)
+            {
+                supportedChannelTypes.Add(typeof(IReplyChannel));
+            }
+            if (replySession)
+            {
+                supportedChannelTypes.Add(typeof(IReplySessionChannel));
+            }
+            if (duplex)
+            {
+                supportedChannelTypes.Add(typeof(IDuplexChannel));
+            }
+            if (duplexSession)
+            {
+                supportedChannelTypes.Add(typeof(IDuplexSessionChannel));
+            }
+
+            return supportedChannelTypes;
+        }
+
+        private static Type[] GetSupportedChannelTypes(ContractDescription contractDescription)
+        {
+            if (contractDescription == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(contractDescription)));
+            }
+
+            ChannelRequirements reqs;
+            ChannelRequirements.ComputeContractRequirements(contractDescription, out reqs);
+            Type[] supportedChannels = ChannelRequirements.ComputeRequiredChannels(ref reqs);
+            // supportedChannels is client-side, need to make server-side
+            for (int i = 0; i < supportedChannels.Length; i++)
+            {
+                if (supportedChannels[i] == typeof(IRequestChannel))
+                {
+                    supportedChannels[i] = typeof(IReplyChannel);
+                }
+                else if (supportedChannels[i] == typeof(IRequestSessionChannel))
+                {
+                    supportedChannels[i] = typeof(IReplySessionChannel);
+                }
+                else if (supportedChannels[i] == typeof(IOutputChannel))
+                {
+                    supportedChannels[i] = typeof(IInputChannel);
+                }
+                else if (supportedChannels[i] == typeof(IOutputSessionChannel))
+                {
+                    supportedChannels[i] = typeof(IInputSessionChannel);
+                }
+                else if (supportedChannels[i] == typeof(IDuplexChannel))
+                {
+                    // no-op; duplex is its own dual
+                }
+                else if (supportedChannels[i] == typeof(IDuplexSessionChannel))
+                {
+                    // no-op; duplex is its own dual
+                }
+                else
+                {
+                    throw Fx.AssertAndThrowFatal("DispatcherBuilder.GetSupportedChannelTypes: Unexpected channel type");
+                }
+            }
+
+            return supportedChannels;
         }
 
         internal static EndpointDispatcher BuildEndpointDispatcher(ServiceDescription serviceDescription,
