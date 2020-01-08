@@ -33,7 +33,7 @@ namespace CoreWCF.Dispatcher
         private SessionIdleManager _idleManager;
         private SessionOpenNotification _sessionOpenNotification;
         private bool _needToCreateSessionOpenNotificationMessage;
-        private RequestInfo _requestInfo;
+        //private RequestInfo _requestInfo;
         private bool _isChannelTerminated;
         private bool _shouldRejectMessageWithOnOpenActionHeader;
         private RequestContext _replied;
@@ -78,7 +78,7 @@ namespace CoreWCF.Dispatcher
                 _needToCreateSessionOpenNotificationMessage = _sessionOpenNotification != null && _sessionOpenNotification.IsEnabled;
             }
 
-            _requestInfo = new RequestInfo(this);
+            //_requestInfo = new RequestInfo(this);
 
             // TODO: Wire up lifetime management in place of listener state
             //if (this.listener.State == CommunicationState.Opened)
@@ -129,7 +129,7 @@ namespace CoreWCF.Dispatcher
         {
             // TODO: Implement all the exception handling cases from ErrorHandlingReceiver.TryReceive down stack in the transport.
             // The transport implementation will need to send a null request to signal closing of the session/channel.
-            _requestInfo.Cleanup();
+            var requestInfo = new RequestInfo(this);
             if (OperationContext.Current == null)
             {
                 OperationContext.Current = new OperationContext(_host);
@@ -153,42 +153,42 @@ namespace CoreWCF.Dispatcher
 
             if (_isChannelTerminated)
             {
-                await ReplyChannelTerminatedAsync(request);
+                await ReplyChannelTerminatedAsync(request, requestInfo);
                 return;
             }
 
-            if (_requestInfo.RequestContext != null)
+            if (requestInfo.RequestContext != null)
             {
                 Fx.Assert("ChannelHandler.HandleRequest: _requestInfo.RequestContext != null");
             }
 
-            _requestInfo.RequestContext = request;
+            requestInfo.RequestContext = request;
             await TryAcquireCallThrottleAsync(request);
 
-            if (_requestInfo.ChannelHandlerOwnsCallThrottle)
+            if (requestInfo.ChannelHandlerOwnsCallThrottle)
             {
                 Fx.Assert("ChannelHandler.HandleRequest: _requestInfo.ChannelHandlerOwnsCallThrottle");
             }
 
-            _requestInfo.ChannelHandlerOwnsCallThrottle = true;
-            if (! await TryRetrievingInstanceContextAsync(request))
+            requestInfo.ChannelHandlerOwnsCallThrottle = true;
+            if (! await TryRetrievingInstanceContextAsync(request, requestInfo))
             {
                 //Would have replied and close the request.
                 return;
             }
 
-            _requestInfo.Channel.CompletedIOOperation();
+            requestInfo.Channel.CompletedIOOperation();
 
             //Only acquire InstanceContext throttle if one doesnt already exist.
-            await TryAcquireThrottleAsync(request, (_requestInfo.ExistingInstanceContext == null));
-            if (_requestInfo.ChannelHandlerOwnsInstanceContextThrottle)
+            await TryAcquireThrottleAsync(request, (requestInfo.ExistingInstanceContext == null));
+            if (requestInfo.ChannelHandlerOwnsInstanceContextThrottle)
             {
                 Fx.Assert("ChannelHandler.HandleRequest: _requestInfo.ChannelHandlerOwnsInstanceContextThrottle");
             }
 
-            _requestInfo.ChannelHandlerOwnsInstanceContextThrottle = (_requestInfo.ExistingInstanceContext == null);
+            requestInfo.ChannelHandlerOwnsInstanceContextThrottle = (requestInfo.ExistingInstanceContext == null);
 
-            await DispatchAsyncCore(request, true, OperationContext.Current);
+            await DispatchAsyncCore(request, requestInfo, true, OperationContext.Current);
         }
 
         private async Task HandleReceiveCompleteAsync(RequestContext request)
@@ -249,14 +249,14 @@ namespace CoreWCF.Dispatcher
         }
 
         // Similar to DispatchAndReleasePump on Desktop
-        internal async Task DispatchAsyncCore(RequestContext request, bool cleanThread, OperationContext currentOperationContext)
+        internal async Task DispatchAsyncCore(RequestContext request, RequestInfo requestInfo, bool cleanThread, OperationContext currentOperationContext)
         {
-            ServiceChannel channel = _requestInfo.Channel;
-            EndpointDispatcher endpoint = _requestInfo.Endpoint;
+            ServiceChannel channel = requestInfo.Channel;
+            EndpointDispatcher endpoint = requestInfo.Endpoint;
 
             try
             {
-                DispatchRuntime dispatchBehavior = _requestInfo.DispatchRuntime;
+                DispatchRuntime dispatchBehavior = requestInfo.DispatchRuntime;
 
                 if (channel == null || dispatchBehavior == null)
                 {
@@ -299,14 +299,14 @@ namespace CoreWCF.Dispatcher
                 }
 
                 MessageRpc rpc = new MessageRpc(request, message, operation, channel, _host,
-                    this, cleanThread, currentOperationContext, _requestInfo.ExistingInstanceContext);
+                    this, cleanThread, currentOperationContext, requestInfo.ExistingInstanceContext);
 
                 // passing responsibility for call throttle to MessageRpc
                 // (MessageRpc implicitly owns this throttle once it's created)
-                _requestInfo.ChannelHandlerOwnsCallThrottle = false;
+                requestInfo.ChannelHandlerOwnsCallThrottle = false;
                 // explicitly passing responsibility for instance throttle to MessageRpc
-                rpc.MessageRpcOwnsInstanceContextThrottle = _requestInfo.ChannelHandlerOwnsInstanceContextThrottle;
-                _requestInfo.ChannelHandlerOwnsInstanceContextThrottle = false;
+                rpc.MessageRpcOwnsInstanceContextThrottle = requestInfo.ChannelHandlerOwnsInstanceContextThrottle;
+                requestInfo.ChannelHandlerOwnsInstanceContextThrottle = false;
 
                 // These need to happen before Dispatch but after accessing any ChannelHandler
                 // state, because we go multi-threaded after this until we reacquire pump mutex.
@@ -320,69 +320,69 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                await HandleErrorAsync(e, request, channel);
+                await HandleErrorAsync(e, request, requestInfo, channel);
             }
         }
 
-        private async Task EnsureChannelAndEndpointAsync(RequestContext request)
+        private async Task EnsureChannelAndEndpointAsync(RequestContext request, RequestInfo requestInfo)
         {
-            _requestInfo.Channel = _channel;
+            requestInfo.Channel = _channel;
 
-            if (_requestInfo.Channel == null)
+            if (requestInfo.Channel == null)
             {
                 bool addressMatched;
                 if (_hasSession)
                 {
-                    _requestInfo.Channel = GetSessionChannel(request.RequestMessage, out _requestInfo.Endpoint, out addressMatched);
+                    requestInfo.Channel = GetSessionChannel(request.RequestMessage, out requestInfo.Endpoint, out addressMatched);
                 }
                 else
                 {
-                    _requestInfo.Channel = GetDatagramChannel(request.RequestMessage, out _requestInfo.Endpoint, out addressMatched);
+                    requestInfo.Channel = GetDatagramChannel(request.RequestMessage, out requestInfo.Endpoint, out addressMatched);
                 }
 
-                if (_requestInfo.Channel == null)
+                if (requestInfo.Channel == null)
                 {
                     // TODO: Enable UnknownMessageReceived handler
                     //this.host.RaiseUnknownMessageReceived(request.RequestMessage);
                     if (addressMatched)
                     {
-                        await ReplyContractFilterDidNotMatchAsync(request);
+                        await ReplyContractFilterDidNotMatchAsync(request, requestInfo);
                     }
                     else
                     {
-                        await ReplyAddressFilterDidNotMatchAsync(request);
+                        await ReplyAddressFilterDidNotMatchAsync(request, requestInfo);
                     }
                 }
             }
             else
             {
-                _requestInfo.Endpoint = _requestInfo.Channel.EndpointDispatcher;
+                requestInfo.Endpoint = requestInfo.Channel.EndpointDispatcher;
 
                 //For sessionful contracts, the InstanceContext throttle is not copied over to the channel
                 //as we create the channel before acquiring the lock
-                if (InstanceContextServiceThrottle != null && _requestInfo.Channel.InstanceContextServiceThrottle == null)
+                if (InstanceContextServiceThrottle != null && requestInfo.Channel.InstanceContextServiceThrottle == null)
                 {
-                    _requestInfo.Channel.InstanceContextServiceThrottle = InstanceContextServiceThrottle;
+                    requestInfo.Channel.InstanceContextServiceThrottle = InstanceContextServiceThrottle;
                 }
             }
 
-            _requestInfo.EndpointLookupDone = true;
+            requestInfo.EndpointLookupDone = true;
 
-            if (_requestInfo.Channel == null)
+            if (requestInfo.Channel == null)
             {
                 // SFx drops a message here
-                TraceUtility.TraceDroppedMessage(request.RequestMessage, _requestInfo.Endpoint);
+                TraceUtility.TraceDroppedMessage(request.RequestMessage, requestInfo.Endpoint);
                 await request.CloseAsync();
                 return;
             }
 
-            if (_requestInfo.Channel.HasSession || _isCallback)
+            if (requestInfo.Channel.HasSession || _isCallback)
             {
-                _requestInfo.DispatchRuntime = _requestInfo.Channel.DispatchRuntime;
+                requestInfo.DispatchRuntime = requestInfo.Channel.DispatchRuntime;
             }
             else
             {
-                _requestInfo.DispatchRuntime = _requestInfo.Endpoint.DispatchRuntime;
+                requestInfo.DispatchRuntime = requestInfo.Endpoint.DispatchRuntime;
             }
         }
 
@@ -492,11 +492,11 @@ namespace CoreWCF.Dispatcher
         }
 
 
-        void ProvideFault(Exception e, ref ErrorHandlerFaultInfo faultInfo)
+        void ProvideFault(Exception e, RequestInfo requestInfo, ref ErrorHandlerFaultInfo faultInfo)
         {
             if (_serviceDispatcher != null)
             {
-                _serviceDispatcher.ChannelDispatcher.ProvideFault(e, _requestInfo.Channel == null ? _binder.Channel.GetProperty<FaultConverter>() : _requestInfo.Channel.GetProperty<FaultConverter>(), ref faultInfo);
+                _serviceDispatcher.ChannelDispatcher.ProvideFault(e, requestInfo.Channel == null ? _binder.Channel.GetProperty<FaultConverter>() : requestInfo.Channel.GetProperty<FaultConverter>(), ref faultInfo);
             }
             // No client yet
             //else if (_channel != null)
@@ -534,22 +534,22 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private Task HandleErrorAsync(Exception e, RequestContext request, ServiceChannel channel)
+        private Task HandleErrorAsync(Exception e, RequestContext request, RequestInfo requestInfo, ServiceChannel channel)
         {
             var faultInfo = new ErrorHandlerFaultInfo(_messageVersion.Addressing.DefaultFaultAction);
-            return ProvideFaultAndReplyFailureAsync(request, e, faultInfo);
+            return ProvideFaultAndReplyFailureAsync(request, requestInfo, e, faultInfo);
         }
 
-        Task ReplyAddressFilterDidNotMatchAsync(RequestContext request)
+        Task ReplyAddressFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
         {
             FaultCode code = FaultCode.CreateSenderFaultCode(AddressingStrings.DestinationUnreachable,
                 _messageVersion.Addressing.Namespace);
             string reason = SR.Format(SR.SFxNoEndpointMatchingAddress, request.RequestMessage.Headers.To);
 
-            return ReplyFailureAsync(request, code, reason);
+            return ReplyFailureAsync(request, requestInfo, code, reason);
         }
 
-        Task ReplyContractFilterDidNotMatchAsync(RequestContext request)
+        Task ReplyContractFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
         {
             // By default, the contract filter is just a filter over the set of initiating actions in 
             // the contract, so we do error messages accordingly
@@ -567,43 +567,43 @@ namespace CoreWCF.Dispatcher
                 FaultCode code = FaultCode.CreateSenderFaultCode(AddressingStrings.ActionNotSupported,
                     _messageVersion.Addressing.Namespace);
                 string reason = SR.Format(SR.SFxNoEndpointMatchingContract, request.RequestMessage.Headers.Action);
-                return ReplyFailureAsync(request, code, reason, _messageVersion.Addressing.FaultAction);
+                return ReplyFailureAsync(request, requestInfo, code, reason, _messageVersion.Addressing.FaultAction);
             }
         }
 
-        private Task ReplyChannelTerminatedAsync(RequestContext request)
+        private Task ReplyChannelTerminatedAsync(RequestContext request, RequestInfo requestInfo)
         {
             FaultCode code = FaultCode.CreateSenderFaultCode(FaultCodeConstants.Codes.SessionTerminated,
                 FaultCodeConstants.Namespaces.NetDispatch);
             string reason = SR.SFxChannelTerminated0;
             string action = FaultCodeConstants.Actions.NetDispatcher;
             Message fault = Message.CreateMessage(_messageVersion, code, reason, action);
-            return ReplyFailureAsync(request, fault, action, reason, code);
+            return ReplyFailureAsync(request, requestInfo, fault, action, reason, code);
         }
 
-        Task ReplyFailureAsync(RequestContext request, FaultCode code, string reason)
+        Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason)
         {
             string action = _messageVersion.Addressing.DefaultFaultAction;
-            return ReplyFailureAsync(request, code, reason, action);
+            return ReplyFailureAsync(request, requestInfo, code, reason, action);
         }
 
-        Task ReplyFailureAsync(RequestContext request, FaultCode code, string reason, string action)
+        Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason, string action)
         {
             Message fault = Message.CreateMessage(_messageVersion, code, reason, action);
-            return ReplyFailureAsync(request, fault, action, reason, code);
+            return ReplyFailureAsync(request, requestInfo, fault, action, reason, code);
         }
 
-        private async Task ReplyFailureAsync(RequestContext request, Message fault, string action, string reason, FaultCode code)
+        private async Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, Message fault, string action, string reason, FaultCode code)
         {
             FaultException exception = new FaultException(reason, code);
             ErrorBehavior.ThrowAndCatch(exception);
             ErrorHandlerFaultInfo faultInfo = new ErrorHandlerFaultInfo(action);
             faultInfo.Fault = fault;
-            faultInfo = await ProvideFaultAndReplyFailureAsync(request, exception, faultInfo);
+            faultInfo = await ProvideFaultAndReplyFailureAsync(request, requestInfo, exception, faultInfo);
             HandleError(exception, ref faultInfo);
         }
 
-        private async Task<ErrorHandlerFaultInfo> ProvideFaultAndReplyFailureAsync(RequestContext request, Exception exception, ErrorHandlerFaultInfo faultInfo)
+        private async Task<ErrorHandlerFaultInfo> ProvideFaultAndReplyFailureAsync(RequestContext request, RequestInfo requestInfo, Exception exception, ErrorHandlerFaultInfo faultInfo)
         {
             bool requestMessageIsFault = false;
             try
@@ -632,7 +632,7 @@ namespace CoreWCF.Dispatcher
 
             if ((!requestMessageIsFault) && enableFaults)
             {
-                ProvideFault(exception, ref faultInfo);
+                ProvideFault(exception, requestInfo, ref faultInfo);
                 if (faultInfo.Fault != null)
                 {
                     Message reply = faultInfo.Fault;
@@ -757,11 +757,11 @@ namespace CoreWCF.Dispatcher
             return Task.CompletedTask;
         }
 
-        private async Task<bool> TryRetrievingInstanceContextAsync(RequestContext request)
+        private async Task<bool> TryRetrievingInstanceContextAsync(RequestContext request, RequestInfo requestInfo)
         {
             try
             {
-                return await TryRetrievingInstanceContextCoreAsync(request);
+                return await TryRetrievingInstanceContextCoreAsync(request, requestInfo);
             }
             catch (Exception ex)
             {
@@ -792,26 +792,26 @@ namespace CoreWCF.Dispatcher
 
         //Return: False denotes failure, Caller should discard the request.
         //      : True denotes operation is sucessful.
-        private async Task<bool> TryRetrievingInstanceContextCoreAsync(RequestContext request)
+        private async Task<bool> TryRetrievingInstanceContextCoreAsync(RequestContext request, RequestInfo requestInfo)
         {
             try
             {
-                if (!_requestInfo.EndpointLookupDone)
+                if (!requestInfo.EndpointLookupDone)
                 {
-                    await EnsureChannelAndEndpointAsync(request);
+                    await EnsureChannelAndEndpointAsync(request, requestInfo);
                 }
 
-                if (_requestInfo.Channel == null)
+                if (requestInfo.Channel == null)
                 {
                     return false;
                 }
 
-                if (_requestInfo.DispatchRuntime != null)
+                if (requestInfo.DispatchRuntime != null)
                 {
-                    IContextChannel transparentProxy = _requestInfo.Channel.Proxy as IContextChannel;
+                    IContextChannel transparentProxy = requestInfo.Channel.Proxy as IContextChannel;
                     try
                     {
-                        _requestInfo.ExistingInstanceContext = _requestInfo.DispatchRuntime.InstanceContextProvider.GetExistingInstanceContext(request.RequestMessage, transparentProxy);
+                        requestInfo.ExistingInstanceContext = requestInfo.DispatchRuntime.InstanceContextProvider.GetExistingInstanceContext(request.RequestMessage, transparentProxy);
                     }
                     catch (Exception e)
                     {
@@ -819,8 +819,8 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        _requestInfo.Channel = null;
-                        await HandleErrorAsync(e, request, _channel);
+                        requestInfo.Channel = null;
+                        await HandleErrorAsync(e, request, requestInfo, _channel);
                         return false;
                     }
                 }
@@ -854,7 +854,7 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                await HandleErrorAsync(e, request, _channel);
+                await HandleErrorAsync(e, request, requestInfo, _channel);
 
                 return false;
             }
@@ -862,7 +862,8 @@ namespace CoreWCF.Dispatcher
             return true;
         }
 
-        struct RequestInfo
+        // TODO: Revert back to struct or pool objects.
+        internal class RequestInfo
         {
             public EndpointDispatcher Endpoint;
             public InstanceContext ExistingInstanceContext;
