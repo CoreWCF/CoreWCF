@@ -2,7 +2,8 @@
 
 namespace CoreWCF
 {
-    internal sealed class XmlSerializerFormatAttribute : Attribute
+    [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = false, AllowMultiple = false)]
+    public sealed class XmlSerializerFormatAttribute : Attribute
     {
         bool supportFaults = false;
         OperationFormatStyle style;

@@ -3,7 +3,7 @@ using CoreWCF.Description;
 
 namespace CoreWCF
 {
-    [AttributeUsage(ServiceModelAttributeTargets.MessageContract, AllowMultiple = false)]
+    [AttributeUsage(CoreWCFAttributeTargets.MessageContract, AllowMultiple = false)]
     public sealed class MessageContractAttribute : Attribute
     {
         bool isWrapped = true;

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace CoreWCF.Runtime
 {
-    class IOThreadScheduler
+    internal class IOThreadScheduler
     {
         // Do not increase the maximum capacity above 32k!  It must be a power of two, 0x8000 or less, in order to
         // work with the strategy for 'headTail'.
-        const int MaximumCapacity = 0x8000;
+        private const int MaximumCapacity = 0x8000;
 
-        static class Bits
+        private static class Bits
         {
             public const int HiShift = 32 / 2;
 
@@ -47,12 +47,10 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static IOThreadScheduler current = new IOThreadScheduler(32, 32);
-        readonly ScheduledOverlapped overlapped;
-
-        readonly Slot[] slots;
-
-        readonly Slot[] slotsLowPri;
+        private static IOThreadScheduler current = new IOThreadScheduler(32, 32);
+        private readonly ScheduledOverlapped overlapped;
+        private readonly Slot[] slots;
+        private readonly Slot[] slotsLowPri;
 
         // This field holds both the head (HiWord) and tail (LoWord) indices into the slot array.  This limits each
         // value to 64k.  In order to be able to distinguish wrapping the slot array (allowed) from wrapping the
@@ -65,13 +63,13 @@ namespace CoreWCF.Runtime
         //
         // When the tail is *two* slots ahead of the head (equivalent to a count of -1), that means the IOTS is
         // idle.  Hence, we start out headTail with a -2 (equivalent) in the head and zero in the tail.
-        int headTail = -2 << Bits.HiShift;
+        private int headTail = -2 << Bits.HiShift;
 
         // This field is the same except that it governs the low-priority work items.  It doesn't have a concept
         // of idle (-2) so starts empty (-1).
-        int headTailLowPri = -1 << Bits.HiShift;
+        private int headTailLowPri = -1 << Bits.HiShift;
 
-        IOThreadScheduler(int capacity, int capacityLowPri)
+        private IOThreadScheduler(int capacity, int capacityLowPri)
         {
             Fx.Assert(capacity > 0, "Capacity must be positive.");
             Fx.Assert(capacity <= 0x8000, "Capacity cannot exceed 32k.");
@@ -127,7 +125,7 @@ namespace CoreWCF.Runtime
         }
 
         // Returns true if successfully scheduled, false otherwise.
-        bool ScheduleCallbackHelper(Action<object> callback, object state)
+        private bool ScheduleCallbackHelper(Action<object> callback, object state)
         {
             // See if there's a free slot.  Fortunately the overflow bit is simply lost.
             int slot = Interlocked.Add(ref headTail, Bits.HiOne);
@@ -171,7 +169,7 @@ namespace CoreWCF.Runtime
         }
 
         // Returns true if successfully scheduled, false otherwise.
-        bool ScheduleCallbackLowPriHelper(Action<object> callback, object state)
+        private bool ScheduleCallbackLowPriHelper(Action<object> callback, object state)
         {
             // See if there's a free slot.  Fortunately the overflow bit is simply lost.
             int slot = Interlocked.Add(ref headTailLowPri, Bits.HiOne);
@@ -226,7 +224,7 @@ namespace CoreWCF.Runtime
             return queued;
         }
 
-        void CompletionCallback(out Action<object> callback, out object state)
+        private void CompletionCallback(out Action<object> callback, out object state)
         {
             int slot = headTail;
             int slotLowPri;
@@ -297,7 +295,7 @@ namespace CoreWCF.Runtime
             return;
         }
 
-        bool TryCoalesce(out Action<object> callback, out object state)
+        private bool TryCoalesce(out Action<object> callback, out object state)
         {
             int slot = headTail;
             int slotLowPri;
@@ -334,7 +332,7 @@ namespace CoreWCF.Runtime
             return false;
         }
 
-        int SlotMask
+        private int SlotMask
         {
             get
             {
@@ -342,7 +340,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        int SlotMaskLowPri
+        private int SlotMaskLowPri
         {
             get
             {
@@ -366,7 +364,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        void Cleanup()
+        private void Cleanup()
         {
             if (overlapped != null)
             {
@@ -399,7 +397,7 @@ namespace CoreWCF.Runtime
                 }
             }
         }
-#endif 
+#endif
 
         // TryEnqueueWorkItem and DequeueWorkItem use the slot's 'gate' field for synchronization.  Because the
         // slot array is circular and there are no locks, we must assume that multiple threads can be entering each
@@ -436,11 +434,11 @@ namespace CoreWCF.Runtime
         //   -  When the high bit is set, callback is null.
         //   -  It's illegal for the gate to be in a state that would satisfy more than one of these conditions.
         //   -  The state field follows the same rules as callback.
-        struct Slot
+        private struct Slot
         {
-            int gate;
-            Action<object> callback;
-            object state;
+            private int gate;
+            private Action<object> callback;
+            private object state;
 
             public bool TryEnqueueWorkItem(Action<object> callback, object state, out bool wrapped)
             {
@@ -556,22 +554,37 @@ namespace CoreWCF.Runtime
         // Therefore, we are passing the reference, when we post a pending callback and reset it, once the callback was
         // invoked; during that time the scheduler is rooted but in that time we don't want that it would be collected
         // by the GC anyway.
-        unsafe class ScheduledOverlapped
+        private unsafe class ScheduledOverlapped
         {
-            readonly NativeOverlapped* nativeOverlapped;
-            IOThreadScheduler scheduler;
+            private static bool s_isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            private readonly NativeOverlapped* _nativeOverlapped;
+            private IOThreadScheduler _scheduler;
+            private Action _postDelegate;
 
             public ScheduledOverlapped()
             {
-                nativeOverlapped = (new Overlapped()).UnsafePack(
-                    Fx.ThunkCallback(new IOCompletionCallback(IOCallback)), null);
+                if (s_isWindows)
+                {
+                    _nativeOverlapped = (new Overlapped()).UnsafePack(
+                        Fx.ThunkCallback(new IOCompletionCallback(IOCallback)), null);
+                    _postDelegate = PostIOCP;
+                }
+                else
+                {
+                    _postDelegate = PostNewThread;
+                }
             }
 
-            void IOCallback(uint errorCode, uint numBytes, NativeOverlapped* nativeOverlapped)
+            private void IOCallback(uint errorCode, uint numBytes, NativeOverlapped* nativeOverlapped)
+            {
+                Callback();
+            }
+
+            private void Callback()
             {
                 // Unhook the IOThreadScheduler ASAP to prevent it from leaking.
-                IOThreadScheduler iots = scheduler;
-                scheduler = null;
+                IOThreadScheduler iots = _scheduler;
+                _scheduler = null;
                 Fx.Assert(iots != null, "Overlapped completed without a scheduler.");
 
                 Action<object> callback;
@@ -604,20 +617,31 @@ namespace CoreWCF.Runtime
 
             public void Post(IOThreadScheduler iots)
             {
-                Fx.Assert(scheduler == null, "Post called on an overlapped that is already posted.");
+                Fx.Assert(_scheduler == null, "Post called on an overlapped that is already posted.");
                 Fx.Assert(iots != null, "Post called with a null scheduler.");
 
-                scheduler = iots;
-                ThreadPool.UnsafeQueueNativeOverlapped(nativeOverlapped);
+                _scheduler = iots;
+                _postDelegate();
+            }
+
+            private void PostIOCP()
+            {
+                ThreadPool.UnsafeQueueNativeOverlapped(_nativeOverlapped);
+            }
+
+            private void PostNewThread()
+            {
+                var thread = new Thread(new ThreadStart(Callback));
+                thread.Start();
             }
 
             public void Cleanup()
             {
-                if (scheduler != null)
+                if (_scheduler != null)
                 {
                     throw Fx.AssertAndThrowFatal("Cleanup called on an overlapped that is in-flight.");
                 }
-                Overlapped.Free(nativeOverlapped);
+                Overlapped.Free(_nativeOverlapped);
             }
         }
     }

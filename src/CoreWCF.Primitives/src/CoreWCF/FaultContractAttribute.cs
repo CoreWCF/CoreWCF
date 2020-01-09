@@ -3,7 +3,7 @@ using CoreWCF.Description;
 
 namespace CoreWCF
 {
-    [AttributeUsage(ServiceModelAttributeTargets.OperationContract, AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(CoreWCFAttributeTargets.OperationContract, AllowMultiple = true, Inherited = false)]
     public sealed class FaultContractAttribute : Attribute
     {
         string action;

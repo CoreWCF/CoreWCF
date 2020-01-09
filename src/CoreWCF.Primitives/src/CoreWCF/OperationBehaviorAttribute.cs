@@ -5,6 +5,7 @@ using CoreWCF.Dispatcher;
 
 namespace CoreWCF
 {
+    [AttributeUsage(CoreWCFAttributeTargets.OperationBehavior)]
     public sealed class OperationBehaviorAttribute : Attribute, IOperationBehavior
     {
         internal const ImpersonationOption DefaultImpersonationOption = ImpersonationOption.NotAllowed;

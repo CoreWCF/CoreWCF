@@ -1,11 +1,10 @@
 ﻿using CoreWCF.Channels;
-using CoreWCF.Primitives.Tests.Helpers;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Xunit;
 
 namespace Helpers
@@ -14,6 +13,7 @@ namespace Helpers
     {
         private Message _requestMessage;
         private string _replyMessageString;
+        private MessageBuffer _bufferedCopy;
 
         public TestRequestContext(Message requestMessage)
         {
@@ -22,7 +22,17 @@ namespace Helpers
 
         public override Message RequestMessage => _requestMessage;
 
-        public Message ReplyMessage { get; private set; }
+        public Message ReplyMessage
+        {
+            get
+            {
+                return _bufferedCopy.CreateMessage();
+            }
+            private set
+            {
+                _bufferedCopy = value.CreateBufferedCopy(int.MaxValue);
+            }
+        }
 
         public override void Abort()
         {
@@ -68,14 +78,8 @@ namespace Helpers
 
         internal static TestRequestContext Create(string toAddress)
         {
-            //MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
-            //var mef = mebe.CreateMessageEncoderFactory();
-            //var me = mef.Encoder;
-            //var requestMessageBytes = Encoding.UTF8.GetBytes(s_requestMessage);
-            //var requestMessage = me.ReadMessage(new ArraySegment<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
             var requestMessage = TestHelper.CreateEchoRequestMessage("aaaaa");
             requestMessage.Headers.To = new Uri(toAddress);
-            //requestMessage.Headers.Action = "http://tempuri.org/ISimpleService/Echo";
             return new TestRequestContext(requestMessage);
         }
 

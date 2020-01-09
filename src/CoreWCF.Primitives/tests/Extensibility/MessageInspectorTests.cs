@@ -2,7 +2,8 @@
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
-using CoreWCF.Primitives.Tests.Helpers;
+using DispatcherClient;
+using Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -13,27 +14,42 @@ namespace Extensibility
         [Fact]
         public static void MessageInspectorCalled()
         {
-            var services = new ServiceCollection();
             var inspector = new TestDispatchMessageInspector();
             var behavior = new TestServiceBehavior { DispatchMessageInspector = inspector };
-            services.AddSingleton<IServiceBehavior>(behavior);
-            TestHelper.BuildDispatcherAndCallDefaultService(services);
+            var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
+            factory.Open();
+            var channel = factory.CreateChannel();
+            var echo = channel.Echo("hello");
+            Assert.Equal("hello", echo);
             Assert.True(inspector.AfterReceiveCalled);
             Assert.True(inspector.BeforeSendCalled);
             Assert.True(inspector.CorrelationStateMatch);
+            ((System.ServiceModel.Channels.IChannel)channel).Close();
+            factory.Close();
+            TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
         }
 
         [Fact]
         public static void ReplacementMessageUsed()
         {
             string replacementEchoString = "bbbbb";
-            var services = new ServiceCollection();
             var inspector = new MessageReplacingDispatchMessageInspector(replacementEchoString);
             var behavior = new TestServiceBehavior { DispatchMessageInspector = inspector };
-            services.AddSingleton<IServiceBehavior>(behavior);
             var service = new DispatcherTestService();
-            TestHelper.BuildDispatcherAndCallService(services, service);
+            var factory = DispatcherHelper.CreateChannelFactory<DispatcherTestService, ISimpleService>(
+                (services) =>
+                {
+                    services.AddSingleton<IServiceBehavior>(behavior);
+                    services.AddSingleton(service);
+                });
+            factory.Open();
+            var channel = factory.CreateChannel();
+            var echo = channel.Echo("hello");
             Assert.Equal(replacementEchoString, service.ReceivedEcho);
+            Assert.Equal(replacementEchoString, echo);
+            ((System.ServiceModel.Channels.IChannel)channel).Close();
+            factory.Close();
+            TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
         }
     }
 

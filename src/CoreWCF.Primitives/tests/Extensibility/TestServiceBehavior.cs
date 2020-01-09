@@ -9,6 +9,7 @@ namespace Extensibility
     public class TestServiceBehavior : IServiceBehavior
     {
         public IDispatchMessageInspector DispatchMessageInspector { get; set; }
+        public TestInstanceProvider InstanceProvider { get; set; }
 
         public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection bindingParameters)
         {
@@ -21,9 +22,17 @@ namespace Extensibility
                 var dispatcher = cdb as ChannelDispatcher;
                 foreach (var endpointDispatcher in dispatcher.Endpoints)
                 {
-                    if (DispatchMessageInspector != null)
+                    if (!endpointDispatcher.IsSystemEndpoint)
                     {
-                        endpointDispatcher.DispatchRuntime.MessageInspectors.Add(DispatchMessageInspector);
+                        if (DispatchMessageInspector != null)
+                        {
+                            endpointDispatcher.DispatchRuntime.MessageInspectors.Add(DispatchMessageInspector);
+                        }
+
+                        if (InstanceProvider != null)
+                        {
+                            endpointDispatcher.DispatchRuntime.InstanceProvider = InstanceProvider;
+                        }
                     }
                 }
             }

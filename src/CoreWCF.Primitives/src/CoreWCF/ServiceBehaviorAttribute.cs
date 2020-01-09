@@ -7,6 +7,7 @@ using CoreWCF.Dispatcher;
 
 namespace CoreWCF
 {
+    [AttributeUsage(CoreWCFAttributeTargets.ServiceBehavior)]
     public sealed class ServiceBehaviorAttribute : Attribute, IServiceBehavior
     {
         private ConcurrencyMode _concurrencyMode;

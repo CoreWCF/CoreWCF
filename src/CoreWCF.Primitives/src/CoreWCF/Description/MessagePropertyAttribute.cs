@@ -3,7 +3,7 @@
 namespace CoreWCF.Description
 {
     // TODO: Make public and add to contract
-    [AttributeUsage(ServiceModelAttributeTargets.MessageMember, Inherited = false)]
+    [AttributeUsage(CoreWCFAttributeTargets.MessageMember, Inherited = false)]
     internal sealed class MessagePropertyAttribute : Attribute
     {
         string _name;

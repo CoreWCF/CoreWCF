@@ -2,7 +2,7 @@
 
 namespace CoreWCF
 {
-    [AttributeUsage(ServiceModelAttributeTargets.ServiceContract | ServiceModelAttributeTargets.OperationContract, Inherited = true, AllowMultiple = true)]
+    [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = true, AllowMultiple = true)]
     public sealed class ServiceKnownTypeAttribute : Attribute
     {
         //Type _declaringType;

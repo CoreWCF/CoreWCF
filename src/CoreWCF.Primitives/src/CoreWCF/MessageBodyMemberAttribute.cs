@@ -2,7 +2,7 @@
 
 namespace CoreWCF
 {
-    [AttributeUsage(ServiceModelAttributeTargets.MessageMember, Inherited = false)]
+    [AttributeUsage(CoreWCFAttributeTargets.MessageMember, Inherited = false)]
     public class MessageBodyMemberAttribute : MessageContractMemberAttribute
     {
         int _order = -1;

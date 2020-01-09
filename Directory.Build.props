@@ -3,11 +3,12 @@
   <PropertyGroup>
     <ProjectDir>$(MSBuildThisFileDirectory)</ProjectDir>
     <SourceDir>$(ProjectDir)src/</SourceDir>
-    
+    <ConfigPathSegment>Debug</ConfigPathSegment>
+	<ConfigPathSegment Condition="'$(Configuration)'!=''">$(Configuration)</ConfigPathSegment>
     <!-- Output directories -->
     <BinDir Condition="'$(BinDir)'==''">$(ProjectDir)bin/</BinDir>
-    <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
-    <BaseIntermediateOutputPath>$(ObjDir)$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <ObjDir Condition="'$(ObjDir)'==''">$(ProjectDir)bin/obj/</ObjDir>
+    <BaseIntermediateOutputPath>$(ObjDir)/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
     <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
     <ProjectAssetsFile>$(BaseIntermediateOutputPath)/project.assets.json</ProjectAssetsFile>
   </PropertyGroup>
@@ -18,25 +19,42 @@
     <CommonTestPath>$(SourceDir)Common/tests</CommonTestPath>
     <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
     <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
-    <IsTestProject>$(AssemblyName.EndsWith(`Tests`))</IsTestProject>
+    <IsTestProject>$(MSBuildProjectName.EndsWith(`Tests`, true, null))</IsTestProject>
   </PropertyGroup>
 
   <!-- Set up the default output and intermediate paths -->
   <PropertyGroup>
-    <OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(MSBuildProjectName)/</OutputPath>
+    <OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(ConfigPathSegment)/$(MSBuildProjectName)/</OutputPath>
     <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(BaseIntermediateOutputPath)</IntermediateOutputRootPath>
     <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)$(MSBuildProjectName)/</IntermediateOutputPath>
   </PropertyGroup>
-  
+
   <!-- Disable the default embedded resource behavior as we have a naming convention which is different than what the SDK uses -->
   <PropertyGroup>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
-  
-  <!-- Common NuGet package properties -->
-  <PropertyGroup>
-    <PackageVersion Condition="'$(PackageVersion)'==''">0.0.1-alpha</PackageVersion>
+
+  <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
+    <PackageReference Include="GitVersionTask" Version="5.1.2">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <!-- Include license file in packages -->
+    <Content Include="$(ProjectDir)LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <UseFullSemVerForNuGet>true</UseFullSemVerForNuGet>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <RepositoryUrl>https://github.com/CoreWCF/CoreWCF</RepositoryUrl>
   </PropertyGroup>
-  
+
+  <PropertyGroup Condition="$(IsTestProject) AND '$(CollectCoverage)' == 'true'">
+    <CoverletOutput Condition="'$(CoverletOutputDir)' != '' AND '$(CoverletOutput)' == ''">$(CoverletOutputDir)/$(MSBuildProjectName).xml</CoverletOutput>
+	<CoverletOutputFormat Condition="'$(CoverletOutputFormat)' == ''">cobertura</CoverletOutputFormat>
+  </PropertyGroup>
+
   <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
 </Project>
