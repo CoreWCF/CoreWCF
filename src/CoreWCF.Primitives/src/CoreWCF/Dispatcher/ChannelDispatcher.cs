@@ -60,7 +60,7 @@ namespace CoreWCF.Dispatcher
             endpointDispatchers = new EndpointDispatcherCollection(this);
             ChannelInitializers = NewBehaviorCollection<IChannelInitializer>();
             channels = new CommunicationObjectManager<IChannel>(ThisLock);
-            this.PendingChannels = new SynchronizedChannelCollection<IChannel>(ThisLock);
+            PendingChannels = new SynchronizedChannelCollection<IChannel>(ThisLock);
             ErrorHandlers = new Collection<IErrorHandler>();
             //this.isTransactedReceive = false;
             //this.asynchronousTransactedAcceptEnabled = false;
@@ -140,11 +140,11 @@ namespace CoreWCF.Dispatcher
 
         internal bool EnableFaults
         {
-            get { return this.shared.EnableFaults; }
+            get { return shared.EnableFaults; }
             set
             {
-                this.ThrowIfDisposedOrImmutable();
-                this.shared.EnableFaults = value;
+                ThrowIfDisposedOrImmutable();
+                shared.EnableFaults = value;
             }
         }
 
@@ -281,7 +281,7 @@ namespace CoreWCF.Dispatcher
 
         internal void InitializeChannel(IClientChannel channel)
         {
-            this.ThrowIfDisposedOrNotOpen();
+            ThrowIfDisposedOrNotOpen();
             try
             {
                 for (int i = 0; i < ChannelInitializers.Count; ++i)
@@ -336,7 +336,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                foreach (EndpointDispatcher endpointDispatcher in this.Endpoints)
+                foreach (EndpointDispatcher endpointDispatcher in Endpoints)
                 {
                     if (!endpointDispatcher.IsSystemEndpoint)
                     {
@@ -416,6 +416,44 @@ namespace CoreWCF.Dispatcher
             }
 
             behavior.ProvideFault(e, faultConverter, ref faultInfo);
+        }
+
+        protected override void Attach(ServiceHostBase host)
+        {
+            if (host == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
+            }
+
+            ServiceHostBase serviceHost = host;
+
+            ThrowIfDisposedOrImmutable();
+
+            if (this.host != null)
+            {
+                Exception error = new InvalidOperationException(SR.SFxChannelDispatcherMultipleHost0);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
+            }
+
+            this.host = serviceHost;
+        }
+
+        protected override void Detach(ServiceHostBase host)
+        {
+            if (host == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
+            }
+
+            if (this.host != host)
+            {
+                Exception error = new InvalidOperationException(SR.SFxChannelDispatcherDifferentHost0);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
+            }
+
+            ThrowIfDisposedOrImmutable();
+
+            this.host = null;
         }
 
         class EndpointDispatcherCollection : SynchronizedCollection<EndpointDispatcher>

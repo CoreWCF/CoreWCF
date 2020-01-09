@@ -83,11 +83,8 @@ namespace CoreWCF.Dispatcher
             releaseInstanceBeforeCall = operation.ReleaseInstanceBeforeCall;
             replyAction = operation.ReplyAction;
             isOneWay = operation.IsOneWay;
-            //this.transactionAutoComplete = operation.TransactionAutoComplete;
-            //this.transactionRequired = operation.TransactionRequired;
             receiveContextAcknowledgementMode = operation.ReceiveContextAcknowledgementMode;
             bufferedReceiveEnabled = operation.BufferedReceiveEnabled;
-            //this.isInsideTransactedReceiveScope = operation.IsInsideTransactedReceiveScope;
 
             if (formatter == null && (deserializeRequest || serializeReply))
             {

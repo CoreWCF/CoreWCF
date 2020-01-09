@@ -8,5 +8,12 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup Condition="$(IsTestProject)">
+    <Compile Include="$(CommonTestPath)/**/*.cs">
+      <Visible>true</Visible>
+      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+  </ItemGroup>
+
   <Import Project="$(ProjectDir)resources.targets" Condition="Exists('$(ProjectDir)resources.targets') And '$(OmitResources)'!='true'" />
 </Project>

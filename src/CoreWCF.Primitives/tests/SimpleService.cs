@@ -1,23 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CoreWCF;
 
-namespace CoreWCF.Primitives.Tests
+class SimpleService : ISimpleService
 {
-    class SimpleService : ISimpleService
+    public string Echo(string echo)
     {
-        public string Echo(string echo)
-        {
-            return echo;
-        }
+        return echo;
     }
+}
 
-    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
-    class SimpleSingletonService : ISimpleService
+[ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+class SimpleSingletonService : ISimpleService
+{
+    public string Echo(string echo)
     {
-        public string Echo(string echo)
-        {
-            return echo;
-        }
+        return echo;
     }
 }

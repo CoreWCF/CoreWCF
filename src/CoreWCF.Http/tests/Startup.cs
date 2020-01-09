@@ -1,14 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using CoreWCF;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using CoreWCF;
-using CoreWCF.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 public class Startup
 {
