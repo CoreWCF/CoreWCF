@@ -1,4 +1,5 @@
 ﻿using CoreWCF;
+using System.Runtime.Serialization;
 
 namespace Contract
 {
@@ -7,5 +8,8 @@ namespace Contract
     {
         [OperationContract]
         string Echo(string text);
+
+        [OperationContract]
+        string ComplexEcho(NetCoreServer.EchoMessage text);
     }
 }
