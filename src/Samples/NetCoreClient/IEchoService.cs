@@ -1,4 +1,5 @@
-﻿using System.ServiceModel;
+﻿using System.Runtime.Serialization;
+using System.ServiceModel;
 
 namespace Contract
 {
@@ -7,5 +8,8 @@ namespace Contract
     {
         [OperationContract]
         string Echo(string text);
+
+        [OperationContract]
+        string ComplexEcho(NetCoreClient.EchoMessage text);
     }
 }
