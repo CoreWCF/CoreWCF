@@ -2,7 +2,11 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
-    <Compile Include="$(CommonPath)/**/*.cs" Exclude="$(CommonPath)/CoreWCF/SR.cs">
+    <Compile Include="$(CommonPath)/CoreWCF/**/*.cs" Exclude="$(CommonPath)/CoreWCF/SR.cs">
+      <Visible>true</Visible>
+      <Link>shared/CoreWCF/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+    <Compile Include="$(CommonPath)/DuplexChannels/**/*.cs" Condition="'$(IncludeSharedDuplexChannelSource)' == 'True'">
       <Visible>true</Visible>
       <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>

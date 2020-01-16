@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Builder;
+using System.Net.WebSockets;
+using System.Net;
 
 namespace CoreWCF.Channels
 {
@@ -58,13 +60,11 @@ namespace CoreWCF.Channels
             httpSettings.TransferMode = tbe.TransferMode;
             httpSettings.KeepAliveEnabled = tbe.KeepAliveEnabled;
             httpSettings.AnonymousUriPrefixMatcher = new HttpAnonymousUriPrefixMatcher();
+            httpSettings.AuthenticationScheme = tbe.AuthenticationScheme;
+
             _httpSettings = httpSettings;
             WebSocketOptions = CreateWebSocketOptions(tbe);
-            if (WebSocketOptions != null)
-            {
-                // TODO: Create duplex WebSocket channel
-            }
-            else
+            if (WebSocketOptions == null)
             {
                 _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider);
                 _channelDispatcher = _serviceDispatcher.CreateServiceChannelDispatcher(_replyChannel);
@@ -103,6 +103,15 @@ namespace CoreWCF.Channels
             }
             requestContext.SetMessage(requestMessage, requestException);
             return _channelDispatcher.DispatchAsync(requestContext, context.RequestAborted);
+        }
+
+        internal async Task HandleDuplexConnection(HttpContext context)
+        {
+            if (context.WebSockets.IsWebSocketRequest)
+            {
+                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                
+            }
         }
     }
 }

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
     [Serializable]
-    internal class SecurityTokenValidationException : SecurityTokenException
+    public class SecurityTokenValidationException : SecurityTokenException
     {
         public SecurityTokenValidationException()
             : base()

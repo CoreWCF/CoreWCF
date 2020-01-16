@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 
 namespace CoreWCF.Channels
 {
@@ -17,5 +18,9 @@ namespace CoreWCF.Channels
         public TransferMode TransferMode { get; set; }
         public bool KeepAliveEnabled { get; set; }
         public IAnonymousUriPrefixMatcher AnonymousUriPrefixMatcher { get; set; }
+        public WebSocketTransportSettings WebSocketSettings { get; set; }
+        public AuthenticationSchemes AuthenticationScheme { get; set; }
+        public bool IsAuthenticationRequired => AuthenticationScheme.IsNotSet(AuthenticationSchemes.Anonymous);
+        public bool IsAuthenticationSupported => AuthenticationScheme != AuthenticationSchemes.Anonymous;
     }
 }

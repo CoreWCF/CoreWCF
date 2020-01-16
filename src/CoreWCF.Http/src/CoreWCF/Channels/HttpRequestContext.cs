@@ -70,16 +70,16 @@ namespace CoreWCF.Channels
         public HttpInput GetHttpInput(bool throwOnError)
         {
             HttpInput httpInput = null;
-            if (throwOnError || !this.errorGettingHttpInput)
+            if (throwOnError || !errorGettingHttpInput)
             {
                 try
                 {
                     httpInput = GetHttpInput();
-                    this.errorGettingHttpInput = false;
+                    errorGettingHttpInput = false;
                 }
                 catch (Exception e)
                 {
-                    this.errorGettingHttpInput = true;
+                    errorGettingHttpInput = true;
                     if (throwOnError || Fx.IsFatal(e))
                     {
                         throw;
@@ -105,36 +105,36 @@ namespace CoreWCF.Channels
 
         public HttpOutput GetHttpOutputCore(Message message)
         {
-            if (this.httpOutput != null)
+            if (httpOutput != null)
             {
-                return this.httpOutput;
+                return httpOutput;
             }
 
-            return this.GetHttpOutput(message);
+            return GetHttpOutput(message);
         }
 
         protected override void OnAbort()
         {
-            if (this.httpOutput != null)
+            if (httpOutput != null)
             {
-                this.httpOutput.Abort(HttpAbortReason.Aborted);
+                httpOutput.Abort(HttpAbortReason.Aborted);
             }
 
-            this.Cleanup();
+            Cleanup();
         }
 
         protected override async Task OnCloseAsync(CancellationToken token)
         {
             try
             {
-                if (this.httpOutput != null)
+                if (httpOutput != null)
                 {
                     await httpOutput.CloseAsync(); ;
                 }
             }
             finally
             {
-                this.Cleanup();
+                Cleanup();
             }
         }
 
@@ -152,7 +152,7 @@ namespace CoreWCF.Channels
                     new XmlException(SR.MessageIsEmpty)));
             }
 
-            this.TraceHttpMessageReceived(message);
+            TraceHttpMessageReceived(message);
 
             if (requestException != null)
             {
@@ -161,7 +161,7 @@ namespace CoreWCF.Channels
             }
             else
             {
-                message.Properties.Security = (this.securityProperty != null) ? (SecurityMessageProperty)this.securityProperty.CreateCopy() : null;
+                message.Properties.Security = (securityProperty != null) ? (SecurityMessageProperty)securityProperty.CreateCopy() : null;
                 base.SetRequestMessage(message);
             }
         }
@@ -215,7 +215,7 @@ namespace CoreWCF.Channels
             }
 
             message.Properties.AllowOutputBatching = false;
-            this.httpOutput = GetHttpOutputCore(message);
+            httpOutput = GetHttpOutputCore(message);
 
             return closeOnReceivedEof;
         }
@@ -227,7 +227,7 @@ namespace CoreWCF.Channels
             try
             {
                 bool closeOutputAfterReply = PrepareReply(ref responseMessage);
-                httpOutput = this.GetHttpOutput(message);
+                httpOutput = GetHttpOutput(message);
                 await httpOutput.SendAsync(token);
 
                 if (closeOutputAfterReply)
@@ -255,7 +255,7 @@ namespace CoreWCF.Channels
                 statusCode = HttpStatusCode.Forbidden;
                 try
                 {
-                    this.securityProperty = OnProcessAuthentication();
+                    securityProperty = OnProcessAuthentication();
                     authenticationSucceeded = true;
                     return true;
                 }
@@ -382,7 +382,7 @@ namespace CoreWCF.Channels
             protected override void OnAbort()
             {
                 _aspNetContext.Abort();
-                this.Cleanup();
+                Cleanup();
             }
 
             protected override Task OnCloseAsync(CancellationToken token)
@@ -412,13 +412,13 @@ namespace CoreWCF.Channels
                     : base(aspNetCoreHttpContext.HttpTransportSettings, true, false /* ChannelBindingSupportEnabled */) 
                 {
                     _aspNetCoreHttpContext = aspNetCoreHttpContext;
-                    if (!this._aspNetCoreHttpContext._aspNetContext.Request.ContentLength.HasValue)
+                    if (!_aspNetCoreHttpContext._aspNetContext.Request.ContentLength.HasValue)
                     {
                         // TODO: Look into useing PipeReader with look-ahead
-                        this.preReadBuffer = new byte[1];
+                        preReadBuffer = new byte[1];
                         if (_aspNetCoreHttpContext._aspNetContext.Request.Body.Read(preReadBuffer, 0, 1) == 0)
                         {
-                            this.preReadBuffer = null;
+                            preReadBuffer = null;
                         }
                     }
                 }

@@ -19,6 +19,12 @@ namespace CoreWCF.Runtime
             _diagnosticTrace = diagnosticTrace;
         }
 
+        public void AsWarning(Exception exception)
+        {
+            //Traces a warning trace message
+            //TraceCore.HandledExceptionWarning(this.diagnosticTrace, exception != null ? exception.ToString() : string.Empty, exception);
+        }
+
         public Exception AsError(Exception exception)
         {
             // AggregateExceptions are automatically unwrapped.
