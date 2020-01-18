@@ -77,16 +77,16 @@ namespace CoreWCF.Dispatcher
             throw TraceUtility.ThrowHelperError(new NotImplementedException(), message);
         }
 
-        public async Task<TryAsyncResult<RequestContext>> TryReceiveAsync(CancellationToken token)
+        public async Task<(RequestContext requestContext, bool success)> TryReceiveAsync(CancellationToken token)
         {
             var result = await channel.TryReceiveAsync(token);
-            if (result.Success)
+            if (result.success)
             {
-                return TryAsyncResult.FromResult(WrapMessage(result.Result));
+                return (WrapMessage(result.message), true);
             }
             else
             {
-                return TryAsyncResult<RequestContext>.FailedResult;
+                return (null, false);
             }
         }
 

@@ -96,13 +96,13 @@ namespace CoreWCF.Channels
         {
         }
 
-        protected async Task<TryAsyncResult<TDisposable>> DequeueAsync(CancellationToken token)
+        protected async Task<(TDisposable result, bool success)> DequeueAsync(CancellationToken token)
         {
             ThrowIfNotOpened();
             var result = await inputQueue.TryDequeueAsync(token);
-            bool dequeued = result.Success;
+            bool dequeued = result.success;
 
-            if (result.Result == null)
+            if (result.result == null)
             {
                 ThrowIfFaulted();
                 ThrowIfAborted();

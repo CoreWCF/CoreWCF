@@ -14,7 +14,7 @@ namespace CoreWCF.Dispatcher
         EndpointAddress RemoteAddress { get; }
         void Abort();
         void CloseAfterFault(TimeSpan timeout);
-        Task<TryAsyncResult<RequestContext>> TryReceiveAsync(CancellationToken token);
+        Task<(RequestContext requestContext, bool success)> TryReceiveAsync(CancellationToken token);
         Task SendAsync(Message message, CancellationToken token);
         Task<Message> RequestAsync(Message message, CancellationToken token);
         Task<bool> WaitForMessageAsync(CancellationToken token);

@@ -306,30 +306,30 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        public async Task<TryAsyncResult<RequestContext>> TryReceiveAsync(CancellationToken token)
+        public async Task<(RequestContext requestContext, bool success)> TryReceiveAsync(CancellationToken token)
         {
             if (channel.State == CommunicationState.Faulted)
             {
                 AbortRequests();
-                return TryAsyncResult.FromResult((RequestContext)null);
+                return (null, true);
             }
 
             var result = await channel.TryReceiveAsync(token);
-            if (result.Success)
+            if (result.success)
             {
-                if (result.Result != null)
+                if (result.message != null)
                 {
-                    return TryAsyncResult.FromResult((RequestContext)new DuplexRequestContext(channel, result.Result, this));
+                    return (new DuplexRequestContext(channel, result.message, this), result.success);
                 }
                 else
                 {
                     AbortRequests();
-                    return TryAsyncResult.FromResult((RequestContext)null);
+                    return (null, true);
                 }
             }
             else
             {
-                return TryAsyncResult<RequestContext>.FailedResult;
+                return (null, false);
             }
         }
 
@@ -381,24 +381,24 @@ namespace CoreWCF.Dispatcher
                     for (;;)
                     {
                         var result = await channel.TryReceiveAsync(token);
-                        if (!result.Success)
+                        if (!result.success)
                         {
                             // TODO: Derive CancellationToken to attach timeout
                             throw TraceUtility.ThrowHelperError(GetReceiveTimeoutException(TimeSpan.Zero), message);
                         }
 
-                        if (result.Result == null)
+                        if (result.message == null)
                         {
                             AbortRequests();
                             return null;
                         }
 
-                        if (result.Result.Headers.RelatesTo == messageId)
+                        if (result.message.Headers.RelatesTo == messageId)
                         {
-                            ThrowIfInvalidReplyIdentity(result.Result);
-                            return result.Result;
+                            ThrowIfInvalidReplyIdentity(result.message);
+                            return result.message;
                         }
-                        else if (!HandleRequestAsReply(result.Result))
+                        else if (!HandleRequestAsReply(result.message))
                         {
                             // SFx drops a message here
                             //if (DiagnosticUtility.ShouldTraceInformation)
@@ -410,7 +410,7 @@ namespace CoreWCF.Dispatcher
                             //    }
                             //    TraceUtility.TraceDroppedMessage(reply, dispatcher);
                             //}
-                            result.Result.Close();
+                            result.message.Close();
                         }
                     }
                 }
@@ -832,7 +832,7 @@ namespace CoreWCF.Dispatcher
                 return pendingMessages.DequeueAsync(token);
             }
 
-            public Task<TryAsyncResult<Message>> TryReceiveAsync(CancellationToken token)
+            public Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token)
             {
                 return pendingMessages.TryDequeueAsync(token);
             }

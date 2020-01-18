@@ -203,10 +203,8 @@ namespace CoreWCF.Channels
 
         public System.Threading.Tasks.Task OpenAsync()
         {
-            // TODO: Switch to TimeoutHelper from client
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(DefaultCloseTimeout);
-            return OpenAsync(cts.Token);
+            var token = new TimeoutHelper(DefaultOpenTimeout).GetCancellationToken();
+            return OpenAsync(token);
         }
 
         public async Task OpenAsync(CancellationToken token)

@@ -1,8 +1,6 @@
 ﻿using CoreWCF.Diagnostics;
 using CoreWCF.Runtime;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CoreWCF.Channels
 {

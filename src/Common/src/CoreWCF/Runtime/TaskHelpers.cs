@@ -512,6 +512,52 @@ namespace CoreWCF.Runtime
         }
     }
 
+    internal class ResettableAsyncWaitable
+    {
+        private TaskCompletionSource<object> _tcs = null;
+
+        public bool IsSet => _tcs?.Task.IsCompleted ?? false;
+
+        public void Reset()
+        {
+            if (!(_tcs?.Task.IsCompleted ?? true))
+            {
+                Fx.Exception.AsError(new InvalidOperationException(nameof(Reset)));
+            }
+
+            Interlocked.Exchange(ref _tcs, null);
+        }
+
+        public void Set()
+        {
+            var tcs = _tcs;
+            if (tcs == null)
+            {
+                var temp = CreateTcs();
+                tcs = Interlocked.CompareExchange(ref _tcs, temp, null) ?? temp;
+            }
+
+            tcs.TrySetResult(null);
+        }
+
+        public TaskAwaiter<object> GetAwaiter()
+        {
+            var tcs = _tcs;
+            if (tcs == null)
+            {
+                var temp = CreateTcs();
+                tcs = Interlocked.CompareExchange(ref _tcs, temp, null) ?? temp;
+            }
+
+            return tcs.Task.GetAwaiter();
+        }
+
+        private TaskCompletionSource<object> CreateTcs()
+        {
+            return new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+    }
+
     // Async methods can't take an out (or ref) argument. This wrapper allows passing in place of an out argument
     // and can be used to return a value via a method argument.
     internal class OutWrapper<T>

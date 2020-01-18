@@ -64,7 +64,7 @@ namespace CoreWCF.Dispatcher
         // will wait on the inputQueue. The semaphore is always released right before the Dispatch on the inputQueue.
         // This protects a new call racing with an existing operation that is just about to fully complete.
 
-        public async Task<TryAsyncResult<RequestContext>> TryReceiveAsync(CancellationToken token)
+        public async Task<(RequestContext requestContext, bool success)> TryReceiveAsync(CancellationToken token)
         {
             if (Interlocked.CompareExchange(ref pendingOperationSemaphore, 1, 0) == 0)
             {
@@ -72,15 +72,15 @@ namespace CoreWCF.Dispatcher
             }
 
             var result = await inputQueue.TryDequeueAsync(token);
-            bool success = result.Success;
-            RequestContextWrapper wrapper = result.Result;
+            bool success = result.success;
+            RequestContextWrapper wrapper = result.result;
 
             if (success && wrapper != null)
             {
-                return TryAsyncResult.FromResult(wrapper.RequestContext);
+                return (wrapper.RequestContext, success);
             }
 
-            return TryAsyncResult<RequestContext>.FailedResult;
+            return (null, false);
 
         }
 
@@ -121,10 +121,10 @@ namespace CoreWCF.Dispatcher
             bool requiresDispatch = false;
             try
             {
-                var result = await binder.channelBinder.TryReceiveAsync(CancellationToken.None);
-                if (result.Success)
+                var (context, success) = await binder.channelBinder.TryReceiveAsync(CancellationToken.None);
+                if (success)
                 {
-                    requiresDispatch = binder.inputQueue.EnqueueWithoutDispatch(new RequestContextWrapper(result.Result), null);
+                    requiresDispatch = binder.inputQueue.EnqueueWithoutDispatch(new RequestContextWrapper(context), null);
                 }
             }
             catch (Exception exception)

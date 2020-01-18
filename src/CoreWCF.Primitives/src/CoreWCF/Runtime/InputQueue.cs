@@ -72,19 +72,19 @@ namespace CoreWCF.Runtime
 
         public async Task<T> DequeueAsync(CancellationToken token)
         {
-            TryAsyncResult<T> result = await TryDequeueAsync(token);
+            var dequeued = await TryDequeueAsync(token);
 
-            if (!result.Success)
+            if (!dequeued.success)
             {
                 // TODO: Create derived CancellationToken which carries original timeout with it
                 throw Fx.Exception.AsError(new TimeoutException(SR.Format(SR.TimeoutInputQueueDequeue, null)));
             }
 
-            return result.Result;
+            return dequeued.result;
 
         }
 
-        public async Task<TryAsyncResult<T>> TryDequeueAsync(CancellationToken token)
+        public async Task<(T result, bool success)> TryDequeueAsync(CancellationToken token)
         {
             WaitQueueReader reader = null;
             Item item = new Item();
@@ -116,12 +116,12 @@ namespace CoreWCF.Runtime
                     }
                     else
                     {
-                        return TryAsyncResult.FromResult(default(T));
+                        return (default(T), true);
                     }
                 }
                 else // queueState == QueueState.Closed
                 {
-                    return TryAsyncResult.FromResult(default(T));
+                    return (default(T), true);
                 }
             }
 
@@ -132,7 +132,7 @@ namespace CoreWCF.Runtime
             else
             {
                 InvokeDequeuedCallback(item.DequeuedCallback);
-                return TryAsyncResult.FromResult(item.GetValue());
+                return (item.GetValue(), true);
             }
         }
 
@@ -791,7 +791,7 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            public async Task<TryAsyncResult<T>> WaitAsync(CancellationToken token)
+            public async Task<(T result, bool success)> WaitAsync(CancellationToken token)
             {
                 bool isSafeToClose = false;
                 try
@@ -801,7 +801,7 @@ namespace CoreWCF.Runtime
                         if (inputQueue.RemoveReader(this))
                         {
                             isSafeToClose = true;
-                            return TryAsyncResult<T>.FailedResult;
+                            return (null, false);
                         }
                         else
                         {
@@ -824,7 +824,7 @@ namespace CoreWCF.Runtime
                     throw Fx.Exception.AsError(exception);
                 }
 
-                return TryAsyncResult.FromResult(item);
+                return (item, true);
             }
         }
 

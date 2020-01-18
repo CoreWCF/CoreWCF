@@ -332,7 +332,10 @@ namespace CoreWCF.Dispatcher
 
         internal void EnsureReceive()
         {
-            RequestContext.OnOperationInvoke();
+            //using (ServiceModelActivity.BoundOperation(this.Activity))
+            //{
+                this.channelHandler.EnsureReceive();
+            //}
         }
 
         bool ProcessError(Exception e)

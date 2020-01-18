@@ -47,9 +47,9 @@ namespace CoreWCF.Channels
         internal static async Task<RequestContext> HelpReceiveRequestAsync(IReplyChannel channel, CancellationToken token)
         {
             var result = await channel.TryReceiveRequestAsync(token);
-            if (result.Success)
+            if (result.success)
             {
-                return result.Result;
+                return result.requestContext;
             }
             else
             {
@@ -89,11 +89,11 @@ namespace CoreWCF.Channels
             return ReplyChannel.HelpReceiveRequestAsync(this, token);
         }
 
-        public Task<TryAsyncResult<RequestContext>> TryReceiveRequestAsync(CancellationToken token)
+        public Task<(RequestContext requestContext, bool success)> TryReceiveRequestAsync(CancellationToken token)
         {
             if (token.IsCancellationRequested)
             {
-                return Task.FromCanceled<TryAsyncResult<RequestContext>>(token);
+                return Task.FromCanceled<(RequestContext requestContext, bool success)>(token);
             }
 
             ThrowPending();

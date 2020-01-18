@@ -53,7 +53,7 @@ namespace CoreWCF.Channels
             return InputChannel.HelpReceiveAsync(this, token);
         }
 
-        public virtual Task<TryAsyncResult<Message>> TryReceiveAsync(CancellationToken token)
+        public virtual Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token)
         {
             ThrowPending();
             return base.DequeueAsync(token);
@@ -69,9 +69,9 @@ namespace CoreWCF.Channels
         internal static async Task<Message> HelpReceiveAsync(IInputChannel channel, CancellationToken token)
         {
             var result = await channel.TryReceiveAsync(token);
-            if (result.Success)
+            if (result.success)
             {
-                return result.Result;
+                return result.message;
             }
             else
             {

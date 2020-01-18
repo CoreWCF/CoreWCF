@@ -69,7 +69,7 @@ namespace CoreWCF.Channels
             throw new NotImplementedException();
         }
 
-        public Task<TryAsyncResult<RequestContext>> TryReceiveRequestAsync(CancellationToken token)
+        public Task<(RequestContext requestContext, bool success)> TryReceiveRequestAsync(CancellationToken token)
         {
             throw new NotImplementedException();
         }

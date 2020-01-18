@@ -10,5 +10,6 @@ namespace CoreWCF.Configuration
     public interface IServiceChannelDispatcher
     {
         Task DispatchAsync(RequestContext request, CancellationToken token);
+        Task DispatchAsync();
     }
 }

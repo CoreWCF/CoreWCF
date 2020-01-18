@@ -2,6 +2,7 @@
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using System;
+using System.Diagnostics;
 using System.Security.Authentication.ExtendedProtection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,6 @@ namespace CoreWCF.Channels
         IDuplexSession _duplexSession;
         bool _isInputSessionClosed;
         bool _isOutputSessionClosed;
-        SynchronizedMessageSource messageSource;
         EndpointAddress _localAddress;
         ChannelBinding _channelBindingToken;
 
@@ -54,10 +54,7 @@ namespace CoreWCF.Channels
 
         protected MessageEncoder MessageEncoder { get; set; }
 
-        protected SynchronizedMessageSource MessageSource
-        {
-            get { return this.messageSource; }
-        }
+        protected SynchronizedMessageSource MessageSource { get; private set; }
 
         protected abstract bool IsStreamedOutput { get; }
 
@@ -77,8 +74,8 @@ namespace CoreWCF.Channels
             bool shouldFault = true;
             try
             {
-                message = await this.messageSource.ReceiveAsync(token);
-                this.OnReceiveMessage(message);
+                message = await MessageSource.ReceiveAsync(token);
+                OnReceiveMessage(message);
                 shouldFault = false;
                 return message;
             }
@@ -92,19 +89,51 @@ namespace CoreWCF.Channels
                         message = null;
                     }
 
-                    this.Fault();
+                    Fault();
                 }
             }
         }
 
-        public Task<TryAsyncResult<Message>> TryReceiveAsync(CancellationToken token)
+        public async Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return (await ReceiveAsync(token), true);
+            }
+            catch (TimeoutException e)
+            {
+                //if (TD.ReceiveTimeoutIsEnabled())
+                //{
+                //    TD.ReceiveTimeout(e.Message);
+                //}
+
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+
+                return (null, false);
+            }
         }
 
-        public Task<bool> WaitForMessageAsync(CancellationToken token)
+        public async Task<bool> WaitForMessageAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            if (this.DoneReceivingInCurrentState())
+            {
+                return true;
+            }
+
+            bool shouldFault = true;
+            try
+            {
+                bool success = await MessageSource.WaitForMessageAsync(token);
+                shouldFault = !success; // need to fault if we've timed out because we're now toast
+                return success;
+            }
+            finally
+            {
+                if (shouldFault)
+                {
+                    Fault();
+                }
+            }
         }
 
         protected void SetChannelBinding(ChannelBinding channelBinding)
@@ -164,7 +193,7 @@ namespace CoreWCF.Channels
 
         protected void SetMessageSource(IMessageSource messageSource)
         {
-            this.messageSource = new SynchronizedMessageSource(messageSource);
+            this.MessageSource = new SynchronizedMessageSource(messageSource);
         }
 
         protected abstract Task CloseOutputSessionCoreAsync(CancellationToken token);
@@ -221,6 +250,44 @@ namespace CoreWCF.Channels
         protected void ApplyChannelBinding(Message message)
         {
             ChannelBindingUtility.TryAddToMessage(_channelBindingToken, message, false);
+        }
+
+        protected virtual void PrepareMessage(Message message)
+        {
+            message.Properties.Via = this.LocalVia;
+
+            this.ApplyChannelBinding(message);
+
+            //if (FxTrace.Trace.IsEnd2EndActivityTracingEnabled)
+            //{
+            //    EventTraceActivity eventTraceActivity = EventTraceActivityHelper.TryExtractActivity(message);
+            //    Guid relatedActivityId = EventTraceActivity.GetActivityIdFromThread();
+            //    if (eventTraceActivity == null)
+            //    {
+            //        eventTraceActivity = EventTraceActivity.GetFromThreadOrCreate();
+            //        EventTraceActivityHelper.TryAttachActivity(message, eventTraceActivity);
+            //    }
+
+            //    if (TD.MessageReceivedByTransportIsEnabled())
+            //    {
+            //        TD.MessageReceivedByTransport(
+            //            eventTraceActivity,
+            //            this.LocalAddress != null && this.LocalAddress.Uri != null ? this.LocalAddress.Uri.AbsoluteUri : string.Empty,
+            //            relatedActivityId);
+            //    }
+            //}
+
+            //if (DiagnosticUtility.ShouldTraceInformation)
+            //{
+            //    TraceUtility.TraceEvent(
+            //                 TraceEventType.Information,
+            //                 TraceCode.MessageReceived,
+            //                 SR.GetString(SR.TraceCodeMessageReceived),
+            //                 MessageTransmitTraceRecord.CreateReceiveTraceRecord(message, this.LocalAddress),
+            //                 this,
+            //                 null,
+            //                 message);
+            //}
         }
 
         protected abstract Task CloseOutputAsync(CancellationToken token);

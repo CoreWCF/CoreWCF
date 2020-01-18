@@ -8,7 +8,7 @@ namespace CoreWCF.Channels
         EndpointAddress LocalAddress { get; }
         Task<RequestContext> ReceiveRequestAsync();
         Task<RequestContext> ReceiveRequestAsync(CancellationToken token);
-        Task<TryAsyncResult<RequestContext>> TryReceiveRequestAsync(CancellationToken token);
+        Task<(RequestContext requestContext, bool success)> TryReceiveRequestAsync(CancellationToken token);
         Task<bool> WaitForRequestAsync(CancellationToken token);
     }
 }
