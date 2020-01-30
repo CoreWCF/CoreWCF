@@ -1,48 +1,88 @@
-﻿using System.Net.Http.Headers;
+﻿using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
+using System;
+using System.Net;
+using System.Net.Http.Headers;
 
 namespace CoreWCF.Channels
 {
     public sealed class HttpRequestMessageProperty : IMessageProperty
     {
-        private string _method;
+        private HttpContextBackedProperty _httpContextBackedProperty;
 
-        private string _queryString;
-
-        public HttpHeaders Headers { get; } = new ServiceModelHttpHeaders();
-
-        public string Method
+        internal HttpRequestMessageProperty(HttpContext httpContext)
         {
-            get { return _method; }
-            set
-            {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _method = value;
-            }
+            _httpContextBackedProperty = new HttpContextBackedProperty(httpContext);
         }
 
         public static string Name => "httpRequest";
 
-        public string QueryString
-        {
-            get { return _queryString; }
-            set
-            {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
+        public WebHeaderCollection Headers => _httpContextBackedProperty.Headers;
 
-                _queryString = value;
-            }
-        }
+        public string Method => _httpContextBackedProperty.Method;
+
+        public string QueryString => _httpContextBackedProperty.QueryString;
+
+        public bool SuppressEntityBody => _httpContextBackedProperty.SuppressEntityBody;
 
         IMessageProperty IMessageProperty.CreateCopy()
         {
             return this;
+        }
+
+        private class HttpContextBackedProperty
+        {
+            public HttpContextBackedProperty(HttpContext httpContext)
+            {
+                Fx.Assert(httpContext != null, "The 'httpResponseMessage' property should never be null.");
+
+                HttpContext = httpContext;
+            }
+
+            public HttpContext HttpContext { get; private set; }
+
+            private WebHeaderCollection _headers;
+
+            public WebHeaderCollection Headers
+            {
+                get
+                {
+                    if (_headers == null)
+                    {
+                        _headers = HttpContext.Request.ToWebHeaderCollection();
+                    }
+
+                    return _headers;
+                }
+            }
+
+            public string Method => HttpContext.Request.Method;
+
+            public string QueryString
+            {
+                get
+                {
+                    string query = HttpContext.Request.QueryString.Value;
+                    return query.Length == 0 ? string.Empty : query.Substring(1);
+                }
+            }
+
+            public bool SuppressEntityBody
+            {
+                get
+                {
+                    long? contentLength = HttpContext.Request.ContentLength;
+
+                    if (!contentLength.HasValue ||
+                        (contentLength.HasValue && contentLength.Value > 0))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
         }
     }
 }

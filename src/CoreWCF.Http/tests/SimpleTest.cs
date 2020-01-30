@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
@@ -34,6 +37,23 @@ namespace BasicHttp
                 var channel = factory.CreateChannel();
                 var result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
+            }
+        }
+
+        internal class Startup
+        {
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.EchoService>();
+                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                });
             }
         }
     }
