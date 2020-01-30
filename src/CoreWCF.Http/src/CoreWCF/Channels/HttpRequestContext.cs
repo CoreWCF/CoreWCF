@@ -456,19 +456,7 @@ namespace CoreWCF.Channels
                 protected override void AddProperties(Message message)
                 {
                     var request = _aspNetCoreHttpContext._aspNetContext.Request;
-                    HttpRequestMessageProperty requestProperty = new HttpRequestMessageProperty();
-                    requestProperty.Method = request.Method;
-                    foreach (var header in request.Headers)
-                    {
-                        requestProperty.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
-                    }
-
-                    // TODO: Uri.Query always includes the '?', check if the same is true for ASP.NET Core
-                    if (request.QueryString.HasValue)
-                    {
-                        requestProperty.QueryString = request.QueryString.Value.Substring(1);
-                    }
-
+                    var requestProperty = new HttpRequestMessageProperty(_aspNetCoreHttpContext._aspNetContext);
                     message.Properties.Add(HttpRequestMessageProperty.Name, requestProperty);
                     // TODO: Test the Via code
                     message.Properties.Via = new Uri(string.Concat(
