@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Security;
 
 namespace CoreWCF.Dispatcher
@@ -90,6 +91,7 @@ namespace CoreWCF.Dispatcher
                 var outputPos = outputParamPositions.ToArray();
                 outputParameterCount = outputPos.Length;
 
+                // TODO: Replace with expression to remove performance cost of calling delegate.Invoke.
                 InvokeDelegate lambda = delegate (object target, object[] inputs, object[] outputs)
                 {
                     object[] inputsLocal = null;
@@ -101,15 +103,24 @@ namespace CoreWCF.Dispatcher
                             inputsLocal[i] = inputs[i];
                         }
                     }
+
                     object result = null;
-                    if (returnsValue)
+                    try
                     {
-                        result = method.Invoke(target, inputsLocal);
+                        if (returnsValue)
+                        {
+                            result = method.Invoke(target, inputsLocal);
+                        }
+                        else
+                        {
+                            method.Invoke(target, inputsLocal);
+                        }
                     }
-                    else
+                    catch(TargetInvocationException tie)
                     {
-                        method.Invoke(target, inputsLocal);
+                        ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
                     }
+
                     for (var i = 0; i < outputPos.Length; i++)
                     {
                         outputs[i] = inputs[outputPos[i]];

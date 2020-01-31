@@ -14,7 +14,7 @@ using System.Diagnostics;
 namespace CoreWCF.Dispatcher
 {
     delegate Task<MessageRpc> MessageRpcProcessor(MessageRpc rpc);
-    delegate void MessageRpcErrorHandler(MessageRpc rpc);
+    delegate Task MessageRpcErrorHandler(MessageRpc rpc);
 
     // TODO: Pool MessageRpc objects. These are zero cost on .NET Framework as it's a struct but passing things by ref is problematic
     // when using async/await. This causes an allocation per request so pool them to remove that allocation.

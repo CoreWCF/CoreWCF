@@ -22,12 +22,10 @@ namespace CoreWCF.Dispatcher
             {
                 handlers = EmptyArray<IErrorHandler>.ToArray(channelDispatcher.ErrorHandlers);
             }
-            //debug = channelDispatcher.IncludeExceptionDetailInFaults;
-            debug = true;
+            debug = channelDispatcher.IncludeExceptionDetailInFaults;
             //isOnServer = channelDispatcher.IsOnServer;
             isOnServer = true;
-            //messageVersion = channelDispatcher.MessageVersion;
-            messageVersion = MessageVersion.Soap11;
+            messageVersion = channelDispatcher.MessageVersion;
         }
 
         void InitializeFault(MessageRpc rpc)

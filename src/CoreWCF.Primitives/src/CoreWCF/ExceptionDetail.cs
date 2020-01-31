@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CoreWCF
 {
-    [DataContract]
+    [DataContract(Namespace = "http://schemas.datacontract.org/2004/07/System.ServiceModel")]
     public class ExceptionDetail
     {
         public ExceptionDetail(Exception exception)
