@@ -284,7 +284,7 @@ namespace CoreWCF.Dispatcher
 
         internal Task<MessageRpc> DispatchAsync(MessageRpc rpc, bool isOperationContextSet)
         {
-            rpc.ErrorProcessor = _processMessageNonCleanupError;
+            rpc.ErrorProcessor = ProcessError;
             rpc.AsyncProcessor = ProcessMessageAsync;
             var task = rpc.ProcessAsync(isOperationContextSet);
             rpc._processCallReturned = true;
@@ -656,6 +656,18 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperFatal(e.Message, e);
             }
 
+            await ProcessError(rpc);
+
+            if (!_concurrency.IsConcurrent(rpc))
+            {
+                rpc.EnsureReceive();
+            }
+
+            return rpc;
+        }
+
+        private async Task ProcessError(MessageRpc rpc)
+        {
             try
             {
                 _error.ProvideMessageFault(rpc);
@@ -675,17 +687,16 @@ namespace CoreWCF.Dispatcher
             if (rpc.CanSendReply)
             {
                 rpc.ReplyTimeoutHelper = new TimeoutHelper(rpc.Channel.OperationTimeout);
-            }
-
-            if (rpc.CanSendReply)
-            {
                 //if (rpc.Reply != null)
                 //{
                 //    TraceUtility.MessageFlowAtMessageSent(rpc.Reply, rpc.EventTraceActivity);
                 //}
 
-                rpc = await ReplyAsync(rpc);
+                await ReplyAsync(rpc);
             }
+
+            ProcessMessageCleanup(rpc);
+        }
 
         // Logic for knowing when to close stuff:
         //
@@ -723,6 +734,8 @@ namespace CoreWCF.Dispatcher
         // message was consumed after deserializing but before calling
         // the user.  This is stored as rpc.DidDeserializeRequestBody.
         //
+        void ProcessMessageCleanup(MessageRpc rpc)
+        {
             Fx.Assert(
                 !object.ReferenceEquals(rpc.ErrorProcessor, _processMessageCleanupError),
                 "ProcessMessageCleanup run twice on the same MessageRpc!");
@@ -897,16 +910,9 @@ namespace CoreWCF.Dispatcher
             }
 
             _error.HandleError(rpc);
-
-            if (!_concurrency.IsConcurrent(rpc))
-            {
-                rpc.EnsureReceive();
-            }
-
-            return rpc;
         }
 
-        void ProcessMessageNonCleanupError(MessageRpc rpc)
+        Task ProcessMessageNonCleanupError(MessageRpc rpc)
         {
             try
             {
@@ -923,11 +929,13 @@ namespace CoreWCF.Dispatcher
             }
 
             PrepareReply(rpc);
+            return Task.CompletedTask;
         }
 
-        void ProcessMessageCleanupError(MessageRpc rpc)
+        Task ProcessMessageCleanupError(MessageRpc rpc)
         {
             _error.HandleError(rpc);
+            return Task.CompletedTask;
         }
 
         void SetActivityIdOnThread(MessageRpc rpc)
