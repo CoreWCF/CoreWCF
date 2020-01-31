@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CoreWCF.Configuration;
+using System;
 
 namespace CoreWCF.Channels
 {
@@ -26,6 +27,8 @@ namespace CoreWCF.Channels
         protected TimeSpan DefaultReceiveTimeout => _timeouts.ReceiveTimeout;
 
         protected TimeSpan DefaultSendTimeout => _timeouts.SendTimeout;
+
+        public virtual IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
         public virtual T GetProperty<T>() where T : class
         {

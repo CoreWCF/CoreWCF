@@ -19,8 +19,9 @@ namespace CoreWCF.Channels
         private IDefaultCommunicationTimeouts _timeouts;
         private IServiceScopeFactory _servicesScopeFactory;
         private HttpTransportSettings _httpSettings;
-        private IReplyChannel _replyChannel;
-        private IServiceChannelDispatcher _channelDispatcher;
+        private AspNetCoreReplyChannel _replyChannel;
+        private Task<IServiceChannelDispatcher> _replyChannelDispatcherTask;
+        private IServiceChannelDispatcher _replyChannelDispatcher;
 
         public RequestDelegateHandler(IServiceDispatcher serviceDispatcher, IServiceScopeFactory servicesScopeFactory)
         {
@@ -66,8 +67,8 @@ namespace CoreWCF.Channels
             WebSocketOptions = CreateWebSocketOptions(tbe);
             if (WebSocketOptions == null)
             {
-                _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider);
-                _channelDispatcher = _serviceDispatcher.CreateServiceChannelDispatcher(_replyChannel);
+                _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider, _httpSettings);
+                _replyChannelDispatcherTask =  _serviceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
             }
         }
 
@@ -88,21 +89,19 @@ namespace CoreWCF.Channels
             };
         }
 
-        internal Task HandleRequest(HttpContext context)
+        internal async Task HandleRequest(HttpContext context)
         {
-            var requestContext = HttpRequestContext.CreateContext(_httpSettings, context);
-            var httpInput = requestContext.GetHttpInput(true);
-            Exception requestException;
-            Message requestMessage = httpInput.ParseIncomingMessage(out requestException);
-            if ((requestMessage == null) && (requestException == null))
+            if (!context.WebSockets.IsWebSocketRequest)
             {
-                throw Fx.Exception.AsError(
-                        new ProtocolException(
-                            SR.MessageXmlProtocolError,
-                            new XmlException(SR.MessageIsEmpty)));
+                if (_replyChannelDispatcher == null)
+                {
+                    _replyChannelDispatcher = await _replyChannelDispatcherTask;
+                }
+
+                await _replyChannel.HandleRequest(context);
             }
-            requestContext.SetMessage(requestMessage, requestException);
-            return _channelDispatcher.DispatchAsync(requestContext, context.RequestAborted);
+
+            return;
         }
 
         internal async Task HandleDuplexConnection(HttpContext context)

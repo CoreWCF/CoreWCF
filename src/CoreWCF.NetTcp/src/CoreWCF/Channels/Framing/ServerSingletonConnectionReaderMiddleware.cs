@@ -41,16 +41,16 @@ namespace CoreWCF.Channels.Framing
             };
             var timeoutHelper = new TimeoutHelper(settings.ReceiveTimeout);
             var channel = new InputChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
-            await channel.OpenAsync();
-            var channelDispatcher = connection.ServiceDispatcher.CreateServiceChannelDispatcher(channel);
+            var channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(channel);
 
             // TODO: I think that the receive timeout starts counting at the start of the preamble on .NET Framework. This implementation basically resets the timer
             // after the preamble has completed. This probably needs to be addressed otherwise worse case you could end up taking 2X as long to timeout.
             // I believe the preamble should really use the OpenTimeout but that's not how this is implemented on .NET Framework.
 
             var requestContext = (StreamedFramingRequestContext)await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
-            _ = channelDispatcher.DispatchAsync(requestContext, CancellationToken.None);
-            await requestContext.ReplySent;
+            _ = channelDispatcher.DispatchAsync(requestContext);
+            //await channelDispatcher.DispatchAsync();
+            //await requestContext.ReplySent;
         }
 
         public async Task<RequestContext> ReceiveRequestAsync(FramingConnection connection, TimeSpan timeout)

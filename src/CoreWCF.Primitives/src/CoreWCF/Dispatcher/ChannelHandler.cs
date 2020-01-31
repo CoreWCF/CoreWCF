@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -22,7 +21,6 @@ namespace CoreWCF.Dispatcher
         private bool _doneReceiving;
         private ServiceDispatcher _serviceDispatcher;
         private MessageVersion _messageVersion;
-        private ErrorHandlingReceiver _receiver;
         private bool _isManualAddressing;
         private IChannelBinder _binder;
         private ServiceThrottle _throttle;
@@ -41,6 +39,7 @@ namespace CoreWCF.Dispatcher
         private bool _isCallback;
         private bool _incrementedActivityCountInConstructor;
         private ResettableAsyncWaitable _resettableAsyncWaitable;
+        private bool _openCalled;
 
         internal ChannelHandler(MessageVersion messageVersion, IChannelBinder binder, ServiceThrottle throttle,
              ServiceDispatcher serviceDispatcher, bool wasChannelThrottled, SessionIdleManager idleManager)
@@ -67,15 +66,9 @@ namespace CoreWCF.Dispatcher
             //        !this.isConcurrent);
             //}
 
-            if (channelDispatcher.BufferedReceiveEnabled)
-            {
-                _binder = new BufferedReceiveBinder(_binder);
-            }
-
-            _receiver = new ErrorHandlingReceiver(_binder, channelDispatcher);
             _idleManager = idleManager;
 
-             if (_binder.HasSession)
+            if (_binder.HasSession)
             {
                 _sessionOpenNotification = _binder.Channel.GetProperty<SessionOpenNotification>();
                 _needToCreateSessionOpenNotificationMessage = _sessionOpenNotification != null && _sessionOpenNotification.IsEnabled;
@@ -90,6 +83,70 @@ namespace CoreWCF.Dispatcher
             _incrementedActivityCountInConstructor = true;
             //}
             _resettableAsyncWaitable = new ResettableAsyncWaitable();
+        }
+
+        internal IServiceChannelDispatcher GetDispatcher()
+        {
+            return _binder;
+        }
+
+        internal async Task OpenAsync()
+        {
+            _binder.SetNextDispatcher(this);
+            Exception exception = null;
+            try
+            {
+                await _binder.Channel.OpenAsync();
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+                exception = e;
+            }
+
+            if (exception != null)
+            {
+                //if (DiagnosticUtility.ShouldTraceWarning)
+                //{
+                //    TraceUtility.TraceEvent(System.Diagnostics.TraceEventType.Warning,
+                //        TraceCode.FailedToOpenIncomingChannel,
+                //        SR.GetString(SR.TraceCodeFailedToOpenIncomingChannel));
+                //}
+                if ((_throttle != null) && _hasSession)
+                {
+                    _throttle.DeactivateChannel();
+                }
+
+                bool errorHandled = HandleError(exception);
+
+                //if (this.incrementedActivityCountInConstructor)
+                //{
+                //    this.listener.ChannelDispatcher.Channels.DecrementActivityCount();
+                //}
+
+                if (!errorHandled)
+                {
+                    _binder.Channel.Abort();
+                }
+            }
+            else
+            {
+                ReleasePump();
+                _shouldRejectMessageWithOnOpenActionHeader = !_needToCreateSessionOpenNotificationMessage;
+                if (_needToCreateSessionOpenNotificationMessage)
+                {
+                    _needToCreateSessionOpenNotificationMessage = false;
+                    var requestContext = GetSessionOpenNotificationRequestContext();
+                    await HandleReceiveCompleteAsync(requestContext);
+                    HandleRequestAsync(requestContext);
+                }
+                ReleasePump();
+            }
+
+            _openCalled = true;
         }
 
         internal bool HasRegisterBeenCalled { get; set; }
@@ -156,86 +213,28 @@ namespace CoreWCF.Dispatcher
             _resettableAsyncWaitable.Set();
         }
 
-        public async Task DispatchAsync()
+        public Task DispatchAsync(Message message)
         {
-            Exception exception = null;
-            try
-            {
-                await _binder.Channel.OpenAsync();
-            }
-            catch (Exception e)
-            {
-                if (Fx.IsFatal(e))
-                {
-                    throw;
-                }
-                exception = e;
-            }
-
-            if (exception != null)
-            {
-                //if (DiagnosticUtility.ShouldTraceWarning)
-                //{
-                //    TraceUtility.TraceEvent(System.Diagnostics.TraceEventType.Warning,
-                //        TraceCode.FailedToOpenIncomingChannel,
-                //        SR.GetString(SR.TraceCodeFailedToOpenIncomingChannel));
-                //}
-                SessionIdleManager idleManager = _idleManager;
-                if (idleManager != null)
-                {
-                    idleManager.CancelTimer();
-                }
-                if ((_throttle != null) && _hasSession)
-                {
-                    _throttle.DeactivateChannel();
-                }
-
-                bool errorHandled = HandleError(exception);
-
-                //if (this.incrementedActivityCountInConstructor)
-                //{
-                //    this.listener.ChannelDispatcher.Channels.DecrementActivityCount();
-                //}
-
-                if (!errorHandled)
-                {
-                    _binder.Channel.Abort();
-                }
-            }
-            else
-            {
-                ReleasePump();
-                await PumpAsync();
-            }
+            var requestContext = _binder.CreateRequestContext(message);
+            return DispatchAsync(requestContext);
         }
 
-        private async Task PumpAsync()
+        public async Task DispatchAsync(RequestContext requestContext)
         {
-            RequestContext requestContext;
-            bool valid;
-            _shouldRejectMessageWithOnOpenActionHeader = !_needToCreateSessionOpenNotificationMessage;
-            if (_needToCreateSessionOpenNotificationMessage)
+            if (!_openCalled)
             {
-                await TryAcquirePumpAsync();
-                _needToCreateSessionOpenNotificationMessage = false;
-                requestContext = GetSessionOpenNotificationRequestContext();
-                await HandleRequestAsync(requestContext);
+                throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeUsed, GetType().ToString(), CommunicationState.Created)), Guid.Empty, this);
             }
-            while (true)
+
+            await TryAcquirePumpAsync();
+            await HandleReceiveCompleteAsync(requestContext);
+            if (requestContext == null)
             {
-                await TryAcquirePumpAsync();
-                do
-                {
-                    (requestContext, valid) = await _receiver.TryReceiveAsync(CancellationToken.None);
-                } while (!valid);
-
-                if (requestContext == null)
-                {
-                    return;
-                }
-
-                await HandleRequestAsync(requestContext);
+                return;
             }
+
+            // Don't await handling the request to allow caller to start receving the next incoming message
+            HandleRequestAsync(requestContext);
         }
 
         RequestContext GetSessionOpenNotificationRequestContext()
@@ -248,7 +247,7 @@ namespace CoreWCF.Dispatcher
             return _binder.CreateRequestContext(message);
         }
 
-        private async Task HandleRequestAsync(RequestContext request)
+        private async void HandleRequestAsync(RequestContext request)
         {
             if (request == null)
             {
@@ -404,77 +403,8 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-
-        // Similar to HandleRequest on Desktop
-        public async Task DispatchAsync(RequestContext request, CancellationToken token)
-        {
-            // TODO: Implement all the exception handling cases from ErrorHandlingReceiver.TryReceive down stack in the transport.
-            // The transport implementation will need to send a null request to signal closing of the session/channel.
-            var requestInfo = new RequestInfo(this);
-            if (OperationContext.Current == null)
-            {
-                OperationContext.Current = new OperationContext(_host);
-            }
-            else
-            {
-                OperationContext.Current.Recycle(); 
-            }
-
-            await HandleReceiveCompleteAsync(request);
-
-            if (request == null)
-            {
-                return;
-            }
-
-            if (HandleRequestAsReply(request))
-            {
-                return;
-            }
-
-            if (_isChannelTerminated)
-            {
-                await ReplyChannelTerminatedAsync(request, requestInfo);
-                return;
-            }
-
-            if (requestInfo.RequestContext != null)
-            {
-                Fx.Assert("ChannelHandler.HandleRequest: _requestInfo.RequestContext != null");
-            }
-
-            requestInfo.RequestContext = request;
-            await TryAcquireCallThrottleAsync(request);
-
-            if (requestInfo.ChannelHandlerOwnsCallThrottle)
-            {
-                Fx.Assert("ChannelHandler.HandleRequest: _requestInfo.ChannelHandlerOwnsCallThrottle");
-            }
-
-            requestInfo.ChannelHandlerOwnsCallThrottle = true;
-            if (! await TryRetrievingInstanceContextAsync(request, requestInfo))
-            {
-                //Would have replied and close the request.
-                return;
-            }
-
-            requestInfo.Channel.CompletedIOOperation();
-
-            //Only acquire InstanceContext throttle if one doesnt already exist.
-            await TryAcquireThrottleAsync(request, (requestInfo.ExistingInstanceContext == null));
-            if (requestInfo.ChannelHandlerOwnsInstanceContextThrottle)
-            {
-                Fx.Assert("ChannelHandler.HandleRequest: _requestInfo.ChannelHandlerOwnsInstanceContextThrottle");
-            }
-
-            requestInfo.ChannelHandlerOwnsInstanceContextThrottle = (requestInfo.ExistingInstanceContext == null);
-
-            await DispatchAsyncCore(request, requestInfo, true, OperationContext.Current);
-        }
-
         private async Task HandleReceiveCompleteAsync(RequestContext request)
         {
-            // TODO: Add support for needToCreateSessionOpenNotificationMessage, probably in constructor
             try
             {
                 if (_channel != null)
@@ -527,82 +457,6 @@ namespace CoreWCF.Dispatcher
             }
 
             return false;
-        }
-
-        // Similar to DispatchAndReleasePump on Desktop
-        internal async Task DispatchAsyncCore(RequestContext request, RequestInfo requestInfo, bool cleanThread, OperationContext currentOperationContext)
-        {
-            ServiceChannel channel = requestInfo.Channel;
-            EndpointDispatcher endpoint = requestInfo.Endpoint;
-
-            try
-            {
-                DispatchRuntime dispatchBehavior = requestInfo.DispatchRuntime;
-
-                if (channel == null || dispatchBehavior == null)
-                {
-                    Fx.Assert("System.ServiceModel.Dispatcher.ChannelHandler.Dispatch(): (channel == null || dispatchBehavior == null)");
-                }
-
-                Message message = request.RequestMessage;
-                DispatchOperationRuntime operation = dispatchBehavior.GetOperation(ref message);
-                if (operation == null)
-                {
-                    Fx.Assert("ChannelHandler.Dispatch (operation == null)");
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException("No DispatchOperationRuntime found to process message."));
-                }
-
-                if (_shouldRejectMessageWithOnOpenActionHeader && message.Headers.Action == OperationDescription.SessionOpenedAction)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxNoEndpointMatchingAddressForConnectionOpeningMessage, message.Headers.Action, "Open")));
-                }
-
-                if (operation.IsTerminating && _hasSession)
-                {
-                    _isChannelTerminated = true;
-                }
-
-                bool hasOperationContextBeenSet;
-                if (currentOperationContext != null)
-                {
-                    hasOperationContextBeenSet = true;
-                    currentOperationContext.ReInit(request, message, channel);
-                }
-                else
-                {
-                    hasOperationContextBeenSet = false;
-                    currentOperationContext = new OperationContext(request, message, channel, null);
-                }
-
-                if (currentOperationContext.EndpointDispatcher == null && _serviceDispatcher != null)
-                {
-                    currentOperationContext.EndpointDispatcher = endpoint;
-                }
-
-                MessageRpc rpc = new MessageRpc(request, message, operation, channel, _host,
-                    this, cleanThread, currentOperationContext, requestInfo.ExistingInstanceContext);
-
-                // passing responsibility for call throttle to MessageRpc
-                // (MessageRpc implicitly owns this throttle once it's created)
-                requestInfo.ChannelHandlerOwnsCallThrottle = false;
-                // explicitly passing responsibility for instance throttle to MessageRpc
-                rpc.MessageRpcOwnsInstanceContextThrottle = requestInfo.ChannelHandlerOwnsInstanceContextThrottle;
-                requestInfo.ChannelHandlerOwnsInstanceContextThrottle = false;
-
-                // These need to happen before Dispatch but after accessing any ChannelHandler
-                // state, because we go multi-threaded after this until we reacquire pump mutex.
-
-                await operation.Parent.DispatchAsync(rpc, hasOperationContextBeenSet);
-            }
-            catch (Exception e)
-            {
-                if (Fx.IsFatal(e))
-                {
-                    throw;
-                }
-
-                await HandleErrorAsync(e, request, requestInfo, channel);
-            }
         }
 
         private async Task EnsureChannelAndEndpointAsync(RequestContext request, RequestInfo requestInfo)

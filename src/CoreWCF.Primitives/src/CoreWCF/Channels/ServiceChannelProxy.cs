@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
 using CoreWCF.Description;
-using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
 using System.Collections.Concurrent;
 using System.Diagnostics.Contracts;
-using System.Runtime;
-using System.Runtime.CompilerServices;
 using System.Threading;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
@@ -700,6 +697,8 @@ namespace CoreWCF.Channels
                 ((IDuplexContextChannel)_serviceChannel).CallbackInstance = value;
             }
         }
+
+        public IServiceChannelDispatcher ChannelDispatcher { get => ((IChannel)_serviceChannel).ChannelDispatcher; set => ((IChannel)_serviceChannel).ChannelDispatcher = value; }
         #endregion // Channel interfaces
     }
 

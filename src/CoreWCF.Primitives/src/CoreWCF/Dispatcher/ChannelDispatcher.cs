@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Dispatcher
 {
@@ -147,12 +144,6 @@ namespace CoreWCF.Dispatcher
                 ThrowIfDisposedOrImmutable();
                 shared.EnableFaults = value;
             }
-        }
-
-        internal bool BufferedReceiveEnabled
-        {
-            get;
-            set;
         }
 
         //public ServiceThrottle ServiceThrottle

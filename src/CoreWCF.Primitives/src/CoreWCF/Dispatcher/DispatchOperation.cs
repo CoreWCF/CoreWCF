@@ -194,12 +194,6 @@ namespace CoreWCF.Dispatcher
 
         internal ReceiveContextAcknowledgementMode ReceiveContextAcknowledgementMode { get; set; }
 
-        internal bool BufferedReceiveEnabled
-        {
-            get { return Parent.ChannelDispatcher.BufferedReceiveEnabled; }
-            set { Parent.ChannelDispatcher.BufferedReceiveEnabled = value; }
-        }
-
         internal bool ReleaseInstanceAfterCall
         {
             get { return releaseInstanceAfterCall; }

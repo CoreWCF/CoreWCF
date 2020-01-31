@@ -12,10 +12,12 @@ namespace Helpers
     {
         private Message _requestMessage;
         private string _replyMessageString;
+        private ManualResetEvent _mre;
 
         public XmlSerializerTestRequestContext(Message requestMessage)
         {
             _requestMessage = requestMessage;
+            _mre = new ManualResetEvent(false);
         }
 
         public override Message RequestMessage => _requestMessage;
@@ -45,6 +47,7 @@ namespace Helpers
         {
             ReplyMessage = message;
             SerializeReply();
+            _mre.Set();
             return Task.CompletedTask;
         }
 
@@ -62,6 +65,11 @@ namespace Helpers
         internal void ValidateReply()
         {
             Assert.Equal(s_replyMessage, _replyMessageString);
+        }
+
+        public bool WaitForReply(TimeSpan timeout)
+        {
+            return _mre.WaitOne(timeout);
         }
 
         internal static XmlSerializerTestRequestContext Create(string toAddress)

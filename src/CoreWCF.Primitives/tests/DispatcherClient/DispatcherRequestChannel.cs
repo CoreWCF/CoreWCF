@@ -25,9 +25,18 @@ namespace DispatcherClient
         protected override TimeSpan DefaultCloseTimeout => Factory.CloseTimeout;
         protected override TimeSpan DefaultOpenTimeout => Factory.OpenTimeout;
         protected TimeSpan DefaultSendTimeout => Factory.SendTimeout;
-
-
         private DispatcherChannelFactory Factory => _serviceProvider.GetRequiredService<DispatcherChannelFactory>();
+
+        public Message Request(Message message)
+        {
+            return Request(message, DefaultSendTimeout);
+        }
+
+        public Message Request(Message message, TimeSpan timeout)
+        {
+            return RequestAsync(message, timeout).GetAwaiter().GetResult();
+        }
+
         public IAsyncResult BeginRequest(Message message, AsyncCallback callback, object state)
         {
             return BeginRequest(message, DefaultSendTimeout, callback, state);
@@ -59,33 +68,22 @@ namespace DispatcherClient
 
         public async Task<Message> RequestAsync(Message message, TimeSpan timeout)
         {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
             RemoteAddress?.ApplyTo(message);
             var requestContext = new DispatcherClientRequestContext(message);
-            var cts = new CancellationTokenSource(timeout);
-            await _serviceChannelDispatch.DispatchAsync(requestContext, cts.Token);
+            await _serviceChannelDispatch.DispatchAsync(requestContext);
             var coreReplyMessage = await requestContext.ReplyMessageTask;
             var replyMessage = Helpers.TestHelper.ConvertMessage(coreReplyMessage);
-            cts.Dispose();
             return replyMessage;
-        }
-
-        public T GetProperty<T>() where T : class
-        {
-            return _serviceProvider.GetService<T>();
-        }
-
-        public Message Request(Message message)
-        {
-            return Request(message, DefaultSendTimeout);
-        }
-
-        public Message Request(Message message, TimeSpan timeout)
-        {
-            return RequestAsync(message, timeout).GetAwaiter().GetResult();
         }
 
         protected override void OnAbort()
         {
+        }
+
+        protected override void OnClose(TimeSpan timeout)
+        {
+            OnCloseAsync(timeout).GetAwaiter().GetResult();
         }
 
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
@@ -106,35 +104,53 @@ namespace DispatcherClient
             return tcs.Task;
         }
 
-        protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            OnOpen(timeout);
-            return Task.CompletedTask;
-        }
-
-        protected override void OnClose(TimeSpan timeout)
-        {
-            OnCloseAsync(timeout).GetAwaiter().GetResult();
-        }
-
-        private Task OnCloseAsync(TimeSpan timeout)
-        {
-            IServiceChannelDispatcher serviceChannelDispatch = Factory.GetServiceChannelDispatcher(this);
-            return serviceChannelDispatch.DispatchAsync(null, CancellationToken.None);
-        }
-
         protected override void OnEndClose(IAsyncResult result)
         {
             ((Task)result).GetAwaiter().GetResult();
         }
 
-        protected override void OnEndOpen(IAsyncResult result)
+        private async Task OnCloseAsync(TimeSpan timeout)
         {
+            IServiceChannelDispatcher serviceChannelDispatch = await Factory.GetServiceChannelDispatcherAsync(this);
+            await serviceChannelDispatch.DispatchAsync((CoreWCF.Channels.RequestContext)null);
         }
 
         protected override void OnOpen(TimeSpan timeout)
         {
-            _serviceChannelDispatch = Factory.GetServiceChannelDispatcher(this);
+            OnOpenAsync(timeout).GetAwaiter().GetResult();
+        }
+
+        protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            var tcs = new TaskCompletionSource<object>(state);
+            OnOpenAsync(timeout).ContinueWith(
+                (antecedant) =>
+                {
+                    if (antecedant.IsFaulted)
+                    {
+                        tcs.TrySetException(antecedant.Exception);
+                    }
+                    else
+                    {
+                        tcs.TrySetResult(null);
+                    }
+                });
+            return tcs.Task;
+        }
+
+        protected override void OnEndOpen(IAsyncResult result)
+        {
+            ((Task)result).GetAwaiter().GetResult();
+        }
+
+        private async Task OnOpenAsync(TimeSpan timeout)
+        {
+            _serviceChannelDispatch = await Factory.GetServiceChannelDispatcherAsync(this);
+        }
+
+        public T GetProperty<T>() where T : class
+        {
+            return _serviceProvider.GetService<T>();
         }
     }
 }

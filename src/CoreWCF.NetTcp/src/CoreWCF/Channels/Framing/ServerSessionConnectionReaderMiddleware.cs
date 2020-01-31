@@ -50,8 +50,8 @@ namespace CoreWCF.Channels.Framing
             }
 
             var channel = new ServerFramingDuplexSessionChannel(connection, settings, false, _servicesScopeFactory.CreateScope().ServiceProvider);
-            var channelDispatcher = connection.ServiceDispatcher.CreateServiceChannelDispatcher(channel);
-            await channelDispatcher.DispatchAsync();
+            channel.ChannelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(channel);
+            await channel.StartReceivingAsync();
         }
 
     }

@@ -1,4 +1,6 @@
-﻿using CoreWCF.Diagnostics;
+﻿using CoreWCF.Configuration;
+using CoreWCF.Diagnostics;
+using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using System;
@@ -11,11 +13,10 @@ namespace CoreWCF.Channels
 {
     internal abstract class TransportDuplexSessionChannel : TransportOutputChannel, IDuplexSessionChannel
     {
-        IDuplexSession _duplexSession;
         bool _isInputSessionClosed;
         bool _isOutputSessionClosed;
-        EndpointAddress _localAddress;
         ChannelBinding _channelBindingToken;
+        private IServiceChannelDispatcher _channelDispatcher;
 
         protected TransportDuplexSessionChannel(
           ITransportFactorySettings settings,
@@ -58,9 +59,27 @@ namespace CoreWCF.Channels
 
         protected abstract bool IsStreamedOutput { get; }
 
-        public Task<Message> ReceiveAsync()
+        public async Task StartReceivingAsync()
         {
-            throw new NotImplementedException();
+            if (ChannelDispatcher == null)
+            {
+                // TODO: Cleanup exception message, find a SR to use and add Fx error handling
+                throw new InvalidOperationException("ChannelDispatcher isn't set");
+            }
+
+            while (true)
+            {
+                var result = await TryReceiveAsync(CancellationToken.None);
+                if (result.success)
+                {
+                    await ChannelDispatcher.DispatchAsync(result.message);
+                }
+
+                if (result.message == null) // NULL message means client sent FIN byte
+                {
+                    return;
+                }
+            }
         }
 
         public async Task<Message> ReceiveAsync(CancellationToken token)
@@ -193,7 +212,7 @@ namespace CoreWCF.Channels
 
         protected void SetMessageSource(IMessageSource messageSource)
         {
-            this.MessageSource = new SynchronizedMessageSource(messageSource);
+            MessageSource = new SynchronizedMessageSource(messageSource);
         }
 
         protected abstract Task CloseOutputSessionCoreAsync(CancellationToken token);
@@ -239,11 +258,11 @@ namespace CoreWCF.Channels
         {
             if (message == null)
             {
-                this.OnInputSessionClosed();
+                OnInputSessionClosed();
             }
             else
             {
-                this.PrepareMessage(message);
+                PrepareMessage(message);
             }
         }
 
@@ -254,9 +273,9 @@ namespace CoreWCF.Channels
 
         protected virtual void PrepareMessage(Message message)
         {
-            message.Properties.Via = this.LocalVia;
+            message.Properties.Via = LocalVia;
 
-            this.ApplyChannelBinding(message);
+            ApplyChannelBinding(message);
 
             //if (FxTrace.Trace.IsEnd2EndActivityTracingEnabled)
             //{

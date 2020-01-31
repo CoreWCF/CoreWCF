@@ -26,6 +26,7 @@ namespace DependencyInjection
                 });
             factory.Open();
             var channel = factory.CreateChannel();
+            ((System.ServiceModel.Channels.IChannel)channel).Open();
             Assert.Equal(1, SingleInstanceContextSimpleService.AddBindingParametersCallCount);
             Assert.Equal(1, SingleInstanceContextSimpleService.ApplyDispatchBehaviorCount);
             Assert.Equal(1, SingleInstanceContextSimpleService.ValidateCallCount);

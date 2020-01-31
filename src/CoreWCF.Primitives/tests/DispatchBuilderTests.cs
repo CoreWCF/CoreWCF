@@ -6,6 +6,7 @@ using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using System.Threading;
 using Xunit;
+using System;
 
 namespace DispatchBuilder
 {
@@ -35,9 +36,10 @@ namespace DispatchBuilder
             Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(mockChannel);
+            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
+            dispatcher.DispatchAsync(requestContext).Wait();
+            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
@@ -65,9 +67,10 @@ namespace DispatchBuilder
             Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(mockChannel);
+            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
+            dispatcher.DispatchAsync(requestContext).Wait();
+            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
@@ -96,9 +99,10 @@ namespace DispatchBuilder
             Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(mockChannel);
+            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
+            dispatcher.DispatchAsync(requestContext).Wait();
+            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
@@ -134,9 +138,10 @@ namespace DispatchBuilder
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
 
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(mockChannel);
+            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = XmlSerializerTestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext, CancellationToken.None).Wait();
+            dispatcher.DispatchAsync(requestContext).Wait();
+            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
     }
