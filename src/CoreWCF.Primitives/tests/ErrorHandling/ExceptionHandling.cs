@@ -18,17 +18,19 @@ namespace ErrorHandling
                 });
             factory.Open();
             var channel = factory.CreateChannel();
-            Exception exceptionThrown = null;
+            System.ServiceModel.FaultException exceptionThrown = null;
             try
             {
                 var echo = channel.Echo("hello");
             }
-            catch(Exception e)
+            catch(System.ServiceModel.FaultException e)
             {
                 exceptionThrown = e;
             }
 
             Assert.NotNull(exceptionThrown);
+            Assert.True(exceptionThrown.Code.IsReceiverFault);
+            Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
