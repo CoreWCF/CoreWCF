@@ -7,109 +7,167 @@ using CoreWCF.Dispatcher;
 
 namespace CoreWCF
 {
-    [KnownType(typeof(FaultException.FaultCodeData))]
-    [KnownType(typeof(FaultException.FaultCodeData[]))]
-    [KnownType(typeof(FaultException.FaultReasonData))]
-    [KnownType(typeof(FaultException.FaultReasonData[]))]
+    [Serializable]
+    [KnownType(typeof(FaultCodeData))]
+    [KnownType(typeof(FaultCodeData[]))]
+    [KnownType(typeof(FaultReasonData))]
+    [KnownType(typeof(FaultReasonData[]))]
     public class FaultException : CommunicationException
     {
         internal const string Namespace = "http://schemas.xmlsoap.org/Microsoft/WindowsCommunicationFoundation/2005/08/Faults/";
 
-        string action;
-        FaultCode code;
-        FaultReason reason;
-        MessageFault fault;
+        string _action;
+        FaultCode _code;
+        FaultReason _reason;
+        MessageFault _fault;
+
         public FaultException()
             : base(SR.SFxFaultReason)
         {
-            code = FaultException.DefaultCode;
-            reason = FaultException.DefaultReason;
+            _code = DefaultCode;
+            _reason = DefaultReason;
         }
 
-        internal FaultException(string reason, FaultCode code)
+        public FaultException(string reason)
             : base(reason)
         {
-            this.code = FaultException.EnsureCode(code);
-            this.reason = FaultException.CreateReason(reason);
+            _code = DefaultCode;
+            _reason = CreateReason(reason);
         }
 
-        public FaultException(FaultReason reason, FaultCode code, string action)
-            : base(FaultException.GetSafeReasonText(reason))
+        public FaultException(FaultReason reason)
+            : base(GetSafeReasonText(reason))
         {
-            this.code = FaultException.EnsureCode(code);
-            this.reason = FaultException.EnsureReason(reason);
-            this.action = action;
+            _code = DefaultCode;
+            _reason = EnsureReason(reason);
+        }
+
+        public FaultException(string reason, FaultCode code)
+            : base(reason)
+        {
+            _code = EnsureCode(code);
+            _reason = CreateReason(reason);
+        }
+
+        public FaultException(FaultReason reason, FaultCode code)
+            : base(GetSafeReasonText(reason))
+        {
+            _code = EnsureCode(code);
+            _reason = EnsureReason(reason);
+        }
+
+        public FaultException(string reason, FaultCode code, string action)
+            : base(reason)
+        {
+            _code = EnsureCode(code);
+            _reason = CreateReason(reason);
+            _action = action;
         }
 
         internal FaultException(string reason, FaultCode code, string action, Exception innerException)
-    : base(reason, innerException)
+            : base(reason, innerException)
         {
-            this.code = FaultException.EnsureCode(code);
-            this.reason = FaultException.CreateReason(reason);
-            this.action = action;
+            _code = EnsureCode(code);
+            _reason = CreateReason(reason);
+            _action = action;
+        }
+
+        public FaultException(FaultReason reason, FaultCode code, string action)
+            : base(GetSafeReasonText(reason))
+        {
+            _code = EnsureCode(code);
+            _reason = EnsureReason(reason);
+            _action = action;
         }
 
         internal FaultException(FaultReason reason, FaultCode code, string action, Exception innerException)
-    : base(FaultException.GetSafeReasonText(reason), innerException)
+            : base(GetSafeReasonText(reason), innerException)
         {
-            this.code = FaultException.EnsureCode(code);
-            this.reason = FaultException.EnsureReason(reason);
-            this.action = action;
+            _code = EnsureCode(code);
+            _reason = EnsureReason(reason);
+            _action = action;
+        }
+
+        public FaultException(MessageFault fault)
+            : base(GetSafeReasonText(GetReason(fault)))
+        {
+            if (fault == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+
+            _code = EnsureCode(fault.Code);
+            _reason = EnsureReason(fault.Reason);
+            _fault = fault;
         }
 
         public FaultException(MessageFault fault, string action)
-            : base(FaultException.GetSafeReasonText(GetReason(fault)))
+            : base(GetSafeReasonText(GetReason(fault)))
         {
             if (fault == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
 
-            code = fault.Code;
-            reason = fault.Reason;
-            this.fault = fault;
-            this.action = action;
+            _code = fault.Code;
+            _reason = fault.Reason;
+            _fault = fault;
+            _action = action;
         }
 
-        // public on full framework
-        internal FaultException(FaultReason reason, FaultCode code)
-            : base(FaultException.GetSafeReasonText(reason))
+        protected FaultException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
-            this.code = FaultException.EnsureCode(code);
-            this.reason = FaultException.EnsureReason(reason);
+            _code = ReconstructFaultCode(info, "code");
+            _reason = ReconstructFaultReason(info, "reason");
+            _fault = (MessageFault)info.GetValue("messageFault", typeof(MessageFault));
+            _action = (string)info.GetString("action");
         }
 
         public string Action
         {
-            get { return action; }
+            get { return _action; }
         }
 
         public FaultCode Code
         {
-            get { return code; }
+            get { return _code; }
         }
 
-        internal static FaultReason DefaultReason
+        static FaultReason DefaultReason
         {
             get { return new FaultReason(SR.SFxFaultReason); }
         }
 
-        internal static FaultCode DefaultCode
+        static FaultCode DefaultCode
         {
             get { return new FaultCode("Sender"); }
         }
 
         public override string Message
         {
-            get { return FaultException.GetSafeReasonText(Reason); }
+            get { return GetSafeReasonText(Reason); }
         }
 
         public FaultReason Reason
         {
-            get { return reason; }
+            get { return _reason; }
         }
 
         internal MessageFault Fault
         {
-            get { return fault; }
+            get { return _fault; }
+        }
+
+        internal void AddFaultCodeObjectData(SerializationInfo info, string key, FaultCode code)
+        {
+            info.AddValue(key, FaultCodeData.GetObjectData(code));
+        }
+
+        internal void AddFaultReasonObjectData(SerializationInfo info, string key, FaultReason reason)
+        {
+            info.AddValue(key, FaultReasonData.GetObjectData(reason));
+        }
+
+        static FaultCode CreateCode(string code)
+        {
+            return (code != null) ? new FaultCode(code) : DefaultCode;
         }
 
         public static FaultException CreateFault(MessageFault messageFault, params Type[] faultDetailTypes)
@@ -121,18 +179,59 @@ namespace CoreWCF
         {
             if (messageFault == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageFault));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageFault");
             }
 
             if (faultDetailTypes == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultDetailTypes));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("faultDetailTypes");
             }
-            DataContractSerializerFaultFormatter faultFormatter = new DataContractSerializerFaultFormatter(faultDetailTypes);
+            var faultFormatter = new DataContractSerializerFaultFormatter(faultDetailTypes);
             return faultFormatter.Deserialize(messageFault, action);
         }
 
-        public virtual Channels.MessageFault CreateMessageFault() { return default(Channels.MessageFault); }
+        public virtual MessageFault CreateMessageFault()
+        {
+            if (_fault != null)
+            {
+                return _fault;
+            }
+            else
+            {
+                return MessageFault.CreateFault(_code, _reason);
+            }
+        }
+
+        static FaultReason CreateReason(string reason)
+        {
+            return (reason != null) ? new FaultReason(reason) : DefaultReason;
+        }
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            AddFaultCodeObjectData(info, "code", _code);
+            AddFaultReasonObjectData(info, "reason", _reason);
+            info.AddValue("messageFault", _fault);
+            info.AddValue("action", _action);
+        }
+
+        static FaultReason GetReason(MessageFault fault)
+        {
+            if (fault == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
+            }
+            return fault.Reason;
+        }
+
+        internal static string GetSafeReasonText(MessageFault messageFault)
+        {
+            if (messageFault == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageFault));
+
+            return GetSafeReasonText(messageFault.Reason);
+        }
 
         internal static string GetSafeReasonText(FaultReason reason)
         {
@@ -156,34 +255,35 @@ namespace CoreWCF
             }
         }
 
-        static FaultReason CreateReason(string reason)
-        {
-            return (reason != null) ? new FaultReason(reason) : DefaultReason;
-        }
-
-        static FaultReason GetReason(MessageFault fault)
-        {
-            if (fault == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
-            }
-            return fault.Reason;
-        }
-
         static FaultCode EnsureCode(FaultCode code)
         {
-            return code ?? DefaultCode;
+            return (code != null) ? code : DefaultCode;
         }
 
         static FaultReason EnsureReason(FaultReason reason)
         {
-            return reason ?? DefaultReason;
+            return (reason != null) ? reason : DefaultReason;
         }
 
+        internal FaultCode ReconstructFaultCode(SerializationInfo info, string key)
+        {
+            FaultCodeData[] data = (FaultCodeData[])info.GetValue(key, typeof(FaultCodeData[]));
+            return FaultCodeData.Construct(data);
+        }
+
+        internal FaultReason ReconstructFaultReason(SerializationInfo info, string key)
+        {
+            FaultReasonData[] data = (FaultReasonData[])info.GetValue(key, typeof(FaultReasonData[]));
+            return FaultReasonData.Construct(data);
+        }
+
+        [Serializable]
         internal class FaultCodeData
         {
+#pragma warning disable IDE1006 // Naming Styles - class is Serializable so can't change field names
             string name;
             string ns;
+#pragma warning restore IDE1006 // Naming Styles
 
             internal static FaultCode Construct(FaultCodeData[] nodes)
             {
@@ -199,7 +299,7 @@ namespace CoreWCF
 
             internal static FaultCodeData[] GetObjectData(FaultCode code)
             {
-                FaultCodeData[] array = new FaultCodeData[FaultCodeData.GetDepth(code)];
+                FaultCodeData[] array = new FaultCodeData[GetDepth(code)];
 
                 for (int i = 0; i < array.Length; i++)
                 {
@@ -230,11 +330,13 @@ namespace CoreWCF
             }
         }
 
-        //[Serializable]
+        [Serializable]
         internal class FaultReasonData
         {
+#pragma warning disable IDE1006 // Naming Styles - class is Serializable so can't change field names
             string xmlLang;
             string text;
+#pragma warning restore IDE1006 // Naming Styles
 
             internal static FaultReason Construct(FaultReasonData[] nodes)
             {
@@ -263,14 +365,75 @@ namespace CoreWCF
                 return array;
             }
         }
-
     }
 
+    [Serializable]
     public class FaultException<TDetail> : FaultException
     {
-        public FaultException(TDetail detail, FaultReason reason, FaultCode code, string action) { }
-        public TDetail Detail { get { return default(TDetail); } }
-        public override Channels.MessageFault CreateMessageFault() { return default(Channels.MessageFault); }
-        public override string ToString() { return default(string); }
+        public FaultException(TDetail detail)
+            : base()
+        {
+            Detail = detail;
+        }
+
+        public FaultException(TDetail detail, string reason)
+            : base(reason)
+        {
+            Detail = detail;
+        }
+
+        public FaultException(TDetail detail, FaultReason reason)
+            : base(reason)
+        {
+            Detail = detail;
+        }
+
+        public FaultException(TDetail detail, string reason, FaultCode code)
+            : base(reason, code)
+        {
+            Detail = detail;
+        }
+
+        public FaultException(TDetail detail, FaultReason reason, FaultCode code)
+            : base(reason, code)
+        {
+            Detail = detail;
+        }
+
+        public FaultException(TDetail detail, string reason, FaultCode code, string action)
+            : base(reason, code, action)
+        {
+            Detail = detail;
+        }
+
+        public FaultException(TDetail detail, FaultReason reason, FaultCode code, string action)
+            : base(reason, code, action)
+        {
+            Detail = detail;
+        }
+
+        protected FaultException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+            Detail = (TDetail)info.GetValue("detail", typeof(TDetail));
+        }
+
+        public TDetail Detail { get; }
+
+        public override MessageFault CreateMessageFault()
+        {
+            return MessageFault.CreateFault(Code, Reason, Detail);
+        }
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("detail", Detail);
+        }
+
+        public override string ToString()
+        {
+            return SR.Format(SR.SFxFaultExceptionToString3, GetType(), Message, Detail != null ? Detail.ToString() : string.Empty);
+        }
     }
 }
