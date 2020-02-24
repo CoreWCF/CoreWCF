@@ -4,6 +4,8 @@ using System;
 using Xunit;
 using CoreWCF;
 using Helpers;
+using CoreWCF.Runtime;
+using System.Threading.Tasks;
 
 namespace Extensibility
 {
@@ -19,6 +21,7 @@ namespace Extensibility
             var channel = factory.CreateChannel();
             var echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
+            instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
             Assert.Equal(1, instanceProvider.GetInstanceCallCount);
             Assert.Equal(1, instanceProvider.ReleaseInstanceCallCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -36,8 +39,9 @@ namespace Extensibility
             var channel = factory.CreateChannel();
             var echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
+            instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
             Assert.True(instanceProvider.InstanceHashCode > 0); ;
-            Assert.True(instanceProvider.ReleasedInstanceHashCode == instanceProvider.InstanceHashCode);
+            Assert.Equal(instanceProvider.ReleasedInstanceHashCode, instanceProvider.InstanceHashCode);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
@@ -50,9 +54,15 @@ namespace Extensibility
         public int ReleaseInstanceCallCount { get; private set; }
         public int InstanceHashCode { get; private set; } = -1;
         public int ReleasedInstanceHashCode { get; private set; } = -2;
+        private AsyncLock _asyncLock = new AsyncLock();
+        private IDisposable _asyncLockHoldObj = null;
 
         public object GetInstance(InstanceContext instanceContext)
         {
+            if (_asyncLockHoldObj == null)
+            {
+                _asyncLockHoldObj = _asyncLock.TakeLock();
+            }
             GetInstanceCallCount++;
             var service = new SimpleService();
             InstanceHashCode = service.GetHashCode();
@@ -71,6 +81,13 @@ namespace Extensibility
         {
             ReleaseInstanceCallCount++;
             ReleasedInstanceHashCode = instance.GetHashCode();
+            _asyncLockHoldObj?.Dispose();
+            _asyncLockHoldObj = null;
+        }
+
+        public async Task WaitForReleaseAsync(TimeSpan timeout)
+        {
+            (await _asyncLock.TakeLockAsync(timeout))?.Dispose();
         }
     }
 

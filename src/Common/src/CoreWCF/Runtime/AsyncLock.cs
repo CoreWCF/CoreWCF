@@ -51,6 +51,21 @@ namespace CoreWCF.Runtime
             return _semaphoreRelease;
         }
 
+        public Task<IDisposable> TakeLockAsync(TimeSpan timeout)
+        {
+            if (timeout == Timeout.InfiniteTimeSpan || timeout < TimeSpan.Zero || timeout == TimeSpan.MaxValue)
+            {
+                return TakeLockAsync(CancellationToken.None);
+            }
+            else
+            {
+                var cts = new CancellationTokenSource(timeout);
+                var task = TakeLockAsync(cts.Token);
+                _ = task.ContinueWith((antecedant) => cts.Dispose());
+                return task;
+            }
+        }
+
         public async Task<IDisposable> TakeLockAsync(CancellationToken token)
         {
             if (_lockTaken.Value)

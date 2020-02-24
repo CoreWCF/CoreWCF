@@ -448,7 +448,21 @@ namespace CoreWCF.Runtime
 
         public bool IsCompleted => _syncContext == SynchronizationContext.Current;
 
-        public void OnCompleted(Action continuation) => _syncContext.Post(SynchronizationContextAwaiter.PostCallback, continuation);
+        public void OnCompleted(Action continuation)
+        {
+            // _syncContext will be null if it's the default sync context
+            // This method is being called because IsCompleted returned false
+            // This means we need to run the continuation on a regular thread pool
+            // thread.
+            if (_syncContext == null)
+            {
+                ThreadPool.UnsafeQueueUserWorkItem(PostCallback, continuation);
+                return;
+            }
+
+            _syncContext.Post(PostCallback, continuation);
+        }
+        
 
         public void GetResult() { }
 

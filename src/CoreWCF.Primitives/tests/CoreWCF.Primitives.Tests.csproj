@@ -22,9 +22,12 @@
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="../src/CoreWCF.Primitives.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <Folder Include="Properties/" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../Common/src/CoreWCF/Runtime/AsyncLock.cs" />
   </ItemGroup>
 </Project>
