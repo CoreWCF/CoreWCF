@@ -105,7 +105,6 @@ namespace CoreWCF.Channels
                     if (message != null)
                     {
                         message.Close();
-                        message = null;
                     }
 
                     Fault();
