@@ -63,7 +63,7 @@ namespace CoreWCF.Channels.Framing
                             MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
                             MessageEncoderFactory = connection.MessageEncoderFactory
                         };
-                        _replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null);
+                        _replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
                         _channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
                     }
                 }

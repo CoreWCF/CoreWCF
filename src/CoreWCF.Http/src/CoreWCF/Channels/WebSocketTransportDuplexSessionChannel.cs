@@ -168,7 +168,8 @@ namespace CoreWCF.Channels
                 catch (Exception error)
                 {
                     Fx.Exception.TraceHandledException(error, TraceEventType.Information);
-                    throw;                }
+                    throw;                
+                }
             });
         }
 

@@ -7,6 +7,7 @@ using Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Threading;
 using Xunit;
 
@@ -83,6 +84,7 @@ namespace DependencyInjection
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
             var echo = channel.Echo("hello");
             echo = channel.Echo("hello");
+            PerCallInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(2, TimeSpan.FromSeconds(5));
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.CreationCount);
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.DisposalCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -104,6 +106,7 @@ namespace DependencyInjection
 
             var echo = channel.Echo("hello");
             echo = channel.Echo("hello");
+            PerCallInstanceContextSimpleService.WaitForDisposalCount(2, TimeSpan.FromSeconds(5));
             Assert.Equal(2, PerCallInstanceContextSimpleService.CreationCount);
             Assert.Equal(2, PerCallInstanceContextSimpleService.DisposalCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -130,6 +133,7 @@ namespace DependencyInjection
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
             var echo = channel.Echo("hello");
             echo = channel.Echo("hello");
+            PerCallInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(2, TimeSpan.FromSeconds(5));
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.CreationCount);
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.DisposalCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -264,6 +268,7 @@ namespace DependencyInjection
         public static int ApplyDispatchBehaviorCount { get; protected set; }
         public static int ValidateCallCount { get; protected set; }
         public int CallCount { get; private set; }
+        private static ManualResetEventSlim s_disposalCountWaitable = new ManualResetEventSlim(false);
 
         public static void ClearCounts()
         {
@@ -272,6 +277,7 @@ namespace DependencyInjection
             AddBindingParametersCallCount = 0;
             ApplyDispatchBehaviorCount = 0;
             ValidateCallCount = 0;
+            s_disposalCountWaitable.Reset();
         }
 
         public InstanceContextSimpleServiceBase()
@@ -291,6 +297,21 @@ namespace DependencyInjection
         {
             IsDisposed = true;
             DisposalCount++;
+            s_disposalCountWaitable.Set();
+        }
+
+        public static void WaitForDisposalCount(int expectedDisposals, TimeSpan maxWait)
+        {
+            DateTime maxWaitDeadline = DateTime.Now + maxWait;
+            while(DateTime.Now < maxWaitDeadline && expectedDisposals > DisposalCount)
+            {
+                // There's a small race condition here where DisposalCount could be incremented and the MRE set
+                // before we call reset. In which case we'll wait maxWait time and then the test will pass. The
+                // delay shouldn't be more than a few seconds anyway so this won't have any significant impact and
+                // it has no affect on the pass/fail of the test
+                s_disposalCountWaitable.Reset();
+                s_disposalCountWaitable.Wait(maxWaitDeadline - DateTime.Now);
+            }
         }
     }
 }

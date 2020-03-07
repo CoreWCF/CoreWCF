@@ -19,6 +19,7 @@ namespace CoreWCF.Channels
         HttpOutput httpOutput;
         bool errorGettingHttpInput;
         SecurityMessageProperty securityProperty;
+        private TaskCompletionSource<object> _replySentTcs;
         //EventTraceActivity eventTraceActivity;
         //ServerWebSocketTransportDuplexSessionChannel webSocketChannel;
 
@@ -26,6 +27,7 @@ namespace CoreWCF.Channels
             : base(requestMessage, settings.CloseTimeout, settings.SendTimeout)
         {
             HttpTransportSettings = settings;
+            _replySentTcs = new TaskCompletionSource<object>(TaskContinuationOptions.RunContinuationsAsynchronously);
         }
 
         public bool KeepAliveEnabled
@@ -121,6 +123,7 @@ namespace CoreWCF.Channels
             }
 
             Cleanup();
+            _replySentTcs.TrySetResult(null);
         }
 
         protected override async Task OnCloseAsync(CancellationToken token)
@@ -135,6 +138,7 @@ namespace CoreWCF.Channels
             finally
             {
                 Cleanup();
+                _replySentTcs.TrySetResult(null);
             }
         }
 
@@ -245,6 +249,8 @@ namespace CoreWCF.Channels
             }
         }
 
+        public Task ReplySent => _replySentTcs.Task;
+
         public async Task<bool> ProcessAuthenticationAsync()
         {
             HttpStatusCode statusCode = ValidateAuthentication();
@@ -349,11 +355,14 @@ namespace CoreWCF.Channels
             }
             public override HttpOutput GetHttpOutput(Message message)
             {
-                // TODO: Enable KeepAlive setting
-                //if (!_httpBindingElement.KeepAlive)
-                //{
-                //    aspNetContext.Response.Headers["Connection"] = "close";
-                //}
+                if (HttpTransportSettings.KeepAliveEnabled)
+                {
+                    _aspNetContext.Response.Headers["Connection"] = "keep-alive";
+                }
+                else
+                {
+                    _aspNetContext.Response.Headers["Connection"] = "close";
+                }
 
                 ICompressedMessageEncoder compressedMessageEncoder = HttpTransportSettings.MessageEncoderFactory.Encoder as ICompressedMessageEncoder;
                 if (compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled)

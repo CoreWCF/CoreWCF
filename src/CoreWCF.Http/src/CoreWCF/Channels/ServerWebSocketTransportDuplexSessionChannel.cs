@@ -1,6 +1,7 @@
 ﻿using CoreWCF.Runtime;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
@@ -12,22 +13,18 @@ namespace CoreWCF.Channels
     {
         WebSocketContext _webSocketContext;
         HttpContext _httpContext;
-        string _subProtocol;
         private IHttpTransportFactorySettings _transportSettings;
+        private IServiceProvider _serviceProvider;
         WebSocketMessageSource webSocketMessageSource;
         SessionOpenNotification sessionOpenNotification;
 
-        public ServerWebSocketTransportDuplexSessionChannel(
-                        IHttpTransportFactorySettings settings,
-                        EndpointAddress localAddress,
-                        Uri localVia,
-                        HttpContext httpContext,
-                        string subProtocol)
-            : base(settings, localAddress, localVia)
+        public ServerWebSocketTransportDuplexSessionChannel(HttpContext httpContext, WebSocketContext webSocketContext, HttpTransportSettings settings, Uri localVia, IServiceProvider serviceProvider)
+            : base(settings, new EndpointAddress(localVia), localVia)
         {
-            this._httpContext = httpContext;
-            this._subProtocol = subProtocol;
+            _httpContext = httpContext;
+            _webSocketContext = webSocketContext;
             _transportSettings = settings;
+            _serviceProvider = serviceProvider;
         }
 
         protected override bool IsStreamedOutput
@@ -47,7 +44,13 @@ namespace CoreWCF.Channels
                 return (T)(object)this.sessionOpenNotification;
             }
 
-            return base.GetProperty<T>();
+            T service = _serviceProvider.GetService<T>();
+            if (service == null)
+            {
+                service = base.GetProperty<T>();
+            }
+
+            return service;
         }
 
         internal void SetWebSocketInfo(WebSocketContext webSocketContext, RemoteEndpointMessageProperty remoteEndpointMessageProperty, SecurityMessageProperty handshakeSecurityMessageProperty, bool shouldDisposeWebSocketAfterClosed, HttpContext httpContext)
@@ -77,54 +80,17 @@ namespace CoreWCF.Channels
         protected override void OnClosed()
         {
             base.OnClosed();
-            ((IDisposable)this._httpContext).Dispose();
         }
 
         protected override async Task OnOpenAsync(CancellationToken token)
         {
-            //if (TD.WebSocketConnectionAcceptStartIsEnabled())
-            //{
-            //    TD.WebSocketConnectionAcceptStart(this.httpRequestContext.EventTraceActivity);
-            //}
-            if (!_httpContext.WebSockets.IsWebSocketRequest)
-            {
-                // TODO: Add support for this
-                // this.context.SendResponseAndClose(HttpStatusCode.BadRequest, SR.GetString(SR.WebSocketEndpointOnlySupportWebSocketError));
-                throw new ProtocolException(SR.WebSocketEndpointOnlySupportWebSocketError);
-            }
-
-            WebSocketContext webSocketContext;
-            try
-            {
-                using (token.Register(() => { _httpContext.Abort(); }))
-                {
-                    WebSocket webSocket = await _httpContext.WebSockets.AcceptWebSocketAsync(_subProtocol);
-                    webSocketContext = new AspNetCoreWebSocketContext(_httpContext, webSocket);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (Fx.IsFatal(ex))
-                {
-                    throw;
-                }
-
-                if (token.IsCancellationRequested)
-                {
-                    throw Fx.Exception.AsError(new TimeoutException(SR.AcceptWebSocketTimedOutError));
-                }
-
-                WebSocketHelper.ThrowCorrectException(ex);
-                throw;
-            }
-
             RemoteEndpointMessageProperty remoteEndpointMessageProperty = null;
             if (_httpContext.Connection.RemoteIpAddress != null)
             {
                 remoteEndpointMessageProperty = new RemoteEndpointMessageProperty(_httpContext.Connection.RemoteIpAddress.ToString(), _httpContext.Connection.RemotePort);
             }
 
-            SetWebSocketInfo(webSocketContext, remoteEndpointMessageProperty, ProcessAuthentication(), true, _httpContext);
+            SetWebSocketInfo(_webSocketContext, remoteEndpointMessageProperty, ProcessAuthentication(), true, _httpContext);
             //if (TD.WebSocketConnectionAcceptedIsEnabled())
             //{
             //    TD.WebSocketConnectionAccepted(

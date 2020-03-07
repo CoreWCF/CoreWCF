@@ -87,7 +87,7 @@ namespace CoreWCF.Channels
             throw new NotImplementedException();
         }
 
-        internal Task HandleRequest(HttpContext context)
+        internal async Task HandleRequest(HttpContext context)
         {
             if (ChannelDispatcher == null)
             {
@@ -108,7 +108,8 @@ namespace CoreWCF.Channels
             }
 
             requestContext.SetMessage(requestMessage, requestException);
-            return ChannelDispatcher.DispatchAsync(requestContext);
+            await ChannelDispatcher.DispatchAsync(requestContext);
+            await requestContext.ReplySent;
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Xml;
 using Microsoft.AspNetCore.Builder;
 using System.Net.WebSockets;
 using System.Net;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace CoreWCF.Channels
 {
@@ -62,6 +63,7 @@ namespace CoreWCF.Channels
             httpSettings.KeepAliveEnabled = tbe.KeepAliveEnabled;
             httpSettings.AnonymousUriPrefixMatcher = new HttpAnonymousUriPrefixMatcher();
             httpSettings.AuthenticationScheme = tbe.AuthenticationScheme;
+            httpSettings.WebSocketSettings = tbe.WebSocketSettings.Clone();
 
             _httpSettings = httpSettings;
             WebSocketOptions = CreateWebSocketOptions(tbe);
@@ -100,8 +102,87 @@ namespace CoreWCF.Channels
 
                 await _replyChannel.HandleRequest(context);
             }
+            else
+            {
+                var openTimeoutToken = new TimeoutHelper(((IDefaultCommunicationTimeouts)_httpSettings).OpenTimeout).GetCancellationToken();
+                var webSocketContext = await AcceptWebSocketAsync(context, openTimeoutToken);
+                if (webSocketContext == null)
+                {
+                    return;
+                }
+
+                var channel = new ServerWebSocketTransportDuplexSessionChannel(context, webSocketContext, _httpSettings, _serviceDispatcher.BaseAddress,_servicesScopeFactory.CreateScope().ServiceProvider);
+                channel.ChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
+                await channel.StartReceivingAsync();
+            }
 
             return;
+        }
+
+        private async Task<WebSocketContext> AcceptWebSocketAsync(HttpContext context, CancellationToken token)
+        {
+            //if (TD.WebSocketConnectionAcceptStartIsEnabled())
+            //{
+            //    TD.WebSocketConnectionAcceptStart(this.httpRequestContext.EventTraceActivity);
+            //}
+
+            if (!context.WebSockets.IsWebSocketRequest)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Features.Get<IHttpResponseFeature>().ReasonPhrase = SR.WebSocketEndpointOnlySupportWebSocketError;
+                return null;
+            }
+
+            try
+            {
+                using (token.Register(() => { context.Abort(); }))
+                {
+                    string negotiatedProtocol = null;
+
+                    // match client protocols vs server protocol
+                    foreach (string protocol in context.WebSockets.WebSocketRequestedProtocols)
+                    {
+                        if (string.Compare(protocol, _httpSettings.WebSocketSettings.SubProtocol, StringComparison.OrdinalIgnoreCase) == 0)
+                        {
+                            negotiatedProtocol = protocol;
+                            break;
+                        }
+                    }
+
+                    if (negotiatedProtocol == null)
+                    {
+                        string errorMessage = SR.Format(SR.WebSocketInvalidProtocolNotInClientList, _httpSettings.WebSocketSettings.SubProtocol, string.Join(", ", context.WebSockets.WebSocketRequestedProtocols));
+                        Fx.Exception.AsWarning(new WebException(errorMessage));
+
+                        context.Response.StatusCode = (int)HttpStatusCode.UpgradeRequired;
+                        context.Features.Get<IHttpResponseFeature>().ReasonPhrase = SR.WebSocketEndpointOnlySupportWebSocketError;
+                        return null;
+                    }
+
+                    WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync(negotiatedProtocol);
+                    return new AspNetCoreWebSocketContext(context, webSocket);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Fx.IsFatal(ex))
+                {
+                    throw;
+                }
+
+                if (token.IsCancellationRequested)
+                {
+                    throw Fx.Exception.AsError(new TimeoutException(SR.AcceptWebSocketTimedOutError));
+                }
+
+                WebSocketHelper.ThrowCorrectException(ex);
+                throw;
+            }
+
+        }
+
+        private void SendUpgradeRequiredResponseMessageWithSubProtocol()
+        {
         }
 
         internal async Task HandleDuplexConnection(HttpContext context)

@@ -14,7 +14,6 @@ namespace CoreWCF.Channels.Framing
         private Stream _inputStream;
         bool isClosed;
         private TaskCompletionSource<object> _tcs;
-        private TaskCompletionSource<object> _replySentTcs;
 
         public StreamedFramingRequestContext(FramingConnection connection, Message requestMessage, Stream inputStream)
             : base(requestMessage, connection.ServiceDispatcher.Binding.CloseTimeout, connection.ServiceDispatcher.Binding.SendTimeout)
@@ -23,7 +22,6 @@ namespace CoreWCF.Channels.Framing
             _requestMessage = requestMessage;
             _inputStream = inputStream;
             _tcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _replySentTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         protected override void OnAbort()
@@ -104,7 +102,6 @@ namespace CoreWCF.Channels.Framing
             }
 
             await StreamingConnectionHelper.WriteMessageAsync(message, _connection, false, _connection.ServiceDispatcher.Binding, token);
-            _replySentTcs.TrySetResult(null);
         }
 
         public Task ReplySent => _tcs.Task;

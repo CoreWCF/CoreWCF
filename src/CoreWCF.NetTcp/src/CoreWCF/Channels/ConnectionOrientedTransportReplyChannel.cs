@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -10,10 +11,12 @@ namespace CoreWCF.Channels
     class ConnectionOrientedTransportReplyChannel : ReplyChannel
     {
         StreamUpgradeProvider _upgrade;
+        private IServiceProvider _serviceProvider;
 
-        public ConnectionOrientedTransportReplyChannel(ITransportFactorySettings settings, EndpointAddress localAddress)
+        public ConnectionOrientedTransportReplyChannel(ITransportFactorySettings settings, EndpointAddress localAddress, IServiceProvider serviceProvider)
             : base(settings, localAddress)
         {
+            _serviceProvider = serviceProvider;
         }
 
         public bool TransferUpgrade(StreamUpgradeProvider upgrade)
@@ -47,6 +50,17 @@ namespace CoreWCF.Channels
             }
 
             await base.OnCloseAsync(token);
+        }
+
+        public override T GetProperty<T>()
+        {
+            T service = _serviceProvider.GetService<T>();
+            if (service == null)
+            {
+                service = base.GetProperty<T>();
+            }
+
+            return service;
         }
     }
 }
