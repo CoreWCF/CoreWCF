@@ -45,6 +45,7 @@ namespace DispatcherClient
                 else
                 {
                     tcs.TrySetResult(antecedant.Result);
+                    callback(tcs.Task);
                 }
             });
             return tcs.Task;
@@ -62,7 +63,8 @@ namespace DispatcherClient
             var requestContext = new DispatcherClientRequestContext(message);
             var cts = new CancellationTokenSource(timeout);
             await _serviceChannelDispatch.DispatchAsync(requestContext, cts.Token);
-            var replyMessage = Helpers.TestHelper.ConvertMessage(requestContext.ReplyMessage);
+            var coreReplyMessage = await requestContext.ReplyMessageTask;
+            var replyMessage = Helpers.TestHelper.ConvertMessage(coreReplyMessage);
             cts.Dispose();
             return replyMessage;
         }

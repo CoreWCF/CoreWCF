@@ -484,8 +484,15 @@ namespace CoreWCF.Runtime
 
         private void Complete(IAsyncResult iar)
         {
-            var result = _operationInvoker.InvokeEnd(_instance, out object[] outputs, iar);
-            _tcs.TrySetResult((result: result, outputs: outputs));
+            try
+            {
+                var result = _operationInvoker.InvokeEnd(_instance, out object[] outputs, iar);
+                _tcs.TrySetResult((result: result, outputs: outputs));
+            }
+            catch(Exception e)
+            {
+                _tcs.TrySetException(e);
+            }
         }
 
         internal static void Callback(IAsyncResult iar)
