@@ -1,4 +1,5 @@
-﻿using CoreWCF.Channels;
+﻿using CoreWCF;
+using CoreWCF.Channels;
 using Helpers;
 using System;
 using System.Threading;
@@ -9,45 +10,60 @@ namespace DispatcherClient
     public class DispatcherClientRequestContext : RequestContext
     {
         private MessageBuffer _bufferedCopy;
+        private TaskCompletionSource<Message> _replyMessage;
 
         public DispatcherClientRequestContext(Message requestMessage)
         {
             RequestMessage = requestMessage;
+            _replyMessage = new TaskCompletionSource<Message>();
         }
 
 
         public DispatcherClientRequestContext(System.ServiceModel.Channels.Message requestMessage)
         {
             RequestMessage = TestHelper.ConvertMessage(requestMessage);
+            _replyMessage = new TaskCompletionSource<Message>();
         }
 
         public override Message RequestMessage { get; }
 
-        public Message ReplyMessage
+        public Task<Message> ReplyMessageTask
         {
             get
             {
-                return _bufferedCopy.CreateMessage();
+                if (_bufferedCopy != null)
+                {
+                    return Task.FromResult(_bufferedCopy.CreateMessage());
+                }
+                else
+                {
+                    return _replyMessage.Task;
+                }
             }
-            private set
-            {
-                _bufferedCopy = value.CreateBufferedCopy(int.MaxValue);
-            }
+        }
+
+        private void SetReplyMessage(Message reply)
+        {
+            _bufferedCopy = reply.CreateBufferedCopy(int.MaxValue);
+            _replyMessage.TrySetResult(_bufferedCopy.CreateMessage());
         }
 
         public override void Abort()
         {
-            throw new NotImplementedException();
+            _replyMessage.TrySetException(new CommunicationException("Request aborted"));
+            return;
         }
 
         public override Task CloseAsync()
         {
-            throw new NotImplementedException();
+            _replyMessage.TrySetException(new CommunicationException("Request aborted"));
+            return Task.CompletedTask;
         }
 
         public override Task CloseAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            _replyMessage.TrySetException(new CommunicationException("Request aborted"));
+            return Task.CompletedTask;
         }
 
         public override Task ReplyAsync(Message message)
@@ -57,7 +73,7 @@ namespace DispatcherClient
 
         public override Task ReplyAsync(Message message, CancellationToken token)
         {
-            ReplyMessage = message;
+            SetReplyMessage(message);
             return Task.CompletedTask;
         }
     }
