@@ -40,10 +40,6 @@ namespace DispatcherClient
                     return _replyMessage.Task;
                 }
             }
-
-            var registration = token.Register(() => _replyTcs.TrySetCanceled(token));
-            _replyTcs.Task.ContinueWith((antecedent) => registration.Dispose());
-            return _replyTcs.Task;
         }
 
         private void SetReplyMessage(Message reply)

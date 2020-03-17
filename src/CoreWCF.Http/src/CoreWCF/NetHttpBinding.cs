@@ -25,11 +25,6 @@ namespace CoreWCF
             _basicHttpSecurity.Mode = securityMode;
         }
 
-        public NetHttpBinding(BasicHttpSecurityMode securityMode, bool reliableSessionEnabled)
-            : this(securityMode)
-        {
-        }
-
         public NetHttpMessageEncoding MessageEncoding { get; set; }
 
         public BasicHttpSecurity Security

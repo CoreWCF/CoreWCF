@@ -2,12 +2,10 @@
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -39,7 +37,6 @@ namespace CoreWCF.Channels
         }
 
         public abstract string HttpMethod { get; }
-        public abstract bool IsWebSocketRequest { get; }
 
         //internal ServerWebSocketTransportDuplexSessionChannel WebSocketChannel
         //{
@@ -346,8 +343,6 @@ namespace CoreWCF.Channels
             }
 
             public override string HttpMethod => _aspNetContext.Request.Method;
-
-            public override bool IsWebSocketRequest => false;
 
             protected override HttpInput GetHttpInput()
             {

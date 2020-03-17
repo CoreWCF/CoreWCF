@@ -180,18 +180,5 @@ namespace CoreWCF.Channels
             }
 
         }
-
-        private void SendUpgradeRequiredResponseMessageWithSubProtocol()
-        {
-        }
-
-        internal async Task HandleDuplexConnection(HttpContext context)
-        {
-            if (context.WebSockets.IsWebSocketRequest)
-            {
-                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                
-            }
-        }
     }
 }

@@ -85,7 +85,6 @@ namespace CoreWCF.Channels
                         });
                     }
                 }
-                app.UseWebSockets();
             }
 
             branchApp.Use(_ => { return context => _next(context); });
