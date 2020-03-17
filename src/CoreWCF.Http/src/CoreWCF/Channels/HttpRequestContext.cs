@@ -2,12 +2,10 @@
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -19,6 +17,7 @@ namespace CoreWCF.Channels
         HttpOutput httpOutput;
         bool errorGettingHttpInput;
         SecurityMessageProperty securityProperty;
+        private TaskCompletionSource<object> _replySentTcs;
         //EventTraceActivity eventTraceActivity;
         //ServerWebSocketTransportDuplexSessionChannel webSocketChannel;
 
@@ -26,6 +25,7 @@ namespace CoreWCF.Channels
             : base(requestMessage, settings.CloseTimeout, settings.SendTimeout)
         {
             HttpTransportSettings = settings;
+            _replySentTcs = new TaskCompletionSource<object>(TaskContinuationOptions.RunContinuationsAsynchronously);
         }
 
         public bool KeepAliveEnabled
@@ -37,7 +37,6 @@ namespace CoreWCF.Channels
         }
 
         public abstract string HttpMethod { get; }
-        public abstract bool IsWebSocketRequest { get; }
 
         //internal ServerWebSocketTransportDuplexSessionChannel WebSocketChannel
         //{
@@ -70,16 +69,16 @@ namespace CoreWCF.Channels
         public HttpInput GetHttpInput(bool throwOnError)
         {
             HttpInput httpInput = null;
-            if (throwOnError || !this.errorGettingHttpInput)
+            if (throwOnError || !errorGettingHttpInput)
             {
                 try
                 {
                     httpInput = GetHttpInput();
-                    this.errorGettingHttpInput = false;
+                    errorGettingHttpInput = false;
                 }
                 catch (Exception e)
                 {
-                    this.errorGettingHttpInput = true;
+                    errorGettingHttpInput = true;
                     if (throwOnError || Fx.IsFatal(e))
                     {
                         throw;
@@ -105,36 +104,38 @@ namespace CoreWCF.Channels
 
         public HttpOutput GetHttpOutputCore(Message message)
         {
-            if (this.httpOutput != null)
+            if (httpOutput != null)
             {
-                return this.httpOutput;
+                return httpOutput;
             }
 
-            return this.GetHttpOutput(message);
+            return GetHttpOutput(message);
         }
 
         protected override void OnAbort()
         {
-            if (this.httpOutput != null)
+            if (httpOutput != null)
             {
-                this.httpOutput.Abort(HttpAbortReason.Aborted);
+                httpOutput.Abort(HttpAbortReason.Aborted);
             }
 
-            this.Cleanup();
+            Cleanup();
+            _replySentTcs.TrySetResult(null);
         }
 
         protected override async Task OnCloseAsync(CancellationToken token)
         {
             try
             {
-                if (this.httpOutput != null)
+                if (httpOutput != null)
                 {
                     await httpOutput.CloseAsync(); ;
                 }
             }
             finally
             {
-                this.Cleanup();
+                Cleanup();
+                _replySentTcs.TrySetResult(null);
             }
         }
 
@@ -152,7 +153,7 @@ namespace CoreWCF.Channels
                     new XmlException(SR.MessageIsEmpty)));
             }
 
-            this.TraceHttpMessageReceived(message);
+            TraceHttpMessageReceived(message);
 
             if (requestException != null)
             {
@@ -161,7 +162,7 @@ namespace CoreWCF.Channels
             }
             else
             {
-                message.Properties.Security = (this.securityProperty != null) ? (SecurityMessageProperty)this.securityProperty.CreateCopy() : null;
+                message.Properties.Security = (securityProperty != null) ? (SecurityMessageProperty)securityProperty.CreateCopy() : null;
                 base.SetRequestMessage(message);
             }
         }
@@ -215,7 +216,7 @@ namespace CoreWCF.Channels
             }
 
             message.Properties.AllowOutputBatching = false;
-            this.httpOutput = GetHttpOutputCore(message);
+            httpOutput = GetHttpOutputCore(message);
 
             return closeOnReceivedEof;
         }
@@ -227,7 +228,7 @@ namespace CoreWCF.Channels
             try
             {
                 bool closeOutputAfterReply = PrepareReply(ref responseMessage);
-                httpOutput = this.GetHttpOutput(message);
+                httpOutput = GetHttpOutput(message);
                 await httpOutput.SendAsync(token);
 
                 if (closeOutputAfterReply)
@@ -245,6 +246,8 @@ namespace CoreWCF.Channels
             }
         }
 
+        public Task ReplySent => _replySentTcs.Task;
+
         public async Task<bool> ProcessAuthenticationAsync()
         {
             HttpStatusCode statusCode = ValidateAuthentication();
@@ -255,7 +258,7 @@ namespace CoreWCF.Channels
                 statusCode = HttpStatusCode.Forbidden;
                 try
                 {
-                    this.securityProperty = OnProcessAuthentication();
+                    securityProperty = OnProcessAuthentication();
                     authenticationSucceeded = true;
                     return true;
                 }
@@ -341,19 +344,20 @@ namespace CoreWCF.Channels
 
             public override string HttpMethod => _aspNetContext.Request.Method;
 
-            public override bool IsWebSocketRequest => false;
-
             protected override HttpInput GetHttpInput()
             {
                 return new AspNetCoreHttpInput(this);
             }
             public override HttpOutput GetHttpOutput(Message message)
             {
-                // TODO: Enable KeepAlive setting
-                //if (!_httpBindingElement.KeepAlive)
-                //{
-                //    aspNetContext.Response.Headers["Connection"] = "close";
-                //}
+                if (HttpTransportSettings.KeepAliveEnabled)
+                {
+                    _aspNetContext.Response.Headers["Connection"] = "keep-alive";
+                }
+                else
+                {
+                    _aspNetContext.Response.Headers["Connection"] = "close";
+                }
 
                 ICompressedMessageEncoder compressedMessageEncoder = HttpTransportSettings.MessageEncoderFactory.Encoder as ICompressedMessageEncoder;
                 if (compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled)
@@ -382,7 +386,7 @@ namespace CoreWCF.Channels
             protected override void OnAbort()
             {
                 _aspNetContext.Abort();
-                this.Cleanup();
+                Cleanup();
             }
 
             protected override Task OnCloseAsync(CancellationToken token)
@@ -412,13 +416,13 @@ namespace CoreWCF.Channels
                     : base(aspNetCoreHttpContext.HttpTransportSettings, true, false /* ChannelBindingSupportEnabled */) 
                 {
                     _aspNetCoreHttpContext = aspNetCoreHttpContext;
-                    if (!this._aspNetCoreHttpContext._aspNetContext.Request.ContentLength.HasValue)
+                    if (!_aspNetCoreHttpContext._aspNetContext.Request.ContentLength.HasValue)
                     {
                         // TODO: Look into useing PipeReader with look-ahead
-                        this.preReadBuffer = new byte[1];
+                        preReadBuffer = new byte[1];
                         if (_aspNetCoreHttpContext._aspNetContext.Request.Body.Read(preReadBuffer, 0, 1) == 0)
                         {
-                            this.preReadBuffer = null;
+                            preReadBuffer = null;
                         }
                     }
                 }

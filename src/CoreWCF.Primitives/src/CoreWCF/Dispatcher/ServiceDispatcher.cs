@@ -29,9 +29,11 @@ namespace CoreWCF.Dispatcher
 
         public EndpointDispatcherTable Endpoints => ChannelDispatcher.EndpointDispatcherTable;
 
+        public ICollection<Type> SupportedChannelTypes => ChannelDispatcher.SupportedChannelTypes;
+
         public object ThisLock { get; } = new object();
 
-        public IServiceChannelDispatcher CreateServiceChannelDispatcher(IChannel channel)
+        public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
         {
             var sessionIdleManager = channel.GetProperty<ServiceChannel.SessionIdleManager>();
             IChannelBinder binder = null;
@@ -58,7 +60,10 @@ namespace CoreWCF.Dispatcher
             var channelHandler = new ChannelHandler(Binding.MessageVersion, binder, channel.GetProperty<ServiceThrottle>(),
              this, /*wasChannelThrottled*/ false, sessionIdleManager);
 
-            return channelHandler;
+            var channelDispatcher = channelHandler.GetDispatcher();
+            channel.ChannelDispatcher = channelDispatcher;
+            await channelHandler.OpenAsync();
+            return channelDispatcher;
         }
     }
 }

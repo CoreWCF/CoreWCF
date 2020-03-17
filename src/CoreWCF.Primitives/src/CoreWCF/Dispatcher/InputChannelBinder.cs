@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Dispatcher
 {
     internal class InputChannelBinder : IChannelBinder
     {
-        IInputChannel channel;
-        Uri listenUri;
+        private IInputChannel _channel;
+        private IServiceChannelDispatcher _next;
 
         public InputChannelBinder()
         {
@@ -24,28 +25,25 @@ namespace CoreWCF.Dispatcher
                 Fx.Assert("InputChannelBinder.InputChannelBinder: (channel != null)");
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channel));
             }
-            this.channel = channel;
-            this.listenUri = listenUri;
+            _channel = channel;
+            ListenUri = listenUri;
         }
 
         public IChannel Channel
         {
-            get { return channel; }
+            get { return _channel; }
         }
 
         public bool HasSession
         {
-            get { return channel is ISessionChannel<IInputSession>; }
+            get { return _channel is ISessionChannel<IInputSession>; }
         }
 
-        public Uri ListenUri
-        {
-            get { return listenUri; }
-        }
+        public Uri ListenUri { get; private set; }
 
         public EndpointAddress LocalAddress
         {
-            get { return channel.LocalAddress; }
+            get { return _channel.LocalAddress; }
         }
 
         public EndpointAddress RemoteAddress
@@ -58,13 +56,13 @@ namespace CoreWCF.Dispatcher
 
         public void Abort()
         {
-            channel.Abort();
+            _channel.Abort();
         }
 
         public void CloseAfterFault(TimeSpan timeout)
         {
             var helper = new TimeoutHelper(timeout);
-            channel.CloseAsync(helper.GetCancellationToken()).GetAwaiter().GetResult();
+            _channel.CloseAsync(helper.GetCancellationToken()).GetAwaiter().GetResult();
         }
 
         public RequestContext CreateRequestContext(Message message)
@@ -77,30 +75,12 @@ namespace CoreWCF.Dispatcher
             throw TraceUtility.ThrowHelperError(new NotImplementedException(), message);
         }
 
-        public async Task<TryAsyncResult<RequestContext>> TryReceiveAsync(CancellationToken token)
-        {
-            var result = await channel.TryReceiveAsync(token);
-            if (result.Success)
-            {
-                return TryAsyncResult.FromResult(WrapMessage(result.Result));
-            }
-            else
-            {
-                return TryAsyncResult<RequestContext>.FailedResult;
-            }
-        }
-
         public Task<Message> RequestAsync(Message message, CancellationToken token)
         {
             throw TraceUtility.ThrowHelperError(new NotImplementedException(), message);
         }
 
-        public Task<bool> WaitForMessageAsync(CancellationToken token)
-        {
-            return channel.WaitForMessageAsync(token);
-        }
-
-        RequestContext WrapMessage(Message message)
+        private RequestContext WrapMessage(Message message)
         {
             if (message == null)
             {
@@ -112,9 +92,25 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class InputRequestContext : RequestContextBase
+        public void SetNextDispatcher(IServiceChannelDispatcher dispatcher)
         {
-            InputChannelBinder binder;
+            _next = dispatcher;
+        }
+
+        public Task DispatchAsync(RequestContext context)
+        {
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotImplementedException());
+        }
+
+        public Task DispatchAsync(Message message)
+        {
+            var requestContext = WrapMessage(message);
+            return _next.DispatchAsync(requestContext);
+        }
+
+        private class InputRequestContext : RequestContextBase
+        {
+            private InputChannelBinder binder;
 
             internal InputRequestContext(Message request, InputChannelBinder binder)
                 : base(request, TimeSpan.Zero, TimeSpan.Zero)

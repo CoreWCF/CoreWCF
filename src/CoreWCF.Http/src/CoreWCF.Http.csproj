@@ -4,8 +4,11 @@
     <AssemblyName>CoreWCF.Http</AssemblyName>
     <PackageId>CoreWCF.Http</PackageId>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <RootNamespace />
+    <IncludeSharedDuplexChannelSource>True</IncludeSharedDuplexChannelSource>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.1.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
   </ItemGroup>
   <ItemGroup>

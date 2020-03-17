@@ -9,6 +9,7 @@ using CoreWCF.Runtime;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
@@ -1329,6 +1330,12 @@ namespace CoreWCF.Channels
 
                 return null;
             }
+        }
+
+        IServiceChannelDispatcher IChannel.ChannelDispatcher 
+        { 
+            get => throw new NotSupportedException(); 
+            set => throw new NotSupportedException(); 
         }
 
         event EventHandler<UnknownMessageReceivedEventArgs> IClientChannel.UnknownMessageReceived

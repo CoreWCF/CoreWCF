@@ -4,12 +4,14 @@ using System.Diagnostics.Contracts;
 using System.Text;
 using System.Xml;
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
     public abstract class HttpBindingBase : Binding
     {
         private HttpTransportBindingElement _httpTransport;
+        private HttpsTransportBindingElement _httpsTransport;
         private TextMessageEncodingBindingElement _textEncoding;
 
         internal HttpBindingBase()
@@ -25,7 +27,6 @@ namespace CoreWCF
         // public long MaxBufferPoolSize { get { return default(long); } set { } }
         // [System.ComponentModel.DefaultValueAttribute(65536)]
         // public int MaxBufferSize { get { return default(int); } set { } }
-        [DefaultValue((long)65536)]
         public long MaxReceivedMessageSize { get { return default(long); } set { } }
         public XmlDictionaryReaderQuotas ReaderQuotas { get { return default(XmlDictionaryReaderQuotas); } set { } }
 
@@ -42,28 +43,44 @@ namespace CoreWCF
             }
         }
 
+        internal abstract BasicHttpSecurity BasicHttpSecurity
+        {
+            get;
+        }
+
+        internal WebSocketTransportSettings InternalWebSocketSettings
+        {
+            get
+            {
+                return _httpTransport.WebSocketSettings;
+            }
+        }
+
         internal TransportBindingElement GetTransport()
         {
-            //Contract.Assert(this.BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
+            Fx.Assert(this.BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
 
-            //BasicHttpSecurity basicHttpSecurity = this.BasicHttpSecurity;
-            //if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport || basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential)
-            //{
-            //    basicHttpSecurity.EnableTransportSecurity(_httpsTransport);
-            //    return _httpsTransport;
-            //}
-            //else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportCredentialOnly)
-            //{
-            //    basicHttpSecurity.EnableTransportAuthentication(_httpTransport);
-            //    return _httpTransport;
-            //}
-            //else
-            //{
-            //    // ensure that there is no transport security
-            //    basicHttpSecurity.DisableTransportAuthentication(_httpTransport);
-            //    return _httpTransport;
-            //}
-            return _httpTransport;
+            BasicHttpSecurity basicHttpSecurity = BasicHttpSecurity;
+            if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential || basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
+            {
+                throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.TransportWithMessageCredential));
+            }
+            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport)
+            {
+                basicHttpSecurity.EnableTransportSecurity(_httpsTransport);
+                return _httpsTransport;
+            }
+            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportCredentialOnly)
+            {
+                basicHttpSecurity.EnableTransportAuthentication(_httpTransport);
+                return _httpTransport;
+            }
+            else
+            {
+                // ensure that there is no transport security
+                basicHttpSecurity.DisableTransportAuthentication(_httpTransport);
+                return _httpTransport;
+            }
         }
 
         internal virtual void CheckSettings()

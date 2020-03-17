@@ -14,10 +14,12 @@ namespace Helpers
         private Message _requestMessage;
         private string _replyMessageString;
         private MessageBuffer _bufferedCopy;
+        private ManualResetEvent _mre;
 
         public TestRequestContext(Message requestMessage)
         {
             _requestMessage = requestMessage;
+            _mre = new ManualResetEvent(false);
         }
 
         public override Message RequestMessage => _requestMessage;
@@ -57,6 +59,7 @@ namespace Helpers
         {
             ReplyMessage = message;
             SerializeReply();
+            _mre.Set();
             return Task.CompletedTask;
         }
 
@@ -93,5 +96,10 @@ namespace Helpers
 </s:Envelope>";
 
         private static string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleService/EchoResponse</Action></s:Header><s:Body><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
+
+        internal bool WaitForReply(TimeSpan timeout)
+        {
+            return _mre.WaitOne(timeout);
+        }
     }
 }

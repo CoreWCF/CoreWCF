@@ -34,7 +34,6 @@ namespace CoreWCF.Dispatcher
         readonly bool isOneWay;
         readonly bool disposeParameters;
         readonly ReceiveContextAcknowledgementMode receiveContextAcknowledgementMode;
-        readonly bool bufferedReceiveEnabled;
         //readonly bool isInsideTransactedReceiveScope;
 
         internal DispatchOperationRuntime(DispatchOperation operation, ImmutableDispatchRuntime parent)
@@ -84,7 +83,6 @@ namespace CoreWCF.Dispatcher
             replyAction = operation.ReplyAction;
             isOneWay = operation.IsOneWay;
             receiveContextAcknowledgementMode = operation.ReceiveContextAcknowledgementMode;
-            bufferedReceiveEnabled = operation.BufferedReceiveEnabled;
 
             if (formatter == null && (deserializeRequest || serializeReply))
             {

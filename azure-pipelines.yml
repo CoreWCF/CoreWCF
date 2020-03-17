@@ -21,6 +21,13 @@ stages:
     pool:
       vmImage: 'windows-latest'
     steps:
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core sdk'
+        inputs:
+          packageType: sdk
+          version: 3.1.101
+          installationPath: $(Agent.ToolsDirectory)/dotnet
+
       # GitVersion task broken as of 2019-12-10. See https://github.com/GitTools/GitVersion/issues/1855
       # Installing the GitVersion tool and running it directly as a workaround
       - task: DotNetCoreCLI@2

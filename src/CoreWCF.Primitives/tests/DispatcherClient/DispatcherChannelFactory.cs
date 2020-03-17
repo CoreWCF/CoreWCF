@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
@@ -17,7 +18,7 @@ namespace DispatcherClient
         internal abstract TimeSpan OpenTimeout { get; }
         internal abstract TimeSpan SendTimeout { get; }
 
-        internal abstract IServiceChannelDispatcher GetServiceChannelDispatcher(DispatcherRequestChannel channel);
+        internal abstract Task<IServiceChannelDispatcher> GetServiceChannelDispatcherAsync(DispatcherRequestChannel channel);
     }
 
     internal class DispatcherChannelFactory<TChannel, TService, TContract> : DispatcherChannelFactory, IChannelFactory<TChannel> where TService : class
@@ -63,14 +64,12 @@ namespace DispatcherClient
             if (typeof(TChannel) == typeof(IRequestChannel))
             {
                 var channel = new DispatcherRequestChannel(serviceScope.ServiceProvider, to, via);
-                _ = GetServiceChannelDispatcher(channel);
                 return (TChannel)(object)channel;
             }
 
             if (typeof(TChannel) == typeof(IRequestSessionChannel))
             {
                 var channel = new DispatcherRequestSessionChannel(serviceScope.ServiceProvider, to, via);
-                _ = GetServiceChannelDispatcher(channel);
                 return (TChannel)(object)channel;
             }
 
@@ -82,41 +81,46 @@ namespace DispatcherClient
             return CreateChannel(to, to.Uri);
         }
 
-        internal override IServiceChannelDispatcher GetServiceChannelDispatcher(DispatcherRequestChannel channel)
+        internal override async Task<IServiceChannelDispatcher> GetServiceChannelDispatcherAsync(DispatcherRequestChannel channel)
         {
+            lock (_lock)
+            {
+                if (_serviceChannelDispatchers.TryGetValue(channel, out IServiceChannelDispatcher dispatcher))
+                {
+                    return dispatcher;
+                }
+            }
+            
+            var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.AddService<TService>();
+            var binding = new CoreWCF.Channels.CustomBinding("BindingName", "BindingNS");
+            binding.Elements.Add(new Helpers.MockTransportBindingElement());
+            serviceBuilder.AddServiceEndpoint<TService, TContract>(binding, channel.Via);
+            var dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
+            var serviceDispatcher = dispatchers[0];
+            CoreWCF.Channels.IChannel replyChannel;
+            if (channel is DispatcherRequestSessionChannel)
+            {
+                replyChannel = new DispatcherReplySessionChannel(_serviceProvider);
+            }
+            else
+            {
+                replyChannel = new DispatcherReplyChannel(_serviceProvider);
+            }
+
+            IServiceChannelDispatcher newDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(replyChannel);
+
             lock (_lock)
             {
                 if (!_serviceChannelDispatchers.TryGetValue(channel, out IServiceChannelDispatcher dispatcher))
                 {
-                    var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
-                    serviceBuilder.AddService<TService>();
-                    var binding = new CoreWCF.Channels.CustomBinding("BindingName", "BindingNS");
-                    binding.Elements.Add(new Helpers.MockTransportBindingElement());
-                    serviceBuilder.AddServiceEndpoint<TService, TContract>(binding, channel.Via);
-                    var dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
-                    var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
-                    var serviceDispatcher = dispatchers[0];
-                    CoreWCF.Channels.IChannel replyChannel;
-                    if (channel is DispatcherRequestSessionChannel)
-                    {
-                        replyChannel = new DispatcherReplySessionChannel(_serviceProvider);
-                    }
-                    else
-                    {
-                        replyChannel = new DispatcherReplyChannel(_serviceProvider);
-                    }
-
-                    dispatcher = serviceDispatcher.CreateServiceChannelDispatcher(replyChannel);
+                    dispatcher = newDispatcher;
                     _serviceChannelDispatchers[channel] = dispatcher;
                 }
 
                 return dispatcher;
             }
-        }
-
-        protected override void OnAbort()
-        {
-            throw new NotImplementedException();
         }
 
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)

@@ -13,8 +13,9 @@ namespace CoreWCF.Channels
         private TimeoutHelper _timeoutHelper;
         private bool _disposed;
         private byte[] _oneByteArray = new byte[1];
+        private CancellationToken _cancellationToken;
 
-        public TimeoutStream(Stream stream, TimeSpan timeout)
+        public TimeoutStream(Stream stream, CancellationToken token)
             : base(stream)
         {
             if (!stream.CanTimeout)
@@ -22,8 +23,8 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("stream", SR.StreamDoesNotSupportTimeout);
             }
 
-            _timeoutHelper = new TimeoutHelper(timeout);
-            ReadTimeout = TimeoutHelper.ToMilliseconds(timeout);
+            _cancellationToken = token;
+            ReadTimeout = (int)TimeoutHelper.GetOriginalTimeout(token).TotalMilliseconds;
             WriteTimeout = ReadTimeout;
         }
 
@@ -46,8 +47,7 @@ namespace CoreWCF.Channels
             // creating a linked token source on every call which is extra allocation and needs disposal. As this is an 
             // internal class, it's okay to add this extra constraint to usage of this method.
             Fx.Assert(!cancellationToken.CanBeCanceled, "cancellationToken shouldn't be cancellable");
-            var cancelToken = _timeoutHelper.GetCancellationToken();
-            return await base.ReadAsync(buffer, offset, count, cancelToken);
+            return await base.ReadAsync(buffer, offset, count, _cancellationToken);
         }
 
         private async Task<int> ReadAsyncInternal(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -73,8 +73,7 @@ namespace CoreWCF.Channels
             // creating a linked token source on every call which is extra allocation and needs disposal. As this is an 
             // internal class, it's okay to add this extra constraint to usage of this method.
             Fx.Assert(!cancellationToken.CanBeCanceled, "cancellationToken shouldn't be cancellable");
-            var cancelToken = _timeoutHelper.GetCancellationToken();
-            await base.WriteAsync(buffer, offset, count, cancelToken);
+            await base.WriteAsync(buffer, offset, count, _cancellationToken);
         }
 
         private async Task WriteAsyncInternal(byte[] buffer, int offset, int count, CancellationToken cancellationToken)

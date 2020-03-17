@@ -76,7 +76,12 @@ namespace CoreWCF.Channels
                         branchApp.Map(dispatcher.BaseAddress.AbsolutePath, wcfApp =>
                         {
                             var servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
-                            wcfApp.Run(new RequestDelegateHandler(dispatcher, servicesScopeFactory).HandleRequest);
+                            var requestHandler = new RequestDelegateHandler(dispatcher, servicesScopeFactory);
+                            if (requestHandler.WebSocketOptions != null)
+                            {
+                                wcfApp.UseWebSockets(requestHandler.WebSocketOptions);
+                            }
+                            wcfApp.Run(requestHandler.HandleRequest);
                         });
                     }
                 }

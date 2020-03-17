@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Channels;
+using CoreWCF.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DispatcherClient
@@ -17,6 +18,8 @@ namespace DispatcherClient
         }
 
         public EndpointAddress LocalAddress => _serviceProvider.GetRequiredService<EndpointAddress>();
+
+        public IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
         protected override TimeSpan DefaultCloseTimeout => _serviceProvider.GetRequiredService<DispatcherChannelFactory>().CloseTimeout;
 
@@ -37,7 +40,7 @@ namespace DispatcherClient
             throw new NotImplementedException();
         }
 
-        public Task<TryAsyncResult<RequestContext>> TryReceiveRequestAsync(CancellationToken token)
+        public Task<(RequestContext requestContext, bool success)> TryReceiveRequestAsync(CancellationToken token)
         {
             throw new NotImplementedException();
         }

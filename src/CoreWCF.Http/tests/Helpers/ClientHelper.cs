@@ -26,6 +26,24 @@ namespace Helpers
             return binding;
         }
 
+        public static NetHttpBinding GetBufferedModeWebSocketBinding()
+        {
+            var binding = new NetHttpBinding();
+            binding.WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
+
+        public static NetHttpBinding GetStreamedModeWebSocketBinding()
+        {
+            var binding = new NetHttpBinding
+            {
+                TransferMode = TransferMode.Streamed
+            };
+            binding.WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
 
         private static void ApplyDebugTimeouts(Binding binding)
         {

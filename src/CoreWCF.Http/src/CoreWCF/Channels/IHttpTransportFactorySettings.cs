@@ -1,4 +1,6 @@
-﻿namespace CoreWCF.Channels
+﻿using System.Net;
+
+namespace CoreWCF.Channels
 {
     interface IHttpTransportFactorySettings : ITransportFactorySettings
     {
@@ -6,5 +8,9 @@
         TransferMode TransferMode { get; }
         bool KeepAliveEnabled { get; set; }
         IAnonymousUriPrefixMatcher AnonymousUriPrefixMatcher { get; }
+        WebSocketTransportSettings WebSocketSettings { get; }
+        AuthenticationSchemes AuthenticationScheme { get; }
+        bool IsAuthenticationRequired { get; }
+        bool IsAuthenticationSupported { get; }
     }
 }

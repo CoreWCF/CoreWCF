@@ -1,4 +1,5 @@
 ﻿using CoreWCF.Configuration;
+using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,9 @@ namespace CoreWCF.Channels.Framing
     {
         private HandshakeDelegate _next;
         private IServiceScopeFactory _servicesScopeFactory;
+        private ConnectionOrientedTransportReplyChannel _replyChannel;
+        private IServiceChannelDispatcher _channelDispatcher;
+        private AsyncLock _lock = new AsyncLock();
 
         public ServerSingletonConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory)
         {
@@ -26,34 +30,47 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            var be = connection.ServiceDispatcher.Binding.CreateBindingElements();
-            var tbe = be.Find<TransportBindingElement>();
-            ITransportFactorySettings settings = new NetFramingTransportSettings
-            {
-                CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
-                OpenTimeout = connection.ServiceDispatcher.Binding.OpenTimeout,
-                ReceiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout,
-                SendTimeout = connection.ServiceDispatcher.Binding.SendTimeout,
-                ManualAddressing = tbe.ManualAddressing,
-                BufferManager = connection.BufferManager,
-                MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
-                MessageEncoderFactory = connection.MessageEncoderFactory
-            };
-            var timeoutHelper = new TimeoutHelper(settings.ReceiveTimeout);
-            var channel = new InputChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
-            await channel.OpenAsync();
-            var channelDispatcher = connection.ServiceDispatcher.CreateServiceChannelDispatcher(channel);
-
+            await EnsureChannelAsync(connection);
             // TODO: I think that the receive timeout starts counting at the start of the preamble on .NET Framework. This implementation basically resets the timer
             // after the preamble has completed. This probably needs to be addressed otherwise worse case you could end up taking 2X as long to timeout.
             // I believe the preamble should really use the OpenTimeout but that's not how this is implemented on .NET Framework.
-
-            var requestContext = (StreamedFramingRequestContext)await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
-            _ = channelDispatcher.DispatchAsync(requestContext, CancellationToken.None);
+            var timeoutHelper = new TimeoutHelper(((IDefaultCommunicationTimeouts)_replyChannel).ReceiveTimeout);
+            var requestContext = await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
+            await _channelDispatcher.DispatchAsync(requestContext);
             await requestContext.ReplySent;
+            //await channelDispatcher.DispatchAsync();
+            //await requestContext.ReplySent;
         }
 
-        public async Task<RequestContext> ReceiveRequestAsync(FramingConnection connection, TimeSpan timeout)
+        private async Task EnsureChannelAsync(FramingConnection connection)
+        {
+            if (_replyChannel == null)
+            {
+                using(await _lock.TakeLockAsync())
+                {
+                    if (_replyChannel == null)
+                    {
+                        var be = connection.ServiceDispatcher.Binding.CreateBindingElements();
+                        var tbe = be.Find<TransportBindingElement>();
+                        ITransportFactorySettings settings = new NetFramingTransportSettings
+                        {
+                            CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
+                            OpenTimeout = connection.ServiceDispatcher.Binding.OpenTimeout,
+                            ReceiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout,
+                            SendTimeout = connection.ServiceDispatcher.Binding.SendTimeout,
+                            ManualAddressing = tbe.ManualAddressing,
+                            BufferManager = connection.BufferManager,
+                            MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
+                            MessageEncoderFactory = connection.MessageEncoderFactory
+                        };
+                        _replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
+                        _channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
+                    }
+                }
+            }
+        }
+
+        public async Task<StreamedFramingRequestContext> ReceiveRequestAsync(FramingConnection connection, TimeSpan timeout)
         {
             (Message requestMessage, Stream inputStream) = await ReceiveAsync(connection, timeout);
             return new StreamedFramingRequestContext(connection, requestMessage, inputStream);

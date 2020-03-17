@@ -4,6 +4,7 @@ using CoreWCF.Channels;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
 
 namespace Helpers
 {
@@ -20,6 +21,7 @@ namespace Helpers
         public EndpointAddress LocalAddress => throw new NotImplementedException();
 
         public CommunicationState State { get; set; } = CommunicationState.Opened;
+        public IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
 #pragma warning disable CS0067 // "The event is never used"
         // These are required to implement IReplyChannel
@@ -53,32 +55,12 @@ namespace Helpers
 
         public Task OpenAsync()
         {
-            throw new NotImplementedException();
+            return OpenAsync(CancellationToken.None);
         }
 
         public Task OpenAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<RequestContext> ReceiveRequestAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<RequestContext> ReceiveRequestAsync(CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TryAsyncResult<RequestContext>> TryReceiveRequestAsync(CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> WaitForRequestAsync(CancellationToken token)
-        {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }

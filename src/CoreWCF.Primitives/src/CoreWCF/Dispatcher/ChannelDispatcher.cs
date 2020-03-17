@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Dispatcher
 {
@@ -45,11 +42,12 @@ namespace CoreWCF.Dispatcher
             Initialize(shared);
         }
 
-        internal ChannelDispatcher(Uri listenUri, Binding binding, string bindingName, IDefaultCommunicationTimeouts timeouts)
+        internal ChannelDispatcher(Uri listenUri, Binding binding, string bindingName, IDefaultCommunicationTimeouts timeouts, List<Type> supportedChannelTypes)
         {
             BindingName = bindingName;
             Binding = binding;
             ListenUri = listenUri;
+            SupportedChannelTypes = supportedChannelTypes;
             this.timeouts = new ImmutableCommunicationTimeouts(timeouts);
             Initialize(new SharedRuntimeState(true));
         }
@@ -148,12 +146,6 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal bool BufferedReceiveEnabled
-        {
-            get;
-            set;
-        }
-
         //public ServiceThrottle ServiceThrottle
         //{
         //    get
@@ -245,6 +237,8 @@ namespace CoreWCF.Dispatcher
 
         internal Uri ListenUri { get; }
 
+        internal List<Type> SupportedChannelTypes { get; }
+        
         internal Binding Binding { get; }
 
         internal bool HandleError(Exception error)

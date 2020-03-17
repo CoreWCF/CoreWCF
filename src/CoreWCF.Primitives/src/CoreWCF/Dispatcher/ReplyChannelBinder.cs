@@ -4,23 +4,24 @@ using System.Threading.Tasks;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Dispatcher
 {
     internal class ReplyChannelBinder : IChannelBinder
     {
-        IReplyChannel channel;
-        Uri listenUri;
-        bool initialized = false;
+        private IReplyChannel _channel;
+        private bool _initialized = false;
+        private IServiceChannelDispatcher _next;
 
         public ReplyChannelBinder() { }
 
         internal void Init(IReplyChannel channel, Uri listenUri)
         {
-            if (initialized)
+            if (_initialized)
             {
-                Fx.Assert(this.channel == channel, "Wrong channel when calling Init");
-                Fx.Assert(this.listenUri == listenUri, "Wrong listenUri when calling Init");
+                Fx.Assert(_channel == channel, "Wrong channel when calling Init");
+                Fx.Assert(ListenUri == listenUri, "Wrong listenUri when calling Init");
                 return;
             }
 
@@ -29,29 +30,26 @@ namespace CoreWCF.Dispatcher
                 Fx.Assert("ReplyChannelBinder.ReplyChannelBinder: (channel != null)");
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channel));
             }
-            this.channel = channel;
-            this.listenUri = listenUri;
-            initialized = true;
+            _channel = channel;
+            ListenUri = listenUri;
+            _initialized = true;
         }
 
         public IChannel Channel
         {
-            get { return channel; }
+            get { return _channel; }
         }
 
         public bool HasSession
         {
-            get { return channel is ISessionChannel<IInputSession>; }
+            get { return _channel is ISessionChannel<IInputSession>; }
         }
 
-        public Uri ListenUri
-        {
-            get { return listenUri; }
-        }
+        public Uri ListenUri { get; private set; }
 
         public EndpointAddress LocalAddress
         {
-            get { return channel.LocalAddress; }
+            get { return _channel.LocalAddress; }
         }
 
         public EndpointAddress RemoteAddress
@@ -64,13 +62,13 @@ namespace CoreWCF.Dispatcher
 
         public void Abort()
         {
-            channel.Abort();
+            _channel.Abort();
         }
 
         public void CloseAfterFault(TimeSpan timeout)
         {
             var helper = new TimeoutHelper(timeout);
-            channel.CloseAsync(helper.GetCancellationToken()).GetAwaiter().GetResult();
+            _channel.CloseAsync(helper.GetCancellationToken()).GetAwaiter().GetResult();
         }
 
         public RequestContext CreateRequestContext(Message message)
@@ -83,17 +81,23 @@ namespace CoreWCF.Dispatcher
             throw TraceUtility.ThrowHelperError(new NotImplementedException(), message);
         }
 
-        public Task<TryAsyncResult<RequestContext>> TryReceiveAsync(CancellationToken token)
-        {
-            return channel.TryReceiveRequestAsync(token);
-        }
-
         public Task<Message> RequestAsync(Message message, CancellationToken token)
         {
             throw TraceUtility.ThrowHelperError(new NotImplementedException(), message);
         }
 
-        public Task<bool> WaitForMessageAsync(CancellationToken token)
+        public void SetNextDispatcher(IServiceChannelDispatcher dispatcher)
+        {
+            _next = dispatcher;
+        }
+
+        public Task DispatchAsync(RequestContext context)
+        {
+            Fx.Assert(_next != null, "SetNextDispatcher wasn't called");
+            return _next.DispatchAsync(context);
+        }
+
+        public Task DispatchAsync(Message message)
         {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotImplementedException());
         }

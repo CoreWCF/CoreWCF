@@ -6,6 +6,8 @@
     <RootNamespace />
     <LangVersion>7.2</LangVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <RootNamespace />
+    <IncludeSharedDuplexChannelSource>True</IncludeSharedDuplexChannelSource>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" Version="2.1.3" />

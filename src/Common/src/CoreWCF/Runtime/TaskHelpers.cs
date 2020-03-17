@@ -448,7 +448,21 @@ namespace CoreWCF.Runtime
 
         public bool IsCompleted => _syncContext == SynchronizationContext.Current;
 
-        public void OnCompleted(Action continuation) => _syncContext.Post(SynchronizationContextAwaiter.PostCallback, continuation);
+        public void OnCompleted(Action continuation)
+        {
+            // _syncContext will be null if it's the default sync context
+            // This method is being called because IsCompleted returned false
+            // This means we need to run the continuation on a regular thread pool
+            // thread.
+            if (_syncContext == null)
+            {
+                ThreadPool.UnsafeQueueUserWorkItem(PostCallback, continuation);
+                return;
+            }
+
+            _syncContext.Post(PostCallback, continuation);
+        }
+        
 
         public void GetResult() { }
 
@@ -509,6 +523,52 @@ namespace CoreWCF.Runtime
             }
 
             helper.Complete(iar);
+        }
+    }
+
+    internal class ResettableAsyncWaitable
+    {
+        private TaskCompletionSource<object> _tcs = null;
+
+        public bool IsSet => _tcs?.Task.IsCompleted ?? false;
+
+        public void Reset()
+        {
+            if (!(_tcs?.Task.IsCompleted ?? true))
+            {
+                Fx.Exception.AsError(new InvalidOperationException(nameof(Reset)));
+            }
+
+            Interlocked.Exchange(ref _tcs, null);
+        }
+
+        public void Set()
+        {
+            var tcs = _tcs;
+            if (tcs == null)
+            {
+                var temp = CreateTcs();
+                tcs = Interlocked.CompareExchange(ref _tcs, temp, null) ?? temp;
+            }
+
+            tcs.TrySetResult(null);
+        }
+
+        public TaskAwaiter<object> GetAwaiter()
+        {
+            var tcs = _tcs;
+            if (tcs == null)
+            {
+                var temp = CreateTcs();
+                tcs = Interlocked.CompareExchange(ref _tcs, temp, null) ?? temp;
+            }
+
+            return tcs.Task.GetAwaiter();
+        }
+
+        private TaskCompletionSource<object> CreateTcs()
+        {
+            return new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
     }
 

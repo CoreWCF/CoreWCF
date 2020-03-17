@@ -2,10 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Dispatcher
 {
-    internal interface IChannelBinder
+    internal interface IChannelBinder : IServiceChannelDispatcher
     {
         IChannel Channel { get; }
         bool HasSession { get; }
@@ -14,10 +15,9 @@ namespace CoreWCF.Dispatcher
         EndpointAddress RemoteAddress { get; }
         void Abort();
         void CloseAfterFault(TimeSpan timeout);
-        Task<TryAsyncResult<RequestContext>> TryReceiveAsync(CancellationToken token);
         Task SendAsync(Message message, CancellationToken token);
         Task<Message> RequestAsync(Message message, CancellationToken token);
-        Task<bool> WaitForMessageAsync(CancellationToken token);
         RequestContext CreateRequestContext(Message message);
+        void SetNextDispatcher(IServiceChannelDispatcher dispatcher);
     }
 }
