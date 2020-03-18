@@ -385,12 +385,6 @@ namespace CoreWCF.Runtime
         {
             return new SynchronizationContextAwaiter(syncContext);
         }
-
-        internal static Task<(object result, object[] outputs)> InvokeAsync(this IOperationInvoker operationInvoker, object instance, object[] inputs)
-        {
-            var helper = new OperationInvokerAsyncHelper(operationInvoker, instance);
-            return helper.InvokeAsync(inputs);
-        }
     }
 
     // This awaiter causes an awaiting async method to continue on the same thread if using the
@@ -469,60 +463,6 @@ namespace CoreWCF.Runtime
         internal static void PostCallback(object state)
         {
             ((Action)state)();
-        }
-    }
-
-    internal class OperationInvokerAsyncHelper
-    {
-        private IOperationInvoker _operationInvoker;
-        private object _instance;
-        private TaskCompletionSource<(object result, object[] outputs)> _tcs;
-
-        public OperationInvokerAsyncHelper(IOperationInvoker operationInvoker, object instance)
-        {
-            _operationInvoker = operationInvoker;
-            _instance = instance;
-        }
-
-        public Task<(object result, object[] outputs)> InvokeAsync(object[] inputs)
-        {
-            _tcs = new TaskCompletionSource<(object result, object[] outputs)>();
-            var iar = _operationInvoker.InvokeBegin(_instance, inputs, Callback, this);
-            if (iar.CompletedSynchronously)
-            {
-                Complete(iar);
-            }
-
-            return _tcs.Task;
-        }
-
-        private void Complete(IAsyncResult iar)
-        {
-            try
-            {
-                var result = _operationInvoker.InvokeEnd(_instance, out object[] outputs, iar);
-                _tcs.TrySetResult((result: result, outputs: outputs));
-            }
-            catch(Exception e)
-            {
-                _tcs.TrySetException(e);
-            }
-        }
-
-        internal static void Callback(IAsyncResult iar)
-        {
-            if (iar.CompletedSynchronously)
-            {
-                return;
-            }
-
-            var helper = iar.AsyncState as OperationInvokerAsyncHelper;
-            if (helper == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxInvalidAsyncResultState0);
-            }
-
-            helper.Complete(iar);
         }
     }
 

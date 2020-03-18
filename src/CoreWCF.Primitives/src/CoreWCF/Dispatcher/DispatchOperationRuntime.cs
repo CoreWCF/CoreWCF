@@ -21,7 +21,6 @@ namespace CoreWCF.Dispatcher
         readonly IOperationInvoker invoker;
         readonly bool isTerminating;
         readonly bool isSessionOpenNotificationEnabled;
-        readonly bool isSynchronous;
         readonly string name;
         readonly ImmutableDispatchRuntime parent;
         readonly bool releaseInstanceAfterCall;
@@ -61,19 +60,6 @@ namespace CoreWCF.Dispatcher
             serializeReply = operation.SerializeReply;
             formatter = operation.Formatter;
             invoker = operation.Invoker;
-
-            try
-            {
-                isSynchronous = operation.Invoker.IsSynchronous;
-            }
-            catch (Exception e)
-            {
-                if (Fx.IsFatal(e))
-                {
-                    throw;
-                }
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperCallback(e);
-            }
             isTerminating = operation.IsTerminating;
             isSessionOpenNotificationEnabled = operation.IsSessionOpenNotificationEnabled;
             action = operation.Action;
@@ -155,11 +141,6 @@ namespace CoreWCF.Dispatcher
         internal IOperationInvoker Invoker
         {
             get { return invoker; }
-        }
-
-        internal bool IsSynchronous
-        {
-            get { return isSynchronous; }
         }
 
         internal bool IsOneWay
@@ -426,26 +407,12 @@ namespace CoreWCF.Dispatcher
                     {
                         await parent.SecurityImpersonation.RunImpersonated(rpc, async () =>
                         {
-                            if (isSynchronous)
-                            {
-                                rpc.ReturnParameter = Invoker.Invoke(target, rpc.InputParameters, out rpc.OutputParameters);
-                            }
-                            else
-                            {
-                                (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
-                            }
+                            (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
                         });
                     }
                     else
                     {
-                        if (isSynchronous)
-                        {
-                            rpc.ReturnParameter = Invoker.Invoke(target, rpc.InputParameters, out rpc.OutputParameters);
-                        }
-                        else
-                        {
-                            (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
-                        }
+                        (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
                     }
 
                     InspectOutputs(rpc);

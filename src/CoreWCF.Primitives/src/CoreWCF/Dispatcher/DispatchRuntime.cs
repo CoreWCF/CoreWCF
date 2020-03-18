@@ -8,6 +8,7 @@ using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
 using CoreWCF.Description;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Dispatcher
 {
@@ -652,24 +653,19 @@ namespace CoreWCF.Dispatcher
                 this.dispatchRuntime = dispatchRuntime;
             }
 
-            public bool IsSynchronous
-            {
-                get { return true; }
-            }
-
             public object[] AllocateInputs()
             {
                 return new object[1];
             }
 
-            public object Invoke(object instance, object[] inputs, out object[] outputs)
+            public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
             {
-                outputs = EmptyArray<object>.Allocate(0);
+                object[] outputs = EmptyArray<object>.Allocate(0);
 
                 Message message = inputs[0] as Message;
                 if (message == null)
                 {
-                    return null;
+                    return new ValueTask<(object returnValue, object[] outputs)>(((object)null, outputs));
                 }
 
                 string action = message.Headers.Action;
@@ -716,15 +712,19 @@ namespace CoreWCF.Dispatcher
                 if (dispatchRuntime.shared.EnableFaults)
                 {
                     MessageFault fault = MessageFault.CreateFault(code, reason, action);
-                    return Message.CreateMessage(message.Version, fault, message.Version.Addressing.DefaultFaultAction);
+                    return new ValueTask<(object returnValue, object[] outputs)>(
+                        (Message.CreateMessage(message.Version, fault, message.Version.Addressing.DefaultFaultAction),
+                         outputs));
                 }
                 else
                 {
                     OperationContext.Current.RequestContext.CloseAsync().GetAwaiter().GetResult();
                     OperationContext.Current.RequestContext = null;
-                    return null;
+                    return new ValueTask<(object returnValue, object[] outputs)>((null, outputs));
                 }
             }
+
+
 
             public IAsyncResult InvokeBegin(object instance, object[] inputs, AsyncCallback callback, object state)
             {

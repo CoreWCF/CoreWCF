@@ -505,8 +505,6 @@ namespace CoreWCF.Description
                 }
             }
 
-            BindOperations(contractDescription, null, dispatch);
-
             //dispatcher.SetSupportedChannels(DispatcherBuilder.GetSupportedChannelTypes(contractDescription));
             int filterPriority = 0;
             dispatcher.ContractFilter = provider.CreateFilter(out filterPriority);
