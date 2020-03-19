@@ -1,4 +1,5 @@
 using System;
+using System.Xml;
 using CoreWCF.Channels;
 
 namespace CoreWCF
@@ -16,6 +17,7 @@ namespace CoreWCF
             _basicHttpSecurity.Mode = securityMode;
         }
 
+        public override XmlDictionaryReaderQuotas ReaderQuotas { get => null; set { } }
         internal WSMessageEncoding MessageEncoding { get; set; } = BasicHttpBindingDefaults.MessageEncoding;
 
         internal override BasicHttpSecurity BasicHttpSecurity => _basicHttpSecurity;

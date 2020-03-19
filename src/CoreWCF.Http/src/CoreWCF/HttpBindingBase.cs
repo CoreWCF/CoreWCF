@@ -27,8 +27,9 @@ namespace CoreWCF
         // public long MaxBufferPoolSize { get { return default(long); } set { } }
         // [System.ComponentModel.DefaultValueAttribute(65536)]
         // public int MaxBufferSize { get { return default(int); } set { } }
-        public long MaxReceivedMessageSize { get { return default(long); } set { } }
-        public XmlDictionaryReaderQuotas ReaderQuotas { get { return default(XmlDictionaryReaderQuotas); } set { } }
+        public long MaxReceivedMessageSize { get { return _httpTransport.MaxReceivedMessageSize; } set { _httpTransport.MaxReceivedMessageSize = value; } }
+        public int MaxBufferSize { get { return _httpTransport.MaxBufferSize; } set { _httpTransport.MaxBufferSize = value; } }
+        public abstract XmlDictionaryReaderQuotas ReaderQuotas { get; set; }
 
         public override string Scheme { get { return GetTransport().Scheme; } }
         public Encoding TextEncoding { get { return default(Encoding); } set { } }

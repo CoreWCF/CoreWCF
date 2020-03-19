@@ -46,6 +46,17 @@ namespace CoreWCF
 
         internal override BasicHttpSecurity BasicHttpSecurity => _basicHttpSecurity;
 
+        public override XmlDictionaryReaderQuotas ReaderQuotas
+        {
+            get { return _binaryMessageEncodingBindingElement.ReaderQuotas; }
+            set
+            {
+                if (value == null)
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                value.CopyTo(_binaryMessageEncodingBindingElement.ReaderQuotas);
+            }
+        }
+
         public override BindingElementCollection CreateBindingElements()
         {
             CheckSettings();
