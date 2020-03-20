@@ -27,8 +27,48 @@ namespace CoreWCF
         // public long MaxBufferPoolSize { get { return default(long); } set { } }
         // [System.ComponentModel.DefaultValueAttribute(65536)]
         // public int MaxBufferSize { get { return default(int); } set { } }
-        public long MaxReceivedMessageSize { get { return default(long); } set { } }
-        public XmlDictionaryReaderQuotas ReaderQuotas { get { return default(XmlDictionaryReaderQuotas); } set { } }
+        public long MaxReceivedMessageSize
+        {
+            get
+            {
+                return _httpTransport.MaxReceivedMessageSize;
+            }
+            set
+            {
+                _httpTransport.MaxReceivedMessageSize = value;
+                //_httpsTransport.MaxReceivedMessageSize = value;
+            }
+        }
+        public int MaxBufferSize
+        {
+            get { return _httpTransport.MaxBufferSize; }
+            set
+            {
+                _httpTransport.MaxBufferSize = value;
+                //_httpsTransport.MaxBufferSize = value;
+            }
+        }
+
+        public XmlDictionaryReaderQuotas ReaderQuotas
+        {
+            get
+            {
+                return this._textEncoding.ReaderQuotas;
+            }
+
+            set
+            {
+                if (value == null)
+                {
+                    throw Fx.Exception.ArgumentNull(nameof(value));
+                }
+
+                value.CopyTo(this._textEncoding.ReaderQuotas);
+                //value.CopyTo(this.mtomEncoding.ReaderQuotas);
+
+                this.SetReaderQuotas(value);
+            }
+        }
 
         public override string Scheme { get { return GetTransport().Scheme; } }
         public Encoding TextEncoding { get { return default(Encoding); } set { } }
@@ -81,6 +121,10 @@ namespace CoreWCF
                 basicHttpSecurity.DisableTransportAuthentication(_httpTransport);
                 return _httpTransport;
             }
+        }
+
+        internal virtual void SetReaderQuotas(XmlDictionaryReaderQuotas readerQuotas)
+        {
         }
 
         internal virtual void CheckSettings()
