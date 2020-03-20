@@ -111,7 +111,7 @@ stages:
         arguments: '--configuration Release --framework $(targetFramework)'
     - task: DotNetCoreCLI@2
       displayName: Run Tests
-      timeoutInMinutes: 2
+      timeoutInMinutes: 5
       inputs:
         command: 'test'
         projects: $(_testProjects)
@@ -164,7 +164,7 @@ stages:
         arguments: '--configuration Debug --framework $(targetFramework)'
     - task: DotNetCoreCLI@2
       displayName: Run Tests
-      timeoutInMinutes: 2
+      timeoutInMinutes: 5
       inputs:
         command: 'test'
         projects: $(_testProjects)
@@ -206,7 +206,7 @@ stages:
         arguments: '--configuration Release --framework netcoreapp2.1'
     - task: DotNetCoreCLI@2
       displayName: Run Tests with Coverage
-      timeoutInMinutes: 2
+      timeoutInMinutes: 5
       inputs:
         command: 'test'
         projects: $(_testProjects)

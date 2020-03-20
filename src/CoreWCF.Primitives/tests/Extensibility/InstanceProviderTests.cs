@@ -37,6 +37,7 @@ namespace Extensibility
             var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
             factory.Open();
             var channel = factory.CreateChannel();
+            ((System.ServiceModel.Channels.IChannel)channel).Open();
             var echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
@@ -71,6 +72,10 @@ namespace Extensibility
 
         public object GetInstance(InstanceContext instanceContext, Message message)
         {
+            if (_asyncLockHoldObj == null)
+            {
+                _asyncLockHoldObj = _asyncLock.TakeLock();
+            }
             GetInstanceCallCount++;
             var service = new SimpleService();
             InstanceHashCode = service.GetHashCode();
@@ -79,8 +84,8 @@ namespace Extensibility
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
         {
-            ReleaseInstanceCallCount++;
             ReleasedInstanceHashCode = instance.GetHashCode();
+            ReleaseInstanceCallCount++;
             _asyncLockHoldObj?.Dispose();
             _asyncLockHoldObj = null;
         }
