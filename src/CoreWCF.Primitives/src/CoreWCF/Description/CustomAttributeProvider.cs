@@ -82,6 +82,7 @@ namespace CoreWCF.Description
 
             if (result.Length == 0)
             {
+
                 // Only if we don't find the CoreWCF attribute, look for the S.SM attribute
                 if (attributeType == typeof(ServiceContractAttribute))
                 {
@@ -98,6 +99,40 @@ namespace CoreWCF.Description
                     {
                         result[i] = ConvertFromServiceModelOperationContractAttribute(result[i]);
                     }
+                }
+                else if (attributeType == typeof(MessageContractAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageContractAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelMessageContractAttribute(result[i]);
+                    }
+
+                }
+                else if (attributeType == typeof(MessageHeaderAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelMessageHeadertAttribute(result[i]);
+                    }
+                }
+                else if (attributeType == typeof(MessageBodyMemberAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageBodyMemberAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelMessageBodyMemberAttribute(result[i]);
+                    }
+                }
+                else if (attributeType == typeof(MessageBodyMemberAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessagePropertyAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelMessagePropertyAttribute(result[i]);
+                    }
+
                 }
             }
 
@@ -133,6 +168,99 @@ namespace CoreWCF.Description
             return sca;
         }
 
+
+        private static MessageContractAttribute ConvertFromServiceModelMessageContractAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageContractAttributeFullName), "Expected attribute of type System.ServiceModel.MessageContract");
+
+
+            var messageContract = new MessageContractAttribute();
+            messageContract.IsWrapped = GetProperty<bool>(attr, nameof(MessageContractAttribute.IsWrapped));
+            string tmpStr = GetProperty<string>(attr, nameof(MessageContractAttribute.WrapperName));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messageContract.WrapperName = tmpStr;
+            }
+            tmpStr = GetProperty<string>(attr, nameof(MessageContractAttribute.WrapperNamespace));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messageContract.WrapperNamespace = tmpStr;
+            }
+            return messageContract;
+        }
+
+        private static MessageHeaderAttribute ConvertFromServiceModelMessageHeadertAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName), "Expected attribute of type System.ServiceModel.MessageHeader");
+
+            bool hasProtectionLevel = GetProperty<bool>(attr, "HasProtectionLevel");
+            if (hasProtectionLevel)
+            {
+                // ProtectionLevel isn't supported yet so if it was set on the S.SM.SCA, then we can't do the mapping so throw
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new PlatformNotSupportedException("System.ServiceModel.ServiceContractAttribute.ProtectionLevel"));
+            }
+
+            var messageHeader = new MessageHeaderAttribute();
+
+            string tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Actor));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messageHeader.Actor = tmpStr;
+            }
+            tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Name));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messageHeader.Name = tmpStr;
+            }
+            tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Namespace));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messageHeader.Namespace = tmpStr;
+            }
+            messageHeader.MustUnderstand = GetProperty<bool>(attr, nameof(MessageHeaderAttribute.MustUnderstand));
+            messageHeader.Relay = GetProperty<bool>(attr, nameof(MessageHeaderAttribute.Relay));
+            return messageHeader;
+        }
+
+        private static MessageBodyMemberAttribute ConvertFromServiceModelMessageBodyMemberAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageBodyMemberAttributeFullName), "Expected attribute of type System.ServiceModel.MessageBodyMember");
+
+
+            var messageBody = new MessageBodyMemberAttribute();
+            string tmpStr = GetProperty<string>(attr, nameof(MessageBodyMemberAttribute.Name));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messageBody.Name = tmpStr;
+            }
+            tmpStr = GetProperty<string>(attr, nameof(MessageBodyMemberAttribute.Namespace));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messageBody.Namespace = tmpStr;
+            }
+            int order = GetProperty<int>(attr, nameof(MessageBodyMemberAttribute.Order));
+            if (order >= 0)
+            {
+                messageBody.Order = order;
+            }
+
+
+            return messageBody;
+        }
+
+        private static MessagePropertyAttribute ConvertFromServiceModelMessagePropertyAttribute(object attr)
+        {
+
+            var messsageProperty = new MessagePropertyAttribute();
+
+            string tmpStr = GetProperty<string>(attr, nameof(MessagePropertyAttribute.Name));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messsageProperty.Name = tmpStr;
+            }
+
+            return messsageProperty;
+        }
         private static OperationContractAttribute ConvertFromServiceModelOperationContractAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMOperationContractAttributeFullName), "Expected attribute of type S.SM.OperationContractAttribute");
