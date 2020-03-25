@@ -1,11 +1,17 @@
-﻿using DispatcherClient;
+﻿using CoreWCF.Primitives.Tests.Contracts;
+using DispatcherClient;
 using Helpers;
+using System;
 using Xunit;
+
 
 namespace Contracts
 {
     public class ServiceModelContractTests
     {
+
+
+
         [Fact]
         public static void AttributeNoPropertiesContract()
         {
@@ -15,6 +21,22 @@ namespace Contracts
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             var echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
+            ((System.ServiceModel.Channels.IChannel)channel).Close();
+            factory.Close();
+            TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
+        }
+
+        [Fact]
+        public static void AttributesForMessageContract()
+        {
+            var factory = DispatcherHelper.CreateChannelFactory<ServiceModelSimpleService, IServiceModelSimpleService>();
+            factory.Open();
+            var channel = factory.CreateChannel();
+            ((System.ServiceModel.Channels.IChannel)channel).Open();
+            var echo = channel.EchoWithMessageContract(new EchoMessageRequest() { Text = "Message Hello", APIKey = "DEVKEYTOTEST" });
+            Assert.NotNull(echo);
+            Assert.NotEmpty(echo.SayHello);
+            Assert.NotEmpty(echo.SayHi);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
@@ -33,13 +55,16 @@ namespace Contracts
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
         }
-   }
+    }
 
     [System.ServiceModel.ServiceContract]
     public interface IServiceModelSimpleService
     {
         [System.ServiceModel.OperationContract]
         string Echo(string echo);
+
+        [System.ServiceModel.OperationContract]
+        EchoMessageResponse EchoWithMessageContract(EchoMessageRequest request);
     }
 
     [System.ServiceModel.ServiceContract(Name = "NotTheDefaultServiceName", Namespace = "http://tempuri.org/NotTheDefaultServiceNamespace")]
@@ -47,6 +72,8 @@ namespace Contracts
     {
         [System.ServiceModel.OperationContract(Name = "NotTheDefaultOperationName", Action = "corewcf://corewcf.corewcf/OddAction", ReplyAction = "corewcf://corewcf.corewcf/OddReplyAction")]
         string Echo(string echo);
+
+
     }
 
     public class ServiceModelSimpleService : ServiceModelBaseService, IServiceModelSimpleService, IServiceModelServiceWithPropertiesSet { }
@@ -57,5 +84,15 @@ namespace Contracts
         {
             return echo;
         }
+
+        public EchoMessageResponse EchoWithMessageContract(EchoMessageRequest request)
+        {
+            System.Console.WriteLine($"Received Text = {request.Text} and Key = { request.APIKey} from client!");
+            EchoMessageResponse echoMessageResponse = new EchoMessageResponse();
+            echoMessageResponse.SayHello = "Saying Hello " + request.Text;
+            echoMessageResponse.SayHi = "Saying Hi " + request.Text;
+            return echoMessageResponse;
+        }
     }
+
 }

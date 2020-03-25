@@ -215,8 +215,8 @@ namespace CoreWCF.Description
     [DebuggerDisplay("{_encoded ?? _decoded}")]
     internal class XmlName
     {
-            string _decoded;
-            string _encoded;
+        string _decoded;
+        string _encoded;
 
         internal XmlName(string name)
             : this(name, false)
@@ -353,6 +353,16 @@ namespace CoreWCF.Description
         static readonly Type OperationContractAttributeType = typeof(OperationContractAttribute);
         internal const string SMServiceContractAttributeFullName = "System.ServiceModel.ServiceContractAttribute";
         internal const string SMOperationContractAttributeFullName = "System.ServiceModel.OperationContractAttribute";
+        internal const string SMMessageContractAttributeFullName = "System.ServiceModel.MessageContractAttribute";
+        internal const string SMMessageHeaderAttributeFullName = "System.ServiceModel.MessageHeaderAttribute";
+        internal const string SMMessagePropertyAttributeFullName = "System.ServiceModel.MessagePropertyAttribute";
+        internal const string SMMessageBodyMemberAttributeFullName = "System.ServiceModel.MessageBodyMemberAttribute";
+
+        internal static readonly string CWCFMesssageHeaderAttribute = "CoreWCF.MessageHeaderAttribute";
+        internal static readonly string CWCFMesssageHeaderArrayAttribute = "CoreWCF.MessageHeaderArrayAttribute";
+        internal static readonly string CWCFMesssageBodyMemberAttribute = "CoreWCF.MessageBodyMemberAttribute";
+        internal static readonly string CWCFMesssagePropertyAttribute = "CoreWCF.MessagePropertyAttribute";
+        internal static readonly string CWCFMesssageContractAttribute = "CoreWCF.MessageContractAttribute";
 
         static internal Type GetOperationContractProviderType(MethodInfo method)
         {
@@ -380,9 +390,9 @@ namespace CoreWCF.Description
 
             // GetCustomAttributesData doesn't traverse the inheritence chain so this is the equivalent of IsDefined(..., false)
             var cadList = type.GetCustomAttributesData();
-            foreach(var cad in cadList)
+            foreach (var cad in cadList)
             {
-                if(cad.AttributeType.FullName.Equals(SMServiceContractAttributeFullName))
+                if (cad.AttributeType.FullName.Equals(SMServiceContractAttributeFullName))
                 {
                     return true;
                 }

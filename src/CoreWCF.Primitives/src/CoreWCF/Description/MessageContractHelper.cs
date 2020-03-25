@@ -1,0 +1,73 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Reflection;
+using CoreWCF.Runtime;
+
+namespace CoreWCF.Description
+{
+    // goal of this class to move logic from TypeLoader to build message contract
+    static class MessageContractHelper
+    {
+
+        internal static bool IsMessageContracts(Type type)
+        {
+            foreach (Attribute attr in type.GetCustomAttributes())
+            {
+                if (String.Compare(attr.GetType().FullName, ServiceReflector.CWCFMesssageContractAttribute, true) == 0
+               || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageContractAttributeFullName, true) == 0))
+                    return true;
+            }
+            return false;
+        }
+
+        internal static bool IsEligibleMember(MemberInfo memberInfo)
+        {
+            HashSet<String> eligibleMessageList = new HashSet<string>()
+            {
+                 ServiceReflector.CWCFMesssageHeaderAttribute
+                , ServiceReflector.CWCFMesssageHeaderArrayAttribute
+                ,ServiceReflector.CWCFMesssageBodyMemberAttribute
+                ,ServiceReflector.CWCFMesssagePropertyAttribute
+                ,ServiceReflector.SMMessageBodyMemberAttributeFullName
+                , ServiceReflector.SMMessageContractAttributeFullName
+                ,ServiceReflector.SMMessageHeaderAttributeFullName
+            };
+            foreach (Attribute attr in memberInfo.GetCustomAttributes())
+            {
+                if (eligibleMessageList.Contains(attr.GetType().FullName))
+                    return true;
+            }
+            return false;
+
+        }
+
+        internal static bool IsMessageHeader(MemberInfo memberInfo)
+        {
+            foreach (Attribute attr in memberInfo.GetCustomAttributes())
+            {
+                if (String.Compare(attr.GetType().FullName, ServiceReflector.CWCFMesssageHeaderAttribute, true) == 0
+                    || String.Compare(attr.GetType().FullName, ServiceReflector.CWCFMesssageHeaderArrayAttribute, true) == 0
+                    || String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageHeaderAttributeFullName, true) == 0
+                    )
+                    return true;
+            }
+            return false;
+
+        }
+        internal static bool IsMessageProperty(MemberInfo memberInfo)
+        {
+            foreach (Attribute attr in memberInfo.GetCustomAttributes())
+            {
+                if (String.Compare(attr.GetType().FullName, ServiceReflector.CWCFMesssagePropertyAttribute, true) == 0
+                    || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessagePropertyAttributeFullName, true) == 0))
+                    return true;
+            }
+            return false;
+
+        }
+
+
+
+    }
+}
