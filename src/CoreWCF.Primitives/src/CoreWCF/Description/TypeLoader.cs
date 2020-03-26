@@ -1131,34 +1131,35 @@ namespace CoreWCF.Description
             if (returnValueName == null)
             {
                 ParameterInfo[] parameters = ServiceReflector.GetInputParameters(methodInfo, isAsync);
-                if (parameters.Length == 1 && parameters[0].ParameterType.IsDefined(typeof(MessageContractAttribute), false))
+
+                if (parameters.Length == 1 && MessageContractHelper.IsMessageContract(parameters[0].ParameterType))
                 {
                     messageDescription = CreateTypedMessageDescription(parameters[0].ParameterType,
-                                                                null,
-                                                                null,
-                                                                defaultNS,
-                                                                action,
-                                                                direction);
+                    null,
+                    null,
+                    defaultNS,
+                    action,
+                    direction);
                 }
                 else
                 {
                     messageDescription = CreateParameterMessageDescription(parameters,
-                                                             null,
-                                                             null,
-                                                             null,
-                                                             methodName,
-                                                             defaultNS,
-                                                             action,
-                                                             wrapperName,
-                                                             wrapperNamespace,
-                                                             direction);
+                                    null,
+                                    null,
+                                    null,
+                                    methodName,
+                                    defaultNS,
+                                    action,
+                                    wrapperName,
+                                    wrapperNamespace,
+                                    direction);
                 }
             }
             else
             {
                 ParameterInfo[] parameters = ServiceReflector.GetOutputParameters(methodInfo, isAsync);
                 Type responseType = isTask ? taskTResult : methodInfo.ReturnType;
-                if (responseType.IsDefined(typeof(MessageContractAttribute), false) && parameters.Length == 0)
+                if (parameters.Length == 0 && MessageContractHelper.IsMessageContract(responseType))
                 {
                     messageDescription = CreateTypedMessageDescription(responseType,
                                                          methodInfo.ReturnParameter,
@@ -1296,7 +1297,8 @@ namespace CoreWCF.Description
 
             for (Type baseType = typedMessageType; baseType != null && baseType != typeof(object) && baseType != typeof(ValueType); baseType = baseType.BaseType)
             {
-                if (!baseType.IsDefined(typeof(MessageContractAttribute), false/*inherit*/))
+
+                if (!MessageContractHelper.IsMessageContract(baseType))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxMessageContractBaseTypeNotValid, baseType, typedMessageType)));
                 }
@@ -1324,11 +1326,7 @@ namespace CoreWCF.Description
                         }
                     }
 
-                    if (memberInfo.IsDefined(typeof(MessageBodyMemberAttribute), false) ||
-                        memberInfo.IsDefined(typeof(MessageHeaderAttribute), false) ||
-                        memberInfo.IsDefined(typeof(MessageHeaderArrayAttribute), false) ||
-                        memberInfo.IsDefined(typeof(MessagePropertyAttribute), false)
-                        )
+                    if (MessageContractHelper.IsEligibleMember(memberInfo))
                     {
                         contractMembers.Add(memberInfo);
                     }
@@ -1354,8 +1352,7 @@ namespace CoreWCF.Description
                     memberType = ((FieldInfo)memberInfo).FieldType;
                 }
 
-                if (memberInfo.IsDefined(typeof(MessageHeaderArrayAttribute), false)
-                    || memberInfo.IsDefined(typeof(MessageHeaderAttribute), false))
+                if (MessageContractHelper.IsMessageHeader(memberInfo))
                 {
                     headerPartDescriptionList.Add(CreateMessageHeaderDescription(memberType,
                                                                               memberInfo,
@@ -1364,7 +1361,7 @@ namespace CoreWCF.Description
                                                                               i,
                                                                               -1));
                 }
-                else if (memberInfo.IsDefined(typeof(MessagePropertyAttribute), false))
+                else if (MessageContractHelper.IsMessageProperty(memberInfo))
                 {
                     messageDescription.Properties.Add(CreateMessagePropertyDescription(memberInfo,
                                                                               new XmlName(memberInfo.Name),
