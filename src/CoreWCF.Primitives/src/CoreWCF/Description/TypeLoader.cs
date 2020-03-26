@@ -1132,7 +1132,7 @@ namespace CoreWCF.Description
             {
                 ParameterInfo[] parameters = ServiceReflector.GetInputParameters(methodInfo, isAsync);
 
-                if (parameters.Length == 1 && MessageContractHelper.IsMessageContracts(parameters[0].ParameterType))
+                if (parameters.Length == 1 && MessageContractHelper.IsMessageContract(parameters[0].ParameterType))
                 {
                     messageDescription = CreateTypedMessageDescription(parameters[0].ParameterType,
                     null,
@@ -1159,7 +1159,7 @@ namespace CoreWCF.Description
             {
                 ParameterInfo[] parameters = ServiceReflector.GetOutputParameters(methodInfo, isAsync);
                 Type responseType = isTask ? taskTResult : methodInfo.ReturnType;
-                if (parameters.Length == 0 && MessageContractHelper.IsMessageContracts(responseType))
+                if (parameters.Length == 0 && MessageContractHelper.IsMessageContract(responseType))
                 {
                     messageDescription = CreateTypedMessageDescription(responseType,
                                                          methodInfo.ReturnParameter,
@@ -1298,7 +1298,7 @@ namespace CoreWCF.Description
             for (Type baseType = typedMessageType; baseType != null && baseType != typeof(object) && baseType != typeof(ValueType); baseType = baseType.BaseType)
             {
 
-                if (!MessageContractHelper.IsMessageContracts(baseType))
+                if (!MessageContractHelper.IsMessageContract(baseType))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxMessageContractBaseTypeNotValid, baseType, typedMessageType)));
                 }

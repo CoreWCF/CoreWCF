@@ -9,13 +9,12 @@ namespace CoreWCF.Description
     // goal of this class to move logic from TypeLoader to build message contract
     static class MessageContractHelper
     {
-
-        internal static bool IsMessageContracts(Type type)
+        internal static bool IsMessageContract(Type type)
         {
             foreach (Attribute attr in type.GetCustomAttributes())
             {
-                if (String.Compare(attr.GetType().FullName, ServiceReflector.CWCFMesssageContractAttribute, true) == 0
-               || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageContractAttributeFullName, true) == 0))
+                if (attr.GetType() == typeof(MessageContractAttribute)
+                || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageContractAttributeFullName, true) == 0))
                     return true;
             }
             return false;
@@ -39,32 +38,30 @@ namespace CoreWCF.Description
                     return true;
             }
             return false;
-
         }
 
         internal static bool IsMessageHeader(MemberInfo memberInfo)
         {
             foreach (Attribute attr in memberInfo.GetCustomAttributes())
             {
-                if (String.Compare(attr.GetType().FullName, ServiceReflector.CWCFMesssageHeaderAttribute, true) == 0
-                    || String.Compare(attr.GetType().FullName, ServiceReflector.CWCFMesssageHeaderArrayAttribute, true) == 0
-                    || String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageHeaderAttributeFullName, true) == 0
+                if ((attr.GetType() == typeof(MessageHeaderAttribute))
+                    || (attr.GetType() == typeof(MessageHeaderArrayAttribute))
+                    || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageHeaderAttributeFullName, true) == 0)
                     )
                     return true;
             }
             return false;
-
         }
+
         internal static bool IsMessageProperty(MemberInfo memberInfo)
         {
             foreach (Attribute attr in memberInfo.GetCustomAttributes())
             {
-                if (String.Compare(attr.GetType().FullName, ServiceReflector.CWCFMesssagePropertyAttribute, true) == 0
+                if ((attr.GetType() == typeof(MessagePropertyAttribute))
                     || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessagePropertyAttributeFullName, true) == 0))
                     return true;
             }
             return false;
-
         }
 
 

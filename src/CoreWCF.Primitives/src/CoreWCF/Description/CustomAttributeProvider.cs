@@ -82,7 +82,6 @@ namespace CoreWCF.Description
 
             if (result.Length == 0)
             {
-
                 // Only if we don't find the CoreWCF attribute, look for the S.SM attribute
                 if (attributeType == typeof(ServiceContractAttribute))
                 {
@@ -107,7 +106,6 @@ namespace CoreWCF.Description
                     {
                         result[i] = ConvertFromServiceModelMessageContractAttribute(result[i]);
                     }
-
                 }
                 else if (attributeType == typeof(MessageHeaderAttribute))
                 {
@@ -132,10 +130,8 @@ namespace CoreWCF.Description
                     {
                         result[i] = ConvertFromServiceModelMessagePropertyAttribute(result[i]);
                     }
-
                 }
             }
-
             return result;
         }
 
@@ -172,8 +168,6 @@ namespace CoreWCF.Description
         private static MessageContractAttribute ConvertFromServiceModelMessageContractAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageContractAttributeFullName), "Expected attribute of type System.ServiceModel.MessageContract");
-
-
             var messageContract = new MessageContractAttribute();
             messageContract.IsWrapped = GetProperty<bool>(attr, nameof(MessageContractAttribute.IsWrapped));
             string tmpStr = GetProperty<string>(attr, nameof(MessageContractAttribute.WrapperName));
@@ -225,8 +219,6 @@ namespace CoreWCF.Description
         private static MessageBodyMemberAttribute ConvertFromServiceModelMessageBodyMemberAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageBodyMemberAttributeFullName), "Expected attribute of type System.ServiceModel.MessageBodyMember");
-
-
             var messageBody = new MessageBodyMemberAttribute();
             string tmpStr = GetProperty<string>(attr, nameof(MessageBodyMemberAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
@@ -243,16 +235,12 @@ namespace CoreWCF.Description
             {
                 messageBody.Order = order;
             }
-
-
             return messageBody;
         }
 
         private static MessagePropertyAttribute ConvertFromServiceModelMessagePropertyAttribute(object attr)
         {
-
             var messsageProperty = new MessagePropertyAttribute();
-
             string tmpStr = GetProperty<string>(attr, nameof(MessagePropertyAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
             {

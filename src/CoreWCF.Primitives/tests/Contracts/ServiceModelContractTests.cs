@@ -9,9 +9,6 @@ namespace Contracts
 {
     public class ServiceModelContractTests
     {
-
-
-
         [Fact]
         public static void AttributeNoPropertiesContract()
         {
@@ -72,8 +69,6 @@ namespace Contracts
     {
         [System.ServiceModel.OperationContract(Name = "NotTheDefaultOperationName", Action = "corewcf://corewcf.corewcf/OddAction", ReplyAction = "corewcf://corewcf.corewcf/OddReplyAction")]
         string Echo(string echo);
-
-
     }
 
     public class ServiceModelSimpleService : ServiceModelBaseService, IServiceModelSimpleService, IServiceModelServiceWithPropertiesSet { }
@@ -87,7 +82,6 @@ namespace Contracts
 
         public EchoMessageResponse EchoWithMessageContract(EchoMessageRequest request)
         {
-            System.Console.WriteLine($"Received Text = {request.Text} and Key = { request.APIKey} from client!");
             EchoMessageResponse echoMessageResponse = new EchoMessageResponse();
             echoMessageResponse.SayHello = "Saying Hello " + request.Text;
             echoMessageResponse.SayHi = "Saying Hi " + request.Text;
