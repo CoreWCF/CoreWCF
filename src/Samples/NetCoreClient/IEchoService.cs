@@ -10,6 +10,13 @@ namespace Contract
         string Echo(string text);
 
         [OperationContract]
-        string ComplexEcho(NetCoreClient.EchoMessage text);
+        string ComplexEcho(EchoMessage text);
+    }
+
+    [DataContract]
+    public class EchoMessage
+    {
+        [DataMember]
+        public string Text { get; set; }
     }
 }

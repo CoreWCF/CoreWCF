@@ -42,10 +42,9 @@ namespace NetCoreClient
             // Complex type testing
             factory = new ChannelFactory<Contract.IEchoService>(new BasicHttpBinding(), new EndpointAddress(_basicHttpEndPointAddress));
             factory.Open();
-
             channel = factory.CreateChannel();
             ((IClientChannel)channel).Open();
-            Console.WriteLine("http Echo(\"Hello\") => " + channel.ComplexEcho(new EchoMessage() { Text = "Complex Hello" }));
+            Console.WriteLine("http EchoMessage(\"Complex Hello\") => " + channel.ComplexEcho(new Contract.EchoMessage() { Text = "Complex Hello" }));
             ((IClientChannel)channel).Close();
             factory.Close();
         }
