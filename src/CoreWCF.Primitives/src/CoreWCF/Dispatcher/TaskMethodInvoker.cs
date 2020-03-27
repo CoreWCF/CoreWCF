@@ -7,18 +7,18 @@ using CoreWCF.Runtime;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 
 namespace CoreWCF.Dispatcher
 {
     internal class TaskMethodInvoker : IOperationInvoker
     {
         private const string ResultMethodName = "Result";
-        private readonly MethodInfo taskMethod;
-        private InvokeDelegate invokeDelegate;
-        private int inputParameterCount;
-        private int outputParameterCount;
-        private MethodInfo taskTResultGetMethod;
-        private bool isGenericTask;
+        private InvokeDelegate _invokeDelegate;
+        private int _inputParameterCount;
+        private int _outputParameterCount;
+        private MethodInfo _taskTResultGetMethod;
+        private bool _isGenericTask;
 
         public TaskMethodInvoker(MethodInfo taskMethod, Type taskType)
         {
@@ -27,30 +27,22 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(taskMethod));
             }
 
-            this.taskMethod = taskMethod;
+            TaskMethod = taskMethod;
 
             if (taskType != ServiceReflector.VoidType)
             {
-                taskTResultGetMethod = ((PropertyInfo)taskMethod.ReturnType.GetMember(ResultMethodName)[0]).GetGetMethod();
-                isGenericTask = true;
+                _taskTResultGetMethod = ((PropertyInfo)taskMethod.ReturnType.GetMember(ResultMethodName)[0]).GetGetMethod();
+                _isGenericTask = true;
             }
         }
 
-        public bool IsSynchronous
-        {
-            get { return false; }
-        }
-
-        public MethodInfo TaskMethod
-        {
-            get { return taskMethod; }
-        }
+        public MethodInfo TaskMethod { get; }
 
         public object[] AllocateInputs()
         {
             EnsureIsInitialized();
 
-            return EmptyArray<object>.Allocate(inputParameterCount);
+            return EmptyArray<object>.Allocate(_inputParameterCount);
         }
 
         public object Invoke(object instance, object[] inputs, out object[] outputs)
@@ -63,7 +55,7 @@ namespace CoreWCF.Dispatcher
             return InvokeAsync(instance, inputs).ToApm(callback, state);
         }
 
-        public object InvokeEnd(object instance, out object[] outputs, IAsyncResult result)
+        public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             if (instance == null)
             {
@@ -71,6 +63,7 @@ namespace CoreWCF.Dispatcher
             }
 
             object returnVal = null;
+            object[] outputs = null;
             //bool callFailed = true;
             //bool callFaulted = false;
             //ServiceModelActivity activity = null;
@@ -83,39 +76,23 @@ namespace CoreWCF.Dispatcher
                 // This code would benefith from a rewrite to call TaskHelpers.ToApmEnd<Tuple<object, object[]>>
                 // When doing so make sure there is enought test coverage se PR comment at link below for a good starting point
                 // https://github.com/CoreWCF/CoreWCF/pull/54/files/8db6ff9ad6940a1056363defd1f6449adee56e1a#r333826132
-                var asyncResult = result as TaskHelpers.AsyncResult<Tuple<object, object[]>>;
-                if (asyncResult == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxInvalidCallbackIAsyncResult);
-                }
-
+                var tupleResult = await InvokeAsyncCore(instance, inputs);
+                
                 AggregateException ae = null;
-                Tuple<object, object[]> tuple = null;
                 Task task = null;
 
-                if (asyncResult.IsFaulted)
+                task = tupleResult.returnValue as Task;
+
+                if (task == null)
                 {
-                    Fx.Assert(asyncResult.Exception != null, "Task.IsFaulted guarantees non-null exception.");
-                    ae = asyncResult.Exception;
+                    outputs = tupleResult.outputs;
+                    return (null, outputs);
                 }
-                else
+
+                if (task.IsFaulted)
                 {
-                    Fx.Assert(asyncResult.IsCompleted, "Task.Result is expected to be completed");
-
-                    tuple = asyncResult.GetResult();
-                    task = tuple.Item1 as Task;
-
-                    if (task == null)
-                    {
-                        outputs = tuple.Item2;
-                        return null;
-                    }
-
-                    if (task.IsFaulted)
-                    {
-                        Fx.Assert(task.Exception != null, "Task.IsFaulted guarantees non-null exception.");
-                        ae = task.Exception;
-                    }
+                    Fx.Assert(task.Exception != null, "Task.IsFaulted guarantees non-null exception.");
+                    ae = task.Exception;
                 }
 
                 if (ae != null && ae.InnerException != null)
@@ -135,7 +112,7 @@ namespace CoreWCF.Dispatcher
                     }
 
                     // Rethrow inner exception as is
-                    asyncResult.GetResult();
+                    ExceptionDispatchInfo.Capture(ae.InnerException).Throw();
                 }
 
                 // Task cancellation without an exception indicates failure but we have no
@@ -147,12 +124,12 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TaskCanceledException(task));
                 }
 
-                outputs = tuple.Item2;
+                outputs = tupleResult.outputs;
 
-                returnVal = isGenericTask ? taskTResultGetMethod.Invoke(task, Type.EmptyTypes) : null;
+                returnVal = _isGenericTask ? _taskTResultGetMethod.Invoke(task, Type.EmptyTypes) : null;
                 //callFailed = false;
 
-                return returnVal;
+                return (returnVal, outputs);
             }
             finally
             {
@@ -167,7 +144,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private async Task<Tuple<object, object[]>> InvokeAsync(object instance, object[] inputs)
+        public ValueTask<(Task returnValue, object[] outputs)> InvokeAsyncCore(object instance, object[] inputs)
         {
             EnsureIsInitialized();
 
@@ -178,23 +155,23 @@ namespace CoreWCF.Dispatcher
 
             if (inputs == null)
             {
-                if (inputParameterCount > 0)
+                if (_inputParameterCount > 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInputParametersToServiceNull, inputParameterCount)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInputParametersToServiceNull, _inputParameterCount)));
                 }
             }
-            else if (inputs.Length != inputParameterCount)
+            else if (inputs.Length != _inputParameterCount)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInputParametersToServiceInvalid, inputParameterCount, inputs.Length)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInputParametersToServiceInvalid, _inputParameterCount, inputs.Length)));
             }
 
-            object[] outputs = EmptyArray<object>.Allocate(outputParameterCount);
+            object[] outputs = EmptyArray<object>.Allocate(_outputParameterCount);
 
             //AsyncMethodInvoker.StartOperationInvokePerformanceCounters(taskMethod.Name);
 
             object returnValue;
-            bool callFailed = true;
-            bool callFaulted = false;
+            //bool callFailed = true;
+            //bool callFaulted = false;
             //ServiceModelActivity activity = null;
             //Activity boundActivity = null;
 
@@ -209,42 +186,55 @@ namespace CoreWCF.Dispatcher
                 //    ServiceModelActivity.Start(activity, activityName, ActivityType.ExecuteUserCode);
                 //}
 
-                returnValue = invokeDelegate(instance, inputs, outputs);
+                returnValue = _invokeDelegate(instance, inputs, outputs);
 
                 if (returnValue == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("Task");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(Task));
                 }
 
                 var returnValueTask = returnValue as Task;
 
                 if (returnValueTask != null)
                 {
-                    // Only return once the task has completed                        
-                    await returnValueTask;
+                    // Return ValueTask which comletes once the task has completed
+                    if (returnValueTask.IsCompleted)
+                    {
+                        if (returnValueTask.IsFaulted)
+                        {
+                            return new ValueTask<(Task returnValue, object[] outputs)>(Task.FromException<(Task returnValue, object[] outputs)>(ConvertExceptionForFaultedTask(returnValueTask)));
+                        }
+                        else
+                        {
+                            return new ValueTask<(Task returnValue, object[] outputs)>((returnValueTask, outputs));
+                        }
+                    }
+                    else
+                    {
+                        var completionTask = returnValueTask.ContinueWith(antecedant =>
+                        {
+                            if (returnValueTask.IsFaulted)
+                            {
+                                throw ConvertExceptionForFaultedTask(antecedant);
+                            }
+                            else
+                            {
+                                return (returnValue: antecedant, outputs);
+                            }
+                        });
+
+                        return new ValueTask<(Task returnValue, object[] outputs)>(completionTask);
+                    }
+                    //await returnValueTask;
                 }
-
-                callFailed = false;
-
-                return Tuple.Create(returnValue, outputs);
-            }
-            catch (SecurityException e)
-            {
-                DiagnosticUtility.TraceHandledException(e, TraceEventType.Warning);
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
-            }
-            catch (FaultException)
-            {
-                callFaulted = true;
-                throw;
-            }
-            catch (Exception e)
-            {
-                TraceUtility.TraceUserCodeException(e, taskMethod);
-                throw;
+                
+                // returnValue is null
+                return new ValueTask<(Task returnValue, object[] outputs)>((returnValueTask, outputs));
             }
             finally
             {
+                // TODO: When brining boundActivity back, make sure it executes in the correct order with relation to
+                // called task completing.
                 //if (boundActivity != null)
                 //{
                 //    ((IDisposable)boundActivity).Dispose();
@@ -253,28 +243,50 @@ namespace CoreWCF.Dispatcher
                 //ServiceModelActivity.Stop(activity);
 
                 // Any exception above means InvokeEnd will not be called, so complete it here.
-                if (callFailed || callFaulted)
-                {
+                //if (callFailed || callFaulted)
+                //{
                     //AsyncMethodInvoker.StopOperationInvokeTrace(callFailed, callFaulted, TaskMethod.Name);
                     //AsyncMethodInvoker.StopOperationInvokePerformanceCounters(callFailed, callFaulted, TaskMethod.Name);
-                }
+                //}
             }
+        }
+
+        private Exception ConvertExceptionForFaultedTask(Task task)
+        {
+            var exception = task.Exception.InnerException;
+            //bool callFaulted;
+            if (exception is SecurityException)
+            {
+                DiagnosticUtility.TraceHandledException(exception, TraceEventType.Warning);
+                exception = DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
+            }
+            else if (exception is FaultException)
+            {
+                //callFaulted = true;
+            }
+            else
+            {
+                TraceUtility.TraceUserCodeException(exception, TaskMethod);
+            }
+            //AsyncMethodInvoker.StopOperationInvokeTrace(true, callFaulted, TaskMethod.Name);
+            //AsyncMethodInvoker.StopOperationInvokePerformanceCounters(true, callFaulted, TaskMethod.Name);
+
+            return exception;
         }
 
         private void EnsureIsInitialized()
         {
-            if (this.invokeDelegate == null)
+            if (_invokeDelegate == null)
             {
                 // Only pass locals byref because InvokerUtil may store temporary results in the byref.
                 // If two threads both reference this.count, temporary results may interact.
                 int inputParameterCount;
                 int outputParameterCount;
-                InvokeDelegate invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(taskMethod, out inputParameterCount, out outputParameterCount);
-                this.inputParameterCount = inputParameterCount;
-                this.outputParameterCount = outputParameterCount;
-                this.invokeDelegate = invokeDelegate;  // must set this last due to race
+                InvokeDelegate invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(TaskMethod, out inputParameterCount, out outputParameterCount);
+                _inputParameterCount = inputParameterCount;
+                _outputParameterCount = outputParameterCount;
+                _invokeDelegate = invokeDelegate;  // must set this last due to race
             }
         }
     }
-
 }

@@ -42,8 +42,6 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public bool IsSynchronous => false;
-
         public object[] AllocateInputs()
         {
             EnsureIsInitialized();
@@ -68,7 +66,7 @@ namespace CoreWCF.Dispatcher
             return tuple.Item1;
         }
 
-        private Task<Tuple<object, object[]>> InvokeAsync(object instance, object[] inputs)
+        public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             EnsureIsInitialized();
 
@@ -179,7 +177,7 @@ namespace CoreWCF.Dispatcher
                 //}
             }
 
-            return Task.FromResult(Tuple.Create(returnValue, outputs));
+            return new ValueTask<(object returnValue, object[] outputs)>((returnValue, outputs));
         }
 
         private void EnsureIsInitialized()
@@ -202,5 +200,4 @@ namespace CoreWCF.Dispatcher
             _invokeDelegate = invokeDelegate;  // must set this last due to race
         }
     }
-
 }

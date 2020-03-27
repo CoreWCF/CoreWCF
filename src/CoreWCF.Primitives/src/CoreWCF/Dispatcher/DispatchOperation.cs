@@ -144,7 +144,7 @@ namespace CoreWCF.Dispatcher
             set { invoker = value; }
         }
 
-        internal IOperationInvoker Invoker
+        public IOperationInvoker Invoker
         {
             get { return invoker; }
             set
