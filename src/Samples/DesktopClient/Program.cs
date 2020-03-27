@@ -27,6 +27,15 @@ namespace DesktopClient
             ((IClientChannel)channel).Close();
             factory.Close();
 
+            // Complex type testing
+            factory = new ChannelFactory<Contract.IEchoService>(new BasicHttpBinding(), new EndpointAddress(_basicHttpEndPointAddress));
+            factory.Open();
+            channel = factory.CreateChannel();
+            ((IClientChannel)channel).Open();
+            Console.WriteLine("http EchoMessage(\"Complex Hello\") => " + channel.ComplexEcho(new Contract.EchoMessage() { Text = "Complex Hello" }));
+            ((IClientChannel)channel).Close();
+            factory.Close();
+
             // 
             // The following sample, creates a basic web request to the specified endpoint, sends the SOAP request and reads the response
             // 
