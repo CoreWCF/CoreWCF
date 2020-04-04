@@ -244,6 +244,102 @@ namespace CoreWCF.IdentityModel
                 obj.Dispose();
             }
         }
+
+        class SimpleAuthorizationContext : AuthorizationContext
+        {
+            SecurityUniqueId id;
+            UnconditionalPolicy policy;
+            IDictionary<string, object> properties;
+
+            public SimpleAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
+            {
+                this.policy = (UnconditionalPolicy)authorizationPolicies[0];
+                Dictionary<string, object> properties = new Dictionary<string, object>();
+                if (this.policy.PrimaryIdentity != null && this.policy.PrimaryIdentity != SecurityUtils.AnonymousIdentity)
+                {
+                    List<IIdentity> identities = new List<IIdentity>();
+                    identities.Add(this.policy.PrimaryIdentity);
+                    properties.Add(SecurityUtils.Identities, identities);
+                }
+                // Might need to port ReadOnlyDictionary?
+                this.properties = properties;
+            }
+
+            public override string Id
+            {
+                get
+                {
+                    if (this.id == null)
+                        this.id = SecurityUniqueId.Create();
+                    return this.id.Value;
+                }
+            }
+            public override ReadOnlyCollection<ClaimSet> ClaimSets { get { return this.policy.Issuances; } }
+            public override DateTime ExpirationTime { get { return this.policy.ExpirationTime; } }
+            public override IDictionary<string, object> Properties { get { return this.properties; } }
+        }
+        internal static AuthorizationContext CreateDefaultAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
+        {
+            AuthorizationContext authorizationContext;
+            // This is faster than Policy evaluation.
+            if (authorizationPolicies != null && authorizationPolicies.Count == 1 && authorizationPolicies[0] is UnconditionalPolicy)
+            {
+                authorizationContext = new SimpleAuthorizationContext(authorizationPolicies);
+            }
+            // degenerate case
+            else if (authorizationPolicies == null || authorizationPolicies.Count <= 0)
+            {
+                return DefaultAuthorizationContext.Empty;
+            }
+            else
+            {
+                // there are some policies, run them until they are all done
+                DefaultEvaluationContext evaluationContext = new DefaultEvaluationContext();
+                object[] policyState = new object[authorizationPolicies.Count];
+                object done = new object();
+
+                int oldContextCount;
+                do
+                {
+                    oldContextCount = evaluationContext.Generation;
+
+                    for (int i = 0; i < authorizationPolicies.Count; i++)
+                    {
+                        if (policyState[i] == done)
+                            continue;
+
+                        IAuthorizationPolicy policy = authorizationPolicies[i];
+                        if (policy == null)
+                        {
+                            policyState[i] = done;
+                            continue;
+                        }
+
+                        if (policy.Evaluate(evaluationContext, ref policyState[i]))
+                        {
+                            policyState[i] = done;
+
+                            /* if (DiagnosticUtility.ShouldTraceVerbose)
+                             {
+                                 TraceUtility.TraceEvent(TraceEventType.Verbose, TraceCode.AuthorizationPolicyEvaluated,
+                                     SR.GetString(SR.AuthorizationPolicyEvaluated, policy.Id));
+                             }*/
+                        }
+                    }
+
+                } while (oldContextCount < evaluationContext.Generation);
+
+                authorizationContext = new DefaultAuthorizationContext(evaluationContext);
+            }
+
+            /*  if (DiagnosticUtility.ShouldTraceInformation)
+              {
+                  TraceUtility.TraceEvent(TraceEventType.Information, TraceCode.AuthorizationContextCreated,
+                      SR.GetString(SR.AuthorizationContextCreated, authorizationContext.Id));
+              }*/
+
+            return authorizationContext;
+        }
     }
 
     static class EmptyReadOnlyCollection<T>

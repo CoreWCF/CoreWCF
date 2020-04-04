@@ -112,8 +112,7 @@ namespace CoreWCF.Description
             }
             set
             {
-                ThrowIfImmutable();
-                impersonateCallerForAllOperations = value;
+                throw new PlatformNotSupportedException();
             }
         }
 
@@ -127,8 +126,9 @@ namespace CoreWCF.Description
             }
             set
             {
-                ThrowIfImmutable();
-                impersonateOnSerializingReply = value;
+                // ThrowIfImmutable();
+                // impersonateOnSerializingReply = value;
+                throw new PlatformNotSupportedException();
             }
         }
 

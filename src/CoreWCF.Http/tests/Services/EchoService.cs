@@ -31,5 +31,10 @@ namespace Services
             stream.Position = 0;
             return stream;
         }
+
+        public string EchoToFail(string echo)
+        {
+            return echo;
+        }
     }
 }
