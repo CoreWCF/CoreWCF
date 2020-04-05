@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace CoreWCF.Channels
 {
@@ -14,18 +15,18 @@ namespace CoreWCF.Channels
     {
         private IServiceBuilder _serviceBuilder;
         private RequestDelegate _next;
-        private readonly RequestDelegate _branch;
+        private readonly Lazy<RequestDelegate> _branch;
 
         public ServiceModelHttpMiddleware(RequestDelegate next, IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder)
         {
             _serviceBuilder = serviceBuilder;
             _next = next;
-            _branch = BuildBranch(app, _serviceBuilder, dispatcherBuilder);
+            _branch = new Lazy<RequestDelegate>(()=> BuildBranch(app, _serviceBuilder, dispatcherBuilder));
         }
 
         public Task InvokeAsync(HttpContext context)
         {
-            return _branch(context);
+            return _branch.Value(context);
         }
 
         private RequestDelegate BuildBranch(IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder)
