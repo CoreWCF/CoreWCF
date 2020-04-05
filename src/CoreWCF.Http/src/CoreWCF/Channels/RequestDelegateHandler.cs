@@ -67,7 +67,7 @@ namespace CoreWCF.Channels
 
             _httpSettings = httpSettings;
             WebSocketOptions = CreateWebSocketOptions(tbe);
-            if (WebSocketOptions == null)
+            if (tbe.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always)
             {
                 _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider, _httpSettings);
                 _replyChannelDispatcherTask =  _serviceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
