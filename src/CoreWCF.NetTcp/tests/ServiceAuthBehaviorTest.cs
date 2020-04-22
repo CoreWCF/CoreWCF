@@ -60,6 +60,7 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
+        [Trait("Category", "WindowsOnly")]
         public void SimpleNetTcpClientConnectionUseWindowsGroups()
         {
             string testString ="a"+PrincipalPermissionMode.UseWindowsGroups.ToString()+"test";
@@ -67,6 +68,7 @@ namespace CoreWCF.NetTcp.Tests
             assertForCommon(testString, host);
         }
         [Fact]
+        [Trait("Category", "WindowsOnly")]
         public void SimpleNetTcpClientConnectionUseAlways()
         {
             string testString = "a" + PrincipalPermissionMode.Always.ToString() + "test";
@@ -75,6 +77,7 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
+        [Trait("Category", "WindowsOnly")]
         public void SimpleNetTcpClientConnectionUseNone()
         {
             string testString = "a" + PrincipalPermissionMode.None.ToString() + "test";
@@ -83,6 +86,7 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
+        [Trait("Category", "WindowsOnly")]
         public void SimpleNetTcpClientImpersonateUser()
         {
             string sourceString = "test";
