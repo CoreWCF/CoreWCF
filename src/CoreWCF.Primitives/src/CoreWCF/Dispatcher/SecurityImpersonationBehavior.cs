@@ -174,6 +174,10 @@ namespace CoreWCF.Dispatcher
                 {
                     returnValue = RunImpersonated2(rpc, securityContext, isSecurityContextImpersonationOn, func);
                 }
+                else
+                {
+                    returnValue = func();
+                }
             }
             finally
             {

@@ -112,7 +112,8 @@ namespace CoreWCF.Description
             }
             set
             {
-                throw new PlatformNotSupportedException();
+                ThrowIfImmutable();
+               impersonateCallerForAllOperations = value;
             }
         }
 

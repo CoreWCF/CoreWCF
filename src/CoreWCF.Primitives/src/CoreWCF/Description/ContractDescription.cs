@@ -142,7 +142,7 @@ namespace CoreWCF.Description
             return description;
         }
 
-        public static ContractDescription GetContract<TService>(Type contractType, TService serviceImplementation) where TService : class
+        public static ContractDescription GetContract<TService>(Type contractType, object serviceImplementation) where TService : class
         {
             if (contractType == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractType));

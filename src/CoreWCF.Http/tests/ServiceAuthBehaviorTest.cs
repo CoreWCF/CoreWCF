@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.ServiceModel;
 using System.ServiceModel.Security;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
@@ -22,7 +23,6 @@ namespace CoreWCF.Http.Tests
     public class ServiceAuthBehaviorTest
     {
         private ITestOutputHelper _output;
-
         public ServiceAuthBehaviorTest(ITestOutputHelper output)
         {
             _output = output;
@@ -62,14 +62,13 @@ namespace CoreWCF.Http.Tests
             }
         }
 
+
         internal class Startup
         {
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
-                var authBehavior = new ServiceAuthorizationBehavior();
-                services.AddSingleton<IServiceBehavior>(authBehavior);
-                services.AddSingleton(authBehavior);
+                services.AddSingleton<ServiceAuthorizationManager, MyTestServiceAuthorizationManager>();
             }
 
             public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -79,7 +78,6 @@ namespace CoreWCF.Http.Tests
                 authPolicies.Add(new MyTestAuthorizationPolicy());
                 var externalAuthPolicies = new ReadOnlyCollection<IAuthorizationPolicy>(authPolicies);
                 authBehavior.ExternalAuthorizationPolicies = externalAuthPolicies;
-                authBehavior.ServiceAuthorizationManager = new MyTestServiceAuthorizationManager();
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.EchoService>();
@@ -87,7 +85,6 @@ namespace CoreWCF.Http.Tests
                 });
             }
         }
-
     }
 }
 

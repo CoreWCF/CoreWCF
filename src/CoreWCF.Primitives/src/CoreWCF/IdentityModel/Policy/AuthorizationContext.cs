@@ -15,7 +15,6 @@ namespace CoreWCF.IdentityModel.Policy
         public static AuthorizationContext CreateDefaultAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
         {
             return SecurityUtils.CreateDefaultAuthorizationContext(authorizationPolicies);
-            //throw new PlatformNotSupportedException();
         }
     }
 

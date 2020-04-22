@@ -9,7 +9,6 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
     public class MyTestAuthorizationPolicy : IAuthorizationPolicy
     {
         string id;
-
         public MyTestAuthorizationPolicy()
         {
             id = Guid.NewGuid().ToString();
@@ -36,10 +35,10 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
             if (!customstate.ClaimsAdded)
             { 
                     // Create an empty list of claims.
-                    IList<Claim> claims = new List<Claim>();
-                    claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/EchoString", Rights.PossessProperty));
-                    claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/ComplexEcho", Rights.PossessProperty));
-                    evaluationContext.AddClaimSet(this, new DefaultClaimSet(this.Issuer, claims));
+                IList<Claim> claims = new List<Claim>();
+                claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/EchoString", Rights.PossessProperty));
+                claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/ComplexEcho", Rights.PossessProperty));
+                evaluationContext.AddClaimSet(this, new DefaultClaimSet(this.Issuer, claims));
                 // Record that claims were added.
                 customstate.ClaimsAdded = true;
                 // Return true, indicating that this method does not need to be called again.
@@ -63,8 +62,6 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
         {
             get { return id; }
         }
-
-
 
         // Internal class for keeping track of state.
         class CustomAuthState
