@@ -78,6 +78,7 @@ namespace CoreWCF.Http.Tests
                 authPolicies.Add(new MyTestAuthorizationPolicy());
                 var externalAuthPolicies = new ReadOnlyCollection<IAuthorizationPolicy>(authPolicies);
                 authBehavior.ExternalAuthorizationPolicies = externalAuthPolicies;
+                authBehavior.PrincipalPermissionMode = PrincipalPermissionMode.None;
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.EchoService>();
