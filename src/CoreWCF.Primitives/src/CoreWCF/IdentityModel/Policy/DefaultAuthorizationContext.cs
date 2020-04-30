@@ -24,7 +24,7 @@ namespace CoreWCF.IdentityModel.Policy
         {
             get
             {
-               return new DefaultAuthorizationContext(new DefaultEvaluationContext()); ;
+               return new DefaultAuthorizationContext(new DefaultEvaluationContext());
             }
         }
 
