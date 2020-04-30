@@ -8,7 +8,6 @@ namespace CoreWCF.IdentityModel.Policy
 {
    internal class DefaultAuthorizationContext : AuthorizationContext
     {
-        private static DefaultAuthorizationContext empty;
         SecurityUniqueId id;
         ReadOnlyCollection<ClaimSet> claimSets;
         DateTime expirationTime;
@@ -25,10 +24,7 @@ namespace CoreWCF.IdentityModel.Policy
         {
             get
             {
-               if(empty == null)
-                    empty = new DefaultAuthorizationContext(new DefaultEvaluationContext());
-                return Empty;
-                
+               return new DefaultAuthorizationContext(new DefaultEvaluationContext()); ;
             }
         }
 

@@ -61,8 +61,7 @@ namespace Services
             IPrincipal principal = Thread.CurrentPrincipal;
             if (echo.Contains(PrincipalPermissionMode.UseWindowsGroups.ToString()))
             {
-                if (principal.Identity !=null
-                     && principal.Identity.GetType().Equals(typeof(WindowsIdentity)))
+                if (typeof(WindowsIdentity).IsAssignableFrom(principal.Identity?.GetType()))
                     return echo;
                 else return "false";
 

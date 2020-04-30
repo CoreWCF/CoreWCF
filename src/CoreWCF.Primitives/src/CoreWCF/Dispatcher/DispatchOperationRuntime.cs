@@ -403,7 +403,7 @@ namespace CoreWCF.Dispatcher
                         SetClaimsPrincipalToOperationContext(rpc);
                     }
 
-                    if (parent.SecurityImpersonation !=null)
+                    if (parent.SecurityImpersonation != null)
                     {
                         await parent.SecurityImpersonation.RunImpersonated(rpc, async () =>
                         {
