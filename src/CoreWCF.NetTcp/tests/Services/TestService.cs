@@ -1,8 +1,12 @@
 ﻿using CoreWCF;
 using CoreWCF.Channels;
+using CoreWCF.Description;
 using ServiceContract;
 using System;
 using System.IO;
+using System.Security.Claims;
+using System.Security.Permissions;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,6 +53,34 @@ namespace Services
                 Header = testMessage.Header + " from server",
                 Body = new MemoryStream(Encoding.UTF8.GetBytes(text + " from server"))
             };
+        }
+
+       
+        public string EchoForPermission(string echo)
+        {
+            IPrincipal principal = Thread.CurrentPrincipal;
+            if (echo.Contains(PrincipalPermissionMode.UseWindowsGroups.ToString()))
+            {
+                if (typeof(WindowsIdentity).IsAssignableFrom(principal.Identity?.GetType()))
+                    return echo;
+                else return "false";
+
+            }
+            else if (echo.Contains(PrincipalPermissionMode.Always.ToString()))
+            {
+                if (principal.Identity != null
+                    && principal.Identity.GetType().Equals(typeof(ClaimsIdentity)))
+                    return echo;
+                else return "false";
+
+            }
+            return echo;
+        }
+
+        [OperationBehavior(Impersonation = ImpersonationOption.Required)]
+        public string EchoForImpersonation(String value)
+        {
+            return value;
         }
     }
 }

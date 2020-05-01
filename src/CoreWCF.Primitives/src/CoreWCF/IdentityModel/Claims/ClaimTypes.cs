@@ -1,6 +1,6 @@
 ﻿namespace CoreWCF.IdentityModel.Claims
 {
-    internal static class ClaimTypes
+    public static class ClaimTypes
     {
         const string claimTypeNamespace = XsiConstants.Namespace + "/claims";
 

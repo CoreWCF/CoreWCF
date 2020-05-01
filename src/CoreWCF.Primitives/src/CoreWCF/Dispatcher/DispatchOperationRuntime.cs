@@ -403,7 +403,7 @@ namespace CoreWCF.Dispatcher
                         SetClaimsPrincipalToOperationContext(rpc);
                     }
 
-                    if (parent.SecurityImpersonation?.IsSecurityContextImpersonationRequired(rpc) ?? false)
+                    if (parent.SecurityImpersonation != null)
                     {
                         await parent.SecurityImpersonation.RunImpersonated(rpc, async () =>
                         {
@@ -418,7 +418,9 @@ namespace CoreWCF.Dispatcher
                     InspectOutputs(rpc);
                     SerializeOutputs(rpc);
                 }
-                catch { throw; } // Make sure user Exception filters are not impersonated.
+                catch(Exception ex) {
+                    throw ex; 
+                } // Make sure user Exception filters are not impersonated.
                 finally
                 {
                     UninitializeCallContext(rpc);

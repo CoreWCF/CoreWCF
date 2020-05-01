@@ -5,7 +5,7 @@ using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.IdentityModel.Policy
 {
-    internal abstract class AuthorizationContext : IAuthorizationComponent
+    public abstract class AuthorizationContext : IAuthorizationComponent
     {
         public abstract string Id { get; }
         public abstract ReadOnlyCollection<ClaimSet> ClaimSets { get; }
@@ -14,8 +14,7 @@ namespace CoreWCF.IdentityModel.Policy
 
         public static AuthorizationContext CreateDefaultAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
         {
-            //return SecurityUtils.CreateDefaultAuthorizationContext(authorizationPolicies);
-            throw new PlatformNotSupportedException();
+            return SecurityUtils.CreateDefaultAuthorizationContext(authorizationPolicies);
         }
     }
 
