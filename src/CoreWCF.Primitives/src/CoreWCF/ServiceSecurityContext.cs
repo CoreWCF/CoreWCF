@@ -171,7 +171,7 @@ namespace CoreWCF
             }
         }
 
-        internal AuthorizationContext AuthorizationContext
+        public AuthorizationContext AuthorizationContext
         {
             get
             {

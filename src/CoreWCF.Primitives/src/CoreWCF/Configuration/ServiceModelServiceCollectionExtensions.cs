@@ -5,6 +5,7 @@ using CoreWCF.Dispatcher;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using CoreWCF.Description;
 
 namespace CoreWCF.Configuration
 {
@@ -16,9 +17,19 @@ namespace CoreWCF.Configuration
             {
                 throw new ArgumentNullException(nameof(services));
             }
-
             services.AddSingleton<ServiceBuilder>();
             services.AddSingleton<IServiceBuilder>(provider => provider.GetRequiredService<ServiceBuilder>());
+            services.AddSingleton<IServiceBehavior>(provider => provider.GetRequiredService<ServiceAuthorizationBehavior>());
+            services.AddSingleton<ServiceAuthorizationBehavior>(provider =>
+            {
+                var behavior = new ServiceAuthorizationBehavior();
+                var manager = provider.GetService<ServiceAuthorizationManager>();
+                if (manager != null)
+                {
+                    behavior.ServiceAuthorizationManager = manager;
+                }
+                return behavior;
+            });
             services.TryAddSingleton(typeof(IServiceConfiguration<>), typeof(ServiceConfiguration<>));
             services.TryAddSingleton<IDispatcherBuilder, DispatcherBuilderImpl>();
             services.AddScoped<ReplyChannelBinder>();

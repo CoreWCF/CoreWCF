@@ -33,5 +33,13 @@ namespace ClientContract
         [OperationContract(Name = "TestMessageContract", Action = Constants.OPERATION_BASE + "TestMessageContract",
             ReplyAction = Constants.OPERATION_BASE + "TestMessageContractResponse")]
         TestMessage TestMessageContract(TestMessage testMessage);
+
+        [OperationContract(Name = "EchoForPermission", Action = Constants.OPERATION_BASE + "EchoForPermission",
+        ReplyAction = Constants.OPERATION_BASE + "EchoForPermissionResponse")]
+        string EchoForPermission(string echo);
+
+        [OperationContract(Name = "EchoForImpersonation", Action = Constants.OPERATION_BASE + "EchoForImpersonation",
+        ReplyAction = Constants.OPERATION_BASE + "EchoForImpersonationResponse")]
+        string EchoForImpersonation(string echo);
     }
 }

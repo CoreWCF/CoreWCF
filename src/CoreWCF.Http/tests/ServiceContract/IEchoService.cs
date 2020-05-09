@@ -29,5 +29,10 @@ namespace ServiceContract
         [OperationContract(Name = "EchoStreamAsync", Action = Constants.OPERATION_BASE + "EchoStreamAsync",
             ReplyAction = Constants.OPERATION_BASE + "EchoStreamAsyncResponse")]
         Task<Stream> EchoStreamAsync(Stream echo);
+
+        [OperationContract(Name = "EchoToFail", Action = Constants.OPERATION_BASE + "EchoToFail",
+ReplyAction = Constants.OPERATION_BASE + "EchoToFailResponse")]
+        string EchoToFail(string echo);
+
     }
 }

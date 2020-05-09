@@ -240,6 +240,19 @@ namespace CoreWCF
             set { requestContext = value; }
         }
 
+        public ServiceSecurityContext ServiceSecurityContext
+        {
+            get
+            {
+                MessageProperties properties = this.IncomingMessageProperties;
+                if (properties != null && properties.Security != null)
+                {
+                    return properties.Security.ServiceSecurityContext;
+                }
+                return null;
+            }
+        }
+
         internal IPrincipal ThreadPrincipal
         {
             get { return this.threadPrincipal; }

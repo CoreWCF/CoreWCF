@@ -1,6 +1,6 @@
 ﻿namespace CoreWCF.IdentityModel.Claims
 {
-    internal static class Rights
+    public static class Rights
     {
         const string rightNamespace = XsiConstants.Namespace + "/right";
 

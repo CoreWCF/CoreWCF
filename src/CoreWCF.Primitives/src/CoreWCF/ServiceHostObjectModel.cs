@@ -111,7 +111,7 @@ namespace CoreWCF
                     ContractDescription contract = null;
                     if (serviceInstanceUsedAsABehavior != null)
                     {
-                        contract = ContractDescription.GetContract(contractType, serviceInstanceUsedAsABehavior);
+                        contract = ContractDescription.GetContract<TService>(contractType, serviceInstanceUsedAsABehavior);
                     }
                     else
                     {

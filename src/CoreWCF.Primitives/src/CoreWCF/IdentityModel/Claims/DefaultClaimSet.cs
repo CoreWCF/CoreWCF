@@ -5,7 +5,7 @@ using CoreWCF;
 namespace CoreWCF.IdentityModel.Claims
 {
     [DataContract(Namespace = XsiConstants.Namespace)]
-    internal class DefaultClaimSet : ClaimSet
+    public class DefaultClaimSet : ClaimSet
     {
         [DataMember(Name = "Issuer")]
         ClaimSet issuer;

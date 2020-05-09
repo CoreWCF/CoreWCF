@@ -51,7 +51,7 @@ namespace CoreWCF.Description
             messages = new Dictionary<Type, MessageDescriptionItems>();
         }
 
-        ContractDescription LoadContractDescriptionHelper(Type contractType, TService serviceImplementation)
+        ContractDescription LoadContractDescriptionHelper(Type contractType, object serviceImplementation)
         {
             ContractDescription contractDescription;
             if (contractType == typeof(IOutputChannel))
@@ -163,7 +163,7 @@ namespace CoreWCF.Description
             return LoadContractDescriptionHelper(contractType, null);
         }
 
-        public ContractDescription LoadContractDescription(Type contractType, TService serviceImplementation)
+        public ContractDescription LoadContractDescription(Type contractType, object serviceImplementation)
         {
             Fx.Assert(contractType != null, "");
             Fx.Assert(serviceImplementation != null, "");
@@ -735,7 +735,7 @@ namespace CoreWCF.Description
             }
         }
 
-        ContractDescription CreateContractDescription(ServiceContractAttribute contractAttr, Type contractType, out ContractReflectionInfo reflectionInfo, TService serviceImplementation)
+        ContractDescription CreateContractDescription(ServiceContractAttribute contractAttr, Type contractType, out ContractReflectionInfo reflectionInfo, object serviceImplementation)
         {
             reflectionInfo = new ContractReflectionInfo();
 

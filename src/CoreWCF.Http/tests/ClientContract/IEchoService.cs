@@ -30,5 +30,8 @@ namespace ClientContract
             ReplyAction = Constants.OPERATION_BASE + "EchoStreamAsyncResponse")]
         Stream EchoStreamAsync(Stream echo);
 
+        [OperationContract(Name = "EchoToFail", Action = Constants.OPERATION_BASE + "EchoToFail",
+     ReplyAction = Constants.OPERATION_BASE + "EchoToFailResponse")]
+        string EchoToFail(string echo);
     }
 }
