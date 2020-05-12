@@ -3,10 +3,9 @@ using System.Collections.ObjectModel;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Primitives.CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security;
 
-namespace CoreWCF.Primitives.CoreWCF.IdentityModel.Selectors
+namespace CoreWCF.IdentityModel.Selectors
 {
     public class GenericSecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
@@ -22,7 +21,7 @@ namespace CoreWCF.Primitives.CoreWCF.IdentityModel.Selectors
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
         {
             var genericToken = (GenericSecurityToken)token;
-            return SecurityUtils.CreatePrincipalNameAuthorizationPolicies(genericToken.ServicePrincipalName);
+            return Security.SecurityUtils.CreatePrincipalNameAuthorizationPolicies(genericToken.ServicePrincipalName);
         }
     }
 }

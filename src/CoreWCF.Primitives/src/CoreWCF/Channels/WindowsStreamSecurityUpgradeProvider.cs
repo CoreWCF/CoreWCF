@@ -13,8 +13,6 @@ using System.Security.Authentication;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Primitives.CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Primitives.CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Channels
 {

@@ -5,7 +5,7 @@ using System.Security.Principal;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
 
-namespace CoreWCF.Primitives.CoreWCF.IdentityModel.Tokens
+namespace CoreWCF.IdentityModel.Tokens
 {
     public class GenericSecurityToken : SecurityToken
     {
