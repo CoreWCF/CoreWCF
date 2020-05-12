@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>CoreWCF.Http</AssemblyName>
     <PackageId>CoreWCF.Http</PackageId>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
