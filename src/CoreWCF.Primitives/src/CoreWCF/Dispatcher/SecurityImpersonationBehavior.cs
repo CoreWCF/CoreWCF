@@ -105,7 +105,16 @@ namespace CoreWCF.Dispatcher
 
             if (principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
             {
-                principal = (claimsPrincipal is WindowsPrincipal) ? claimsPrincipal : GetWindowsPrincipal(securityContext);
+                if (claimsPrincipal is WindowsPrincipal)
+                    principal = claimsPrincipal;
+                else if (securityContext.PrimaryIdentity != null && securityContext.PrimaryIdentity is GenericIdentity)
+                {
+                    principal = new ClaimsPrincipal(securityContext.PrimaryIdentity);
+                }
+                else
+                {
+                    principal = GetWindowsPrincipal(securityContext);
+                }
             }
             else if (principalPermissionMode == PrincipalPermissionMode.Custom)
             {
@@ -248,28 +257,28 @@ namespace CoreWCF.Dispatcher
                 // Update the impersonation failure audit
                 // Copy SecurityAuthorizationBehavior.Audit level to here!!!
                 //
-//                if (AuditLevel.Failure == (this.auditLevel & AuditLevel.Failure))
-//                {
-//                    try
-//                    {
-//                        string primaryIdentity;
-//                        if (securityContext != null)
-//                            primaryIdentity = SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext);
-//                        else
-//                            primaryIdentity = SecurityUtils.AnonymousIdentity.Name;
+                //                if (AuditLevel.Failure == (this.auditLevel & AuditLevel.Failure))
+                //                {
+                //                    try
+                //                    {
+                //                        string primaryIdentity;
+                //                        if (securityContext != null)
+                //                            primaryIdentity = SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext);
+                //                        else
+                //                            primaryIdentity = SecurityUtils.AnonymousIdentity.Name;
 
-//                        SecurityAuditHelper.WriteImpersonationFailureEvent(this.auditLogLocation,
-//                            this.suppressAuditFailure, rpc.Operation.Name, primaryIdentity, ex);
-//                    }
-//#pragma warning suppress 56500
-//                    catch (Exception auditException)
-//                    {
-//                        if (Fx.IsFatal(auditException))
-//                            throw;
+                //                        SecurityAuditHelper.WriteImpersonationFailureEvent(this.auditLogLocation,
+                //                            this.suppressAuditFailure, rpc.Operation.Name, primaryIdentity, ex);
+                //                    }
+                //#pragma warning suppress 56500
+                //                    catch (Exception auditException)
+                //                    {
+                //                        if (Fx.IsFatal(auditException))
+                //                            throw;
 
-//                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
-//                    }
-//                }
+                //                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
+                //                    }
+                //                }
                 throw;
             }
 

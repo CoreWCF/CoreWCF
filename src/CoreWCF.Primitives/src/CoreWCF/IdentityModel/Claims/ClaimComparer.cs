@@ -105,12 +105,13 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                throw new PlatformNotSupportedException();
-                //if (upnComparer == null)
-                //{
-                //    upnComparer = new ClaimComparer(new UpnObjectComparer());
-                //}
-                //return upnComparer;
+                // throw new PlatformNotSupportedException();
+                return Default; // NTAccount won't work cross platform, keeping Default(check with Matt)
+                                // if (upnComparer == null)
+                                // {
+                                //     upnComparer = 
+                                // }
+                                // return upnComparer;
             }
         }
 

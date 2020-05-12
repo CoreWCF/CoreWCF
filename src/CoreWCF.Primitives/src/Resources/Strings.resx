@@ -7984,4 +7984,10 @@
   <data name="UserNameCannotBeEmpty" xml:space="preserve">
     <value>The username cannot be empty.</value>
   </data>
+  <data name="ImpersonationLevelNotSupported" xml:space="preserve">
+    <value>The authentication modes using Kerberos do not support the impersonation level '{0}'. Specify identification or impersonation.</value>
+  </data>
+   <data name="ProvidedNetworkCredentialsHasInvalidUserName" xml:space="preserve">
+    <value>The NetworkCredentials provided for the Token does not have a valid UserName.</value>
+  </data>
 </root>

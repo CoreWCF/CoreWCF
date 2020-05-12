@@ -631,5 +631,34 @@ namespace CoreWCF.Security
                     new SecurityTokenValidationException(SR.AnonymousLogonsAreNotAllowed));
             }
         }
+
+        internal static ReadOnlyCollection<IAuthorizationPolicy> CreatePrincipalNameAuthorizationPolicies(string principalName)
+        {
+            if (principalName == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(principalName));
+            }
+
+            Claim identityClaim;
+            Claim primaryPrincipal;
+            if (principalName.Contains("@") || principalName.Contains(@"\"))
+            {
+                identityClaim = new Claim(ClaimTypes.Upn, principalName, Rights.Identity);
+                primaryPrincipal = Claim.CreateUpnClaim(principalName);
+            }
+            else
+            {
+                identityClaim = new Claim(ClaimTypes.Spn, principalName, Rights.Identity);
+                primaryPrincipal = Claim.CreateSpnClaim(principalName);
+            }
+
+            List<Claim> claims = new List<Claim>(2);
+            claims.Add(identityClaim);
+            claims.Add(primaryPrincipal);
+
+            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1);
+            policies.Add(new UnconditionalPolicy(SecurityUtils.CreateIdentity(principalName), new DefaultClaimSet(ClaimSet.Anonymous, claims)));
+            return policies.AsReadOnly();
+        }
     }
 }
