@@ -12,7 +12,7 @@ namespace CoreWCF.IdentityModel.Claims
         static IEqualityComparer<Claim> dnsComparer;
         //static IEqualityComparer<Claim> rsaComparer;
         static IEqualityComparer<Claim> thumbprintComparer;
-        static IEqualityComparer<Claim> upnComparer;
+        //static IEqualityComparer<Claim> upnComparer;
         //static IEqualityComparer<Claim> x500DistinguishedNameComparer;
         IEqualityComparer resourceComparer;
 
