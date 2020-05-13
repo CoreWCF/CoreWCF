@@ -16,6 +16,13 @@ namespace Helpers
             return binding;
         }
 
+        public static BasicHttpsBinding GetBufferedModeHttpsBinding()
+        {
+            var binding = new BasicHttpsBinding();
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
+
         public static BasicHttpBinding GetStreamedModeBinding()
         {
             var binding = new BasicHttpBinding

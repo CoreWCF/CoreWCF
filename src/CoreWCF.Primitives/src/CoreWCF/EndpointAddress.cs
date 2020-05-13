@@ -333,10 +333,10 @@ namespace CoreWCF
         // this method must be kept in sync with UriGetHashCode
         internal static bool UriEquals(Uri u1, Uri u2, bool ignoreCase, bool includeHostInComparison)
         {
-            return UriEquals(u1, u2, ignoreCase, includeHostInComparison, true);
+            return UriEquals(u1, u2, ignoreCase, includeHostInComparison, true, true);
         }
 
-        internal static bool UriEquals(Uri u1, Uri u2, bool ignoreCase, bool includeHostInComparison, bool includePortInComparison)
+        internal static bool UriEquals(Uri u1, Uri u2, bool ignoreCase, bool includeHostInComparison, bool includePortInComparison, bool includeSchemeInComparison)
         {
             // PERF: Equals compares everything but UserInfo and Fragments.  It's more strict than
             //       we are, and faster, so it is done first.
@@ -345,10 +345,14 @@ namespace CoreWCF
                 return true;
             }
 
-            if (u1.Scheme != u2.Scheme)  // Uri.Scheme is always lowercase
+            if (includeSchemeInComparison)
             {
-                return false;
+                if (u1.Scheme != u2.Scheme)  // Uri.Scheme is always lowercase
+                {
+                    return false;
+                }
             }
+
             if (includePortInComparison)
             {
                 if (u1.Port != u2.Port)
