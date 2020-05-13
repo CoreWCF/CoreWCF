@@ -161,19 +161,26 @@ namespace CoreWCF.Channels
             }
 
             SecurityMessageProperty CreateClientSecurity(NegotiateStream negotiateStream,
-                bool extractGroupsForWindowsAccounts)
+                          bool extractGroupsForWindowsAccounts)
             {
-                WindowsIdentity remoteIdentity = (WindowsIdentity)negotiateStream.RemoteIdentity;
-                Security.SecurityUtils.ValidateAnonymityConstraint(remoteIdentity, false);
-                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
-
-                // When NegotiateStream returns a WindowsIdentity the AuthenticationType is passed in the constructor to WindowsIdentity
-                // by it's internal NegoState class.  If this changes, then the call to remoteIdentity.AuthenticationType could fail if the 
-                // current process token doesn't have sufficient privileges.  It is a first class exception, and caught by the CLR
-                // null is returned.
-                SecurityToken token = new WindowsSecurityToken(remoteIdentity, SecurityUniqueId.Create().Value, remoteIdentity.AuthenticationType);
-                ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = authenticator.ValidateToken(token);
-                clientSecurity = new SecurityMessageProperty();
+                IIdentity remoteIdentity = negotiateStream.RemoteIdentity;
+                SecurityToken token;
+                ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+                if (remoteIdentity is WindowsIdentity)
+                {
+                    WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
+                    Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
+                    WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
+                    token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
+                    authorizationPolicies = authenticator.ValidateToken(token);
+                }
+                else
+                {
+                    token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
+                    GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator();
+                    authorizationPolicies = authenticator.ValidateToken(token);
+                }
+                SecurityMessageProperty clientSecurity = new SecurityMessageProperty();
                 clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
                 clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
                 return clientSecurity;
