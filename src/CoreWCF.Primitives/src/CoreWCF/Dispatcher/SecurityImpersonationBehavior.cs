@@ -105,7 +105,16 @@ namespace CoreWCF.Dispatcher
 
             if (principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
             {
-                principal = (claimsPrincipal is WindowsPrincipal) ? claimsPrincipal : GetWindowsPrincipal(securityContext);
+                if (claimsPrincipal is WindowsPrincipal)
+                    principal = claimsPrincipal;
+                else if (securityContext.PrimaryIdentity != null && securityContext.PrimaryIdentity is GenericIdentity)
+                {
+                    principal = new ClaimsPrincipal(securityContext.PrimaryIdentity);
+                }
+                else
+                {
+                    principal = GetWindowsPrincipal(securityContext);
+                }
             }
             else if (principalPermissionMode == PrincipalPermissionMode.Custom)
             {
