@@ -106,12 +106,9 @@ namespace CoreWCF.IdentityModel.Claims
             get
             {
                 return Default;
-                //throw new PlatformNotSupportedException();
-                //if (upnComparer == null)
-                //{
-                //    upnComparer = new ClaimComparer(new UpnObjectComparer());
-                //}
-                //return upnComparer;
+                //The UpnComparer behavior in Core is different than .NET Framework.
+                //In .NET Framework the UpnComparer has a dependency on NTAccount, 
+                // which isn't available on Core.
             }
         }
 
