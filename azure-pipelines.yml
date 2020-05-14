@@ -206,7 +206,7 @@ stages:
         arguments: '--configuration Release --framework netcoreapp2.1'
     - task: DotNetCoreCLI@2
       displayName: Run Tests with Coverage
-      timeoutInMinutes: 5
+      timeoutInMinutes: 10
       inputs:
         command: 'test'
         projects: $(_testProjects)
