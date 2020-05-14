@@ -37,7 +37,19 @@ namespace CoreWCF.Dispatcher
             }
             else
             {
-                comparer = NoHostUriComparer.Value;
+                if (address.Uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) ||
+                    address.Uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+                {
+                    comparer = new NoHostUriComparer
+                    {
+                        ComparePort = false,
+                        CompareScheme = false
+                    };
+                }
+                else
+                {
+                    comparer = NoHostUriComparer.Value;
+                }
             }
         }
 
@@ -113,20 +125,17 @@ namespace CoreWCF.Dispatcher
         {
             protected UriComparer()
             {
-                ComparePort = true;
             }
 
             protected abstract bool CompareHost { get; }
 
-            internal bool ComparePort
-            {
-                get;
-                set;
-            }
+            internal bool ComparePort { get; set; } = true;
+
+            internal bool CompareScheme { get; set; } = true;
 
             public override bool Equals(Uri u1, Uri u2)
             {
-                return EndpointAddress.UriEquals(u1, u2, true /* ignoreCase */, CompareHost, ComparePort);
+                return EndpointAddress.UriEquals(u1, u2, true /* ignoreCase */, CompareHost, ComparePort, CompareScheme);
             }
 
             public override int GetHashCode(Uri uri)
@@ -156,7 +165,7 @@ namespace CoreWCF.Dispatcher
         {
             internal static readonly UriComparer Value = new NoHostUriComparer();
 
-            NoHostUriComparer()
+            internal NoHostUriComparer()
             {
             }
 

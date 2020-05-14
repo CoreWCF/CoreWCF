@@ -464,9 +464,7 @@ namespace CoreWCF.Channels
                     message.Properties.Add(HttpRequestMessageProperty.Name, requestProperty);
                     // TODO: Test the Via code
                     message.Properties.Via = new Uri(string.Concat(
-                        request.Scheme,
-                        "://",
-                        request.Host.ToUriComponent(),
+                        "http://localhost", // Need to specify http://localhost even if https and on different port to match Endpoint filter
                         request.PathBase.ToUriComponent(),
                         request.Path.ToUriComponent(),
                         request.QueryString.ToUriComponent()));
