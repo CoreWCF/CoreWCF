@@ -24,8 +24,7 @@ namespace ServiceContract
         [OperationContract(Action = "mySetUntypedAction")]
         void TestMethodSetUntypedAction(Message m);
 
-        [OperationContract(AsyncPattern = true, Action = "myAsyncAction", ReplyAction = "myAsyncReplyAction")]
-        //IAsyncResult BeginTestMethodAsync(int ID, string name, AsyncCallback callback, object state);
+        [OperationContract(AsyncPattern = true, Action = "myAsyncAction", ReplyAction = "myAsyncReplyAction")]     
         System.Threading.Tasks.Task<string> TestMethodAsync(int ID, string name);      
     }
 }
