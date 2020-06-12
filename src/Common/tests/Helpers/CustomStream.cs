@@ -101,7 +101,6 @@ namespace Helpers
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            //Log.Inform("Sync Path should not be called");
             throw new ApplicationException("Sync Path should not be called");
         }
 
@@ -161,7 +160,7 @@ namespace Helpers
         }
     }
 
-    ////A strongly typed AsyncResult
+    //A strongly typed AsyncResult
     public abstract class TypedAsyncResult<T> : AsyncResult
     {
         private T data;
@@ -318,7 +317,7 @@ namespace Helpers
                 }
 #pragma warning disable 1634
 #pragma warning suppress 56500 // transferring exception to another thread
-                catch (Exception e) // jasonv - how is the exception transferred to another thread?
+                catch (Exception e)
                 {
                     throw new InvalidProgramException("Async Callback threw an exception.", e);
                 }
@@ -348,7 +347,7 @@ namespace Helpers
             {
                 completeSelf = callback(result);
             }
-            catch (Exception e) // jasonv - approved; wraps a callback, rethrows in End()
+            catch (Exception e)
             {
                 completeSelf = true;
                 completionException = e;
