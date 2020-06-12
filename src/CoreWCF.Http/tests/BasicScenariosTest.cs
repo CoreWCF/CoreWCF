@@ -36,42 +36,42 @@ namespace CoreWCF.Http.Tests
                 var channel2 = factory2.CreateChannel();
 
                 //Variation string TestMethodDefaults
-                    int ID = 1;
-                    string name = "Defaults";
-                    string result = channel.TestMethodDefaults(ID, name);
-                    Assert.NotNull(result);
-                    Assert.Equal(result, name);
+                int ID = 1;
+                string name = "Defaults";
+                string result = channel.TestMethodDefaults(ID, name);
+                Assert.NotNull(result);
+                Assert.Equal(result, name);
 
                 //Variation_void TestMethodSetAction
-                    ID = 1;
-                    name = "Action";
-                    channel.TestMethodSetAction(ID, name);
+                ID = 1;
+                name = "Action";
+                channel.TestMethodSetAction(ID, name);
 
                 //Variation_int TestMethodSetReplyAction               
-                    ID = 1;
-                    name = "ReplyAction";
-                    int resultInt = channel.TestMethodSetReplyAction(ID, name);                    
-                    Assert.Equal(resultInt, ID);
-                
+                ID = 1;
+                name = "ReplyAction";
+                int resultInt = channel.TestMethodSetReplyAction(ID, name);
+                Assert.Equal(resultInt, ID);
+
                 //Variation_void TestMethodUntypedAction                
-                    Message clientMessage = Message.CreateMessage(MessageVersion.Soap11, "myUntypedAction");
-                    channel.TestMethodUntypedAction(clientMessage);
+                Message clientMessage = Message.CreateMessage(MessageVersion.Soap11, "myUntypedAction");
+                channel.TestMethodUntypedAction(clientMessage);
 
                 //Variation_Message TestMethodUntypedreplyAction                
-                    Message msg = channel.TestMethodUntypedReplyAction();
-                    Assert.NotNull(msg);                
+                Message msg = channel.TestMethodUntypedReplyAction();
+                Assert.NotNull(msg);
 
                 //Variation_void TestMethodSetUntypedAction                                  
-                    Message clientUntypedActionMessage = Message.CreateMessage(MessageVersion.Soap11, "mySetUntypedAction");
-                    channel.TestMethodSetUntypedAction(clientUntypedActionMessage);                
+                Message clientUntypedActionMessage = Message.CreateMessage(MessageVersion.Soap11, "mySetUntypedAction");
+                channel.TestMethodSetUntypedAction(clientUntypedActionMessage);
 
                 //Variation_sting TestMethodasync                
-                    ID = 1;
-                    name = "Async";
-                    result = channel2.TestMethodAsync(ID, name).GetAwaiter().GetResult();
-                    Assert.NotNull(result);
-                    Assert.Equal(result, name);              
-            }            
+                ID = 1;
+                name = "Async";
+                result = channel2.TestMethodAsync(ID, name).GetAwaiter().GetResult();
+                Assert.NotNull(result);
+                Assert.Equal(result, name);
+            }
         }
 
         internal class Startup
@@ -92,4 +92,4 @@ namespace CoreWCF.Http.Tests
         }
     }
 
-   }
+}
