@@ -62,6 +62,29 @@ namespace Helpers
                     binding.ReceiveTimeout = s_debugTimeout;
             }
         }
+
+        public static Binding GetBasicHttpBinding()
+        {
+            BasicHttpBinding basicHttpBinding = new BasicHttpBinding();
+            basicHttpBinding.TransferMode = TransferMode.StreamedResponse;
+            basicHttpBinding.MaxReceivedMessageSize = Int32.MaxValue;
+            basicHttpBinding.SendTimeout = TimeSpan.FromMinutes(3);
+            basicHttpBinding.ReceiveTimeout = TimeSpan.FromMinutes(3);
+            return basicHttpBinding;
+        }
+
+        public static Binding GetCustomBinding()
+        {
+            HttpTransportBindingElement httpBE = new HttpTransportBindingElement();
+            httpBE.MaxReceivedMessageSize = int.MaxValue;
+            httpBE.TransferMode = TransferMode.StreamedResponse;
+            CustomBinding binding = new CustomBinding(new TextMessageEncodingBindingElement(), httpBE)
+            {
+                SendTimeout = TimeSpan.FromMinutes(3),
+                ReceiveTimeout = TimeSpan.FromMinutes(3)
+            };
+            return binding;
+        }
     }
 }
 

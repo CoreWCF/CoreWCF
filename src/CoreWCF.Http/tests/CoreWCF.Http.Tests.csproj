@@ -25,4 +25,12 @@
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
     <ProjectReference Include="..\src\CoreWCF.Http.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Data\LargeFile.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

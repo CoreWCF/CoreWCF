@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore;
+﻿using CoreWCF;
+using CoreWCF.Channels;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -84,5 +86,17 @@ namespace Helpers
             }
         }
 
+        public static Binding GetCustomBinding()
+        {
+            HttpTransportBindingElement httpBE = new HttpTransportBindingElement();
+            httpBE.MaxReceivedMessageSize = int.MaxValue;
+            httpBE.TransferMode = TransferMode.StreamedResponse;
+            CustomBinding binding = new CustomBinding(new TextMessageEncodingBindingElement(), httpBE)
+            {
+                SendTimeout = TimeSpan.FromMinutes(3),
+                ReceiveTimeout = TimeSpan.FromMinutes(3)
+            };
+            return binding;
+        }
     }
 }
