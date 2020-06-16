@@ -1,4 +1,4 @@
-﻿using CoreWCF.Configuration;
+using CoreWCF.Configuration;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
@@ -128,29 +128,6 @@ namespace CoreWCF.Channels
                 DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
 
                 return (null, false);
-            }
-        }
-
-        public async Task<bool> WaitForMessageAsync(CancellationToken token)
-        {
-            if (this.DoneReceivingInCurrentState())
-            {
-                return true;
-            }
-
-            bool shouldFault = true;
-            try
-            {
-                bool success = await MessageSource.WaitForMessageAsync(token);
-                shouldFault = !success; // need to fault if we've timed out because we're now toast
-                return success;
-            }
-            finally
-            {
-                if (shouldFault)
-                {
-                    Fault();
-                }
             }
         }
 

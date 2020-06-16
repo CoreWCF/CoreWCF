@@ -23,14 +23,12 @@ namespace Helpers
         public CommunicationState State { get; set; } = CommunicationState.Opened;
         public IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
-#pragma warning disable CS0067 // "The event is never used"
         // These are required to implement IReplyChannel
         public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
-#pragma warning restore CS0067
 
         public void Abort()
         {

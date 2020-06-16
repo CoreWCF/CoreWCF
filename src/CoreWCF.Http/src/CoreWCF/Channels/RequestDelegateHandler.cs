@@ -67,6 +67,7 @@ namespace CoreWCF.Channels
 
             _httpSettings = httpSettings;
             WebSocketOptions = CreateWebSocketOptions(tbe);
+
             if (WebSocketOptions == null)
             {
                 _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider, _httpSettings);
@@ -178,7 +179,19 @@ namespace CoreWCF.Channels
                 WebSocketHelper.ThrowCorrectException(ex);
                 throw;
             }
+        }
 
+        private void SendUpgradeRequiredResponseMessageWithSubProtocol()
+        {
+        }
+
+        internal async Task HandleDuplexConnection(HttpContext context)
+        {
+            if (context.WebSockets.IsWebSocketRequest)
+            {
+                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                
+            }
         }
     }
 }

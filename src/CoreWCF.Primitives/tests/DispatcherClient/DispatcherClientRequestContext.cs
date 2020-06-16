@@ -9,8 +9,8 @@ namespace DispatcherClient
 {
     public class DispatcherClientRequestContext : RequestContext
     {
-        private MessageBuffer _bufferedCopy;
         private TaskCompletionSource<Message> _replyMessage;
+        private MessageBuffer _bufferedCopy;
 
         public DispatcherClientRequestContext(Message requestMessage)
         {
@@ -18,12 +18,7 @@ namespace DispatcherClient
             _replyMessage = new TaskCompletionSource<Message>();
         }
 
-
-        public DispatcherClientRequestContext(System.ServiceModel.Channels.Message requestMessage)
-        {
-            RequestMessage = TestHelper.ConvertMessage(requestMessage);
-            _replyMessage = new TaskCompletionSource<Message>();
-        }
+        public DispatcherClientRequestContext(System.ServiceModel.Channels.Message requestMessage) : this(TestHelper.ConvertMessage(requestMessage)) { }
 
         public override Message RequestMessage { get; }
 
@@ -42,27 +37,18 @@ namespace DispatcherClient
             }
         }
 
-        private void SetReplyMessage(Message reply)
-        {
-            _bufferedCopy = reply.CreateBufferedCopy(int.MaxValue);
-            _replyMessage.TrySetResult(_bufferedCopy.CreateMessage());
-        }
-
         public override void Abort()
         {
-            _replyMessage.TrySetException(new CommunicationException("Request aborted"));
-            return;
+            _replyMessage.TrySetException(new CommunicationException("Aborted"));
         }
 
         public override Task CloseAsync()
         {
-            _replyMessage.TrySetException(new CommunicationException("Request aborted"));
             return Task.CompletedTask;
         }
 
         public override Task CloseAsync(CancellationToken token)
         {
-            _replyMessage.TrySetException(new CommunicationException("Request aborted"));
             return Task.CompletedTask;
         }
 
@@ -73,7 +59,8 @@ namespace DispatcherClient
 
         public override Task ReplyAsync(Message message, CancellationToken token)
         {
-            SetReplyMessage(message);
+            _bufferedCopy = message.CreateBufferedCopy(int.MaxValue);
+            _replyMessage.TrySetResult(_bufferedCopy.CreateMessage());
             return Task.CompletedTask;
         }
     }

@@ -1,4 +1,4 @@
-﻿using CoreWCF.Configuration;
+using CoreWCF.Configuration;
 using System;
 
 namespace CoreWCF.Channels

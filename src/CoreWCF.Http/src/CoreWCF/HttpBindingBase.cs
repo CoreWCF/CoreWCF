@@ -22,11 +22,13 @@ namespace CoreWCF
         }
         // [System.ComponentModel.DefaultValueAttribute(false)]
         // public bool AllowCookies { get { return default(bool); } set { } }
-        public EnvelopeVersion EnvelopeVersion { get { return default(EnvelopeVersion); } }
+        
         // [System.ComponentModel.DefaultValueAttribute((long)524288)]
         // public long MaxBufferPoolSize { get { return default(long); } set { } }
         // [System.ComponentModel.DefaultValueAttribute(65536)]
         // public int MaxBufferSize { get { return default(int); } set { } }
+
+        [DefaultValue(TransportDefaults.MaxReceivedMessageSize)]
         public long MaxReceivedMessageSize
         {
             get
@@ -39,6 +41,7 @@ namespace CoreWCF
                 //_httpsTransport.MaxReceivedMessageSize = value;
             }
         }
+
         public int MaxBufferSize
         {
             get { return _httpTransport.MaxBufferSize; }
@@ -71,9 +74,35 @@ namespace CoreWCF
         }
 
         public override string Scheme { get { return GetTransport().Scheme; } }
-        public Encoding TextEncoding { get { return default(Encoding); } set { } }
-        // [System.ComponentModel.DefaultValueAttribute((System.ServiceModel.TransferMode)(0))]
-        // public System.ServiceModel.TransferMode TransferMode { get { return default(System.ServiceModel.TransferMode); } set { } }
+
+        public Encoding TextEncoding
+        {
+            get
+            {
+                return _textEncoding.WriteEncoding;
+            }
+
+            set
+            {
+                _textEncoding.WriteEncoding = value;
+                //_mtomEncoding.WriteEncoding = value;
+            }
+        }
+
+        [DefaultValue(HttpTransportDefaults.TransferMode)]
+        public TransferMode TransferMode
+        {
+            get
+            {   
+                return _httpTransport.TransferMode;
+            }
+
+            set
+            {
+                _httpTransport.TransferMode = value;
+                _httpsTransport.TransferMode = value;
+            }
+        }
 
         internal TextMessageEncodingBindingElement TextMessageEncodingBindingElement
         {
