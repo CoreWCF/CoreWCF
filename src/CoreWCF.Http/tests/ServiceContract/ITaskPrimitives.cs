@@ -14,13 +14,13 @@ namespace ServiceContract
     public interface ITestPrimitives
     {
         [OperationContract]
-        Task<Int32> GetInt();
+        Task<int> GetInt();
 
         [OperationContract]
-        Task<Byte> GetByte();
+        Task<byte> GetByte();
 
         [OperationContract]
-        Task<SByte> GetSByte();
+        Task<sbyte> GetSByte();
 
         [OperationContract]
         Task<short> GetShort();
@@ -29,10 +29,10 @@ namespace ServiceContract
         Task<ushort> GetUShort();
 
         [OperationContract]
-        Task<Double> GetDouble();
+        Task<double> GetDouble();
 
         [OperationContract]
-        Task<UInt32> GetUInt();
+        Task<uint> GetUInt();
 
         [OperationContract]
         Task<long> GetLong();
@@ -53,7 +53,7 @@ namespace ServiceContract
         Task<decimal> GetDecimal();
 
         [OperationContract]
-        Task<String> GetString();
+        Task<string> GetString();
 
         [OperationContract]
         Task<DateTime> GetDateTime();
