@@ -52,7 +52,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("BClient", "ABService")]
         [InlineData("ABClient", "ABService")]
         [InlineData("ABClient", "BService")]
-        public void EndpointsWithContractInheritacne(string clientType, string serviceType)
+        public void EndpointsWithContractInheritance(string clientType, string serviceType)
         {
             StartupEndpoints.ServiceType = serviceType;
             StartupEndpoints.ClientType = clientType;
