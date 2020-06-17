@@ -17,6 +17,7 @@ namespace CoreWCF
         internal HttpBindingBase()
         {
             _httpTransport = new HttpTransportBindingElement();
+            _httpsTransport = new HttpsTransportBindingElement();
             _textEncoding = new TextMessageEncodingBindingElement();
             _textEncoding.MessageVersion = MessageVersion.Soap11;
         }
