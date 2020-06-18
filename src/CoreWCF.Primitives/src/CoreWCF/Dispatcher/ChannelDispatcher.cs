@@ -238,7 +238,7 @@ namespace CoreWCF.Dispatcher
         internal Uri ListenUri { get; }
 
         internal List<Type> SupportedChannelTypes { get; }
-        
+
         internal Binding Binding { get; }
 
         internal bool HandleError(Exception error)

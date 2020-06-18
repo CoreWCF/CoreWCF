@@ -1,3 +1,4 @@
+using CoreWCF.Configuration;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
@@ -19,6 +20,25 @@ namespace CoreWCF.Channels
         internal T GetIndividualProperty<T>() where T : class
         {
             return GetProperty<T>(new BindingContext(new CustomBinding(), new BindingParameterCollection()));
+        }
+
+        public virtual IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
+        {
+            if (context == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+
+            if (innerDispatcher == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerDispatcher));
+
+            return context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
+        }
+
+        public virtual bool CanBuildServiceDispatcher<TChannel>(BindingContext context) where TChannel : class, IChannel
+        {
+            if (context == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+
+            return context.CanBuildNextServiceDispatcher<TChannel>();
         }
 
         //TODO: Move back to internal

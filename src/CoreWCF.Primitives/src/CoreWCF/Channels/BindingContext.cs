@@ -1,25 +1,18 @@
 using System;
 using System.Globalization;
 using System.Text;
-using CoreWCF.Description;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
     public class BindingContext
     {
-        CustomBinding _binding;
-        BindingParameterCollection _bindingParameters;
-        Uri _listenUriBaseAddress;
-        ListenUriMode _listenUriMode;
-        string _listenUriRelativeAddress;
-        BindingElementCollection _remainingBindingElements;  // kept to ensure each BE builds itself once
-
         public BindingContext(CustomBinding binding, BindingParameterCollection parameters)
-            : this(binding, parameters, null, string.Empty, ListenUriMode.Explicit)
+            : this(binding, parameters, null, string.Empty)
         {
         }
 
-        public BindingContext(CustomBinding binding, BindingParameterCollection parameters, Uri listenUriBaseAddress, string listenUriRelativeAddress, ListenUriMode listenUriMode)
+        public BindingContext(CustomBinding binding, BindingParameterCollection parameters, Uri listenUriBaseAddress, string listenUriRelativeAddress)
         {
             if (binding == null)
             {
@@ -29,68 +22,60 @@ namespace CoreWCF.Channels
             {
                 listenUriRelativeAddress = string.Empty;
             }
-            if (!ListenUriModeHelper.IsDefined(listenUriMode))
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(listenUriMode)));
-            }
 
-            Initialize(binding, binding.Elements, parameters, listenUriBaseAddress, listenUriRelativeAddress, listenUriMode);
+            Initialize(binding, binding.Elements, parameters, listenUriBaseAddress, listenUriRelativeAddress);
         }
 
-        BindingContext(CustomBinding binding,
+        private BindingContext(CustomBinding binding,
                BindingElementCollection remainingBindingElements,
                BindingParameterCollection parameters,
                Uri listenUriBaseAddress,
-               string listenUriRelativeAddress,
-               ListenUriMode listenUriMode)
+               string listenUriRelativeAddress)
         {
-            Initialize(binding, remainingBindingElements, parameters, listenUriBaseAddress, listenUriRelativeAddress, listenUriMode);
+            Initialize(binding, remainingBindingElements, parameters, listenUriBaseAddress, listenUriRelativeAddress);
         }
 
         private void Initialize(CustomBinding binding,
                 BindingElementCollection remainingBindingElements,
                 BindingParameterCollection parameters,
                 Uri listenUriBaseAddress,
-                string listenUriRelativeAddress,
-                ListenUriMode listenUriMode)
+                string listenUriRelativeAddress)
         {
-            _binding = binding;
+            Binding = binding;
 
-            _remainingBindingElements = new BindingElementCollection(remainingBindingElements);
-            _bindingParameters = new BindingParameterCollection(parameters);
-            _listenUriBaseAddress = listenUriBaseAddress;
-            _listenUriRelativeAddress = listenUriRelativeAddress;
-            _listenUriMode = listenUriMode;
+            RemainingBindingElements = new BindingElementCollection(remainingBindingElements);
+            BindingParameters = new BindingParameterCollection(parameters);
+            ListenUriBaseAddress = listenUriBaseAddress;
+            ListenUriRelativeAddress = listenUriRelativeAddress;
         }
 
-        public CustomBinding Binding => _binding;
+        public CustomBinding Binding { get; private set; }
 
-        public BindingParameterCollection BindingParameters => _bindingParameters;
+        public BindingParameterCollection BindingParameters { get; private set; }
 
-        public Uri ListenUriBaseAddress
+        public Uri ListenUriBaseAddress { get; set; }
+
+        public string ListenUriRelativeAddress { get; set; }
+
+        public BindingElementCollection RemainingBindingElements { get; private set; }
+
+        public IServiceDispatcher BuildNextServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher)
+    where TChannel : class, IChannel
         {
-            get { return _listenUriBaseAddress; }
-            set { _listenUriBaseAddress = value; }
+            return this.RemoveNextElement().BuildServiceDispatcher<TChannel>(this, innerDispatcher);
         }
 
-        public ListenUriMode ListenUriMode
+        public bool CanBuildNextServiceDispatcher<TChannel>()
+    where TChannel : class, IChannel
         {
-            get { return _listenUriMode; }
-            set { _listenUriMode = value; }
+            BindingContext clone = this.Clone();
+            return clone.RemoveNextElement().CanBuildServiceDispatcher<TChannel>(clone);
         }
-
-        public string ListenUriRelativeAddress
-        {
-            get { return _listenUriRelativeAddress; }
-            set { _listenUriRelativeAddress = value; }
-        }
-
-        public BindingElementCollection RemainingBindingElements => _remainingBindingElements;
 
         public T GetInnerProperty<T>()
             where T : class
         {
-            if (_remainingBindingElements.Count == 0)
+            if (RemainingBindingElements.Count == 0)
             {
                 return null;
             }
@@ -102,17 +87,17 @@ namespace CoreWCF.Channels
         }
         public BindingContext Clone()
         {
-            return new BindingContext(_binding, _remainingBindingElements, _bindingParameters,
-                _listenUriBaseAddress, _listenUriRelativeAddress, _listenUriMode);
+            return new BindingContext(Binding, RemainingBindingElements, BindingParameters,
+                ListenUriBaseAddress, ListenUriRelativeAddress);
         }
 
-        BindingElement RemoveNextElement()
+        private BindingElement RemoveNextElement()
         {
-            BindingElement element = _remainingBindingElements.Remove<BindingElement>();
+            BindingElement element = RemainingBindingElements.Remove<BindingElement>();
             if (element != null)
                 return element;
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
-                SR.NoChannelBuilderAvailable, _binding.Name, _binding.Namespace)));
+                SR.NoChannelBuilderAvailable, Binding.Name, Binding.Namespace)));
         }
 
         internal void ValidateBindingElementsConsumed()

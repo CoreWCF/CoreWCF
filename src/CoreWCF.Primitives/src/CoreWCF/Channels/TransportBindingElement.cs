@@ -74,6 +74,7 @@ namespace CoreWCF.Channels
         }
 
         public abstract string Scheme { get; }
+
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
@@ -137,7 +138,5 @@ namespace CoreWCF.Channels
             }
             return true;
         }
-
-        public virtual Type MiddlewareType { get; } = null;
     }
 }

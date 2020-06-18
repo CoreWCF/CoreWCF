@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
+#if NET472
 using System.Security.Authentication;
+#endif // NET472
 using Xunit.Abstractions;
 
 namespace Helpers
@@ -23,7 +25,6 @@ namespace Helpers
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #endif // DEBUG
-            .UseKestrel()
             .UseUrls("http://localhost:8080")
             .UseStartup<TStartup>();
 
