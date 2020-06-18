@@ -55,32 +55,21 @@ namespace CoreWCF.Dispatcher
             using (TaskHelpers.RunTaskContinuationsOnOurThreads()) // If inner stream doesn't have sync implementation, don't continue on thread pool.
             {
                 // TODO: For NetStandard 2.0, use async methods on writer
-                Stream streamValue = await GetStreamAndWriteStartWrapperIfNecessaryAsync(writer, parameters, returnValue);
+                Stream streamValue = GetStreamAndWriteStartWrapperIfNecessary(writer, parameters, returnValue);
                 var streamProvider = new OperationStreamProvider(streamValue);
                 await StreamFormatterHelper.WriteValueAsync(writer, streamProvider);
                 await WriteEndWrapperIfNecessaryAsync(writer);
             }
         }
 
-        Stream GetStreamAndWriteStartWrapperIfNecessary(XmlDictionaryWriter writer, object[] parameters, object returnValue)
+        private Stream GetStreamAndWriteStartWrapperIfNecessary(XmlDictionaryWriter writer, object[] parameters, object returnValue)
         {
             Stream streamValue = GetStreamValue(parameters, returnValue);
             if (streamValue == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(partName);
             if (WrapperName != null)
-                writer.WriteStartElement(WrapperName, WrapperNamespace);
-            writer.WriteStartElement(PartName, PartNamespace);
-            return streamValue;
-        }
-
-        private async Task<Stream> GetStreamAndWriteStartWrapperIfNecessaryAsync(XmlDictionaryWriter writer, object[] parameters, object returnValue)
-        {
-            Stream streamValue = GetStreamValue(parameters, returnValue);
-            if (streamValue == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(partName);
-            if (WrapperName != null)
-                await writer.WriteStartElementAsync(null, WrapperName, WrapperNamespace);
-            await writer.WriteStartElementAsync(null, PartName, PartNamespace);
+                writer.WriteStartElement(null, WrapperName, WrapperNamespace);
+            writer.WriteStartElement(null, PartName, PartNamespace);
             return streamValue;
         }
 
