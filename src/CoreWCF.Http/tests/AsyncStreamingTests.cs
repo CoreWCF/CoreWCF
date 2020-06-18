@@ -23,7 +23,6 @@ namespace CoreWCF.Http.Tests
             _output = output;
         }
 
-#if NET472 //Depend on IAsyncResult in test execution
         [Fact]
         public void StreamBasicHttpBindingTest()
         {
@@ -34,9 +33,9 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 var httpBinding = ClientHelper.GetBasicHttpBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.AsyncStreamingService.IService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/AsyncStreamingService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/AsyncStreamingService.svc/basicHttp")));
                 var serviceChannel = factory.CreateChannel();
-                
+
                 SlowStreamConsumingClient(serviceChannel, 20);
                 SlowMessageConsumingClient(serviceChannel, 20);
             }
@@ -45,7 +44,6 @@ namespace CoreWCF.Http.Tests
         [Fact] //fail
         public void StreamCustomBindingTest()
         {
-            Startup._binding = "customBinding";
             ThreadPool.SetMaxThreads(Common.numThreads, Common.numThreads);
             var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
@@ -53,7 +51,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 var customBinding = ClientHelper.GetCustomBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.AsyncStreamingService.IService>(customBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/AsyncStreamingService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/AsyncStreamingService.svc/customBinding")));
                 var serviceChannel = factory.CreateChannel();
 
                 SlowStreamConsumingClient(serviceChannel, 20);
@@ -75,7 +73,7 @@ namespace CoreWCF.Http.Tests
                     host.Start();
                     var httpBinding = ClientHelper.GetBasicHttpBinding();
                     var factory = new System.ServiceModel.ChannelFactory<ClientContract.AsyncStreamingService.IService>(httpBinding,
-                        new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/AsyncStreamingService.svc")));
+                        new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/AsyncStreamingService.svc/basicHttp")));
                     var serviceChannel = factory.CreateChannel();
 
                     SlowStreamConsumingClient(serviceChannel, requests);
@@ -86,10 +84,9 @@ namespace CoreWCF.Http.Tests
                 numThreads = 3 * numThreads;
             }
         }
-#endif
+
         internal class Startup
         {
-            public static string _binding = "";
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
@@ -99,18 +96,9 @@ namespace CoreWCF.Http.Tests
             {
                 app.UseServiceModel(builder =>
                 {
-                    Channels.Binding binding;
-                    if ("customBinding" == _binding)
-                    {
-                        binding = ServiceHelper.GetCustomBinding();
-                    }
-                    else
-                    {
-                        binding = new BasicHttpBinding();
-                    }
-                    
                     builder.AddService<Services.AsyncStreamingService.Service>();
-                    builder.AddServiceEndpoint<Services.AsyncStreamingService.Service, Services.AsyncStreamingService.IService>(binding, "/BasicWcfService/AsyncStreamingService.svc");
+                    builder.AddServiceEndpoint<Services.AsyncStreamingService.Service, Services.AsyncStreamingService.IService>(new BasicHttpBinding(), "/BasicWcfService/AsyncStreamingService.svc/basicHttp");
+                    builder.AddServiceEndpoint<Services.AsyncStreamingService.Service, Services.AsyncStreamingService.IService>(ServiceHelper.GetCustomBinding(), "/BasicWcfService/AsyncStreamingService.svc/customBinding");
                 });
             }
         }

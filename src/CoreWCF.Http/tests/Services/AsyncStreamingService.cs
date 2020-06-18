@@ -28,7 +28,7 @@ namespace Services.AsyncStreamingService
         [OperationBehavior(Impersonation = ImpersonationOption.Allowed)]
         public Message GetMessage()
         {
-            FileStream largeFileStream = new FileStream("LargeFile.txt", FileMode.Open, FileAccess.Read, FileShare.Read, Common.streamBufferSize, true);
+            FileStream largeFileStream = new FileStream("Data\\LargeFile.txt", FileMode.Open, FileAccess.Read, FileShare.Read, Common.streamBufferSize, true);
             //Log.Info("Service got request to GetMessage");
             //if (Common.testImpersonation && !Common.IsImpersonatedUser(ServiceSecurityContext.Current.WindowsIdentity.Name))
             //{
