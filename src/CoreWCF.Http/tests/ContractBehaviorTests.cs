@@ -1,0 +1,338 @@
+﻿using ClientContract;
+using CoreWCF.Configuration;
+using Helpers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.ServiceModel;
+using Xunit;
+using Xunit.Abstractions;
+using Services;
+using CoreWCF.Description;
+
+namespace CoreWCF.Http.Tests
+{
+    /// <summary>
+    /// Custom behavior validation on client is done, validation on service side is currently blocked, 
+    /// need to find way to get OperationContext.Current.Host.Description as on NetFx for CoreWCF
+    /// </summary>
+    public class ContractBehaviorTests
+    {
+        private ITestOutputHelper _output;
+
+        public ContractBehaviorTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
+
+        [Theory]
+        [InlineData("ByHand")]
+        [InlineData("CustomAttribute")]
+        [InlineData("TwoAttributesDifferentTypes")]
+        [InlineData("MisplacedAttributes")]
+        [InlineData("CustomAttributesImplementsOther")]
+        [InlineData("ByHandImplementsOther")]
+#if NET472
+        [InlineData("ByHand_UsingHiddenProperty")]
+#endif
+        public void Variations(string method)
+        {
+            Startup._method = method;
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                switch (method)
+                {
+                    case "ByHand":
+                        Variation_Service_ByHand(false);
+                        break;
+                    case "ByHand_UsingHiddenProperty":
+                        Variation_Service_ByHand(true);
+                        break;
+                    case "CustomAttribute":
+                        Variation_Service_CustomAttribute();
+                        break;
+                    case "TwoAttributesDifferentTypes":
+                        Variation_Service_TwoAttributesDifferentTypes();
+                        break;
+                    case "TwoAttributesSameType":
+                        Variation_Service_TwoAttributesSameType();
+                        break;
+                    case "MisplacedAttributes":
+                        Variation_Service_MisplacedAttributes();
+                        break;
+                    case "CustomAttributesImplementsOther":
+                        Variation_Service_CustomAttributesImplementsOther();
+                        break;
+                    case "ByHandImplementsOther":
+                        Variation_Service_ByHandImplementsOther();
+                        break;
+                    default:
+                        throw new ApplicationException("Unsupported ID specified in Tef File!");
+                }
+            }
+        }
+
+
+        [Fact]
+        public void TwoAttributesSameType_Test()
+        {
+            Startup._method = "TwoAttributesSameType";
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            Assert.Throws<ArgumentException>(()=> host.Start());
+        }
+
+        //Variation
+        //1.GetEndpointAddress for the service
+        //2.CreateChannelFactory
+        //2.1:Add the custom behavior - Optional
+        //3.Get the BehaviorAttribute instance in the ChannelDescription 
+        //4.Open the ChannelFactory
+        //5.Check the Behavior static flags 
+        //6.Check the Behavior instance flags
+        //7.Send a message to the server
+        public static ChannelFactory<T> GetChannelFactory<T>()
+        {
+            var httpBinding = ClientHelper.GetBufferedModeBinding();
+            return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractBehaviorService.svc")));
+        }
+
+        private void Variation_Service_ByHand(bool useHiddenProperty)
+        {
+            ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();
+            try
+            {
+                CustomContractBehaviorAttribute cb = new CustomContractBehaviorAttribute();
+                if (useHiddenProperty)
+                {
+#if NET472
+                    cf.Endpoint.Contract.Behaviors.Add(cb);
+#endif
+                }
+                else
+                {
+                    cf.Endpoint.Contract.ContractBehaviors.Add(cb);
+                }
+
+                cf.Open();
+                string expected = "IContractBehavior:ClientContract.CustomContractBehaviorAttribute;";
+                Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
+                IContractBehaviorBasic_ByHand clientProxy = cf.CreateChannel();
+                string HelloStr = "Hello";
+                string returnStr = clientProxy.StringMethod(HelloStr);
+                Assert.Equal(HelloStr, returnStr);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                    cf.Close();
+            }
+        }
+
+        private void Variation_Service_CustomAttribute()
+        {
+            ChannelFactory<IContractBehaviorBasic_CustomAttribute> cf = GetChannelFactory<IContractBehaviorBasic_CustomAttribute>();
+            try
+            {
+                cf.Open();
+                string expected = "IContractBehavior:ClientContract.CustomContractBehaviorAttribute;";
+                Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
+                IContractBehaviorBasic_CustomAttribute clientProxy = cf.CreateChannel();
+                string HelloStr = "Hello";
+                string returnStr = clientProxy.StringMethod(HelloStr);
+                Assert.Equal(HelloStr, returnStr);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                    cf.Close();
+            }
+        }
+
+        private void Variation_Service_TwoAttributesDifferentTypes()
+        {
+            ChannelFactory<IContractBehaviorBasic_TwoAttributesDifferentTypes> cf = GetChannelFactory<IContractBehaviorBasic_TwoAttributesDifferentTypes>();
+            try
+            {
+                cf.Open();
+                string expected = "IContractBehavior:ClientContract.CustomContractBehaviorAttribute;IContractBehavior:ClientContract.OtherCustomContractBehaviorAttribute;";
+                Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
+                IContractBehaviorBasic_TwoAttributesDifferentTypes clientProxy = cf.CreateChannel();
+                string HelloStr = "Hello";
+                string returnStr = clientProxy.StringMethod(HelloStr);
+                Assert.Equal(HelloStr, returnStr);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                    cf.Close();
+            }           
+        }
+
+        private void Variation_Service_TwoAttributesSameType()
+        {            
+            ChannelFactory<IContractBehaviorBasic_TwoAttributesSameType> cf = null;
+            try
+            {
+                cf = GetChannelFactory<IContractBehaviorBasic_TwoAttributesSameType>();
+                Assert.True(false, "Did not raise the ArgumentException as expected");
+            }
+            catch (Exception e)
+            {
+                _output.WriteLine(e.Message);
+            }
+            finally
+            {
+                if (cf != null)
+                    cf.Close();
+            }
+        }
+
+        private void Variation_Service_MisplacedAttributes()
+        {
+            ChannelFactory<IContractBehaviorBasic_MisplacedAttributes> cf = GetChannelFactory<IContractBehaviorBasic_MisplacedAttributes>();
+            try
+            {
+                IContractBehaviorBasic_MisplacedAttributes clientProxy = cf.CreateChannel();
+                Assert.True(string.IsNullOrEmpty(BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint)));
+                string HelloStr = "Hello";
+                string returnStr = clientProxy.StringMethod(HelloStr);
+                Assert.Equal(HelloStr, returnStr);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                    cf.Close();
+            }
+        }
+
+        private void Variation_Service_CustomAttributesImplementsOther()
+        {
+            ChannelFactory<IContractBehaviorBasic_CustomAttributesImplementsOther> cf = GetChannelFactory<IContractBehaviorBasic_CustomAttributesImplementsOther>();
+            try
+            {
+                cf.Open();
+                string expected = "IContractBehavior:ClientContract.MyMultiFacetedBehaviorAttribute;";
+                Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
+                IContractBehaviorBasic_CustomAttributesImplementsOther clientProxy = cf.CreateChannel();
+                string HelloStr = "Hello";
+                string returnStr = clientProxy.StringMethod(HelloStr);
+                Assert.Equal(HelloStr, returnStr);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                    cf.Close();
+            }
+        }
+
+        private void Variation_Service_ByHandImplementsOther()
+        {
+            ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();  
+            try
+            {
+                var theBehavior = new MyMultiFacetedBehaviorAttribute();
+                cf.Endpoint.Contract.ContractBehaviors.Add(theBehavior);
+                cf.Open();
+                string expected = "IContractBehavior:ClientContract.MyMultiFacetedBehaviorAttribute;";
+                Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
+                IContractBehaviorBasic_ByHand clientProxy = cf.CreateChannel();
+                string HelloStr = "Hello";
+                string returnStr = clientProxy.StringMethod(HelloStr);
+                Assert.Equal(HelloStr, returnStr);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                    cf.Close();
+            }
+        }
+
+        internal class Startup
+        {
+            public static string _method = "";
+            public void ConfigureServices(IServiceCollection services)
+            {
+                if (_method.Contains("ByHandImplementsOther"))
+                {
+                    services.AddServiceModelServices().AddSingleton<IContractBehavior>(new ServiceContract.MyMultiFacetedBehaviorAttribute());
+                }
+                else if(_method.Contains("ByHand"))
+                {
+                    services.AddServiceModelServices().AddSingleton<IContractBehavior>(new ServiceContract.CustomContractBehaviorAttribute());
+                }
+                else
+                {
+                    services.AddServiceModelServices();
+                }
+            }
+
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    switch(_method)
+                    {                     
+                        case "ByHand":
+                        case "ByHand_UsingHiddenProperty":
+                        case "ByHandImplementsOther":
+                        case "ByHandImplementsOther_UsingHiddenProperty":
+                            builder.AddService<ContractBehaviorBasic_ByHand_Service>();
+                            builder.AddServiceEndpoint<ContractBehaviorBasic_ByHand_Service, ServiceContract.IContractBehaviorBasic_ByHand>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
+                            break;
+                        case "CustomAttribute":
+                            builder.AddService<ContractBehaviorBasic_CustomAttribute_Service>();
+                            builder.AddServiceEndpoint<ContractBehaviorBasic_CustomAttribute_Service, ServiceContract.IContractBehaviorBasic_CustomAttribute>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
+                            break;
+                        case "TwoAttributesDifferentTypes":
+                            builder.AddService<ContractBehaviorBasic_TwoAttributesDifferentTypes_Service>();
+                            builder.AddServiceEndpoint<ContractBehaviorBasic_TwoAttributesDifferentTypes_Service, ServiceContract.IContractBehaviorBasic_TwoAttributesDifferentTypes>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
+                            break;
+                        case "TwoAttributesSameType":
+                            builder.AddService<ContractBehaviorBasic_TwoAttributesSameType_Service>();
+                            builder.AddServiceEndpoint<ContractBehaviorBasic_TwoAttributesSameType_Service, ServiceContract.IContractBehaviorBasic_TwoAttributesSameType>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
+                            break;
+                        case "MisplacedAttributes":
+                            builder.AddService<ContractBehaviorBasic_MisplacedAttributes_Service>();
+                            builder.AddServiceEndpoint<ContractBehaviorBasic_MisplacedAttributes_Service, ServiceContract.IContractBehaviorBasic_MisplacedAttributes>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
+                            break;
+                        case "CustomAttributesImplementsOther":
+                            builder.AddService<ContractBehaviorBasic_CustomAttributesImplementsOther_Service>();
+                            builder.AddServiceEndpoint<ContractBehaviorBasic_CustomAttributesImplementsOther_Service, ServiceContract.IContractBehaviorBasic_CustomAttributesImplementsOther>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
+                            break;                           
+                        default:
+                            throw new ApplicationException("Unsupported test method specified!");
+                    }
+                    
+                });
+            }
+        }
+    }    
+}
