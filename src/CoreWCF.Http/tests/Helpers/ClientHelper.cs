@@ -62,6 +62,13 @@ namespace Helpers
                     binding.ReceiveTimeout = s_debugTimeout;
             }
         }
+
+        public static T GetProxy<T>()
+        {
+            var httpBinding = ClientHelper.GetBufferedModeBinding();
+            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            T proxy = channelFactory.CreateChannel();
+            return proxy;
+        }
     }
 }
-
