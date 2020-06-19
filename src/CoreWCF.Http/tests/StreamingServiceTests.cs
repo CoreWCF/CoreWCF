@@ -9,8 +9,6 @@ using System.ServiceModel;
 using Xunit;
 using Xunit.Abstractions;
 using System.IO;
-using System.Linq;
-using CoreWCF.Description;
 
 namespace CoreWCF.Http.Tests
 {
@@ -31,12 +29,10 @@ namespace CoreWCF.Http.Tests
         }
 
         [Theory]
-#if NET472
-        [InlineData("VoidStreamServiceClient")]
-#endif
-        [InlineData("StreamStreamAsyncService")]
+        //[InlineData("VoidStreamService")]
         //[InlineData("RefStreamService")]
         //[InlineData("StreamInOutService")]
+        [InlineData("StreamStreamAsyncService")]
         [InlineData("InFileStreamService")]
         [InlineData("ReturnFileStreamService")]
         [InlineData("MessageContractStreamInOutService")]
@@ -47,9 +43,6 @@ namespace CoreWCF.Http.Tests
             Startup._method = method;
             using (host)
             {
-                //foreach (OperationDescription operationDescription in serviceEndpoint.Contract.Operations)
-                //var s = host.Services.GetServices<Services.VoidStreamService>().FirstOrDefault().
-
                 host.Start();
                 switch (method)
                 {
