@@ -8,9 +8,12 @@ using System.Text;
 
 namespace Helpers
 {
-	public static class ClientHelper
-	{
-		private static TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
+    public static class ClientHelper
+    {
+        public static bool useMessageSecurity = false;
+        public static CustomBinding clientBinding;
+
+        private static TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
         public static Binding GetBufferedModHttp1Binding()
         {
@@ -216,12 +219,71 @@ namespace Helpers
 			return GetStringFrom(stream);
 		}
 
-		public static T GetProxy<T>()
-		{
-			var httpBinding = ClientHelper.GetBufferedModeBinding();
-			ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-			T proxy = channelFactory.CreateChannel();
-			return proxy;
-		}
-	}
+        public static T GetProxy<T>()
+        {
+            var httpBinding = ClientHelper.GetBufferedModeBinding();
+            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            T proxy = channelFactory.CreateChannel();
+            return proxy;
+        }
+
+        public static CustomBinding GetCustomClientBinding(CompressionFormat clientCompressionFormat, string protocol, TransferMode transferMode)
+        {
+            BinaryMessageEncodingBindingElement binaryMessageEncodingElement = new BinaryMessageEncodingBindingElement();
+            TransportBindingElement tranportBE = ConfigureTransportBindingElement(protocol, transferMode);
+
+            CustomBinding customBinding = new CustomBinding();
+            binaryMessageEncodingElement.CompressionFormat = clientCompressionFormat;
+
+            //SymmetricSecurityBindingElement ssbe = SecurityBindingElement.CreateSspiNegotiationBindingElement(true);
+            //if (useMessageSecurity)
+            //{
+            //    customBinding.Elements.Add(ssbe);
+            //}
+
+            customBinding.Elements.Add(binaryMessageEncodingElement);
+            customBinding.Elements.Add(tranportBE);
+            return new CustomBinding(customBinding);
+        }
+
+        public static TransportBindingElement ConfigureTransportBindingElement(string protocol, TransferMode transferMode)
+        {
+            switch (protocol)
+            {
+                //case CommonConstants.NetTcpTransport:
+                //    TcpTransportBindingElement tcpTransportBindingElement = new TcpTransportBindingElement
+                //    {
+                //        TransferMode = transferMode,
+                //        MaxReceivedMessageSize = int.MaxValue
+                //    };
+                //    return tcpTransportBindingElement;
+                //case CommonConstants.NetPipeTransport:
+                //    NamedPipeTransportBindingElement namedPipeTransportBindingElement = new NamedPipeTransportBindingElement
+                //    {
+                //        TransferMode = transferMode,
+                //        MaxReceivedMessageSize = int.MaxValue
+                //    };
+                //    return namedPipeTransportBindingElement;
+                //case CommonConstants.NetMsmqTransport:
+                //    MsmqTransportBindingElement msmQTransportBindingElement = new MsmqTransportBindingElement();
+                //    msmQTransportBindingElement.MsmqTransportSecurity.MsmqAuthenticationMode = MsmqAuthenticationMode.None;
+                //    msmQTransportBindingElement.MsmqTransportSecurity.MsmqProtectionLevel = System.Net.Security.ProtectionLevel.None;
+                //    return msmQTransportBindingElement;
+                case CommonConstants.HttpsTransport:
+                    HttpsTransportBindingElement httpsTransportBindingElement = new HttpsTransportBindingElement
+                    {
+                        TransferMode = transferMode,
+                        MaxReceivedMessageSize = int.MaxValue
+                    };
+                    return httpsTransportBindingElement;
+                default:
+                    HttpTransportBindingElement httpTransportBindingElement = new HttpTransportBindingElement
+                    {
+                        TransferMode = transferMode,
+                        MaxReceivedMessageSize = int.MaxValue
+                    };
+                    return httpTransportBindingElement;
+            }
+        }  
+    }
 }
