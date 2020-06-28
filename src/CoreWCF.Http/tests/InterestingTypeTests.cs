@@ -21,33 +21,6 @@ namespace CoreWCF.Http.Tests
             _output = output;
         }
 
-#if NET472
-        [Fact]
-        public void MarshalledTypeTest()
-        {
-            var host = ServiceHelper.CreateWebHostBuilder<MarshalledTypeServiceStartup>(_output).Build();
-            using (host)
-            {
-                host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IMarshalledTypeService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/MarshalledTypeService.svc")));
-                var channel = factory.CreateChannel();
-
-                MarshalledType t = new MarshalledType(100);
-                channel.TwoWayMethod1(t);
-                Assert.Equal(100, t.GetData());
-
-                t = channel.TwoWayMethod2();
-                Assert.Equal(500, t.GetData());
-
-                t = new MarshalledType(500);
-                MarshalledType value = channel.TwoWayMethod3(t);
-                Assert.Equal(1000, value.GetData());
-            }
-        }
-#endif
-
         [Fact]
         public void TypedContractCollectionTest()
         {
@@ -114,23 +87,6 @@ namespace CoreWCF.Http.Tests
                         }
                     }
                 }
-            }
-        }
-
-        internal class MarshalledTypeServiceStartup
-        {
-            public void ConfigureServices(IServiceCollection services)
-            {
-                services.AddServiceModelServices();
-            }
-
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-            {
-                app.UseServiceModel(builder =>
-                {
-                    builder.AddService<Services.MarshalledTypeService>();
-                    builder.AddServiceEndpoint<Services.MarshalledTypeService, ServiceContract.IMarshalledTypeService>(new BasicHttpBinding(), "/BasicWcfService/MarshalledTypeService.svc");
-                });
             }
         }
 
