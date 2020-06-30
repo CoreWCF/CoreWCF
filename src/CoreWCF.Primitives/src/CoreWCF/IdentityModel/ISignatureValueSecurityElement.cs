@@ -1,0 +1,9 @@
+using System.Xml;
+
+namespace CoreWCF.IdentityModel
+{
+    internal interface ISignatureValueSecurityElement : ISecurityElement
+    {
+        byte[] GetSignatureValue();
+    }
+}

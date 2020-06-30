@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Text;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 
 namespace CoreWCF.Channels
 {

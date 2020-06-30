@@ -1,4 +1,5 @@
 using System;
+using System.Net.Security;
 using System.Reflection;
 
 namespace CoreWCF.Description
@@ -10,8 +11,8 @@ namespace CoreWCF.Description
         int index;
         Type type;
         int serializationPosition;
-        //ProtectionLevel protectionLevel;
-        //bool hasProtectionLevel;
+        ProtectionLevel protectionLevel;
+        bool hasProtectionLevel;
         MemberInfo memberInfo;
         // TODO: Was ICustomAttributeProvider
         CustomAttributeProvider additionalAttributesProvider;
@@ -44,8 +45,8 @@ namespace CoreWCF.Description
             index = other.index;
             type = other.type;
             serializationPosition = other.serializationPosition;
-            //this.hasProtectionLevel = other.hasProtectionLevel;
-            //this.protectionLevel = other.protectionLevel;
+            this.hasProtectionLevel = other.hasProtectionLevel;
+            this.protectionLevel = other.protectionLevel;
             memberInfo = other.memberInfo;
             multiple = other.multiple;
             additionalAttributesProvider = other.additionalAttributesProvider;
@@ -90,7 +91,17 @@ namespace CoreWCF.Description
             get { return multiple; }
             set { multiple = value; }
         }
-
+        public ProtectionLevel ProtectionLevel
+        {
+            get { return this.protectionLevel; }
+            set
+            {
+              //  if (!ProtectionLevelHelper.IsDefined(value))
+              //      throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                this.protectionLevel = value;
+                this.hasProtectionLevel = true;
+            }
+        }
         public MemberInfo MemberInfo
         {
             get { return memberInfo; }

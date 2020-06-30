@@ -39,6 +39,34 @@ namespace CoreWCF.Channels
             }
         }
 
+        public static bool TryGet(Message message, out ChannelBindingMessageProperty property)
+        {
+            if (message == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+            }
+
+            return TryGet(message.Properties, out property);
+        }
+
+        public static bool TryGet(MessageProperties properties, out ChannelBindingMessageProperty property)
+        {
+            if (properties == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("properties");
+            }
+
+            property = null;
+            object value;
+
+            if (properties.TryGetValue(ChannelBindingMessageProperty.Name, out value))
+            {
+                property = value as ChannelBindingMessageProperty;
+                return property != null;
+            }
+
+            return false;
+        }
         IMessageProperty IMessageProperty.CreateCopy()
         {
             lock (thisLock)

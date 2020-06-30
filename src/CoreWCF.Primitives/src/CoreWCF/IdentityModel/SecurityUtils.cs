@@ -46,6 +46,8 @@ namespace CoreWCF.IdentityModel
             }
         }
 
+        public static bool RequiresFipsCompliance { get; internal set; }
+
         internal static IIdentity CreateIdentity(string name, string authenticationType)
         {
             return new GenericIdentity(name, authenticationType);
@@ -78,6 +80,35 @@ namespace CoreWCF.IdentityModel
             if (string.IsNullOrEmpty(certificateId))
                 certificateId = certificate.Thumbprint;
             return certificateId;
+        }
+
+        internal static bool MatchesBuffer(byte[] src, byte[] dst)
+        {
+            return MatchesBuffer(src, 0, dst, 0);
+        }
+
+        internal static bool MatchesBuffer(byte[] src, int srcOffset, byte[] dst, int dstOffset)
+        {
+            DiagnosticUtility.DebugAssert(dstOffset >= 0, "Negative dstOffset passed to MatchesBuffer.");
+            DiagnosticUtility.DebugAssert(srcOffset >= 0, "Negative srcOffset passed to MatchesBuffer.");
+
+            // defensive programming
+            if ((dstOffset < 0) || (srcOffset < 0))
+                return false;
+
+            if (src == null || srcOffset >= src.Length)
+                return false;
+            if (dst == null || dstOffset >= dst.Length)
+                return false;
+            if ((src.Length - srcOffset) != (dst.Length - dstOffset))
+                return false;
+
+            for (int i = srcOffset, j = dstOffset; i < src.Length; i++, j++)
+            {
+                if (src[i] != dst[j])
+                    return false;
+            }
+            return true;
         }
 
         internal static void ResetCertificate(X509Certificate2 certificate)
@@ -121,6 +152,11 @@ namespace CoreWCF.IdentityModel
                     ResetCertificate(certificates[i]);
                 }
             }
+        }
+
+        internal static bool TryCreateX509CertificateFromRawData(byte[] v, out X509Certificate2 certificate)
+        {
+            throw new NotImplementedException();
         }
 
         internal static ReadOnlyCollection<IAuthorizationPolicy> CreateAuthorizationPolicies(ClaimSet claimSet)

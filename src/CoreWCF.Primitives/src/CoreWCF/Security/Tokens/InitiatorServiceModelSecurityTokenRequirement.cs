@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CoreWCF.Security.Tokens
 {
-    internal sealed class InitiatorServiceModelSecurityTokenRequirement : ServiceModelSecurityTokenRequirement
+    public sealed class InitiatorServiceModelSecurityTokenRequirement : ServiceModelSecurityTokenRequirement
     {
         //WebHeaderCollection webHeaderCollection;
 

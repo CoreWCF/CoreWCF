@@ -13,7 +13,7 @@ namespace CoreWCF.IdentityModel.Selectors
     /// The SecurityTokenSerializer is stateless
     /// Exceptions: XmlException, SecurityTokenException, NotSupportedException, InvalidOperationException, ArgumentException
     /// </summary>
-    internal abstract class SecurityTokenSerializer
+    public abstract class SecurityTokenSerializer
     {
         // public methods
         public bool CanReadToken(XmlReader reader)

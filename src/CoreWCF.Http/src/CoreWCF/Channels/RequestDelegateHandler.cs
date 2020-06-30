@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using CoreWCF.Runtime;
 using CoreWCF.Configuration;
+using CoreWCF.Dispatcher;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -94,6 +95,7 @@ namespace CoreWCF.Channels
 
         internal async Task HandleRequest(HttpContext context)
         {
+
             if (!context.WebSockets.IsWebSocketRequest)
             {
                 if (_replyChannelDispatcher == null)

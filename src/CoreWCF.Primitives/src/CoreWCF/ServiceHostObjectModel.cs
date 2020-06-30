@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreWCF
 {
-    internal class ServiceHostObjectModel<TService> : ServiceHostBase where TService : class
+    public class ServiceHostObjectModel<TService> : ServiceHostBase where TService : class
     {
         private IDisposable _disposableInstance;
         private TService _singletonInstance;

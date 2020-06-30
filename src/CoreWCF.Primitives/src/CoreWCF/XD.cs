@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using CoreWCF.IdentityModel;
+using System.Xml;
 
 namespace CoreWCF
 {
@@ -957,7 +958,7 @@ namespace CoreWCF
         }
     }
 
-    class SecureConversationDictionary
+   public class SecureConversationDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString DerivedKeyToken;
@@ -983,10 +984,10 @@ namespace CoreWCF
         public SecureConversationDictionary()
         {
         }
-
-        public SecureConversationDictionary(ServiceModelDictionary dictionary)
+        internal SecureConversationDictionary(ServiceModelDictionary dictionary)
         {
         }
+
     }
 
     class SecureConversationApr2004Dictionary : SecureConversationDictionary
@@ -1016,6 +1017,7 @@ namespace CoreWCF
             RenewNeededFaultCode = dictionary.CreateString(ServiceModelStringsVersion1.String127, 127);
             BadContextTokenFaultCode = dictionary.CreateString(ServiceModelStringsVersion1.String128, 128);
         }
+
     }
 
     class SecureConversationFeb2005Dictionary : SecureConversationDictionary
@@ -1299,7 +1301,7 @@ namespace CoreWCF
         }
     }
 
-    class TrustDictionary
+   internal class TrustDictionary
     {
         public XmlDictionaryString RequestSecurityTokenResponseCollection;
         public XmlDictionaryString Namespace;
@@ -2486,6 +2488,8 @@ namespace CoreWCF
         public const string X509SerialNumber = ServiceModelStringsVersion1.String326;
         public const string X509Certificate = ServiceModelStringsVersion1.String327;
         // String constants
+        public const string SecurityJan2004Namespace = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
+        public const string SecurityJan2004Prefix = "o";
         public const string X509Ski = "X509SKI";
         public const string TransformationParameters = "TransformationParameters";
     }

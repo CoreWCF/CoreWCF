@@ -4,7 +4,7 @@ using System.Xml;
 
 namespace CoreWCF
 {
-    class ServiceModelDictionary : IXmlDictionary
+   internal class ServiceModelDictionary : IXmlDictionary
     {
         static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
         readonly ServiceModelStrings _strings;

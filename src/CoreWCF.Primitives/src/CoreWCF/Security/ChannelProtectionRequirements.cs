@@ -9,7 +9,7 @@ namespace CoreWCF.Security
 {
     // This class is used to describe the message security requirements. It's only here as a placeholder
     // to allow minimal changes to ported code.
-    internal class ChannelProtectionRequirements
+    public class ChannelProtectionRequirements
     {
         bool _isReadOnly;
 
@@ -46,13 +46,13 @@ namespace CoreWCF.Security
         }
 
 
-        public ScopedMessagePartSpecification IncomingSignatureParts { get; }
+        internal ScopedMessagePartSpecification IncomingSignatureParts { get; }
 
-        public ScopedMessagePartSpecification IncomingEncryptionParts { get; }
+        internal ScopedMessagePartSpecification IncomingEncryptionParts { get; }
 
-        public ScopedMessagePartSpecification OutgoingSignatureParts { get; }
+        internal ScopedMessagePartSpecification OutgoingSignatureParts { get; }
 
-        public ScopedMessagePartSpecification OutgoingEncryptionParts { get; }
+        internal ScopedMessagePartSpecification OutgoingEncryptionParts { get; }
 
         public void Add(ChannelProtectionRequirements protectionRequirements)
         {

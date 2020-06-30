@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
-    internal abstract class SecurityTokenManager
+    public abstract class SecurityTokenManager
     {
         public abstract SecurityTokenProvider CreateSecurityTokenProvider(SecurityTokenRequirement tokenRequirement);
         internal abstract SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version);

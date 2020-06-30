@@ -21,7 +21,7 @@ namespace CoreWCF.IdentityModel.Selectors
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
         {
             var genericToken = (GenericSecurityToken)token;
-            return Security.SecurityUtils.CreatePrincipalNameAuthorizationPolicies(genericToken.Name);
+            return CoreWCF.Security.SecurityUtils.CreatePrincipalNameAuthorizationPolicies(genericToken.Name);
         }
     }
 }

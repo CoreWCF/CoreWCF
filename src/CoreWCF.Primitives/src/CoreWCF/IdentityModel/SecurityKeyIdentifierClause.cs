@@ -12,7 +12,7 @@ namespace CoreWCF.IdentityModel
     // override CanCreateKey and return true, and implement
     // CreateKey()
 
-    internal abstract class SecurityKeyIdentifierClause
+    public abstract class SecurityKeyIdentifierClause
     {
         readonly string clauseType;
         byte[] derivationNonce;

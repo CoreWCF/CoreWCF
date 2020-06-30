@@ -7984,4 +7984,7 @@
   <data name="UserNameCannotBeEmpty" xml:space="preserve">
     <value>The username cannot be empty.</value>
   </data>
+    <data name="TimeSpanMustbeGreaterThanTimeSpanZero" xml:space="preserve">
+    <value>TimeSpan must be greater than TimeSpan.Zero</value>
+  </data>
 </root>

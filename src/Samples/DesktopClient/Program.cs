@@ -9,7 +9,7 @@ namespace DesktopClient
         private readonly static string _basicHttpEndPointAddress = @"http://localhost:8080/basichttp";
         private readonly static string _soapEnvelopeContent = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Body><Echo xmlns = \"http://tempuri.org/\" ><text>Hello</text></Echo></soapenv:Body></soapenv:Envelope>";
 
-        static void Main(string[] args)
+        static void NO_Main(string[] args)
         {
             var factory = new ChannelFactory<Contract.IEchoService>(new NetTcpBinding(), new EndpointAddress("net.tcp://localhost:8808/nettcp"));
             factory.Open();

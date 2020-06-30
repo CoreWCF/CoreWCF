@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using CoreWCF.Dispatcher;
 
 namespace CoreWCF.Security
 {
@@ -34,75 +35,80 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             }
+            MessageSecurityTokenVersion wsVersion = version as MessageSecurityTokenVersion;
+            if (wsVersion != null)
+            {
+                SamlSerializer samlSerializer = null;
+                //TODO check the need
+                //if (parent.IssuedTokenAuthentication != null)
+                //    samlSerializer = parent.IssuedTokenAuthentication.SamlSerializer;
+                //else
+                //    samlSerializer = new SamlSerializer();
 
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SecurityTokenManagerCannotCreateSerializerForVersion, version)));
+                return new WSSecurityTokenSerializer(wsVersion.SecurityVersion, wsVersion.TrustVersion, wsVersion.SecureConversationVersion, wsVersion.EmitBspRequiredAttributes, samlSerializer, parent.SecureConversationAuthentication.SecurityStateEncoder, parent.SecureConversationAuthentication.SecurityContextClaimTypes);
+            }
+            else
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SecurityTokenManagerCannotCreateSerializerForVersion, version)));
+            }
         }
 
-        //protected SecurityTokenAuthenticator CreateSecureConversationTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool preserveBootstrapTokens, out SecurityTokenResolver sctResolver)
-        //{
-        //    SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
-        //    if (securityBindingElement == null)
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, recipientRequirement));
-        //    }
-        //    bool isCookieMode = !recipientRequirement.SupportSecurityContextCancellation;
-        //    LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
-        //    IMessageFilterTable<EndpointAddress> endpointFilterTable = recipientRequirement.GetPropertyOrDefault<IMessageFilterTable<EndpointAddress>>(ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty, null);
-
-        //    if (!isCookieMode)
-        //    {
-        //        sctResolver = new SecurityContextSecurityTokenResolver(Int32.MaxValue, false);
-
-        //        // remember this authenticator for future reference
-        //        SecuritySessionSecurityTokenAuthenticator authenticator = new SecuritySessionSecurityTokenAuthenticator();
-        //        authenticator.BootstrapSecurityBindingElement = SecurityUtils.GetIssuerSecurityBindingElement(recipientRequirement);
-        //        authenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
-        //        authenticator.IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver;
-        //        authenticator.IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
-        //        authenticator.KeyEntropyMode = securityBindingElement.KeyEntropyMode;
-        //        authenticator.ListenUri = recipientRequirement.ListenUri;
-        //        authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
-        //        authenticator.SessionTokenLifetime = TimeSpan.MaxValue;
-        //        authenticator.KeyRenewalInterval = securityBindingElement.LocalServiceSettings.SessionKeyRenewalInterval;
-        //        authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
-        //        authenticator.EndpointFilterTable = endpointFilterTable;
-        //        authenticator.MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations;
-        //        authenticator.NegotiationTimeout = localServiceSettings.NegotiationTimeout;
-        //        authenticator.PreserveBootstrapTokens = preserveBootstrapTokens;
-        //        return authenticator;
-        //    }
-        //    else
-        //    {
-        //        sctResolver = new SecurityContextSecurityTokenResolver(localServiceSettings.MaxCachedCookies, true, localServiceSettings.MaxClockSkew);
-
-        //        AcceleratedTokenAuthenticator authenticator = new AcceleratedTokenAuthenticator();
-        //        authenticator.BootstrapSecurityBindingElement = SecurityUtils.GetIssuerSecurityBindingElement(recipientRequirement);
-        //        authenticator.KeyEntropyMode = securityBindingElement.KeyEntropyMode;
-        //        authenticator.EncryptStateInServiceToken = true;
-        //        authenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
-        //        authenticator.IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver;
-        //        authenticator.IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
-        //        authenticator.ListenUri = recipientRequirement.ListenUri;
-        //        authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
-        //        authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
-        //        authenticator.SecurityStateEncoder = parent.SecureConversationAuthentication.SecurityStateEncoder;
-        //        authenticator.KnownTypes = parent.SecureConversationAuthentication.SecurityContextClaimTypes;
-        //        authenticator.PreserveBootstrapTokens = preserveBootstrapTokens;
-
-        //        // local security quotas
-        //        authenticator.MaximumCachedNegotiationState = localServiceSettings.MaxStatefulNegotiations;
-        //        authenticator.NegotiationTimeout = localServiceSettings.NegotiationTimeout;
-        //        authenticator.ServiceTokenLifetime = localServiceSettings.IssuedCookieLifetime;
-        //        authenticator.MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations;
-
-        //        // audit settings
-        //        authenticator.AuditLogLocation = recipientRequirement.AuditLogLocation;
-        //        authenticator.SuppressAuditFailure = recipientRequirement.SuppressAuditFailure;
-        //        authenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
-        //        authenticator.EndpointFilterTable = endpointFilterTable;
-        //        return authenticator;
-        //    }
-        //}
+        protected SecurityTokenAuthenticator CreateSecureConversationTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool preserveBootstrapTokens, out SecurityTokenResolver sctResolver)
+        {
+            SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
+            if (securityBindingElement == null)
+                throw CoreWCF.DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format("TokenAuthenticatorRequiresSecurityBindingElement", (object)recipientRequirement));
+            bool flag = !recipientRequirement.SupportSecurityContextCancellation;
+            LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
+            IMessageFilterTable<EndpointAddress> propertyOrDefault = recipientRequirement.GetPropertyOrDefault<IMessageFilterTable<EndpointAddress>>(ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty, (IMessageFilterTable<EndpointAddress>)null);
+            if (!flag)
+            {
+                sctResolver = (SecurityTokenResolver)new SecurityContextSecurityTokenResolver(int.MaxValue, false);
+                return (SecurityTokenAuthenticator)new SecuritySessionSecurityTokenAuthenticator()
+                {
+                    BootstrapSecurityBindingElement = SecurityUtils.GetIssuerSecurityBindingElement((ServiceModelSecurityTokenRequirement)recipientRequirement),
+                    IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty),
+                    IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver,
+                    IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty),
+                    KeyEntropyMode = securityBindingElement.KeyEntropyMode,
+                    ListenUri = recipientRequirement.ListenUri,
+                    SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite,
+                    SessionTokenLifetime = TimeSpan.MaxValue,
+                    KeyRenewalInterval = securityBindingElement.LocalServiceSettings.SessionKeyRenewalInterval,
+                    StandardsManager = SecurityUtils.CreateSecurityStandardsManager((SecurityTokenRequirement)recipientRequirement, (SecurityTokenManager)this),
+                    EndpointFilterTable = propertyOrDefault,
+                    MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations,
+                    NegotiationTimeout = localServiceSettings.NegotiationTimeout,
+                    PreserveBootstrapTokens = preserveBootstrapTokens
+                };
+            }
+            throw new NotImplementedException();
+            /* TODO later
+            sctResolver = (SecurityTokenResolver)new SecurityContextSecurityTokenResolver(localServiceSettings.MaxCachedCookies, true, localServiceSettings.MaxClockSkew);
+            AcceleratedTokenAuthenticator tokenAuthenticator = new AcceleratedTokenAuthenticator();
+            tokenAuthenticator.BootstrapSecurityBindingElement = SecurityUtils.GetIssuerSecurityBindingElement((ServiceModelSecurityTokenRequirement)recipientRequirement);
+            tokenAuthenticator.KeyEntropyMode = securityBindingElement.KeyEntropyMode;
+            tokenAuthenticator.EncryptStateInServiceToken = true;
+            tokenAuthenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
+            tokenAuthenticator.IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver;
+            tokenAuthenticator.IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
+            tokenAuthenticator.ListenUri = recipientRequirement.ListenUri;
+            tokenAuthenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
+            tokenAuthenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager((SecurityTokenRequirement)recipientRequirement, (SecurityTokenManager)this);
+            tokenAuthenticator.SecurityStateEncoder = this.parent.SecureConversationAuthentication.SecurityStateEncoder;
+            tokenAuthenticator.KnownTypes = (IList<System.Type>)this.parent.SecureConversationAuthentication.SecurityContextClaimTypes;
+            tokenAuthenticator.PreserveBootstrapTokens = preserveBootstrapTokens;
+            tokenAuthenticator.MaximumCachedNegotiationState = localServiceSettings.MaxStatefulNegotiations;
+            tokenAuthenticator.NegotiationTimeout = localServiceSettings.NegotiationTimeout;
+            tokenAuthenticator.ServiceTokenLifetime = localServiceSettings.IssuedCookieLifetime;
+            tokenAuthenticator.MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations;
+            tokenAuthenticator.AuditLogLocation = recipientRequirement.AuditLogLocation;
+            tokenAuthenticator.SuppressAuditFailure = recipientRequirement.SuppressAuditFailure;
+            tokenAuthenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
+            tokenAuthenticator.EndpointFilterTable = propertyOrDefault;
+            return (SecurityTokenAuthenticator)tokenAuthenticator;*/
+           
+        }
 
         SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
         {
@@ -372,8 +378,9 @@ namespace CoreWCF.Security
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.SecureConversation)
             {
-                throw new PlatformNotSupportedException("SecureConversation");
-                //result = CreateSecureConversationTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
+               
+                result = CreateSecureConversationTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
+
             }
             else if ((tokenType == SecurityTokenTypes.Saml)
                 || (tokenType == SecurityXXX2005Strings.SamlTokenType)
