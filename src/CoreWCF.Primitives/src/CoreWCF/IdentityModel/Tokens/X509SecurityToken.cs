@@ -7,7 +7,7 @@ using System.Text;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class X509SecurityToken : SecurityToken, IDisposable
+    public class X509SecurityToken : SecurityToken, IDisposable
     {
         string id;
         X509Certificate2 certificate;

@@ -11,7 +11,7 @@ using System.Text;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
-    internal class X509SecurityTokenAuthenticator : SecurityTokenAuthenticator
+    public class X509SecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
         X509CertificateValidator validator;
         bool mapToWindows;

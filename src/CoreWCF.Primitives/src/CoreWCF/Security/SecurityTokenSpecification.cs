@@ -7,7 +7,7 @@ using System.Text;
 
 namespace CoreWCF.Security
 {
-    internal class SecurityTokenSpecification
+    public class SecurityTokenSpecification
     {
         SecurityToken token;
         ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies;
