@@ -485,27 +485,19 @@ namespace CoreWCF.Channels
                 return base.ToString();
             }
 
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Indent = true;
-
-            using (StringWriter stringWriter = new StringWriter(CultureInfo.InvariantCulture))
+            StringWriter stringWriter = new StringWriter(CultureInfo.InvariantCulture);
+            EncodingFallbackAwareXmlTextWriter textWriter = new EncodingFallbackAwareXmlTextWriter(stringWriter);
+            textWriter.Formatting = Formatting.Indented;
+            XmlDictionaryWriter writer = XmlDictionaryWriter.CreateDictionaryWriter(textWriter);
+            try
             {
-                using (XmlWriter textWriter = XmlWriter.Create(stringWriter, settings))
-                {
-                    using (XmlDictionaryWriter writer = XmlDictionaryWriter.CreateDictionaryWriter(textWriter))
-                    {
-                        try
-                        {
-                            ToString(writer);
-                            writer.Flush();
-                            return stringWriter.ToString();
-                        }
-                        catch (XmlException e)
-                        {
-                            return SR.Format(SR.MessageBodyToStringError, e.GetType().ToString(), e.Message);
-                        }
-                    }
-                }
+                ToString(writer);
+                writer.Flush();
+                return stringWriter.ToString();
+            }
+            catch (XmlException e)
+            {
+                return SR.Format(SR.MessageBodyToStringError, e.GetType().ToString(), e.Message);
             }
         }
 
