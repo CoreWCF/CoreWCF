@@ -143,5 +143,6 @@ namespace Helpers
                     comObj.Abort();
                 }
             }
+        }
     }
 }
