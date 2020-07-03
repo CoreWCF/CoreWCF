@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.Extensions.Primitives;
 
 namespace CoreWCF.Channels
 {
@@ -907,6 +908,10 @@ namespace CoreWCF.Channels
                                 this.SetContentType(value);
                             }
                         }
+                        else if (string.Compare(name, "connection", StringComparison.OrdinalIgnoreCase) == 0)
+                        {
+                            SetConnection(value);
+                        }
                         else
                         {
                             this.AddHeader(name, value);
@@ -927,13 +932,42 @@ namespace CoreWCF.Channels
                 {
                     if(httpResponse.Headers.ContainsKey(name))
                     {
-                        var previousValue = httpResponse.Headers[name];
-                        httpResponse.Headers[name] = previousValue + ", " + value;
+                        var previousValues = httpResponse.Headers[name];
+                        httpResponse.Headers[name] = StringValues.Concat(previousValues, value);
                     }
                     else
                     {
                         httpResponse.Headers[name] = value;
                     }
+                }
+            }
+
+            private void SetConnection(string connectionValue)
+            {
+                if ((connectionValue.Equals("keep-alive", StringComparison.OrdinalIgnoreCase) ||
+                    connectionValue.Equals("close", StringComparison.OrdinalIgnoreCase)) &&
+                    httpResponse.Headers.ContainsKey("Connection"))
+                {
+                    // Need to remove existing keep-alive and/or close values
+                    StringValues connectionHeaderValue;
+                    var previousValues = httpResponse.Headers["Connection"];
+                    for (int i = 0; i < previousValues.Count; i++)
+                    {
+                        if (previousValues[i].Equals("keep-alive", StringComparison.OrdinalIgnoreCase) ||
+                            previousValues[i].Equals("close", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue; // Don't add to new connectionHeaderValue as it will conflict with new value
+                        }
+
+                        connectionHeaderValue = StringValues.Concat(connectionHeaderValue, previousValues[i]);
+                    }
+
+                    connectionHeaderValue = StringValues.Concat(connectionHeaderValue, connectionValue);
+                    httpResponse.Headers["Connection"] = connectionHeaderValue;
+                }
+                else
+                {
+                    AddHeader("Connection", connectionValue);
                 }
             }
 

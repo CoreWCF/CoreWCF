@@ -1,9 +1,9 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.Configuration;
+﻿using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Services;
 using System;
 using System.IO;
 using System.Text;
@@ -113,7 +113,7 @@ namespace CoreWCF.Http.Tests
                 fmc.Name = "";
                 try
                 {
-                    ClientContract.FaultMsgContract fmcResult = channel.MessageContract_Method(fmc); ;
+                    ClientContract.FaultMsgContract fmcResult = channel.MessageContract_Method(fmc);
                 }
                 catch (Exception e)
                 {
@@ -174,7 +174,244 @@ namespace CoreWCF.Http.Tests
                 }
 
                 Assert.Equal(0, count);
-            }            
+            }
+        }
+
+        [Theory]
+        [InlineData("somefault")]
+        [InlineData("outerfault")]
+        [InlineData("complexfault")]
+        public void DatacontractFaults(string f)
+        {
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestDataContractFault>(httpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/DatacontractFaults.svc")));
+                var channel = factory.CreateChannel();
+
+                var factory2 = new System.ServiceModel.ChannelFactory<ClientContract.ITestDataContractFaultTypedClient>(httpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/DatacontractFaults.svc")));
+                var channel2 = factory2.CreateChannel();
+
+                //test variations
+                int count = 9;
+                try
+                {
+                    channel.TwoWayVoid_Method(f);
+                }
+                catch (Exception e)
+                {
+                    count--;
+                    FaultExceptionValidation(f, e);
+                }
+
+                try
+                {
+                    string s = channel.TwoWay_Method(f);
+                }
+                catch (Exception e)
+                {
+                    count--;
+                    FaultExceptionValidation(f, e);
+                }
+
+                try
+                {
+                    Stream inputStream = new MemoryStream();
+                    byte[] bytes = Encoding.UTF8.GetBytes(f.ToCharArray());
+                    foreach (byte b in bytes)
+                        inputStream.WriteByte(b);
+                    inputStream.Position = 0;
+                    Stream outputStream = channel.TwoWayStream_Method(inputStream);
+                    StreamReader sr = new StreamReader(outputStream, Encoding.UTF8);
+                    string outputText = sr.ReadToEnd();
+                    Assert.False(true, $"Error, Received Input: {outputText}");
+                }
+                catch (Exception e)
+                {
+                    count--;
+                    FaultExceptionValidation(f, e);
+                }
+
+                try
+                {
+                    string response = channel.TwoWayAsync_Method(f).GetAwaiter().GetResult();
+                    Assert.False(true, $"Error, Client received: {response}");
+                }
+                catch (Exception e)
+                {
+                    count--;
+                    FaultExceptionValidation(f, e);
+                }
+
+                try
+                {
+                    var fmc = new ClientContract.FaultMsgContract();
+                    fmc.ID = 123;
+                    fmc.Name = f;
+                    ClientContract.FaultMsgContract fmcResult = channel.MessageContract_Method(fmc);
+                    Assert.False(true, $"Error, Client received: {fmcResult.Name}");
+                }
+                catch (Exception e)
+                {
+                    count--;
+                    FaultExceptionValidation(f, e);
+                }
+
+                System.ServiceModel.Channels.Message msgOut = System.ServiceModel.Channels.Message.CreateMessage(System.ServiceModel.Channels.MessageVersion.Soap11, "http://tempuri.org/ITestDataContractFault/Untyped_Method", f);
+                System.ServiceModel.Channels.Message msgIn = channel.Untyped_Method(msgOut);
+                if (msgIn.IsFault)
+                {
+                    System.ServiceModel.Channels.MessageFault mf = System.ServiceModel.Channels.MessageFault.CreateFault(msgIn, int.MaxValue);
+                    switch (f.ToLower())
+                    {
+                        case "somefault":
+                            count--;
+                            ClientContract.SomeFault sf = mf.GetDetail<ClientContract.SomeFault>();
+                            Assert.Equal(123456789, sf.ID);
+                            Assert.Equal("SomeFault", sf.message);
+                            break;
+                        case "outerfault":
+                            count--;
+                            ClientContract.OuterFault of = mf.GetDetail<ClientContract.OuterFault>();
+                            sf = of.InnerFault;
+                            Assert.Equal(123456789, sf.ID);
+                            Assert.Equal("SomeFault as innerfault", sf.message);
+                            break;
+                        case "complexfault":
+                            count--;
+                            ClientContract.ComplexFault cf = mf.GetDetail<ClientContract.ComplexFault>();
+                            string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
+                            Assert.Equal(exp, ComplexFaultToString(cf));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                msgOut = System.ServiceModel.Channels.Message.CreateMessage(System.ServiceModel.Channels.MessageVersion.Soap11, "http://tempuri.org/ITestDataContractFault/Untyped_MethodReturns", f);
+                msgIn = channel.Untyped_MethodReturns(msgOut);
+                if (msgIn.IsFault)
+                {
+                    System.ServiceModel.Channels.MessageFault mf = System.ServiceModel.Channels.MessageFault.CreateFault(msgIn, int.MaxValue);
+                    switch (f)
+                    {
+                        case "somefault":
+                            count--;
+                            ClientContract.SomeFault sf = mf.GetDetail<ClientContract.SomeFault>();
+                            Assert.Equal(123456789, sf.ID);
+                            Assert.Equal("SomeFault", sf.message);
+                            break;
+                        case "outerfault":
+                            count--;
+                            ClientContract.OuterFault of = mf.GetDetail<ClientContract.OuterFault>();
+                            sf = of.InnerFault;
+                            Assert.Equal(123456789, sf.ID);
+                            Assert.Equal("SomeFault as innerfault", sf.message);
+                            break;
+                        case "complexfault":
+                            count--;
+                            ClientContract.ComplexFault cf = mf.GetDetail<ClientContract.ComplexFault>();
+                            string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
+                            Assert.Equal(exp, ComplexFaultToString(cf));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                try
+                {
+                    string response = channel2.Untyped_Method(f);
+                }
+                catch (Exception e)
+                {
+                    count--;
+                    FaultExceptionValidation(f, e);
+                }
+
+                try
+                {
+                    string response = channel2.Untyped_MethodReturns(f);
+                }
+                catch (Exception e)
+                {
+                    count--;
+                    FaultExceptionValidation(f, e);
+                }
+
+                Assert.Equal(0, count);
+            }
+        }
+
+        private void FaultExceptionValidation(string faultType, Exception e)
+        {
+            switch (faultType)
+            {
+                case "somefault":
+                    Assert.NotNull(e);
+                    Assert.IsType<System.ServiceModel.FaultException<ClientContract.SomeFault>>(e);
+                    var ex = (System.ServiceModel.FaultException<ClientContract.SomeFault>)e;
+                    ClientContract.SomeFault sf = ex.Detail;
+                    Assert.Equal(123456789, sf.ID);
+                    Assert.Equal("SomeFault", sf.message);
+                    break;
+                case "outerfault":
+                    Assert.NotNull(e);
+                    Assert.IsType<System.ServiceModel.FaultException<ClientContract.OuterFault>>(e);
+                    var oex = (System.ServiceModel.FaultException<ClientContract.OuterFault>)e;
+                    ClientContract.OuterFault of = oex.Detail;
+                    sf = of.InnerFault;
+                    Assert.Equal(123456789, sf.ID);
+                    Assert.Equal("SomeFault as innerfault", sf.message);
+                    break;
+                case "complexfault":
+                    string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
+                    Assert.NotNull(e);
+                    Assert.IsType<System.ServiceModel.FaultException<ClientContract.ComplexFault>>(e);
+                    var cex = (System.ServiceModel.FaultException<ClientContract.ComplexFault>)e;
+                    Assert.Equal(exp, ComplexFaultToString(cex.Detail));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private string ComplexFaultToString(ClientContract.ComplexFault cf)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(cf.ErrorInt);
+            sb.Append(':');
+            sb.Append(cf.ErrorString);
+            sb.Append(':');
+            sb.Append(cf.SomeFault.ID);
+            sb.Append(':');
+            sb.Append(cf.SomeFault.message);
+            sb.Append(':');
+            for (int i = 0; i < cf.ErrorByteArray.Length; i++)
+                sb.Append(cf.ErrorByteArray[i]);
+            sb.Append(':');
+            for (int i = 0; i < cf.ErrorIntArray.Length; i++)
+                sb.Append(cf.ErrorIntArray[i]);
+            sb.Append(':');
+            for (int i = 0; i < cf.SomeFaultArray.Length; i++)
+            {
+                if (cf.SomeFaultArray[i] != null)
+                {
+                    sb.Append(cf.SomeFaultArray[i].ID);
+                    sb.Append(':');
+                    sb.Append(cf.SomeFaultArray[i].message);
+                }
+                else
+                {
+                    sb.Append("null");
+                }
+            }
+
+            return sb.ToString();
         }
 
         internal class Startup
@@ -190,131 +427,10 @@ namespace CoreWCF.Http.Tests
                 {
                     builder.AddService<FaultOnDiffContractsAndOpsService>();
                     builder.AddServiceEndpoint<FaultOnDiffContractsAndOpsService, ServiceContract.ITestFaultOpContract>(new BasicHttpBinding(), "/BasicWcfService/FaultOnDiffContractsAndOpsService.svc");
+                    builder.AddService<DatacontractFaultService>();
+                    builder.AddServiceEndpoint<DatacontractFaultService, ServiceContract.ITestDataContractFault>(new BasicHttpBinding(), "/BasicWcfService/DatacontractFaults.svc");
                 });
             }
         }
-    }
-
-    [ServiceBehavior]
-    public class FaultOnDiffContractsAndOpsService : ServiceContract.ITestFaultOpContract
-    {
-        #region TwoWay_Methods
-        public string TwoWay_Method(string s)
-        {
-            if (s.Length == 0)
-            {
-                string faultToThrow = "Test fault thrown from a service";
-                throw new FaultException<string>(faultToThrow);
-            }
-
-            return s;
-        }
-
-        public void TwoWayVoid_Method(string s)
-        {
-            if (s.Length == 0)
-            {
-                string faultToThrow = "Test fault thrown from a service";
-                throw new FaultException<string>(faultToThrow);
-            }
-
-            return;
-        }
-        #endregion
-
-        #region TwoWayStream Method
-        public Stream TwoWayStream_Method(Stream s)
-        {
-            if (s.ReadByte() != -1)
-            {
-                string faultToThrow = "Test fault thrown from a service";
-                throw new FaultException<string>(faultToThrow);
-            }
-            else
-            {
-                StreamReader sr = new StreamReader(s, Encoding.UTF8);
-                sr.ReadToEnd();
-            }
-
-            return new MemoryStream();
-        }
-        #endregion
-
-        #region TwoWayAsync Method
-        delegate string TwoWayMethodAsync(string s);
-
-        public async System.Threading.Tasks.Task<string> TwoWayAsync_MethodAsync(string s)
-        {
-            TwoWayMethodAsync del = ProcessTwoWayAsync;
-            var workTask = System.Threading.Tasks.Task.Run(() => del.Invoke(s));
-            return await workTask;
-        }
-
-        // Worker
-        public string ProcessTwoWayAsync(string s)
-        {
-            // This is where the incoming message processing is handled.
-            if (s.Length == 0)
-            {
-                string faultToThrow = "Test fault thrown from a service";
-                throw new FaultException<string>(faultToThrow);
-            }
-
-            return "Async call was valid";
-        }
-        #endregion
-
-        #region MessageContract Methods
-        public ServiceContract.FaultMsgContract MessageContract_Method(ServiceContract.FaultMsgContract fmc)
-        {
-            if (fmc.Name.Length == 0)
-            {
-                string faultToThrow = "Test fault thrown from a service";
-                throw new FaultException<string>(faultToThrow);
-            }
-
-            return fmc;
-        }
-
-        public string MessageContractParams_Method(int id, string name, DateTime dateTime)
-        {
-            if (name.Length == 0)
-            {
-                string faultToThrow = "Test fault thrown from a service";
-                throw new FaultException<string>(faultToThrow);
-            }
-
-            return $"{id} {name} {dateTime}";
-        }
-        #endregion
-
-        #region Untyped Method
-        public Message Untyped_Method(Message msgIn)
-        {
-            MessageVersion mv = OperationContext.Current.IncomingMessageHeaders.MessageVersion;
-            string faultToThrow = "Test fault thrown from a service";
-            if (msgIn != null)
-            {
-                throw new FaultException<string>(faultToThrow);
-            }
-
-            return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspecified",
-                new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", ""), "");
-        }
-
-        public Message Untyped_MethodReturns(Message msgIn)
-        {
-            MessageVersion mv = OperationContext.Current.IncomingMessageHeaders.MessageVersion;
-            string faultToThrow = "Test fault thrown from a service";
-            if (msgIn != null)
-            {
-                return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), faultToThrow,
-                new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", ""), "");
-            }
-
-            return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspeficied",
-                new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", ""), "");
-        }
-        #endregion
     }
 }

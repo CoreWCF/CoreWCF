@@ -337,11 +337,6 @@ namespace CoreWCF
         //    throw new PlatformNotSupportedException();
         //}
 
-        protected override void OnAbort()
-        {
-            throw new PlatformNotSupportedException();
-        }
-
         internal void OnAddChannelDispatcher(ChannelDispatcherBase channelDispatcher)
         {
             lock (ThisLock)
@@ -350,26 +345,6 @@ namespace CoreWCF
                 channelDispatcher.AttachInternal(this);
                 channelDispatcher.Faulted += new EventHandler(OnChannelDispatcherFaulted);
             }
-        }
-
-        protected override Task OnCloseAsync(CancellationToken cancellationToken)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        protected override Task OnOpenAsync(CancellationToken cancellationToken)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        protected override void OnClosed()
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        protected override void OnOpened()
-        {
-            throw new PlatformNotSupportedException();
         }
 
         internal void OnRemoveChannelDispatcher(ChannelDispatcherBase channelDispatcher)

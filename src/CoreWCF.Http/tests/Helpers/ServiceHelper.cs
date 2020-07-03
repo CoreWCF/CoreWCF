@@ -83,7 +83,6 @@ namespace Helpers
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #endif // DEBUG
-            .UseKestrel()
             .UseUrls("http://localhost:8080")
             .UseStartup<TStartup>();
 
@@ -144,8 +143,5 @@ namespace Helpers
                     comObj.Abort();
                 }
             }
-        }
-
-
     }
 }

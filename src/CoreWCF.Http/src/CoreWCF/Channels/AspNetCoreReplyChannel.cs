@@ -99,6 +99,7 @@ namespace CoreWCF.Channels
             var httpInput = requestContext.GetHttpInput(true);
             Exception requestException;
             Message requestMessage = httpInput.ParseIncomingMessage(out requestException);
+            requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
             if ((requestMessage == null) && (requestException == null))
             {
                 throw Fx.Exception.AsError(

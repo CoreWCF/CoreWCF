@@ -85,7 +85,7 @@ namespace CoreWCF.Security
         //    }
         //}
 
-        internal SecurityTokenSpecification TransportToken
+        public SecurityTokenSpecification TransportToken
         {
             get
             {

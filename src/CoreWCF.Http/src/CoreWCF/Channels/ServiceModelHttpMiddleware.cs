@@ -7,20 +7,22 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels
 {
     public partial class ServiceModelHttpMiddleware
     {
-        private IServiceBuilder _serviceBuilder;
         private RequestDelegate _next;
-        private readonly RequestDelegate _branch;
+        private ILogger<ServiceModelHttpMiddleware> _logger;
+        private RequestDelegate _branch;
 
-        public ServiceModelHttpMiddleware(RequestDelegate next, IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder)
+        public ServiceModelHttpMiddleware(RequestDelegate next, IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, ILogger<ServiceModelHttpMiddleware> logger)
         {
-            _serviceBuilder = serviceBuilder;
             _next = next;
-            _branch = BuildBranch(app, _serviceBuilder, dispatcherBuilder);
+            _logger = logger;
+            _branch = BuildBranch(app, serviceBuilder, dispatcherBuilder);
         }
 
         public Task InvokeAsync(HttpContext context)
@@ -30,10 +32,12 @@ namespace CoreWCF.Channels
 
         private RequestDelegate BuildBranch(IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder)
         {
+            _logger.LogDebug("Building branch map");
             var branchApp = app.New();
-            var serverAddresses = app.ServerFeatures.Get<IServerAddressesFeature>();
-            foreach (var address in serverAddresses.Addresses)
+            var serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
+            foreach (var address in serverAddressesFeature.Addresses)
             {
+                _logger.LogDebug($"Adding base address {address} to serviceBuilder");
                 serviceBuilder.BaseAddresses.Add(new Uri(address));
             }
 
@@ -48,46 +52,90 @@ namespace CoreWCF.Channels
                         continue;
                     }
 
-                    var scheme = dispatcher.BaseAddress?.Scheme;
-                    if (!"http".Equals(scheme, StringComparison.OrdinalIgnoreCase) &&
-                        !"https".Equals(scheme, StringComparison.OrdinalIgnoreCase))
+                    var binding = new CustomBinding(dispatcher.Binding);
+                    if (binding.Elements.Find<HttpTransportBindingElement>() == null)
                     {
+                        _logger.LogDebug($"Binding for address {dispatcher.BaseAddress} is not an HTTP[S] binding ao skipping");
                         continue; // Not an HTTP(S) dispatcher
                     }
 
-                    bool matching = false;
-                    foreach (var serverAddress in serverAddresses.Addresses)
+                    var parameters = new BindingParameterCollection();
+                    parameters.Add(app);
+                    parameters.Add(serverAddressesFeature);
+                    Type supportedChannelType = null;
+                    IServiceDispatcher serviceDispatcher = null;
+                    var supportedChannels = dispatcher.SupportedChannelTypes;
+                    for (int i = 0; i < supportedChannels.Count; i++)
                     {
-                        // TODO: Might not be necessary to compare paths
-                        var serverUri = new Uri(serverAddress);
-                        var serverAddressNormalized = string.Join(":",
-                            serverUri.GetComponents(UriComponents.Port | UriComponents.Path, UriFormat.SafeUnescaped));
-                        var dispatcherAddressNormalized = string.Join(":",
-                            dispatcher.BaseAddress.GetComponents(UriComponents.Port | UriComponents.Path, UriFormat.SafeUnescaped));
-                        if (dispatcherAddressNormalized.StartsWith(serverAddressNormalized, StringComparison.OrdinalIgnoreCase))
+                        Type channelType = supportedChannels[i];
+
+                        if (channelType == typeof(IInputChannel))
                         {
-                            matching = true;
-                            break; // Dispatcher address is based on server listening address;
+                            if (binding.CanBuildServiceDispatcher<IInputChannel>(parameters))
+                            {
+                                serviceDispatcher = binding.BuildServiceDispatcher<IInputChannel>(parameters, dispatcher);
+                                supportedChannelType = typeof(IInputChannel);
+                                break;
+                            }
+                        }
+                        if (channelType == typeof(IReplyChannel))
+                        {
+                            if (binding.CanBuildServiceDispatcher<IReplyChannel>(parameters))
+                            {
+                                serviceDispatcher = binding.BuildServiceDispatcher<IReplyChannel>(parameters, dispatcher);
+                                supportedChannelType = typeof(IReplyChannel);
+                            }
+                        }
+                        if (channelType == typeof(IDuplexChannel))
+                        {
+                            if (binding.CanBuildServiceDispatcher<IDuplexChannel>(parameters))
+                            {
+
+                                serviceDispatcher = binding.BuildServiceDispatcher<IDuplexChannel>(parameters, dispatcher);
+                                supportedChannelType = typeof(IDuplexChannel);
+                            }
+                        }
+                        if (channelType == typeof(IInputSessionChannel))
+                        {
+                            if (binding.CanBuildServiceDispatcher<IInputSessionChannel>(parameters))
+                            {
+                                serviceDispatcher = binding.BuildServiceDispatcher<IInputSessionChannel>(parameters, dispatcher);
+                                supportedChannelType = typeof(IInputSessionChannel);
+                            }
+                        }
+                        if (channelType == typeof(IReplySessionChannel))
+                        {
+                            if (binding.CanBuildServiceDispatcher<IReplySessionChannel>(parameters))
+                            {
+                                serviceDispatcher = binding.BuildServiceDispatcher<IReplySessionChannel>(parameters, dispatcher);
+                                supportedChannelType = typeof(IReplySessionChannel);
+                            }
+                        }
+                        if (channelType == typeof(IDuplexSessionChannel))
+                        {
+                            if (binding.CanBuildServiceDispatcher<IDuplexSessionChannel>(parameters))
+                            {
+                                serviceDispatcher = binding.BuildServiceDispatcher<IDuplexSessionChannel>(parameters, dispatcher);
+                                supportedChannelType = typeof(IDuplexSessionChannel);
+                            }
                         }
                     }
 
-                    if (matching)
+                    _logger.LogInformation($"Mapping CoreWCF branch app for path {dispatcher.BaseAddress.AbsolutePath}");
+                    branchApp.Map(dispatcher.BaseAddress.AbsolutePath, wcfApp =>
                     {
-                        branchApp.Map(dispatcher.BaseAddress.AbsolutePath, wcfApp =>
+                        var servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
+                        var requestHandler = new RequestDelegateHandler(serviceDispatcher, servicesScopeFactory);
+                        if (requestHandler.WebSocketOptions != null)
                         {
-                            var servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
-                            var requestHandler = new RequestDelegateHandler(dispatcher, servicesScopeFactory);
-                            if (requestHandler.WebSocketOptions != null)
-                            {
-                                wcfApp.UseWebSockets(requestHandler.WebSocketOptions);
-                            }
-                            wcfApp.Run(requestHandler.HandleRequest);
-                        });
-                    }
+                            wcfApp.UseWebSockets(requestHandler.WebSocketOptions);
+                        }
+                        wcfApp.Run(requestHandler.HandleRequest);
+                    });
                 }
             }
 
-            branchApp.Use(_ => { return context => _next(context); });
+            branchApp.Use(_ => { return reqContext => _next(reqContext); });
             return branchApp.Build();
         }
     }

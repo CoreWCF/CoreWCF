@@ -36,6 +36,7 @@ namespace CoreWCF.Configuration
             services.AddScoped<DuplexChannelBinder>();
             services.AddScoped<InputChannelBinder>();
             services.AddScoped<ServiceChannel.SessionIdleManager>();
+            services.AddSingleton(typeof(ServiceHostObjectModel<>));
 
             return services;
         }

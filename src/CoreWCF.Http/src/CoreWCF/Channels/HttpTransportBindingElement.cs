@@ -1,3 +1,5 @@
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Builder;
 using System;
 using System.ComponentModel;
 using System.Net;
@@ -128,13 +130,46 @@ namespace CoreWCF.Channels
             return new HttpTransportBindingElement(this);
         }
 
+        public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
+        {
+            var app = context.BindingParameters.Find<IApplicationBuilder>();
+            if (app == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(IApplicationBuilder));
+            }
+
+            // Wire up inner dispatcher to ServiceModelHttpMiddleware so that incoming requests get dispatched
+            //ServiceModelHttpMiddleware.ConfigureDispatcher(app, innerDispatcher);
+            // Return the previous inner dispatcher as we don't create a wrapping dispatcher here.
+            return innerDispatcher;
+        }
+
+        public override bool CanBuildServiceDispatcher<TChannel>(BindingContext context)
+        {
+            if (typeof(TChannel) == typeof(IReplyChannel))
+            {
+                return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always;
+            }
+            else if (typeof(TChannel) == typeof(IDuplexSessionChannel))
+            {
+                return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Never;
+            }
+
+            return false;
+        }
+
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
-            //if (typeof(T) == typeof(ISecurityCapabilities))
+
+            if (typeof(T) == typeof(ITransportServiceBuilder))
+            {
+                return (T)(object)new HttpTransportServiceBuilder();
+            }
+            //else if (typeof(T) == typeof(ISecurityCapabilities))
             //{
             //    AuthenticationSchemes effectiveAuthenticationSchemes = HttpTransportBindingElement.GetEffectiveAuthenticationSchemes(this.AuthenticationScheme,
             //        context.BindingParameters);
@@ -149,7 +184,7 @@ namespace CoreWCF.Channels
             //{
             //    return (T)(object)new BindingDeliveryCapabilitiesHelper();
             //}
-            /*else*/ if (typeof(T) == typeof(TransferMode))
+            else if (typeof(T) == typeof(TransferMode))
             {
                 return (T)(object)TransferMode;
             }
@@ -222,7 +257,5 @@ namespace CoreWCF.Channels
                 return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
             //}
         }
-
-        public override Type MiddlewareType => typeof(ServiceModelHttpMiddleware);
     }
 }

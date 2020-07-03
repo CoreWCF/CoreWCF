@@ -21,7 +21,7 @@ namespace CoreWCF
         WindowsIdentity windowsIdentity;
 
         // Perf: delay created authorizationContext using forward chain.
-        internal ServiceSecurityContext(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
+        public ServiceSecurityContext(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
             if (authorizationPolicies == null)
             {
@@ -31,12 +31,12 @@ namespace CoreWCF
             this.authorizationPolicies = authorizationPolicies;
         }
 
-        internal ServiceSecurityContext(AuthorizationContext authorizationContext)
+        public ServiceSecurityContext(AuthorizationContext authorizationContext)
             : this(authorizationContext, EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance)
         {
         }
 
-        internal ServiceSecurityContext(AuthorizationContext authorizationContext, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
+        public ServiceSecurityContext(AuthorizationContext authorizationContext, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
             if (authorizationContext == null)
             {
