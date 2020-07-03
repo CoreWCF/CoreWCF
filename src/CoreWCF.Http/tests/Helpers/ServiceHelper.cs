@@ -1,15 +1,77 @@
-﻿using Microsoft.AspNetCore;
+﻿using CoreWCF;
+using CoreWCF.Channels;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 using System.Security.Authentication;
+using System.Text;
 using Xunit.Abstractions;
 
 namespace Helpers
 {
     public static class ServiceHelper
     {
+        public static Binding GetBufferedModHttp1Binding()
+        {
+            BasicHttpBinding basicHttpBinding = new BasicHttpBinding();
+            HttpTransportBindingElement httpTransportBindingElement = basicHttpBinding.CreateBindingElements().Find<HttpTransportBindingElement>();
+            MessageVersion messageVersion = basicHttpBinding.MessageVersion;
+            MessageEncodingBindingElement encodingBindingElement = new BinaryMessageEncodingBindingElement();
+            httpTransportBindingElement.TransferMode = TransferMode.Streamed;
+            return new CustomBinding(new BindingElement[]
+            {
+                encodingBindingElement,
+                httpTransportBindingElement
+            })
+            {
+                SendTimeout = TimeSpan.FromMinutes(20.0),
+                ReceiveTimeout = TimeSpan.FromMinutes(20.0),
+                OpenTimeout = TimeSpan.FromMinutes(20.0),
+                CloseTimeout = TimeSpan.FromMinutes(20.0)
+            };
+        }
+
+        //public static Binding GetBufferedModHttp2Binding()
+        //{
+        //    BasicHttpBinding basicHttpBinding = new BasicHttpBinding();
+        //    HttpTransportBindingElement httpTransportBindingElement = basicHttpBinding.CreateBindingElements().Find<HttpTransportBindingElement>();
+        //    MessageVersion messageVersion = basicHttpBinding.MessageVersion;
+        //    MessageEncodingBindingElement encodingBindingElement = new TextMessageEncodingBindingElement(messageVersion, Encoding.Unicode);
+        //    httpTransportBindingElement.TransferMode = TransferMode.Streamed;
+        //    return new CustomBinding(new BindingElement[]
+        //    {
+        //        encodingBindingElement,
+        //        httpTransportBindingElement
+        //    })
+        //    {
+        //        SendTimeout = TimeSpan.FromMinutes(20.0),
+        //        ReceiveTimeout = TimeSpan.FromMinutes(20.0),
+        //        OpenTimeout = TimeSpan.FromMinutes(20.0),
+        //        CloseTimeout = TimeSpan.FromMinutes(20.0)
+        //    };
+        //}
+        //public static Binding GetBufferedModHttp3Binding()
+        //{
+        //    BasicHttpBinding basicHttpBinding = new BasicHttpBinding();
+        //    HttpTransportBindingElement httpTransportBindingElement = basicHttpBinding.CreateBindingElements().Find<HttpTransportBindingElement>();
+        //    MessageVersion messageVersion = basicHttpBinding.MessageVersion;
+        //    MessageEncodingBindingElement encodingBindingElement = new TextMessageEncodingBindingElement(messageVersion, Encoding.UTF8);
+        //    httpTransportBindingElement.TransferMode = TransferMode.Streamed;
+        //    return new CustomBinding(new BindingElement[]
+        //    {
+        //        encodingBindingElement,
+        //        httpTransportBindingElement
+        //    })
+        //    {
+        //        SendTimeout = TimeSpan.FromMinutes(20.0),
+        //        ReceiveTimeout = TimeSpan.FromMinutes(20.0),
+        //        OpenTimeout = TimeSpan.FromMinutes(20.0),
+        //        CloseTimeout = TimeSpan.FromMinutes(20.0)
+        //    };
+        //}
+
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
             WebHost.CreateDefaultBuilder(new string[0])
 #if DEBUG
@@ -83,6 +145,7 @@ namespace Helpers
                 }
             }
         }
+
 
     }
 }
