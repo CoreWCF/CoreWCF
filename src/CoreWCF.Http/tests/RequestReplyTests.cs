@@ -27,7 +27,7 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         [InlineData("Http1Binding")]
-        //[InlineData("Http2Binding")]
+        //[InlineData("Http2Binding")] //Fail
         //[InlineData("Http3Binding")]
         public void RequestReplyStreaming(string binding)
         {
