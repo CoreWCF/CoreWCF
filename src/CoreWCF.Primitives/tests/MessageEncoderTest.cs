@@ -7,10 +7,10 @@ using Xunit;
 
 namespace CoreWCF.Primitives.Tests
 {
-    public class BasicTextTest
+    public class MessageEncoderTest
     {
         [Fact]
-        public void MessageEncoder_Text()
+        public void BasicTextTest()
         {
             int bad = 0;
             int good = 0;
@@ -48,6 +48,18 @@ namespace CoreWCF.Primitives.Tests
             {
                 Assert.True(false, $"Exception caught: {ex.Message} More information: {bad} bad ones, {good} good ones.");
             }           
+        }
+
+        [Fact]
+        public void BodyWriterMessageTest()
+        {
+            string action = "http://www.action.com/";
+            Message m1 = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, action, new CustomGeneratedBodyWriter(2, 1024));
+            Message m1p = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, action, new CustomGeneratedBodyWriter(2, 1024));
+
+            // Note, m1 is closed by this, which is we compare m2 with m1p
+            Message m2 = Helpers.MessageTestUtilities.SendAndReceiveMessage(m1);
+            Assert.True(Helpers.MessageTestUtilities.AreBodiesEqual(m1p, m2, true, true));
         }
     }
 }

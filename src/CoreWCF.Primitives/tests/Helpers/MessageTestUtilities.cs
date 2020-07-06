@@ -670,6 +670,47 @@ namespace Helpers
         {
             return new string('x', dataSize);
         }
+
+        public static bool AreBodiesEqual(Message one, Message two, bool onlySubtreeOfOne, bool onlySubtreeOfTwo)
+        {
+            if (one.IsEmpty || two.IsEmpty)
+            {
+                return one.IsEmpty == two.IsEmpty;
+            }
+            return AreXmlReadersEqual(one.GetReaderAtBodyContents(), two.GetReaderAtBodyContents(), onlySubtreeOfOne, onlySubtreeOfTwo);
+        }
+
+        public static bool AreXmlReadersEqual(XmlReader one, XmlReader two, bool onlySubtreeOfOne, bool onlySubtreeOfTwo)
+        {
+            XmlReader xmlReader = one;
+            XmlReader fc = two;
+            try
+            {
+                if (onlySubtreeOfOne)
+                {
+                    one.MoveToContent();
+                    xmlReader = one.ReadSubtree();
+                }
+                if (onlySubtreeOfTwo)
+                {
+                    two.MoveToContent();
+                    fc = two.ReadSubtree();
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(string.Concat(new object[]
+                {
+            ex,
+            "\noneFocused.NodeType:",
+            xmlReader.NodeType,
+            "oneFocused.Name:",
+            xmlReader.Name
+                }));
+            }
+
+            return AreXmlReadersEqual(xmlReader, fc);
+        }
     }
 
     public class CustomGeneratedHeader : MessageHeader
