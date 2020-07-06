@@ -3,7 +3,6 @@ using Helpers;
 using System;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -11,7 +10,7 @@ namespace CoreWCF.Primitives.Tests
     public class MessageEncoderTest
     {
         [Fact]
-        public async Task BasicTextTest()
+        public void BasicTextTest()
         {
             int bad = 0;
             int good = 0;
@@ -25,15 +24,15 @@ namespace CoreWCF.Primitives.Tests
                 {
                     Message myMessage = (Message)ims.Current;
                     var s = new MemoryStream();
-                    await f.WriteMessageAsync(myMessage, s);
+                    f.WriteMessage(myMessage, s);
                     s.Seek(0, SeekOrigin.Begin);
                     _ = new StreamReader(s);
                     s.Seek(0, SeekOrigin.Begin);
-                    Message m2 = await f.ReadMessageAsync(s, int.MaxValue);
+                    Message m2 = f.ReadMessage(s, int.MaxValue);
 
                     // original got closed by sending, so recreate it:
                     myMessage = ims.CurrentParameters.CreateMessage();
-                    if (MessageTestUtilities.AreMessagesEqual(myMessage, m2))
+                    if (Helpers.MessageTestUtilities.AreMessagesEqual(myMessage, m2))
                     {
                         good++;
                     }
@@ -48,7 +47,7 @@ namespace CoreWCF.Primitives.Tests
             catch(Exception ex)
             {
                 Assert.True(false, $"Exception caught: {ex.Message} More information: {bad} bad ones, {good} good ones.");
-            }
+            }           
         }
 
         [Fact]
@@ -59,8 +58,8 @@ namespace CoreWCF.Primitives.Tests
             Message m1p = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, action, new CustomGeneratedBodyWriter(2, 1024));
 
             // Note, m1 is closed by this, which is we compare m2 with m1p
-            Message m2 = MessageTestUtilities.SendAndReceiveMessage(m1);
-            Assert.True(MessageTestUtilities.AreBodiesEqual(m1p, m2, true, true));
+            Message m2 = Helpers.MessageTestUtilities.SendAndReceiveMessage(m1);
+            Assert.True(Helpers.MessageTestUtilities.AreBodiesEqual(m1p, m2, true, true));
         }
     }
 }
