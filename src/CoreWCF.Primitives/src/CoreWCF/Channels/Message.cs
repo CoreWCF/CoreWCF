@@ -669,7 +669,6 @@ namespace CoreWCF.Channels
         public virtual async Task OnWriteMessageAsync(XmlDictionaryWriter writer)
         {
             WriteMessagePreamble(writer);
-
             // We should call OnWriteBodyContentsAsync instead of WriteBodyContentsAsync here,
             // otherwise EnsureWriteMessageState would get called twice. Also see OnWriteMessage()
             // for the example.
@@ -1056,6 +1055,7 @@ namespace CoreWCF.Channels
 
         public override async Task OnWriteMessageAsync(XmlDictionaryWriter writer)
         {
+            WriteMessagePreamble(writer);
             await OnWriteBodyContentsAsync(writer);
             WriteMessagePostamble(writer);
         }
