@@ -79,6 +79,16 @@ namespace Helpers
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #endif // DEBUG
+            .UseKestrel(options =>
+                {
+                    options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                    {
+                        if (Debugger.IsAttached)
+                        {
+                            listenOptions.UseConnectionLogging();
+                        }
+                    });
+                })
             .UseUrls("http://localhost:8080")
             .UseStartup<TStartup>();
 
@@ -95,7 +105,13 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Loopback, 8080);
+                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                {
+                    if (Debugger.IsAttached)
+                    {
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
                 options.Listen(address: IPAddress.Loopback, 8443, listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
@@ -104,6 +120,10 @@ namespace Helpers
                         httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
 #endif // NET472
                     });
+                    if (Debugger.IsAttached)
+                    {
+                        listenOptions.UseConnectionLogging();
+                    }
                 });
             })
             .UseUrls("http://localhost:8080", "https://localhost:8443")

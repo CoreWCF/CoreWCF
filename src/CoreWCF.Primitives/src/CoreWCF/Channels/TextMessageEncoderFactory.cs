@@ -500,8 +500,9 @@ namespace CoreWCF.Channels
                     xmlWriter.WriteEndDocument();
                 }
 
-                await xmlWriter.FlushAsync();
+                xmlWriter.Flush();
                 ReturnStreamedWriter(xmlWriter);
+                await stream.FlushAsync();
             }
 
             XmlDictionaryWriter TakeStreamedWriter(Stream stream)
