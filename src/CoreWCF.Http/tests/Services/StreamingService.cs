@@ -22,6 +22,7 @@ namespace Services
             }
             return result;
         }
+
         public Stream Forward(Stream stream)
         {
             System.ServiceModel.Channels.CustomBinding binding = ClientHelper.GetBinding();
@@ -46,6 +47,7 @@ namespace Services
         {
             this.messageSize = messageSize;
         }
+
         public override bool CanRead
         {
             get
@@ -69,9 +71,11 @@ namespace Services
                 return false;
             }
         }
+
         public override void Flush()
         {
         }
+
         public override long Length
         {
             get
@@ -79,6 +83,7 @@ namespace Services
                 throw new Exception("The method or operation is not implemented.");
             }
         }
+
         public override long Position
         {
             get
@@ -90,6 +95,7 @@ namespace Services
                 throw new Exception("The method or operation is not implemented.");
             }
         }
+
         public override int Read(byte[] buffer, int offset, int count)
         {
             long num;
@@ -115,18 +121,22 @@ namespace Services
             this.numberoftotalbytes += num;
             return (int)num;
         }
+
         public override long Seek(long offset, SeekOrigin origin)
         {
             throw new Exception("The method or operation is not implemented.");
         }
+
         public override void SetLength(long value)
         {
             throw new Exception("The method or operation is not implemented.");
         }
+
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new Exception("The method or operation is not implemented.");
         }
+
         private long numberoftotalbytes;
         private long messageSize;
     }

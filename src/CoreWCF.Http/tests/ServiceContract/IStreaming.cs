@@ -9,6 +9,7 @@ namespace ServiceContract
         [OperationContract]
         Stream Echo(Stream input);
     }
+
     [ServiceContract(Name = "Forward")]
     public interface IForward
     {

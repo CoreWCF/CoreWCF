@@ -37,6 +37,7 @@ namespace Helpers
             return ConfigureHttpBinding(transportBindingElement);
 
         }
+
         private static CustomBinding ConfigureHttpBinding(HttpTransportBindingElement transportBindingElement)
         {
             BinaryMessageEncodingBindingElement binaryMessageEncodingBindingElement = new BinaryMessageEncodingBindingElement();
@@ -52,6 +53,7 @@ namespace Helpers
             ConfigureTimeout(customBinding);
             return customBinding;
         }
+
         private static void ConfigureTimeout(Binding binding)
         {
             int num = 12;
