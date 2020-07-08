@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore;
+﻿using System;
+using System.Net;
+using CoreWCF;
+using CoreWCF.Channels;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Net;
 #if NET472
 using System.Security.Authentication;
 #endif // NET472
@@ -12,6 +14,60 @@ namespace Helpers
 {
     public static class ServiceHelper
     {
+        public static CustomBinding GetBinding()
+        {
+            HttpTransportBindingElement httpTransportBindingElement = new CoreWCF.BasicHttpBinding().CreateBindingElements().Find<HttpTransportBindingElement>();
+            httpTransportBindingElement.TransferMode = TransferMode.Streamed;
+            httpTransportBindingElement.MaxReceivedMessageSize = long.MaxValue;
+            httpTransportBindingElement.MaxBufferSize = int.MaxValue;
+            BinaryMessageEncodingBindingElement binaryMessageEncodingBindingElement = new BinaryMessageEncodingBindingElement();
+            return new CustomBinding(new BindingElement[]
+            {
+                binaryMessageEncodingBindingElement,
+                httpTransportBindingElement
+            })
+            {
+                SendTimeout = TimeSpan.FromMinutes(12.0),
+                ReceiveTimeout = TimeSpan.FromMinutes(12.0),
+                OpenTimeout = TimeSpan.FromMinutes(12.0),
+                CloseTimeout = TimeSpan.FromMinutes(12.0)
+            };
+        }
+
+        public static Binding GetBufferedModHttpBinding()
+        {
+            BasicHttpBinding basicHttpBinding = new BasicHttpBinding();
+            HttpTransportBindingElement transportBindingElement = basicHttpBinding.CreateBindingElements().Find<HttpTransportBindingElement>();
+            return ConfigureHttpBinding(transportBindingElement);
+
+        }
+
+        private static CustomBinding ConfigureHttpBinding(HttpTransportBindingElement transportBindingElement)
+        {
+            BinaryMessageEncodingBindingElement binaryMessageEncodingBindingElement = new BinaryMessageEncodingBindingElement();
+            transportBindingElement.TransferMode = TransferMode.Streamed;
+            transportBindingElement.MaxReceivedMessageSize = 2147483647L;
+            transportBindingElement.MaxBufferSize = int.MaxValue;
+            //transportBindingElement.UseDefaultWebProxy = false;
+            CustomBinding customBinding = new CustomBinding(new BindingElement[]
+            {
+                binaryMessageEncodingBindingElement,
+                transportBindingElement
+            });
+            ConfigureTimeout(customBinding);
+            return customBinding;
+        }
+
+        private static void ConfigureTimeout(Binding binding)
+        {
+            int num = 12;
+            num *= 2;
+            binding.SendTimeout = TimeSpan.FromMinutes((double)num);
+            binding.ReceiveTimeout = TimeSpan.FromMinutes((double)num);
+            binding.OpenTimeout = TimeSpan.FromMinutes(5.0);
+            binding.CloseTimeout = TimeSpan.FromMinutes(5.0);
+        }
+
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
             WebHost.CreateDefaultBuilder(new string[0])
 #if DEBUG
