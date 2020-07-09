@@ -45,10 +45,10 @@ namespace CoreWCF.Primitives.Tests
 
                 Assert.False(bad > 0, $"Messages not equal! Failure!({bad} bad ones, {good} good ones.)");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Assert.True(false, $"Exception caught: {ex.Message} More information: {bad} bad ones, {good} good ones.");
-            }           
+            }
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace CoreWCF.Primitives.Tests
 
         [Fact]
         public void ObjectHeaderTests()
-        {         
+        {
             Message message = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, "http://www.action.com/");
             GeneratedSerializableObject generatedSerializableObject = new GeneratedSerializableObject(2, 200L);
             MessageHeader header = MessageHeader.CreateHeader("foo", "", generatedSerializableObject);
@@ -73,16 +73,16 @@ namespace CoreWCF.Primitives.Tests
             Message message2 = Helpers.MessageTestUtilities.SendAndReceiveMessage(message);
             int num = message2.Headers.FindHeader("foo", "");
             Assert.NotEqual(-1, num);
-          
+
             object header2 = message2.Headers.GetHeader<GeneratedSerializableObject>(num);
             object header3 = message2.Headers.GetHeader<GeneratedSerializableObject>("foo", "");
             Assert.False(!generatedSerializableObject.Equals(header2) || !generatedSerializableObject.Equals(header3));
-           
+
             string s = "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:a=\"http://schemas.xmlsoap.org/ws/2003/03/addressing\"><s:Header /><s:Body /></s:Envelope>";
             message = Message.CreateMessage(new XmlTextReader(new StringReader(s)), 2147483647, MessageVersion.Default);
             message2 = Message.CreateMessage(new XmlTextReader(new StringReader(s)), 2147483647, MessageVersion.Default);
             Message two = MessageTestUtilities.SendAndReceiveMessage(message);
-            Assert.True(Helpers.MessageTestUtilities.AreBodiesEqual(message2, two));             
-        }        
+            Assert.True(Helpers.MessageTestUtilities.AreBodiesEqual(message2, two));
+        }
     }
 }
