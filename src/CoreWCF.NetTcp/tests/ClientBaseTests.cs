@@ -21,8 +21,8 @@ namespace BasicNetTcp
 
         [Theory]
         [InlineData("AlwaysOff")]
-        [InlineData("Default")]
-        [InlineData("AlwaysOn")]
+        //[InlineData("Default")]
+        //[InlineData("AlwaysOn")]
         public void VariousClientBase(string cacheSetting)
         {
             string testString = new string('a', 3000);
