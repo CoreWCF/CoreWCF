@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System;
 using CoreWCF.Runtime;
 using CoreWCF.IdentityModel;
+using System.Threading;
 
 namespace CoreWCF.Security
 {
@@ -365,27 +366,27 @@ namespace CoreWCF.Security
             }
         }
 
-        public virtual async Task OnCloseAsync(TimeSpan timeout)
-        {
-            if (SecurityProtocolFactory.ActAsInitiator)
-            {
-                /*
-                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-                foreach (SupportingTokenProviderSpecification spec in ChannelSupportingTokenProviderSpecification)
-                {
-                    await SecurityUtils.CloseTokenProviderIfRequiredAsync(spec.TokenProvider, timeoutHelper.RemainingTime());
-                }
+        //public virtual async Task OnCloseAsync(CancellationToken token)
+        //{
+        //    if (SecurityProtocolFactory.ActAsInitiator)
+        //    {
+        //        /*
+        //        TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+        //        foreach (SupportingTokenProviderSpecification spec in ChannelSupportingTokenProviderSpecification)
+        //        {
+        //            await SecurityUtils.CloseTokenProviderIfRequiredAsync(spec.TokenProvider, timeoutHelper.RemainingTime());
+        //        }
 
-                foreach (string action in ScopedSupportingTokenProviderSpecification.Keys)
-                {
-                    ICollection<SupportingTokenProviderSpecification> supportingProviders = ScopedSupportingTokenProviderSpecification[action];
-                    foreach (SupportingTokenProviderSpecification spec in supportingProviders)
-                    {
-                        await SecurityUtils.CloseTokenProviderIfRequiredAsync(spec.TokenProvider, timeoutHelper.RemainingTime());
-                    }
-                }*/
-            }
-        }
+        //        foreach (string action in ScopedSupportingTokenProviderSpecification.Keys)
+        //        {
+        //            ICollection<SupportingTokenProviderSpecification> supportingProviders = ScopedSupportingTokenProviderSpecification[action];
+        //            foreach (SupportingTokenProviderSpecification spec in supportingProviders)
+        //            {
+        //                await SecurityUtils.CloseTokenProviderIfRequiredAsync(spec.TokenProvider, timeoutHelper.RemainingTime());
+        //            }
+        //        }*/
+        //    }
+        //}
 
         private static void SetSecurityHeaderId(SendSecurityHeader securityHeader, Message message)
         {
@@ -588,12 +589,12 @@ namespace CoreWCF.Security
             return token;
         }
 
-        public abstract Task<Message> SecureOutgoingMessageAsync(Message message);
+        public abstract Task<Message> SecureOutgoingMessageAsync(Message message, CancellationToken token);
 
         // subclasses that offer correlation should override this version
-        public virtual async Task<(SecurityProtocolCorrelationState, Message)> SecureOutgoingMessageAsync(Message message , SecurityProtocolCorrelationState correlationState)
+        public virtual async Task<(SecurityProtocolCorrelationState, Message)> SecureOutgoingMessageAsync(Message message , CancellationToken token, SecurityProtocolCorrelationState correlationState)
         {
-            return (null, await SecureOutgoingMessageAsync(message));
+            return (null, await SecureOutgoingMessageAsync(message, token));
         }
 
         protected virtual void OnOutgoingMessageSecured(Message securedMessage)
@@ -639,5 +640,10 @@ namespace CoreWCF.Security
             return authenticators;
         }
 
+        public Task OnCloseAsync(TimeSpan timeout)
+        {
+            return Task.CompletedTask;
+           // throw new NotImplementedException();
+        }
     }
 }

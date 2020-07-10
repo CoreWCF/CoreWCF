@@ -2,6 +2,7 @@
 using CoreWCF.Runtime;
 using System.Threading.Tasks;
 using System;
+using System.Threading;
 
 namespace CoreWCF.Channels
 {
@@ -20,6 +21,5 @@ namespace CoreWCF.Channels
         Unhandled = 0x2,
         All = Handled | Unhandled
     }
-
 
 }

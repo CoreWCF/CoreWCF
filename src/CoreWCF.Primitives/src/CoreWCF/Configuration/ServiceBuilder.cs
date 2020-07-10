@@ -46,6 +46,7 @@ namespace CoreWCF.Configuration
             _services[serviceConfig.ServiceType] = serviceConfig;
             return this;
         }
+        public IServiceProvider ServiceProvider { get{ return _serviceProvider; } }
 
         public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address)
         {

@@ -665,10 +665,10 @@ namespace CoreWCF.Security
             return null;
         }
 
-        internal SecurityProtocol CreateSecurityProtocol(EndpointAddress target, Uri via, bool isReturnLegSecurityRequired, TimeSpan timeout)
+        internal SecurityProtocol CreateSecurityProtocol(EndpointAddress target, Uri via, object listenerSecurityState, bool isReturnLegSecurityRequired, TimeSpan timeout)
         {
             ThrowIfNotOpen();
-            SecurityProtocol securityProtocol = OnCreateSecurityProtocol(target, via, null, timeout);
+            SecurityProtocol securityProtocol = OnCreateSecurityProtocol(target, via, listenerSecurityState, timeout);
             if (securityProtocol == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.ProtocolFactoryCouldNotCreateProtocol)));

@@ -376,6 +376,16 @@ namespace CoreWCF.IdentityModel
 
             return authorizationContext;
         }
+        public static bool IsRequestSecurityContextIssuance(String actionString)
+        {
+            if (String.CompareOrdinal(actionString, CoreWCF.XD.SecureConversationFeb2005Dictionary
+                .RequestSecurityContextIssuance.Value) == 0 ||
+                String.CompareOrdinal(actionString, CoreWCF.XD.SecureConversationApr2004Dictionary
+                .RequestSecurityContextIssuance.Value) == 0)
+                return true;
+            return false;
+        }
+
     }
 
     static class EmptyReadOnlyCollection<T>

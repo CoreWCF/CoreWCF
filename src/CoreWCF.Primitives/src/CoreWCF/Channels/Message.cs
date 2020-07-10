@@ -338,13 +338,13 @@ namespace CoreWCF.Channels
         //    return this.messageNavigator;
         //}
 
-        //internal void InitializeReply(Message request)
-        //{
-        //    UniqueId requestMessageID = request.Headers.MessageId;
-        //    if (requestMessageID == null)
-        //        throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.RequestMessageDoesNotHaveAMessageID)), request);
-        //    Headers.RelatesTo = requestMessageID;
-        //}
+        internal void InitializeReply(Message request)
+        {
+            UniqueId requestMessageID = request.Headers.MessageId;
+            if (requestMessageID == null)
+                throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.RequestMessageDoesNotHaveAMessageID)), request);
+            Headers.RelatesTo = requestMessageID;
+        }
 
         static internal bool IsFaultStartElement(XmlDictionaryReader reader, EnvelopeVersion version)
         {
@@ -1906,7 +1906,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        class HeaderInfo : MessageHeaderInfo
+     public   class HeaderInfo : MessageHeaderInfo
         {
             string name;
             string ns;

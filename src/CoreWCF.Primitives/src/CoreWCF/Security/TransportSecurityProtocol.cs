@@ -11,6 +11,7 @@ using CoreWCF.Description;
 using System;
 using System.Threading.Tasks;
 using CoreWCF.IdentityModel;
+using System.Threading;
 
 namespace CoreWCF.Security
 {
@@ -21,7 +22,7 @@ namespace CoreWCF.Security
         {
         }
 
-        public override async Task<Message> SecureOutgoingMessageAsync(Message message)
+        public override async Task<Message> SecureOutgoingMessageAsync(Message message, CancellationToken token)
         {
             if (message == null)
             {

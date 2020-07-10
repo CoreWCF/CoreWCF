@@ -15,7 +15,7 @@ using System.Xml.Schema;
 
 namespace CoreWCF.Dispatcher
 {
-   public class SecurityServiceDispatcher : IServiceDispatcher
+    public class SecurityServiceDispatcher : IServiceDispatcher
     {
         private IRequestReplyCorrelator _requestReplyCorrelator;
         private BindingContext bindingContext;
@@ -27,12 +27,13 @@ namespace CoreWCF.Dispatcher
         private bool sessionMode;
         private bool sendUnsecuredFaults;
         private ChannelDispatcher securityAuthChannelDispatcher;
+        IChannel outerChannel;
 
         public SecurityServiceDispatcher(TransportSecurityBindingElement transportSecurityBindingElement, BindingContext context, IServiceDispatcher serviceDispatcher)
         {
             this.InnerServiceDispatcher = serviceDispatcher;
             this.bindingContext = context;
-            this.transportSecurityBinding =  transportSecurityBindingElement;
+            this.transportSecurityBinding = transportSecurityBindingElement;
             _requestReplyCorrelator = new RequestReplyCorrelator();
             // this.securityProtocolFactory =  securityProtocolFactory; // we set it later from TransportSecurityBindingElement
             //  this.settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(this.securityProtocolFactory, this.sessionServerSettings, this.sessionMode, this.InnerChannelListener);
@@ -46,13 +47,13 @@ namespace CoreWCF.Dispatcher
 
         public ChannelDispatcher SecurityAuthChannelDispatcher
         {
-            get 
+            get
             {
                 return this.securityAuthChannelDispatcher;
             }
-            set 
+            set
             {
-                this.securityAuthChannelDispatcher = value; 
+                this.securityAuthChannelDispatcher = value;
             }
         }
 
@@ -66,8 +67,8 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-               
-              //  ThrowIfDisposed();
+
+                //  ThrowIfDisposed();
                 return this.securityProtocolFactory;
             }
             set
@@ -76,7 +77,7 @@ namespace CoreWCF.Dispatcher
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
                 }
-             //   ThrowIfDisposedOrImmutable();
+                //   ThrowIfDisposedOrImmutable();
                 this.securityProtocolFactory = value;
             }
         }
@@ -144,7 +145,15 @@ namespace CoreWCF.Dispatcher
             }
         }
 
+        public IChannel OuterChannel
+        {
+            get { return this.outerChannel; }
+            set { this.outerChannel = value; }
+        }
+
         IList<Type> IServiceDispatcher.SupportedChannelTypes => throw new NotImplementedException();
+
+        public ServiceHostBase Host =>  InnerServiceDispatcher.Host;
 
         //private 
 
@@ -182,7 +191,7 @@ namespace CoreWCF.Dispatcher
         }
         public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel outerChannel)
         {
-            
+            this.outerChannel = outerChannel;
             IChannel securityChannel = GetInnerChannel(outerChannel);
             var sessionIdleManager = securityChannel.GetProperty<ServiceChannel.SessionIdleManager>();
             IChannelBinder binder = null;
@@ -360,17 +369,17 @@ namespace CoreWCF.Dispatcher
 
         public void Abort()
         {
-            throw new NotImplementedException();
+            
         }
 
         public Task CloseAsync()
         {
-            throw new NotImplementedException();
+           return Task.CompletedTask;
         }
 
         public Task CloseAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public T GetProperty<T>() where T : class
@@ -461,7 +470,7 @@ namespace CoreWCF.Dispatcher
             bootstrapSecurityProtocolFactory.OpenAsync(TimeSpan.Zero);
             base.SecurityProtocol = bootstrapSecurityProtocolFactory.CreateSecurityProtocol(
                     null,
-                    null,
+                    null,null,
                     true, TimeSpan.Zero);
 
         }
@@ -571,8 +580,8 @@ namespace CoreWCF.Dispatcher
         {
             if (message != null)
             {
-             Task<Message> appLiedMessage =  this.securityProtocol.SecureOutgoingMessageAsync(message);
-                return this.innerContext.ReplyAsync(appLiedMessage.GetAwaiter().GetResult());
+             Task<Message> appLiedMessage =  this.securityProtocol.SecureOutgoingMessageAsync(message, token);
+                return this.innerContext.ReplyAsync(appLiedMessage.GetAwaiter().GetResult(),token);
             }else
             {
               return  Task.CompletedTask;

@@ -26,6 +26,7 @@ namespace CoreWCF.Dispatcher
         public Binding Binding => ChannelDispatcher.Binding;
 
         public ChannelDispatcher ChannelDispatcher { get; }
+        public ServiceHostBase Host { get { return ChannelDispatcher.Host; } }
 
         public EndpointDispatcherTable Endpoints => ChannelDispatcher.EndpointDispatcherTable;
 

@@ -407,7 +407,7 @@ namespace CoreWCF.Dispatcher
                     {
                         await parent.SecurityImpersonation.RunImpersonated(rpc, async () =>
                         {
-                            (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
+                        (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
                         });
                     }
                     else

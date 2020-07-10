@@ -1055,7 +1055,7 @@ namespace CoreWCF.Security
         }
 
         internal void ExecuteReadingPass(XmlDictionaryReader reader)
-        {
+            {
             int position = 0;
             while (reader.IsStartElement())
             {
@@ -1102,8 +1102,6 @@ namespace CoreWCF.Security
         {
             try
             {
-
-
                 bool primarySignatureFound = !this.RequireMessageProtection;
                 int position = 0;
                 while (reader.IsStartElement())

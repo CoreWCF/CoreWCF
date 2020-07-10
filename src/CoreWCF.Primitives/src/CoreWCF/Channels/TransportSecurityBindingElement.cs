@@ -82,10 +82,10 @@ namespace CoreWCF.Channels
         protected override IServiceDispatcher BuildServiceDispatcherCore<TChannel>(BindingContext context, IServiceDispatcher serviceDispatcher)
         {
             SecurityServiceDispatcher securityServiceDispatcher = new SecurityServiceDispatcher(this, context, serviceDispatcher);
-            SecurityCredentialsManager credentialsManager = context.BindingParameters.Find<SecurityCredentialsManager>();
+            SecurityCredentialsManager credentialsManager = serviceDispatcher.Host.Description.Behaviors.Find<SecurityCredentialsManager>();
             if (credentialsManager == null)
                 credentialsManager = ServiceCredentials.CreateDefaultCredentials();
-
+            
             SecureConversationSecurityTokenParameters scParameters;
             if (this.EndpointSupportingTokenParameters.Endorsing.Count > 0)
                 scParameters = this.EndpointSupportingTokenParameters.Endorsing[0] as SecureConversationSecurityTokenParameters;
@@ -101,6 +101,7 @@ namespace CoreWCF.Channels
             }
 
             BindingContext issuerBindingContext = context.Clone();
+            issuerBindingContext.BindingParameters.Add(credentialsManager);
             if (scParameters != null)
             {
                 if (scParameters.BootstrapSecurityBindingElement == null)
