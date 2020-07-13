@@ -25,7 +25,7 @@ stages:
         displayName: 'Use .NET Core sdk'
         inputs:
           packageType: sdk
-          version: 3.1.101
+          version: 3.1.x
           installationPath: $(Agent.ToolsDirectory)/dotnet
 
       # GitVersion task broken as of 2019-12-10. See https://github.com/GitTools/GitVersion/issues/1855
@@ -35,7 +35,7 @@ stages:
         inputs:
           command: 'custom'
           custom: 'tool'
-          arguments: 'install -g gitversion.tool --version 5.1.2'
+          arguments: 'install -g gitversion.tool --version 5.3.7'
 
       - task: DotNetCoreCLI@2
         displayName: 'Gitversion setup'
@@ -71,9 +71,9 @@ stages:
           imageName: 'windows-latest'
           targetFramework: 'netcoreapp2.1'
           testArgs: ''
-        Windows_netcore3.0:
+        Windows_netcore3.1:
           imageName: 'windows-latest'
-          targetFramework: 'netcoreapp3.0'
+          targetFramework: 'netcoreapp3.1'
           testArgs: ''
         Windows_netfx:
           imageName: 'windows-latest'
@@ -83,9 +83,9 @@ stages:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp2.1'
           testArgs: '--filter Category!=WindowsOnly'
-        Linux_netcore3.0:
+        Linux_netcore3.1:
           imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp3.0'
+          targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
     displayName: Test Release
     pool:
@@ -124,9 +124,9 @@ stages:
           imageName: 'windows-latest'
           targetFramework: 'netcoreapp2.1'
           testArgs: ''
-        Windows_netcore3.0:
+        Windows_netcore3.1:
           imageName: 'windows-latest'
-          targetFramework: 'netcoreapp3.0'
+          targetFramework: 'netcoreapp3.1'
           testArgs: ''
         Windows_netfx:
           imageName: 'windows-latest'
@@ -136,9 +136,9 @@ stages:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp2.1'
           testArgs: '--filter Category!=WindowsOnly'
-        Linux_netcore3.0:
+        Linux_netcore3.1:
           imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp3.0'
+          targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
     displayName: Test Debug
     pool:
@@ -185,7 +185,7 @@ stages:
       inputs:
         command: 'custom'
         custom: 'tool'
-        arguments: 'install -g dotnet-reportgenerator-globaltool --version 4.3.9'
+        arguments: 'install -g dotnet-reportgenerator-globaltool --version 4.6.1'
     - task: DownloadPipelineArtifact@2
       displayName: Download build artifacts
       inputs:
@@ -203,7 +203,7 @@ stages:
       inputs:
         command: 'build'
         projects: $(_testProjects)
-        arguments: '--configuration Release --framework netcoreapp2.1'
+        arguments: '--configuration Release --framework netcoreapp3.1'
     - task: DotNetCoreCLI@2
       displayName: Run Tests with Coverage
       timeoutInMinutes: 10
@@ -211,7 +211,7 @@ stages:
         command: 'test'
         projects: $(_testProjects)
         publishTestResults: true
-        arguments: '--no-restore --no-build --configuration Release --framework netcoreapp2.1 /p:CollectCoverage=true /p:CoverletOutputDir=$(Build.ArtifactStagingDirectory)/Coverage'
+        arguments: '--no-restore --no-build --configuration Release --framework netcoreapp3.1 /p:CollectCoverage=true /p:CoverletOutputDir=$(Build.ArtifactStagingDirectory)/Coverage'
     - script: reportgenerator "-reports:$(Build.ArtifactStagingDirectory)/Coverage/*.xml" "-targetdir:$(Build.ArtifactStagingDirectory)/Coverage/Report" -reporttypes:HtmlInline_AzurePipelines;Cobertura;Badges
       displayName: 'Generate Coverage Report'
     - task: PublishCodeCoverageResults@1
