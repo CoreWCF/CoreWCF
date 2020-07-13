@@ -35,7 +35,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
-    <PackageReference Include="GitVersionTask" Version="5.1.2">
+    <PackageReference Include="GitVersionTask" Version="5.3.7">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <!-- Include license file in packages -->
