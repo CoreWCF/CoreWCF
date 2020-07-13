@@ -77,7 +77,9 @@ namespace Services
             log.Add("DownloadStream");
             localStream = new FlowControlledStream();
             localStream.ReadThrottle = TimeSpan.FromMilliseconds(500);
-            localStream.StreamDuration = TimeSpan.FromSeconds(1);
+            // Setting to 900ms instead of 1 second because sometimes 3 reads occur and the read buffer grows with
+            // each read by a factor of 16 up to 64KB and this is causing the client to exceed it's MaxReceivedMessageSize
+            localStream.StreamDuration = TimeSpan.FromMilliseconds(900);
 
             return localStream;
         }
