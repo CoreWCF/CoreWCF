@@ -67,6 +67,8 @@ namespace WSHttp
                 ClientCredentials clientCredentials = (ClientCredentials) factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
                 clientCredentials.UserName.UserName = "Administrator";
                 clientCredentials.UserName.Password = "fakeone";
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication();
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None;
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 ((IChannel)channel).Open();
                 var result = channel.EchoString(testString);
