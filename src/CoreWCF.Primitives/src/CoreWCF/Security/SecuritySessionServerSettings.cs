@@ -1655,10 +1655,10 @@ namespace CoreWCF.Security
             try
             {
                 // return if the underlying channel does not implement IDuplexSession or IReply
-                if (!(this.channelBinder.Channel is IReplyChannel) && !(this.channelBinder.Channel is IDuplexSessionChannel))
-                {
-                    return;
-                }
+                //if (!(this.channelBinder.Channel is IReplyChannel) && !(this.channelBinder.Channel is IDuplexSessionChannel))
+                //{
+                //    return;
+                //}
 
                 MessageFault fault = SecurityUtils.CreateSecurityMessageFault(e, this.securityProtocol.SecurityProtocolFactory.StandardsManager);
                 if (fault == null)
