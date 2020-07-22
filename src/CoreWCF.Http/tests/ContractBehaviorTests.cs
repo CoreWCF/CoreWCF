@@ -1,22 +1,18 @@
 ﻿using ClientContract;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Services;
 using System;
 using System.ServiceModel;
 using Xunit;
 using Xunit.Abstractions;
-using Services;
-using CoreWCF.Description;
 
 namespace CoreWCF.Http.Tests
 {
-    /// <summary>
-    /// Custom behavior validation on client is done, validation on service side is currently blocked, 
-    /// need to find way to get OperationContext.Current.Host.Description as on NetFx for CoreWCF
-    /// </summary>
     public class ContractBehaviorTests
     {
         private ITestOutputHelper _output;
@@ -25,7 +21,6 @@ namespace CoreWCF.Http.Tests
         {
             _output = output;
         }
-
 
         [Theory]
         [InlineData("ByHand")]
@@ -47,35 +42,31 @@ namespace CoreWCF.Http.Tests
                 switch (method)
                 {
                     case "ByHand":
-                        Variation_Service_ByHand(false);
+                        Variation_ByHand(false);
                         break;
                     case "ByHand_UsingHiddenProperty":
-                        Variation_Service_ByHand(true);
+                        Variation_ByHand(true);
                         break;
                     case "CustomAttribute":
-                        Variation_Service_CustomAttribute();
+                        Variation_CustomAttribute();
                         break;
                     case "TwoAttributesDifferentTypes":
-                        Variation_Service_TwoAttributesDifferentTypes();
-                        break;
-                    case "TwoAttributesSameType":
-                        Variation_Service_TwoAttributesSameType();
+                        Variation_TwoAttributesDifferentTypes();
                         break;
                     case "MisplacedAttributes":
-                        Variation_Service_MisplacedAttributes();
+                        Variation_MisplacedAttributes();
                         break;
                     case "CustomAttributesImplementsOther":
-                        Variation_Service_CustomAttributesImplementsOther();
+                        Variation_CustomAttributesImplementsOther();
                         break;
                     case "ByHandImplementsOther":
-                        Variation_Service_ByHandImplementsOther();
+                        Variation_ByHandImplementsOther();
                         break;
                     default:
-                        throw new ApplicationException("Unsupported ID specified in Tef File!");
+                        throw new ApplicationException("Unsupported ID specified!");
                 }
             }
         }
-
 
         [Fact]
         public void TwoAttributesSameType_Test()
@@ -100,16 +91,18 @@ namespace CoreWCF.Http.Tests
             return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractBehaviorService.svc")));
         }
 
-        private void Variation_Service_ByHand(bool useHiddenProperty)
+        private void Variation_ByHand(bool useHiddenProperty)
         {
             ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();
             try
             {
+                string HelloStr = "ByHand";
                 CustomContractBehaviorAttribute cb = new CustomContractBehaviorAttribute();
                 if (useHiddenProperty)
                 {
 #if NET472
                     cf.Endpoint.Contract.Behaviors.Add(cb);
+                    HelloStr = "ByHand_UsingHiddenProperty";
 #endif
                 }
                 else
@@ -121,7 +114,6 @@ namespace CoreWCF.Http.Tests
                 string expected = "IContractBehavior:ClientContract.CustomContractBehaviorAttribute;";
                 Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
                 IContractBehaviorBasic_ByHand clientProxy = cf.CreateChannel();
-                string HelloStr = "Hello";
                 string returnStr = clientProxy.StringMethod(HelloStr);
                 Assert.Equal(HelloStr, returnStr);
             }
@@ -136,7 +128,7 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_Service_CustomAttribute()
+        private void Variation_CustomAttribute()
         {
             ChannelFactory<IContractBehaviorBasic_CustomAttribute> cf = GetChannelFactory<IContractBehaviorBasic_CustomAttribute>();
             try
@@ -145,7 +137,7 @@ namespace CoreWCF.Http.Tests
                 string expected = "IContractBehavior:ClientContract.CustomContractBehaviorAttribute;";
                 Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
                 IContractBehaviorBasic_CustomAttribute clientProxy = cf.CreateChannel();
-                string HelloStr = "Hello";
+                string HelloStr = "CustomAttribute";
                 string returnStr = clientProxy.StringMethod(HelloStr);
                 Assert.Equal(HelloStr, returnStr);
             }
@@ -160,7 +152,7 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_Service_TwoAttributesDifferentTypes()
+        private void Variation_TwoAttributesDifferentTypes()
         {
             ChannelFactory<IContractBehaviorBasic_TwoAttributesDifferentTypes> cf = GetChannelFactory<IContractBehaviorBasic_TwoAttributesDifferentTypes>();
             try
@@ -169,7 +161,7 @@ namespace CoreWCF.Http.Tests
                 string expected = "IContractBehavior:ClientContract.CustomContractBehaviorAttribute;IContractBehavior:ClientContract.OtherCustomContractBehaviorAttribute;";
                 Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
                 IContractBehaviorBasic_TwoAttributesDifferentTypes clientProxy = cf.CreateChannel();
-                string HelloStr = "Hello";
+                string HelloStr = "TwoAttributesDifferentTypes";
                 string returnStr = clientProxy.StringMethod(HelloStr);
                 Assert.Equal(HelloStr, returnStr);
             }
@@ -184,33 +176,14 @@ namespace CoreWCF.Http.Tests
             }           
         }
 
-        private void Variation_Service_TwoAttributesSameType()
-        {            
-            ChannelFactory<IContractBehaviorBasic_TwoAttributesSameType> cf = null;
-            try
-            {
-                cf = GetChannelFactory<IContractBehaviorBasic_TwoAttributesSameType>();
-                Assert.True(false, "Did not raise the ArgumentException as expected");
-            }
-            catch (Exception e)
-            {
-                _output.WriteLine(e.Message);
-            }
-            finally
-            {
-                if (cf != null)
-                    cf.Close();
-            }
-        }
-
-        private void Variation_Service_MisplacedAttributes()
+        private void Variation_MisplacedAttributes()
         {
             ChannelFactory<IContractBehaviorBasic_MisplacedAttributes> cf = GetChannelFactory<IContractBehaviorBasic_MisplacedAttributes>();
             try
             {
                 IContractBehaviorBasic_MisplacedAttributes clientProxy = cf.CreateChannel();
                 Assert.True(string.IsNullOrEmpty(BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint)));
-                string HelloStr = "Hello";
+                string HelloStr = "MisplacedAttributes";
                 string returnStr = clientProxy.StringMethod(HelloStr);
                 Assert.Equal(HelloStr, returnStr);
             }
@@ -225,7 +198,7 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_Service_CustomAttributesImplementsOther()
+        private void Variation_CustomAttributesImplementsOther()
         {
             ChannelFactory<IContractBehaviorBasic_CustomAttributesImplementsOther> cf = GetChannelFactory<IContractBehaviorBasic_CustomAttributesImplementsOther>();
             try
@@ -234,7 +207,7 @@ namespace CoreWCF.Http.Tests
                 string expected = "IContractBehavior:ClientContract.MyMultiFacetedBehaviorAttribute;";
                 Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
                 IContractBehaviorBasic_CustomAttributesImplementsOther clientProxy = cf.CreateChannel();
-                string HelloStr = "Hello";
+                string HelloStr = "CustomAttributesImplementsOther";
                 string returnStr = clientProxy.StringMethod(HelloStr);
                 Assert.Equal(HelloStr, returnStr);
             }
@@ -249,7 +222,7 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_Service_ByHandImplementsOther()
+        private void Variation_ByHandImplementsOther()
         {
             ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();  
             try
@@ -260,7 +233,7 @@ namespace CoreWCF.Http.Tests
                 string expected = "IContractBehavior:ClientContract.MyMultiFacetedBehaviorAttribute;";
                 Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
                 IContractBehaviorBasic_ByHand clientProxy = cf.CreateChannel();
-                string HelloStr = "Hello";
+                string HelloStr = "ByHandImplementsOther";
                 string returnStr = clientProxy.StringMethod(HelloStr);
                 Assert.Equal(HelloStr, returnStr);
             }
@@ -287,6 +260,7 @@ namespace CoreWCF.Http.Tests
                 else if(_method.Contains("ByHand"))
                 {
                     services.AddServiceModelServices().AddSingleton<IContractBehavior>(new ServiceContract.CustomContractBehaviorAttribute());
+                    
                 }
                 else
                 {
@@ -330,7 +304,6 @@ namespace CoreWCF.Http.Tests
                         default:
                             throw new ApplicationException("Unsupported test method specified!");
                     }
-                    
                 });
             }
         }

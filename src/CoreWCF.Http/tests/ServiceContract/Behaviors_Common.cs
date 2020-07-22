@@ -286,20 +286,51 @@ namespace ServiceContract
             return resultsSB.ToString();
         }
 
-        public static void ValidateServiceInvokedBehaviors(ServiceDescription sd)
+        public static void ValidateServiceInvokedBehaviors(ServiceDescription sd, string s)
         {
-            ValidateServiceInvokedBehaviors(sd, sd.Endpoints[0], sd.Endpoints[0].Contract.Operations[0]);
+            string actual = ValidateServiceInvokedBehaviors(sd, sd.Endpoints[0], sd.Endpoints[0].Contract.Operations[0]);
+            string expected = null;
+            switch (s)
+            {
+                case "ByHand":
+                case "ByHand_UsingHiddenProperty":
+                case "CustomAttribute":
+                    expected = "IContractBehavior:ServiceContract.CustomContractBehaviorAttribute;";
+                    break;
+                case "TwoAttributesDifferentTypes":
+                    expected = "IContractBehavior:ServiceContract.CustomContractBehaviorAttribute;IContractBehavior:ServiceContract.OtherCustomContractBehaviorAttribute;";
+                    break;
+                case "MisplacedAttributes":
+                    expected = "";
+                    break;
+                case "CustomAttributesImplementsOther":
+                case "ByHandImplementsOther":
+                case "ByHandImplementsOther_UsingHiddenProperty":
+                    expected = "IContractBehavior:ServiceContract.MyMultiFacetedBehaviorAttribute;";
+                    break;
+                default:
+                    break;
+            }
+
+            //currenlty block at configuring service.ServiceHost.Description.Endpoints[0].Contract.ContractBehaviors.Add(contractBehavior);
+            //workaround:
+            if (s.ToLower().Contains("byhand"))
+            {
+                expected = "";
+            }
+
+            Xunit.Assert.Equal(expected, actual);
         }
 
         public static string ValidateServiceInvokedBehaviors(ServiceDescription sd, ServiceEndpoint sep, OperationDescription od)
         {
             var CustomBehaviorsList = new SortedList(4);
             CustomBehaviorsList.Add(BehaviorType.IServiceBehavior, sd.Behaviors.FindAll<CustomBehaviorAttribute>());
-            var ebs = (System.Collections.Generic.KeyedByTypeCollection<IEndpointBehavior>)sep.EndpointBehaviors;
+            var ebs = (CoreWCF.Collections.Generic.KeyedByTypeCollection<IEndpointBehavior>)sep.EndpointBehaviors;
             CustomBehaviorsList.Add(BehaviorType.IEndpointBehavior, ebs.FindAll<CustomBehaviorAttribute>());
-            var cbs = (System.Collections.Generic.KeyedByTypeCollection<IContractBehavior>)sep.Contract.ContractBehaviors;
+            var cbs = (CoreWCF.Collections.Generic.KeyedByTypeCollection<IContractBehavior>)sep.Contract.ContractBehaviors;
             CustomBehaviorsList.Add(BehaviorType.IContractBehavior, cbs.FindAll<CustomBehaviorAttribute>());
-            var opbs = (System.Collections.Generic.KeyedByTypeCollection<IOperationBehavior>)od.OperationBehaviors;
+            var opbs = (CoreWCF.Collections.Generic.KeyedByTypeCollection<IOperationBehavior>)od.OperationBehaviors;
             CustomBehaviorsList.Add(BehaviorType.IOperationBehavior, opbs.FindAll<CustomBehaviorAttribute>());
             return GetBehaviorsResult(CustomBehaviorsList);
         }

@@ -8,8 +8,7 @@ namespace Services
     {
         public string ServiceContractMethod(string s)
         {
-            //TODO: validate behavior
-            //BehaviorInvokedVerifier.ValidateServiceInvokedBehaviors(OperationContext.Current.Host.Description);            
+            BehaviorInvokedVerifier.ValidateServiceInvokedBehaviors(OperationContext.Current.Host.Description, s);
             return s;
         }
     }

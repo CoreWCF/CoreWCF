@@ -168,7 +168,7 @@ namespace ClientContract
         }
     }
 
-    public class MyMultiFacetedBehaviorAttribute : CustomBehaviorAttribute, IContractBehavior, /*IServiceBehavior,*/ IOperationBehavior, IEndpointBehavior
+    public class MyMultiFacetedBehaviorAttribute : CustomBehaviorAttribute, IContractBehavior, IOperationBehavior, IEndpointBehavior
     {
         public void Validate(ServiceEndpoint endpoint)
         {
@@ -205,19 +205,6 @@ namespace ClientContract
         {
             m_BehaviorFlags.ProxyContractBehaviorFlag = true;
         }
-
-        //public void Validate(ServiceDescription description, System.ServiceModel.ServiceHostBase serviceHost)
-        //{
-        //}
-
-        //public void AddBindingParameters(ServiceDescription description, System.ServiceModel.ServiceHostBase serviceHost, Collection<ServiceEndpoint> endpoints, BindingParameterCollection parameters)
-        //{
-        //}
-
-        //public void ApplyDispatchBehavior(ServiceDescription description, System.ServiceModel.ServiceHostBase serviceHost)
-        //{
-        //    m_BehaviorFlags.ServiceBehaviorFlag = true;
-        //}
 
         public void Validate(OperationDescription description)
         {

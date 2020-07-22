@@ -108,6 +108,12 @@ namespace CoreWCF
                 return holder;
             }
         }
+
+        public ServiceHostBase Host
+        {
+            get { return host; }
+        }
+
         public EndpointDispatcher EndpointDispatcher
         {
             get
