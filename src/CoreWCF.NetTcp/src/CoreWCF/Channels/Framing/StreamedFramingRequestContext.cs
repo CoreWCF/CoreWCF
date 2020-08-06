@@ -136,7 +136,7 @@ namespace CoreWCF.Channels.Framing
                     Stream connectionStream = new StreamingOutputConnectionStream(connection, settings);
                     // TODO: Determine if timeout stream is needed as StreamingOutputConnectionStream implements some timeout functionality
                     //Stream writeTimeoutStream = new TimeoutStream(connectionStream, ref timeoutHelper);
-                    messageEncoder.WriteMessage(message, connectionStream);
+                    messageEncoder.WriteMessageAsync(message, connectionStream);
                     await connection.Output.FlushAsync();
                 }
                 else

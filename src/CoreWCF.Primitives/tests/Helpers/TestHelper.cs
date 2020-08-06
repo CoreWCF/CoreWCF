@@ -3,6 +3,7 @@ using CoreWCF.Channels;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace Helpers
@@ -40,7 +41,7 @@ namespace Helpers
         internal static Message ConvertMessage(System.ServiceModel.Channels.Message message)
         {
             var ms = SerializeMessageToStream(message);
-            var convertedMessage = DeserialzieMessageFromStream(ms, ConvertMessageVersion(message.Version));
+            var convertedMessage = DeserialzieMessageFromStreamAsync(ms, ConvertMessageVersion(message.Version)).Result;
             convertedMessage.Headers.To = message.Headers.To;
             return convertedMessage;
         }
@@ -111,13 +112,13 @@ namespace Helpers
             return System.ServiceModel.Channels.MessageVersion.CreateVersion(envelopeVersion, addressingVersion);
         }
 
-        private static Message DeserialzieMessageFromStream(MemoryStream ms, MessageVersion messageVersion)
+        private static Task<Message> DeserialzieMessageFromStreamAsync(MemoryStream ms, MessageVersion messageVersion)
         {
             var bmebe = new BinaryMessageEncodingBindingElement();
             bmebe.MessageVersion = messageVersion;
             bmebe.ReaderQuotas = XmlDictionaryReaderQuotas.Max;
             var bmef = bmebe.CreateMessageEncoderFactory();
-            return bmef.Encoder.ReadMessage(ms, int.MaxValue);
+            return bmef.Encoder.ReadMessageAsync(ms, int.MaxValue);
         }
 
         private static MemoryStream SerializeMessageToStream(System.ServiceModel.Channels.Message requestMessage)
@@ -148,7 +149,7 @@ namespace Helpers
             bmebe.ReaderQuotas = XmlDictionaryReaderQuotas.Max;
             var bmef = bmebe.CreateMessageEncoderFactory();
             var ms = new MemoryStream(64 * 1024); // 64K to keep out of LOH
-            bmef.Encoder.WriteMessage(requestMessage, ms);
+            bmef.Encoder.WriteMessageAsync(requestMessage, ms);
             ms.Position = 0;
             return ms;
         }

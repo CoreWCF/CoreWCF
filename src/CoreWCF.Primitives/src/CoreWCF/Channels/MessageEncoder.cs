@@ -24,23 +24,22 @@ namespace CoreWCF.Channels
             return null;
         }
 
-        public Message ReadMessage(Stream stream, int maxSizeOfHeaders)
+        public Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders)
         {
-            return ReadMessage(stream, maxSizeOfHeaders, null);
+            return ReadMessageAsync(stream, maxSizeOfHeaders, null);
         }
 
-        public abstract Message ReadMessage(Stream stream, int maxSizeOfHeaders, string contentType);
+        public abstract Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType);
 
         public Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager)
         {
-            Message message = ReadMessage(buffer, bufferManager, null);
-            return message;
+            return ReadMessage(buffer, bufferManager, null);
         }
 
         public abstract Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType);
 
         // used for buffered streaming
-        internal ArraySegment<byte> BufferMessageStream(Stream stream, BufferManager bufferManager, int maxBufferSize)
+        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
         {
             byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
             int offset = 0;
@@ -48,7 +47,7 @@ namespace CoreWCF.Channels
 
             while (offset < currentBufferSize)
             {
-                int count = stream.Read(buffer, offset, currentBufferSize - offset);
+                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
                 if (count == 0)
                 {
                     stream.Dispose();
@@ -76,10 +75,10 @@ namespace CoreWCF.Channels
         }
 
         // used for buffered streaming
-        internal virtual Message ReadMessage(Stream stream, BufferManager bufferManager, int maxBufferSize,
+        internal virtual async Task<Message> ReadMessageAsync(Stream stream, BufferManager bufferManager, int maxBufferSize,
             string contentType)
         {
-            return ReadMessage(BufferMessageStream(stream, bufferManager, maxBufferSize), bufferManager, contentType);
+            return ReadMessage(await BufferMessageStreamAsync(stream, bufferManager, maxBufferSize), bufferManager, contentType);
         }
 
         public override string ToString()
@@ -87,13 +86,7 @@ namespace CoreWCF.Channels
             return ContentType;
         }
 
-        public abstract void WriteMessage(Message message, Stream stream);
-
-        // TODO: Work out what to do about the async message writing, add to contract
-        public virtual Task WriteMessageAsync(Message message, Stream stream)
-        {
-            return Task.Run(() => WriteMessage(message, stream));
-        }
+        public abstract Task WriteMessageAsync(Message message, Stream stream);
 
         public ArraySegment<byte> WriteMessage(Message message, int maxMessageSize, BufferManager bufferManager)
         {
