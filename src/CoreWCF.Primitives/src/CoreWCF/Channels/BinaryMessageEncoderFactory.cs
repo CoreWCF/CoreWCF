@@ -5,6 +5,7 @@ using System.Text;
 using CoreWCF.Runtime;
 using System.Xml;
 using CoreWCF.Xml;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
@@ -656,7 +657,7 @@ namespace CoreWCF.Channels
                 return message;
             }
 
-            public override Message ReadMessage(Stream stream, int maxSizeOfHeaders, string contentType)
+            public override Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType)
             {
                 if (stream == null)
                 {
@@ -675,7 +676,7 @@ namespace CoreWCF.Channels
                 Message message = Message.CreateMessage(reader, maxSizeOfHeaders, factory.messageVersion);
                 message.Properties.Encoder = this;
 
-                return message;
+                return Task.FromResult(message);
             }
 
             public override ArraySegment<byte> WriteMessage(Message message, int maxMessageSize, BufferManager bufferManager, int messageOffset)
@@ -754,7 +755,7 @@ namespace CoreWCF.Channels
                 return messageData;
             }
 
-            public override void WriteMessage(Message message, Stream stream)
+            public override async Task WriteMessageAsync(Message message, Stream stream)
             {
                 if (message == null)
                 {
@@ -774,10 +775,8 @@ namespace CoreWCF.Channels
                 ThrowIfMismatchedMessageVersion(message);
                 message.Properties.Encoder = this;
                 XmlDictionaryWriter xmlWriter = factory.TakeStreamedWriter(stream);
-                message.WriteMessage(xmlWriter);
+                await message.WriteMessageAsync(xmlWriter);
                 xmlWriter.Flush();
-
-
 
                 factory.ReturnStreamedWriter(xmlWriter);
                 if (compressionFormat != CompressionFormat.None)

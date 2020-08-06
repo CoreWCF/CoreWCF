@@ -125,8 +125,7 @@ namespace CoreWCF.Channels.Framing
                 Message message = null;
                 try
                 {
-                    // TODO: Make async
-                    message = connection.MessageEncoderFactory.Encoder.ReadMessage(
+                    message = await connection.MessageEncoderFactory.Encoder.ReadMessageAsync(
                         inputStream, connection.MaxBufferSize, connection.FramingDecoder.ContentType);
                 }
                 catch (XmlException xmlException)

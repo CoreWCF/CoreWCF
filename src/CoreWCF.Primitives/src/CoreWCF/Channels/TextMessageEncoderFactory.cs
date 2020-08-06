@@ -420,7 +420,7 @@ namespace CoreWCF.Channels
                 return message;
             }
 
-            public override Message ReadMessage(Stream stream, int maxSizeOfHeaders, string contentType)
+            public override Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType)
             {
                 if (stream == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(stream)));
@@ -429,7 +429,7 @@ namespace CoreWCF.Channels
                 Message message = Message.CreateMessage(reader, maxSizeOfHeaders, version);
                 message.Properties.Encoder = this;
 
-                return message;
+                return Task.FromResult(message);
             }
 
             public override ArraySegment<byte> WriteMessage(Message message, int maxMessageSize, BufferManager bufferManager, int messageOffset)
@@ -453,30 +453,6 @@ namespace CoreWCF.Channels
                 ReturnMessageWriter(messageWriter);
 
                 return messageData;
-            }
-
-            public override void WriteMessage(Message message, Stream stream)
-            {
-                if (message == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(message)));
-                if (stream == null)
-                    throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(stream)), message);
-                ThrowIfMismatchedMessageVersion(message);
-
-                message.Properties.Encoder = this;
-                XmlDictionaryWriter xmlWriter = TakeStreamedWriter(stream);
-                if (optimizeWriteForUTF8)
-                {
-                    message.WriteMessage(xmlWriter);
-                }
-                else
-                {
-                    xmlWriter.WriteStartDocument();
-                    message.WriteMessage(xmlWriter);
-                    xmlWriter.WriteEndDocument();
-                }
-                xmlWriter.Flush();
-                ReturnStreamedWriter(xmlWriter);
             }
 
             public override async Task WriteMessageAsync(Message message, Stream stream)

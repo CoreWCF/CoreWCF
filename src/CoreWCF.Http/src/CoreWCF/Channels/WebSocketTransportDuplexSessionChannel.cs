@@ -515,7 +515,7 @@ namespace CoreWCF.Channels
                         buffer = bufferManager.TakeBuffer(receivedByteCount);
                         Buffer.BlockCopy(internalBuffer, 0, buffer, 0, receivedByteCount);
                         Fx.Assert(result != null, "Result should not be null");
-                        pendingMessage = PrepareMessage(result, buffer, receivedByteCount);
+                        pendingMessage = await PrepareMessageAsync(result, buffer, receivedByteCount);
                         success = true;
                     }
                     finally
@@ -647,7 +647,7 @@ namespace CoreWCF.Channels
 
                                     WebSocketReceiveResult result = receiveTask.Result;
                                     CheckCloseStatus(result);
-                                    pendingMessage = PrepareMessage(result, buffer, result.Count);
+                                    pendingMessage = await PrepareMessageAsync(result, buffer, result.Count);
 
                                     //if (TD.WebSocketAsyncReadStopIsEnabled())
                                     //{
@@ -726,7 +726,7 @@ namespace CoreWCF.Channels
                 return null;
             }
 
-            private Message PrepareMessage(WebSocketReceiveResult result, byte[] buffer, int count)
+            private async Task<Message> PrepareMessageAsync(WebSocketReceiveResult result, byte[] buffer, int count)
             {
                 if (result.MessageType != WebSocketMessageType.Close)
                 {
@@ -734,7 +734,7 @@ namespace CoreWCF.Channels
                     if (useStreaming)
                     {
                         TimeoutHelper readTimeoutHelper = new TimeoutHelper(defaultTimeouts.ReceiveTimeout);
-                        message = encoder.ReadMessage(
+                        message = await encoder.ReadMessageAsync(
                             new MaxMessageSizeStream(
                                 new TimeoutStream(
                                     new WebSocketStream(

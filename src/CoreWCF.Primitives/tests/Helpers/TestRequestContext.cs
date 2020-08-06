@@ -69,7 +69,7 @@ namespace Helpers
             var mef = mebe.CreateMessageEncoderFactory();
             var me = mef.Encoder;
             MemoryStream ms = new MemoryStream();
-            me.WriteMessage(ReplyMessage, ms);
+            me.WriteMessageAsync(ReplyMessage, ms);
             var messageBytes = ms.ToArray();
             _replyMessageString = Encoding.UTF8.GetString(messageBytes);
         }

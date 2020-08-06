@@ -3,6 +3,7 @@ using Helpers;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -10,7 +11,7 @@ namespace CoreWCF.Primitives.Tests
     public class MessageEncoderTest
     {
         [Fact]
-        public void BasicTextTest()
+        public async Task BasicTextTest()
         {
             int bad = 0;
             int good = 0;
@@ -24,11 +25,11 @@ namespace CoreWCF.Primitives.Tests
                 {
                     Message myMessage = (Message)ims.Current;
                     var s = new MemoryStream();
-                    f.WriteMessage(myMessage, s);
+                    await f.WriteMessageAsync(myMessage, s);
                     s.Seek(0, SeekOrigin.Begin);
                     _ = new StreamReader(s);
                     s.Seek(0, SeekOrigin.Begin);
-                    Message m2 = f.ReadMessage(s, int.MaxValue);
+                    Message m2 = await f.ReadMessageAsync(s, int.MaxValue);
 
                     // original got closed by sending, so recreate it:
                     myMessage = ims.CurrentParameters.CreateMessage();
@@ -47,7 +48,7 @@ namespace CoreWCF.Primitives.Tests
             catch(Exception ex)
             {
                 Assert.True(false, $"Exception caught: {ex.Message} More information: {bad} bad ones, {good} good ones.");
-            }           
+            }
         }
 
         [Fact]

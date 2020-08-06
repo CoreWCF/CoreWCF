@@ -23,21 +23,20 @@ using Microsoft.Extensions.Primitives;
 namespace CoreWCF.Channels
 {
     // abstract out the common functionality of an "HttpInput"
-    abstract class HttpInput
+    internal abstract class HttpInput
     {
-        const string multipartRelatedMediaType = "multipart/related";
-        const string startInfoHeaderParam = "start-info";
-        const string defaultContentType = "application/octet-stream";
-
-        BufferManager bufferManager;
-        bool isRequest;
-        MessageEncoder messageEncoder;
-        IHttpTransportFactorySettings settings;
-        bool streamed;
-        WebException webException;
-        Stream inputStream;
-        bool enableChannelBinding;
-        bool errorGettingInputStream;
+        private const string multipartRelatedMediaType = "multipart/related";
+        private const string startInfoHeaderParam = "start-info";
+        private const string defaultContentType = "application/octet-stream";
+        private BufferManager bufferManager;
+        private bool isRequest;
+        private MessageEncoder messageEncoder;
+        private IHttpTransportFactorySettings settings;
+        private bool streamed;
+        private WebException webException;
+        private Stream inputStream;
+        private bool enableChannelBinding;
+        private bool errorGettingInputStream;
 
         protected HttpInput(IHttpTransportFactorySettings settings, bool isRequest, bool enableChannelBinding)
         {
@@ -116,7 +115,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowMaxReceivedMessageSizeExceeded()
+        private void ThrowMaxReceivedMessageSizeExceeded()
         {
             if (isRequest)
             {
@@ -130,7 +129,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        Message DecodeBufferedMessage(ArraySegment<byte> buffer, Stream inputStream)
+        private async Task<Message> DecodeBufferedMessageAsync(ArraySegment<byte> buffer, Stream inputStream)
         {
             try
             {
@@ -138,7 +137,7 @@ namespace CoreWCF.Channels
                 if (ContentLength == -1 && buffer.Count == settings.MaxReceivedMessageSize)
                 {
                     byte[] extraBuffer = new byte[1];
-                    int extraReceived = inputStream.Read(extraBuffer, 0, 1);
+                    int extraReceived = await inputStream.ReadAsync(extraBuffer, 0, 1);
                     if (extraReceived > 0)
                     {
                         ThrowMaxReceivedMessageSizeExceeded();
@@ -161,7 +160,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        Message ReadBufferedMessage(Stream inputStream)
+        private async Task<Message> ReadBufferedMessageAsync(Stream inputStream)
         {
             ArraySegment<byte> messageBuffer = GetMessageBuffer();
             byte[] buffer = messageBuffer.Array;
@@ -170,8 +169,8 @@ namespace CoreWCF.Channels
 
             while (count > 0)
             {
-                int bytesRead = inputStream.Read(buffer, offset, count);
-                if (bytesRead == 0) // EOF 
+                int bytesRead = await inputStream.ReadAsync(buffer, offset, count);
+                if (bytesRead == 0) // EOF
                 {
                     if (ContentLength != -1)
                     {
@@ -185,14 +184,14 @@ namespace CoreWCF.Channels
                 offset += bytesRead;
             }
 
-            return DecodeBufferedMessage(new ArraySegment<byte>(buffer, 0, offset), inputStream);
+            return await DecodeBufferedMessageAsync(new ArraySegment<byte>(buffer, 0, offset), inputStream);
         }
 
-        Message ReadChunkedBufferedMessage(Stream inputStream)
+        private async Task<Message> ReadChunkedBufferedMessageAsync(Stream inputStream)
         {
             try
             {
-                return messageEncoder.ReadMessage(BufferMessageStream(inputStream, bufferManager, settings.MaxBufferSize), bufferManager, ContentType);
+                return messageEncoder.ReadMessage(await BufferMessageStreamAsync(inputStream, bufferManager, settings.MaxBufferSize), bufferManager, ContentType);
             }
             catch (XmlException xmlException)
             {
@@ -201,13 +200,13 @@ namespace CoreWCF.Channels
             }
         }
 
-        Message ReadStreamedMessage(Stream inputStream)
+        private async Task<Message> ReadStreamedMessageAsync(Stream inputStream)
         {
             MaxMessageSizeStream maxMessageSizeStream = new MaxMessageSizeStream(inputStream, settings.MaxReceivedMessageSize);
 
             try
             {
-                return messageEncoder.ReadMessage(maxMessageSizeStream, settings.MaxBufferSize, ContentType);
+                return await messageEncoder.ReadMessageAsync(maxMessageSizeStream, settings.MaxBufferSize, ContentType);
             }
             catch (XmlException xmlException)
             {
@@ -217,7 +216,7 @@ namespace CoreWCF.Channels
         }
 
         // used for buffered streaming
-        internal ArraySegment<byte> BufferMessageStream(Stream stream, BufferManager bufferManager, int maxBufferSize)
+        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
         {
             byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
             int offset = 0;
@@ -225,7 +224,7 @@ namespace CoreWCF.Channels
 
             while (offset < currentBufferSize)
             {
-                int count = stream.Read(buffer, offset, currentBufferSize - offset);
+                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
                 if (count == 0)
                 {
                     stream.Dispose();
@@ -253,7 +252,7 @@ namespace CoreWCF.Channels
 
         protected abstract void AddProperties(Message message);
 
-        void ApplyChannelBinding(Message message)
+        private void ApplyChannelBinding(Message message)
         {
             if (this.enableChannelBinding)
             {
@@ -262,7 +261,7 @@ namespace CoreWCF.Channels
         }
 
         // makes sure that appropriate HTTP level headers are included in the received Message
-        Exception ProcessHttpAddressing(Message message)
+        private Exception ProcessHttpAddressing(Message message)
         {
             Exception result = null;
             AddProperties(message);
@@ -374,7 +373,7 @@ namespace CoreWCF.Channels
             return result;
         }
 
-        void ValidateContentType()
+        private void ValidateContentType()
         {
             if (!HasContent)
                 return;
@@ -390,10 +389,10 @@ namespace CoreWCF.Channels
             }
         }
 
-        public Message ParseIncomingMessage(out Exception requestException)
+        public async Task<(Message message, Exception requestException)> ParseIncomingMessageAsync()
         {
             Message message = null;
-            requestException = null;
+            Exception requestException = null;
             bool throwing = true;
             try
             {
@@ -407,7 +406,7 @@ namespace CoreWCF.Channels
                     }
                     else
                     {
-                        return null;
+                        return (null, requestException);
                     }
                 }
                 else
@@ -415,22 +414,22 @@ namespace CoreWCF.Channels
                     Stream stream = this.GetInputStream(true);
                     if (streamed)
                     {
-                        message = ReadStreamedMessage(stream);
+                        message = await ReadStreamedMessageAsync(stream);
                     }
                     else if (this.ContentLength == -1)
                     {
-                        message = ReadChunkedBufferedMessage(stream);
+                        message = await ReadChunkedBufferedMessageAsync(stream);
                     }
                     else
                     {
-                        message = ReadBufferedMessage(stream);
+                        message = await ReadBufferedMessageAsync(stream);
                     }
                 }
 
                 requestException = ProcessHttpAddressing(message);
 
                 throwing = false;
-                return message;
+                return (message, requestException);
             }
             finally
             {
@@ -441,12 +440,12 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowHttpProtocolException(string message, HttpStatusCode statusCode)
+        private void ThrowHttpProtocolException(string message, HttpStatusCode statusCode)
         {
             ThrowHttpProtocolException(message, statusCode, null);
         }
 
-        void ThrowHttpProtocolException(string message, HttpStatusCode statusCode, string statusDescription)
+        private void ThrowHttpProtocolException(string message, HttpStatusCode statusCode, string statusDescription)
         {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateHttpProtocolException(message, statusCode, statusDescription, webException));
         }
@@ -467,7 +466,7 @@ namespace CoreWCF.Channels
         {
         }
 
-        ArraySegment<byte> GetMessageBuffer()
+        private ArraySegment<byte> GetMessageBuffer()
         {
             long count = ContentLength;
             int bufferSize;
@@ -484,24 +483,23 @@ namespace CoreWCF.Channels
     }
 
     // abstract out the common functionality of an "HttpOutput"
-    abstract class HttpOutput
+    internal abstract class HttpOutput
     {
-        const string DefaultMimeVersion = "1.0";
-
-        HttpAbortReason abortReason;
-        bool isDisposed;
-        bool isRequest;
-        Message message;
-        IHttpTransportFactorySettings settings;
-        byte[] bufferToRecycle;
-        BufferManager bufferManager;
-        MessageEncoder messageEncoder;
-        bool streamed;
-        static Action<object> onStreamSendTimeout;
-        string mtomBoundary;
-        Stream outputStream;
-        bool supportsConcurrentIO;
-        bool canSendCompressedResponses;
+        private const string DefaultMimeVersion = "1.0";
+        private HttpAbortReason abortReason;
+        private bool isDisposed;
+        private bool isRequest;
+        private Message message;
+        private IHttpTransportFactorySettings settings;
+        private byte[] bufferToRecycle;
+        private BufferManager bufferManager;
+        private MessageEncoder messageEncoder;
+        private bool streamed;
+        private static Action<object> onStreamSendTimeout;
+        private string mtomBoundary;
+        private Stream outputStream;
+        private bool supportsConcurrentIO;
+        private bool canSendCompressedResponses;
 
         protected HttpOutput(IHttpTransportFactorySettings settings, Message message, bool isRequest, bool supportsConcurrentIO)
         {
@@ -565,7 +563,7 @@ namespace CoreWCF.Channels
             return Task.CompletedTask;
         }
 
-        void CleanupBuffer()
+        private void CleanupBuffer()
         {
             byte[] bufferToRecycleSnapshot = Interlocked.Exchange<byte[]>(ref this.bufferToRecycle, null);
             if (bufferToRecycleSnapshot != null)
@@ -664,13 +662,13 @@ namespace CoreWCF.Channels
             return message is NullMessage;
         }
 
-        ArraySegment<byte> SerializeBufferedMessage(Message message)
+        private ArraySegment<byte> SerializeBufferedMessage(Message message)
         {
             // by default, the HttpOutput should own the buffer and clean it up
             return SerializeBufferedMessage(message, true);
         }
 
-        ArraySegment<byte> SerializeBufferedMessage(Message message, bool shouldRecycleBuffer)
+        private ArraySegment<byte> SerializeBufferedMessage(Message message, bool shouldRecycleBuffer)
         {
             ArraySegment<byte> result;
 
@@ -693,7 +691,7 @@ namespace CoreWCF.Channels
             return result;
         }
 
-        Stream GetWrappedOutputStream()
+        private Stream GetWrappedOutputStream()
         {
             const int ChunkSize = 32768;    // buffer size used for synchronous writes
             // const int BufferSize = 16384;   // buffer size used for asynchronous writes
@@ -745,7 +743,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        static void OnStreamSendTimeout(object state)
+        private static void OnStreamSendTimeout(object state)
         {
             HttpOutput thisPtr = (HttpOutput)state;
             thisPtr.Abort(HttpAbortReason.TimedOut);
@@ -809,7 +807,7 @@ namespace CoreWCF.Channels
             return new AspNetCoreHttpOutput(httpContext, settings, message, httpMethod);
         }
 
-        class AspNetCoreHttpOutput : HttpOutput
+        private class AspNetCoreHttpOutput : HttpOutput
         {
             private HttpResponse httpResponse;
             private HttpContext httpContext;
@@ -1003,15 +1001,14 @@ namespace CoreWCF.Channels
         }
     }
 
-    enum HttpAbortReason
+    internal enum HttpAbortReason
     {
         None,
         Aborted,
         TimedOut
     }
 
-
-    static class HttpChannelUtilities
+    internal static class HttpChannelUtilities
     {
         internal static class StatusDescriptionStrings
         {
@@ -1838,9 +1835,9 @@ namespace CoreWCF.Channels
     //    }
     //}
 
-    class PreReadStream : DelegatingStream
+    internal class PreReadStream : DelegatingStream
     {
-        byte[] preReadBuffer;
+        private byte[] preReadBuffer;
 
         public PreReadStream(Stream stream, byte[] preReadBuffer)
             : base(stream)
@@ -1848,7 +1845,7 @@ namespace CoreWCF.Channels
             this.preReadBuffer = preReadBuffer;
         }
 
-        bool ReadFromBuffer(byte[] buffer, int offset, int count, out int bytesRead)
+        private bool ReadFromBuffer(byte[] buffer, int offset, int count, out int bytesRead)
         {
             if (this.preReadBuffer != null)
             {
