@@ -99,8 +99,7 @@ namespace CoreWCF.Description
             get { return _endpoints; }
         }
 
-        // TODO: I made this internal, evaluate making it public as it is on full framework
-        internal Type ServiceType
+        public Type ServiceType
         {
             get { return _serviceType; }
             set { _serviceType = value; }

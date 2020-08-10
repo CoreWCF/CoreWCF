@@ -691,6 +691,8 @@ namespace CoreWCF.Description
             }
 
             InitializeServiceHost(serviceHost);
+            ServiceConfigurationDelegateHolder<TService> configDelegate = services.GetService<ServiceConfigurationDelegateHolder<TService>>();
+            configDelegate?.Configure(serviceHost);
 
             // TODO: Add error checking to make sure property chain is correctly populated with objects
             var dispatchers = new List<IServiceDispatcher>(serviceHost.ChannelDispatchers.Count);
