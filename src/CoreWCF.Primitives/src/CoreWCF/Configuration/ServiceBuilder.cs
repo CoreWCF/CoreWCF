@@ -22,6 +22,8 @@ namespace CoreWCF.Configuration
 
         ICollection<Type> IServiceBuilder.Services => _services.Keys;
 
+        public IServiceProvider ServiceProvider => _serviceProvider;
+
         public void AddService<TService>() where TService : class
         {
             var serviceConfig = _serviceProvider.GetRequiredService<IServiceConfiguration<TService>>();
