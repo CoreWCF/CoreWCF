@@ -253,19 +253,7 @@ namespace CoreWCF.Http.Tests
             public static string _method = "";
             public void ConfigureServices(IServiceCollection services)
             {
-                if (_method.Contains("ByHandImplementsOther"))
-                {
-                    services.AddServiceModelServices().AddSingleton<IContractBehavior>(new ServiceContract.MyMultiFacetedBehaviorAttribute());
-                }
-                else if(_method.Contains("ByHand"))
-                {
-                    services.AddServiceModelServices().AddSingleton<IContractBehavior>(new ServiceContract.CustomContractBehaviorAttribute());
-                    
-                }
-                else
-                {
-                    services.AddServiceModelServices();
-                }
+                services.AddServiceModelServices();
             }
 
             public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -276,10 +264,22 @@ namespace CoreWCF.Http.Tests
                     {                     
                         case "ByHand":
                         case "ByHand_UsingHiddenProperty":
-                        case "ByHandImplementsOther":
-                        case "ByHandImplementsOther_UsingHiddenProperty":
                             builder.AddService<ContractBehaviorBasic_ByHand_Service>();
                             builder.AddServiceEndpoint<ContractBehaviorBasic_ByHand_Service, ServiceContract.IContractBehaviorBasic_ByHand>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
+                            builder.ConfigureServiceHostBase<ContractBehaviorBasic_ByHand_Service>(serviceHost =>
+                            {
+                                var cb = new ServiceContract.CustomContractBehaviorAttribute();
+                                serviceHost.Description.Endpoints[0].Contract.ContractBehaviors.Add(cb);
+                            });
+                            break;
+                        case "ByHandImplementsOther":
+                            builder.AddService<ContractBehaviorBasic_ByHand_Service>();
+                            builder.AddServiceEndpoint<ContractBehaviorBasic_ByHand_Service, ServiceContract.IContractBehaviorBasic_ByHand>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
+                            builder.ConfigureServiceHostBase<ContractBehaviorBasic_ByHand_Service>(serviceHost =>
+                            {
+                                var cb = new ServiceContract.MyMultiFacetedBehaviorAttribute();
+                                serviceHost.Description.Endpoints[0].Contract.ContractBehaviors.Add(cb);
+                            });
                             break;
                         case "CustomAttribute":
                             builder.AddService<ContractBehaviorBasic_CustomAttribute_Service>();

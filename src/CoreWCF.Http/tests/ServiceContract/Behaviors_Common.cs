@@ -263,7 +263,7 @@ namespace ServiceContract
                             behaviorInvoked = cba.IsServiceBehaviorOnlyInvoked();
                             break;
                         case BehaviorType.IEndpointBehavior:
-                                behaviorInvoked = cba.IsServiceEndpointBehaviorOnlyInvoked();
+                            behaviorInvoked = cba.IsServiceEndpointBehaviorOnlyInvoked();
                             break;
                         case BehaviorType.IContractBehavior:
                             behaviorInvoked = cba.IsDispatcherContractBehaviorOnlyInvoked();
@@ -305,18 +305,10 @@ namespace ServiceContract
                     break;
                 case "CustomAttributesImplementsOther":
                 case "ByHandImplementsOther":
-                case "ByHandImplementsOther_UsingHiddenProperty":
                     expected = "IContractBehavior:ServiceContract.MyMultiFacetedBehaviorAttribute;";
                     break;
                 default:
                     break;
-            }
-
-            //currenlty block at configuring service.ServiceHost.Description.Endpoints[0].Contract.ContractBehaviors.Add(contractBehavior);
-            //workaround:
-            if (s.ToLower().Contains("byhand"))
-            {
-                expected = "";
             }
 
             Xunit.Assert.Equal(expected, actual);
