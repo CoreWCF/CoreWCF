@@ -25,7 +25,7 @@ namespace CoreWCF.Primitives.Tests
             var message = messageEncoder.ReadMessage(new ArraySegment<byte>(messageBytes), BufferManager.CreateBufferManager(10, 10), "text/xml; charset=utf-8");
             var messageStr = message.ToString();
             Assert.NotNull(messageStr);
-            Assert.True(messageStr.Contains("The byte 0x0F is not valid at this location"));
+            Assert.Contains("The byte 0x0F is not valid at this location", messageStr);
         }
     }
 }
