@@ -84,7 +84,7 @@ namespace DependencyInjection
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
             var echo = channel.Echo("hello");
             echo = channel.Echo("hello");
-            PerCallInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(2, TimeSpan.FromSeconds(5));
+            PerCallInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.CreationCount);
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.DisposalCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -106,7 +106,7 @@ namespace DependencyInjection
 
             var echo = channel.Echo("hello");
             echo = channel.Echo("hello");
-            PerCallInstanceContextSimpleService.WaitForDisposalCount(2, TimeSpan.FromSeconds(5));
+            PerCallInstanceContextSimpleService.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
             Assert.Equal(2, PerCallInstanceContextSimpleService.CreationCount);
             Assert.Equal(2, PerCallInstanceContextSimpleService.DisposalCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -133,7 +133,7 @@ namespace DependencyInjection
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
             var echo = channel.Echo("hello");
             echo = channel.Echo("hello");
-            PerCallInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(2, TimeSpan.FromSeconds(5));
+            PerCallInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.CreationCount);
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.DisposalCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -167,6 +167,7 @@ namespace DependencyInjection
             echo = channel.Echo("hello");
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehavior.CreationCount);
+            PerSessionInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(1, TimeSpan.FromSeconds(30));
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehavior.DisposalCount);
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
@@ -190,6 +191,7 @@ namespace DependencyInjection
             echo = channel.Echo("hello");
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             Assert.Equal(1, PerSessionInstanceContextSimpleService.CreationCount);
+            PerSessionInstanceContextSimpleService.WaitForDisposalCount(1, TimeSpan.FromSeconds(30));
             Assert.Equal(1, PerSessionInstanceContextSimpleService.DisposalCount);
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
@@ -217,6 +219,7 @@ namespace DependencyInjection
             echo = channel.Echo("hello");
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehavior.CreationCount);
+            PerSessionInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(1, TimeSpan.FromSeconds(30));
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehavior.DisposalCount);
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
