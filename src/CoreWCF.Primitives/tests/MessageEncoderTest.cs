@@ -3,6 +3,7 @@ using Helpers;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using Xunit;
 
@@ -11,7 +12,7 @@ namespace CoreWCF.Primitives.Tests
     public class MessageEncoderTest
     {
         [Fact]
-        public void BasicTextTest()
+        public async Task BasicTextTest()
         {
             int bad = 0;
             int good = 0;
