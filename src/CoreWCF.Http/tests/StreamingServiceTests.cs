@@ -30,7 +30,7 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         //[InlineData("VoidStreamService")]
-        //[InlineData("RefStreamService")]
+        //[InlineData("RefStreamService")] //issue: https://github.com/CoreWCF/CoreWCF/issues/196
         //[InlineData("StreamInOutService")]
         [InlineData("StreamStreamAsyncService")]
         [InlineData("InFileStreamService")]

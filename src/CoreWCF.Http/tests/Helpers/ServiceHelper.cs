@@ -8,9 +8,9 @@ using System;
 using System.IO;
 using System.Diagnostics;
 using System.Net;
+#if NET472
 using System.Security.Authentication;
 #endif // NET472
-using System.Text;
 using System.Text;
 using Xunit.Abstractions;
 
@@ -261,7 +261,4 @@ namespace Helpers
 			return GetStringFrom(stream);
 		}
 	}
-            }
-        }
-    }
 }

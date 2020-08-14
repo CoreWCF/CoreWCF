@@ -77,12 +77,6 @@ namespace Helpers
             ApplyDebugTimeouts(binding);
             return binding;
         }
-		public static BasicHttpBinding GetBufferedModeBinding()
-		{
-			var binding = new BasicHttpBinding();
-			ApplyDebugTimeouts(binding);
-			return binding;
-		}
 
 		public static BasicHttpsBinding GetBufferedModeHttpsBinding()
 		{
