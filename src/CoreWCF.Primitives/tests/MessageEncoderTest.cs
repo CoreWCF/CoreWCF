@@ -25,15 +25,15 @@ namespace CoreWCF.Primitives.Tests
                 {
                     Message myMessage = (Message)ims.Current;
                     var s = new MemoryStream();
-                    f.WriteMessage(myMessage, s);
+                    await f.WriteMessageAsync(myMessage, s);
                     s.Seek(0, SeekOrigin.Begin);
                     _ = new StreamReader(s);
                     s.Seek(0, SeekOrigin.Begin);
-                    Message m2 = f.ReadMessage(s, int.MaxValue);
+                    Message m2 = await f.ReadMessageAsync(s, int.MaxValue);
 
                     // original got closed by sending, so recreate it:
                     myMessage = ims.CurrentParameters.CreateMessage();
-                    if (Helpers.MessageTestUtilities.AreMessagesEqual(myMessage, m2))
+                    if (MessageTestUtilities.AreMessagesEqual(myMessage, m2))
                     {
                         good++;
                     }
@@ -59,8 +59,8 @@ namespace CoreWCF.Primitives.Tests
             Message m1p = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, action, new CustomGeneratedBodyWriter(2, 1024));
 
             // Note, m1 is closed by this, which is we compare m2 with m1p
-            Message m2 = Helpers.MessageTestUtilities.SendAndReceiveMessage(m1);
-            Assert.True(Helpers.MessageTestUtilities.AreBodiesEqual(m1p, m2, true, true));
+            Message m2 = MessageTestUtilities.SendAndReceiveMessage(m1);
+            Assert.True(MessageTestUtilities.AreBodiesEqual(m1p, m2, true, true));
         }
 
         [Fact]
@@ -70,7 +70,7 @@ namespace CoreWCF.Primitives.Tests
             GeneratedSerializableObject generatedSerializableObject = new GeneratedSerializableObject(2, 200L);
             MessageHeader header = MessageHeader.CreateHeader("foo", "", generatedSerializableObject);
             message.Headers.Add(header);
-            Message message2 = Helpers.MessageTestUtilities.SendAndReceiveMessage(message);
+            Message message2 = MessageTestUtilities.SendAndReceiveMessage(message);
             int num = message2.Headers.FindHeader("foo", "");
             Assert.NotEqual(-1, num);
 
@@ -82,7 +82,7 @@ namespace CoreWCF.Primitives.Tests
             message = Message.CreateMessage(new XmlTextReader(new StringReader(s)), 2147483647, MessageVersion.Default);
             message2 = Message.CreateMessage(new XmlTextReader(new StringReader(s)), 2147483647, MessageVersion.Default);
             Message two = MessageTestUtilities.SendAndReceiveMessage(message);
-            Assert.True(Helpers.MessageTestUtilities.AreBodiesEqual(message2, two));
+            Assert.True(MessageTestUtilities.AreBodiesEqual(message2, two));
         }
     }
 }
