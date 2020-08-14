@@ -3,10 +3,14 @@ using CoreWCF.Channels;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
+using ServiceContract;
 using System;
+using System.IO;
 using System.Diagnostics;
 using System.Net;
+#if NET472
 using System.Security.Authentication;
+#endif // NET472
 using System.Text;
 using Xunit.Abstractions;
 
@@ -165,5 +169,96 @@ namespace Helpers
                 }
             }
         }
-    }
+
+		public class NoneSerializableStream : MemoryStream
+		{
+		}
+
+		public static void PopulateStreamWithStringBytes(Stream stream, string str)
+		{
+			byte[] bytes = Encoding.UTF8.GetBytes(str);
+			byte[] array = bytes;
+			for (int i = 0; i < array.Length; i++)
+			{
+				byte value = array[i];
+				stream.WriteByte(value);
+			}
+
+			stream.Position = 0L;
+		}
+
+		public static Stream GetStreamWithStringBytes(string s)
+		{
+			Stream stream = new NoneSerializableStream();
+			PopulateStreamWithStringBytes(stream, s);
+			return stream;
+		}
+
+		public static string GetStringFrom(Stream s)
+		{
+			StreamReader streamReader = new StreamReader(s, Encoding.UTF8);
+			return streamReader.ReadToEnd();
+		}
+
+		public static MessageContractStreamNoHeader GetMessageContractStreamNoHeader(string s)
+		{
+			if (string.IsNullOrEmpty(s))
+			{
+				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
+			}
+
+			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+			return new MessageContractStreamNoHeader
+			{
+				stream = streamWithStringBytes
+			};
+		}
+
+		public static MessageContractStreamOneIntHeader GetMessageContractStreamOneIntHeader(string s)
+		{
+			if (string.IsNullOrEmpty(s))
+			{
+				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
+			}
+
+			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+			return new MessageContractStreamOneIntHeader
+			{
+				input = streamWithStringBytes
+			};
+		}
+
+		public static MessageContractStreamTwoHeaders GetMessageContractStreamTwoHeaders(string s)
+		{
+			if (string.IsNullOrEmpty(s))
+			{
+				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamTwoHeaders");
+			}
+			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+			return new MessageContractStreamTwoHeaders
+			{
+				Stream = streamWithStringBytes
+			};
+		}
+
+		public static string GetStringFrom(MessageContractStreamTwoHeaders input)
+		{
+			if (input == null)
+			{
+				throw new ArgumentNullException("MessageContractStreamTwoHeaders is null");
+			}
+			Stream stream = input.Stream;
+			return GetStringFrom(stream);
+		}
+
+		public static string GetStringFrom(MessageContractStreamNoHeader input)
+		{
+			if (input == null)
+			{
+				throw new ArgumentNullException("MessageContractStreamNoHeader is null");
+			}
+			Stream stream = input.stream;
+			return GetStringFrom(stream);
+		}
+	}
 }
