@@ -21,6 +21,8 @@ namespace CoreWCF.Http.Tests
 
         public TaskCollectionsTests(ITestOutputHelper output)
         {
+            // No-op on .NET Core but necessary to complete concurrect requests on NetFx
+            System.Net.ServicePointManager.DefaultConnectionLimit = 50;
             _output = output;
         }
 
