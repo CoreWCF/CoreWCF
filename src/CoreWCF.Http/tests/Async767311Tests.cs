@@ -86,7 +86,7 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        public void CallbackResults(IAsyncResult asyncResult)
+        internal void CallbackResults(IAsyncResult asyncResult)
         {
             _output.WriteLine("Callback received, signalling");
             autoEvent.Set();
