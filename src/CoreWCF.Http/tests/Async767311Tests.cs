@@ -115,22 +115,22 @@ namespace CoreWCF.Http.Tests
         }
 
         public AutoResetEvent autoEvent = new AutoResetEvent(false);
-    }
 
-    internal class Startup
-    {
-        public void ConfigureServices(IServiceCollection services)
+        internal class Startup
         {
-            services.AddServiceModelServices();
-        }
-
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            app.UseServiceModel(builder =>
+            public void ConfigureServices(IServiceCollection services)
             {
-                builder.AddService<SM_767311Service>();
-                builder.AddServiceEndpoint<SM_767311Service, ServiceContract.ISyncService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/SyncService.svc");
-            });
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<SM_767311Service>();
+                    builder.AddServiceEndpoint<SM_767311Service, ServiceContract.ISyncService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/SyncService.svc");
+                });
+            }
         }
     }
 }
