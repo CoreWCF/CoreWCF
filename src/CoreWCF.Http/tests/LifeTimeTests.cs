@@ -100,7 +100,7 @@ namespace CoreWCF.Http.Tests
 
             for (int i = 0; i < 3; i++)
             {
-                //channel.OneWay();
+                //channel.OneWay(); blocking issue: https://github.com/CoreWCF/CoreWCF/issues/197
                 channel.TwoWay();
             }
 
