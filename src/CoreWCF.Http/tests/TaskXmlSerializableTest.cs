@@ -1,4 +1,5 @@
-﻿using CoreWCF.Configuration;
+﻿using ClientContract;
+using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,17 +29,15 @@ namespace Http.Tests
                 host.Start();
 
                 var httpBinding = ClientHelper.GetBufferedModeBinding();
-                var channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IXmlSerializerContract>(httpBinding,
+                var channelFactory = new System.ServiceModel.ChannelFactory<IXmlSerializerContract>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-
-                ClientContract.IXmlSerializerContract xmlSerializerContract = (ClientContract.IXmlSerializerContract)channelFactory.CreateChannel();
-                Task<ClientContract.XmlSerializerPerson> person = xmlSerializerContract.GetPerson();
-
+                IXmlSerializerContract xmlSerializerContract = channelFactory.CreateChannel();
+                Task<XmlSerializerPerson> person = xmlSerializerContract.GetPerson();
                 Assert.NotNull(person);
                 Assert.NotNull(person.Result);
             }
         }
-
+         
         internal class Startup
         {
             public void ConfigureServices(IServiceCollection services)

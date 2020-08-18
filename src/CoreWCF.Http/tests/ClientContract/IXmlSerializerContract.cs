@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using System.Xml;
@@ -7,68 +8,129 @@ using System.Xml.Serialization;
 
 namespace ClientContract
 {
-	[AttributeUsage(AttributeTargets.All, Inherited = false)]
-	internal sealed class __DynamicallyInvokableAttribute : Attribute
-	{
-	}
-
-	public interface IXmlSerializable
-	{
-		/// <summary>This method is reserved and should not be used. When implementing the <see langword="IXmlSerializable" /> interface, you should return <see langword="null" /> (<see langword="Nothing" /> in Visual Basic) from this method, and instead, if specifying a custom schema is required, apply the <see cref="T:System.Xml.Serialization.XmlSchemaProviderAttribute" /> to the class.</summary>
-		/// <returns>An <see cref="T:System.Xml.Schema.XmlSchema" /> that describes the XML representation of the object that is produced by the <see cref="M:System.Xml.Serialization.IXmlSerializable.WriteXml(System.Xml.XmlWriter)" /> method and consumed by the <see cref="M:System.Xml.Serialization.IXmlSerializable.ReadXml(System.Xml.XmlReader)" /> method.</returns>
-		// Token: 0x0600171B RID: 5915
-		[__DynamicallyInvokable]
-		XmlSchema GetSchema();
-
-		/// <summary>Generates an object from its XML representation.</summary>
-		/// <param name="reader">The <see cref="T:System.Xml.XmlReader" /> stream from which the object is deserialized. </param>
-		// Token: 0x0600171C RID: 5916
-		[__DynamicallyInvokable]
-		void ReadXml(XmlReader reader);
-
-		/// <summary>Converts an object into its XML representation.</summary>
-		/// <param name="writer">The <see cref="T:System.Xml.XmlWriter" /> stream to which the object is serialized. </param>
-		// Token: 0x0600171D RID: 5917
-		[__DynamicallyInvokable]
-		void WriteXml(XmlWriter writer);
-	}
-
 	[XmlSchemaProvider("GetSchema")]
 	[XmlRoot(ElementName = "PersonPerson", Namespace = "http://Test")]
 	public class XmlSerializerPerson : IXmlSerializable
 	{
-		// Token: 0x060008CB RID: 2251 RVA: 0x00002A18 File Offset: 0x00000C18
 		public void ReadXml(XmlReader xmlReader)
 		{
+
 		}
 
-		// Token: 0x060008CC RID: 2252 RVA: 0x00002A18 File Offset: 0x00000C18
 		public void WriteXml(XmlWriter writer)
 		{
+
 		}
 
-		// Token: 0x060008CD RID: 2253 RVA: 0x0001C6F0 File Offset: 0x0001A8F0
 		public XmlSchema GetSchema()
 		{
 			throw new NotImplementedException();
 		}
 
-		// Token: 0x060008CE RID: 2254 RVA: 0x00020804 File Offset: 0x0001EA04
 		public static XmlQualifiedName GetSchema(XmlSchemaSet schemas)
 		{
 			XmlQualifiedName xmlQualifiedName = new XmlQualifiedName("Person", "http://Test");
-			//XmlTypeHelper.AddSchema(schemas, xmlQualifiedName);
+			XmlTypeHelper.AddSchema(schemas, xmlQualifiedName);
 			return xmlQualifiedName;
 		}
 	}
 
-	// Token: 0x02000157 RID: 343
 	[ServiceContract(Namespace = "http://microsoft.samples", Name = "IXmlSerializerContract")]
 	public interface IXmlSerializerContract
 	{
-		// Token: 0x060008D8 RID: 2264
 		[XmlSerializerFormat]
 		[OperationContract]
 		Task<XmlSerializerPerson> GetPerson();
 	}
+
+	public class XmlTypeHelper
+	{
+		private XmlTypeHelper()
+		{
+
+		}
+
+		public static XmlSchema GetSchema(string localName, string ns)
+		{
+			XmlSchemaType xmlSchemaType = null;
+			return XmlTypeHelper.GetSchema(null, localName, ns, out xmlSchemaType);
+		}
+
+		private static XmlSchema GetSchema(XmlSchemaSet schemas, string localName, string ns, out XmlSchemaType schemaType)
+		{
+			schemaType = XmlTypeHelper.GetSchemaType(localName, ns);
+			XmlSchema xmlSchema = null;
+			if (schemas != null)
+			{
+				ICollection collection = schemas.Schemas();
+				foreach (object obj in collection)
+				{
+					XmlSchema xmlSchema2 = (XmlSchema)obj;
+					if ((xmlSchema2.TargetNamespace == null && ns.Length == 0) || ns.Equals(xmlSchema2.TargetNamespace))
+					{
+						xmlSchema = xmlSchema2;
+						break;
+					}
+				}
+			}
+			if (xmlSchema == null)
+			{
+				xmlSchema = new XmlSchema();
+				xmlSchema.ElementFormDefault = XmlSchemaForm.Qualified;
+				if (!string.IsNullOrEmpty(ns))
+				{
+					xmlSchema.TargetNamespace = ns;
+				}
+				if (ns.Length > 0)
+				{
+					xmlSchema.Namespaces.Add("tns", ns);
+				}
+			}
+			xmlSchema.Items.Add(schemaType);
+			xmlSchema.Id = "ID_" + localName;
+			return xmlSchema;
+		}
+
+		private static XmlSchemaType GetSchemaType(string localName, string ns)
+		{
+			XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType();
+			xmlSchemaComplexType.IsMixed = true;
+			xmlSchemaComplexType.Name = localName;
+			xmlSchemaComplexType.Particle = new XmlSchemaSequence();
+			XmlSchemaAny xmlSchemaAny = new XmlSchemaAny();
+			xmlSchemaAny.MinOccurs = 0m;
+			xmlSchemaAny.MaxOccurs = decimal.MaxValue;
+			xmlSchemaAny.ProcessContents = XmlSchemaContentProcessing.Skip;
+			((XmlSchemaSequence)xmlSchemaComplexType.Particle).Items.Add(xmlSchemaAny);
+			xmlSchemaComplexType.AnyAttribute = new XmlSchemaAnyAttribute();
+			xmlSchemaComplexType.AnyAttribute.ProcessContents = XmlSchemaContentProcessing.Skip;
+			return xmlSchemaComplexType;
+		}
+
+		private static XmlSchemaType AddDefaultSchema(XmlSchemaSet schemas, string localName, string ns)
+		{
+			XmlSchemaType result = null;
+			XmlSchema schema = XmlTypeHelper.GetSchema(schemas, localName, ns, out result);
+			schemas.Add(schema);
+			return result;
+		}
+
+		public static XmlSchemaType AddSchema(XmlSchemaSet schemas, string localName, string ns)
+		{
+			return XmlTypeHelper.AddDefaultSchema(schemas, localName, ns);
+		}
+
+		public static void AddSchema(XmlSchemaSet schemas, XmlQualifiedName qName)
+		{
+			XmlTypeHelper.AddDefaultSchema(schemas, qName.Name, qName.Namespace);
+		}
+
+		public static XmlQualifiedName AddSchema(XmlSchemaSet schemas, Type t)
+		{
+			XmlQualifiedName xmlQualifiedName = new XmlQualifiedName(t.Name, t.Namespace);
+			XmlTypeHelper.AddDefaultSchema(schemas, xmlQualifiedName.Name, xmlQualifiedName.Namespace);
+			return xmlQualifiedName;
+		}
+	}
 }
+
