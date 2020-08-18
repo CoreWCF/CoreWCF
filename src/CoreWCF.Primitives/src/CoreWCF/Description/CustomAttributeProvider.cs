@@ -123,7 +123,7 @@ namespace CoreWCF.Description
                         result[i] = ConvertFromServiceModelMessageBodyMemberAttribute(result[i]);
                     }
                 }
-                else if (attributeType == typeof(MessageBodyMemberAttribute))
+                else if (attributeType == typeof(MessagePropertyAttribute))
                 {
                     result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessagePropertyAttributeFullName)).ToArray();
                     for (int i = 0; i < result.Length; i++)
@@ -131,7 +131,16 @@ namespace CoreWCF.Description
                         result[i] = ConvertFromServiceModelMessagePropertyAttribute(result[i]);
                     }
                 }
+                else if (attributeType == typeof(ServiceKnownTypeAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMServiceKnownTypeAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelServiceKnownTypeAttribute(result[i]);
+                    }
+                }
             }
+
             return result;
         }
 
@@ -238,6 +247,24 @@ namespace CoreWCF.Description
             return messageBody;
         }
 
+        private static ServiceKnownTypeAttribute ConvertFromServiceModelServiceKnownTypeAttribute(object attr)
+        {
+            //var messsageProperty = new ServiceKnownTypeAttribute();
+            Type type = GetProperty<Type>(attr, nameof(ServiceKnownTypeAttribute.Type));
+            string methodName = GetProperty<string>(attr, nameof(ServiceKnownTypeAttribute.MethodName));
+            Type declaringType = GetProperty<Type>(attr, nameof(ServiceKnownTypeAttribute.DeclaringType));
+
+            if (type != null)
+            {
+                return new ServiceKnownTypeAttribute(type);
+            }
+            else
+            {
+                // This also covers the constructor used with just a method name as declaring type will just be null
+                return new ServiceKnownTypeAttribute(methodName, declaringType);
+            }
+        }
+
         private static MessagePropertyAttribute ConvertFromServiceModelMessagePropertyAttribute(object attr)
         {
             var messsageProperty = new MessagePropertyAttribute();
@@ -249,6 +276,7 @@ namespace CoreWCF.Description
 
             return messsageProperty;
         }
+
         private static OperationContractAttribute ConvertFromServiceModelOperationContractAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMOperationContractAttributeFullName), "Expected attribute of type S.SM.OperationContractAttribute");
