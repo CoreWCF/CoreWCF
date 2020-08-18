@@ -671,6 +671,15 @@ namespace Helpers
             return new string('x', dataSize);
         }
 
+        public static bool AreBodiesEqual(Message one, Message two)
+        {
+            if (one.IsEmpty || two.IsEmpty)
+            {
+                return one.IsEmpty == two.IsEmpty;
+            }
+            return AreXmlReadersEqual(one.GetReaderAtBodyContents(), two.GetReaderAtBodyContents());
+        }
+
         public static bool AreBodiesEqual(Message one, Message two, bool onlySubtreeOfOne, bool onlySubtreeOfTwo)
         {
             if (one.IsEmpty || two.IsEmpty)
