@@ -112,12 +112,10 @@ namespace ClientContract
     [MessageContract()]
     public class FooMessage4
     {
-        //        [MessageHeader(Name = "MyID")]
         [MessageHeader(Name = "XmlID")]
         [XmlElement(ElementName = "XmlID")]
         public int ID;
-
-        //        [MessageHeader(Name = "MyNewID")]
+       
         [MessageHeader(Name = "XmlNewID")]
         [XmlElement(ElementName = "XmlNewID")]
         public int newID;
@@ -168,15 +166,12 @@ namespace ClientContract
     [MessageContract]
     public class FooMessage6
     {
-        // [MessageProperty(Name = "Property1")] MessageProperty don't support
         [XmlElement(ElementName = "XmlID", Form = System.Xml.Schema.XmlSchemaForm.Qualified, Namespace = "XmlIDNamespace")]
         public int ID;
-
-        //[MessageProperty(Name = "Property2")]
+       
         [XmlAnyElement(Name = "XmlAnyElementName", Namespace = "XmlAnyElementNamespace", Order = 2)]
         public XmlElement[] elements1;
-
-        // [MessageProperty(Name = "Property3")]
+       
         [XmlArray(ElementName = "XmlArrayElementName", Namespace = "XmlArrayNamespace", Order = 2)]
         public XmlElement[] elements2;
     }
@@ -196,11 +191,9 @@ namespace ClientContract
     [MessageContract()]
     public class Person
     {
-        //[MessageBodyMember(Namespace = "http://tempuri.org/Imports")]
         [MessageBodyMember()]
         public string address = "One Microsoft Way";
-
-        //[MessageHeader(Namespace = "http://tempuri.org/Imports")]
+       
         [MessageHeader]
         public string name = "Indigo";
     }
