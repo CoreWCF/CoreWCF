@@ -212,57 +212,57 @@ namespace CoreWCF.Http.Tests
                 }
             }
         }
-    }
 
-    internal class Startup
-    {
-        public static string _msgVeriation;
-
-        public void ConfigureServices(IServiceCollection services)
+        internal class Startup
         {
-            services.AddServiceModelServices();
-        }
+            public static string _msgVeriation;
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            app.UseServiceModel(builder =>
+            public void ConfigureServices(IServiceCollection services)
             {
-                switch (_msgVeriation)
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                app.UseServiceModel(builder =>
                 {
-                    case "XmlElementVoidByte":
-                        builder.AddService<Services.TypedMessageTypedMethodMyService>();
-                        builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService, ServiceContract.ITypedMessageTypedMethodMyService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
-                        break;
-                    case "XmlArrayVoidVoid":
-                        builder.AddService<Services.TypedMessageTypedMethodMyService2>();
-                        builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService2, ServiceContract.ITypedMessageTypedMethodMyService2>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
-                        break;
-                    case "XmlArrayItemIntFloat":
-                        builder.AddService<Services.TypedMessageTypedMethodMyService3>();
-                        builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService3, ServiceContract.ITypedMessageTypedMethodMyService3>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
-                        break;
-                    case "XmlEltAttribBoolDblDec":
-                        builder.AddService<Services.TypedMessageTypedMethodMyService4>();
-                        builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService4, ServiceContract.ITypedMessageTypedMethodMyService4>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
-                        break;
-                    case "XmlArrayItemMsgBodyChStrByteArr":
-                        builder.AddService<Services.TypedMessageTypedMethodMyService5>();
-                        builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService5, ServiceContract.ITypedMessageTypedMethodMyService5>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
-                        break;
-                    case "XmlAttribWithMessagePropDTIntCut":
-                        builder.AddService<Services.TypedMessageTypedMethodMyService6>();
-                        builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService6, ServiceContract.ITypedMessageTypedMethodMyService6>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
-                        break;
-                    case "BodyHeaderTempUriNsCustArrStrArrList":
-                        builder.AddService<Services.TypedMessageTypedMethodMyService7>();
-                        builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService7, ServiceContract.ITypedMessageTypedMethodMyService7>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
-                        break;
-                    case "BodyEmptyNsDecStrBool":
-                        builder.AddService<Services.TypedMessageTypedMethodMyService8>();
-                        builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService8, ServiceContract.ITypedMessageTypedMethodMyService8>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
-                        break;
-                }
-            });
+                    switch (_msgVeriation)
+                    {
+                        case "XmlElementVoidByte":
+                            builder.AddService<Services.TypedMessageTypedMethodMyService>();
+                            builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService, ServiceContract.ITypedMessageTypedMethodMyService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                            break;
+                        case "XmlArrayVoidVoid":
+                            builder.AddService<Services.TypedMessageTypedMethodMyService2>();
+                            builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService2, ServiceContract.ITypedMessageTypedMethodMyService2>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                            break;
+                        case "XmlArrayItemIntFloat":
+                            builder.AddService<Services.TypedMessageTypedMethodMyService3>();
+                            builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService3, ServiceContract.ITypedMessageTypedMethodMyService3>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                            break;
+                        case "XmlEltAttribBoolDblDec":
+                            builder.AddService<Services.TypedMessageTypedMethodMyService4>();
+                            builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService4, ServiceContract.ITypedMessageTypedMethodMyService4>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                            break;
+                        case "XmlArrayItemMsgBodyChStrByteArr":
+                            builder.AddService<Services.TypedMessageTypedMethodMyService5>();
+                            builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService5, ServiceContract.ITypedMessageTypedMethodMyService5>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                            break;
+                        case "XmlAttribWithMessagePropDTIntCut":
+                            builder.AddService<Services.TypedMessageTypedMethodMyService6>();
+                            builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService6, ServiceContract.ITypedMessageTypedMethodMyService6>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                            break;
+                        case "BodyHeaderTempUriNsCustArrStrArrList":
+                            builder.AddService<Services.TypedMessageTypedMethodMyService7>();
+                            builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService7, ServiceContract.ITypedMessageTypedMethodMyService7>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                            break;
+                        case "BodyEmptyNsDecStrBool":
+                            builder.AddService<Services.TypedMessageTypedMethodMyService8>();
+                            builder.AddServiceEndpoint<Services.TypedMessageTypedMethodMyService8, ServiceContract.ITypedMessageTypedMethodMyService8>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                            break;
+                    }
+                });
+            }
         }
-    }
+    }    
 }
