@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CoreWCF;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Services
@@ -22,6 +24,23 @@ namespace Services
                 Name = request.Name,
                 Message = "Hello " + request.Name
             };
+        }
+    }
+
+    [ServiceKnownType("GetKnownTypes")]
+    public class ServiceKnownTypeWithAttribute : ServiceKnownTypeService
+    {
+        public static IEnumerable<Type> GetKnownTypes(ICustomAttributeProvider provider)
+        {
+            return new List<Type> { typeof(ServiceContract.HelloReply) };
+        }
+    }
+
+    public static class ServiceKnownTypeServiceHelper
+    {
+        public static IEnumerable<Type> GetKnownTypes(ICustomAttributeProvider provider)
+        {
+            return new List<Type> { typeof(ServiceContract.HelloReply) };
         }
     }
 }

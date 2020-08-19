@@ -927,15 +927,15 @@ namespace CoreWCF.Description
         static internal XmlReflectionMember GetXmlReflectionMember(MessagePartDescription part, bool isRpc, bool isEncoded, bool isWrapped)
         {
             string ns = isRpc ? null : part.Namespace;
-            MemberInfo additionalAttributesProvider = null;
-            if (part.AdditionalAttributesProvider.MemberInfo != null)
-                additionalAttributesProvider = part.AdditionalAttributesProvider.MemberInfo;
+            ICustomAttributeProvider additionalAttributesProvider = null;
+            if (part.AdditionalAttributesProvider is MemberInfo)
+                additionalAttributesProvider = part.AdditionalAttributesProvider;
             XmlName memberName = string.IsNullOrEmpty(part.UniquePartName) ? null : new XmlName(part.UniquePartName, true /*isEncoded*/);
             XmlName elementName = part.XmlName;
             return GetXmlReflectionMember(memberName, elementName, ns, part.Type, additionalAttributesProvider, part.Multiple, isEncoded, isWrapped);
         }
 
-        static internal XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, MemberInfo additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
+        static internal XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, ICustomAttributeProvider additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
         {
             if (isEncoded && isMultiple)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxMultiplePartsNotAllowedInEncoded, elementName.DecodedName, ns)));
@@ -950,14 +950,28 @@ namespace CoreWCF.Description
             if (additionalAttributesProvider != null)
             {
                 if (isEncoded)
-                    throw new PlatformNotSupportedException();
-                    //member.SoapAttributes = new SoapAttributes(additionalAttributesProvider);
+                    member.SoapAttributes = new SoapAttributes(additionalAttributesProvider);
                 else
                     member.XmlAttributes = new XmlAttributes(additionalAttributesProvider);
             }
             if (isEncoded)
             {
-                throw new PlatformNotSupportedException();
+                if (member.SoapAttributes == null)
+                    member.SoapAttributes = new SoapAttributes();
+                else
+                {
+                    Type invalidAttributeType = null;
+                    if (member.SoapAttributes.SoapAttribute != null)
+                        invalidAttributeType = typeof(SoapAttributeAttribute);
+                    else if (member.SoapAttributes.SoapIgnore)
+                        invalidAttributeType = typeof(SoapIgnoreAttribute);
+                    else if (member.SoapAttributes.SoapType != null)
+                        invalidAttributeType = typeof(SoapTypeAttribute);
+                    if (invalidAttributeType != null)
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInvalidSoapAttribute, invalidAttributeType, elementName.DecodedName)));
+                }
+                if (member.SoapAttributes.SoapElement == null)
+                    member.SoapAttributes.SoapElement = new SoapElementAttribute(elementName.DecodedName);
             }
             else
             {
@@ -984,9 +998,7 @@ namespace CoreWCF.Description
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(isWrapped ? SR.SFxInvalidXmlAttributeInWrapped : SR.SFxInvalidXmlAttributeInBare, invalidAttributeType, elementName.DecodedName)));
                     if (member.XmlAttributes.XmlArray != null && isMultiple)
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxXmlArrayNotAllowedForMultiple, elementName.DecodedName, ns)));
-
                 }
-
 
                 bool isArray = member.MemberType.IsArray;
                 if ((isArray && !isMultiple && member.MemberType != typeof(byte[])) ||

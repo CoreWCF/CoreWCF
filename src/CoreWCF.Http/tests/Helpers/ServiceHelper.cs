@@ -101,6 +101,30 @@ namespace Helpers
             .UseUrls("http://localhost:8080")
             .UseStartup<TStartup>();
 
+        public static IWebHostBuilder CreateWebHostBuilder(Type startupType, ITestOutputHelper outputHelper) =>
+            WebHost.CreateDefaultBuilder(new string[0])
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseKestrel(options =>
+                {
+                    options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                    {
+                        if (Debugger.IsAttached)
+                        {
+                            listenOptions.UseConnectionLogging();
+                        }
+                    });
+                })
+            .UseUrls("http://localhost:8080")
+            .UseStartup(startupType);
+
         public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
             WebHost.CreateDefaultBuilder(new string[0])
 #if DEBUG

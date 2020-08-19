@@ -14,7 +14,7 @@ namespace CoreWCF.Description
         //bool hasProtectionLevel;
         MemberInfo memberInfo;
         // TODO: Was ICustomAttributeProvider
-        CustomAttributeProvider additionalAttributesProvider;
+        ICustomAttributeProvider additionalAttributesProvider;
 
         bool multiple;
         //string baseType;
@@ -99,7 +99,7 @@ namespace CoreWCF.Description
 
         internal bool HasProtectionLevel => false;
 
-        internal CustomAttributeProvider AdditionalAttributesProvider
+        internal ICustomAttributeProvider AdditionalAttributesProvider
         {
             get { return additionalAttributesProvider ?? memberInfo; }
             set { additionalAttributesProvider = value; }

@@ -478,16 +478,16 @@ namespace CoreWCF.Description
             return types;
         }
 
-        static internal object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType)
+        static internal object[] GetCustomAttributes(ICustomAttributeProvider attrProvider, Type attrType)
         {
             return GetCustomAttributes(attrProvider, attrType, false);
         }
 
-        static internal object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType, bool inherit)
+        static internal object[] GetCustomAttributes(ICustomAttributeProvider attrProvider, Type attrType, bool inherit)
         {
             try
             {
-                return attrProvider.GetCustomAttributes(attrType, inherit) ?? Array.Empty<object>();
+                return attrProvider.GetCustomAttributesWithCompat(attrType, inherit) ?? Array.Empty<object>();
             }
             catch (Exception e)
             {
@@ -507,14 +507,14 @@ namespace CoreWCF.Description
                     }
                 }
 
-                TypeInfo typeInfo = attrProvider.TypeInfo;
-                MethodInfo method = attrProvider.MethodInfo;
-                ParameterInfo param = attrProvider.ParameterInfo;
+                Type type = attrProvider as Type;
+                MethodInfo method = attrProvider as MethodInfo;
+                ParameterInfo param = attrProvider as ParameterInfo;
                 // there is no good way to know if this is a return type attribute
-                if (typeInfo != null)
+                if (type != null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-                        SR.Format(SR.SFxErrorReflectingOnType2, attrType.Name, typeInfo.Name), e));
+                        SR.Format(SR.SFxErrorReflectingOnType2, attrType.Name, type.Name), e));
                 }
                 else if (method != null)
                 {
@@ -538,7 +538,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static internal T GetFirstAttribute<T>(CustomAttributeProvider attrProvider)
+        static internal T GetFirstAttribute<T>(ICustomAttributeProvider attrProvider)
             where T : class
         {
             Type attrType = typeof(T);
@@ -553,7 +553,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static internal T GetSingleAttribute<T>(CustomAttributeProvider attrProvider) where T : class
+        static internal T GetSingleAttribute<T>(ICustomAttributeProvider attrProvider) where T : class
         {
             Type attrType = typeof(T);
             object[] attrs = GetCustomAttributes(attrProvider, attrType);
@@ -608,7 +608,7 @@ namespace CoreWCF.Description
         //    }
         //}
 
-        static internal T GetRequiredSingleAttribute<T>(CustomAttributeProvider attrProvider)
+        static internal T GetRequiredSingleAttribute<T>(ICustomAttributeProvider attrProvider)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider);
@@ -619,7 +619,7 @@ namespace CoreWCF.Description
             return result;
         }
 
-        static internal T GetSingleAttribute<T>(CustomAttributeProvider attrProvider, Type[] attrTypeGroup)
+        static internal T GetSingleAttribute<T>(ICustomAttributeProvider attrProvider, Type[] attrTypeGroup)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider);
@@ -642,7 +642,7 @@ namespace CoreWCF.Description
             return result;
         }
 
-        static internal T GetRequiredSingleAttribute<T>(CustomAttributeProvider attrProvider, Type[] attrTypeGroup)
+        static internal T GetRequiredSingleAttribute<T>(ICustomAttributeProvider attrProvider, Type[] attrTypeGroup)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider, attrTypeGroup);

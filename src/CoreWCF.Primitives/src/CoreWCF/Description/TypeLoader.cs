@@ -29,7 +29,7 @@ namespace CoreWCF.Description
             typeof(DataContractFormatAttribute)
         };
 
-        //static Type[] knownTypesMethodParamType = new Type[] { typeof(ICustomAttributeProvider) };
+        static Type[] s_knownTypesMethodParamType = new Type[] { typeof(ICustomAttributeProvider) };
 
         internal static DataContractFormatAttribute DefaultDataContractFormatAttribute = new DataContractFormatAttribute();
         //internal static XmlSerializerFormatAttribute DefaultXmlSerializerFormatAttribute = new XmlSerializerFormatAttribute();
@@ -354,32 +354,30 @@ namespace CoreWCF.Description
             }
         }
 
-        private IEnumerable<Type> GetKnownTypes(object[] knownTypeAttributes, CustomAttributeProvider provider)
+        private IEnumerable<Type> GetKnownTypes(object[] knownTypeAttributes, ICustomAttributeProvider provider)
         {
-            // The named method must take a parameter of ICustomAttributeProvider which isn't available so this can only specify known types by Type
-            //if (knownTypeAttributes.Length == 1)
-            //{
-            //    ServiceKnownTypeAttribute knownTypeAttribute = (ServiceKnownTypeAttribute)knownTypeAttributes[0];
-            //    if (!string.IsNullOrEmpty(knownTypeAttribute.MethodName))
-            //    {
-            //        Type type = knownTypeAttribute.DeclaringType;
-            //        if (type == null)
-            //        {
-            //            type = (provider as TypeInfo)?.AsType();
-            //            if (type == null)
-            //                type = ((MethodInfo)provider).DeclaringType;
-            //        }
-            //        type.GetMethods()
-            //        MethodInfo method = type.GetMethod(knownTypeAttribute.MethodName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, null, knownTypesMethodParamType, null);
-            //        if (method == null)
-            //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeUnknownMethod3, provider, knownTypeAttribute.MethodName, type.FullName)));
+            if (knownTypeAttributes.Length == 1)
+            {
+                ServiceKnownTypeAttribute knownTypeAttribute = (ServiceKnownTypeAttribute)knownTypeAttributes[0];
+                if (!string.IsNullOrEmpty(knownTypeAttribute.MethodName))
+                {
+                    Type type = knownTypeAttribute.DeclaringType;
+                    if (type == null)
+                    {
+                        type = provider as Type;
+                        if (type == null)
+                            type = ((MethodInfo)provider).DeclaringType;
+                    }
+                    MethodInfo method = type.GetMethod(knownTypeAttribute.MethodName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, null, s_knownTypesMethodParamType, null);
+                    if (method == null)
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeUnknownMethod3, provider, knownTypeAttribute.MethodName, type.FullName)));
 
-            //        if (!typeof(IEnumerable<Type>).IsAssignableFrom(method.ReturnType))
-            //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeReturnType3, provider, knownTypeAttribute.MethodName, type.FullName)));
+                    if (!typeof(IEnumerable<Type>).IsAssignableFrom(method.ReturnType))
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeReturnType3, provider, knownTypeAttribute.MethodName, type.FullName)));
 
-            //        return (IEnumerable<Type>)method.Invoke(null, new object[] { provider });
-            //    }
-            //}
+                    return (IEnumerable<Type>)method.Invoke(null, new object[] { provider });
+                }
+            }
 
             List<Type> knownTypes = new List<Type>();
             for (int i = 0; i < knownTypeAttributes.Length; ++i)
@@ -806,7 +804,7 @@ namespace CoreWCF.Description
             return contractDescription;
         }
 
-        internal static Attribute GetFormattingAttribute(CustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
+        internal static Attribute GetFormattingAttribute(ICustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
         {
             if (attrProvider != null)
             {
@@ -1204,7 +1202,7 @@ namespace CoreWCF.Description
 
         MessageDescription CreateParameterMessageDescription(ParameterInfo[] parameters,
                                                   Type returnType,
-                                                  CustomAttributeProvider returnAttrProvider,
+                                                  ICustomAttributeProvider returnAttrProvider,
                                                   XmlName returnValueName,
                                                   string methodName,
                                                   string defaultNS,
@@ -1253,7 +1251,7 @@ namespace CoreWCF.Description
             return messageDescription;
         }
 
-        private static MessagePartDescription CreateParameterPartDescription(XmlName defaultName, string defaultNS, int index, CustomAttributeProvider attrProvider, Type type)
+        private static MessagePartDescription CreateParameterPartDescription(XmlName defaultName, string defaultNS, int index, ICustomAttributeProvider attrProvider, Type type)
         {
             MessagePartDescription parameterPart;
             MessageParameterAttribute paramAttr = ServiceReflector.GetSingleAttribute<MessageParameterAttribute>(attrProvider);
@@ -1267,7 +1265,7 @@ namespace CoreWCF.Description
         }
 
         internal MessageDescription CreateTypedMessageDescription(Type typedMessageType,
-                                                  CustomAttributeProvider returnAttrProvider,
+                                                  ICustomAttributeProvider returnAttrProvider,
                                                   XmlName returnValueName,
                                                   string defaultNS,
                                                   string action,
@@ -1404,7 +1402,7 @@ namespace CoreWCF.Description
 
 
         MessagePartDescription CreateMessagePartDescription(Type bodyType,
-                                                         CustomAttributeProvider attrProvider,
+                                                         ICustomAttributeProvider attrProvider,
                                                          XmlName defaultName,
                                                          string defaultNS,
                                                          int parameterIndex,
@@ -1426,9 +1424,9 @@ namespace CoreWCF.Description
                 partDescription.SerializationPosition = bodyAttr.Order < 0 ? serializationIndex : bodyAttr.Order;
             }
 
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                partDescription.MemberInfo = attrProvider.MemberInfo;
+                partDescription.MemberInfo = (MemberInfo)attrProvider;
             }
             partDescription.Type = bodyType;
             partDescription.Index = parameterIndex;
@@ -1436,7 +1434,7 @@ namespace CoreWCF.Description
         }
 
         MessageHeaderDescription CreateMessageHeaderDescription(Type headerParameterType,
-                                                                    CustomAttributeProvider attrProvider,
+                                                                    ICustomAttributeProvider attrProvider,
                                                                     XmlName defaultName,
                                                                     string defaultNS,
                                                                     int parameterIndex,
@@ -1474,16 +1472,16 @@ namespace CoreWCF.Description
                 headerDescription.Relay = headerAttr.Relay;
             }
             headerDescription.SerializationPosition = serializationPosition;
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                headerDescription.MemberInfo = attrProvider.MemberInfo;
+                headerDescription.MemberInfo = (MemberInfo)attrProvider;
             }
 
             headerDescription.Index = parameterIndex;
             return headerDescription;
         }
 
-        MessagePropertyDescription CreateMessagePropertyDescription(CustomAttributeProvider attrProvider,
+        MessagePropertyDescription CreateMessagePropertyDescription(ICustomAttributeProvider attrProvider,
                                                             XmlName defaultName,
                                                             int parameterIndex)
         {
@@ -1492,9 +1490,9 @@ namespace CoreWCF.Description
             MessagePropertyDescription propertyDescription = new MessagePropertyDescription(propertyName.EncodedName);
             propertyDescription.Index = parameterIndex;
 
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                propertyDescription.MemberInfo = attrProvider.MemberInfo;
+                propertyDescription.MemberInfo = (MemberInfo)attrProvider;
             }
 
             return propertyDescription;
@@ -2019,7 +2017,7 @@ namespace CoreWCF.Description
 
         internal const string ResponseSuffix = "Response";
 
-        internal static Attribute GetFormattingAttribute(CustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
+        internal static Attribute GetFormattingAttribute(ICustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
         {
             if (attrProvider != null)
             {

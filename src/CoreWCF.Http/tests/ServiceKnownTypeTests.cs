@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,10 +18,14 @@ namespace CoreWCF.Http.Tests
             _output = output;
         }
 
-        [Fact]
-        public void ServiceKnownTypeSerializes()
+        [Theory]
+        [InlineData(typeof(Startup<Services.ServiceKnownTypeService, ClientContract.IServiceKnownTypeTest>))]
+        [InlineData(typeof(Startup<Services.ServiceKnownTypeService, ServiceContract.IServiceKnownTypeWithType>))]
+        [InlineData(typeof(Startup<Services.ServiceKnownTypeService, ServiceContract.IServiceKnownTypeWithDeclaredTypeAndMethodName>))]
+        [InlineData(typeof(Startup<Services.ServiceKnownTypeWithAttribute, ServiceContract.IServiceKnownTypeBase>))]
+        public void ServiceKnownTypeSucceeds(Type startupType)
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup<ServiceContract.IServiceKnownTypeTest>>(_output).Build();
+            var host = ServiceHelper.CreateWebHostBuilder(startupType, _output).Build();
             using (host)
             {
                 host.Start();
@@ -42,30 +44,7 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        [Fact]
-        public void ServiceKnownTypeCompatibilitySerializes()
-        {
-            // This variant uses the System.ServiceModel namespaced attributes on the service side
-            var host = ServiceHelper.CreateWebHostBuilder<Startup<ClientContract.IServiceKnownTypeTest>>(_output).Build();
-            using (host)
-            {
-                host.Start();
-                System.ServiceModel.ChannelFactory<ClientContract.IServiceKnownTypeTest> channelFactory = null;
-                channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceKnownTypeTest>(ClientHelper.GetBufferedModHttp1Binding(),
-                      new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/ServiceKnownType/HttpEndpoint.svc")));
-                var channel = channelFactory.CreateChannel();
-                var request = new ClientContract.HelloRequest { Name = "Bill Gates" };
-                var responseBase = channel.SayHello(request);
-                Assert.NotNull(responseBase);
-                Assert.IsType<ClientContract.HelloReply>(responseBase);
-                var response = responseBase as ClientContract.HelloReply;
-                Assert.Equal("Hello " + request.Name, response.Message);
-                ((System.ServiceModel.IClientChannel)channel).Close();
-                channelFactory.Close();
-            }
-        }
-
-        internal class Startup<TContract>
+        internal class Startup<TService, TContract> where TService : class
         {
             public void ConfigureServices(IServiceCollection services)
             {
@@ -76,8 +55,8 @@ namespace CoreWCF.Http.Tests
             {
                 app.UseServiceModel(builder =>
                 {
-                    builder.AddService<Services.ServiceKnownTypeService>();
-                    builder.AddServiceEndpoint<Services.ServiceKnownTypeService, TContract>(ServiceHelper.GetBufferedModHttp1Binding(), "/ServiceKnownType/HttpEndpoint.svc");
+                    builder.AddService<TService>();
+                    builder.AddServiceEndpoint<TService, TContract>(ServiceHelper.GetBufferedModHttp1Binding(), "/ServiceKnownType/HttpEndpoint.svc");
                 });
             }
         }
