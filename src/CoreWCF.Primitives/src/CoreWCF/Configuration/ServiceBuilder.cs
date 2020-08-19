@@ -25,7 +25,17 @@ namespace CoreWCF.Configuration
 
         public void AddService<TService>() where TService : class
         {
-            var serviceConfig = _serviceProvider.GetRequiredService<IServiceConfiguration<TService>>();
+            AddService(typeof(TService));
+        }
+
+        public void AddService(Type service)
+        {
+            if (service is null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(service)));
+            }
+            var serviceConfig = (IServiceConfiguration)_serviceProvider.GetRequiredService(
+                typeof(IServiceConfiguration<>).MakeGenericType(service));
             _services[serviceConfig.ServiceType] = serviceConfig;
         }
 
