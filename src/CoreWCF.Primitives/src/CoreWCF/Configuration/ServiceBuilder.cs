@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using CoreWCF.Channels;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CoreWCF.Configuration
 {
@@ -62,7 +61,7 @@ namespace CoreWCF.Configuration
 
         public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri)
         {
-            if (address == null)
+            if (address is null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(address)));
             }
@@ -72,17 +71,27 @@ namespace CoreWCF.Configuration
 
         public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri)
         {
-            if (implementedContract == null)
+            AddServiceEndpoint(typeof(TService), implementedContract, binding, address, listenUri);
+        }
+
+        public void AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri)
+        {
+            if (service is null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(service)));
+            }
+
+            if (implementedContract is null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(implementedContract)));
             }
 
-            if (binding == null)
+            if (binding is null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(binding)));
             }
 
-            if (_services.TryGetValue(typeof(TService), out IServiceConfiguration serviceConfig))
+            if (_services.TryGetValue(service, out IServiceConfiguration serviceConfig))
             {
                 serviceConfig.Endpoints.Add(new ServiceEndpointConfiguration()
                 {
@@ -95,7 +104,7 @@ namespace CoreWCF.Configuration
             else
             {
                 // TODO: Either find an existing SR to use or create a new one.
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(nameof(TService)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(nameof(service)));
             }
         }
     }

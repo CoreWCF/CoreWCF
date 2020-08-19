@@ -18,5 +18,6 @@ namespace CoreWCF.Configuration
         void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address);
         void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri);
         void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri);
+        void AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri);
     }
 }
