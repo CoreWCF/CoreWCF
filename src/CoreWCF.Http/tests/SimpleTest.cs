@@ -61,15 +61,6 @@ namespace BasicHttp
             }
         }
 
-        [Fact]
-        public async Task BasicHttpClientBadRequestWhenBodyIsEmpty()
-        {
-            var client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
-            var response = await client.SendAsync(request);
-            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
-        }
-
         internal class Startup
         {
             public void ConfigureServices(IServiceCollection services)

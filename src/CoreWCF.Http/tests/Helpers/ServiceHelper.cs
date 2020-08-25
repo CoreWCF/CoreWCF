@@ -77,7 +77,7 @@ namespace Helpers
         //    };
         //}
 
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
             WebHost.CreateDefaultBuilder(new string[0])
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
@@ -89,15 +89,16 @@ namespace Helpers
             })
 #endif // DEBUG
             .UseKestrel(options =>
+            {
+                options.AllowSynchronousIO = true;
+                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                 {
-                    options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                    if (Debugger.IsAttached)
                     {
-                        if (Debugger.IsAttached)
-                        {
-                            listenOptions.UseConnectionLogging();
-                        }
-                    });
-                })
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+            })
             .UseUrls("http://localhost:8080")
             .UseStartup<TStartup>();
 
