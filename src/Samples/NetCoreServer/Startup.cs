@@ -12,14 +12,15 @@ namespace NetCoreServer
         {
             services.AddServiceModelServices();
         }
-
+        
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseServiceModel(builder =>
             {
-                builder.AddService<EchoService>();
-                builder.AddServiceEndpoint<EchoService, Contract.IEchoService>(new BasicHttpBinding(), "/basichttp");
-                builder.AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp");
+                builder
+                    .AddService<EchoService>()
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new BasicHttpBinding(), "/basichttp")
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp");
             });
         }
     }
