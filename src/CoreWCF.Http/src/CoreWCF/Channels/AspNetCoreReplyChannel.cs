@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,6 +98,13 @@ namespace CoreWCF.Channels
 
             var requestContext = HttpRequestContext.CreateContext(_httpSettings, context);
             var httpInput = requestContext.GetHttpInput(true);
+
+            if(httpInput.ContentLength == -1)
+            {
+                await requestContext.SendResponseAndCloseAsync(HttpStatusCode.BadRequest);
+                return;
+            }
+
             (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
             if ((requestMessage == null) && (requestException == null))
             {
