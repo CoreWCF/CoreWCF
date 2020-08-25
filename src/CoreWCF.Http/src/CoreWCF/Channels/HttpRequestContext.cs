@@ -471,8 +471,12 @@ namespace CoreWCF.Channels
 
                     var remoteIPAddress = request.HttpContext.Connection.RemoteIpAddress;
                     var remotePort = request.HttpContext.Connection.RemotePort;
-                    RemoteEndpointMessageProperty remoteEndpointProperty = new RemoteEndpointMessageProperty(new IPEndPoint(remoteIPAddress, remotePort));
-                    message.Properties.Add(RemoteEndpointMessageProperty.Name, remoteEndpointProperty);
+
+                    if (remoteIPAddress != null)
+                    {
+                        RemoteEndpointMessageProperty remoteEndpointProperty = new RemoteEndpointMessageProperty(new IPEndPoint(remoteIPAddress, remotePort));
+                        message.Properties.Add(RemoteEndpointMessageProperty.Name, remoteEndpointProperty);
+                    }
                 }
 
                 protected override Stream GetInputStream()
