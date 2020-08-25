@@ -12,6 +12,7 @@ namespace CoreWCF.Primitives.Tests
         public void ServiceBuilderCanChain()
         {
             var services = new ServiceCollection();
+            services.AddServiceModelServices();
             var serviceProvider = services.BuildServiceProvider();
             var builder = new ServiceBuilder(serviceProvider);
             
