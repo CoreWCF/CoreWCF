@@ -99,7 +99,8 @@ namespace CoreWCF.Channels
             var requestContext = HttpRequestContext.CreateContext(_httpSettings, context);
             var httpInput = requestContext.GetHttpInput(true);
 
-            if(httpInput.ContentLength == -1)
+            // FIXME: this is equivalent to !httpInput.HasContent, which is protected, but could be public?
+            if(httpInput.ContentLength == -1 && !httpInput.IsStreamed)
             {
                 await requestContext.SendResponseAndCloseAsync(HttpStatusCode.BadRequest);
                 return;

@@ -38,6 +38,8 @@ namespace CoreWCF.Channels
         private bool enableChannelBinding;
         private bool errorGettingInputStream;
 
+        internal bool IsStreamed => streamed;
+
         protected HttpInput(IHttpTransportFactorySettings settings, bool isRequest, bool enableChannelBinding)
         {
             this.settings = settings;
