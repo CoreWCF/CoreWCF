@@ -77,19 +77,21 @@ namespace Helpers
         //    };
         //}
 
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
             WebHost.CreateDefaultBuilder(new string[0])
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                if(outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #endif // DEBUG
             .UseKestrel(options =>
-                {
+            {
+                    options.AllowSynchronousIO = true;
                     options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                     {
                         if (Debugger.IsAttached)
@@ -101,12 +103,13 @@ namespace Helpers
             .UseUrls("http://localhost:8080")
             .UseStartup<TStartup>();
 
-        public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
+        public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
             WebHost.CreateDefaultBuilder(new string[0])
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                if(outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
