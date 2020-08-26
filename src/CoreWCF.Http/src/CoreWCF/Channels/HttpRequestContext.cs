@@ -350,13 +350,16 @@ namespace CoreWCF.Channels
             }
             public override HttpOutput GetHttpOutput(Message message)
             {
-                if (HttpTransportSettings.KeepAliveEnabled)
+                if (!IsTerminal(message))
                 {
-                    _aspNetContext.Response.Headers["Connection"] = "keep-alive";
-                }
-                else
-                {
-                    _aspNetContext.Response.Headers["Connection"] = "close";
+                    if (HttpTransportSettings.KeepAliveEnabled)
+                    {
+                        _aspNetContext.Response.Headers["Connection"] = "keep-alive";
+                    }
+                    else
+                    {
+                        _aspNetContext.Response.Headers["Connection"] = "close";
+                    }
                 }
 
                 ICompressedMessageEncoder compressedMessageEncoder = HttpTransportSettings.MessageEncoderFactory.Encoder as ICompressedMessageEncoder;
@@ -367,6 +370,14 @@ namespace CoreWCF.Channels
                 }
 
                 return HttpOutput.CreateHttpOutput(_aspNetContext, HttpTransportSettings, message, HttpMethod);
+            }
+
+            private static bool IsTerminal(Message message)
+            {
+                return message.IsEmpty && 
+                       message.Properties.TryGetValue(HttpResponseMessageProperty.Name, out var value) &&
+                       value is HttpResponseMessageProperty httpResponseProperty &&
+                       (httpResponseProperty.StatusCode == HttpStatusCode.BadRequest || httpResponseProperty.StatusCode == HttpStatusCode.InternalServerError);
             }
 
             protected override SecurityMessageProperty OnProcessAuthentication()
