@@ -80,19 +80,21 @@ namespace Helpers
         //    };
         //}
 
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                if(outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #endif // DEBUG
             .UseKestrel(options =>
-                {
+            {
+                    options.AllowSynchronousIO = true;
                     options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                     {
                         if (Debugger.IsAttached)
@@ -103,6 +105,7 @@ namespace Helpers
                 })
             .UseStartup<TStartup>();
 
+<<<<<<< HEAD
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
@@ -126,12 +129,13 @@ namespace Helpers
             })
             .UseStartup(startupType);
 
-        public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
+        public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                if(outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
