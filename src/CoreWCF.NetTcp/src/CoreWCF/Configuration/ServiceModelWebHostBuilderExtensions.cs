@@ -8,6 +8,9 @@ using CoreWCF.Channels.Framing;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Configuration
 {
@@ -41,6 +44,17 @@ namespace CoreWCF.Configuration
                 o.EndPoints.Add(endPoint);
             });
 
+            //
+            // In cases where we're only binding to net.tcp, we still need this feature,
+            // in order to support automatically assigning TCP ports at runtime
+            //
+            services.TryAddSingleton<IFeatureCollection>(r =>
+            {
+                var features = new FeatureCollection();
+                features.Set<IServerAddressesFeature>(new ServerAddressesFeature());
+                return features;
+            });
+
             return services;
         }
     }
@@ -53,10 +67,12 @@ namespace CoreWCF.Configuration
 
     internal class NetTcpFramingOptionsSetup : IConfigureOptions<KestrelServerOptions>
     {
+        private readonly ILogger<NetTcpFramingOptions> _logger;
         private readonly NetTcpFramingOptions _options;
 
-        public NetTcpFramingOptionsSetup(IOptions<NetTcpFramingOptions> options)
+        public NetTcpFramingOptionsSetup(IOptions<NetTcpFramingOptions> options, ILogger<NetTcpFramingOptions> logger)
         {
+            _logger = logger;
             _options = options.Value;
         }
 
@@ -65,11 +81,26 @@ namespace CoreWCF.Configuration
             IServiceBuilder serviceBuilder = options.ApplicationServices.GetRequiredService<IServiceBuilder>();
             foreach (var endpoint in _options.EndPoints)
             {
-                serviceBuilder.BaseAddresses.Add(new Uri($"net.tcp://localhost:{endpoint.Port}/"));
                 options.Listen(endpoint, builder =>
                 {
                     builder.UseConnectionHandler<NetMessageFramingConnectionHandler>();
                 });
+
+                var baseAddress = new Uri($"net.tcp://localhost:{endpoint.Port}/");
+
+                if (endpoint.Port == 0)
+                {
+                    // Implicit port: it hasn't been assigned by the TCP stack yet
+                    var serverFeatures = options.ApplicationServices.GetRequiredService<IFeatureCollection>();
+                    var serverAddressesFeature = serverFeatures.Get<IServerAddressesFeature>();
+                    serverAddressesFeature.Addresses.Add(baseAddress.ToString());
+                }
+                else
+                {
+                    // Explicit port: can safely add directly to the serviceBuilder (default behavior)
+                    _logger.LogDebug($"Adding base address {baseAddress} to serviceBuilder");
+                    serviceBuilder.BaseAddresses.Add(baseAddress);
+                }
             }
         }
     }
