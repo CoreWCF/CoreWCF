@@ -31,7 +31,7 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 var nettcpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IRemoteEndpointMessageProperty>(nettcpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/RemoteEndpointMessagePropertyService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri(host.GetNetTcpAddressInUse() + "/RemoteEndpointMessagePropertyService.svc")));
                 var channel = factory.CreateChannel();
 
                 Message request = Message.CreateMessage(nettcpBinding.MessageVersion, "echo", "PASS");

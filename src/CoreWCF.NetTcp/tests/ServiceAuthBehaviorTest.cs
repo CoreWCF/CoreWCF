@@ -9,10 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.ServiceModel.Channels;
-using System.Text;
-using System.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,8 +17,6 @@ namespace CoreWCF.NetTcp.Tests
 {
    public class ServiceAuthBehaviorTest
     {
-        private const string NetTcpServiceBaseUri = "net.tcp://localhost:8808";
-        private const string WindowsAuthNetTcpServiceUri = NetTcpServiceBaseUri + Startup.WindowsAuthRelativePath;
         private ITestOutputHelper _output;
 
         public ServiceAuthBehaviorTest(ITestOutputHelper output)
@@ -44,7 +39,7 @@ namespace CoreWCF.NetTcp.Tests
                 {
                     var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(WindowsAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var result = channel.EchoString(testString);
@@ -100,7 +95,7 @@ namespace CoreWCF.NetTcp.Tests
                 {
                     var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(WindowsAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var result = channel.EchoForImpersonation(sourceString);
@@ -126,7 +121,7 @@ namespace CoreWCF.NetTcp.Tests
                 {
                     var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(WindowsAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var result = channel.EchoForPermission(sourceString);

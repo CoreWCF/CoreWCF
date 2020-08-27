@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using System.ServiceModel.Channels;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,7 +36,7 @@ namespace AsyncServices
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808" + Startup.BufferedRelatveAddress)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.BufferedRelatveAddress));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     await channel.SynchronousCompletion();
@@ -62,7 +64,7 @@ namespace AsyncServices
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808" + Startup.BufferedRelatveAddress)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.BufferedRelatveAddress));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     await channel.AsynchronousCompletion();
@@ -86,11 +88,12 @@ namespace AsyncServices
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
                 Contract.ITaskService channel = null;
                 host.Start();
+
                 try
                 {
                     var binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808" + Startup.StreamedRelatveAddress)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.StreamedRelatveAddress));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     await channel.SynchronousCompletion();
@@ -118,7 +121,7 @@ namespace AsyncServices
                 {
                     var binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808" + Startup.StreamedRelatveAddress)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.StreamedRelatveAddress));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     await channel.AsynchronousCompletion();
