@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using CoreWCF.Configuration;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF
 {
@@ -21,12 +22,17 @@ namespace CoreWCF
         private IDisposable _disposableInstance;
         private TService _singletonInstance;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<ServiceHostObjectModel<TService>> _logger;
         private IServerAddressesFeature _serverAddresses;
 
-        public ServiceHostObjectModel(IServiceProvider serviceProvider, IServer server, IServiceBuilder serviceBuilder)
+        public ServiceHostObjectModel(IServiceProvider serviceProvider, IServer server, IServiceBuilder serviceBuilder, ILogger<ServiceHostObjectModel<TService>> logger)
         {
             _serviceProvider = serviceProvider;
             _serverAddresses = server.Features.Get<IServerAddressesFeature>();
+            _logger = logger;
+
+            InitializeBaseAddresses(serviceBuilder);
+
             InitializeDescription(new UriSchemeKeyedCollection(serviceBuilder.BaseAddresses.ToArray()));
         }
 
@@ -349,6 +355,35 @@ namespace CoreWCF
         protected override Task OnOpenAsync(CancellationToken token)
         {
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Adds any implicitly-bound addresses to the service builder base addresses, so that net.tcp://
+        /// bindings will correctly work on them. This is only necessary when the port provided to `UseNetTcp` is 0.
+        ///
+        /// <remarks>
+        /// Currently, this does not remove the bound address from the server addresses. The framework removes
+        /// the `net.tcp` scheme and replaces with with `http`, so the host name itself is checked.
+        ///
+        /// Another option that might be cleaner, would be to remove the use of `serviceBuilder.BaseAddresses` or
+        /// populate it at runtime once from ServerAddresses, and disallow adding values by hand.
+        /// </remarks>
+        /// </summary>
+        /// <param name="serviceBuilder"></param>
+        private void InitializeBaseAddresses(IServiceBuilder serviceBuilder)
+        {
+            var addresses = _serverAddresses.Addresses.ToArray();
+            for (var i = addresses.Length - 1; i >= 0; i--)
+            {
+                var address = addresses[i];
+                var uri = new Uri(address, UriKind.Absolute);
+                if (!uri.Host.Equals("0.0.0.0"))
+                    continue;
+
+                var baseAddress = new Uri($"net.tcp://{uri.Host}:{uri.Port}");
+                _logger.LogDebug($"Adding base address {baseAddress} to serviceBuilder");
+                serviceBuilder.BaseAddresses.Add(baseAddress);
+            }
         }
     }
 }
