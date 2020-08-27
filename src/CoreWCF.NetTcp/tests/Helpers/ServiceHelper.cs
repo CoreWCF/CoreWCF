@@ -3,6 +3,10 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Helpers
@@ -20,8 +24,15 @@ namespace Helpers
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #endif // DEBUG
-            .UseNetTcp(8808)
+            .UseNetTcp(0)
             .UseStartup<TStartup>();
+
+        public static string GetNetTcpAddressInUse(this IWebHost host)
+        {
+            var addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
+            var addressInUse = new Uri(addresses.First(), UriKind.Absolute);
+            return $"net.tcp://localhost:{addressInUse.Port}";
+        }
 
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)
         {

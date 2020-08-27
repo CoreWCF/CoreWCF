@@ -15,9 +15,6 @@ namespace ConnectionHandler
 {
     public class ConnectionHandlerBufferedModeTests
     {
-        private const string NetTcpServiceBaseUri = "net.tcp://localhost:8808";
-        private const string WindowsAuthNetTcpServiceUri = NetTcpServiceBaseUri + Startup.WindowsAuthRelativePath;
-        private const string NoAuthNetTcpServiceUri = NetTcpServiceBaseUri + Startup.NoSecurityRelativePath;
         private ITestOutputHelper _output;
 
         public ConnectionHandlerBufferedModeTests(ITestOutputHelper output)
@@ -40,7 +37,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(WindowsAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var result = channel.EchoString(testString);
@@ -69,7 +66,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var result = channel.EchoString(testString);
@@ -98,7 +95,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var result = channel.EchoString(testString);
@@ -131,7 +128,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var resultTask = channel.WaitForSecondRequestAsync();
@@ -162,7 +159,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var clientIpEndpoint = channel.GetClientIpEndpoint();
@@ -197,7 +194,7 @@ namespace ConnectionHandler
                 {
                     var binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var message = new ClientContract.TestMessage()
