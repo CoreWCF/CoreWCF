@@ -201,10 +201,13 @@ namespace CoreWCF.Channels
 
             //    return (T)(object)_anonymousUriPrefixMatcher;
             //}
-            //else if (typeof(T) == typeof(ITransportCompressionSupport))
-            //{
-            //    return (T)(object)new TransportCompressionSupportHelper();
-            //}
+            else if (typeof(T).FullName.Equals("CoreWCF.Channels.ITransportCompressionSupport"))
+            {
+                var app = context.BindingParameters.Find<IApplicationBuilder>();
+                if (app == null) return base.GetProperty<T>(context);
+                var tcs = app.ApplicationServices.GetService(typeof(T).Assembly.GetType("CoreWCF.Channels.TransportCompressionSupportHelper"));
+                return (T)tcs;
+            }
             else
             {
                 if (context.BindingParameters.Find<MessageEncodingBindingElement>() == null)

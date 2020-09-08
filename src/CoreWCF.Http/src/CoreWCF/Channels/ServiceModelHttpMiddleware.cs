@@ -52,7 +52,11 @@ namespace CoreWCF.Channels
                         continue;
                     }
 
-                    var binding = new CustomBinding(dispatcher.Binding);
+                    var binding = dispatcher.Binding as CustomBinding;
+                    if (binding == null)
+                    {
+                        binding = new CustomBinding(dispatcher.Binding);
+                    }
                     if (binding.Elements.Find<HttpTransportBindingElement>() == null)
                     {
                         _logger.LogDebug($"Binding for address {dispatcher.BaseAddress} is not an HTTP[S] binding ao skipping");
