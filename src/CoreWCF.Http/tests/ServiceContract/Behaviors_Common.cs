@@ -286,7 +286,7 @@ namespace ServiceContract
             return resultsSB.ToString();
         }
 
-        public static void ValidateServiceInvokedBehaviors(ServiceDescription sd, string s)
+        public static void ValidateServiceInvokedBehaviors(ServiceDescription sd, string s, BehaviorType bt = BehaviorType.IContractBehavior)
         {
             string actual = ValidateServiceInvokedBehaviors(sd, sd.Endpoints[0], sd.Endpoints[0].Contract.Operations[0]);
             string expected = null;
@@ -295,17 +295,37 @@ namespace ServiceContract
                 case "ByHand":
                 case "ByHand_UsingHiddenProperty":
                 case "CustomAttribute":
-                    expected = "IContractBehavior:ServiceContract.CustomContractBehaviorAttribute;";
+                    switch(bt)
+                    {
+                        case BehaviorType.IContractBehavior:
+                            expected = $"{bt}:ServiceContract.CustomContractBehaviorAttribute;";
+                            break;
+                        case BehaviorType.IOperationBehavior:
+                            expected = $"{bt}:ServiceContract.MyOperationBehaviorAttribute;";
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 case "TwoAttributesDifferentTypes":
-                    expected = "IContractBehavior:ServiceContract.CustomContractBehaviorAttribute;IContractBehavior:ServiceContract.OtherCustomContractBehaviorAttribute;";
+                    switch (bt)
+                    {
+                        case BehaviorType.IContractBehavior:
+                            expected = $"{bt}:ServiceContract.CustomContractBehaviorAttribute;{bt}:ServiceContract.OtherCustomContractBehaviorAttribute;";
+                            break;
+                        case BehaviorType.IOperationBehavior:
+                            expected = $"{bt}:ServiceContract.MyOperationBehaviorAttribute;{bt}:ServiceContract.MyOtherOperationBehaviorAttribute;";
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 case "MisplacedAttributes":
                     expected = "";
                     break;
                 case "CustomAttributesImplementsOther":
                 case "ByHandImplementsOther":
-                    expected = "IContractBehavior:ServiceContract.MyMultiFacetedBehaviorAttribute;";
+                    expected = $"{bt}:ServiceContract.MyMultiFacetedBehaviorAttribute;";
                     break;
                 default:
                     break;
