@@ -88,7 +88,6 @@ namespace AsyncServices
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
                 Contract.ITaskService channel = null;
                 host.Start();
-
                 try
                 {
                     var binding = ClientHelper.GetStreamedModeBinding();
