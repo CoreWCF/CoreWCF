@@ -38,6 +38,7 @@ namespace DispatcherClient
             services.AddSingleton<DispatcherChannelFactory>(this);
             services.AddScoped<DispatcherReplyChannel>();
             services.AddServiceModelServices();
+            services.AddLogging();
             IServer server = new Helpers.MockServer();
             services.AddSingleton(server);
             services.AddSingleton(GetType(), this);
