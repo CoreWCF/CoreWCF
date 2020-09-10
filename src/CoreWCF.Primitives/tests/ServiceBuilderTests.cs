@@ -14,7 +14,7 @@ namespace CoreWCF.Primitives.Tests
             var services = new ServiceCollection();
             services.AddServiceModelServices();
             var serviceProvider = services.BuildServiceProvider();
-            var builder = new ServiceBuilder(serviceProvider);
+            var builder = serviceProvider.GetRequiredService<IServiceBuilder>();
             
             Assert.Equal(builder, builder.AddService<SomeService>());
             Assert.Equal(builder, builder.AddService(typeof(SomeService)));
