@@ -36,12 +36,12 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                System.ServiceModel.ChannelFactory<ClientContract.IStream> channelFactory =null;
+                System.ServiceModel.ChannelFactory<ClientContract.IStream> channelFactory = null;
                 switch (binding)
                 {
                     case "Http1Binding":
-                         channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IStream>(ClientHelper.GetBufferedModHttp1Binding(),
-                       new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService1/RequestReplyTests.svc")));
+                        channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IStream>(ClientHelper.GetBufferedModHttp1Binding(),
+                      new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService1/RequestReplyTests.svc")));
                         break;
                     //case "Http2Binding":
                     //    channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IStream>(ClientHelper.GetBufferedModHttp2Binding(),
@@ -70,26 +70,24 @@ namespace CoreWCF.Http.Tests
                 Assert.Equal(num2, (long)num3);
             }
         }
-    }
 
-
-    internal class Startup
-    {
-        public static string binding;
-        public void ConfigureServices(IServiceCollection services)
+        internal class Startup
         {
-            services.AddServiceModelServices();
-        }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            app.UseServiceModel(builder =>
+            public static string binding;
+            public void ConfigureServices(IServiceCollection services)
             {
-                builder.AddService<ReqRepService>();
-                switch (binding)
+                services.AddServiceModelServices();
+            }
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                app.UseServiceModel(builder =>
                 {
-                    case "Http1Binding":
-                        builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp1Binding(), "/BasicWcfService1/RequestReplyTests.svc");
-                        break;
+                    builder.AddService<ReqRepService>();
+                    switch (binding)
+                    {
+                        case "Http1Binding":
+                            builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp1Binding(), "/BasicWcfService1/RequestReplyTests.svc");
+                            break;
                     //case "Http2Binding":
                     //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp2Binding(), "/BasicWcfService2/RequestReplyTests.svc");
                     //    break;
@@ -97,10 +95,11 @@ namespace CoreWCF.Http.Tests
                     //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp3Binding(), "/BasicWcfService3/RequestReplyTests.svc");
                     //    break;
                     default:
-                        throw new Exception("Unknown binding");
+                            throw new Exception("Unknown binding");
 
-                }
-            });
+                    }
+                });
+            }
         }
     }
 }

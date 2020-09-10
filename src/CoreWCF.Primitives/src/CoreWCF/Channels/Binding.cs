@@ -193,7 +193,9 @@ where TChannel : class, IChannel
             where TChannel : class, IChannel
         {
             EnsureInvariants();
-            BindingContext context = new BindingContext(new CustomBinding(this), parameters, listenUriBaseAddress, listenUriRelativeAddress);
+            var binding = this as CustomBinding;
+            if (binding == null) binding = new CustomBinding(this);
+            BindingContext context = new BindingContext(binding, parameters, listenUriBaseAddress, listenUriRelativeAddress);
             IServiceDispatcher serviceDispatcher = context.BuildNextServiceDispatcher<TChannel>(dispatcher);
             context.ValidateBindingElementsConsumed();
 
