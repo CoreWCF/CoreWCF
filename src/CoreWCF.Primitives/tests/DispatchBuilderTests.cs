@@ -17,6 +17,7 @@ namespace DispatchBuilder
         {
             string serviceAddress = "http://localhost/dummy";
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddServiceModelServices();
             var serverAddressesFeature = new ServerAddressesFeature();
             serverAddressesFeature.Addresses.Add(serviceAddress);
@@ -48,6 +49,7 @@ namespace DispatchBuilder
         {
             string serviceAddress = "http://localhost/dummy";
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddServiceModelServices();
             var serverAddressesFeature = new ServerAddressesFeature();
             serverAddressesFeature.Addresses.Add(serviceAddress);
@@ -79,6 +81,7 @@ namespace DispatchBuilder
         {
             string serviceAddress = "http://localhost/dummy";
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddServiceModelServices();
             var serverAddressesFeature = new ServerAddressesFeature();
             serverAddressesFeature.Addresses.Add(serviceAddress);
@@ -112,6 +115,7 @@ namespace DispatchBuilder
             var serviceAddress = "http://localhost/dummy";
 
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddServiceModelServices();
 
             var serverAddressesFeature = new ServerAddressesFeature();
