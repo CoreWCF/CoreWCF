@@ -29,9 +29,14 @@ namespace Helpers
 
         public static string GetNetTcpAddressInUse(this IWebHost host)
         {
+            return $"net.tcp://localhost:{host.GetNetTcpPortInUse()}";
+        }
+
+        public static int GetNetTcpPortInUse(this IWebHost host)
+        {
             var addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
             var addressInUse = new Uri(addresses.First(), UriKind.Absolute);
-            return $"net.tcp://localhost:{addressInUse.Port}";
+            return addressInUse.Port;
         }
 
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)
