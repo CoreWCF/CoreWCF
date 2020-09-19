@@ -6,17 +6,6 @@
     <RootNamespace />
     <LangVersion>7.2</LangVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <VersionPrefix>0.0.0</VersionPrefix>
-    <VersionSuffix>pre-beta</VersionSuffix>
-    <Owners>dotnetfoundation</Owners>
-    <Authors>mconnew, biroj, .NET Foundation and Contributors</Authors>
-    <Copyright>Copyright (c) .NET Foundation and Contributors.</Copyright>
-    <Description>Core WCF is a port of Windows Communication Framework (WCF) to .NET Core. The goal of this project is to enable existing WCF projects to move to .NET Core</Description>
-    <NeutralLanguage>en-US</NeutralLanguage>
-    <PackageTags>WCF .net core, CoreWCF</PackageTags>
-    <PackageProjectUrl> https://github.com/CoreWCF/CoreWCF </PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <IncludeSymbols>true</IncludeSymbols>
     <RootNamespace />
     <IncludeSharedDuplexChannelSource>True</IncludeSharedDuplexChannelSource>
   </PropertyGroup>
@@ -29,4 +18,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
   </ItemGroup>
+  <Import Project="$(ProjectDir)nuspec.props" Condition="Exists('$(ProjectDir)nuspec.props')" />
 </Project>
