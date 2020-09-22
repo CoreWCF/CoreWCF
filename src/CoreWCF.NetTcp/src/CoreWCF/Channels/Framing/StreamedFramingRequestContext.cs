@@ -70,7 +70,7 @@ namespace CoreWCF.Channels.Framing
                 {
                     if (_connection.RawStream != null)
                     {
-                        _connection.RawStream.FinishUnwrapRead();
+                        await _connection.RawStream.FinishUnwrapReadAsync();
                         _connection.RawStream = null;
                         _connection.Output.Complete();
                         _connection.Input.Complete();

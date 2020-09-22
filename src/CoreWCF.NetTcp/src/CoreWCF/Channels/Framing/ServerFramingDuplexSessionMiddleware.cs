@@ -149,7 +149,7 @@ namespace CoreWCF.Channels.Framing
 
         public static async Task UpgradeConnectionAsync(FramingConnection connection)
         {
-            connection.RawStream = new RawStream(connection.Input, connection.Output);
+            connection.RawStream = new RawStream(connection);
             var upgradeAcceptor = connection.StreamUpgradeAcceptor;
             var stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
             CreatePipelineFromStream(connection, stream);
