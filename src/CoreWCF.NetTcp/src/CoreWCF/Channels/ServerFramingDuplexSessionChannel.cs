@@ -317,7 +317,7 @@ namespace CoreWCF.Channels
             {
                 if (Connection.RawStream != null)
                 {
-                    Connection.RawStream.FinishUnwrapRead();
+                    await Connection.RawStream.FinishUnwrapReadAsync();
                     Connection.RawStream = null;
                     Connection.Output.Complete();
                     Connection.Input.Complete();
