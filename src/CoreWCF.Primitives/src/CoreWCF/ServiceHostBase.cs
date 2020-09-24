@@ -126,20 +126,18 @@ namespace CoreWCF
         {
             get
             {
-                // TODO: Decide if Credentials should be populated?
-                return null;
-                //if (this.Description == null)
-                //{
-                //    return null;
-                //}
-                //else if (this.State == CommunicationState.Created || this.State == CommunicationState.Opening)
-                //{
-                //    return EnsureCredentials(this.Description);
-                //}
-                //else
-                //{
-                //    return this.readOnlyCredentials;
-                //}
+                if (Description == null)
+                {
+                    return null;
+                }
+                else if (State == CommunicationState.Created || State == CommunicationState.Opening)
+                {
+                    return EnsureCredentials(Description);
+                }
+                else
+                {
+                    return readOnlyCredentials;
+                }
             }
         }
 
@@ -262,7 +260,7 @@ namespace CoreWCF
 
         internal virtual void BindInstance(InstanceContext instance)
         {
-            this.instances.Add(instance);
+            instances.Add(instance);
             //if (null != this.servicePerformanceCounters)
             //{
             //    lock (this.ThisLock)
@@ -313,6 +311,20 @@ namespace CoreWCF
         //    }
         //    return a;
         //}
+
+        ServiceCredentials EnsureCredentials(ServiceDescription description)
+        {
+            Fx.Assert(State == CommunicationState.Created || State == CommunicationState.Opening, "");
+            ServiceCredentials c = description.Behaviors.Find<ServiceCredentials>();
+
+            if (c == null)
+            {
+                c = new ServiceCredentials();
+                description.Behaviors.Add(c);
+            }
+
+            return c;
+        }
 
         public int IncrementManualFlowControlLimit(int incrementBy)
         {
@@ -368,7 +380,7 @@ namespace CoreWCF
 
         internal virtual void UnbindInstance(InstanceContext instance)
         {
-            this.instances.Remove(instance);
+            instances.Remove(instance);
             //if (null != this.servicePerformanceCounters)
             //{
             //    lock (this.ThisLock)

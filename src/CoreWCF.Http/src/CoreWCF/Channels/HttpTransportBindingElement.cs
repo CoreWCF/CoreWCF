@@ -19,7 +19,7 @@ namespace CoreWCF.Channels
         public HttpTransportBindingElement()
         {
             AuthenticationScheme = HttpTransportDefaults.AuthenticationScheme;
-            MaxBufferSize = TransportDefaults.MaxBufferSize;
+            _maxBufferSize = TransportDefaults.MaxBufferSize;
             KeepAliveEnabled = HttpTransportDefaults.KeepAliveEnabled;
             TransferMode = HttpTransportDefaults.TransferMode;
             WebSocketSettings = HttpTransportDefaults.GetDefaultWebSocketTransportSettings();
@@ -28,7 +28,8 @@ namespace CoreWCF.Channels
         protected HttpTransportBindingElement(HttpTransportBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
             AuthenticationScheme = elementToBeCloned.AuthenticationScheme;
-            MaxBufferSize = elementToBeCloned.MaxBufferSize;
+            _maxBufferSize = elementToBeCloned._maxBufferSize;
+            _maxBufferSizeInitialized = elementToBeCloned._maxBufferSizeInitialized;
             KeepAliveEnabled = elementToBeCloned.KeepAliveEnabled;
             TransferMode = elementToBeCloned.TransferMode;
             WebSocketSettings = elementToBeCloned.WebSocketSettings.Clone();
