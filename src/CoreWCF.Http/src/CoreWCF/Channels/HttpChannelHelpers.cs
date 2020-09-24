@@ -1837,17 +1837,17 @@ namespace CoreWCF.Channels
 
     internal class PreReadStream : DelegatingStream
     {
-        private byte[] preReadBuffer;
+        private byte[] _preReadBuffer;
 
         public PreReadStream(Stream stream, byte[] preReadBuffer)
             : base(stream)
         {
-            this.preReadBuffer = preReadBuffer;
+            _preReadBuffer = preReadBuffer;
         }
 
         private bool ReadFromBuffer(byte[] buffer, int offset, int count, out int bytesRead)
         {
-            if (this.preReadBuffer != null)
+            if (_preReadBuffer != null)
             {
                 if (buffer == null)
                 {
@@ -1872,8 +1872,8 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
-                    buffer[offset] = this.preReadBuffer[0];
-                    this.preReadBuffer = null;
+                    buffer[offset] = _preReadBuffer[0];
+                    _preReadBuffer = null;
                     bytesRead = 1;
                 }
 
@@ -1882,6 +1882,17 @@ namespace CoreWCF.Channels
 
             bytesRead = -1;
             return false;
+        }
+
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            int bytesRead;
+            if (ReadFromBuffer(buffer, offset, count, out bytesRead))
+            {
+                return Task.FromResult(bytesRead);
+            }
+
+            return base.ReadAsync(buffer, offset, count, cancellationToken);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -1897,15 +1908,15 @@ namespace CoreWCF.Channels
 
         public override int ReadByte()
         {
-            if (this.preReadBuffer != null)
+            if (_preReadBuffer != null)
             {
                 byte[] tempBuffer = new byte[1];
-                int bytesRead;
-                if (ReadFromBuffer(tempBuffer, 0, 1, out bytesRead))
+                if (ReadFromBuffer(tempBuffer, 0, 1, out _))
                 {
                     return tempBuffer[0];
                 }
             }
+
             return base.ReadByte();
         }
     }
