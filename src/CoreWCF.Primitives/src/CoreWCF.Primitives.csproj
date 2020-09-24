@@ -16,5 +16,4 @@
     <PackageReference Include="System.Reflection.DispatchProxy" Version="4.5.1" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
   </ItemGroup>
-  <Import Project="$(ProjectDir)nuspec.props" Condition="Exists('$(ProjectDir)nuspec.props')" />
 </Project>

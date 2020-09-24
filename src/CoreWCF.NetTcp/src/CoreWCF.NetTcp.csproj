@@ -18,5 +18,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
   </ItemGroup>
-  <Import Project="$(ProjectDir)nuspec.props" Condition="Exists('$(ProjectDir)nuspec.props')" />
 </Project>

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <PackageVersion>0.0.0-alpha</PackageVersion>
-    <Owners>dotnetfoundation</Owners>
+    <Owners>CoreWCF contributors</Owners>
     <Authors>CoreWCF contributors</Authors>
-    <Copyright>CoreWCF contributors</Copyright>
+    <Copyright>.net Foundation</Copyright>
     <Description>Core WCF is a port of Windows Communication Framework (WCF) to .NET Core. The goal of this project is to enable existing WCF projects to move to .NET Core</Description>
     <NeutralLanguage>en-US</NeutralLanguage>
     <PackageTags>WCF .net core, CoreWCF</PackageTags>

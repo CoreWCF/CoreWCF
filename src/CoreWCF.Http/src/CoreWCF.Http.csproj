@@ -4,7 +4,6 @@
     <AssemblyName>CoreWCF.Http</AssemblyName>
     <PackageId>CoreWCF.Http</PackageId>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <IncludeSymbols>true</IncludeSymbols>
     <RootNamespace />
     <IncludeSharedDuplexChannelSource>True</IncludeSharedDuplexChannelSource>
   </PropertyGroup>
@@ -16,5 +15,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
   </ItemGroup>
-  <Import Project="$(ProjectDir)nuspec.props" Condition="Exists('$(ProjectDir)nuspec.props')" />
 </Project>
