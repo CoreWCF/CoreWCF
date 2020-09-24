@@ -1,5 +1,10 @@
 trigger:
 - master
+- rel/*
+
+pr:
+- master
+- release/*
 
 variables:
   _solution: 'src/CoreWCF.sln'
@@ -28,22 +33,17 @@ stages:
           version: 3.1.x
           installationPath: $(Agent.ToolsDirectory)/dotnet
 
-      # GitVersion task broken as of 2019-12-10. See https://github.com/GitTools/GitVersion/issues/1855
-      # Installing the GitVersion tool and running it directly as a workaround
+      # NGBV project at https://github.com/dotnet/Nerdbank.GitVersioning
       - task: DotNetCoreCLI@2
-        displayName: 'Install gitversion'
         inputs:
-          command: 'custom'
-          custom: 'tool'
-          arguments: 'install -g gitversion.tool --version 5.3.7'
+          command: custom
+          custom: tool
+          arguments: install --tool-path . nbgv
+        displayName: Install NBGV tool
 
-      - task: DotNetCoreCLI@2
-        displayName: 'Gitversion setup'
-        inputs:
-          command: 'custom'
-          custom: 'gitversion'
-          arguments: '/output buildserver'
-    
+      - script: nbgv cloud
+        displayName: Set Version
+
       - task: DotNetCoreCLI@2
         displayName: Restore
         inputs:
@@ -59,7 +59,7 @@ stages:
           arguments: '--no-restore --configuration $(_buildConfig)'
       - publish: $(System.DefaultWorkingDirectory)/bin
         artifact: $(_buildConfig)Build
-        
+
 - stage: Test
   displayName: Run Tests
   dependsOn: Build
@@ -222,6 +222,7 @@ stages:
         # To make the task not regenerate the report an environment variable was added to the pipeline in Azure DevOps; "disable.coverage.autogenerate: 'true'"
         # see: https://github.com/danielpalme/ReportGenerator/wiki/Integration#attention
         reportDirectory: $(Build.ArtifactStagingDirectory)/Coverage/Report/
+
 - stage: Pack
   dependsOn: Test
   displayName: Create Packages
@@ -237,12 +238,14 @@ stages:
         source: current
         artifact: ReleaseBuild
         path: $(System.DefaultWorkingDirectory)/bin
+
     - task: DotNetCoreCLI@2
       displayName: Restore
       inputs:
         command: 'build'
         projects: $(_libraryProjects)
         arguments: '--configuration Release /t:restore'
+
     - task: DotNetCoreCLI@2
       displayName: Create packages
       inputs:
@@ -253,8 +256,14 @@ stages:
         nobuild: true
         includesymbols: true
         arguments: '--no-restore'
+
+    - publish: $(Build.ArtifactStagingDirectory)/Packages   
+      displayName: Publish Build Artifacts  
+      artifact: BuildPackages
+
     - task: NuGetAuthenticate@0
       displayName: NuGet Authenticate
+
     - task: NuGetCommand@2
       displayName: 'NuGet push'
       inputs:
