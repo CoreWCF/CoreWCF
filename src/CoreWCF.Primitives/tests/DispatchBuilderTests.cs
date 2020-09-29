@@ -19,17 +19,16 @@ namespace DispatchBuilder
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddServiceModelServices();
-            var serverAddressesFeature = new ServerAddressesFeature();
-            serverAddressesFeature.Addresses.Add(serviceAddress);
             IServer server = new MockServer();
-            server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
             services.AddSingleton(server);
             var serviceProvider = services.BuildServiceProvider();
             var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
             serviceBuilder.AddService<SimpleService>();
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleService, ISimpleService>(binding, serviceAddress);
+            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
             var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleService));
             Assert.Single(dispatchers);
@@ -51,17 +50,16 @@ namespace DispatchBuilder
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddServiceModelServices();
-            var serverAddressesFeature = new ServerAddressesFeature();
-            serverAddressesFeature.Addresses.Add(serviceAddress);
             IServer server = new MockServer();
-            server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
             services.AddSingleton(server);
             var serviceProvider = services.BuildServiceProvider();
             var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
             serviceBuilder.AddService<SimpleSingletonService>();
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleSingletonService, ISimpleService>(binding, serviceAddress);
+            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
             var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
             Assert.Single(dispatchers);
@@ -83,18 +81,17 @@ namespace DispatchBuilder
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddServiceModelServices();
-            var serverAddressesFeature = new ServerAddressesFeature();
-            serverAddressesFeature.Addresses.Add(serviceAddress);
             IServer server = new MockServer();
-            server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
             services.AddSingleton(server);
             services.AddSingleton(new SimpleSingletonService());
             var serviceProvider = services.BuildServiceProvider();
             var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
             serviceBuilder.AddService<SimpleSingletonService>();
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleSingletonService, ISimpleService>(binding, serviceAddress);
+            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
             var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
             Assert.Single(dispatchers);
@@ -118,20 +115,18 @@ namespace DispatchBuilder
             services.AddLogging();
             services.AddServiceModelServices();
 
-            var serverAddressesFeature = new ServerAddressesFeature();
-            serverAddressesFeature.Addresses.Add(serviceAddress);
-
             IServer server = new MockServer();
-            server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
             services.AddSingleton(server);
 
             var serviceProvider = services.BuildServiceProvider();
             var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
             serviceBuilder.AddService<SimpleXmlSerializerService>();
 
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleXmlSerializerService, ISimpleXmlSerializerService>(binding, serviceAddress);
+            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
 
             var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleXmlSerializerService));

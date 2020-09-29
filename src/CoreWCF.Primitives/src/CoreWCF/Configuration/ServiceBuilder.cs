@@ -2,13 +2,16 @@ using Microsoft.Extensions.DependencyInjection;
 using CoreWCF.Channels;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace CoreWCF.Configuration
 {
-    internal class ServiceBuilder : IServiceBuilder
+    internal class ServiceBuilder : CommunicationObject, IServiceBuilder
     {
         private IServiceProvider _serviceProvider;
         private IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
+        private TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public ServiceBuilder(IServiceProvider serviceProvider)
         {
@@ -22,6 +25,10 @@ namespace CoreWCF.Configuration
         ICollection<Type> IServiceBuilder.Services => _services.Keys;
 
         public IServiceProvider ServiceProvider => _serviceProvider;
+
+        protected override TimeSpan DefaultCloseTimeout => TimeSpan.FromMinutes(1);
+
+        protected override TimeSpan DefaultOpenTimeout => TimeSpan.FromMinutes(1);
 
         public IServiceBuilder AddService<TService>() where TService : class
         {
@@ -119,6 +126,34 @@ namespace CoreWCF.Configuration
             }
 
             return this;
+        }
+
+        protected override void OnAbort()
+        {
+        }
+
+        protected override Task OnCloseAsync(CancellationToken token)
+        {
+            return Task.CompletedTask;
+        }
+
+        protected override Task OnOpenAsync(CancellationToken token)
+        {
+            _openingCompletedTcs.TrySetResult(null);
+            return Task.CompletedTask;
+        }
+
+        protected override void OnFaulted()
+        {
+            base.OnFaulted();
+            _openingCompletedTcs.TrySetResult(null);
+        }
+
+        // This is to allow the ServiceHostObjectModel to wait until all the Opening event handlers have ran
+        // to do some configuration such as adding base addresses before the actual service dispatcher is created.
+        internal Task WaitForOpening()
+        {
+            return _openingCompletedTcs.Task;
         }
     }
 }

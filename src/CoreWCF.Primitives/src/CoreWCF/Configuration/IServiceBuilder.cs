@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CoreWCF.Configuration
 {
-    public interface IServiceBuilder
+    public interface IServiceBuilder : ICommunicationObject
     {
         ICollection<Type> Services { get; }
         ICollection<Uri> BaseAddresses { get; }

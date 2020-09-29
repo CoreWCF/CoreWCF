@@ -23,15 +23,13 @@ namespace CoreWCF
         private TService _singletonInstance;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ServiceHostObjectModel<TService>> _logger;
-        private IServerAddressesFeature _serverAddresses;
 
-        public ServiceHostObjectModel(IServiceProvider serviceProvider, IServer server, IServiceBuilder serviceBuilder, ILogger<ServiceHostObjectModel<TService>> logger)
+        public ServiceHostObjectModel(IServiceProvider serviceProvider, ServiceBuilder serviceBuilder, ILogger<ServiceHostObjectModel<TService>> logger)
         {
             _serviceProvider = serviceProvider;
-            _serverAddresses = server.Features.Get<IServerAddressesFeature>();
             _logger = logger;
 
-            InitializeBaseAddresses(serviceBuilder);
+            WaitForServiceBuilderOpening(serviceBuilder);
 
             InitializeDescription(new UriSchemeKeyedCollection(serviceBuilder.BaseAddresses.ToArray()));
         }
@@ -230,7 +228,6 @@ namespace CoreWCF
 
         internal Uri MakeAbsoluteUri(Uri uri, Binding binding)
         {
-            EnsureBaseAddresses();
             Uri result = uri;
             if (!result.IsAbsoluteUri)
             {
@@ -248,38 +245,6 @@ namespace CoreWCF
             }
 
             return result;
-        }
-
-        private void EnsureBaseAddresses()
-        {
-            if (_serverAddresses != null)
-            {
-                foreach(var addr in _serverAddresses.Addresses)
-                {
-                    var uri = new Uri(addr);
-                    bool skip = false;
-                    foreach(var baseAddress in InternalBaseAddresses)
-                    {
-                        if (baseAddress.Port == uri.Port && baseAddress.Scheme != uri.Scheme)
-                        {
-                            // ASP.NET Core adds net.tcp uri's as http{s} uri's
-                            skip = true;
-                            break;
-                        }
-                    }
-                    if (!skip && !InternalBaseAddresses.Contains(uri))
-                    {
-
-                        InternalBaseAddresses.Add(uri);
-                    }
-                }
-
-                if (_serverAddresses.Addresses.Count > 0)
-                {
-                    // It was populated by ASP.NET Core so can skip re-adding in future.
-                    _serverAddresses = null;
-                }
-            }
         }
 
         internal static String GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
@@ -370,20 +335,10 @@ namespace CoreWCF
         /// </remarks>
         /// </summary>
         /// <param name="serviceBuilder"></param>
-        private void InitializeBaseAddresses(IServiceBuilder serviceBuilder)
+        private void WaitForServiceBuilderOpening(ServiceBuilder serviceBuilder)
         {
-            var addresses = _serverAddresses.Addresses.ToArray();
-            for (var i = addresses.Length - 1; i >= 0; i--)
-            {
-                var address = addresses[i];
-                var uri = new Uri(address, UriKind.Absolute);
-                if (!uri.Host.Equals("0.0.0.0"))
-                    continue;
-
-                var baseAddress = new Uri($"net.tcp://{uri.Host}:{uri.Port}");
-                _logger.LogDebug($"Adding base address {baseAddress} to serviceBuilder");
-                serviceBuilder.BaseAddresses.Add(baseAddress);
-            }
+            serviceBuilder.WaitForOpening().GetAwaiter().GetResult();
+            serviceBuilder.ThrowIfDisposedOrNotOpen();
         }
     }
 }

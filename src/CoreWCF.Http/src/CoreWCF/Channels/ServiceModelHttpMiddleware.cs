@@ -9,20 +9,30 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Channels
 {
     public partial class ServiceModelHttpMiddleware
     {
-        private RequestDelegate _next;
-        private ILogger<ServiceModelHttpMiddleware> _logger;
+        private readonly IApplicationBuilder _app;
+        private readonly IServiceBuilder _serviceBuilder;
+        private readonly IDispatcherBuilder _dispatcherBuilder;
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ServiceModelHttpMiddleware> _logger;
         private RequestDelegate _branch;
+        private bool _branchBuilt;
 
         public ServiceModelHttpMiddleware(RequestDelegate next, IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, ILogger<ServiceModelHttpMiddleware> logger)
         {
+            _app = app;
+            _serviceBuilder = serviceBuilder;
+            _dispatcherBuilder = dispatcherBuilder;
             _next = next;
             _logger = logger;
-            _branch = BuildBranch(app, serviceBuilder, dispatcherBuilder);
+            _branch = BuildBranchAndInvoke;
+            serviceBuilder.Opening += ServiceBuilderOpeningCallback;
+            serviceBuilder.Opened += ServiceBuilderOpenedCallback;
         }
 
         public Task InvokeAsync(HttpContext context)
@@ -30,20 +40,42 @@ namespace CoreWCF.Channels
             return _branch(context);
         }
 
-        private RequestDelegate BuildBranch(IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder)
+        private Task BuildBranchAndInvoke(HttpContext request)
+        {
+            EnsureBranchBuilt();
+            return _branch(request);
+        }
+
+        private void EnsureBranchBuilt()
+        {
+            lock (this)
+            {
+                if (!_branchBuilt)
+                {
+                    _branch = BuildBranch();
+                    _branchBuilt = true;
+                }
+            }
+        }
+
+        private static void ServiceBuilderOpeningCallback(object sender, EventArgs e)
+        {
+            ((IServiceBuilder)sender).BaseAddresses.Add(new Uri("http://localhost/"));
+        }
+
+        private void ServiceBuilderOpenedCallback(object sender, EventArgs e)
+        {
+            EnsureBranchBuilt();
+        }
+
+        private RequestDelegate BuildBranch()
         {
             _logger.LogDebug("Building branch map");
-            var branchApp = app.New();
-            var serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
-            foreach (var address in serverAddressesFeature.Addresses)
-            {
-                _logger.LogDebug($"Adding base address {address} to serviceBuilder");
-                serviceBuilder.BaseAddresses.Add(new Uri(address));
-            }
+            var branchApp = _app.New();
 
-            foreach (var serviceType in serviceBuilder.Services)
+            foreach (var serviceType in _serviceBuilder.Services)
             {
-                var dispatchers = dispatcherBuilder.BuildDispatchers(serviceType);
+                var dispatchers = _dispatcherBuilder.BuildDispatchers(serviceType);
                 foreach (var dispatcher in dispatchers)
                 {
                     if (dispatcher.BaseAddress == null)
@@ -64,8 +96,7 @@ namespace CoreWCF.Channels
                     }
 
                     var parameters = new BindingParameterCollection();
-                    parameters.Add(app);
-                    parameters.Add(serverAddressesFeature);
+                    parameters.Add(_app);
                     Type supportedChannelType = null;
                     IServiceDispatcher serviceDispatcher = null;
                     var supportedChannels = dispatcher.SupportedChannelTypes;
