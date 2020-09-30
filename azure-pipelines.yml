@@ -1,6 +1,6 @@
 trigger:
 - master
-- rel/*
+- release/*
 
 pr:
 - master
@@ -226,7 +226,7 @@ stages:
 - stage: Pack
   dependsOn: Test
   displayName: Create Packages
-  condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'BatchedCI', 'Manual'))
+  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')))
   jobs:
   - job: Pack
     pool:
@@ -257,9 +257,69 @@ stages:
         includesymbols: true
         arguments: '--no-restore'
 
-    - publish: $(Build.ArtifactStagingDirectory)/Packages   
-      displayName: Publish Build Artifacts  
+    - publish: $(Build.ArtifactStagingDirectory)/Packages
+      displayName: Publish Packages
       artifact: BuildPackages
+
+- stage: CodeSign
+  dependsOn: Pack
+  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')))
+  jobs:
+  - deployment: CodeSign
+    displayName: Code Signing
+    pool:
+      vmImage: windows-latest
+    environment: Code Sign - Approvals
+    variables:
+    - group: Sign Client Credentials
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # If you have MSCA: https://aka.ms/mscadocs
+          - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-antimalware.AntiMalware@3
+            displayName: AntiMalware Scan
+            inputs:
+              EnableServices: true
+              FileDirPath: $(Pipeline.Workspace)\BuildPackages
+
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: custom
+              custom: tool
+              arguments: install --tool-path . SignClient
+            displayName: Install SignTool tool
+
+          - pwsh: |
+              .\SignClient "Sign" `
+              --baseDirectory "$(Pipeline.Workspace)\BuildPackages" `
+              --input "**/*.nupkg" `
+              --config "$(Pipeline.Workspace)\config\SignClient.json" `
+              --filelist "$(Pipeline.Workspace)\config\filelist.txt" `
+              --user "$(SignClientUser)" `
+              --secret "$(SignClientSecret)" `
+              --name "CoreWCF" `
+              --description "CoreWCF" `
+              --descriptionUrl "https://github.com/CoreWCF/CoreWCF"
+            displayName: Sign packages
+
+          - publish: $(Pipeline.Workspace)/BuildPackages
+            displayName: Publish Signed Packages
+            artifact: SignedPackages
+
+- stage: Publish
+  dependsOn: CodeSign
+  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')))
+  - job: PublishPackages
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Signed Packages
+      inputs:
+        source: current
+        artifact: SignedPackages
+        path: '$(Build.ArtifactStagingDirectory)/Packages'
 
     - task: NuGetAuthenticate@0
       displayName: NuGet Authenticate
