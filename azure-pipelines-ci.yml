@@ -9,6 +9,8 @@ trigger:
     exclude:
     - src/Samples/
 
+pr: none
+
 variables:
   _solution: 'src/CoreWCF.sln'
   _libraryProjects: 'src/CoreWCF.*/src/CoreWCF.*.csproj'
