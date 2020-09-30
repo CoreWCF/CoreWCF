@@ -11,6 +11,8 @@ using CoreWCF.Channels.Framing;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Linq;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Configuration
 {
@@ -38,21 +40,10 @@ namespace CoreWCF.Configuration
         private static IServiceCollection AddNetTcpServices(this IServiceCollection services, IPEndPoint endPoint)
         {
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<KestrelServerOptions>, NetTcpFramingOptionsSetup>());
-
+            services.TryAddSingleton<NetMessageFramingConnectionHandler>();
             services.Configure<NetTcpFramingOptions>(o =>
             {
                 o.EndPoints.Add(endPoint);
-            });
-
-            //
-            // In cases where we're only binding to net.tcp, we still need this feature,
-            // in order to support automatically assigning TCP ports at runtime
-            //
-            services.TryAddSingleton<IFeatureCollection>(r =>
-            {
-                var features = new FeatureCollection();
-                features.Set<IServerAddressesFeature>(new ServerAddressesFeature());
-                return features;
             });
 
             return services;
@@ -69,38 +60,41 @@ namespace CoreWCF.Configuration
     {
         private readonly ILogger<NetTcpFramingOptions> _logger;
         private readonly NetTcpFramingOptions _options;
+        private readonly IServiceBuilder _serviceBuilder;
 
-        public NetTcpFramingOptionsSetup(IOptions<NetTcpFramingOptions> options, ILogger<NetTcpFramingOptions> logger)
+        public NetTcpFramingOptionsSetup(IOptions<NetTcpFramingOptions> options, IServiceBuilder serviceBuilder, ILogger<NetTcpFramingOptions> logger)
         {
+            _options = options.Value ?? new NetTcpFramingOptions();
+            _serviceBuilder = serviceBuilder;
             _logger = logger;
-            _options = options.Value;
         }
+
+        public List<ListenOptions> ListenOptions { get; } = new List<ListenOptions>();
 
         public void Configure(KestrelServerOptions options)
         {
-            IServiceBuilder serviceBuilder = options.ApplicationServices.GetRequiredService<IServiceBuilder>();
             foreach (var endpoint in _options.EndPoints)
             {
                 options.Listen(endpoint, builder =>
                 {
                     builder.UseConnectionHandler<NetMessageFramingConnectionHandler>();
+                    var handler = builder.ApplicationServices.GetRequiredService<NetMessageFramingConnectionHandler>();
+                    // Save the ListenOptions to be able to get final port number for adding BaseAddresses later
+                    ListenOptions.Add(builder);
                 });
+            }
 
+            _serviceBuilder.Opening += OnServiceBuilderOpening;
+        }
+
+        private void OnServiceBuilderOpening(object sender, EventArgs e)
+        {
+            foreach (var listenOptions in ListenOptions)
+            {
+                var endpoint = listenOptions.IPEndPoint;
                 var baseAddress = new Uri($"net.tcp://localhost:{endpoint.Port}/");
-
-                if (endpoint.Port == 0)
-                {
-                    // Implicit port: it hasn't been assigned by the TCP stack yet
-                    var serverFeatures = options.ApplicationServices.GetRequiredService<IFeatureCollection>();
-                    var serverAddressesFeature = serverFeatures.Get<IServerAddressesFeature>();
-                    serverAddressesFeature.Addresses.Add(baseAddress.ToString());
-                }
-                else
-                {
-                    // Explicit port: can safely add directly to the serviceBuilder (default behavior)
-                    _logger.LogDebug($"Adding base address {baseAddress} to serviceBuilder");
-                    serviceBuilder.BaseAddresses.Add(baseAddress);
-                }
+                _logger.LogDebug($"Adding base address {baseAddress} to ServiceBuilderOptions");
+                _serviceBuilder.BaseAddresses.Add(baseAddress);
             }
         }
     }

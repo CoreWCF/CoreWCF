@@ -98,7 +98,6 @@ namespace Helpers
                         }
                     });
                 })
-            .UseUrls("http://localhost:8080")
             .UseStartup<TStartup>();
 
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
@@ -122,7 +121,6 @@ namespace Helpers
                     }
                 });
             })
-            .UseUrls("http://localhost:8080")
             .UseStartup(startupType);
 
         public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
@@ -159,7 +157,6 @@ namespace Helpers
                     }
                 });
             })
-            .UseUrls("http://localhost:8080", "https://localhost:8443")
             .UseStartup<TStartup>();
 
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)

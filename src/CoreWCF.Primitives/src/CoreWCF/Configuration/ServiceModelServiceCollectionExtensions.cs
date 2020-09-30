@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using CoreWCF.Description;
+using System.Linq;
+using Microsoft.AspNetCore.Hosting.Server;
 
 namespace CoreWCF.Configuration
 {
@@ -16,6 +18,25 @@ namespace CoreWCF.Configuration
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
+            }
+            services.AddSingleton<WrappingIServer>();
+            for (int i=0; i<services.Count; i++)
+            {
+                if (services[i].ServiceType == typeof(IServer))
+                {
+                    Type implType = services[i].ImplementationType;
+                    if (!services.Any(d => d.ServiceType == implType))
+                    {
+                        services.AddSingleton(implType);
+                    }
+                    services[i] = ServiceDescriptor.Singleton<IServer>((provider) =>
+                        {
+                            var originalIServer = (IServer)provider.GetRequiredService(implType);
+                            var wrappingServer = provider.GetRequiredService<WrappingIServer>();
+                            wrappingServer.InnerServer = originalIServer;
+                            return wrappingServer;
+                        });
+                }
             }
             services.AddSingleton<ServiceBuilder>();
             services.AddSingleton<IServiceBuilder>(provider => provider.GetRequiredService<ServiceBuilder>());
