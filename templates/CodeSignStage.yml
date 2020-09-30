@@ -1,5 +1,6 @@
 stages:
 - stage: CodeSign
+  displayName: Code Sign
   dependsOn: Pack
   condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')))
   jobs:
@@ -15,11 +16,11 @@ stages:
         deploy:
           steps:
           # If you have MSCA: https://aka.ms/mscadocs
-          - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-antimalware.AntiMalware@3
-            displayName: AntiMalware Scan
-            inputs:
-              EnableServices: true
-              FileDirPath: $(Pipeline.Workspace)\BuildPackages
+          #- task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-antimalware.AntiMalware@3
+          #  displayName: AntiMalware Scan
+          #  inputs:
+          #    EnableServices: true
+          #    FileDirPath: $(Pipeline.Workspace)\BuildPackages
 
           - task: DotNetCoreCLI@2
             inputs:

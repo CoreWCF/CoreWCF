@@ -1,7 +1,9 @@
 stages:
 - stage: Publish
+  displayName: Publish Packages
   dependsOn: CodeSign
   condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')))
+  jobs:
   - job: PublishPackages
     pool:
       vmImage: 'windows-latest'
