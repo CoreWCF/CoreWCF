@@ -1,0 +1,27 @@
+stages:
+- stage: Publish
+  dependsOn: CodeSign
+  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')))
+  - job: PublishPackages
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Signed Packages
+      inputs:
+        source: current
+        artifact: SignedPackages
+        path: '$(Build.ArtifactStagingDirectory)/Packages'
+
+    - task: NuGetAuthenticate@0
+      displayName: NuGet Authenticate
+
+    - task: NuGetCommand@2
+      displayName: 'NuGet push'
+      inputs:
+        command: push
+        feedPublish: 'CoreWCF/CoreWCF'
+        verbosityPush: Detailed
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/Packages/*.*'
+        allowPackageConflicts: true
+        publishPackageMetadata: true
