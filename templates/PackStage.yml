@@ -40,3 +40,7 @@ stages:
     - publish: $(Build.ArtifactStagingDirectory)/Packages
       displayName: Publish Packages
       artifact: BuildPackages
+
+    - publish: config
+      displayName: Publish Signing Scripts
+      artifact: config
