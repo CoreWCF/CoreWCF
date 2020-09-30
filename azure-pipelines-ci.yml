@@ -1,8 +1,13 @@
-trigger: none
-
-pr:
-- master
-- release/*
+trigger:
+  branches:
+    include:
+    - master
+    - release/*
+  paths:
+    include:
+    - src/
+    exclude:
+    - src/Samples/
 
 variables:
   _solution: 'src/CoreWCF.sln'
@@ -18,3 +23,9 @@ stages:
 - template: templates/TestStage.yml
   parameters:
     testProjects: $(_testProjects)
+
+- template: templates/PackStage.yml
+  parameters:
+    packProjects: $(_libraryProjects)
+
+- template: templates/PublishStage.yml
