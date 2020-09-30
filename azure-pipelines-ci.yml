@@ -28,4 +28,6 @@ stages:
   parameters:
     packProjects: $(_libraryProjects)
 
+- template: templates/CodeSignStage.yml
+
 - template: templates/PublishStage.yml
