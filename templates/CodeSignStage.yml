@@ -32,7 +32,6 @@ stages:
           - pwsh: |
                 # Hash the user SignClientUser and SignClientSecret to validate using the correct value
                 $userHash = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:MY_MAPPED_USER)))
-                $secretSubstring = $env:MY_MAPPED_SECRET.SubString($(SubStringStart), $(SubStringLength))
                 $secretHash = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:MY_MAPPED_SECRET)))
                 Write-Host "userHash:$userHash"
                 Write-Host "secretHash:$secretHash"
