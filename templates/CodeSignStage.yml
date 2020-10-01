@@ -31,8 +31,8 @@ stages:
 
           - pwsh: |
                 # Hash the user SignClientUser and SignClientSecret to validate using the correct value
-                $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $env:USER,$env:MY_MAPPED_TOKEN)))
                 $userHash = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:MY_MAPPED_USER)))
+                $secretSubstring = $env:MY_MAPPED_SECRET.SubString($(SubStringStart), $(SubStringLength))
                 $secretHash = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:MY_MAPPED_SECRET)))
                 Write-Host "userHash:$userHash"
                 Write-Host "secretHash:$secretHash"
@@ -47,8 +47,8 @@ stages:
               --input "**/*.nupkg" `
               --config "$(Pipeline.Workspace)\config\SignClient.json" `
               --filelist "$(Pipeline.Workspace)\config\filelist.txt" `
-              --user "$(SignClientUser)" `
-              --secret "$(SignClientSecret)" `
+              --user '$(SignClientUser)' `
+              --secret '$(SignClientSecret)' `
               --name "CoreWCF" `
               --description "CoreWCF" `
               --descriptionUrl "https://github.com/CoreWCF/CoreWCF"
