@@ -29,16 +29,14 @@ stages:
               arguments: install --tool-path . SignClient
             displayName: Install SignTool tool
 
-          - task: PowerShell@2
-            inputs:
-            targetType: 'inline'
-            script: |
+          - pwsh: |
                 # Hash the user SignClientUser and SignClientSecret to validate using the correct value
                 $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $env:USER,$env:MY_MAPPED_TOKEN)))
                 $userHash = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:MY_MAPPED_USER)))
                 $secretHash = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:MY_MAPPED_SECRET)))
                 Write-Host "userHash:$userHash"
                 Write-Host "secretHash:$secretHash"
+            displayName: Generate secret hashes
             env:
               MY_MAPPED_USER: $(SignClientUser) # Maps the secret variable $(SignClientUser) from Sign Client Credentials
               MY_MAPPED_SECRET: $(SignClientSecret) # Maps the secret variable $(SignClientSecret) from Sign Client Credentials
