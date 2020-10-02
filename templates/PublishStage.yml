@@ -19,7 +19,7 @@ stages:
       displayName: NuGet Authenticate
 
     - task: NuGetCommand@2
-      displayName: 'NuGet push'
+      displayName: 'NuGet push to AzDevops feed'
       inputs:
         command: push
         feedPublish: 'CoreWCF/CoreWCF'

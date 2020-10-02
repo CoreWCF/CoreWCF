@@ -30,17 +30,6 @@ stages:
             displayName: Install SignTool tool
 
           - pwsh: |
-                # Hash the user SignClientUser and SignClientSecret to validate using the correct value
-                $userHash = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:MY_MAPPED_USER)))
-                $secretHash = [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($env:MY_MAPPED_SECRET)))
-                Write-Host "userHash:$userHash"
-                Write-Host "secretHash:$secretHash"
-            displayName: Generate secret hashes
-            env:
-              MY_MAPPED_USER: $(SignClientUser) # Maps the secret variable $(SignClientUser) from Sign Client Credentials
-              MY_MAPPED_SECRET: $(SignClientSecret) # Maps the secret variable $(SignClientSecret) from Sign Client Credentials
-
-          - pwsh: |
               .\SignClient "Sign" `
               --baseDirectory "$(Pipeline.Workspace)\BuildPackages" `
               --input "**/*.nupkg" `

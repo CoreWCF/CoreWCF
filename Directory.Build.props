@@ -30,11 +30,11 @@
   <PropertyGroup>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
-  
+
   <!-- Git versioning related items and properties -->
   <PropertyGroup>
     <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
-  </PropertyGroup>  
+  </PropertyGroup>
   <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
     <PackageReference Include="Nerdbank.GitVersioning">
       <Version>3.2.31</Version>
@@ -43,15 +43,7 @@
     <!-- Include license file in packages -->
     <Content Include="$(ProjectDir)LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
-  
-  <PropertyGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <UseFullSemVerForNuGet>true</UseFullSemVerForNuGet>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <RepositoryUrl>https://github.com/CoreWCF/CoreWCF</RepositoryUrl>
-  </PropertyGroup>
+
   <PropertyGroup Condition="$(IsTestProject) AND '$(CollectCoverage)' == 'true'">
     <CoverletOutput Condition="'$(CoverletOutputDir)' != '' AND '$(CoverletOutput)' == ''">$(CoverletOutputDir)/$(MSBuildProjectName).xml</CoverletOutput>
     <CoverletOutputFormat Condition="'$(CoverletOutputFormat)' == ''">cobertura</CoverletOutputFormat>
