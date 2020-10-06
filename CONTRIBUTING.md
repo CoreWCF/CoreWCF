@@ -11,7 +11,7 @@ Please start a discussion on the [core repo issue tracker](https://github.com/Co
 
 ## Platform
 
-Core WCF is built on top of .NET Core 2.2.
+Core WCF is built targeting .NET Standard 2.0
 
 ## Building
 
