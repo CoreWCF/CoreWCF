@@ -763,12 +763,10 @@ namespace CoreWCF.Dispatcher
 
             protected override void OnWriteHeaderAttributes(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
-                throw new PlatformNotSupportedException();
-                // Needs Net Standard 1.7
-                //base.WriteHeaderAttributes(writer, messageVersion);
-                //XmlDictionaryReader nodeReader = XmlDictionaryReader.CreateDictionaryReader(new XmlNodeReader(headerValue));
-                //nodeReader.MoveToContent();
-                //writer.WriteAttributes(nodeReader, false);
+                base.WriteHeaderAttributes(writer, messageVersion);
+                XmlDictionaryReader nodeReader = XmlDictionaryReader.CreateDictionaryReader(new XmlNodeReader(headerValue));
+                nodeReader.MoveToContent();
+                writer.WriteAttributes(nodeReader, false);
             }
 
             protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
