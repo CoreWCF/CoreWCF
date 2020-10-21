@@ -38,23 +38,38 @@ namespace Helpers
             };
         }
 
-        //public static Binding GetBufferedModHttp2Binding()
+
+        public static NetHttpBinding GetNetHttpBinding()
+        {
+            var binding = new NetHttpBinding();
+            binding.Security.Mode = BasicHttpSecurityMode.TransportCredentialOnly;
+            binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm;
+            ((NetHttpBinding)binding).WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
+            ((NetHttpBinding)binding).MaxReceivedMessageSize = 67108864L;
+            ((NetHttpBinding)binding).MaxBufferSize = 67108864;
+            ((NetHttpBinding)binding).MessageEncoding = NetHttpMessageEncoding.Text;
+            //ApplyDebugTimeouts(binding);
+            return binding;
+        }
+
+
+        //public static binding getbufferedmodhttp2binding()
         //{
-        //    BasicHttpBinding basicHttpBinding = new BasicHttpBinding();
-        //    HttpTransportBindingElement httpTransportBindingElement = basicHttpBinding.CreateBindingElements().Find<HttpTransportBindingElement>();
-        //    MessageVersion messageVersion = basicHttpBinding.MessageVersion;
-        //    MessageEncodingBindingElement encodingBindingElement = new TextMessageEncodingBindingElement(messageVersion, Encoding.Unicode);
-        //    httpTransportBindingElement.TransferMode = TransferMode.Streamed;
-        //    return new CustomBinding(new BindingElement[]
+        //    basichttpbinding basichttpbinding = new basichttpbinding();
+        //    httptransportbindingelement httptransportbindingelement = basichttpbinding.createbindingelements().find<httptransportbindingelement>();
+        //    messageversion messageversion = basichttpbinding.messageversion;
+        //    messageencodingbindingelement encodingbindingelement = new textmessageencodingbindingelement(messageversion, encoding.unicode);
+        //    httptransportbindingelement.transfermode = transfermode.streamed;
+        //    return new custombinding(new bindingelement[]
         //    {
-        //        encodingBindingElement,
-        //        httpTransportBindingElement
+        //        encodingbindingelement,
+        //        httptransportbindingelement
         //    })
         //    {
-        //        SendTimeout = TimeSpan.FromMinutes(20.0),
-        //        ReceiveTimeout = TimeSpan.FromMinutes(20.0),
-        //        OpenTimeout = TimeSpan.FromMinutes(20.0),
-        //        CloseTimeout = TimeSpan.FromMinutes(20.0)
+        //        sendtimeout = timespan.fromminutes(20.0),
+        //        receivetimeout = timespan.fromminutes(20.0),
+        //        opentimeout = timespan.fromminutes(20.0),
+        //        closetimeout = timespan.fromminutes(20.0)
         //    };
         //}
         //public static Binding GetBufferedModHttp3Binding()
