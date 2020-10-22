@@ -282,58 +282,21 @@ namespace Helpers
 			Stream stream = input.stream;
 			return GetStringFrom(stream);
 		}
-	}
-        public static CustomBinding GetCustomServerBinding(CompressionFormat serverCompressionFormat, string protocol, TransferMode transferMode)
+	
+        public static CustomBinding GetCustomServerBinding(CompressionFormat serverCompressionFormat, TransferMode transferMode)
         {
             BinaryMessageEncodingBindingElement binaryMessageEncodingElement = new BinaryMessageEncodingBindingElement();
-            TransportBindingElement tranportBE = ConfigureTransportBindingElement(protocol, transferMode);
-
-            //SymmetricSecurityBindingElement ssbe = SecurityBindingElement.CreateSspiNegotiationBindingElement(true);
-
-            //Configure Server Binding
-            var customBinding = new CustomBinding();
-            //if (useMessageSecurity)
-            //{
-            //    customBinding.Elements.Add(ssbe);
-            //}
             binaryMessageEncodingElement.CompressionFormat = serverCompressionFormat;
+            HttpTransportBindingElement tranportBE = new HttpTransportBindingElement
+            {
+                TransferMode = transferMode,
+                MaxReceivedMessageSize = int.MaxValue
+            };
+
+            var customBinding = new CustomBinding();
             customBinding.Elements.Add(binaryMessageEncodingElement);
             customBinding.Elements.Add(tranportBE);
             return new CustomBinding(customBinding);
-        }
-
-        public static TransportBindingElement ConfigureTransportBindingElement(string protocol, TransferMode transferMode)
-        {
-            switch (protocol)
-            {
-                //case CommonConstants.NetTcpTransport:
-                //    TcpTransportBindingElement tcpTransportBindingElement = new TcpTransportBindingElement();
-                //    tcpTransportBindingElement.TransferMode = transferMode;
-                //    tcpTransportBindingElement.MaxReceivedMessageSize = Int32.MaxValue;
-                //    return tcpTransportBindingElement;
-                //case CommonConstants.NetPipeTransport:
-                //    NamedPipeTransportBindingElement namedPipeTransportBindingElement = new NamedPipeTransportBindingElement();
-                //    namedPipeTransportBindingElement.TransferMode = transferMode;
-                //    namedPipeTransportBindingElement.MaxReceivedMessageSize = Int32.MaxValue;
-                //    return namedPipeTransportBindingElement;
-                //case CommonConstants.NetMsmqTransport:
-                //    MsmqTransportBindingElement msmQTransportBindingElement = new MsmqTransportBindingElement();
-                //    msmQTransportBindingElement.MsmqTransportSecurity.MsmqAuthenticationMode = MsmqAuthenticationMode.None;
-                //    msmQTransportBindingElement.MsmqTransportSecurity.MsmqProtectionLevel = ProtectionLevel.None;
-                //    return msmQTransportBindingElement;
-                //case CommonConstants.HttpsTransport:
-                //    HttpsTransportBindingElement httpsTransportBindingElement = new HttpsTransportBindingElement();
-                //    httpsTransportBindingElement.TransferMode = transferMode;
-                //    httpsTransportBindingElement.MaxReceivedMessageSize = int.MaxValue;
-                //    return httpsTransportBindingElement;
-                default:
-                    HttpTransportBindingElement httpTransportBindingElement = new HttpTransportBindingElement
-                    {
-                        TransferMode = transferMode,
-                        MaxReceivedMessageSize = int.MaxValue
-                    };
-                    return httpTransportBindingElement;
-            }
         }
     }
 }

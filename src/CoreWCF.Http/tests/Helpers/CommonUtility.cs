@@ -37,18 +37,4 @@ namespace Helpers
             return new string(chars, 0, chars.Length);
         }
     }
-
-    public class CommonConstants
-    {
-        public const string HttpTransport = "http";
-        public const string NetTcpTransport = "net.tcp";
-        public const string NetPipeTransport = "net.pipe";
-        public const string NetMsmqTransport = "net.msmq";
-        public const string HttpsTransport = "https";
-        public const string ServiceReady = "ServiceReady";
-        public const string ClientDone = "ClientDone";
-        public const string ServiceAddress = "serviceAddress";
-        public const string CompressionEnabledHttpWebhostService = "CompressionEnabledHttpWebhostService.test";
-        public const string CompressionEnabledNetTcpSelfhostService = "CompressionEnabledNetTcpSelfhostService.test";
-    }
 }
