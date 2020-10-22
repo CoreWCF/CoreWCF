@@ -25,9 +25,9 @@ namespace CoreWCF.NetTcp.Tests
         [InlineData("CompressionEnabledClientAndService")]
         [InlineData("CompressionEnabledClientAndServiceStreamed")]
         [InlineData("ServerCompressionDisabled")]
-        public void TBinaryMessageEncoderCompressionWithDiffTransferModesest(string variation)
+        public void BinaryMessageEncoderCompressionWithDiffTransferModesTest(string variation)
         {
-            string testString = new string('a', 3000);
+            string testString = "hello";
             var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             CustomBinding nettcpBinding;
             System.ServiceModel.ChannelFactory<ClientContract.IBinaryMessageEncoderService> factory = null;
@@ -74,6 +74,7 @@ namespace CoreWCF.NetTcp.Tests
                 else
                 {
                     Assert.Equal(testString, channel.EchoString(testString));
+                    Assert.NotNull(channel.GetStream());
                 }               
             }
         }

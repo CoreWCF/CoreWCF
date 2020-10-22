@@ -47,7 +47,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("ServerCompressionDisabled")]
         public void BinaryMessageEncoderCompressionWithDiffTransferModes(string variation)
         {
-            string testString = new string('a', 3000);
+            string testString = "hello";
             var host = ServiceHelper.CreateWebHostBuilder<CompressionWithDifferentTransferModesStartup>(_output).Build();
             System.ServiceModel.Channels.CustomBinding httpBinding;
             System.ServiceModel.ChannelFactory<ClientContract.IBinaryMessageEncoderService> factory = null;
@@ -94,6 +94,7 @@ namespace CoreWCF.Http.Tests
                 else
                 {
                     Assert.Equal(testString, channel.EchoString(testString));
+                    Assert.NotNull(channel.GetStream());
                 }
             }
         }
