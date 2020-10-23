@@ -3,7 +3,7 @@
 namespace CoreWCF
 {
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = false, AllowMultiple = false)]
-    internal sealed class DataContractFormatAttribute : Attribute
+    public sealed class DataContractFormatAttribute : Attribute
     {
         OperationFormatStyle style;
         public OperationFormatStyle Style
