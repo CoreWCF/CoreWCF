@@ -95,6 +95,19 @@ namespace Helpers
 			return binding;
 		}
 
+		public static NetHttpBinding GetBufferedNetHttpBinding()
+		{
+			var binding = new NetHttpBinding();
+			binding.Security.Mode= BasicHttpSecurityMode.TransportCredentialOnly;
+			binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm;
+			((NetHttpBinding)binding).WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
+			((NetHttpBinding)binding).MaxReceivedMessageSize = 67108864L;
+			((NetHttpBinding)binding).MaxBufferSize = 67108864;
+			((NetHttpBinding)binding).MessageEncoding = NetHttpMessageEncoding.Text;
+			ApplyDebugTimeouts(binding);
+			return binding;
+		}
+
 		public static NetHttpBinding GetBufferedModeWebSocketBinding()
 		{
 			var binding = new NetHttpBinding();
