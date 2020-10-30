@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
@@ -95,11 +96,31 @@ namespace Helpers
 			return binding;
 		}
 
-		public static NetHttpBinding GetBufferedNetHttpBinding()
+		public static NetHttpBinding GetBufferedNetHttpBinding(AuthenticationSchemes schemes)
 		{
 			var binding = new NetHttpBinding();
 			binding.Security.Mode= BasicHttpSecurityMode.TransportCredentialOnly;
-			binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm;
+			switch (schemes)
+			{
+				case AuthenticationSchemes.Anonymous:
+					break;
+				case AuthenticationSchemes.Basic:
+					binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Basic;
+					break;
+				case AuthenticationSchemes.Digest:
+					break;
+				case AuthenticationSchemes.IntegratedWindowsAuthentication:
+					break;
+				case AuthenticationSchemes.Negotiate:
+					break;
+				case AuthenticationSchemes.None:
+					break;
+				case AuthenticationSchemes.Ntlm:
+					binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm;
+					break;
+				default:
+					break;
+			}
 			((NetHttpBinding)binding).WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
 			((NetHttpBinding)binding).MaxReceivedMessageSize = 67108864L;
 			((NetHttpBinding)binding).MaxBufferSize = 67108864;

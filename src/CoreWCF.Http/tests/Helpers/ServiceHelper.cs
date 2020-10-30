@@ -38,11 +38,32 @@ namespace Helpers
             };
         }
 
-        public static NetHttpBinding GetNetHttpBinding()
+        public static NetHttpBinding GetNetHttpBinding(AuthenticationSchemes schemes)
         {
             var binding = new NetHttpBinding();
             binding.Security.Mode = BasicHttpSecurityMode.TransportCredentialOnly;
-            binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm;
+            switch (schemes)
+            {
+                case AuthenticationSchemes.Anonymous:
+                    break;
+                case AuthenticationSchemes.Basic:
+                    binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Basic;
+                    break;
+                case AuthenticationSchemes.Digest:
+                    break;
+                case AuthenticationSchemes.IntegratedWindowsAuthentication:
+                    break;
+                case AuthenticationSchemes.Negotiate:
+                    break;
+                case AuthenticationSchemes.None:
+                    break;
+                case AuthenticationSchemes.Ntlm:
+                    binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm;
+                    break;
+                default:
+                    break;
+            }
+            
             ((NetHttpBinding)binding).WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
             ((NetHttpBinding)binding).MaxReceivedMessageSize = 67108864L;
             ((NetHttpBinding)binding).MaxBufferSize = 67108864;
