@@ -59,6 +59,84 @@ namespace CoreWCF.Http.Tests
             }
         }
 
+        [Fact]
+        public void ChainedTaskWaitAnyTestI()
+        {
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+
+                Task<List<Book>> task = RunChainedService(typeof(ChainedWaitAnyServiceTaskI), TimeSpan.FromMilliseconds(5000));
+
+                StringBuilder sb = new StringBuilder();
+                foreach (Book book in task.Result)
+                {
+                    sb.Append(book.Name);
+                    sb.Append(",");
+                    sb.Append(book.Publisher);
+                }
+                string expectedResult = String.Format("NewYork Best Seller {0},3rd Edition {1}", bookName, bookPublisher);
+                if (sb.ToString() != expectedResult)
+                {
+                    throw new InvalidOperationException(string.Format("Incorrect response, expected response {0}, actual response {1}", expectedResult, sb.ToString()));
+                }
+                _output.WriteLine("Variation passed");
+            }
+        }
+
+        [Fact]
+        public void ChainedTaskWaitAnyTestII()
+        {
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+
+                Task<List<Book>> task = RunChainedService(typeof(ChainedWaitAnyServiceTaskII), TimeSpan.FromMilliseconds(5000));
+
+                StringBuilder sb = new StringBuilder();
+                foreach (Book book in task.Result)
+                {
+                    sb.Append(book.Name);
+                    sb.Append(",");
+                    sb.Append(book.Publisher);
+                }
+                string expectedResult = String.Format("{0},3rd Edition {1}", bookName, bookPublisher);
+                if (sb.ToString() != expectedResult)
+                {
+                    throw new InvalidOperationException(string.Format("Incorrect response, expected response {0}, actual response {1}", expectedResult, sb.ToString()));
+                }
+                _output.WriteLine("Variation passed");
+            }
+        }
+
+        [Fact]
+        public void ChainedTaskWaitTest()
+        {
+            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+
+                Task<List<Book>> task = RunChainedService(typeof(ChainedWaitAllServiceTask), TimeSpan.FromMilliseconds(5000));
+
+                StringBuilder sb = new StringBuilder();
+                foreach (Book book in task.Result)
+                {
+                    sb.Append(book.Name);
+                    sb.Append(",");
+                    sb.Append(book.Publisher);
+                }
+                string expectedResult = String.Format("NewYork Best Seller {0},3rd Edition {1}", bookName, bookPublisher);
+                if (sb.ToString() != expectedResult)
+                {
+                    throw new InvalidOperationException(string.Format("Incorrect response, expected response {0}, actual response {1}", expectedResult, sb.ToString()));
+                }
+                _output.WriteLine("Variation passed");
+            }
+        }
+
         public Task<List<Book>> RunChainedService(Type serviceType, TimeSpan timeout)
         {
             var httpBinding = ClientHelper.GetBufferedModeBinding();
@@ -88,4 +166,3 @@ namespace CoreWCF.Http.Tests
         }
     }
 }
-
