@@ -94,7 +94,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal SynchronizedCollection<IChannelInitializer> ChannelInitializers
+        public SynchronizedCollection<IChannelInitializer> ChannelInitializers
         {
             get { return channelInitializers; }
         }
@@ -301,7 +301,7 @@ namespace CoreWCF.Dispatcher
             get { return MessageInspectors; }
         }
 
-        internal SynchronizedCollection<IClientMessageInspector> MessageInspectors
+        public SynchronizedCollection<IClientMessageInspector> MessageInspectors
         {
             get { return messageInspectors; }
         }

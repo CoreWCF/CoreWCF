@@ -14,7 +14,7 @@ namespace CoreWCF.Dispatcher
     //[KnownType(typeof(ActionMessageFilter))]
     //[KnownType(typeof(MatchAllMessageFilter))]
     //[KnownType(typeof(MatchNoneMessageFilter))]
-    internal abstract class MessageFilter
+    public abstract class MessageFilter
     {
         protected MessageFilter()
         {
