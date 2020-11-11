@@ -23,13 +23,11 @@ namespace CoreWCF.Http.Tests
         }
 
         [Theory]
-        /* message handled in service but client throws
         [InlineData("defaultaction")]
         [InlineData("customaction")]
         [InlineData("uriaction")]
         [InlineData("emptyaction")]
         [InlineData("untypedaction")]
-        */
         [InlineData("defaultreplyaction")]
         [InlineData("customreplyaction")]
         [InlineData("urireplyaction")]
