@@ -229,23 +229,12 @@ namespace WSHttp
             {
                 CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(this.wsHttpSecurityMode);
                 serverBinding.Security.Message.ClientCredentialType = this.credentialType;
-                //TODO move above to WSHttpTransportWithMessageCredential by creating virtual to override binding
                 app.UseServiceModel(builder =>
                 {
-                builder.AddService<Services.EchoService>();
-                //  ServiceDescription.GetService()
-                builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(serverBinding, "/WSHttpWcfService/basichttp.svc");
+                    builder.AddService<Services.EchoService>();
+                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(serverBinding, "/WSHttpWcfService/basichttp.svc");
                     Action<ServiceHostBase> serviceHost = host => ChangeHostBehavior(host);
-
-
-                 /*{
-                        if(this.credentialType == MessageCredentialType.UserName)
-                        {
-                            
-                        }
-
-                    };*/
-                    builder.ConfigureService<Services.EchoService>(serviceHost);
+                    builder.ConfigureServiceHostBase<Services.EchoService>(serviceHost);
                 });
             }
         }

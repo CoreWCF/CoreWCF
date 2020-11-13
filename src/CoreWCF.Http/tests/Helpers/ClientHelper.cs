@@ -78,6 +78,13 @@ namespace Helpers
             return binding;
         }
 
+		public static WSHttpBinding GetBufferedModeWSHttpBinding(SecurityMode securityMode)
+		{
+			var binding = new WSHttpBinding(securityMode);
+			ApplyDebugTimeouts(binding);
+			return binding;
+		}
+
 		public static BasicHttpsBinding GetBufferedModeHttpsBinding()
 		{
 			var binding = new BasicHttpsBinding();
