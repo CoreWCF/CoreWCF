@@ -1,12 +1,11 @@
+using System.Xml;
+using System.Collections.Generic;
 namespace CoreWCF
 {
-    using System.Xml;
-    using System.Collections.Generic;
-
     // NOTE: This is a dynamic dictionary of XmlDictionaryStrings for the Binary Encoder to dynamically encode should
     // the string not exist in the static cache.
     // When adding or removing memebers please keep the capacity of the XmlDictionary field current.
-    static class DXD
+   internal static class DXD
     {
         static AtomicTransactionExternal11Dictionary atomicTransactionExternal11Dictionary;
         static CoordinationExternal11Dictionary coordinationExternal11Dictionary;
@@ -34,38 +33,38 @@ namespace CoreWCF
             wsrm11Dictionary = new Wsrm11Dictionary(dictionary);
         }
 
-        static public AtomicTransactionExternal11Dictionary AtomicTransactionExternal11Dictionary
+        public static AtomicTransactionExternal11Dictionary AtomicTransactionExternal11Dictionary
         {
             get { return atomicTransactionExternal11Dictionary; }
         }
 
-        static public CoordinationExternal11Dictionary CoordinationExternal11Dictionary
+        public static CoordinationExternal11Dictionary CoordinationExternal11Dictionary
         {
             get { return coordinationExternal11Dictionary; }
         }
 
-        static public SecureConversationDec2005Dictionary SecureConversationDec2005Dictionary
+        public static SecureConversationDec2005Dictionary SecureConversationDec2005Dictionary
         {
             get { return secureConversationDec2005Dictionary; }
         }
 
-        static public SecurityAlgorithmDec2005Dictionary SecurityAlgorithmDec2005Dictionary
+        public static SecurityAlgorithmDec2005Dictionary SecurityAlgorithmDec2005Dictionary
         {
             get { return securityAlgorithmDec2005Dictionary; }
         }
 
-        static public TrustDec2005Dictionary TrustDec2005Dictionary
+        public static TrustDec2005Dictionary TrustDec2005Dictionary
         {
             get { return trustDec2005Dictionary; }
         }
 
-        static public Wsrm11Dictionary Wsrm11Dictionary
+        public static Wsrm11Dictionary Wsrm11Dictionary
         {
             get { return wsrm11Dictionary; }
         }
     }
 
-    class AtomicTransactionExternal11Dictionary
+   internal class AtomicTransactionExternal11Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString CompletionUri;
@@ -101,7 +100,7 @@ namespace CoreWCF
         }
     }
 
-    class CoordinationExternal11Dictionary
+   internal class CoordinationExternal11Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString CreateCoordinationContextAction;
@@ -195,7 +194,7 @@ namespace CoreWCF
 
     }
 
-    class SecurityAlgorithmDec2005Dictionary
+  internal  class SecurityAlgorithmDec2005Dictionary
     {
         public XmlDictionaryString Psha1KeyDerivationDec2005;
 
@@ -481,7 +480,7 @@ namespace CoreWCF
         }
     }
 
-    static class AtomicTransactionExternal11Strings
+    internal static class AtomicTransactionExternal11Strings
     {
         // dictionary strings
         public const string Namespace = "http://docs.oasis-open.org/ws-tx/wsat/2006/06";
@@ -500,7 +499,7 @@ namespace CoreWCF
         public const string UnknownTransaction = "UnknownTransaction";
     }
 
-    static class CoordinationExternal11Strings
+   internal static class CoordinationExternal11Strings
     {
         // dictionary strings
         public const string Namespace = "http://docs.oasis-open.org/ws-tx/wscoor/2006/06";
@@ -513,7 +512,7 @@ namespace CoreWCF
         public const string CannotRegisterParticipant = "CannotRegisterParticipant";
     }
 
-    static class SecureConversationDec2005Strings
+    internal static class SecureConversationDec2005Strings
     {
         // dictionary strings
         public const string SecurityContextToken = "SecurityContextToken";
@@ -543,13 +542,13 @@ namespace CoreWCF
         public const string Instance = "Instance";
     }
 
-    static class SecurityAlgorithmDec2005Strings
+   internal static class SecurityAlgorithmDec2005Strings
     {
         // dictionary strings
         public const string Psha1KeyDerivationDec2005 = "http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512/dk/p_sha1";
     }
 
-    static class TrustDec2005Strings
+    internal static class TrustDec2005Strings
     {
         // dictionary strings
         public const string CombinedHashLabel = "AUTH-HASH";
@@ -618,7 +617,7 @@ namespace CoreWCF
         public const string DialectType = "http://schemas.xmlsoap.org/ws/2005/05/identity";
     }
 
-    static class Wsrm11Strings
+   internal static class Wsrm11Strings
     {
         // dictionary strings
         public const string AckRequestedAction = "http://docs.oasis-open.org/ws-rx/wsrm/200702/AckRequested";

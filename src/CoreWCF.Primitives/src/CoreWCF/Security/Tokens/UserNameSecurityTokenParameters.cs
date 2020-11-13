@@ -1,29 +1,25 @@
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+
 namespace CoreWCF.Security.Tokens
 {
-    using CoreWCF.IdentityModel.Selectors;
-    using CoreWCF;
-    using CoreWCF.IdentityModel.Tokens;
-    using CoreWCF.Security;
-    using CoreWCF.IdentityModel;
-
     public class UserNameSecurityTokenParameters : SecurityTokenParameters
     {
-        protected UserNameSecurityTokenParameters(UserNameSecurityTokenParameters other)
-            : base(other)
+        protected UserNameSecurityTokenParameters(UserNameSecurityTokenParameters other) : base(other)
         {
             base.RequireDerivedKeys = false;
         }
 
-        public UserNameSecurityTokenParameters()
-            : base()
+        public UserNameSecurityTokenParameters() : base()
         {
             base.RequireDerivedKeys = false;
         }
 
-        internal protected override bool HasAsymmetricKey { get { return false; } }
-        internal protected override bool SupportsClientAuthentication { get { return true; } }
-        internal protected override bool SupportsServerAuthentication { get { return false; } }
-        internal protected override bool SupportsClientWindowsIdentity { get { return true; } }
+        internal protected override bool HasAsymmetricKey => false;
+        internal protected override bool SupportsClientAuthentication => true;
+        internal protected override bool SupportsServerAuthentication => false;
+        internal protected override bool SupportsClientWindowsIdentity => true;
 
         protected override SecurityTokenParameters CloneCore()
         {

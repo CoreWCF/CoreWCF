@@ -2,26 +2,25 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using CoreWCF.Runtime;
-using CoreWCF.Diagnostics;
-using CoreWCF.Security.Tokens;
 using System.Xml;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
 
-namespace CoreWCF.Security 
+namespace CoreWCF.Security
 {
-
     // This is the in-memory cache used for caching SCTs
-    sealed class SecurityContextTokenCache : TimeBoundedCache
+    internal sealed class SecurityContextTokenCache : TimeBoundedCache
     {
         // if there are less than lowWaterMark entries, no purging is done
-        static int lowWaterMark = 50;
+        private static int lowWaterMark = 50;
+
         // frequency of purging the cache of stale entries
         // this is set to 10 mins as SCTs are expected to have long lifetimes
-        static TimeSpan purgingInterval = TimeSpan.FromMinutes(10);
-        static double pruningFactor = 0.20;
-        bool replaceOldestEntries = true;
-        static SctEffectiveTimeComparer sctEffectiveTimeComparer = new SctEffectiveTimeComparer();
-        TimeSpan clockSkew;
+        private static TimeSpan purgingInterval = TimeSpan.FromMinutes(10);
+        private static double pruningFactor = 0.20;
+        private bool replaceOldestEntries = true;
+        private static SctEffectiveTimeComparer sctEffectiveTimeComparer = new SctEffectiveTimeComparer();
+        private TimeSpan clockSkew;
 
         public SecurityContextTokenCache( int capacity, bool replaceOldestEntries )
             : this( capacity, replaceOldestEntries, SecurityProtocolFactory.defaultMaxClockSkew )
@@ -46,7 +45,7 @@ namespace CoreWCF.Security
             return TryAddContext(token, false);
         }
 
-        bool TryAddContext(SecurityContextSecurityToken token, bool throwOnFailure)
+        private bool TryAddContext(SecurityContextSecurityToken token, bool throwOnFailure)
         {
             if (token == null)
             {
@@ -84,7 +83,7 @@ namespace CoreWCF.Security
             return wasTokenAdded;
         }
 
-        object GetHashKey(UniqueId contextId, UniqueId generation)
+        private object GetHashKey(UniqueId contextId, UniqueId generation)
         {
             if (generation == null)
             {
@@ -128,7 +127,7 @@ namespace CoreWCF.Security
             }
         }
 
-        ArrayList GetMatchingKeys(UniqueId contextId)
+        private ArrayList GetMatchingKeys(UniqueId contextId)
         {
             if (contextId == null)
             {
@@ -236,7 +235,7 @@ namespace CoreWCF.Security
             }
         }
 
-        sealed class SctEffectiveTimeComparer : IComparer<SecurityContextSecurityToken>
+        private sealed class SctEffectiveTimeComparer : IComparer<SecurityContextSecurityToken>
         {
             public int Compare(SecurityContextSecurityToken sct1, SecurityContextSecurityToken sct2)
             {
@@ -277,10 +276,10 @@ namespace CoreWCF.Security
             base.OnRemove(item);
         }
 
-        struct ContextAndGenerationKey
+        private struct ContextAndGenerationKey
         {
-            UniqueId contextId;
-            UniqueId generation;
+            private UniqueId contextId;
+            private UniqueId generation;
 
             public ContextAndGenerationKey(UniqueId contextId, UniqueId generation)
             {

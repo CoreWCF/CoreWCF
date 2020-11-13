@@ -1,26 +1,20 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Xml;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using CoreWCF.Security;
-using System.Xml;
-using System;
-using CoreWCF.Security;
 
 namespace CoreWCF.Security.Tokens
 {
-
-   public class WrappedKeySecurityToken : SecurityToken
+    public class WrappedKeySecurityToken : SecurityToken
     {
         string id;
         DateTime effectiveTime;
-
-       EncryptedKey encryptedKey;
+        EncryptedKey encryptedKey;
         ReadOnlyCollection<SecurityKey> securityKey;
         byte[] wrappedKey;
         string wrappingAlgorithm;
-        ISspiNegotiation wrappingSspiContext;
         SecurityToken wrappingToken;
         SecurityKey wrappingSecurityKey;
         SecurityKeyIdentifier wrappingTokenReference;
@@ -28,50 +22,12 @@ namespace CoreWCF.Security.Tokens
         byte[] wrappedKeyHash;
         XmlDictionaryString wrappingAlgorithmDictionaryString;
 
-        // sender use
-        internal WrappedKeySecurityToken(string id, byte[] keyToWrap, ISspiNegotiation wrappingSspiContext)
-            : this(id, keyToWrap, (wrappingSspiContext != null) ? (wrappingSspiContext.KeyEncryptionAlgorithm) : null, wrappingSspiContext, null)
-        {
-        }
-
-        // sender use
-        public WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference)
-            : this(id, keyToWrap, wrappingAlgorithm, null, wrappingToken, wrappingTokenReference)
-        {
-        }
-
         internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference)
             : this(id, keyToWrap, wrappingAlgorithm, wrappingAlgorithmDictionaryString, wrappingToken, wrappingTokenReference, null, null)
         {
         }
 
-        // direct receiver use, chained sender use
-        internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, ISspiNegotiation wrappingSspiContext, byte[] wrappedKey)
-            : this(id, keyToWrap, wrappingAlgorithm, null)
-        {
-            if (wrappingSspiContext == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappingSspiContext");
-            }
-            this.wrappingSspiContext = wrappingSspiContext;
-            if (wrappedKey == null)
-            {
-                this.wrappedKey = wrappingSspiContext.Encrypt(keyToWrap);
-            }
-            else
-            {
-                this.wrappedKey = wrappedKey;
-            }
-            this.serializeCarriedKeyName = false;
-        }
-
-        // receiver use
-        internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference, byte[] wrappedKey, SecurityKey wrappingSecurityKey)
-            : this(id, keyToWrap, wrappingAlgorithm, null, wrappingToken, wrappingTokenReference, wrappedKey, wrappingSecurityKey)
-        {
-        }
-
-        WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference, byte[] wrappedKey, SecurityKey wrappingSecurityKey)
+       internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference, byte[] wrappedKey, SecurityKey wrappingSecurityKey)
             : this(id, keyToWrap, wrappingAlgorithm, wrappingAlgorithmDictionaryString)
         {
             if (wrappingToken == null)

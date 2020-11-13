@@ -1,12 +1,9 @@
-
+using System.Xml;
+using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
+using DictionaryManager = CoreWCF.IdentityModel.DictionaryManager;
 
 namespace CoreWCF.Security
 {
-    using System.Xml;
-
-    using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
-    using DictionaryManager = CoreWCF.IdentityModel.DictionaryManager;
-
     class SignatureConfirmationElement : ISignatureValueSecurityElement
     {
         SecurityVersion version;
@@ -17,26 +14,20 @@ namespace CoreWCF.Security
         {
             if (id == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("id");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             }
             if (signatureValue == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("signatureValue");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(signatureValue));
             }
             this.id = id;
             this.signatureValue = signatureValue;
             this.version = version;
         }
 
-        public bool HasId
-        {
-            get { return true; }
-        }
+        public bool HasId => true;
 
-        public string Id
-        {
-            get { return this.id; }
-        }
+        public string Id => this.id;
 
         public byte[] GetSignatureValue()
         {

@@ -1,5 +1,7 @@
 ﻿using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Security;
+using CoreWCF.Security.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,9 +16,10 @@ namespace CoreWCF
             return authPolicy;
         }
     }
+
     internal class SCTServiceAuthenticationManagerWrapper : ServiceAuthenticationManager
     {
-        ServiceAuthenticationManager wrappedAuthenticationManager;
+        private ServiceAuthenticationManager wrappedAuthenticationManager;
 
         internal SCTServiceAuthenticationManagerWrapper(ServiceAuthenticationManager wrappedServiceAuthManager)
         {
@@ -49,7 +52,6 @@ namespace CoreWCF
         }
     }
 
-    /*
     internal class ServiceAuthenticationManagerWrapper : ServiceAuthenticationManager
     {
         ServiceAuthenticationManager wrappedAuthenticationManager;
@@ -130,5 +132,5 @@ namespace CoreWCF
 
             return false;
         }
-    }*/
+    }
 }

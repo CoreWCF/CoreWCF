@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
-using CoreWCF.Channels;
-using CoreWCF.Runtime;
-
 using System.Xml;
-using CoreWCF.Configuration;
+using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-   public abstract class  WSHttpBindingBase : Binding //, IBindingRuntimePreferences
+    public abstract class  WSHttpBindingBase : Binding //, IBindingRuntimePreferences
     {
         private TextMessageEncodingBindingElement _textEncoding;
 
@@ -27,17 +22,6 @@ namespace CoreWCF
                 throw new PlatformNotSupportedException();
             }
         }
-
-        //[DefaultValue(HttpTransportDefaults.BypassProxyOnLocal)]
-        //public bool BypassProxyOnLocal
-        //{
-        //    get { return HttpTransport.BypassProxyOnLocal; }
-        //    set
-        //    {
-        //        HttpTransport.BypassProxyOnLocal = value;
-        //        HttpsTransport.BypassProxyOnLocal = value;
-        //    }
-        //}
 
         [DefaultValue(false)]
         public bool TransactionFlow
@@ -80,17 +64,6 @@ namespace CoreWCF
             }
         }
 
-        //[DefaultValue(HttpTransportDefaults.ProxyAddress)]
-        //public Uri ProxyAddress
-        //{
-        //    get { return HttpTransport.ProxyAddress; }
-        //    set
-        //    {
-        //        HttpTransport.ProxyAddress = value;
-        //        HttpsTransport.ProxyAddress = value;
-        //    }
-        //}
-
         public XmlDictionaryReaderQuotas ReaderQuotas
         {
             get { return _textEncoding.ReaderQuotas; }
@@ -118,17 +91,6 @@ namespace CoreWCF
         //    set
         //    {
         //        _textEncoding.WriteEncoding = value;
-        //    }
-        //}
-
-        //[DefaultValue(HttpTransportDefaults.UseDefaultWebProxy)]
-        //public bool UseDefaultWebProxy
-        //{
-        //    get { return HttpTransport.UseDefaultWebProxy; }
-        //    set
-        //    {
-        //        HttpTransport.UseDefaultWebProxy = value;
-        //        HttpsTransport.UseDefaultWebProxy = value;
         //    }
         //}
 

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 
 namespace CoreWCF.Security
@@ -82,6 +79,5 @@ namespace CoreWCF.Security
                 }
             }
         }
-
     }
 }

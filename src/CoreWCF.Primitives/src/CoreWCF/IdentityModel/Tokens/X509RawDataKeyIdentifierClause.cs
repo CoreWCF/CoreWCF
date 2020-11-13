@@ -1,17 +1,13 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-
-
-using System;
+﻿using System;
 using System.Globalization;
 using System.Security.Cryptography.X509Certificates;
-using CoreWCF;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509RawDataKeyIdentifierClause : BinaryKeyIdentifierClause
     {
         private X509Certificate2 _certificate;
-       // private X509AsymmetricSecurityKey _key;
+        private X509AsymmetricSecurityKey _key;
 
         public X509RawDataKeyIdentifierClause(X509Certificate2 certificate)
             : this(GetRawData(certificate), false)
@@ -36,17 +32,16 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public override SecurityKey CreateKey()
         {
-            throw new NotImplementedException();
-            //if (_key == null)
-            //{
-            //    if (_certificate == null)
-            //    {
-            //        _certificate = new X509Certificate2(GetBuffer());
-            //    }
-                
-            // _key = new X509AsymmetricSecurityKey(_certificate);
-            //}
-            //return _key;
+            if (_key == null)
+            {
+                if (_certificate == null)
+                {
+                    _certificate = new X509Certificate2(GetBuffer());
+                }
+
+                _key = new X509AsymmetricSecurityKey(_certificate);
+            }
+            return _key;
         }
 
         private static byte[] GetRawData(X509Certificate certificate)

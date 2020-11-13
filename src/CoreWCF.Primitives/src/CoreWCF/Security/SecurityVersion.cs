@@ -1,8 +1,6 @@
 ﻿using CoreWCF.Channels;
 using CoreWCF.Description;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
 
@@ -32,21 +30,13 @@ namespace CoreWCF.Security
         {
             get;
         }
-        public static SecurityVersion WSSecurity10
-        {
-            get { return SecurityVersion10.Instance; }
-        }
+        public static SecurityVersion WSSecurity10 => SecurityVersion10.Instance;
 
 
-        public static SecurityVersion WSSecurity11
-        {
-            get { return SecurityVersion11.Instance; }
-        }
+        public static SecurityVersion WSSecurity11 => SecurityVersion11.Instance;
 
-        internal static SecurityVersion Default
-        {
-            get { return WSSecurity11; }
-        }
+        internal static SecurityVersion Default => WSSecurity11;
+
         internal abstract ReceiveSecurityHeader CreateReceiveSecurityHeader(Message message,
             string actor, bool mustUnderstand, bool relay,
             SecurityStandardsManager standardsManager,
@@ -120,15 +110,11 @@ namespace CoreWCF.Security
         {
             static readonly SecurityVersion10 instance = new SecurityVersion10();
 
-            protected SecurityVersion10()
-                : base(XD.SecurityJan2004Dictionary.Security, XD.SecurityJan2004Dictionary.Namespace, XD.SecurityJan2004Dictionary.Prefix)
+            protected SecurityVersion10() : base(XD.SecurityJan2004Dictionary.Security, XD.SecurityJan2004Dictionary.Namespace, XD.SecurityJan2004Dictionary.Prefix)
             {
             }
 
-            public static SecurityVersion10 Instance
-            {
-                get { return instance; }
-            }
+            public static SecurityVersion10 Instance => instance;
 
             internal override SendSecurityHeader CreateSendSecurityHeader(Message message,
                 string actor, bool mustUnderstand, bool relay,
@@ -172,15 +158,9 @@ namespace CoreWCF.Security
             {
             }
 
-            public new static SecurityVersion11 Instance
-            {
-                get { return instance; }
-            }
+            public new static SecurityVersion11 Instance => instance;
 
-            internal  bool SupportsSignatureConfirmation
-            {
-                get { return true; }
-            }
+            internal bool SupportsSignatureConfirmation => true;
 
             internal override ReceiveSecurityHeader CreateReceiveSecurityHeader(Message message,
                 string actor, bool mustUnderstand, bool relay,
@@ -208,7 +188,6 @@ namespace CoreWCF.Security
             {
                 return reader.IsStartElement(XD.SecurityXXX2005Dictionary.SignatureConfirmation, XD.SecurityXXX2005Dictionary.Namespace);
             }
-
             
             internal override ISignatureValueSecurityElement ReadSignatureConfirmation(XmlDictionaryReader reader)
             {

@@ -10,12 +10,8 @@ namespace CoreWCF.IdentityModel
     sealed class SignatureResourcePool
     {
         const int BufferSize = 64;
-        CanonicalizationDriver canonicalizationDriver;
         HashStream hashStream;
         HashAlgorithm hashAlgorithm;
-#if NO
-        XmlC14NWriter integratedWriter;
-#endif
         XmlDictionaryWriter utf8Writer;
         byte[] encodingBuffer;
         char[] base64Buffer;
@@ -27,19 +23,6 @@ namespace CoreWCF.IdentityModel
                 this.base64Buffer = new char[BufferSize];
             }
             return this.base64Buffer;
-        }
-
-        public CanonicalizationDriver TakeCanonicalizationDriver()
-        {
-            if (this.canonicalizationDriver == null)
-            {
-                this.canonicalizationDriver = new CanonicalizationDriver();
-            }
-            else
-            {
-                this.canonicalizationDriver.Reset();
-            }
-            return this.canonicalizationDriver;
         }
 
         public byte[] TakeEncodingBuffer()

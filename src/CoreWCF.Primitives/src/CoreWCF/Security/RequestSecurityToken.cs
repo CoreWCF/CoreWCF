@@ -1,53 +1,43 @@
 using System;
-using CoreWCF.Channels;
-using CoreWCF.Description;
-using CoreWCF;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security.Tokens;
-using System.Runtime.Serialization;
-using System.Xml.Serialization;
-using System.Xml.Schema;
-using System.Xml;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using CoreWCF.Security;
 using System.Globalization;
-using CoreWCF.Dispatcher;
+using System.IO;
+using System.Runtime.Serialization;
 using System.Security.Authentication.ExtendedProtection;
+using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-
-    class RequestSecurityToken : BodyWriter
+   internal class RequestSecurityToken : BodyWriter
     {
-        string context;
-        string tokenType;
-        string requestType;
-        SecurityToken entropyToken;
-        BinaryNegotiation negotiationData;
-        XmlElement rstXml;
-        IList<XmlElement> requestProperties;
-        byte[] cachedWriteBuffer;
-        int cachedWriteBufferLength;
-        int keySize;
-        Message message;
-        SecurityKeyIdentifierClause renewTarget;
-        SecurityKeyIdentifierClause closeTarget;
-        OnGetBinaryNegotiationCallback onGetBinaryNegotiation;
-        SecurityStandardsManager standardsManager;
-        bool isReceiver;
-        bool isReadOnly;
-        object appliesTo;
-        DataContractSerializer appliesToSerializer;
-        Type appliesToType;
-
-        object thisLock = new Object();
+        private string context;
+        private string tokenType;
+        private string requestType;
+        private SecurityToken entropyToken;
+        private BinaryNegotiation negotiationData;
+        private XmlElement rstXml;
+        private IList<XmlElement> requestProperties;
+        private byte[] cachedWriteBuffer;
+        private int cachedWriteBufferLength;
+        private int keySize;
+        private Message message;
+        private SecurityKeyIdentifierClause renewTarget;
+        private SecurityKeyIdentifierClause closeTarget;
+        private OnGetBinaryNegotiationCallback onGetBinaryNegotiation;
+        private SecurityStandardsManager standardsManager;
+        private bool isReceiver;
+        private bool isReadOnly;
+        private object appliesTo;
+        private DataContractSerializer appliesToSerializer;
+        private Type appliesToType;
+        private object thisLock = new Object();
 
         public RequestSecurityToken()
             : this(SecurityStandardsManager.DefaultInstance)
@@ -506,7 +496,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void OnWriteTo(XmlWriter writer)
+        private void OnWriteTo(XmlWriter writer)
         {
             if (this.isReceiver)
             {

@@ -1,5 +1,4 @@
 using System.Xml;
-using System;
 
 namespace CoreWCF.IdentityModel
 {
@@ -40,7 +39,6 @@ namespace CoreWCF.IdentityModel
             _trustDec2005Dictionary = DXD.TrustDec2005Dictionary;
         }
 
-        
         public DictionaryManager(ServiceModelDictionary parentDictionary)
         {
             _samlDictionary = new SamlDictionary(parentDictionary);

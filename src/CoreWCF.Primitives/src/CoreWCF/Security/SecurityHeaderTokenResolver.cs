@@ -1,24 +1,22 @@
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security.Tokens;
-using System.IO;
-using System.Globalization;
-using System.Security.Cryptography.X509Certificates;
 using System;
+using System.Globalization;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-
     internal sealed class SecurityHeaderTokenResolver : SecurityTokenResolver // , System.IdentityModel.IWrappedTokenKeyResolver
     {
-        const int InitialTokenArraySize = 10;
-        int tokenCount;
-        SecurityTokenEntry[] tokens;
-        SecurityToken expectedWrapper;
-        SecurityTokenParameters expectedWrapperTokenParameters;
-        ReceiveSecurityHeader securityHeader;
+        private const int InitialTokenArraySize = 10;
+        private int tokenCount;
+        private SecurityTokenEntry[] tokens;
+        private SecurityToken expectedWrapper;
+        private SecurityTokenParameters expectedWrapperTokenParameters;
+        private ReceiveSecurityHeader securityHeader;
 
         public SecurityHeaderTokenResolver()
             : this(null)
@@ -64,7 +62,7 @@ namespace CoreWCF.Security
             this.tokens[this.tokenCount++] = new SecurityTokenEntry(token, tokenParameters, allowedReferenceStyle);
         }
 
-        void EnsureCapacityToAddToken()
+        private void EnsureCapacityToAddToken()
         {
             if (this.tokenCount == this.tokens.Length)
             {
@@ -108,7 +106,7 @@ namespace CoreWCF.Security
             return null;
         }
 
-        SecurityKey ResolveSecurityKeyCore(SecurityKeyIdentifierClause keyIdentifierClause, bool createIntrinsicKeys)
+        private SecurityKey ResolveSecurityKeyCore(SecurityKeyIdentifierClause keyIdentifierClause, bool createIntrinsicKeys)
         {
             if (keyIdentifierClause == null)
             {
@@ -127,18 +125,17 @@ namespace CoreWCF.Security
 
             if (createIntrinsicKeys)
             {
-                throw new NotImplementedException();
-                //TODO
-               /// if (SecurityUtils.TryCreateKeyFromIntrinsicKeyClause(keyIdentifierClause, this, out securityKey))
-               // {
-               //     return securityKey;
-               // }
+
+               if (SecurityUtils.TryCreateKeyFromIntrinsicKeyClause(keyIdentifierClause, this, out securityKey))
+                {
+                    return securityKey;
+                }
             }
 
             return null;
         }
 
-        bool MatchDirectReference(SecurityToken token, SecurityKeyIdentifierClause keyClause)
+        private bool MatchDirectReference(SecurityToken token, SecurityKeyIdentifierClause keyClause)
         {
             LocalIdKeyIdentifierClause localClause = keyClause as LocalIdKeyIdentifierClause;
             if (localClause == null) return false;
@@ -187,18 +184,15 @@ namespace CoreWCF.Security
                     unwrappingToken = this.expectedWrapper;
                 else
                     unwrappingToken = ResolveToken(wrappingTokenReference, true, resolveIntrinsicKeyClause);
-                //TODO
-              /*  if (unwrappingToken != null)
+                if (unwrappingToken != null)
                 {
                     resolvedToken = SecurityUtils.CreateTokenFromEncryptedKeyClause(keyClause, unwrappingToken);
-                }*/
+                }
             }
-            /*TODO
-            if ((resolvedToken == null) && (keyIdentifierClause is X509RawDataKeyIdentifierClause) && (!matchOnlyExternal) && (resolveIntrinsicKeyClause))
+           if ((resolvedToken == null) && (keyIdentifierClause is X509RawDataKeyIdentifierClause) && (!matchOnlyExternal) && (resolveIntrinsicKeyClause))
             {
                 resolvedToken = new X509SecurityToken(new X509Certificate2(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()));
-            }*/
-
+            }
             byte[] derivationNonce = keyIdentifierClause.GetDerivationNonce();
             if ((resolvedToken != null) && (derivationNonce != null))
             {
@@ -303,11 +297,11 @@ namespace CoreWCF.Security
             return key != null;
         }
 
-        struct SecurityTokenEntry
+        private struct SecurityTokenEntry
         {
-            SecurityTokenParameters tokenParameters;
-            SecurityToken token;
-            SecurityTokenReferenceStyle allowedReferenceStyle;
+            private SecurityTokenParameters tokenParameters;
+            private SecurityToken token;
+            private SecurityTokenReferenceStyle allowedReferenceStyle;
 
             public SecurityTokenEntry(SecurityToken token, SecurityTokenParameters tokenParameters, SecurityTokenReferenceStyle allowedReferenceStyle)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Xml;
@@ -12,63 +13,44 @@ namespace CoreWCF.IdentityModel
     /// </summary>
     class SignedXMLInternal : SignedXml
     {
+        public SignedXMLInternal() { }
 
-        public SignedXMLInternal(): base()
-        {
+        public SignedXMLInternal(XmlDocument document) : base(document) { }
 
-        }
-        public SignedXMLInternal(XmlDocument document):base(document)
-        {
+        public SignedXMLInternal(XmlElement elem) : base(elem) { }
 
-        }
-        public SignedXMLInternal(XmlElement elem) : base(elem)
-        {
-
-        }
         public override XmlElement GetIdElement(XmlDocument document, string idValue)
         {
-            
-            XmlElement element =  base.GetIdElement(document, idValue);
-            if(element == null)
-            {
-                element = GetElementByIdInternal(document, idValue);
-            }
-            return element;
+            // The default GetIdElement implementation can't find Id attributes which have a namespace specified
+            // Only trying the base implementation as a last ditch effort.
+            return GetSingleReferenceTarget(document, "Id", idValue) ??
+                   GetSingleReferenceTarget(document, "id", idValue) ??
+                   GetSingleReferenceTarget(document, "ID", idValue) ??
+                   base.GetIdElement(document, idValue);
         }
 
-        private XmlElement GetElementByIdInternal(XmlDocument document, String idValue)
+        private static XmlElement GetSingleReferenceTarget(XmlDocument document, string idAttributeName, string idValue)
         {
-            XElement xElement = XDocument.Load(document.CreateNavigator().ReadSubtree()).Root;
-            xElement = FindXlement(xElement, idValue);
-            if (xElement == null)
-                return null;
-            var doc = new XmlDocument();
-            using (XmlReader reader = xElement.CreateReader())
-            {
-                doc.Load(reader);
-            }
-            return doc.DocumentElement;
+            // XmlDocument.GetElementById only works for elements specified in a DTD to have an IDREF.
+            // As we don't use DTD's in SOAP, that method is ineffective.
+            string xPath = "//*[@*[local-name()='" + idAttributeName + "']='" + idValue + "']";
 
-        }
-        private XElement FindXlement(XElement element, String idValue)
-        {
-            var attributes = element.Attributes();
-            foreach (var attr in attributes)
-            {
-                if (String.Compare(attr.Name.LocalName, "id", true) == 0 
-                    && String.Compare(attr.Value, idValue,true)==0 )
-                {
-                    return element;
-                }
-            };
-            XElement finalResult = null;
-            foreach (var child in element.Descendants())
-            {
-                finalResult = FindXlement(child, idValue);
-                if (finalResult != null)
-                    return finalResult;
-            }
-            return finalResult;
+            // http://www.w3.org/TR/xmldsig-core/#sec-ReferenceProcessingModel says that for the form URI="#chapter1":
+            //
+            //   Identifies a node-set containing the element with ID attribute value 'chapter1' ...
+            //
+            // Note that it uses the singular. Therefore, if the match is ambiguous, we should consider the document invalid.
+            //
+            // In this case, we'll treat it the same as having found nothing across all fallbacks (but shortcut so that we don't
+            // fall into a trap of finding a secondary element which wasn't the originally signed one).
+
+            XmlNodeList nodeList = document.SelectNodes(xPath);
+
+            if (nodeList == null || nodeList.Count == 0) { return null; }
+            if (nodeList.Count == 1) { return nodeList[0] as XmlElement; }
+
+            //throw new CryptographicException(SR.Cryptography_Xml_InvalidReference);
+            throw new CryptographicException("Cryptography_Xml_InvalidReference");
         }
     }
 }

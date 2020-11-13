@@ -7,7 +7,7 @@ using CoreWCF.Security;
 using System.Text;
 using System.Xml;
 using System;
-//using HexBinary = System.Runtime.Remoting.Metadata.W3cXsd2001.SoapHexBinary;
+using HexBinary = CoreWCF.Security.SoapHexBinary;
 using KeyIdentifierClauseEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.KeyIdentifierClauseEntry;
 using StrEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.StrEntry;
 using TokenEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.TokenEntry;
@@ -324,8 +324,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 }
                 else if (encodingType == EncodingTypeValueHexBinary)
                 {
-                    throw new NotImplementedException();
-                   // bytes = HexBinary.Parse(reader.ReadContentAsString()).Value;
+                     bytes = HexBinary.Parse(reader.ReadContentAsString()).Value;
                 }
                 else if (encodingType == EncodingTypeValueText)
                 {

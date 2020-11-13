@@ -1,27 +1,19 @@
 using CoreWCF.Security.Tokens;
-using CoreWCF;
 using System;
-using CoreWCF.Security;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Security
 {
-    class SessionSymmetricTransportSecurityProtocolFactory : TransportSecurityProtocolFactory
+    internal class SessionSymmetricTransportSecurityProtocolFactory : TransportSecurityProtocolFactory
     {
-        SecurityTokenParameters securityTokenParameters;
-        SessionDerivedKeySecurityTokenParameters derivedKeyTokenParameters;
+        private SecurityTokenParameters securityTokenParameters;
+        private SessionDerivedKeySecurityTokenParameters derivedKeyTokenParameters;
 
-        public SessionSymmetricTransportSecurityProtocolFactory()
-            : base()
+        public SessionSymmetricTransportSecurityProtocolFactory() : base()
         {
         }
 
-        public override bool SupportsReplayDetection
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool SupportsReplayDetection => true;
 
         public SecurityTokenParameters SecurityTokenParameters
         {
@@ -36,7 +28,7 @@ namespace CoreWCF.Security
             }
         }
 
-        internal override SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, object listenerSecurityState, TimeSpan timeout)
+        internal override SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, TimeSpan timeout)
         {
             if (this.ActAsInitiator)
             {
@@ -58,11 +50,20 @@ namespace CoreWCF.Security
             }
         }
 
-        //public override void OnOpen(TimeSpan timeout)
-        //{
-        //    base.OnOpen(timeout);
-           
-        //}
+        public override Task OpenAsync(TimeSpan timeout)
+        {
+            base.OpenAsync(timeout);
+            if (this.SecurityTokenParameters == null)
+            {
+                OnPropertySettingsError("SecurityTokenParameters", true);
+            }
+            if (this.SecurityTokenParameters.RequireDerivedKeys)
+            {
+                this.ExpectKeyDerivation = true;
+                this.derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(this.ActAsInitiator);
+            }
+            return Task.CompletedTask;
+        }
 
         internal SecurityTokenParameters GetTokenParameters()
         {

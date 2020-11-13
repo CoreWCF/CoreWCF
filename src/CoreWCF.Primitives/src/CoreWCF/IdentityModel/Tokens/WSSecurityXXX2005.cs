@@ -17,8 +17,8 @@ namespace CoreWCF.IdentityModel.Tokens
         public override void PopulateStrEntries(IList<StrEntry> strEntries)
         {
             PopulateJan2004StrEntries(strEntries);
-         //   strEntries.Add(new SamlDirectStrEntry());
-          //  strEntries.Add(new X509ThumbprintStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
+         //  strEntries.Add(new SamlDirectStrEntry());
+            strEntries.Add(new X509ThumbprintStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
             strEntries.Add(new EncryptedKeyHashStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
         }
 
@@ -36,11 +36,6 @@ namespace CoreWCF.IdentityModel.Tokens
             SecurityTokenReferenceXXX2005ClauseEntry strClause = new SecurityTokenReferenceXXX2005ClauseEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes, strEntries);
             clauseEntries.Add(strClause);
         }
-
-        //new class SamlTokenEntry : WSSecurityJan2004.SamlTokenEntry
-        //{
-        //    public override string TokenTypeUri { get { return SecurityXXX2005Strings.SamlTokenType; } }
-        //}
 
         new class WrappedKeyTokenEntry : WSSecurityJan2004.WrappedKeyTokenEntry
         {
@@ -175,26 +170,26 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        //class X509ThumbprintStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
-        //{
-        //    protected override Type ClauseType { get { return typeof(X509ThumbprintKeyIdentifierClause); } }
-        //    public override Type TokenType { get { return typeof(X509SecurityToken); } }
-        //    protected override string ValueTypeUri { get { return SecurityXXX2005Strings.ThumbprintSha1ValueType; } }
+        class X509ThumbprintStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
+        {
+            protected override Type ClauseType { get { return typeof(X509ThumbprintKeyIdentifierClause); } }
+            public override Type TokenType { get { return typeof(X509SecurityToken); } }
+            protected override string ValueTypeUri { get { return SecurityXXX2005Strings.ThumbprintSha1ValueType; } }
 
-        //    public X509ThumbprintStrEntry(bool emitBspRequiredAttributes)
-        //        : base(emitBspRequiredAttributes)
-        //    {
-        //    }
+            public X509ThumbprintStrEntry(bool emitBspRequiredAttributes)
+                : base(emitBspRequiredAttributes)
+            {
+            }
 
-        //    protected override SecurityKeyIdentifierClause CreateClause(byte[] bytes, byte[] derivationNonce, int derivationLength)
-        //    {
-        //        return new X509ThumbprintKeyIdentifierClause(bytes);
-        //    }
-        //    public override string GetTokenTypeUri()
-        //    {
-        //        return CoreWCF.XD.SecurityXXX2005Dictionary.ThumbprintSha1ValueType.Value;
-        //    }
-        //}
+            protected override SecurityKeyIdentifierClause CreateClause(byte[] bytes, byte[] derivationNonce, int derivationLength)
+            {
+                return new X509ThumbprintKeyIdentifierClause(bytes);
+            }
+            public override string GetTokenTypeUri()
+            {
+                return CoreWCF.XD.SecurityXXX2005Dictionary.ThumbprintSha1ValueType.Value;
+            }
+        }
 
         //class SamlDirectStrEntry : StrEntry
         //{

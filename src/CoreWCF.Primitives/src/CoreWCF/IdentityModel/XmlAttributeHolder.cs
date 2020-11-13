@@ -1,8 +1,8 @@
+using System.Xml;
+using System;
+
 namespace CoreWCF.IdentityModel
 {
-    using System.Xml;
-    using System;
-
     struct XmlAttributeHolder
     {
         string prefix;

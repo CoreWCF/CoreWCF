@@ -12,7 +12,6 @@ using System;
 
 namespace CoreWCF.Security
 {
-
     sealed class AcceptorSessionSymmetricTransportSecurityProtocol : TransportSecurityProtocol, IAcceptorSecuritySessionProtocol
     {
         SecurityToken outgoingSessionToken;

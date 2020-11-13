@@ -1,9 +1,8 @@
-using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Builder;
 using System;
-using System.ComponentModel;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Builder;
 
 namespace CoreWCF.Channels
 {
@@ -263,6 +262,7 @@ namespace CoreWCF.Channels
                 return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
             //}
         }
+
         public ExtendedProtectionPolicy ExtendedProtectionPolicy
         {
             get
@@ -279,7 +279,7 @@ namespace CoreWCF.Channels
                 if (value.PolicyEnforcement == PolicyEnforcement.Always &&
                     !System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy.OSSupportsExtendedProtection)
                 {
-                    // ExceptionHelper.PlatformNotSupported(SR.ExtendedProtectionNotSupported);
+                   throw new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported);
                 }
 
                 _extendedProtectionPolicy = value;

@@ -2139,30 +2139,29 @@ namespace CoreWCF.Security
 
         bool TryResolveTokenFromIntrinsicKeyClause(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token)
         {
-            throw new NotImplementedException();
-            //token = null;
-            //if (keyIdentifierClause is RsaKeyIdentifierClause)
-            //{
-            //    token = new RsaSecurityToken(((RsaKeyIdentifierClause)keyIdentifierClause).Rsa);
-            //    return true;
-            //}
-            //else if (keyIdentifierClause is X509RawDataKeyIdentifierClause)
-            //{
-            //    token = new X509SecurityToken(new X509Certificate2(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()), false);
-            //    return true;
-            //}
-            //else if (keyIdentifierClause is EncryptedKeyIdentifierClause)
-            //{
-            //    EncryptedKeyIdentifierClause keyClause = (EncryptedKeyIdentifierClause)keyIdentifierClause;
-            //    SecurityKeyIdentifier wrappingTokenReference = keyClause.EncryptingKeyIdentifier;
-            //    SecurityToken unwrappingToken;
-            //    if (this.TryResolveToken(wrappingTokenReference, out unwrappingToken))
-            //    {
-            //        token = SecurityUtils.CreateTokenFromEncryptedKeyClause(keyClause, unwrappingToken);
-            //        return true;
-            //    }
-            //}
-            //return false;
+            token = null;
+            if (keyIdentifierClause is RsaKeyIdentifierClause)
+            {
+                token = new RsaSecurityToken(((RsaKeyIdentifierClause)keyIdentifierClause).Rsa);
+                return true;
+            }
+            else if (keyIdentifierClause is X509RawDataKeyIdentifierClause)
+            {
+                token = new X509SecurityToken(new X509Certificate2(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()), false);
+                return true;
+            }
+            else if (keyIdentifierClause is EncryptedKeyIdentifierClause)
+            {
+                EncryptedKeyIdentifierClause keyClause = (EncryptedKeyIdentifierClause)keyIdentifierClause;
+                SecurityKeyIdentifier wrappingTokenReference = keyClause.EncryptingKeyIdentifier;
+                SecurityToken unwrappingToken;
+                if (this.TryResolveToken(wrappingTokenReference, out unwrappingToken))
+                {
+                    token = SecurityUtils.CreateTokenFromEncryptedKeyClause(keyClause, unwrappingToken);
+                    return true;
+                }
+            }
+            return false;
         }
 
         protected override bool TryResolveTokenCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token)

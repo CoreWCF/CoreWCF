@@ -1,6 +1,5 @@
 ﻿
 using System.Collections.Generic;
-using CoreWCF.IdentityModel.Tokens;
 using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
@@ -11,7 +10,7 @@ namespace CoreWCF.Security
             : base(tokenSerializer, samlSerializer)
         {
         }
-
+            
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
         {
             PopulateJan2004TokenEntries(tokenEntryList);

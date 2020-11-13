@@ -12,7 +12,11 @@ namespace CoreWCF.Security
         TimeSpan DefaultCloseTimeout { get; }
         void OnAbort();
         Task OnCloseAsync(TimeSpan timeout);
+        void OnClosed();
+        void OnClosing();
         void OnFaulted();
         Task OnOpenAsync(TimeSpan timeout);
+        void OnOpened();
+        void OnOpening();
     }
 }

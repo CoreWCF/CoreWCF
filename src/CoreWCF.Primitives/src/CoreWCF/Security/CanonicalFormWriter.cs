@@ -8,9 +8,7 @@ namespace CoreWCF.IdentityModel
 {
     internal abstract class CanonicalFormWriter
     {
-        // internal static readonly UTF8Encoding Utf8WithoutPreamble = new UTF8Encoding(encoderShouldEmitUTF8Identifier = false);
         internal static readonly Encoding Utf8WithoutPreamble = Encoding.UTF8;
-
 
         protected static void EncodeAndWrite(Stream stream, byte[] workBuffer, string s)
         {

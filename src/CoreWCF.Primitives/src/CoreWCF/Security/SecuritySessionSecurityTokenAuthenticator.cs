@@ -140,7 +140,7 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustbeGreaterThanTimeSpanZero)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustBeGreaterThanTimeSpanZero)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
@@ -163,7 +163,7 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustbeGreaterThanTimeSpanZero)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustBeGreaterThanTimeSpanZero)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
@@ -752,7 +752,7 @@ namespace CoreWCF.Security
             return null;
         }
 
-        /* TODO check when renew scenario ?
+        
         protected virtual Message ProcessRenewRequest(Message request)
         {
             this.CommunicationObject.ThrowIfClosedOrNotOpen();
@@ -810,7 +810,7 @@ namespace CoreWCF.Security
             {
                 RemoveCachedTokensIfRequired(request.Properties.Security);
             }
-        }*/
+        }
 
         static void AddTokenToRemoveIfRequired(SecurityToken token, Collection<SecurityContextSecurityToken> sctsToRemove)
         {
@@ -893,21 +893,21 @@ namespace CoreWCF.Security
                 {
                     throw new NotImplementedException();
                     //TODO need to check
-                   /* if (request.Version.Addressing == AddressingVersion.WSAddressing10)
-                    {
-                        appliesToSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(EndpointAddress10), DataContractSerializerDefaults.MaxItemsInObjectGraph);
-                        appliesTo = rst.GetAppliesTo<EndpointAddress10>(appliesToSerializer).ToEndpointAddress();
-                    }
-                    else if (request.Version.Addressing == AddressingVersion.WSAddressingAugust2004)
-                    {
-                        appliesToSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(EndpointAddressAugust2004), DataContractSerializerDefaults.MaxItemsInObjectGraph);
-                        appliesTo = rst.GetAppliesTo<EndpointAddressAugust2004>(appliesToSerializer).ToEndpointAddress();
-                    }
-                    else
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, request.Version.Addressing)));
-                    }*/
+                    /* if (request.Version.Addressing == AddressingVersion.WSAddressing10)
+                     {
+                         appliesToSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(EndpointAddress10), DataContractSerializerDefaults.MaxItemsInObjectGraph);
+                         appliesTo = rst.GetAppliesTo<EndpointAddress10>(appliesToSerializer).ToEndpointAddress();
+                     }
+                     else if (request.Version.Addressing == AddressingVersion.WSAddressingAugust2004)
+                     {
+                         appliesToSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(EndpointAddressAugust2004), DataContractSerializerDefaults.MaxItemsInObjectGraph);
+                         appliesTo = rst.GetAppliesTo<EndpointAddressAugust2004>(appliesToSerializer).ToEndpointAddress();
+                     }
+                     else
+                     {
+                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                             new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, request.Version.Addressing)));
+                     }*/
                 }
                 else
                 {
@@ -920,22 +920,22 @@ namespace CoreWCF.Security
                 }
                 RequestSecurityTokenResponse rstr;
                 SecurityContextSecurityToken issuedToken = this.IssueToken(rst, request, null, null, out rstr);
-                if (appliesTo != null)
-                {
-                    //if (request.Version.Addressing == AddressingVersion.WSAddressing10)
-                    //{
-                    //    rstr.SetAppliesTo<EndpointAddress10>(EndpointAddress10.FromEndpointAddress(appliesTo), appliesToSerializer);
-                    //}
-                    //else if (request.Version.Addressing == AddressingVersion.WSAddressingAugust2004)
-                    //{
-                    //    rstr.SetAppliesTo<EndpointAddressAugust2004>(EndpointAddressAugust2004.FromEndpointAddress(appliesTo), appliesToSerializer);
-                    //}
-                    //else
-                    //{
-                    //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    //        new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, request.Version.Addressing)));
-                    //}
-                }
+                //if (appliesTo != null)
+                //{
+                //    if (request.Version.Addressing == AddressingVersion.WSAddressing10)
+                //    {
+                //        rstr.SetAppliesTo<EndpointAddress10>(EndpointAddress10.FromEndpointAddress(appliesTo), appliesToSerializer);
+                //    }
+                //    else if (request.Version.Addressing == AddressingVersion.WSAddressingAugust2004)
+                //    {
+                //        rstr.SetAppliesTo<EndpointAddressAugust2004>(EndpointAddressAugust2004.FromEndpointAddress(appliesTo), appliesToSerializer);
+                //    }
+                //    else
+                //    {
+                //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                //            new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, request.Version.Addressing)));
+                //    }
+                //}
                 rstr.MakeReadOnly();
                 BodyWriter replyMessage = rstr;
                 if (this.StandardsManager.MessageSecurityVersion.TrustVersion == TrustVersion.WSTrust13)
@@ -1018,12 +1018,11 @@ namespace CoreWCF.Security
                     operation = SecuritySessionOperation.Issue;
                     return this.ProcessIssueRequest(request);
                 }
-                //TODO renew later ?
-                //else if (request.Headers.Action == this.RenewAction.Value)
-                //{
-                //    operation = SecuritySessionOperation.Renew;
-                //    return this.ProcessRenewRequest(request);
-                //}
+                else if (request.Headers.Action == this.RenewAction.Value)
+                {
+                    operation = SecuritySessionOperation.Renew;
+                    return this.ProcessRenewRequest(request);
+                }
                 else
                 {
                     throw TraceUtility.ThrowHelperWarning(new SecurityNegotiationException(SR.Format(SR.InvalidActionForNegotiationMessage, request.Headers.Action)), request);
@@ -1050,35 +1049,33 @@ namespace CoreWCF.Security
 
         void SetupSessionListener()
         {
-            ChannelBuilder channelBuilder = new ChannelBuilder(this.IssuerBindingContext, false); //TODO addChannelDemuxerIfRequired to true
+            //ChannelBuilder channelBuilder = new ChannelBuilder(this.IssuerBindingContext, false); //TODO addChannelDemuxerIfRequired to true
             //channelBuilder.Binding.Elements.Insert(0, new ReplyAdapterBindingElement());
             //channelBuilder.Binding.Elements.Insert(0, new SecuritySessionAuthenticatorBindingElement(this));
 
-            List<string> supportedMessageActions = new List<string>();
-            supportedMessageActions.Add(this.IssueAction.Value);
+           List<string> supportedMessageActions = new List<string>();
+           supportedMessageActions.Add(this.IssueAction.Value);
            supportedMessageActions.Add(this.RenewAction.Value);
-
-            SecurityBindingElement securityBindingElement = this.IssuerBindingContext.Binding.Elements.Find<SecurityBindingElement>();
-            //foreach (SecurityTokenParameters stp in new SecurityTokenParametersEnumerable(securityBindingElement))
-            //{
-            //    if (stp is SecureConversationSecurityTokenParameters)
-            //    {
-            //        SecureConversationSecurityTokenParameters scstp = (SecureConversationSecurityTokenParameters)stp;
-            //        if (!scstp.CanRenewSession)
-            //        {
-            //            supportedMessageActions.Remove(this.RenewAction.Value);
-            //            break;
-            //        }
-            //    }
-            //}
-
+           SecurityBindingElement securityBindingElement = this.IssuerBindingContext.Binding.Elements.Find<SecurityBindingElement>();
+            foreach (SecurityTokenParameters stp in new SecurityTokenParametersEnumerable(securityBindingElement))
+            {
+                if (stp is SecureConversationSecurityTokenParameters)
+                {
+                    SecureConversationSecurityTokenParameters scstp = (SecureConversationSecurityTokenParameters)stp;
+                    if (!scstp.CanRenewSession)
+                    {
+                        supportedMessageActions.Remove(this.RenewAction.Value);
+                        break;
+                    }
+                }
+            }
             MessageFilter issueAndRenewFilter = new SessionActionFilter(this.standardsManager, supportedMessageActions.ToArray());
-            SecuritySessionHost sessionListener = new SecuritySessionHost(this, issueAndRenewFilter, this.ListenUri, channelBuilder);
+            SecuritySessionHost sessionListener = new SecuritySessionHost(this, issueAndRenewFilter, this.ListenUri);
             this.rstListener = sessionListener;
         }
 
-        /* TODO needed ?
-        internal IChannelListener<TChannel> BuildResponderChannelListener<TChannel>(BindingContext context)
+        
+        internal void BuildResponderChannelListener<TChannel>(BindingContext context, SecurityServiceDispatcher securityServiceDispatcher)
             where TChannel : class, IChannel
         {
             SecurityCredentialsManager securityCredentials = this.IssuerBindingContext.BindingParameters.Find<SecurityCredentialsManager>();
@@ -1125,30 +1122,34 @@ namespace CoreWCF.Security
             bootstrapSecurityProtocolFactory.SecurityBindingElement.OperationSupportingTokenParameters.Add(this.RenewAction.Value, renewSupportingTokenParameters);
             bootstrapSecurityProtocolFactory.SecurityTokenManager = new SessionRenewSecurityTokenManager(bootstrapSecurityProtocolFactory.SecurityTokenManager, this.sessionTokenAuthenticator, (SecurityTokenResolver)this.IssuedTokenCache);
 
-            SecurityChannelListener<TChannel> securityChannelListener = new SecurityChannelListener<TChannel>(
-                this.bootstrapSecurityBindingElement, this.IssuerBindingContext);
-            securityChannelListener.SecurityProtocolFactory = bootstrapSecurityProtocolFactory;
-            securityChannelListener.SendUnsecuredFaults = !SecurityUtils.IsCompositeDuplexBinding(context);
+           //We are passing as arguments to use existing dispatcher instead of creating another forwarding dispatcher
+           // SecurityChannelListener<TChannel> securityChannelListener = new SecurityChannelListener<TChannel>(
+           //     this.bootstrapSecurityBindingElement, this.IssuerBindingContext);
+            securityServiceDispatcher.SecurityProtocolFactory = bootstrapSecurityProtocolFactory;
+            securityServiceDispatcher.SendUnsecuredFaults = true;
+            bootstrapSecurityProtocolFactory.OpenAsync(ServiceDefaults.OpenTimeout);
+            //TODO check how can we import below utility
+            //securityServiceDispatcher.SendUnsecuredFaults = !SecurityUtils.IsCompositeDuplexBinding(context);
 
-            ChannelBuilder channelBuilder = new ChannelBuilder(context, true);
-            securityChannelListener.InitializeListener(channelBuilder);
+            // ChannelBuilder channelBuilder = new ChannelBuilder(context, true);
+            // securityChannelListener.InitializeListener(channelBuilder);
             this.shouldMatchRstWithEndpointFilter = SecurityUtils.ShouldMatchRstWithEndpointFilter(this.bootstrapSecurityBindingElement);
-            return securityChannelListener;
-        }*/
+            //return securityChannelListener;
+        }
 
        internal class SecuritySessionHost //: ServiceHostBase
         {
-            ChannelBuilder channelBuilder;
+            //ChannelBuilder channelBuilder;
             MessageFilter filter;
             Uri listenUri;
             SecuritySessionSecurityTokenAuthenticator authenticator;
 
-            public SecuritySessionHost(SecuritySessionSecurityTokenAuthenticator authenticator, MessageFilter filter, Uri listenUri, ChannelBuilder channelBuilder)
+            public SecuritySessionHost(SecuritySessionSecurityTokenAuthenticator authenticator, MessageFilter filter, Uri listenUri)//, ChannelBuilder channelBuilder)
             {
                 this.authenticator = authenticator;
                 this.filter = filter;
                 this.listenUri = listenUri;
-                this.channelBuilder = channelBuilder;
+               // this.channelBuilder = channelBuilder;
             }
 
             //protected override ServiceDescription CreateDescription(out IDictionary<string, ContractDescription> implementedContracts)
@@ -1157,7 +1158,8 @@ namespace CoreWCF.Security
             //    return null;
             //}
 
-            internal ChannelDispatcher InitializeServiceHost()
+            
+            internal ChannelDispatcher InitializeRuntime(SecurityServiceDispatcher securityDispatcher)
             {
                 MessageFilter contractFilter = this.filter;
                 int filterPriority = Int32.MaxValue - 10;
@@ -1166,11 +1168,11 @@ namespace CoreWCF.Security
                                                            typeof(IReplySessionChannel),
                                                            typeof(IDuplexSessionChannel) };
 
-              //  IChannelListener listener = null;
-                BindingParameterCollection parameters = new BindingParameterCollection(this.channelBuilder.BindingParameters);
-                Binding binding = this.channelBuilder.Binding;
-                binding.ReceiveTimeout = this.authenticator.NegotiationTimeout;
-                // parameters.Add(new ChannelDemuxerFilter(contractFilter, filterPriority));
+                //  IChannelListener listener = null;
+                //  BindingParameterCollection parameters = new BindingParameterCollection(this.channelBuilder.BindingParameters);
+                //  Binding binding = this.channelBuilder.Binding;
+                //  binding.ReceiveTimeout = this.authenticator.NegotiationTimeout;
+                // parameters.Add(new ChannelDemuxerFilter(contractFilter, filterPriority)); 
                 // DispatcherBuilder.MaybeCreateListener(true, endpointChannelTypes, binding, parameters,
                 //                                      this.listenUri, "", ListenUriMode.Explicit, this.ServiceThrottle, out listener);
                 //   if (listener == null)
@@ -1178,12 +1180,20 @@ namespace CoreWCF.Security
                 //      throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.CannotCreateTwoWayListenerForNegotiation)));
                 //  }
 
+                //Replacing above code by below 3 lines.(adding securityservicedispatcher to demuxer, how to respond)
+                Binding binding = this.authenticator.IssuerBindingContext.Binding;
+                securityDispatcher.ChannelBuilder.AddServiceDispatcher<IReplyChannel>(securityDispatcher, new ChannelDemuxerFilter(contractFilter, filterPriority));
+
+                //Injecting here the BuildResponderChannelListener
+                this.authenticator.BuildResponderChannelListener<IReplyChannel>(this.authenticator.IssuerBindingContext, securityDispatcher);
+                //end
+
                 var bindingQname = new XmlQualifiedName(binding.Name, binding.Namespace);
                 var channelDispatcher = new ChannelDispatcher(listenUri, binding, bindingQname.ToString(), binding, endpointChannelTypes);
                 channelDispatcher.MessageVersion = binding.MessageVersion;
                 channelDispatcher.ManualAddressing = true;
-              //  channelDispatcher.ServiceThrottle = new ServiceThrottle(this);
-              //  channelDispatcher.ServiceThrottle.MaxConcurrentCalls = this.authenticator.MaximumConcurrentNegotiations;
+                //  channelDispatcher.ServiceThrottle = new ServiceThrottle(this);
+               //  channelDispatcher.ServiceThrottle.MaxConcurrentCalls = this.authenticator.MaximumConcurrentNegotiations;
               //  channelDispatcher.ServiceThrottle.MaxConcurrentSessions = this.authenticator.MaximumConcurrentNegotiations;
 
                 EndpointDispatcher endpointDispatcher = new EndpointDispatcher(new EndpointAddress(this.listenUri), "IssueAndRenewSession", NamingHelper.DefaultNamespace, true);
@@ -1286,48 +1296,48 @@ namespace CoreWCF.Security
             }
         }
 
-        //public class SessionRenewSecurityTokenManager : SecurityTokenManager
-        //{
-        //    SecurityTokenManager innerTokenManager;
-        //    SecurityTokenAuthenticator renewTokenAuthenticator;
-        //    SecurityTokenResolver renewTokenResolver;
+        public class SessionRenewSecurityTokenManager : SecurityTokenManager
+        {
+            SecurityTokenManager innerTokenManager;
+            SecurityTokenAuthenticator renewTokenAuthenticator;
+            SecurityTokenResolver renewTokenResolver;
 
-        //    public SessionRenewSecurityTokenManager(SecurityTokenManager innerTokenManager, SecurityTokenAuthenticator renewTokenAuthenticator,
-        //        SecurityTokenResolver renewTokenResolver)
-        //    {
-        //        this.innerTokenManager = innerTokenManager;
-        //        this.renewTokenAuthenticator = renewTokenAuthenticator;
-        //        this.renewTokenResolver = renewTokenResolver;
-        //    }
+            public SessionRenewSecurityTokenManager(SecurityTokenManager innerTokenManager, SecurityTokenAuthenticator renewTokenAuthenticator,
+                SecurityTokenResolver renewTokenResolver)
+            {
+                this.innerTokenManager = innerTokenManager;
+                this.renewTokenAuthenticator = renewTokenAuthenticator;
+                this.renewTokenResolver = renewTokenResolver;
+            }
 
-        //    public override SecurityTokenAuthenticator CreateSecurityTokenAuthenticator(SecurityTokenRequirement tokenRequirement, out SecurityTokenResolver outOfBandTokenResolver)
-        //    {
-        //        if (tokenRequirement == null)
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenRequirement");
+            public override SecurityTokenAuthenticator CreateSecurityTokenAuthenticator(SecurityTokenRequirement tokenRequirement, out SecurityTokenResolver outOfBandTokenResolver)
+            {
+                if (tokenRequirement == null)
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenRequirement");
 
-        //        if (tokenRequirement.TokenType == ServiceModelSecurityTokenTypes.SecurityContext)
-        //        {
-        //            outOfBandTokenResolver = this.renewTokenResolver;
-        //            return this.renewTokenAuthenticator;
-        //        }
-        //        else
-        //        {
-        //            return this.innerTokenManager.CreateSecurityTokenAuthenticator(tokenRequirement, out outOfBandTokenResolver);
-        //        }
-        //    }
+                if (tokenRequirement.TokenType == ServiceModelSecurityTokenTypes.SecurityContext)
+                {
+                    outOfBandTokenResolver = this.renewTokenResolver;
+                    return this.renewTokenAuthenticator;
+                }
+                else
+                {
+                    return this.innerTokenManager.CreateSecurityTokenAuthenticator(tokenRequirement, out outOfBandTokenResolver);
+                }
+            }
 
-        //    public override SecurityTokenProvider CreateSecurityTokenProvider(SecurityTokenRequirement requirement)
-        //    {
-        //        return this.innerTokenManager.CreateSecurityTokenProvider(requirement);
-        //    }
+            public override SecurityTokenProvider CreateSecurityTokenProvider(SecurityTokenRequirement requirement)
+            {
+                return this.innerTokenManager.CreateSecurityTokenProvider(requirement);
+            }
 
-        //    public override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
-        //    {
-        //        return this.innerTokenManager.CreateSecurityTokenSerializer(version);
-        //    }
+            internal override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
+            {
+                return this.innerTokenManager.CreateSecurityTokenSerializer(version);
+            }
 
 
-        //}
+        }
     }
 
     class SessionActionFilter : HeaderFilter

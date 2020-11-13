@@ -1,22 +1,15 @@
-//------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-//------------------------------------------------------------
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Xml;
+using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
 {
-    using System;
-    using System.Collections.Generic;
-    using CoreWCF.IdentityModel.Selectors;
-    using CoreWCF.IdentityModel.Tokens;
-    using System.Runtime;
-    using CoreWCF;
-    using CoreWCF.Security.Tokens;
-    using System.Xml;
-    using StrEntry = WSSecurityTokenSerializer.StrEntry;
-    using TokenEntry = WSSecurityTokenSerializer.TokenEntry;
-    using CoreWCF.IdentityModel;
-    using CoreWCF.Runtime;
-
     abstract class WSSecureConversation : WSSecurityTokenSerializer.SerializerEntries
     {
         WSSecurityTokenSerializer tokenSerializer;
@@ -26,7 +19,7 @@ namespace CoreWCF.Security
         {
             if (tokenSerializer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenSerializer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
             }
             this.tokenSerializer = tokenSerializer;
             this.derivedKeyEntry = new DerivedKeyTokenEntry(this, maxKeyDerivationOffset, maxKeyDerivationLabelLength, maxKeyDerivationNonceLength);
@@ -37,16 +30,13 @@ namespace CoreWCF.Security
             get;
         }
 
-        public WSSecurityTokenSerializer WSSecurityTokenSerializer
-        {
-            get { return this.tokenSerializer; }
-        }
+        public WSSecurityTokenSerializer WSSecurityTokenSerializer => this.tokenSerializer;
 
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
         {
             if (tokenEntryList == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenEntryList");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenEntryList));
             }
             tokenEntryList.Add(this.derivedKeyEntry);
         }
@@ -68,10 +58,7 @@ namespace CoreWCF.Security
                 tokenToDeriveIdentifier, tokenToDerive);
         }
 
-        public virtual string DerivationAlgorithm
-        {
-            get { return SecurityAlgorithms.Psha1KeyDerivation; }
-        }
+        public virtual string DerivationAlgorithm => SecurityAlgorithms.Psha1KeyDerivation;
 
         protected class DerivedKeyTokenEntry : WSSecurityTokenSerializer.TokenEntry
         {
@@ -86,7 +73,7 @@ namespace CoreWCF.Security
             {
                 if (parent == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parent");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
                 }
                 this.parent = parent;
                 this.maxKeyDerivationOffset = maxKeyDerivationOffset;
@@ -94,11 +81,11 @@ namespace CoreWCF.Security
                 this.maxKeyDerivationNonceLength = maxKeyDerivationNonceLength;
             }
 
-            protected override XmlDictionaryString LocalName { get { return parent.SerializerDictionary.DerivedKeyToken; } }
-            protected override XmlDictionaryString NamespaceUri { get { return parent.SerializerDictionary.Namespace; } }
+            protected override XmlDictionaryString LocalName => parent.SerializerDictionary.DerivedKeyToken;
+            protected override XmlDictionaryString NamespaceUri => parent.SerializerDictionary.Namespace;
             protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(DerivedKeySecurityToken) }; }
-            public override string TokenTypeUri { get { return parent.SerializerDictionary.DerivedKeyTokenType.Value; } }
-            protected override string ValueTypeUri { get { return null; } }
+            public override string TokenTypeUri => parent.SerializerDictionary.DerivedKeyTokenType.Value;
+            protected override string ValueTypeUri => null;
 
             public override SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXmlCore(XmlElement issuedTokenXml,
                 SecurityTokenReferenceStyle tokenReferenceStyle)
@@ -316,24 +303,21 @@ namespace CoreWCF.Security
         protected abstract class SecurityContextTokenEntry : WSSecurityTokenSerializer.TokenEntry
         {
             WSSecureConversation parent;
-          //  SecurityContextCookieSerializer cookieSerializer;
+          SecurityContextCookieSerializer cookieSerializer;
 
             public SecurityContextTokenEntry(WSSecureConversation parent, SecurityStateEncoder securityStateEncoder, IList<Type> knownClaimTypes)
             {
                 this.parent = parent;
-             //   this.cookieSerializer = new SecurityContextCookieSerializer(securityStateEncoder, knownClaimTypes);
+                this.cookieSerializer = new SecurityContextCookieSerializer(securityStateEncoder, knownClaimTypes);
             }
 
-            protected WSSecureConversation Parent
-            {
-                get { return this.parent; }
-            }
+            protected WSSecureConversation Parent => this.parent;
 
-            protected override XmlDictionaryString LocalName { get { return parent.SerializerDictionary.SecurityContextToken; } }
-            protected override XmlDictionaryString NamespaceUri { get { return parent.SerializerDictionary.Namespace; } }
+            protected override XmlDictionaryString LocalName => parent.SerializerDictionary.SecurityContextToken;
+            protected override XmlDictionaryString NamespaceUri => parent.SerializerDictionary.Namespace;
             protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(SecurityContextSecurityToken) }; }
-            public override string TokenTypeUri { get { return parent.SerializerDictionary.SecurityContextTokenType.Value; } }
-            protected override string ValueTypeUri { get { return null; } }
+            public override string TokenTypeUri => parent.SerializerDictionary.SecurityContextTokenType.Value;
+            protected override string ValueTypeUri => null;
 
             public override SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXmlCore(XmlElement issuedTokenXml,
                 SecurityTokenReferenceStyle tokenReferenceStyle)
@@ -453,8 +437,7 @@ namespace CoreWCF.Security
                         encodedCookie = reader.ReadElementContentAsBase64();
                         if (encodedCookie != null)
                         {
-                            throw new NotImplementedException();
-                           // sct = cookieSerializer.CreateSecurityContextFromCookie(encodedCookie, contextId, generation, id, reader.Quotas);
+                           sct = cookieSerializer.CreateSecurityContextFromCookie(encodedCookie, contextId, generation, id, reader.Quotas);
                             if (sctCache != null)
                             {
                                 sctCache.AddContext(sct);
@@ -536,31 +519,13 @@ namespace CoreWCF.Security
                 get;
             }
 
-            public override XmlDictionaryString IssueAction
-            {
-                get
-                {
-                    return DriverDictionary.RequestSecurityContextIssuance;
-                }
-            }
+            public override XmlDictionaryString IssueAction => DriverDictionary.RequestSecurityContextIssuance;
 
-            public override XmlDictionaryString IssueResponseAction
-            {
-                get
-                {
-                    return DriverDictionary.RequestSecurityContextIssuanceResponse;
-                }
-            }
+            public override XmlDictionaryString IssueResponseAction => DriverDictionary.RequestSecurityContextIssuanceResponse;
 
-            public override XmlDictionaryString RenewNeededFaultCode
-            {
-                get { return DriverDictionary.RenewNeededFaultCode; }
-            }
+            public override XmlDictionaryString RenewNeededFaultCode => DriverDictionary.RenewNeededFaultCode;
 
-            public override XmlDictionaryString BadContextTokenFaultCode
-            {
-                get { return DriverDictionary.BadContextTokenFaultCode; }
-            }
+            public override XmlDictionaryString BadContextTokenFaultCode => DriverDictionary.BadContextTokenFaultCode;
 
             public override UniqueId GetSecurityContextTokenId(XmlDictionaryReader reader)
             {

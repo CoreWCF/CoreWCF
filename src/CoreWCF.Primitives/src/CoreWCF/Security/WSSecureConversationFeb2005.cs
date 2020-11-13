@@ -1,37 +1,16 @@
-//------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-//------------------------------------------------------------
+// using HexBinary = System.Runtime.Remoting.Metadata.W3cXsd2001.SoapHexBinary;
+using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Xml;
+using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
 {
-    using System;
-    using CoreWCF;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
-    using System.Threading;
-    using System.Xml;
-    using CoreWCF.IdentityModel.Claims;
-    using CoreWCF.IdentityModel.Policy;
-    using CoreWCF.IdentityModel.Tokens;
-    using System.Security.Cryptography.X509Certificates;
-   // using HexBinary = System.Runtime.Remoting.Metadata.W3cXsd2001.SoapHexBinary;
-    using CoreWCF.Channels;
-    using CoreWCF.Security;
-    using CoreWCF.Security.Tokens;
-    using System.Runtime.Serialization;
-    using KeyIdentifierEntry = WSSecurityTokenSerializer.KeyIdentifierEntry;
-    using KeyIdentifierClauseEntry = WSSecurityTokenSerializer.KeyIdentifierClauseEntry;
-    using StrEntry = WSSecurityTokenSerializer.StrEntry;
-    using TokenEntry = WSSecurityTokenSerializer.TokenEntry;
-    
-    class WSSecureConversationFeb2005 : WSSecureConversation
+    internal class WSSecureConversationFeb2005 : WSSecureConversation
     {
-        SecurityStateEncoder securityStateEncoder;
-        IList<Type> knownClaimTypes;
+        private SecurityStateEncoder securityStateEncoder;
+        private IList<Type> knownClaimTypes;
 
         public WSSecureConversationFeb2005(WSSecurityTokenSerializer tokenSerializer, SecurityStateEncoder securityStateEncoder, IEnumerable<Type> knownTypes,
             int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
@@ -57,18 +36,15 @@ namespace CoreWCF.Security
             }
         }
 
-        public override SecureConversationDictionary SerializerDictionary
-        {
-            get { return XD.SecureConversationFeb2005Dictionary; }
-        }
-        
+        public override SecureConversationDictionary SerializerDictionary => XD.SecureConversationFeb2005Dictionary;
+
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
         {
             base.PopulateTokenEntries(tokenEntryList);
             tokenEntryList.Add(new SecurityContextTokenEntryFeb2005(this, this.securityStateEncoder, this.knownClaimTypes));
         }
 
-        class SecurityContextTokenEntryFeb2005 : SecurityContextTokenEntry
+        private class SecurityContextTokenEntryFeb2005 : SecurityContextTokenEntry
         {
             public SecurityContextTokenEntryFeb2005(WSSecureConversationFeb2005 parent, SecurityStateEncoder securityStateEncoder, IList<Type> knownClaimTypes)
                 : base(parent, securityStateEncoder, knownClaimTypes)
@@ -115,45 +91,21 @@ namespace CoreWCF.Security
             {
             }
 
-            protected override SecureConversationDictionary DriverDictionary
-            {
-                get { return XD.SecureConversationFeb2005Dictionary; }
-            }
+            protected override SecureConversationDictionary DriverDictionary => XD.SecureConversationFeb2005Dictionary;
 
-            public override XmlDictionaryString CloseAction
-            {
-                get { return XD.SecureConversationFeb2005Dictionary.RequestSecurityContextClose; }
-            }
+            public override XmlDictionaryString CloseAction => XD.SecureConversationFeb2005Dictionary.RequestSecurityContextClose;
 
-            public override XmlDictionaryString CloseResponseAction
-            {
-                get { return XD.SecureConversationFeb2005Dictionary.RequestSecurityContextCloseResponse; }
-            }
+            public override XmlDictionaryString CloseResponseAction => XD.SecureConversationFeb2005Dictionary.RequestSecurityContextCloseResponse;
 
-            public override bool IsSessionSupported
-            {
-                get { return true; }
-            }
+            public override bool IsSessionSupported => true;
 
-            public override XmlDictionaryString RenewAction
-            {
-                get { return XD.SecureConversationFeb2005Dictionary.RequestSecurityContextRenew; }
-            }
+            public override XmlDictionaryString RenewAction => XD.SecureConversationFeb2005Dictionary.RequestSecurityContextRenew;
 
-            public override XmlDictionaryString RenewResponseAction
-            {
-                get { return XD.SecureConversationFeb2005Dictionary.RequestSecurityContextRenewResponse; }
-            }
+            public override XmlDictionaryString RenewResponseAction => XD.SecureConversationFeb2005Dictionary.RequestSecurityContextRenewResponse;
 
-            public override XmlDictionaryString Namespace
-            {
-                get { return XD.SecureConversationFeb2005Dictionary.Namespace; }
-            }
+            public override XmlDictionaryString Namespace => XD.SecureConversationFeb2005Dictionary.Namespace;
 
-            public override string TokenTypeUri
-            {
-                get { return XD.SecureConversationFeb2005Dictionary.SecurityContextTokenType.Value; }
-            }
+            public override string TokenTypeUri => XD.SecureConversationFeb2005Dictionary.SecurityContextTokenType.Value;
         }
     }
 }

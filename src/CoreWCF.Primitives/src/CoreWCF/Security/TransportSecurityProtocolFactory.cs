@@ -1,6 +1,5 @@
 ﻿
 using System;
-
 namespace CoreWCF.Security
 {
     internal class TransportSecurityProtocolFactory : SecurityProtocolFactory
@@ -13,23 +12,11 @@ namespace CoreWCF.Security
         {
         }
 
-        public override bool SupportsDuplex
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool SupportsDuplex => true;
 
-        public override bool SupportsReplayDetection
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool SupportsReplayDetection => false;
 
-        internal override SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, object listenerSecurityState, TimeSpan timeout)
+        internal override SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, TimeSpan timeout)
         {
             return new TransportSecurityProtocol(this, target, via);
         }

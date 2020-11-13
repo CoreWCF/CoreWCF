@@ -1,13 +1,10 @@
 using System.Xml;
-using CoreWCF.Channels;
-using CoreWCF;
 
 namespace CoreWCF.Channels
 {
-
-    abstract class DelegatingMessage : Message
+    internal abstract class DelegatingMessage : Message
     {
-        Message innerMessage;
+        private Message innerMessage;
 
         protected DelegatingMessage(Message innerMessage)
         {

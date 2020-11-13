@@ -1,37 +1,33 @@
 using System;
-using System.Runtime;
 using CoreWCF.Runtime;
-using CoreWCF;
 using CoreWCF.Security;
-using System.Runtime.CompilerServices;
-using System.Globalization;
 
 namespace CoreWCF.Channels
-{    public sealed class LocalServiceSecuritySettings
+{
+    public sealed class LocalServiceSecuritySettings
     {
         //Move these to NegotiationTokenAuthenticator
         internal const string defaultServerMaxNegotiationLifetimeString = "00:01:00";
         internal const string defaultServerIssuedTokenLifetimeString = "10:00:00";
         internal const string defaultServerIssuedTransitionTokenLifetimeString = "00:15:00";
         internal const int defaultServerMaxActiveNegotiations = 128;
+        private bool detectReplays;
+        private int replayCacheSize;
+        private TimeSpan replayWindow;
+        private TimeSpan maxClockSkew;
+        private TimeSpan issuedCookieLifetime;
+        private int maxStatefulNegotiations;
+        private TimeSpan negotiationTimeout;
+        private int maxCachedCookies;
+        private int maxPendingSessions;
+        private TimeSpan inactivityTimeout;
+        private TimeSpan sessionKeyRenewalInterval;
+        private TimeSpan sessionKeyRolloverInterval;
+        private bool reconnectTransportOnFailure;
+        private TimeSpan timestampValidityDuration;
+        private NonceCache nonceCache = null;
 
-        bool detectReplays;
-        int replayCacheSize;
-        TimeSpan replayWindow;
-        TimeSpan maxClockSkew;
-        TimeSpan issuedCookieLifetime;
-        int maxStatefulNegotiations;
-        TimeSpan negotiationTimeout;
-        int maxCachedCookies;
-        int maxPendingSessions;
-        TimeSpan inactivityTimeout;
-        TimeSpan sessionKeyRenewalInterval;
-        TimeSpan sessionKeyRolloverInterval;
-        bool reconnectTransportOnFailure;
-        TimeSpan timestampValidityDuration;
-        NonceCache nonceCache = null;
-
-        LocalServiceSecuritySettings(LocalServiceSecuritySettings other)
+        private LocalServiceSecuritySettings(LocalServiceSecuritySettings other)
         {
             this.detectReplays = other.detectReplays;
             this.replayCacheSize = other.replayCacheSize;
@@ -72,7 +68,7 @@ namespace CoreWCF.Channels
             {
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.Format(SR.ValueMustBeNonNegative)));
                 }
                 this.replayCacheSize = value;
@@ -89,13 +85,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
 
@@ -113,13 +109,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
 
@@ -150,13 +146,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
 
@@ -174,7 +170,7 @@ namespace CoreWCF.Channels
             {
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.Format(SR.ValueMustBeNonNegative)));
                 }
                 this.maxStatefulNegotiations = value;
@@ -191,13 +187,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
 
@@ -215,7 +211,7 @@ namespace CoreWCF.Channels
             {
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.Format(SR.ValueMustBeNonNegative)));
                 }
                 this.maxPendingSessions = value;
@@ -232,13 +228,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
 
@@ -256,13 +252,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
 
@@ -280,13 +276,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
 
@@ -316,13 +312,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
 
@@ -340,7 +336,7 @@ namespace CoreWCF.Channels
             {
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.Format(SR.ValueMustBeNonNegative)));
                 }
                 this.maxCachedCookies = value;
@@ -353,19 +349,17 @@ namespace CoreWCF.Channels
             this.ReplayCacheSize = SecurityProtocolFactory.defaultMaxCachedNonces;
             this.ReplayWindow = SecurityProtocolFactory.defaultReplayWindow;
             this.MaxClockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
-            this.NegotiationTimeout = TimeSpan.Parse(defaultServerMaxNegotiationLifetimeString, CultureInfo.InvariantCulture);
-           this.IssuedCookieLifetime  = TimeSpan.Parse(defaultServerIssuedTokenLifetimeString, CultureInfo.InvariantCulture);
-             
-            //this.IssuedCookieLifetime = NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerIssuedTokenLifetime;
-            //this.MaxStatefulNegotiations = NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxActiveNegotiations;
-            //this.NegotiationTimeout = NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxNegotiationLifetime;
+            this.NegotiationTimeout = TimeSpan.FromMinutes(1);
+            this.IssuedCookieLifetime = TimeSpan.FromHours(10);
+            this.MaxStatefulNegotiations = 128; //NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxActiveNegotiations;
+            this.NegotiationTimeout = TimeSpan.FromMinutes(1);// NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxNegotiationLifetime;
             this.maxPendingSessions = SecuritySessionServerSettings.defaultMaximumPendingSessions;
             this.inactivityTimeout = SecuritySessionServerSettings.defaultInactivityTimeout;
             this.sessionKeyRenewalInterval = SecuritySessionServerSettings.defaultKeyRenewalInterval;
             this.sessionKeyRolloverInterval = SecuritySessionServerSettings.defaultKeyRolloverInterval;
             this.reconnectTransportOnFailure = SecuritySessionServerSettings.defaultTolerateTransportFailures;
             this.TimestampValidityDuration = SecurityProtocolFactory.defaultTimestampValidityDuration;
-       //     this.maxCachedCookies = NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxCachedTokens;
+            this.maxCachedCookies = 1000; // NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxCachedTokens;
             this.nonceCache = null;
         }
 

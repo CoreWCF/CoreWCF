@@ -1,5 +1,6 @@
-using CoreWCF.Security;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
+
 namespace CoreWCF
 {
     public abstract class MessageSecurityVersion
@@ -106,7 +107,7 @@ namespace CoreWCF
         public abstract BasicSecurityProfileVersion BasicSecurityProfileVersion { get; }
         internal abstract MessageSecurityTokenVersion MessageSecurityTokenVersion { get; }
 
-        class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion : MessageSecurityVersion
+       internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion : MessageSecurityVersion
         {
             static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion();
 
@@ -136,7 +137,7 @@ namespace CoreWCF
             }
         }
 
-        class WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
+       internal class WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
             static MessageSecurityVersion instance = new WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
 
@@ -166,7 +167,7 @@ namespace CoreWCF
             }
         }
 
-        class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
+       internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
             static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
 
@@ -196,7 +197,7 @@ namespace CoreWCF
             }
         }
 
-        class WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
+       internal class WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
             static MessageSecurityVersion instance = new WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
 
@@ -226,7 +227,7 @@ namespace CoreWCF
             }
         }
 
-        class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion : MessageSecurityVersion
+       internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion : MessageSecurityVersion
         {
             static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion();
 
@@ -256,7 +257,7 @@ namespace CoreWCF
             }
         }
 
-        class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
+       internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
             static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
 

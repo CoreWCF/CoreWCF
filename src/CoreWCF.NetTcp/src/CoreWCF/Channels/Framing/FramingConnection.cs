@@ -1,16 +1,12 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Configuration;
-using CoreWCF.Security;
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.IO.Pipelines;
-using System.Text;
-using System.Threading.Tasks;
-using CoreWCF.Runtime;
+﻿using System;
 using System.Diagnostics;
-using System.ComponentModel.Design;
+using System.IO.Pipelines;
 using System.Net;
+using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http.Features;
 
 namespace CoreWCF.Channels.Framing

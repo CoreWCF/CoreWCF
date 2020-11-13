@@ -1,9 +1,7 @@
+using System.Xml;
+
 namespace CoreWCF.Security
 {
-    using System;
-    using System.Xml;
-    using CoreWCF.Channels;
-
     internal sealed class BinaryNegotiation 
     {
         private byte[] negotiationData;

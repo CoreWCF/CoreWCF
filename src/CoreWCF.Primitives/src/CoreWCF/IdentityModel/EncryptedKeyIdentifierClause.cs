@@ -1,7 +1,5 @@
-
 using System;
 using System.Globalization;
-using CoreWCF;
 
 namespace CoreWCF.IdentityModel.Tokens
 {

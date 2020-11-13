@@ -1,6 +1,6 @@
-﻿
-using CoreWCF;
+﻿using CoreWCF.Security;
 using System;
+using HexBinary = CoreWCF.Security.SoapHexBinary;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
@@ -70,6 +70,10 @@ namespace CoreWCF.IdentityModel.Tokens
             return Convert.ToBase64String(_identificationData);
         }
 
-       
+        internal string ToHexString()
+        {
+            return new HexBinary(_identificationData).ToString();
+        }
+
     }
 }

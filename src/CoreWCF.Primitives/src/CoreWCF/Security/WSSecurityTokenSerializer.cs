@@ -1,13 +1,12 @@
-using System.Collections.Generic;
+using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System.Xml;
-using System.Threading.Tasks;
 using System;
-using CoreWCF.IdentityModel;
-using static CoreWCF.Security.WSKeyInfoSerializer;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
@@ -169,10 +168,7 @@ namespace CoreWCF.Security
 
         public int MaximumKeyDerivationLabelLength { get; }
 
-        public int MaximumKeyDerivationNonceLength
-        {
-            get { return _maximumKeyDerivationNonceLength; }
-        }
+        public int MaximumKeyDerivationNonceLength => _maximumKeyDerivationNonceLength;
 
         private bool ShouldWrapException(Exception e)
         {
@@ -427,7 +423,7 @@ namespace CoreWCF.Security
             private Type[] _tokenTypes = null;
             protected abstract XmlDictionaryString LocalName { get; }
             protected abstract XmlDictionaryString NamespaceUri { get; }
-            public Type TokenType { get { return GetTokenTypes()[0]; } }
+            public Type TokenType => GetTokenTypes()[0];
             public abstract string TokenTypeUri { get; }
             protected abstract string ValueTypeUri { get; }
 

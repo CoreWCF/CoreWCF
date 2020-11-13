@@ -77,13 +77,12 @@ namespace CoreWCF
         {
             http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(clientCredentialType);
             http.Realm = Realm;
-            //http.ExtendedProtectionPolicy = extendedProtectionPolicy;
+            http.ExtendedProtectionPolicy = extendedProtectionPolicy;
         }
 
         static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
         {
             transportSecurity.clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
-            // transportSecurity.pro = httpproxycredentialtypehelper.maptoproxycredentialtype(http.proxyauthenticationscheme);
             transportSecurity.realm = http.Realm;
             transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
         }

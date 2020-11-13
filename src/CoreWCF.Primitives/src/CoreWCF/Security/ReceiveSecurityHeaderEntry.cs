@@ -1,8 +1,6 @@
-
-
 namespace CoreWCF.Security
 {
-    struct ReceiveSecurityHeaderEntry
+   internal struct ReceiveSecurityHeaderEntry
     {
         internal ReceiveSecurityHeaderElementCategory elementCategory;
         internal object element;

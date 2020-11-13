@@ -7984,7 +7984,7 @@
   <data name="UserNameCannotBeEmpty" xml:space="preserve">
     <value>The username cannot be empty.</value>
   </data>
-    <data name="TimeSpanMustbeGreaterThanTimeSpanZero" xml:space="preserve">
-    <value>TimeSpan must be greater than TimeSpan.Zero</value>
+  <data name="UnableToCreateKeyedHashAlgorithm" xml:space="preserve">
+    <value>Unable to create a KeyedHashAlgorithm from '{0}' for the signature algorithm '{1}'.</value>
   </data>
 </root>

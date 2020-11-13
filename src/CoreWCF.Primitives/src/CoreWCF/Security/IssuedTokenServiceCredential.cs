@@ -9,13 +9,13 @@ namespace CoreWCF.Security
 {    public class IssuedTokenServiceCredential
     {
         internal const bool DefaultAllowUntrustedRsaIssuers = false;
-       // internal const AudienceUriMode DefaultAudienceUriMode = AudienceUriMode.Always;
+        internal const AudienceUriMode DefaultAudienceUriMode = AudienceUriMode.Always;
         internal const X509CertificateValidationMode DefaultCertificateValidationMode = X509CertificateValidationMode.ChainTrust;
         internal const X509RevocationMode DefaultRevocationMode = X509RevocationMode.Online;
         internal const StoreLocation DefaultTrustedStoreLocation = StoreLocation.LocalMachine;
 
         List<string> allowedAudienceUris;
-       // AudienceUriMode audienceUriMode = DefaultAudienceUriMode;
+        AudienceUriMode audienceUriMode = DefaultAudienceUriMode;
         List<X509Certificate2> knownCertificates;
         SamlSerializer samlSerializer;
         X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
@@ -33,7 +33,7 @@ namespace CoreWCF.Security
 
         internal IssuedTokenServiceCredential(IssuedTokenServiceCredential other)
         {
-           // this.audienceUriMode = other.audienceUriMode;
+            this.audienceUriMode = other.audienceUriMode;
             this.allowedAudienceUris = new List<string>(other.allowedAudienceUris);
             this.samlSerializer = other.samlSerializer;
             this.knownCertificates = new List<X509Certificate2>(other.knownCertificates);
@@ -56,19 +56,19 @@ namespace CoreWCF.Security
             }
         }
 
-        //public AudienceUriMode AudienceUriMode
-        //{
-        //    get
-        //    {
-        //        return this.audienceUriMode;
-        //    }
-        //    set
-        //    {
-        //        ThrowIfImmutable();
-        //        AudienceUriModeValidationHelper.Validate(audienceUriMode);
-        //        this.audienceUriMode = value;
-        //    }
-        //}
+        public AudienceUriMode AudienceUriMode
+        {
+            get
+            {
+                return this.audienceUriMode;
+            }
+            set
+            {
+                ThrowIfImmutable();
+                AudienceUriModeValidationHelper.Validate(audienceUriMode);
+                this.audienceUriMode = value;
+            }
+        }
 
 
         public IList<X509Certificate2> KnownCertificates 

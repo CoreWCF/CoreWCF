@@ -1,36 +1,21 @@
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Security.Tokens;
-using System.Xml;
-
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 
 namespace CoreWCF.Security
 {
-
-    class SendSecurityHeaderElement
+    internal class SendSecurityHeaderElement
     {
-        string id;
-        ISecurityElement item;
-        bool markedForEncryption;
+        private bool markedForEncryption;
 
         public SendSecurityHeaderElement(string id, ISecurityElement item)
         {
-            this.id = id;
-            this.item = item;
+            this.Id = id;
+            this.Item = item;
             markedForEncryption = false;
         }
 
-        public string Id
-        {
-            get { return this.id; }
-        }
+        public string Id { get; private set; }
 
-        public ISecurityElement Item
-        {
-            get { return this.item; }
-        }
+        public ISecurityElement Item { get; private set; }
 
         public bool MarkedForEncryption
         {
@@ -40,13 +25,13 @@ namespace CoreWCF.Security
 
         public bool IsSameItem(ISecurityElement item)
         {
-            return this.item == item || this.item.Equals(item);
+            return this.Item == item || this.Item.Equals(item);
         }
 
         public void Replace(string id, ISecurityElement item)
         {
-            this.item = item;
-            this.id = id;
+            this.Item = item;
+            this.Id = id;
         }
     }
 }

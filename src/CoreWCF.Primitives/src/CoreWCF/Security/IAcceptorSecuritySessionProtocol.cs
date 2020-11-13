@@ -1,11 +1,6 @@
-
-
 using System.Xml;
-
-using CoreWCF;
-using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security.Tokens;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security
 {

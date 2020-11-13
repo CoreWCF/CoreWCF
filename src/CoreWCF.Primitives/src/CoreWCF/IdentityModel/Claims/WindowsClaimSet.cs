@@ -1,9 +1,8 @@
 ﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF;
+using CoreWCF.Security;
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Claims
 {
@@ -52,7 +51,7 @@ namespace CoreWCF.IdentityModel.Claims
             if (windowsIdentity == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
 
-            _windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
+            _windowsIdentity = clone ? CoreWCF.Security.SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
             _includeWindowsGroups = includeWindowsGroups;
             _expirationTime = expirationTime;
             _authenticationType = authenticationType;

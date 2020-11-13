@@ -1,12 +1,9 @@
-﻿using CoreWCF.IdentityModel.Selectors;
+﻿using System;
+using System.Collections.ObjectModel;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace CoreWCF.Description
 {

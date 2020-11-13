@@ -1,10 +1,8 @@
-﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Channels;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.Text;
+using CoreWCF.Channels;
 using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
@@ -12,21 +10,20 @@ namespace CoreWCF.Security
     public class SecurityMessageProperty : IMessageProperty, IDisposable
     {
         // This is the list of outgoing supporting tokens
-        Collection<SupportingTokenSpecification> outgoingSupportingTokens;
-        Collection<SupportingTokenSpecification> incomingSupportingTokens;
-        SecurityTokenSpecification transportToken;
-        SecurityTokenSpecification protectionToken;
-        SecurityTokenSpecification initiatorToken;
-        SecurityTokenSpecification recipientToken;
-
-        ServiceSecurityContext securityContext;
-        ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
-        string senderIdPrefix = "_";
-        bool disposed = false;
+        private Collection<SupportingTokenSpecification> outgoingSupportingTokens;
+        private Collection<SupportingTokenSpecification> incomingSupportingTokens;
+        private SecurityTokenSpecification transportToken;
+        private SecurityTokenSpecification protectionToken;
+        private SecurityTokenSpecification initiatorToken;
+        private SecurityTokenSpecification recipientToken;
+        private ServiceSecurityContext securityContext;
+        private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
+        private string senderIdPrefix = "_";
+        private bool disposed = false;
 
         public SecurityMessageProperty()
         {
-            this.securityContext = ServiceSecurityContext.Anonymous;
+            securityContext = ServiceSecurityContext.Anonymous;
         }
 
         public ServiceSecurityContext ServiceSecurityContext
@@ -34,12 +31,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return this.securityContext;
+                return securityContext;
             }
             set
             {
                 ThrowIfDisposed();
-                this.securityContext = value;
+                securityContext = value;
             }
         }
 
@@ -47,11 +44,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.externalAuthorizationPolicies;
+                return externalAuthorizationPolicies;
             }
             set
             {
-                this.externalAuthorizationPolicies = value;
+                externalAuthorizationPolicies = value;
             }
         }
 
@@ -60,12 +57,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return this.protectionToken;
+                return protectionToken;
             }
             set
             {
                 ThrowIfDisposed();
-                this.protectionToken = value;
+                protectionToken = value;
             }
         }
 
@@ -74,12 +71,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return this.initiatorToken;
+                return initiatorToken;
             }
             set
             {
                 ThrowIfDisposed();
-                this.initiatorToken = value;
+                initiatorToken = value;
             }
         }
 
@@ -88,12 +85,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return this.recipientToken;
+                return recipientToken;
             }
             set
             {
                 ThrowIfDisposed();
-                this.recipientToken = value;
+                recipientToken = value;
             }
         }
 
@@ -102,12 +99,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return this.transportToken;
+                return transportToken;
             }
             set
             {
                 ThrowIfDisposed();
-                this.transportToken = value;
+                transportToken = value;
             }
         }
 
@@ -116,12 +113,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.senderIdPrefix;
+                return senderIdPrefix;
             }
             set
             {
                /// XmlHelper.ValidateIdPrefix(value);
-                this.senderIdPrefix = value;
+                senderIdPrefix = value;
             }
         }
 
@@ -130,7 +127,7 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return ((this.incomingSupportingTokens != null) && (this.incomingSupportingTokens.Count > 0));
+                return ((incomingSupportingTokens != null) && (incomingSupportingTokens.Count > 0));
             }
         }
 
@@ -139,11 +136,11 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                if (this.incomingSupportingTokens == null)
+                if (incomingSupportingTokens == null)
                 {
-                    this.incomingSupportingTokens = new Collection<SupportingTokenSpecification>();
+                    incomingSupportingTokens = new Collection<SupportingTokenSpecification>();
                 }
-                return this.incomingSupportingTokens;
+                return incomingSupportingTokens;
             }
         }
 
@@ -151,11 +148,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (this.outgoingSupportingTokens == null)
+                if (outgoingSupportingTokens == null)
                 {
-                    this.outgoingSupportingTokens = new Collection<SupportingTokenSpecification>();
+                    outgoingSupportingTokens = new Collection<SupportingTokenSpecification>();
                 }
-                return this.outgoingSupportingTokens;
+                return outgoingSupportingTokens;
             }
         }
 
@@ -163,7 +160,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return ((this.outgoingSupportingTokens != null) && (this.outgoingSupportingTokens.Count > 0));
+                return ((outgoingSupportingTokens != null) && (outgoingSupportingTokens.Count > 0));
             }
         }
 
@@ -172,30 +169,30 @@ namespace CoreWCF.Security
             ThrowIfDisposed();
             SecurityMessageProperty result = new SecurityMessageProperty();
 
-            if (this.HasOutgoingSupportingTokens)
+            if (HasOutgoingSupportingTokens)
             {
-                for (int i = 0; i < this.outgoingSupportingTokens.Count; ++i)
+                for (int i = 0; i < outgoingSupportingTokens.Count; ++i)
                 {
-                    result.OutgoingSupportingTokens.Add(this.outgoingSupportingTokens[i]);
+                    result.OutgoingSupportingTokens.Add(outgoingSupportingTokens[i]);
                 }
             }
 
-            if (this.HasIncomingSupportingTokens)
+            if (HasIncomingSupportingTokens)
             {
-                for (int i = 0; i < this.incomingSupportingTokens.Count; ++i)
+                for (int i = 0; i < incomingSupportingTokens.Count; ++i)
                 {
-                    result.IncomingSupportingTokens.Add(this.incomingSupportingTokens[i]);
+                    result.IncomingSupportingTokens.Add(incomingSupportingTokens[i]);
                 }
             }
 
-            result.securityContext = this.securityContext;
-            result.externalAuthorizationPolicies = this.externalAuthorizationPolicies;
-            result.senderIdPrefix = this.senderIdPrefix;
+            result.securityContext = securityContext;
+            result.externalAuthorizationPolicies = externalAuthorizationPolicies;
+            result.senderIdPrefix = senderIdPrefix;
 
-            result.protectionToken = this.protectionToken;
-            result.initiatorToken = this.initiatorToken;
-            result.recipientToken = this.recipientToken;
-            result.transportToken = this.transportToken;
+            result.protectionToken = protectionToken;
+            result.initiatorToken = initiatorToken;
+            result.recipientToken = recipientToken;
+            result.transportToken = transportToken;
 
             return result;
         }
@@ -218,7 +215,7 @@ namespace CoreWCF.Security
             return result;
         }
 
-        void AddAuthorizationPolicies(SecurityTokenSpecification spec, Collection<IAuthorizationPolicy> policies)
+        private void AddAuthorizationPolicies(SecurityTokenSpecification spec, Collection<IAuthorizationPolicy> policies)
         {
             if (spec != null && spec.SecurityTokenPolicies != null && spec.SecurityTokenPolicies.Count > 0)
             {
@@ -242,49 +239,49 @@ namespace CoreWCF.Security
         internal ReadOnlyCollection<IAuthorizationPolicy> GetInitiatorTokenAuthorizationPolicies(bool includeTransportToken, SecurityContextSecurityToken supportingSessionTokenToExclude)
         {
             // fast path
-            if (!this.HasIncomingSupportingTokens)
+            if (!HasIncomingSupportingTokens)
             {
-                if (this.transportToken != null && this.initiatorToken == null && this.protectionToken == null)
+                if (transportToken != null && initiatorToken == null && protectionToken == null)
                 {
-                    if (includeTransportToken && this.transportToken.SecurityTokenPolicies != null)
+                    if (includeTransportToken && transportToken.SecurityTokenPolicies != null)
                     {
-                        return this.transportToken.SecurityTokenPolicies;
+                        return transportToken.SecurityTokenPolicies;
                     }
                     else
                     {
                         return EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
                     }
                 }
-                else if (this.transportToken == null && this.initiatorToken != null && this.protectionToken == null)
+                else if (transportToken == null && initiatorToken != null && protectionToken == null)
                 {
-                    return this.initiatorToken.SecurityTokenPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
+                    return initiatorToken.SecurityTokenPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
                 }
-                else if (this.transportToken == null && this.initiatorToken == null && this.protectionToken != null)
+                else if (transportToken == null && initiatorToken == null && protectionToken != null)
                 {
-                    return this.protectionToken.SecurityTokenPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
+                    return protectionToken.SecurityTokenPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
                 }
             }
 
             Collection<IAuthorizationPolicy> policies = new Collection<IAuthorizationPolicy>();
             if (includeTransportToken)
             {
-                AddAuthorizationPolicies(this.transportToken, policies);
+                AddAuthorizationPolicies(transportToken, policies);
             }
-            AddAuthorizationPolicies(this.initiatorToken, policies);
-            AddAuthorizationPolicies(this.protectionToken, policies);
-            if (this.HasIncomingSupportingTokens)
+            AddAuthorizationPolicies(initiatorToken, policies);
+            AddAuthorizationPolicies(protectionToken, policies);
+            if (HasIncomingSupportingTokens)
             {
-                for (int i = 0; i < this.incomingSupportingTokens.Count; ++i)
+                for (int i = 0; i < incomingSupportingTokens.Count; ++i)
                 {
                     if (supportingSessionTokenToExclude != null)
                     {
-                        SecurityContextSecurityToken sct = this.incomingSupportingTokens[i].SecurityToken as SecurityContextSecurityToken;
+                        SecurityContextSecurityToken sct = incomingSupportingTokens[i].SecurityToken as SecurityContextSecurityToken;
                         if (sct != null && sct.ContextId == supportingSessionTokenToExclude.ContextId)
                         {
                             continue;
                         }
                     }
-                    SecurityTokenAttachmentMode attachmentMode = this.incomingSupportingTokens[i].SecurityTokenAttachmentMode;
+                    SecurityTokenAttachmentMode attachmentMode = incomingSupportingTokens[i].SecurityTokenAttachmentMode;
                     // a safety net in case more attachment modes get added to the product without 
                     // reviewing this code.
                     if (attachmentMode == SecurityTokenAttachmentMode.Endorsing
@@ -292,7 +289,7 @@ namespace CoreWCF.Security
                         || attachmentMode == SecurityTokenAttachmentMode.SignedEncrypted
                         || attachmentMode == SecurityTokenAttachmentMode.SignedEndorsing)
                     {
-                        AddAuthorizationPolicies(this.incomingSupportingTokens[i], policies);
+                        AddAuthorizationPolicies(incomingSupportingTokens[i], policies);
                     }
                 }
             }
@@ -302,17 +299,17 @@ namespace CoreWCF.Security
         public void Dispose()
         {
             // do no-op for future V2
-            if (!this.disposed)
+            if (!disposed)
             {
-                this.disposed = true;
+                disposed = true;
             }
         }
 
-        void ThrowIfDisposed()
+        private void ThrowIfDisposed()
         {
-            if (this.disposed)
+            if (disposed)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(this.GetType().FullName));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().FullName));
             }
         }
     }

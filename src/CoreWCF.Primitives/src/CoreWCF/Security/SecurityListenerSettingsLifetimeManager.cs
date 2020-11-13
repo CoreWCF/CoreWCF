@@ -5,16 +5,18 @@ using System.Runtime;
 using CoreWCF;
 using CoreWCF.Channels;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Security
 {
-    class SecurityListenerSettingsLifetimeManager
+    internal class SecurityListenerSettingsLifetimeManager
     {
-        SecurityProtocolFactory securityProtocolFactory;
-        SecuritySessionServerSettings sessionSettings;
-        bool sessionMode;
-       // IChannelListener innerListener;
-        int referenceCount;
+        private SecurityProtocolFactory securityProtocolFactory;
+        private SecuritySessionServerSettings sessionSettings;
+        private bool sessionMode;
+
+        // IChannelListener innerListener;
+        private int referenceCount;
 
         public SecurityListenerSettingsLifetimeManager(SecurityProtocolFactory securityProtocolFactory, SecuritySessionServerSettings sessionSettings, bool sessionMode)
         {
@@ -30,7 +32,7 @@ namespace CoreWCF.Security
         {
             if (Interlocked.Decrement(ref this.referenceCount) == 0)
             {
-               // AbortCore();
+                AbortCore();
             }
         }
 
@@ -39,24 +41,24 @@ namespace CoreWCF.Security
             Interlocked.Increment(ref this.referenceCount);
         }
 
-        public void Init(TimeSpan timeout) // renaming open to Init
+        public Task OpenAsync(TimeSpan timeout)
         {
-            //TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            //if (this.securityProtocolFactory != null)
-            //{
-            //    this.securityProtocolFactory.Init(timeoutHelper.RemainingTime());
-            //}
-            //if (this.sessionMode && this.sessionSettings != null)
-            //{
-            //    this.sessionSettings.Init(timeoutHelper.RemainingTime());
-            //} 
+            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+            if (this.securityProtocolFactory != null)
+            {
+                this.securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
+            }
+            if (this.sessionMode && this.sessionSettings != null)
+            {
+                this.sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
+            }
 
-         //   this.innerListener.Open(timeoutHelper.RemainingTime());
-
-            this.SetBufferManager();        
+          //  this.innerListener.Open(timeoutHelper.RemainingTime());
+           // this.SetBufferManager();
+            return Task.CompletedTask;
         }
 
-        void SetBufferManager()
+        private void SetBufferManager()
         {
            
         /* TODO
@@ -78,6 +80,47 @@ namespace CoreWCF.Security
                 this.sessionSettings.SessionProtocolFactory.StreamBufferManager = bufferManager;
             }
             */
+        }
+        public Task CloseAsync(TimeSpan timeout)
+        {
+            if (Interlocked.Decrement(ref this.referenceCount) == 0)
+            {
+                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+                bool throwing = true;
+                try
+                {
+                    if (this.securityProtocolFactory != null)
+                    {
+                        this.securityProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
+                    }
+                    if (sessionMode && sessionSettings != null)
+                    {
+                        this.sessionSettings.CloseAsync(timeoutHelper.RemainingTime());
+                    }
+                   // this.innerListener.Close(timeoutHelper.RemainingTime());
+                    throwing = false;
+                }
+                finally
+                {
+                    if (throwing)
+                    {
+                        AbortCore();
+                    }
+                }
+            }
+           return Task.CompletedTask;
+        }
+        void AbortCore()
+        {
+            if (this.securityProtocolFactory != null)
+            {
+                this.securityProtocolFactory.OnCloseAsync(TimeSpan.Zero);
+            }
+            if (sessionMode && this.sessionSettings != null)
+            {
+                this.sessionSettings.Abort();
+            }
+            //this.innerListener.Abort();
         }
 
     }

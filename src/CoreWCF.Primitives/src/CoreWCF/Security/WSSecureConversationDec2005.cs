@@ -1,31 +1,13 @@
 
+using System;
+using System.Collections.Generic;
+using System.Xml;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
+using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
 {
-    using System;
-    using CoreWCF;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
-    using System.Threading;
-    using System.Xml;
-    using CoreWCF.IdentityModel.Claims;
-    using CoreWCF.IdentityModel.Policy;
-    using CoreWCF.IdentityModel.Tokens;
-    using System.Security.Cryptography.X509Certificates;
-// using HexBinary = System.Runtime.Remoting.Metadata.W3cXsd2001.SoapHexBinary;
-    using CoreWCF.Channels;
-    using CoreWCF.Security;
-    using CoreWCF.Security.Tokens;
-    using System.Runtime.Serialization;
-    using KeyIdentifierEntry = WSSecurityTokenSerializer.KeyIdentifierEntry;
-    using KeyIdentifierClauseEntry = WSSecurityTokenSerializer.KeyIdentifierClauseEntry;
-    using StrEntry = WSSecurityTokenSerializer.StrEntry;
-    using TokenEntry = WSSecurityTokenSerializer.TokenEntry;
-
     class WSSecureConversationDec2005 : WSSecureConversation
     {
         SecurityStateEncoder securityStateEncoder;

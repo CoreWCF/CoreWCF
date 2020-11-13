@@ -1,16 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Runtime;
-using CoreWCF.Configuration;
-using CoreWCF.Dispatcher;
-using System;
+﻿using System;
+using System.Net;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
+using CoreWCF.Configuration;
+using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Builder;
-using System.Net.WebSockets;
-using System.Net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
@@ -85,7 +83,6 @@ namespace CoreWCF.Channels
             {
                 return null;
             }
-
             return new WebSocketOptions
             {
                 ReceiveBufferSize = WebSocketHelper.GetReceiveBufferSize(tbe.MaxReceivedMessageSize),
@@ -95,12 +92,12 @@ namespace CoreWCF.Channels
 
         internal async Task HandleRequest(HttpContext context)
         {
-
             if (!context.WebSockets.IsWebSocketRequest)
             {
                 if (_replyChannelDispatcher == null)
                 {
                     _replyChannelDispatcher = await _replyChannelDispatcherTask;
+                    _replyChannel.ChannelDispatcher = _replyChannelDispatcher;
                 }
 
                 await _replyChannel.HandleRequest(context);

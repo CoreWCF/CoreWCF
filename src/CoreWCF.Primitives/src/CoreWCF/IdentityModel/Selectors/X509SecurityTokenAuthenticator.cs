@@ -1,13 +1,10 @@
 ﻿using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
-using CoreWCF;
+using CoreWCF.Security;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Selectors
 {

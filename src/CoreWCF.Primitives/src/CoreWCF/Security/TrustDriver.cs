@@ -1,66 +1,30 @@
-
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Runtime.Serialization;
+using System.Security.Cryptography;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
-    using System;
-    using CoreWCF.Channels;
-    using CoreWCF;
-    using CoreWCF.Description;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Diagnostics;
-    using System.Runtime.Serialization;
-    using CoreWCF.IdentityModel.Claims;
-    using CoreWCF.IdentityModel.Policy;
-    using CoreWCF.IdentityModel.Selectors;
-    using CoreWCF.IdentityModel.Tokens;
-    using System.Security.Principal;
-    using System.Security.Cryptography;
-    using CoreWCF.Security.Tokens;
-
-    using System.Xml;
-
     abstract class TrustDriver
     {
         // issued tokens control        
-        public virtual bool IsIssuedTokensSupported
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public virtual bool IsIssuedTokensSupported => false;
 
         // issued tokens feature        
-        public virtual string IssuedTokensHeaderName
-        {
-            get
-            {
-                // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
+        public virtual string IssuedTokensHeaderName =>
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.TrustDriverVersionDoesNotSupportIssuedTokens)));
-            }
-        }
 
         // issued tokens feature        
-        public virtual string IssuedTokensHeaderNamespace
-        {
-            get
-            {
-                // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
+        public virtual string IssuedTokensHeaderNamespace =>
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.TrustDriverVersionDoesNotSupportIssuedTokens)));
-            }
-        }
 
         // session control
-        public virtual bool IsSessionSupported
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public virtual bool IsSessionSupported => false;
 
         public abstract XmlDictionaryString RequestSecurityTokenAction { get; }
 
@@ -69,28 +33,14 @@ namespace CoreWCF.Security
         public abstract XmlDictionaryString RequestSecurityTokenResponseFinalAction { get; }
 
         // session feature
-        public virtual string RequestTypeClose
-        {
-            get
-            {
-                // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
+        public virtual string RequestTypeClose =>
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.TrustDriverVersionDoesNotSupportSession)));
-            }
-        }
 
         public abstract string RequestTypeIssue { get; }
 
         // session feature
-        public virtual string RequestTypeRenew
-        {
-            get
-            {
-                // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
+        public virtual string RequestTypeRenew =>
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.TrustDriverVersionDoesNotSupportSession)));
-            }
-        }
 
         public abstract string ComputedKeyAlgorithm { get; }
 

@@ -284,8 +284,8 @@ namespace CoreWCF.Channels
             buffer.CloseSection();
             buffer.Close();
             XmlDictionaryReader reader = buffer.GetReader(0);
-            reader.ReadStartElement();
-            reader.MoveToStartElement();
+           reader.ReadStartElement();
+           reader.MoveToStartElement();
             return reader;
         }
 

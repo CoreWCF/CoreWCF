@@ -1,14 +1,7 @@
+using CoreWCF.Channels;
+
 namespace CoreWCF.Dispatcher
 {
-    using System;
-    using CoreWCF.Channels;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Diagnostics;
-    using System.Runtime.Serialization;
-    using CoreWCF.Diagnostics;
-
     abstract class HeaderFilter : MessageFilter
     {
         protected HeaderFilter()

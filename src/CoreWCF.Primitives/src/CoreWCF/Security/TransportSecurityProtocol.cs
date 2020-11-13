@@ -1,24 +1,21 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using CoreWCF.Channels;
+using CoreWCF.Description;
+using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
-using System.Runtime;
 using CoreWCF.Runtime;
-using CoreWCF;
-using CoreWCF.Channels;
-using CoreWCF.Description;
 using System;
-using System.Threading.Tasks;
-using CoreWCF.IdentityModel;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Security
 {
-     class TransportSecurityProtocol : SecurityProtocol
+    class TransportSecurityProtocol : SecurityProtocol
     {
-        public TransportSecurityProtocol(TransportSecurityProtocolFactory factory, EndpointAddress target, Uri via)
-            : base(factory, target, via)
+        public TransportSecurityProtocol(TransportSecurityProtocolFactory factory, EndpointAddress target, Uri via) : base(factory, target, via)
         {
         }
 
@@ -28,16 +25,13 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
-           
-            //TODO communication object
-          //  CommunicationObject.ThrowIfClosedOrNotOpen();
-            string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
+            CommunicationObject.ThrowIfClosedOrNotOpen();
+            string actor = message.Version.Envelope.UltimateDestinationActor;
             try
             {
                 if (SecurityProtocolFactory.ActAsInitiator)
                 {
-                    //serverside no need to worry
-                  //  message = await SecureOutgoingMessageAtInitiatorAsync(message, actor, timeout);
+                    Fx.Assert(false, "Server side code");
                 }
                 else
                 {
@@ -64,30 +58,13 @@ namespace CoreWCF.Security
             return message;
         }
 
-        /*
-
-        protected virtual async Task<Message> SecureOutgoingMessageAtInitiatorAsync(Message message, string actor, TimeSpan timeout)
-        {
-            IList<SupportingTokenSpecification> supportingTokens = await TryGetSupportingTokensAsync(SecurityProtocolFactory, Target, Via, message, timeout);
-            SetUpDelayedSecurityExecution(ref message, actor, supportingTokens);
-            return message;
-        }
-
-        internal void SetUpDelayedSecurityExecution(ref Message message, string actor,
-            IList<SupportingTokenSpecification> supportingTokens)
-        {
-            SendSecurityHeader securityHeader = CreateSendSecurityHeaderForTransportProtocol(message, actor, SecurityProtocolFactory);
-            AddSupportingTokens(securityHeader, supportingTokens);
-            message = securityHeader.SetupExecution();
-        }*/
-
         public sealed override void VerifyIncomingMessage(ref Message message, TimeSpan timeout)
         {
             if (message == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
-            //CommunicationObject.ThrowIfClosedOrNotOpen();
+            CommunicationObject.ThrowIfClosedOrNotOpen();
             try
             {
                 VerifyIncomingMessageCore(ref message, timeout);
@@ -157,10 +134,10 @@ namespace CoreWCF.Security
             securityHeader.ReaderQuotas = factory.SecurityBindingElement.ReaderQuotas;
 
             // Due to compatibility, only honor this setting if this app setting is enabled
-           // if (ServiceModelAppSettings.UseConfiguredTransportSecurityHeaderLayout)
-           // {
-            //    securityHeader.Layout = factory.SecurityHeaderLayout;
-          //  }
+            if (ServiceModelAppSettings.UseConfiguredTransportSecurityHeaderLayout)
+            {
+                securityHeader.Layout = factory.SecurityHeaderLayout;
+            }
 
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             if (!factory.ActAsInitiator)

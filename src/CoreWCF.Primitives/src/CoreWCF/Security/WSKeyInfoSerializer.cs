@@ -1,18 +1,13 @@
-﻿
-
-using System.Collections.Generic;
-using CoreWCF.IdentityModel;
+﻿using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
-using System.Xml;
-using CoreWCF.Security;
-using CoreWCF;
 using System;
+using System.Collections.Generic;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
-
     class WSKeyInfoSerializer : KeyInfoSerializer
     {
         static Func<KeyInfoSerializer, IEnumerable<SecurityTokenSerializer.SerializerEntries>> CreateAdditionalEntries(SecurityVersion securityVersion, SecureConversationVersion secureConversationVersion)
@@ -67,20 +62,11 @@ namespace CoreWCF.Security
                 this.securityTokenSerializer = securityTokenSerializer;
             }
 
-            public KeyInfoSerializer SecurityTokenSerializer
-            {
-                get { return this.securityTokenSerializer; }
-            }
+            public KeyInfoSerializer SecurityTokenSerializer => this.securityTokenSerializer;
 
-            public abstract SecureConversationDictionary SerializerDictionary
-            {
-                get;
-            }
+            public abstract SecureConversationDictionary SerializerDictionary {get;}
 
-            public virtual string DerivationAlgorithm
-            {
-                get { return SecurityAlgorithms.Psha1KeyDerivation; }
-            }
+            public virtual string DerivationAlgorithm => SecurityAlgorithms.Psha1KeyDerivation;
 
             public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
             {
@@ -101,10 +87,7 @@ namespace CoreWCF.Security
                     this.parent = parent;
                 }
 
-                protected WSSecureConversation Parent
-                {
-                    get { return this.parent; }
-                }
+                protected WSSecureConversation Parent => this.parent;
 
                 public override Type GetTokenType(SecurityKeyIdentifierClause clause)
                 {
@@ -195,13 +178,10 @@ namespace CoreWCF.Security
                     this.parent = parent;
                 }
 
-                protected WSSecureConversation Parent
-                {
-                    get { return this.parent; }
-                }
+                protected WSSecureConversation Parent => this.parent;
 
-                protected override XmlDictionaryString LocalName { get { return parent.SerializerDictionary.SecurityContextToken; } }
-                protected override XmlDictionaryString NamespaceUri { get { return parent.SerializerDictionary.Namespace; } }
+                protected override XmlDictionaryString LocalName => parent.SerializerDictionary.SecurityContextToken;
+                protected override XmlDictionaryString NamespaceUri => parent.SerializerDictionary.Namespace;
                 protected override Type[] GetTokenTypesCore()
                 {
                     if (tokenTypes == null)
@@ -209,8 +189,8 @@ namespace CoreWCF.Security
 
                     return this.tokenTypes;
                 }
-                public override string TokenTypeUri { get { return parent.SerializerDictionary.SecurityContextTokenType.Value; } }
-                protected override string ValueTypeUri { get { return null; } }
+                public override string TokenTypeUri => parent.SerializerDictionary.SecurityContextTokenType.Value;
+                protected override string ValueTypeUri => null;
 
             }
 
@@ -230,8 +210,8 @@ namespace CoreWCF.Security
                     this.parent = parent;
                 }
 
-                protected override XmlDictionaryString LocalName { get { return parent.SerializerDictionary.DerivedKeyToken; } }
-                protected override XmlDictionaryString NamespaceUri { get { return parent.SerializerDictionary.Namespace; } }
+                protected override XmlDictionaryString LocalName => parent.SerializerDictionary.DerivedKeyToken;
+                protected override XmlDictionaryString NamespaceUri => parent.SerializerDictionary.Namespace;
                 protected override Type[] GetTokenTypesCore()
                 {
                     if (tokenTypes == null)
@@ -240,8 +220,8 @@ namespace CoreWCF.Security
                     return this.tokenTypes;
                 }
 
-                public override string TokenTypeUri { get { return parent.SerializerDictionary.DerivedKeyTokenType.Value; } }
-                protected override string ValueTypeUri { get { return null; } }
+                public override string TokenTypeUri => parent.SerializerDictionary.DerivedKeyTokenType.Value;
+                protected override string ValueTypeUri => null;
             }
         }
 
@@ -252,10 +232,7 @@ namespace CoreWCF.Security
             {
             }
 
-            public override SecureConversationDictionary SerializerDictionary
-            {
-                get { return this.SecurityTokenSerializer.DictionaryManager.SecureConversationFeb2005Dictionary; }
-            }
+            public override SecureConversationDictionary SerializerDictionary => this.SecurityTokenSerializer.DictionaryManager.SecureConversationFeb2005Dictionary;
 
             public override void PopulateStrEntries(IList<StrEntry> strEntries)
             {
@@ -295,28 +272,18 @@ namespace CoreWCF.Security
 
         class WSSecureConversationDec2005 : WSSecureConversation
         {
-            public WSSecureConversationDec2005(KeyInfoSerializer securityTokenSerializer)
-                : base(securityTokenSerializer)
+            public WSSecureConversationDec2005(KeyInfoSerializer securityTokenSerializer) : base(securityTokenSerializer)
             {
             }
 
-            public override SecureConversationDictionary SerializerDictionary
-            {
-                get { return this.SecurityTokenSerializer.DictionaryManager.SecureConversationDec2005Dictionary; }
-            }
+            public override SecureConversationDictionary SerializerDictionary => this.SecurityTokenSerializer.DictionaryManager.SecureConversationDec2005Dictionary;
 
             public override void PopulateStrEntries(IList<StrEntry> strEntries)
             {
                 strEntries.Add(new SctStrEntryDec2005(this));
             }
 
-            public override string DerivationAlgorithm
-            {
-                get
-                {
-                    return SecurityAlgorithms.Psha1KeyDerivationDec2005;
-                }
-            }
+            public override string DerivationAlgorithm => SecurityAlgorithms.Psha1KeyDerivationDec2005;
 
             class SctStrEntryDec2005 : SctStrEntry
             {

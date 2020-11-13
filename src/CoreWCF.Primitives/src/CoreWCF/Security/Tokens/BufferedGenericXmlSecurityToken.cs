@@ -17,13 +17,13 @@ namespace CoreWCF.Security.Tokens
             SecurityKeyIdentifierClause internalTokenReference,
             SecurityKeyIdentifierClause externalTokenReference,
             ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies,
-            IdentityModel.XmlBuffer tokenXmlBuffer
+            XmlBuffer tokenXmlBuffer
             )
             : base(tokenXml, proofToken, effectiveTime, expirationTime, internalTokenReference, externalTokenReference, authorizationPolicies)
         {
             TokenXmlBuffer = tokenXmlBuffer;
         }
 
-        public IdentityModel.XmlBuffer TokenXmlBuffer { get; }
+        public XmlBuffer TokenXmlBuffer { get; }
     }
 }

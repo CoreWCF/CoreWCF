@@ -21,8 +21,6 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
-
-
     static class CryptoHelper
     {
         static byte[] emptyBuffer;
@@ -58,7 +56,6 @@ namespace CoreWCF.Security
             return CryptoHelper.CreateHashAlgorithm(SecurityAlgorithms.Sha256Digest);
         }
 
-        [SuppressMessage("Microsoft.Security.Cryptography", "CA5354:DoNotUseSHA1", Justification = "Cannot change. Required as SOAP spec requires supporting SHA1.")]
         internal static HashAlgorithm CreateHashAlgorithm(string digestMethod)
         {
             object algorithmObject = CryptoAlgorithms.GetAlgorithmFromConfig(digestMethod);
@@ -73,22 +70,15 @@ namespace CoreWCF.Security
             switch (digestMethod)
             {
                 case SecurityAlgorithms.Sha1Digest:
-                    //if (SecurityUtilsEx.RequiresFipsCompliance)
-                    //    return new SHA1CryptoServiceProvider();
-                    //else
-                        return new SHA1Managed();
+                        return SHA1.Create();
                 case SecurityAlgorithms.Sha256Digest:
-                    //if (SecurityUtilsEx.RequiresFipsCompliance)
-                    //    return new SHA256CryptoServiceProvider();
-                    //else
-                        return new SHA256Managed();
+                        return SHA256.Create();
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.UnsupportedCryptoAlgorithm, digestMethod)));
 
             }
         }
 
-        [SuppressMessage("Microsoft.Security.Cryptography", "CA5354:DoNotUseSHA1", Justification = "Cannot change. Required as SOAP spec requires supporting SHA1.")]
         internal static HashAlgorithm CreateHashForAsymmetricSignature(string signatureMethod)
         {
             object algorithmObject = CryptoAlgorithms.GetAlgorithmFromConfig(signatureMethod);
@@ -115,17 +105,9 @@ namespace CoreWCF.Security
             {
                 case SecurityAlgorithms.RsaSha1Signature:
                 case SecurityAlgorithms.DsaSha1Signature:
-                  //  if (SecurityUtilsEx.RequiresFipsCompliance)
-                  //      return new SHA1CryptoServiceProvider();
-                   // else
-                        return new SHA1Managed();
-
+                        return SHA1.Create();
                 case SecurityAlgorithms.RsaSha256Signature:
-                  //  if (SecurityUtilsEx.RequiresFipsCompliance)
-                  //      return new SHA256CryptoServiceProvider();
-                   // else
-                        return new SHA256Managed();
-
+                    return SHA256.Create();
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.UnsupportedCryptoAlgorithm, signatureMethod)));
             }
@@ -330,15 +312,15 @@ namespace CoreWCF.Security
         {
             if (buffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("buffer"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException( nameof(buffer)));
             }
             if (count < 0 || count > buffer.Length)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("count", SR.Format(SR.ValueMustBeInRange, 0, buffer.Length)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), SR.Format(SR.ValueMustBeInRange, 0, buffer.Length)));
             }
             if (offset < 0 || offset > buffer.Length - count)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("offset", SR.Format(SR.ValueMustBeInRange, 0, buffer.Length - count)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset), SR.Format(SR.ValueMustBeInRange, 0, buffer.Length - count)));
             }
         }
 
@@ -346,12 +328,12 @@ namespace CoreWCF.Security
         {
             if (!algorithmSuite.IsSymmetricKeyLengthSupported(keyLength))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new ArgumentOutOfRangeException("algorithmSuite",
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new ArgumentOutOfRangeException(nameof(algorithmSuite),
                    SR.Format(SR.UnsupportedKeyLength, keyLength, algorithmSuite.ToString())));
             }
             if (keyLength % 8 != 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new ArgumentOutOfRangeException("algorithmSuite",
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new ArgumentOutOfRangeException(nameof(algorithmSuite),
                    SR.Format(SR.KeyLengthMustBeMultipleOfEight, keyLength)));
             }
         }

@@ -1,9 +1,6 @@
-
-
-using System.Collections.Generic;
-using CoreWCF;
-using System.Xml;
 using System;
+using System.Collections.Generic;
+using System.Xml;
 
 namespace CoreWCF.IdentityModel
 {

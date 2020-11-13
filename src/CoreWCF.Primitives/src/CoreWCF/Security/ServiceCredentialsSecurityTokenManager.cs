@@ -1,33 +1,26 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Channels;
+﻿using CoreWCF.Channels;
 using CoreWCF.Description;
+using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
 using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
-using CoreWCF.Dispatcher;
 
 namespace CoreWCF.Security
 {
     internal class ServiceCredentialsSecurityTokenManager : SecurityTokenManager, IEndpointIdentityProvider
     {
-        ServiceCredentials parent;
-
         public ServiceCredentialsSecurityTokenManager(ServiceCredentials parent)
         {
             if (parent == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             }
-            this.parent = parent;
+            this.ServiceCredentials = parent;
         }
 
-        public ServiceCredentials ServiceCredentials
-        {
-            get { return parent; }
-        }
+        public ServiceCredentials ServiceCredentials { get; }
 
         internal override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
         {
@@ -39,13 +32,13 @@ namespace CoreWCF.Security
             if (wsVersion != null)
             {
                 SamlSerializer samlSerializer = null;
-                //TODO check the need
+                //TODO this will be implemented when we add WS-Federation support
                 //if (parent.IssuedTokenAuthentication != null)
                 //    samlSerializer = parent.IssuedTokenAuthentication.SamlSerializer;
                 //else
                 //    samlSerializer = new SamlSerializer();
 
-                return new WSSecurityTokenSerializer(wsVersion.SecurityVersion, wsVersion.TrustVersion, wsVersion.SecureConversationVersion, wsVersion.EmitBspRequiredAttributes, samlSerializer, parent.SecureConversationAuthentication.SecurityStateEncoder, parent.SecureConversationAuthentication.SecurityContextClaimTypes);
+                return new WSSecurityTokenSerializer(wsVersion.SecurityVersion, wsVersion.TrustVersion, wsVersion.SecureConversationVersion, wsVersion.EmitBspRequiredAttributes, samlSerializer, ServiceCredentials.SecureConversationAuthentication.SecurityStateEncoder, ServiceCredentials.SecureConversationAuthentication.SecurityContextClaimTypes);
             }
             else
             {
@@ -230,7 +223,7 @@ namespace CoreWCF.Security
 
         X509SecurityTokenAuthenticator CreateClientX509TokenAuthenticator()
         {
-            X509ClientCertificateAuthentication authentication = parent.ClientCertificate.Authentication;
+            X509ClientCertificateAuthentication authentication = ServiceCredentials.ClientCertificate.Authentication;
             return new X509SecurityTokenAuthenticator(authentication.GetCertificateValidator(), authentication.MapClientCertificateToWindowsAccount, authentication.IncludeWindowsGroups);
         }
 
@@ -293,12 +286,12 @@ namespace CoreWCF.Security
 
         X509SecurityTokenProvider CreateServerX509TokenProvider()
         {
-            if (parent.ServiceCertificate.Certificate == null)
+            if (ServiceCredentials.ServiceCertificate.Certificate == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ServiceCertificateNotProvidedOnServiceCredentials));
             }
-            SecurityUtils.EnsureCertificateCanDoKeyExchange(parent.ServiceCertificate.Certificate);
-            return new ServiceX509SecurityTokenProvider(parent.ServiceCertificate.Certificate);
+            SecurityUtils.EnsureCertificateCanDoKeyExchange(ServiceCredentials.ServiceCertificate.Certificate);
+            return new ServiceX509SecurityTokenProvider(ServiceCredentials.ServiceCertificate.Certificate);
         }
 
         protected bool IsIssuedSecurityTokenRequirement(SecurityTokenRequirement requirement)
@@ -342,7 +335,7 @@ namespace CoreWCF.Security
             }
             else if (tokenType == SecurityTokenTypes.UserName)
             {
-                if (parent.UserNameAuthentication.UserNamePasswordValidationMode == UserNamePasswordValidationMode.Windows)
+                if (ServiceCredentials.UserNameAuthentication.UserNamePasswordValidationMode == UserNamePasswordValidationMode.Windows)
                 {
                     throw new PlatformNotSupportedException("UserNamePasswordValidationMode.Windows");
                     //if (parent.UserNameAuthentication.CacheLogonTokens)
@@ -357,7 +350,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    result = new CustomUserNameSecurityTokenAuthenticator(parent.UserNameAuthentication.GetUserNamePasswordValidator());
+                    result = new CustomUserNameSecurityTokenAuthenticator(ServiceCredentials.UserNameAuthentication.GetUserNamePasswordValidator());
                 }
             }
             else if (tokenType == SecurityTokenTypes.Rsa)
@@ -415,22 +408,22 @@ namespace CoreWCF.Security
                     authenticationScheme.IsNotSet(AuthenticationSchemes.Digest | AuthenticationSchemes.Ntlm | AuthenticationSchemes.Negotiate))
                 {
                     // create security token provider even when basic and Anonymous are enabled.
-                    result = new SspiSecurityTokenProvider(null, parent.UserNameAuthentication.IncludeWindowsGroups, false);
+                    result = new SspiSecurityTokenProvider(null, ServiceCredentials.UserNameAuthentication.IncludeWindowsGroups, false);
                 }
                 else
                 {
                     if (authenticationSchemeIdentified &&
                        authenticationScheme.IsSet(AuthenticationSchemes.Basic) &&
-                       parent.WindowsAuthentication.IncludeWindowsGroups != parent.UserNameAuthentication.IncludeWindowsGroups)
+                       ServiceCredentials.WindowsAuthentication.IncludeWindowsGroups != ServiceCredentials.UserNameAuthentication.IncludeWindowsGroups)
                     {
                         // Ensure there are no inconsistencies when Basic and (Digest and/or Ntlm and/or Negotiate) are both enabled
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SecurityTokenProviderIncludeWindowsGroupsInconsistent,
                             (AuthenticationSchemes)authenticationScheme - AuthenticationSchemes.Basic,
-                            parent.UserNameAuthentication.IncludeWindowsGroups,
-                            parent.WindowsAuthentication.IncludeWindowsGroups)));
+                            ServiceCredentials.UserNameAuthentication.IncludeWindowsGroups,
+                            ServiceCredentials.WindowsAuthentication.IncludeWindowsGroups)));
                     }
 
-                    result = new SspiSecurityTokenProvider(null, parent.WindowsAuthentication.IncludeWindowsGroups, parent.WindowsAuthentication.AllowAnonymousLogons);
+                    result = new SspiSecurityTokenProvider(null, ServiceCredentials.WindowsAuthentication.IncludeWindowsGroups, ServiceCredentials.WindowsAuthentication.AllowAnonymousLogons);
                 }
             }
             return result;
@@ -445,12 +438,12 @@ namespace CoreWCF.Security
                 SecurityKeyUsage keyUsage = initiatorRequirement.KeyUsage;
                 if (keyUsage == SecurityKeyUsage.Exchange)
                 {
-                    if (parent.ClientCertificate.Certificate == null)
+                    if (ServiceCredentials.ClientCertificate.Certificate == null)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ClientCertificateNotProvidedOnServiceCredentials));
                     }
 
-                    result = new X509SecurityTokenProvider(parent.ClientCertificate.Certificate);
+                    result = new X509SecurityTokenProvider(ServiceCredentials.ClientCertificate.Certificate);
                 }
                 else
                 {
@@ -499,9 +492,9 @@ namespace CoreWCF.Security
                     || tokenType == ServiceModelSecurityTokenTypes.AnonymousSslnego
                     || tokenType == ServiceModelSecurityTokenTypes.MutualSslnego)
                 {
-                    if (parent.ServiceCertificate.Certificate != null)
+                    if (ServiceCredentials.ServiceCertificate.Certificate != null)
                     {
-                        return EndpointIdentity.CreateX509CertificateIdentity(parent.ServiceCertificate.Certificate);
+                        return EndpointIdentity.CreateX509CertificateIdentity(ServiceCredentials.ServiceCertificate.Certificate);
                     }
                 }
                 else if (tokenType == SecurityTokenTypes.Kerberos || tokenType == ServiceModelSecurityTokenTypes.Spnego)

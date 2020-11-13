@@ -1,6 +1,7 @@
 using System;
 using System.Net.Security;
 using System.Reflection;
+using CoreWCF.Security;
 
 namespace CoreWCF.Description
 {
@@ -91,13 +92,14 @@ namespace CoreWCF.Description
             get { return multiple; }
             set { multiple = value; }
         }
+
         public ProtectionLevel ProtectionLevel
         {
             get { return this.protectionLevel; }
             set
             {
-              //  if (!ProtectionLevelHelper.IsDefined(value))
-              //      throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                if (!ProtectionLevelHelper.IsDefined(value))
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 this.protectionLevel = value;
                 this.hasProtectionLevel = true;
             }

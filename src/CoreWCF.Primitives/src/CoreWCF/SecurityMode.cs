@@ -1,6 +1,7 @@
+using System;
+
 namespace CoreWCF
 {
-    using System;
     public enum SecurityMode
     {
         None = 0,
@@ -8,6 +9,7 @@ namespace CoreWCF
         Message = 2,
         TransportWithMessageCredential = 3,
     }
+
     [Flags]
     internal enum UnifiedSecurityMode
     {
@@ -18,6 +20,7 @@ namespace CoreWCF
         TransportWithMessageCredential = 0x020,
         TransportCredentialOnly = 0x040,
     }
+
    public static class SecurityModeHelper
     {
         public static bool IsDefined(SecurityMode value)

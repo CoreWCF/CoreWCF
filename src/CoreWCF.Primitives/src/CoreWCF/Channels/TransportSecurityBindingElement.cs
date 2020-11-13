@@ -20,7 +20,6 @@ namespace CoreWCF.Channels
         public TransportSecurityBindingElement()
             : base()
         {
-            //  this.LocalClientSettings.DetectReplays = this.LocalServiceSettings.DetectReplays = false;
         }
 
         TransportSecurityBindingElement(TransportSecurityBindingElement elementToBeCloned)
@@ -92,7 +91,7 @@ namespace CoreWCF.Channels
             else
                 scParameters = null;
 
-            bool requireDemuxer = false; // TODO later  RequiresChannelDemuxer();
+            bool requireDemuxer = RequiresChannelDemuxer();
             ChannelBuilder channelBuilder = new ChannelBuilder(context, requireDemuxer);
 
             if (requireDemuxer)
@@ -136,7 +135,7 @@ namespace CoreWCF.Channels
                     ((SecureConversationSecurityTokenParameters)securityServiceDispatcher.SessionServerSettings.IssuedSecurityTokenParameters).IssuerBindingContext = issuerBindingContext;
                     securityServiceDispatcher.SessionServerSettings.SecurityStandardsManager = sessionFactory.StandardsManager;
                     securityServiceDispatcher.SessionServerSettings.SessionProtocolFactory = sessionFactory;
-                    securityServiceDispatcher.SecurityProtocolFactory = (SecurityProtocolFactory)sessionFactory;
+                    securityServiceDispatcher.SecurityProtocolFactory = sessionFactory;
 
                     // pass in the error handler for handling unknown security sessions - dont do this if the underlying channel is duplex since sending 
                     // back faults in response to badly secured requests over duplex can result in DoS.
@@ -149,35 +148,35 @@ namespace CoreWCF.Channels
                 else
                 {
                     //TODO later 
-                    //TransportSecurityProtocolFactory protocolFactory = new TransportSecurityProtocolFactory();
-                    //base.ApplyAuditBehaviorSettings(context, protocolFactory);
-                    //this.EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
-                    //try
-                    //{
-                    //    base.ConfigureProtocolFactory(protocolFactory, credentialsManager, true, issuerBindingContext, context.Binding);
-                    //    SecureConversationSecurityTokenParameters acceleratedTokenParameters = (SecureConversationSecurityTokenParameters)scParameters.Clone();
-                    //    acceleratedTokenParameters.IssuerBindingContext = issuerBindingContext;
-                    //    protocolFactory.SecurityBindingElement.EndpointSupportingTokenParameters.Endorsing.Insert(0, acceleratedTokenParameters);
-                    //}
-                    //finally
-                    //{
-                    //    this.EndpointSupportingTokenParameters.Endorsing.Insert(0, scParameters);
-                    //}
+                    TransportSecurityProtocolFactory protocolFactory = new TransportSecurityProtocolFactory();
+                   // base.ApplyAuditBehaviorSettings(context, protocolFactory);
+                    this.EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
+                    try
+                    {
+                        base.ConfigureProtocolFactory(protocolFactory, credentialsManager, true, issuerBindingContext, context.Binding);
+                        SecureConversationSecurityTokenParameters acceleratedTokenParameters = (SecureConversationSecurityTokenParameters)scParameters.Clone();
+                        acceleratedTokenParameters.IssuerBindingContext = issuerBindingContext;
+                        protocolFactory.SecurityBindingElement.EndpointSupportingTokenParameters.Endorsing.Insert(0, acceleratedTokenParameters);
+                    }
+                    finally
+                    {
+                        this.EndpointSupportingTokenParameters.Endorsing.Insert(0, scParameters);
+                    }
 
-                    //channelListener.SecurityProtocolFactory = protocolFactory;
+                    securityServiceDispatcher.SecurityProtocolFactory = protocolFactory;
                 }
 
             }
-            //else
-            //{
-            //    SecurityProtocolFactory protocolFactory = this.CreateSecurityProtocolFactory<TChannel>(context, credentialsManager, true, issuerBindingContext);
-            //    channelListener.SecurityProtocolFactory = protocolFactory;
-            //}
+            else
+            {
+                SecurityProtocolFactory protocolFactory = this.CreateSecurityProtocolFactory<TChannel>(context, credentialsManager, true, issuerBindingContext);
+                securityServiceDispatcher.SecurityProtocolFactory = protocolFactory;
+            }
 
-            //channelListener.InitializeListener(channelBuilder);
+            securityServiceDispatcher.InitializeSecurityDispatcher(channelBuilder, typeof(TChannel));
 
             //return channelListener;
-            channelBuilder.BuildServiceDispatcher<TChannel>(context, securityServiceDispatcher);
+           channelBuilder.BuildServiceDispatcher<TChannel>(context, securityServiceDispatcher);
             return securityServiceDispatcher;
         }
 

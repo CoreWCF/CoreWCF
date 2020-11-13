@@ -26,6 +26,7 @@ namespace CoreWCF.Dispatcher
         public Binding Binding => ChannelDispatcher.Binding;
 
         public ChannelDispatcher ChannelDispatcher { get; }
+
         public ServiceHostBase Host { get { return ChannelDispatcher.Host; } }
 
         public EndpointDispatcherTable Endpoints => ChannelDispatcher.EndpointDispatcherTable;
@@ -62,7 +63,7 @@ namespace CoreWCF.Dispatcher
              this, /*wasChannelThrottled*/ false, sessionIdleManager);
 
             var channelDispatcher = channelHandler.GetDispatcher();
-            channel.ChannelDispatcher = channelDispatcher;
+         //   channel.ChannelDispatcher = channelDispatcher;
             await channelHandler.OpenAsync();
             return channelDispatcher;
         }

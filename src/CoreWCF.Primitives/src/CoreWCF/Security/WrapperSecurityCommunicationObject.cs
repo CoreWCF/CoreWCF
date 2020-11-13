@@ -1,11 +1,9 @@
 
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Diagnostics;
-using System.Threading.Tasks;
-using CoreWCF.Runtime;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Security
 {
@@ -13,8 +11,7 @@ namespace CoreWCF.Security
     {
         private ISecurityCommunicationObject _innerCommunicationObject;
 
-        public WrapperSecurityCommunicationObject(ISecurityCommunicationObject innerCommunicationObject)
-            : base()
+        public WrapperSecurityCommunicationObject(ISecurityCommunicationObject innerCommunicationObject) : base()
         {
             _innerCommunicationObject = innerCommunicationObject ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerCommunicationObject));
         }
@@ -24,22 +21,14 @@ namespace CoreWCF.Security
             return _innerCommunicationObject.GetType();
         }
 
-        protected override TimeSpan DefaultCloseTimeout
-        {
-            get { return _innerCommunicationObject.DefaultCloseTimeout; }
-        }
+        protected override TimeSpan DefaultCloseTimeout => _innerCommunicationObject.DefaultCloseTimeout;
 
-        protected override TimeSpan DefaultOpenTimeout
-        {
-            get { return _innerCommunicationObject.DefaultOpenTimeout; }
-        }
+        protected override TimeSpan DefaultOpenTimeout => _innerCommunicationObject.DefaultOpenTimeout;
 
         protected override void OnAbort()
         {
             _innerCommunicationObject.OnAbort();
         }
-
-
 
         protected override void OnFaulted()
         {
@@ -62,182 +51,6 @@ namespace CoreWCF.Security
             return _innerCommunicationObject.OnOpenAsync(DefaultOpenTimeout);
         }
     }
-
-    //internal abstract class CommunicationObjectSecurityTokenProvider : SecurityTokenProvider, IAsyncCommunicationObject, ISecurityCommunicationObject
-    //{
-    //   // private EventTraceActivity _eventTraceActivity;
-
-    //    protected CommunicationObjectSecurityTokenProvider()
-    //    {
-    //        CommunicationObject = new WrapperSecurityCommunicationObject(this);
-    //    }
-
-    //    //internal EventTraceActivity EventTraceActivity
-    //    //{
-    //    //    get
-    //    //    {
-    //    //        if (_eventTraceActivity == null)
-    //    //        {
-    //    //            _eventTraceActivity = EventTraceActivity.GetFromThreadOrCreate();
-    //    //        }
-    //    //        return _eventTraceActivity;
-    //    //    }
-    //    //}
-
-    //    protected WrapperSecurityCommunicationObject CommunicationObject { get; }
-
-    //    public event EventHandler Closed
-    //    {
-    //        add { CommunicationObject.Closed += value; }
-    //        remove { CommunicationObject.Closed -= value; }
-    //    }
-
-    //    public event EventHandler Closing
-    //    {
-    //        add { CommunicationObject.Closing += value; }
-    //        remove { CommunicationObject.Closing -= value; }
-    //    }
-
-    //    public event EventHandler Faulted
-    //    {
-    //        add { CommunicationObject.Faulted += value; }
-    //        remove { CommunicationObject.Faulted -= value; }
-    //    }
-
-    //    public event EventHandler Opened
-    //    {
-    //        add { CommunicationObject.Opened += value; }
-    //        remove { CommunicationObject.Opened -= value; }
-    //    }
-
-    //    public event EventHandler Opening
-    //    {
-    //        add { CommunicationObject.Opening += value; }
-    //        remove { CommunicationObject.Opening -= value; }
-    //    }
-
-    //    public CommunicationState State
-    //    {
-    //        get { return CommunicationObject.State; }
-    //    }
-
-    //    public virtual TimeSpan DefaultOpenTimeout
-    //    {
-    //        get { return ServiceDefaults.OpenTimeout; }
-    //    }
-
-    //    public virtual TimeSpan DefaultCloseTimeout
-    //    {
-    //        get { return ServiceDefaults.CloseTimeout; }
-    //    }
-
-    //    // communication object
-    //    public void Abort()
-    //    {
-    //        CommunicationObject.Abort();
-    //    }
-
-    //    public void Close()
-    //    {
-    //        CommunicationObject.Close();
-    //    }
-
-    //    public Task CloseAsync(TimeSpan timeout)
-    //    {
-    //        return ((IAsyncCommunicationObject)CommunicationObject).CloseAsync(timeout);
-    //    }
-
-    //    public void Close(TimeSpan timeout)
-    //    {
-    //        CommunicationObject.Close(timeout);
-    //    }
-
-    //    public IAsyncResult BeginClose(AsyncCallback callback, object state)
-    //    {
-    //        return CommunicationObject.BeginClose(callback, state);
-    //    }
-
-    //    public IAsyncResult BeginClose(TimeSpan timeout, AsyncCallback callback, object state)
-    //    {
-    //        return CommunicationObject.BeginClose(timeout, callback, state);
-    //    }
-
-    //    public void EndClose(IAsyncResult result)
-    //    {
-    //        CommunicationObject.EndClose(result);
-    //    }
-
-    //    public void Open()
-    //    {
-    //        CommunicationObject.Open();
-    //    }
-
-    //    public Task OpenAsync(TimeSpan timeout)
-    //    {
-    //        return ((IAsyncCommunicationObject)CommunicationObject).OpenAsync(timeout);
-    //    }
-
-    //    public void Open(TimeSpan timeout)
-    //    {
-    //        CommunicationObject.Open(timeout);
-    //    }
-
-    //    public IAsyncResult BeginOpen(AsyncCallback callback, object state)
-    //    {
-    //        return CommunicationObject.BeginOpen(callback, state);
-    //    }
-
-    //    public IAsyncResult BeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
-    //    {
-    //        return CommunicationObject.BeginOpen(timeout, callback, state);
-    //    }
-
-    //    public void EndOpen(IAsyncResult result)
-    //    {
-    //        CommunicationObject.EndOpen(result);
-    //    }
-
-    //    public void Dispose()
-    //    {
-    //        Close();
-    //    }
-
-    //    // ISecurityCommunicationObject methods
-    //    public virtual void OnAbort()
-    //    {
-    //    }
-
-    //    public virtual Task OnCloseAsync(TimeSpan timeout)
-    //    {
-    //        return Task.CompletedTask;
-    //    }
-
-    //    public virtual void OnClosed()
-    //    {
-    //    }
-
-    //    public virtual void OnClosing()
-    //    {
-    //    }
-
-    //    public virtual void OnFaulted()
-    //    {
-    //        OnAbort();
-    //    }
-
-    //    public virtual Task OnOpenAsync(TimeSpan timeout)
-    //    {
-    //        return Task.CompletedTask;
-    //    }
-
-    //    public virtual void OnOpened()
-    //    {
-    //    }
-
-    //    public virtual void OnOpening()
-    //    {
-    //    }
-    //}
 
     internal abstract class CommunicationObjectSecurityTokenAuthenticator : SecurityTokenAuthenticator, ICommunicationObject, ISecurityCommunicationObject
     {
@@ -278,20 +91,11 @@ namespace CoreWCF.Security
             remove { CommunicationObject.Opening -= value; }
         }
 
-        public CommunicationState State
-        {
-            get { return CommunicationObject.State; }
-        }
+        public CommunicationState State => CommunicationObject.State;
 
-        public virtual TimeSpan DefaultOpenTimeout
-        {
-            get { return ServiceDefaults.OpenTimeout; }
-        }
+        public virtual TimeSpan DefaultOpenTimeout => ServiceDefaults.OpenTimeout;
 
-        public virtual TimeSpan DefaultCloseTimeout
-        {
-            get { return ServiceDefaults.CloseTimeout; }
-        }
+        public virtual TimeSpan DefaultCloseTimeout => ServiceDefaults.CloseTimeout;
 
         // communication object
         public void Abort()
@@ -346,6 +150,26 @@ namespace CoreWCF.Security
         public void OnAbort()
         {
             
+        }
+
+        public void OnClosed()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnClosing()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnOpened()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnOpening()
+        {
+            throw new NotImplementedException();
         }
     }
 }

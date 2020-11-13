@@ -1,4 +1,3 @@
-
 namespace CoreWCF.IdentityModel
 {
     interface IPrefixGenerator

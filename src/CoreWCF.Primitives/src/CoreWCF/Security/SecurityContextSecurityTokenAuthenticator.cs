@@ -1,15 +1,12 @@
 using System;
-using CoreWCF;
 using System.Collections.ObjectModel;
+using System.Xml;
+using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.IdentityModel.Policy;
-using System.Xml;
 
 namespace CoreWCF.Security.Tokens
 {
-
-
     public class SecurityContextSecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
         public SecurityContextSecurityTokenAuthenticator()

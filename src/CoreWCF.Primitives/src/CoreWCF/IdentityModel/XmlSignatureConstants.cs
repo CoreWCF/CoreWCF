@@ -6,7 +6,6 @@ namespace CoreWCF.IdentityModel
 {
     internal static class XmlSignatureConstants
     {
-#pragma warning disable 1591
         public const string Namespace = "http://www.w3.org/2000/09/xmldsig#";
         public const string Prefix = "ds";
 

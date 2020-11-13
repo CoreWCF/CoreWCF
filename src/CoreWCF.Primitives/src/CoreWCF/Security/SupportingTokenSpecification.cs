@@ -1,14 +1,12 @@
-using System.Collections.ObjectModel;
-using CoreWCF;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
+using System.Collections.ObjectModel;
 
 namespace CoreWCF.Security
 {
     public class SupportingTokenSpecification : SecurityTokenSpecification
     {
-        SecurityTokenAttachmentMode tokenAttachmentMode;
         SecurityTokenParameters tokenParameters;
 
         public SupportingTokenSpecification(SecurityToken token, ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies, SecurityTokenAttachmentMode attachmentMode)
@@ -19,14 +17,11 @@ namespace CoreWCF.Security
             : base(token, tokenPolicies)
         {
             SecurityTokenAttachmentModeHelper.Validate(attachmentMode);
-            this.tokenAttachmentMode = attachmentMode;
+            this.SecurityTokenAttachmentMode = attachmentMode;
             this.tokenParameters = tokenParameters;
         }
 
-        public SecurityTokenAttachmentMode SecurityTokenAttachmentMode
-        {
-            get { return this.tokenAttachmentMode; }
-        }
+        public SecurityTokenAttachmentMode SecurityTokenAttachmentMode { get; }
 
         internal SecurityTokenParameters SecurityTokenParameters
         {

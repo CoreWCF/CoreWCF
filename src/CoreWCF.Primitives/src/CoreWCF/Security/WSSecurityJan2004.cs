@@ -1,34 +1,29 @@
 ﻿
 
-using System.Collections.Generic;
+using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
-using System.Security.Cryptography.X509Certificates;
 using CoreWCF.Security.Tokens;
-using System.Xml;
-//using HexBinary = System.Runtime.Remoting.Metadata.W3cXsd2001.SoapHexBinary;
-using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
-using CoreWCF.IdentityModel;
 using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml;
+using HexBinary = CoreWCF.Security.SoapHexBinary;
+using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
 {
     internal class WSSecurityJan2004 : WSSecurityTokenSerializer.SerializerEntries
     {
-        private SamlSerializer _samlSerializer;
-
         public WSSecurityJan2004(WSSecurityTokenSerializer tokenSerializer, SamlSerializer samlSerializer)
         {
             WSSecurityTokenSerializer = tokenSerializer;
-            _samlSerializer = samlSerializer;
+            SamlSerializer = samlSerializer;
         }
 
         public WSSecurityTokenSerializer WSSecurityTokenSerializer { get; }
 
-        public SamlSerializer SamlSerializer
-        {
-            get { return _samlSerializer; }
-        }
+        public SamlSerializer SamlSerializer     { get; }
 
         protected void PopulateJan2004TokenEntries(IList<TokenEntry> tokenEntryList)
         {
@@ -115,8 +110,7 @@ namespace CoreWCF.Security
                         }
                         else if (encoding == EncodingTypeValueHexBinary)
                         {
-                            throw new NotImplementedException();
-                           // binaryData = HexBinary.Parse(encodedData).Value;
+                            binaryData = HexBinary.Parse(encodedData).Value;
                         }
                         else
                         {
@@ -144,8 +138,7 @@ namespace CoreWCF.Security
                 }
                 else if (encoding == EncodingTypeValueHexBinary)
                 {
-                    throw new NotImplementedException();
-                   // binaryData = HexBinary.Parse(reader.ReadElementContentAsString()).Value;
+                    binaryData = HexBinary.Parse(reader.ReadElementContentAsString()).Value;
                 }
                 else
                 {

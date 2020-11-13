@@ -1,23 +1,22 @@
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF.Channels;
+using CoreWCF.Description;
+using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
-using System.Runtime;
-using CoreWCF.Channels;
-using CoreWCF.Description;
-using CoreWCF.Security.Tokens;
-using System.Threading.Tasks;
-using System;
 using CoreWCF.Runtime;
-using CoreWCF.IdentityModel;
-using System.Threading;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
     // See SecurityProtocolFactory for contracts on subclasses etc
-     abstract class SecurityProtocol : ISecurityCommunicationObject
+    abstract class SecurityProtocol : ISecurityCommunicationObject
     {
         private static ReadOnlyCollection<SupportingTokenProviderSpecification> s_emptyTokenProviders;
         private Dictionary<string, Collection<SupportingTokenProviderSpecification>> _mergedSupportingTokenProvidersMap;
@@ -56,20 +55,6 @@ namespace CoreWCF.Security
             }
         }
 
-
-        //public ChannelParameterCollection ChannelParameters
-        //{
-        //    get
-        //    {
-        //        return _channelParameters;
-        //    }
-        //    set
-        //    {
-        //        CommunicationObject.ThrowIfDisposedOrImmutable();
-        //        _channelParameters = value;
-        //    }
-        //}
-
         // ISecurityCommunicationObject members
         public TimeSpan DefaultOpenTimeout
         {
@@ -79,6 +64,11 @@ namespace CoreWCF.Security
         public TimeSpan DefaultCloseTimeout
         {
             get { return ServiceDefaults.CloseTimeout; }
+        }
+
+        public Task Open(TimeSpan timeout)
+        {
+            return this.CommunicationObject.OpenAsync();
         }
 
         public void OnClosed() { }
@@ -328,7 +318,7 @@ namespace CoreWCF.Security
                         SecurityProtocolFactory.ExpectSupportingTokens = true;
                         foreach (SupportingTokenProviderSpecification tokenProviderSpec in ChannelSupportingTokenProviderSpecification)
                         {
-                            SecurityUtils.OpenTokenProviderIfRequired(tokenProviderSpec.TokenProvider, timeoutHelper.RemainingTime());
+                            SecurityUtils.OpenTokenProviderIfRequiredAsync(tokenProviderSpec.TokenProvider, timeoutHelper.GetCancellationToken());
                             if (tokenProviderSpec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.Endorsing || tokenProviderSpec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.SignedEndorsing)
                             {
                                 if (tokenProviderSpec.TokenParameters.RequireDerivedKeys && !tokenProviderSpec.TokenParameters.HasAsymmetricKey)

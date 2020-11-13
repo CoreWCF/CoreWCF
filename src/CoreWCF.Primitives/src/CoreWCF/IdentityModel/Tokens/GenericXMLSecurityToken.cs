@@ -1,14 +1,10 @@
-﻿using System;
+﻿using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Security;
+using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using System.Security.Cryptography;
-using System.Security.Principal;
 using System.Xml;
-using System.Runtime.Serialization;
-using System.Collections.Generic;
 
 namespace CoreWCF.IdentityModel.Tokens
 {

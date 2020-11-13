@@ -4,10 +4,9 @@ using System.Xml;
 namespace CoreWCF
 {
     // Static Xml Dictionary
-    static class XD
+    internal static class XD
     {
         static public ServiceModelDictionary Dictionary { get { return ServiceModelDictionary.CurrentVersion; } }
-
         static ActivityIdFlowDictionary activityIdFlowDictionary;
         static AddressingDictionary addressingDictionary;
         static Addressing10Dictionary addressing10Dictionary;
@@ -987,7 +986,6 @@ namespace CoreWCF
         internal SecureConversationDictionary(ServiceModelDictionary dictionary)
         {
         }
-
     }
 
     class SecureConversationApr2004Dictionary : SecureConversationDictionary

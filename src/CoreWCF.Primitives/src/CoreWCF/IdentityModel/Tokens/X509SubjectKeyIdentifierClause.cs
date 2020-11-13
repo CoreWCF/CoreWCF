@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CoreWCF.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    using CoreWCF.IdentityModel.Tokens;
-    using System.Globalization;
-    using System.Security.Cryptography.X509Certificates;
-
     public class X509SubjectKeyIdentifierClause : BinaryKeyIdentifierClause
     {
         const string SubjectKeyIdentifierOid = "2.5.29.14";

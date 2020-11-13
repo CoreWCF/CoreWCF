@@ -1,30 +1,30 @@
-﻿using System;
-using System.Security.Authentication;
-using System.ComponentModel;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Cryptography;
+﻿using CoreWCF.Channels;
+using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.DirectoryServices.ActiveDirectory;
+using System.Globalization;
+using System.Net;
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Authentication.ExtendedProtection;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.ObjectModel;
-using CoreWCF.IdentityModel.Policy;
-using System.Security.Principal;
-using System.Diagnostics;
-using System.Net;
-using CoreWCF.IdentityModel.Tokens;
-using System.Globalization;
-using CoreWCF.Channels;
-using System.DirectoryServices.ActiveDirectory;
-using CoreWCF.Runtime;
-using System.Collections.Generic;
-using CoreWCF.IdentityModel;
-using System.Security.Authentication.ExtendedProtection;
 using System.Xml;
-using CoreWCF.Dispatcher;
-using System.Xml.Serialization;
-using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -105,6 +105,7 @@ namespace CoreWCF.Security
             }
         }
     }
+
     internal class ServiceModelDictionaryManager
     {
         static DictionaryManager dictionaryManager;
@@ -125,17 +126,17 @@ namespace CoreWCF.Security
     {
         public const string Principal = "Principal";
         public const string Identities = "Identities";
-
+        static SecurityIdentifier administratorsSid;
         internal static byte[] ReadContentAsBase64(XmlDictionaryReader reader, long maxBufferSize)
         {
-            throw new NotImplementedException();
+            throw new PlatformNotSupportedException();
         }
 
         static bool computedDomain;
 
         internal static byte[] EncryptKey(SecurityToken wrappingToken, string wrappingAlgorithm, byte[] keyToWrap)
         {
-            throw new NotImplementedException();
+            throw new PlatformNotSupportedException();
         }
 
         static string currentDomain;
@@ -166,21 +167,25 @@ namespace CoreWCF.Security
             }
         }
 
-        public static DateTime MinUtcDateTime 
-        { get
-            { return new DateTime(DateTime.MinValue.Ticks + TimeSpan.TicksPerDay, DateTimeKind.Utc); } 
-        }
-        public static DateTime MaxUtcDateTime {
+        public static DateTime MinUtcDateTime => new DateTime(DateTime.MinValue.Ticks + TimeSpan.TicksPerDay, DateTimeKind.Utc);
+
+        public static DateTime MaxUtcDateTime =>
+                // + and -  TimeSpan.TicksPerDay is to compensate the DateTime.ParseExact (to localtime) overflow.
+                new DateTime(DateTime.MaxValue.Ticks - TimeSpan.TicksPerDay, DateTimeKind.Utc);
+
+        public static SecurityIdentifier AdministratorsSid
+        {
             get
             {
-                // + and -  TimeSpan.TicksPerDay is to compensate the DateTime.ParseExact (to localtime) overflow.
-                return new DateTime(DateTime.MaxValue.Ticks - TimeSpan.TicksPerDay, DateTimeKind.Utc);
+                if (administratorsSid == null)
+                    administratorsSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+                return administratorsSid;
             }
         }
 
         internal static ReadOnlyCollection<SecurityKey> CreateSymmetricSecurityKeys(byte[] keyToWrap)
         {
-            throw new NotImplementedException();
+            throw new PlatformNotSupportedException();
         }
 
         internal static IIdentity CreateIdentity(string name)
@@ -369,6 +374,19 @@ namespace CoreWCF.Security
             }
         }
 
+        public static WrappedKeySecurityToken CreateTokenFromEncryptedKeyClause(EncryptedKeyIdentifierClause keyClause, SecurityToken unwrappingToken)
+        {
+            SecurityKeyIdentifier wrappingTokenReference = keyClause.EncryptingKeyIdentifier;
+            byte[] wrappedKey = keyClause.GetEncryptedKey();
+            SecurityKey unwrappingSecurityKey = unwrappingToken.SecurityKeys[0];
+            string wrappingAlgorithm = keyClause.EncryptionMethod;
+            byte[] unwrappedKey = unwrappingSecurityKey.DecryptKey(wrappingAlgorithm, wrappedKey);
+            //TODO, check value for XmlDictionaryString Symmetric or else 
+            return new WrappedKeySecurityToken(SecurityUtils.GenerateId(), unwrappedKey, wrappingAlgorithm,
+               XmlDictionaryString.Empty, unwrappingToken, wrappingTokenReference, wrappedKey, unwrappingSecurityKey
+                    );
+        }
+
         static bool CanKeyDoKeyExchange(X509Certificate2 certificate)
         {
             bool canDoKeyExchange = false;
@@ -403,15 +421,94 @@ namespace CoreWCF.Security
             return canDoKeyExchange;
         }
 
+        internal static MessageFault CreateSecurityContextNotFoundFault(SecurityStandardsManager standardsManager, string action)
+        {
+            SecureConversationDriver scDriver = standardsManager.SecureConversationDriver;
+            FaultCode subCode = new FaultCode(scDriver.BadContextTokenFaultCode.Value, scDriver.Namespace.Value);
+            FaultReason reason;
+            if (action != null)
+            {
+                reason = new FaultReason(SR.Format(SR.BadContextTokenOrActionFaultReason, action), CultureInfo.CurrentCulture);
+            }
+            else
+            {
+                reason = new FaultReason(SR.Format(SR.BadContextTokenFaultReason), CultureInfo.CurrentCulture);
+            }
+            FaultCode senderCode = FaultCode.CreateSenderFaultCode(subCode);
+            return MessageFault.CreateFault(senderCode, reason);
+        }
         internal static MessageFault CreateSecurityMessageFault(Exception e, SecurityStandardsManager standardsManager)
         {
-            throw new NotImplementedException();
+            bool isSecurityError = false;
+            bool isTokenValidationError = false;
+            bool isGenericTokenError = false;
+            FaultException faultException = null;
+            while (e != null)
+            {
+                if (e is SecurityTokenValidationException)
+                {
+                    if (e is SecurityContextTokenValidationException)
+                    {
+                        return CreateSecurityContextNotFoundFault(SecurityStandardsManager.DefaultInstance, null);
+                    }
+                    isSecurityError = true;
+                    isTokenValidationError = true;
+                    break;
+                }
+                else if (e is SecurityTokenException)
+                {
+                    isSecurityError = true;
+                    isGenericTokenError = true;
+                    break;
+                }
+                else if (e is MessageSecurityException)
+                {
+                    MessageSecurityException ms = (MessageSecurityException)e;
+                    if (ms.Fault != null)
+                    {
+                        return ms.Fault;
+                    }
+                    isSecurityError = true;
+                }
+                else if (e is FaultException)
+                {
+                    faultException = (FaultException)e;
+                    break;
+                }
+                e = e.InnerException;
+            }
+            if (!isSecurityError && faultException == null)
+            {
+                return null;
+            }
+            FaultCode subCode;
+            FaultReason reason;
+            SecurityVersion wss = standardsManager.SecurityVersion;
+            if (isTokenValidationError)
+            {
+                subCode = new FaultCode(wss.FailedAuthenticationFaultCode.Value, wss.HeaderNamespace.Value);
+                reason = new FaultReason(SR.Format(SR.FailedAuthenticationFaultReason), CultureInfo.CurrentCulture);
+            }
+            else if (isGenericTokenError)
+            {
+                subCode = new FaultCode(wss.InvalidSecurityFaultCode.Value, wss.HeaderNamespace.Value);
+                reason = new FaultReason(SR.Format(SR.InvalidSecurityTokenFaultReason), CultureInfo.CurrentCulture);
+            }
+            else if (faultException != null)
+            {
+                // Only support Code and Reason.  No detail or action customization.
+                return MessageFault.CreateFault(faultException.Code, faultException.Reason);
+            }
+            else
+            {
+                subCode = new FaultCode(wss.InvalidSecurityFaultCode.Value, wss.HeaderNamespace.Value);
+                reason = new FaultReason(SR.Format(SR.InvalidSecurityFaultReason), CultureInfo.CurrentCulture);
+            }
+            FaultCode senderCode = FaultCode.CreateSenderFaultCode(subCode);
+            return MessageFault.CreateFault(senderCode, reason);
         }
 
-        internal static string GenerateId()
-        {
-            return SecurityUniqueId.Create().Value;
-        }
+        internal static string GenerateId() => SecurityUniqueId.Create().Value;
 
         internal static byte[] GenerateDerivedKey(SecurityToken tokenToDerive, string derivationAlgorithm, byte[] label, byte[] nonce,
     int keySize, int offset)
@@ -423,6 +520,7 @@ namespace CoreWCF.Security
             }
             return symmetricSecurityKey.GenerateDerivedKey(derivationAlgorithm, label, nonce, keySize, offset);
         }
+
        public static bool TryCreateKeyFromIntrinsicKeyClause(SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenResolver resolver, out SecurityKey key)
         {
             key = null;
@@ -434,20 +532,17 @@ namespace CoreWCF.Security
             if (keyIdentifierClause is EncryptedKeyIdentifierClause)
             {
                 EncryptedKeyIdentifierClause keyClause = (EncryptedKeyIdentifierClause)keyIdentifierClause;
-                // PreSharp Bug: Parameter 'keyClause' to this public method must be validated: A null-dereference can occur here.
-#pragma warning suppress 56506 // keyClause will not be null due to the if condition above.
                 for (int i = 0; i < keyClause.EncryptingKeyIdentifier.Count; i++)
                 {
                     SecurityKey unwrappingSecurityKey = null;
-                    //TODO
-                 /*   if (resolver.TryResolveSecurityKey(keyClause.EncryptingKeyIdentifier[i], out unwrappingSecurityKey))
+                    if (resolver.TryResolveSecurityKey(keyClause.EncryptingKeyIdentifier[i], out unwrappingSecurityKey))
                     {
                         byte[] wrappedKey = keyClause.GetEncryptedKey();
                         string wrappingAlgorithm = keyClause.EncryptionMethod;
                         byte[] unwrappedKey = unwrappingSecurityKey.DecryptKey(wrappingAlgorithm, wrappedKey);
                         key = new InMemorySymmetricSecurityKey(unwrappedKey, false);
                         return true;
-                    }*/
+                    }
                 }
             }
             return false;
@@ -479,8 +574,7 @@ namespace CoreWCF.Security
             }
             return false;
         }
-        internal static T GetSecurityKey<T>(SecurityToken token)
-    where T : SecurityKey
+        internal static T GetSecurityKey<T>(SecurityToken token) where T : SecurityKey
         {
             T result = null;
             if (token.SecurityKeys != null)
@@ -492,7 +586,7 @@ namespace CoreWCF.Security
                     {
                         if (result != null)
                         {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.MultipleMatchingCryptosFound, typeof(T).ToString())));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.MultipleMatchingCryptosFound, typeof(T))));
                         }
                         else
                         {
@@ -506,7 +600,8 @@ namespace CoreWCF.Security
 
         internal static bool TryCreateX509CertificateFromRawData(byte[] rawData, out X509Certificate2 certificate)
         {
-            throw new NotImplementedException();
+            certificate = (rawData == null || rawData.Length == 0) ? null : new X509Certificate2(rawData);
+            return certificate != null && certificate.Handle != IntPtr.Zero;
         }
 
         internal static string GetKeyDerivationAlgorithm(SecureConversationVersion version)
@@ -526,6 +621,11 @@ namespace CoreWCF.Security
             }
 
             return derivationAlgorithm;
+        }
+
+        internal static IIdentity CreateIdentity(string name, string authenticationType)
+        {
+            return new GenericIdentity(name, authenticationType);
         }
 
         internal static ReadOnlyCollection<IAuthorizationPolicy> CloneAuthorizationPoliciesIfNecessary(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
@@ -562,6 +662,7 @@ namespace CoreWCF.Security
             }
             return authorizationPolicies;
         }
+
         public static void DisposeAuthorizationPoliciesIfNecessary(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
             if (authorizationPolicies != null && authorizationPolicies.Count > 0)
@@ -600,7 +701,6 @@ namespace CoreWCF.Security
             return channelBinding;
         }
 
-
         internal static NetworkCredential GetNetworkCredentialsCopy(NetworkCredential networkCredential)
         {
             NetworkCredential result;
@@ -613,11 +713,6 @@ namespace CoreWCF.Security
                 result = networkCredential;
             }
             return result;
-        }
-
-        internal static void CloseTokenAuthenticatorIfRequired(SecurityTokenAuthenticator tokenAuthenticator, TimeSpan timeSpan)
-        {
-            throw new NotImplementedException();
         }
 
         static class NetworkCredentialHelper
@@ -797,6 +892,7 @@ namespace CoreWCF.Security
                 }
             }
         }
+
         internal static Task OpenTokenAuthenticatorIfRequiredAsync(SecurityTokenAuthenticator tokenAuthenticator, CancellationToken token)
         {
            return OpenCommunicationObjectAsync(tokenAuthenticator as ICommunicationObject , token) ;
@@ -923,10 +1019,6 @@ namespace CoreWCF.Security
             return policies.AsReadOnly();
         }
 
-        internal static void OpenTokenProviderIfRequired(SecurityTokenProvider provider, TimeSpan timeout)
-        {
-            throw new NotImplementedException();
-        }
         public static SecurityBindingElement GetIssuerSecurityBindingElement(ServiceModelSecurityTokenRequirement requirement)
         {
             SecurityBindingElement bindingElement = requirement.SecureConversationSecurityBindingElement;
@@ -995,9 +1087,21 @@ namespace CoreWCF.Security
             }
         }
 
-        internal static bool IsEqual(byte[] rawData1, byte[] rawData2)
+        internal static bool IsEqual(byte[] a, byte[] b)
         {
-            throw new NotImplementedException();
+            if (a == null || b == null || a.Length != b.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i] != b[i])
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         internal static bool IsCurrentlyTimeEffective(DateTime effectiveTime, DateTime expirationTime, TimeSpan maxClockSkew)
@@ -1009,5 +1113,287 @@ namespace CoreWCF.Security
             return (curEffectiveTime.ToUniversalTime() <= curTime) && (curTime < curExpirationTime.ToUniversalTime());
 
         }
+
+        // match the RST with the endpoint filters in case there is at least 1 asymmetric signature in the message
+        internal static bool ShouldMatchRstWithEndpointFilter(SecurityBindingElement sbe)
+        {
+            foreach (SecurityTokenParameters parameters in new SecurityTokenParametersEnumerable(sbe, true))
+            {
+                if (parameters.HasAsymmetricKey)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public const string AuthTypeCertMap = "SSL/PCT"; // mapped from a cert
+
+        internal static byte[] CloneBuffer(byte[] buffer, int offset, int len)
+        {
+            DiagnosticUtility.DebugAssert(offset >= 0, "Negative offset passed to CloneBuffer.");
+            DiagnosticUtility.DebugAssert(len >= 0, "Negative len passed to CloneBuffer.");
+            DiagnosticUtility.DebugAssert(buffer.Length - offset >= len, "Invalid parameters to CloneBuffer.");
+
+            byte[] copy = Fx.AllocateByteArray(len);
+            Buffer.BlockCopy(buffer, offset, copy, 0, len);
+            return copy;
+        }
+
+        internal static string GetCertificateId(X509Certificate2 certificate)
+        {
+            string certificateId = certificate.SubjectName.Name;
+            if (string.IsNullOrEmpty(certificateId))
+                certificateId = certificate.Thumbprint;
+            return certificateId;
+        }
+
+        internal static bool MatchesBuffer(byte[] src, byte[] dst)
+        {
+            return MatchesBuffer(src, 0, dst, 0);
+        }
+
+        internal static bool MatchesBuffer(byte[] src, int srcOffset, byte[] dst, int dstOffset)
+        {
+            DiagnosticUtility.DebugAssert(dstOffset >= 0, "Negative dstOffset passed to MatchesBuffer.");
+            DiagnosticUtility.DebugAssert(srcOffset >= 0, "Negative srcOffset passed to MatchesBuffer.");
+
+            // defensive programming
+            if ((dstOffset < 0) || (srcOffset < 0))
+                return false;
+
+            if (src == null || srcOffset >= src.Length)
+                return false;
+            if (dst == null || dstOffset >= dst.Length)
+                return false;
+            if ((src.Length - srcOffset) != (dst.Length - dstOffset))
+                return false;
+
+            for (int i = srcOffset, j = dstOffset; i < src.Length; i++, j++)
+            {
+                if (src[i] != dst[j])
+                    return false;
+            }
+            return true;
+        }
+
+        internal static string ClaimSetToString(ClaimSet claimSet)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("ClaimSet [");
+            for (int i = 0; i < claimSet.Count; i++)
+            {
+                Claim claim = claimSet[i];
+                if (claim != null)
+                {
+                    sb.Append("  ");
+                    sb.AppendLine(claim.ToString());
+                }
+            }
+            string prefix = "] by ";
+            ClaimSet issuer = claimSet;
+            do
+            {
+                issuer = issuer.Issuer;
+                sb.AppendFormat("{0}{1}", prefix, issuer == claimSet ? "Self" : (issuer.Count <= 0 ? "Unknown" : issuer[0].ToString()));
+                prefix = " -> ";
+            } while (issuer.Issuer != issuer);
+            return sb.ToString();
+        }
+
+        internal static ReadOnlyCollection<IAuthorizationPolicy> CreateAuthorizationPolicies(ClaimSet claimSet)
+        {
+            return CreateAuthorizationPolicies(claimSet, MaxUtcDateTime);
+        }
+
+        internal static ReadOnlyCollection<IAuthorizationPolicy> CreateAuthorizationPolicies(ClaimSet claimSet, DateTime expirationTime)
+        {
+            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1);
+            policies.Add(new UnconditionalPolicy(claimSet, expirationTime));
+            return policies.AsReadOnly();
+        }
+
+        internal static IIdentity CloneIdentityIfNecessary(IIdentity identity)
+        {
+            if (identity != null)
+            {
+                WindowsIdentity wid = identity as WindowsIdentity;
+                if (wid != null)
+                {
+                    return CloneWindowsIdentityIfNecessary(wid);
+                }
+            }
+            return identity;
+        }
+
+        internal static ClaimSet CloneClaimSetIfNecessary(ClaimSet claimSet)
+        {
+            if (claimSet != null)
+            {
+                WindowsClaimSet wic = claimSet as WindowsClaimSet;
+                if (wic != null)
+                {
+                    return wic.Clone();
+                }
+            }
+            return claimSet;
+        }
+
+        internal static ReadOnlyCollection<ClaimSet> CloneClaimSetsIfNecessary(ReadOnlyCollection<ClaimSet> claimSets)
+        {
+            if (claimSets != null)
+            {
+                bool clone = false;
+                for (int i = 0; i < claimSets.Count; ++i)
+                {
+                    if (claimSets[i] is WindowsClaimSet)
+                    {
+                        clone = true;
+                        break;
+                    }
+                }
+                if (clone)
+                {
+                    List<ClaimSet> ret = new List<ClaimSet>(claimSets.Count);
+                    for (int i = 0; i < claimSets.Count; ++i)
+                    {
+                        ret.Add(SecurityUtils.CloneClaimSetIfNecessary(claimSets[i]));
+                    }
+                    return ret.AsReadOnly();
+                }
+            }
+            return claimSets;
+        }
+
+        internal static void DisposeClaimSetIfNecessary(ClaimSet claimSet)
+        {
+            if (claimSet != null)
+            {
+                DisposeIfNecessary(claimSet as WindowsClaimSet);
+            }
+        }
+
+        internal static void DisposeClaimSetsIfNecessary(ReadOnlyCollection<ClaimSet> claimSets)
+        {
+            if (claimSets != null)
+            {
+                for (int i = 0; i < claimSets.Count; ++i)
+                {
+                    DisposeIfNecessary(claimSets[i] as WindowsClaimSet);
+                }
+            }
+        }
+
+        class SimpleAuthorizationContext : AuthorizationContext
+        {
+            SecurityUniqueId id;
+            UnconditionalPolicy policy;
+            IDictionary<string, object> properties;
+
+            public SimpleAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
+            {
+                this.policy = (UnconditionalPolicy)authorizationPolicies[0];
+                Dictionary<string, object> properties = new Dictionary<string, object>();
+                if (this.policy.PrimaryIdentity != null && this.policy.PrimaryIdentity != SecurityUtils.AnonymousIdentity)
+                {
+                    List<IIdentity> identities = new List<IIdentity>();
+                    identities.Add(this.policy.PrimaryIdentity);
+                    properties.Add(SecurityUtils.Identities, identities);
+                }
+                // Might need to port ReadOnlyDictionary?
+                this.properties = properties;
+            }
+
+            public override string Id
+            {
+                get
+                {
+                    if (this.id == null)
+                        this.id = SecurityUniqueId.Create();
+                    return this.id.Value;
+                }
+            }
+            public override ReadOnlyCollection<ClaimSet> ClaimSets { get { return this.policy.Issuances; } }
+            public override DateTime ExpirationTime { get { return this.policy.ExpirationTime; } }
+            public override IDictionary<string, object> Properties { get { return this.properties; } }
+        }
+        internal static AuthorizationContext CreateDefaultAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
+        {
+            AuthorizationContext authorizationContext;
+            // This is faster than Policy evaluation.
+            if (authorizationPolicies != null && authorizationPolicies.Count == 1 && authorizationPolicies[0] is UnconditionalPolicy)
+            {
+                authorizationContext = new SimpleAuthorizationContext(authorizationPolicies);
+            }
+            // degenerate case
+            else if (authorizationPolicies == null || authorizationPolicies.Count <= 0)
+            {
+                return DefaultAuthorizationContext.Empty;
+            }
+            else
+            {
+                // there are some policies, run them until they are all done
+                DefaultEvaluationContext evaluationContext = new DefaultEvaluationContext();
+                object[] policyState = new object[authorizationPolicies.Count];
+                object done = new object();
+
+                int oldContextCount;
+                do
+                {
+                    oldContextCount = evaluationContext.Generation;
+
+                    for (int i = 0; i < authorizationPolicies.Count; i++)
+                    {
+                        if (policyState[i] == done)
+                            continue;
+
+                        IAuthorizationPolicy policy = authorizationPolicies[i];
+                        if (policy == null)
+                        {
+                            policyState[i] = done;
+                            continue;
+                        }
+
+                        if (policy.Evaluate(evaluationContext, ref policyState[i]))
+                        {
+                            policyState[i] = done;
+
+                            /* if (DiagnosticUtility.ShouldTraceVerbose)
+                             {
+                                 TraceUtility.TraceEvent(TraceEventType.Verbose, TraceCode.AuthorizationPolicyEvaluated,
+                                     SR.GetString(SR.AuthorizationPolicyEvaluated, policy.Id));
+                             }*/
+                        }
+                    }
+
+                } while (oldContextCount < evaluationContext.Generation);
+
+                authorizationContext = new DefaultAuthorizationContext(evaluationContext);
+            }
+
+            /*  if (DiagnosticUtility.ShouldTraceInformation)
+              {
+                  TraceUtility.TraceEvent(TraceEventType.Information, TraceCode.AuthorizationContextCreated,
+                      SR.GetString(SR.AuthorizationContextCreated, authorizationContext.Id));
+              }*/
+
+            return authorizationContext;
+        }
+        public static bool IsRequestSecurityContextIssuance(String actionString)
+        {
+            if (String.CompareOrdinal(actionString, CoreWCF.XD.SecureConversationFeb2005Dictionary
+                .RequestSecurityContextIssuance.Value) == 0 ||
+                String.CompareOrdinal(actionString, CoreWCF.XD.SecureConversationApr2004Dictionary
+                .RequestSecurityContextIssuance.Value) == 0)
+                return true;
+            return false;
+        }
+
+
+    }
+
+    static class EmptyReadOnlyCollection<T>
+    {
+        public static ReadOnlyCollection<T> Instance = new ReadOnlyCollection<T>(new List<T>());
     }
 }

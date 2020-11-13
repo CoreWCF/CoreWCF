@@ -1,12 +1,8 @@
+using System;
+using System.Collections.ObjectModel;
+
 namespace CoreWCF.Security
 {
-    using CoreWCF.IdentityModel.Policy;
-    using CoreWCF;
-    using CoreWCF.IdentityModel.Tokens;
-    using System.Runtime.Serialization;
-    using System.Collections.ObjectModel;
-    using System;
-
     public sealed class SecureConversationServiceCredential
     {
         static readonly SecurityStateEncoder defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
@@ -18,7 +14,7 @@ namespace CoreWCF.Security
         {
             this.securityStateEncoder = defaultSecurityStateEncoder;
             securityContextClaimTypes = new Collection<Type>();
-           // SamlAssertion.AddSamlClaimTypes(securityContextClaimTypes);
+            // SamlAssertion.AddSamlClaimTypes(securityContextClaimTypes);
         }
 
         internal SecureConversationServiceCredential(SecureConversationServiceCredential other)
@@ -34,14 +30,14 @@ namespace CoreWCF.Security
 
         public SecurityStateEncoder SecurityStateEncoder
         {
-            get 
-            { 
-                return this.securityStateEncoder; 
+            get
+            {
+                return this.securityStateEncoder;
             }
-            set 
+            set
             {
                 ThrowIfImmutable();
-                this.securityStateEncoder = value; 
+                this.securityStateEncoder = value;
             }
         }
 
@@ -62,5 +58,5 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
             }
         }
-     }
+    }
 }

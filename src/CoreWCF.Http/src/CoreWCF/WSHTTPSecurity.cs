@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using CoreWCF.Channels;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
-using CoreWCF;
 
 namespace CoreWCF
 {
-    public sealed class WSHttpSecurity
+    public sealed class WSHTTPSecurity
     {
         internal const SecurityMode DefaultMode = SecurityMode.Message;
 
@@ -17,12 +12,12 @@ namespace CoreWCF
         HttpTransportSecurity transportSecurity;
         NonDualMessageSecurityOverHttp messageSecurity;
 
-        public WSHttpSecurity()
+        public WSHTTPSecurity()
             : this(DefaultMode, GetDefaultHttpTransportSecurity(), new NonDualMessageSecurityOverHttp())
         {
         }
 
-        internal WSHttpSecurity(SecurityMode mode, HttpTransportSecurity transportSecurity, NonDualMessageSecurityOverHttp messageSecurity)
+        internal WSHTTPSecurity(SecurityMode mode, HttpTransportSecurity transportSecurity, NonDualMessageSecurityOverHttp messageSecurity)
         {
             this.mode = mode;
             this.transportSecurity = transportSecurity == null ? GetDefaultHttpTransportSecurity() : transportSecurity;
@@ -129,32 +124,11 @@ namespace CoreWCF
         //    return true;
         //}
 
-        //internal bool InternalShouldSerialize()
-        //{
-        //    return this.ShouldSerializeMode()
-        //        || this.ShouldSerializeMessage()
-        //        || this.ShouldSerializeTransport();
-        //}
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ShouldSerializeMode()
         {
             return this.Mode != DefaultMode;
         }
-
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public bool ShouldSerializeMessage()
-        //{
-        //    return this.Message.InternalShouldSerialize();
-        //}
-
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //public bool ShouldSerializeTransport()
-        //{
-        //    return this.Transport.ClientCredentialType != HttpClientCredentialType.Windows
-        //        || this.Transport.ShouldSerializeProxyCredentialType()
-        //        || this.Transport.ShouldSerializeRealm();
-        //}
 
     }
 }

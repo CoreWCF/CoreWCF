@@ -1,34 +1,31 @@
-using System.Diagnostics;
-using System.IO;
-using System.Runtime;
-using CoreWCF.Runtime;
-using CoreWCF;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
-using System.Xml;
+using CoreWCF.Runtime;
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Xml;
+
 namespace CoreWCF.Security
 {
-
-
-    sealed class SecurityVerifiedMessage : DelegatingMessage
+    internal sealed class SecurityVerifiedMessage : DelegatingMessage
     {
-        byte[] decryptedBuffer;
-        XmlDictionaryReader cachedDecryptedBodyContentReader;
-        XmlAttributeHolder[] envelopeAttributes;
-        XmlAttributeHolder[] headerAttributes;
-        XmlAttributeHolder[] bodyAttributes;
-        string envelopePrefix;
-        bool bodyDecrypted;
-        BodyState state = BodyState.Created;
-        string bodyPrefix;
-        bool isDecryptedBodyStatusDetermined;
-        bool isDecryptedBodyFault;
-        bool isDecryptedBodyEmpty;
-        XmlDictionaryReader cachedReaderAtSecurityHeader;
-        readonly ReceiveSecurityHeader securityHeader;
-        XmlBuffer messageBuffer;
-        bool canDelegateCreateBufferedCopyToInnerMessage;
+        private byte[] decryptedBuffer;
+        private XmlDictionaryReader cachedDecryptedBodyContentReader;
+        private XmlAttributeHolder[] envelopeAttributes;
+        private XmlAttributeHolder[] headerAttributes;
+        private XmlAttributeHolder[] bodyAttributes;
+        private string envelopePrefix;
+        private bool bodyDecrypted;
+        private BodyState state = BodyState.Created;
+        private string bodyPrefix;
+        private bool isDecryptedBodyStatusDetermined;
+        private bool isDecryptedBodyFault;
+        private bool isDecryptedBodyEmpty;
+        private XmlDictionaryReader cachedReaderAtSecurityHeader;
+        private readonly ReceiveSecurityHeader securityHeader;
+        private XmlBuffer messageBuffer;
+        private bool canDelegateCreateBufferedCopyToInnerMessage;
 
         public SecurityVerifiedMessage(Message messageToProcess, ReceiveSecurityHeader securityHeader)
             : base(messageToProcess)
@@ -70,8 +67,6 @@ namespace CoreWCF.Security
             {
                 if (this.IsDisposed)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
                 }
                 if (!this.bodyDecrypted)
@@ -91,8 +86,6 @@ namespace CoreWCF.Security
             {
                 if (this.IsDisposed)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
                 }
                 if (!this.bodyDecrypted)
@@ -106,17 +99,11 @@ namespace CoreWCF.Security
             }
         }
 
-        internal byte[] PrimarySignatureValue
-        {
-            get { return this.securityHeader.PrimarySignatureValue; }
-        }
+        internal byte[] PrimarySignatureValue => this.securityHeader.PrimarySignatureValue;
 
-        internal ReceiveSecurityHeader ReceivedSecurityHeader
-        {
-            get { return this.securityHeader; }
-        }
+        internal ReceiveSecurityHeader ReceivedSecurityHeader => this.securityHeader;
 
-        Exception CreateBadStateException(string operation)
+        private Exception CreateBadStateException(string operation)
         {
             return new InvalidOperationException(SR.Format(SR.MessageBodyOperationNotValidInBodyState,
                 operation, this.state));
@@ -135,7 +122,7 @@ namespace CoreWCF.Security
             }
         }
 
-        XmlDictionaryReader CreateFullBodyReaderFromBufferedState()
+        private XmlDictionaryReader CreateFullBodyReaderFromBufferedState()
         {
             if (this.messageBuffer != null)
             {
@@ -149,14 +136,14 @@ namespace CoreWCF.Security
             }
         }
 
-        XmlDictionaryReader CreateFullBodyReaderFromDecryptedState()
+        private XmlDictionaryReader CreateFullBodyReaderFromDecryptedState()
         {
             XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(this.decryptedBuffer, 0, this.decryptedBuffer.Length, this.securityHeader.ReaderQuotas);
             MoveToBody(reader);
             return reader;
         }
 
-        void EnsureDecryptedBodyStatusDetermined()
+        private void EnsureDecryptedBodyStatusDetermined()
         {
             if (!this.isDecryptedBodyStatusDetermined)
             {
@@ -183,7 +170,7 @@ namespace CoreWCF.Security
             return this.headerAttributes;
         }
 
-        XmlDictionaryReader GetReaderAtEnvelope()
+        private XmlDictionaryReader GetReaderAtEnvelope()
         {
             if (this.messageBuffer != null)
             {
@@ -214,7 +201,7 @@ namespace CoreWCF.Security
             return this.Headers.GetReaderAtHeader(this.securityHeader.HeaderIndex);
         }
 
-        void MoveToBody(XmlDictionaryReader reader)
+        private void MoveToBody(XmlDictionaryReader reader)
         {
             if (reader.NodeType != XmlNodeType.Element)
             {
@@ -231,7 +218,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void MoveToHeaderBlock(XmlDictionaryReader reader, bool captureAttributes)
+        private void MoveToHeaderBlock(XmlDictionaryReader reader, bool captureAttributes)
         {
             if (reader.NodeType != XmlNodeType.Element)
             {
@@ -250,7 +237,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void MoveToSecurityHeader(XmlDictionaryReader reader, int headerIndex, bool captureAttributes)
+        private void MoveToSecurityHeader(XmlDictionaryReader reader, int headerIndex, bool captureAttributes)
         {
             MoveToHeaderBlock(reader, captureAttributes);
             reader.ReadStartElement();
@@ -283,7 +270,6 @@ namespace CoreWCF.Security
 
         protected override void OnClose()
         {
-            
             if (this.cachedDecryptedBodyContentReader != null)
             {
                 try
@@ -459,7 +445,7 @@ namespace CoreWCF.Security
             this.state = BodyState.Decrypted;
         }
 
-        enum BodyState
+        private enum BodyState
         {
             Created,
             Buffered,
@@ -468,13 +454,14 @@ namespace CoreWCF.Security
         }
     }
 
+    //TODO investigate
     // Adding wrapping tags using a writer is a temporary feature to
     // support interop with a partner.  Eventually, the serialization
     // team will add a feature to XmlUTF8TextReader to directly
     // support the addition of outer namespaces before creating a
     // Reader.  This roundabout way of supporting context-sensitive
     // decryption can then be removed.
-    static class ContextImportHelper
+    internal static class ContextImportHelper
     {
         internal static XmlDictionaryReader CreateSplicedReader(byte[] decryptedBuffer,
             XmlAttributeHolder[] outerContext1, XmlAttributeHolder[] outerContext2, XmlAttributeHolder[] outerContext3, XmlDictionaryReaderQuotas quotas)
@@ -523,7 +510,7 @@ namespace CoreWCF.Security
             return null;
         }
 
-        static bool IsNamespaceDeclaration(string prefix, string localName)
+        private static bool IsNamespaceDeclaration(string prefix, string localName)
         {
             return GetPrefixIfNamespaceDeclaration(prefix, localName) != null;
         }
@@ -561,7 +548,7 @@ namespace CoreWCF.Security
             return splicedBuffer;
         }
 
-        static void WriteNamespaceDeclarations(XmlAttributeHolder[] attributes, XmlWriter writer)
+        private static void WriteNamespaceDeclarations(XmlAttributeHolder[] attributes, XmlWriter writer)
         {
             if (attributes != null)
             {

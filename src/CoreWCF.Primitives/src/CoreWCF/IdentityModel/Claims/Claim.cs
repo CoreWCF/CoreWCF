@@ -1,12 +1,12 @@
-﻿using System;
+﻿using CoreWCF.Security;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Mail;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using CoreWCF;
 using System.Security.Principal;
-using System.Net.Mail;
 
 namespace CoreWCF.IdentityModel.Claims
 {

@@ -1,28 +1,24 @@
+using System;
 using System.Globalization;
 using CoreWCF.Channels;
-using CoreWCF;
 using CoreWCF.Description;
-using System.Xml;
-using System;
 
 namespace CoreWCF.Security
 {
-
-
-  public abstract class SecurityHeader : MessageHeader
+    internal abstract class SecurityHeader : MessageHeader
     {
-        readonly string actor;
-        readonly SecurityAlgorithmSuite algorithmSuite;
-        bool encryptedKeyContainsReferenceList = true;
-        Message message;
-        readonly bool mustUnderstand;
-        readonly bool relay;
-        bool requireMessageProtection = true;
-        bool processingStarted;
-        bool maintainSignatureConfirmationState;
-       readonly SecurityStandardsManager standardsManager;
-        MessageDirection transferDirection;
-        SecurityHeaderLayout layout = SecurityHeaderLayout.Strict;
+        private readonly string actor;
+        private readonly SecurityAlgorithmSuite algorithmSuite;
+        private bool encryptedKeyContainsReferenceList = true;
+        private Message message;
+        private readonly bool mustUnderstand;
+        private readonly bool relay;
+        private bool requireMessageProtection = true;
+        private bool processingStarted;
+        private bool maintainSignatureConfirmationState;
+        private readonly SecurityStandardsManager standardsManager;
+        private MessageDirection transferDirection;
+        private SecurityHeaderLayout layout = SecurityHeaderLayout.Strict;
 
         public SecurityHeader(Message message,
             string actor, bool mustUnderstand, bool relay,

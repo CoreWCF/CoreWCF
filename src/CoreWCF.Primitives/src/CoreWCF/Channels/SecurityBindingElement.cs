@@ -1,24 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using CoreWCF.Configuration;
-using CoreWCF.Security;
-using System.Collections.ObjectModel;
-using System.Globalization;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
 using System.Net.Security;
-using System.Runtime;
-using System.Security.Authentication.ExtendedProtection;
-using CoreWCF.Description;
+using System.Xml;
+using CoreWCF.Configuration;
+using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
-using System.Xml;
+
 namespace CoreWCF.Channels
 {
     public abstract class SecurityBindingElement : BindingElement
     {
-        internal const string defaultAlgorithmSuiteString = ConfigurationStrings.Default;
+        internal const string defaultAlgorithmSuiteString = "Default";
         internal static readonly SecurityAlgorithmSuite defaultDefaultAlgorithmSuite = SecurityAlgorithmSuite.Default;
         internal const bool defaultIncludeTimestamp = true;
         internal const bool defaultAllowInsecureTransport = false;
@@ -34,7 +27,6 @@ namespace CoreWCF.Channels
         SecurityKeyEntropyMode keyEntropyMode;
         Dictionary<string, SupportingTokenParameters> operationSupportingTokenParameters;
         Dictionary<string, SupportingTokenParameters> optionalOperationSupportingTokenParameters;
-        // LocalClientSecuritySettings localClientSettings;
         LocalServiceSecuritySettings localServiceSettings;
         MessageSecurityVersion messageSecurityVersion;
         SecurityHeaderLayout securityHeaderLayout;
@@ -54,7 +46,6 @@ namespace CoreWCF.Channels
             this.keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy; // AcceleratedTokenProvider.defaultKeyEntropyMode;
             this.includeTimestamp = defaultIncludeTimestamp;
             this.defaultAlgorithmSuite = defaultDefaultAlgorithmSuite;
-            // this.localClientSettings = new LocalClientSecuritySettings();
             this.localServiceSettings = new LocalServiceSecuritySettings();
             this.endpointSupportingTokenParameters = new SupportingTokenParameters();
             this.optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
@@ -89,7 +80,6 @@ namespace CoreWCF.Channels
             {
                 this.optionalOperationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned.optionalOperationSupportingTokenParameters[key].Clone();
             }
-            // this.localClientSettings = (LocalClientSecuritySettings)elementToBeCloned.localClientSettings.Clone();
             this.localServiceSettings = (LocalServiceSecuritySettings)elementToBeCloned.localServiceSettings.Clone();
             // this.internalDuplexBindingElement = elementToBeCloned.internalDuplexBindingElement;
             this.maxReceivedMessageSize = elementToBeCloned.maxReceivedMessageSize;
@@ -122,7 +112,6 @@ namespace CoreWCF.Channels
                 return this.optionalEndpointSupportingTokenParameters;
             }
         }
-
 
         public IDictionary<string, SupportingTokenParameters> OperationSupportingTokenParameters
         {
@@ -231,15 +220,6 @@ namespace CoreWCF.Channels
             }
         }
 
-        /*
-        public LocalClientSecuritySettings LocalClientSettings
-        {
-            get
-            {
-                return this.localClientSettings;
-            }
-        } */
-
         public LocalServiceSecuritySettings LocalServiceSettings
         {
             get
@@ -258,7 +238,7 @@ namespace CoreWCF.Channels
             {
                 if (!SecurityKeyEntropyModeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 this.keyEntropyMode = value;
             }
@@ -327,12 +307,6 @@ namespace CoreWCF.Channels
             this.GetSupportingTokensCapabilities(requirements.SignedEncrypted, out tmpSupportsClientAuth, out tmpSupportsWindowsIdentity);
             supportsClientAuth = supportsClientAuth || tmpSupportsClientAuth;
             supportsWindowsIdentity = supportsWindowsIdentity || tmpSupportsWindowsIdentity;
-        }
-
-        internal bool IsUnderlyingListenerDuplex<TChannel>(BindingContext context)
-        {
-            return ((typeof(TChannel) == typeof(IDuplexSessionChannel)) && context.CanBuildNextServiceDispatcher<IDuplexChannel>()
-                && !context.CanBuildNextServiceDispatcher<IDuplexSessionChannel>());
         }
 
         internal void GetSupportingTokensCapabilities(out bool supportsClientAuth, out bool supportsWindowsIdentity)
@@ -480,7 +454,7 @@ namespace CoreWCF.Channels
             {
                 SetIssuerBindingContextIfRequired(parameters, issuerBindingContext);
             }
-        }
+        }*/
 
         internal bool RequiresChannelDemuxer(SecurityTokenParameters parameters)
         {
@@ -556,57 +530,42 @@ namespace CoreWCF.Channels
             return false;
         }
 
-
-
-        void SetPrivacyNoticeUriIfRequired(SecurityProtocolFactory factory, Binding binding)
+        //void SetPrivacyNoticeUriIfRequired(SecurityProtocolFactory factory, Binding binding)
+        //{
+        //    PrivacyNoticeBindingElement privacyElement = binding.CreateBindingElements().Find<PrivacyNoticeBindingElement>();
+        //    if (privacyElement != null)
+        //    {
+        //        factory.PrivacyNoticeUri = privacyElement.Url;
+        //        factory.PrivacyNoticeVersion = privacyElement.Version;
+        //    }
+        //}
+        
+        internal bool IsUnderlyingDispatcherDuplex<TChannel>(BindingContext context)
         {
-            PrivacyNoticeBindingElement privacyElement = binding.CreateBindingElements().Find<PrivacyNoticeBindingElement>();
-            if (privacyElement != null)
-            {
-                factory.PrivacyNoticeUri = privacyElement.Url;
-                factory.PrivacyNoticeVersion = privacyElement.Version;
-            }
+            return ((typeof(TChannel) == typeof(IDuplexSessionChannel)) && context.CanBuildNextServiceDispatcher<IDuplexChannel>()
+                && !context.CanBuildNextServiceDispatcher<IDuplexSessionChannel>());
         }
-        */
+
         internal void ConfigureProtocolFactory(SecurityProtocolFactory factory, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext, Binding binding)
         {
             if (factory == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("factory"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(factory)));
             if (credentialsManager == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("credentialsManager"));
-
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(credentialsManager)));
             factory.AddTimestamp = this.IncludeTimestamp;
             factory.IncomingAlgorithmSuite = this.DefaultAlgorithmSuite;
             factory.OutgoingAlgorithmSuite = this.DefaultAlgorithmSuite;
             factory.SecurityHeaderLayout = this.SecurityHeaderLayout;
+            factory.TimestampValidityDuration = this.LocalServiceSettings.TimestampValidityDuration;
+            factory.DetectReplays = this.LocalServiceSettings.DetectReplays;
+            factory.MaxCachedNonces = this.LocalServiceSettings.ReplayCacheSize;
+            factory.MaxClockSkew = this.LocalServiceSettings.MaxClockSkew;
+            factory.ReplayWindow = this.LocalServiceSettings.ReplayWindow;
 
-            if (!isForService)
+            if (this.LocalServiceSettings.DetectReplays)
             {
-                /* factory.TimestampValidityDuration = this.LocalClientSettings.TimestampValidityDuration;
-                 factory.DetectReplays = this.LocalClientSettings.DetectReplays;
-                 factory.MaxCachedNonces = this.LocalClientSettings.ReplayCacheSize;
-                 factory.MaxClockSkew = this.LocalClientSettings.MaxClockSkew;
-                 factory.ReplayWindow = this.LocalClientSettings.ReplayWindow;
-
-                 if (this.LocalClientSettings.DetectReplays)
-                 {
-                     factory.NonceCache = this.LocalClientSettings.NonceCache;
-                 }*/
+                factory.NonceCache = this.LocalServiceSettings.NonceCache;
             }
-            else
-            {
-                factory.TimestampValidityDuration = this.LocalServiceSettings.TimestampValidityDuration;
-                factory.DetectReplays = this.LocalServiceSettings.DetectReplays;
-                factory.MaxCachedNonces = this.LocalServiceSettings.ReplayCacheSize;
-                factory.MaxClockSkew = this.LocalServiceSettings.MaxClockSkew;
-                factory.ReplayWindow = this.LocalServiceSettings.ReplayWindow;
-
-                if (this.LocalServiceSettings.DetectReplays)
-                {
-                    factory.NonceCache = this.LocalServiceSettings.NonceCache;
-                }
-            }
-
             factory.SecurityBindingElement = (SecurityBindingElement)this.Clone();
             factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
             factory.SecurityTokenManager = credentialsManager.CreateSecurityTokenManager();
@@ -646,7 +605,7 @@ namespace CoreWCF.Channels
         public override bool CanBuildServiceDispatcher<TChannel>(BindingContext context)
         {
             if (context == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
 
             // InternalDuplexBindingElement.AddDuplexListenerSupport(context, ref this.internalDuplexBindingElement);
 
@@ -676,27 +635,6 @@ namespace CoreWCF.Channels
             {
                 t.SetKeyDerivation(requireDerivedKeys);
             }
-        }
-
-        internal virtual bool IsSetKeyDerivation(bool requireDerivedKeys)
-        {
-            if (!this.EndpointSupportingTokenParameters.IsSetKeyDerivation(requireDerivedKeys))
-                return false;
-
-            if (!this.OptionalEndpointSupportingTokenParameters.IsSetKeyDerivation(requireDerivedKeys))
-                return false;
-
-            foreach (SupportingTokenParameters t in this.OperationSupportingTokenParameters.Values)
-            {
-                if (!t.IsSetKeyDerivation(requireDerivedKeys))
-                    return false;
-            }
-            foreach (SupportingTokenParameters t in this.OptionalOperationSupportingTokenParameters.Values)
-            {
-                if (!t.IsSetKeyDerivation(requireDerivedKeys))
-                    return false;
-            }
-            return true;
         }
 
         internal ChannelProtectionRequirements GetProtectionRequirements(AddressingVersion addressing, ProtectionLevel defaultProtectionLevel)
@@ -753,23 +691,7 @@ namespace CoreWCF.Channels
 
         public override T GetProperty<T>(BindingContext context)
         {
-            if (context == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
-            }
-            if (typeof(T) == typeof(ISecurityCapabilities))
-            {
-                return (T)(object)GetSecurityCapabilities(context);
-            }
-            else if (typeof(T) == typeof(IdentityVerifier))
-            {
-                throw new NotImplementedException();
-               // return (T)(object)this.localClientSettings.IdentityVerifier;
-            }
-            else
-            {
-                return context.GetInnerProperty<T>();
-            }
+            return context.GetInnerProperty<T>();
         }
 
         internal abstract ISecurityCapabilities GetIndividualISecurityCapabilities();
@@ -809,17 +731,16 @@ namespace CoreWCF.Channels
 
         protected static void SetIssuerBindingContextIfRequired(SecurityTokenParameters parameters, BindingContext issuerBindingContext)
         {
-            Type typ = parameters.GetType();
-            if (!(parameters is UserNameSecurityTokenParameters))
-                throw new NotImplementedException(); //TODO implement rest later
-            //if (parameters is SslSecurityTokenParameters)
-            //{
-            //    ((SslSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
-            //}
-            //else if (parameters is SspiSecurityTokenParameters)
-            //{
-            //    ((SspiSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
-            //}
+            if (parameters is SslSecurityTokenParameters)
+            {
+                throw new NotImplementedException();
+                //((SslSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
+            }
+            else if (parameters is SspiSecurityTokenParameters)
+            {
+                 throw new NotImplementedException();
+                // ((SspiSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
+            }
         }
 
         static void SetIssuerBindingContextIfRequired(SupportingTokenParameters supportingParameters, BindingContext issuerBindingContext)
@@ -842,9 +763,6 @@ namespace CoreWCF.Channels
             }
         }
 
-
-       
-
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsUserNameOverTransportBinding() method.
         static public TransportSecurityBindingElement CreateUserNameOverTransportBindingElement()
@@ -858,8 +776,62 @@ namespace CoreWCF.Channels
             return result;
         }
 
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsSecureConversationBinding() method.
+        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity)
+        {
+            return CreateSecureConversationBindingElement(bootstrapSecurity, SecureConversationSecurityTokenParameters.defaultRequireCancellation, null);
+        }
+
+        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation)
+        {
+            return CreateSecureConversationBindingElement(bootstrapSecurity, requireCancellation, null);
+        }
+
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsCertificateOverTransportBinding() method.
+        static public TransportSecurityBindingElement CreateCertificateOverTransportBindingElement()
+        {
+            return CreateCertificateOverTransportBindingElement(MessageSecurityVersion.Default);
+        }
+
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsCertificateOverTransportBinding() method.
+        static public TransportSecurityBindingElement CreateCertificateOverTransportBindingElement(MessageSecurityVersion version)
+        {
+            if (version == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+            }
+            X509KeyIdentifierClauseType x509ReferenceType;
+
+            if (version.SecurityVersion == SecurityVersion.WSSecurity10)
+            {
+                x509ReferenceType = X509KeyIdentifierClauseType.Any;
+            }
+            else
+            {
+                x509ReferenceType = X509KeyIdentifierClauseType.Thumbprint;
+            }
+
+            TransportSecurityBindingElement result = new TransportSecurityBindingElement();
+            X509SecurityTokenParameters x509Parameters = new X509SecurityTokenParameters(
+                    x509ReferenceType,
+                    SecurityTokenInclusionMode.AlwaysToRecipient,
+                    false);
+            result.EndpointSupportingTokenParameters.Endorsing.Add(
+                x509Parameters
+                );
+            result.IncludeTimestamp = true;
+           // result.LocalClientSettings.DetectReplays = false;
+            result.LocalServiceSettings.DetectReplays = false;
+            result.MessageSecurityVersion = version;
+
+            return result;
+        }
+
         // this method reverses CreateMutualCertificateBindingElement() logic
-        internal static bool IsUserNameOverTransportBinding(SecurityBindingElement sbe)
+        internal static bool IsCertificateOverTransportBinding(SecurityBindingElement sbe)
         {
             // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
             if (!sbe.IncludeTimestamp)
@@ -869,33 +841,19 @@ namespace CoreWCF.Channels
                 return false;
 
             SupportingTokenParameters parameters = sbe.EndpointSupportingTokenParameters;
-            if (parameters.Signed.Count != 0 || parameters.SignedEncrypted.Count != 1 || parameters.Endorsing.Count != 0 || parameters.SignedEndorsing.Count != 0)
+            if (parameters.Signed.Count != 0 || parameters.SignedEncrypted.Count != 0 || parameters.Endorsing.Count != 1 || parameters.SignedEndorsing.Count != 0)
                 return false;
 
-            UserNameSecurityTokenParameters userNameParameters = parameters.SignedEncrypted[0] as UserNameSecurityTokenParameters;
-            if (userNameParameters == null)
+            X509SecurityTokenParameters x509Parameters = parameters.Endorsing[0] as X509SecurityTokenParameters;
+            if (x509Parameters == null)
                 return false;
 
-            return true;
+            if (x509Parameters.InclusionMode != SecurityTokenInclusionMode.AlwaysToRecipient)
+                return false;
+
+            return x509Parameters.X509ReferenceStyle == X509KeyIdentifierClauseType.Any || x509Parameters.X509ReferenceStyle == X509KeyIdentifierClauseType.Thumbprint;
         }
 
-        // If any changes are made to this method, please make sure that they are
-        // reflected in the corresponding IsSecureConversationBinding() method.
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity)
-        {
-            return CreateSecureConversationBindingElement(bootstrapSecurity, SecureConversationSecurityTokenParameters.defaultRequireCancellation, null);
-        }
-
-        // this method reverses CreateSecureConversationBindingElement() logic
-        internal static bool IsSecureConversationBinding(SecurityBindingElement sbe, out SecurityBindingElement bootstrapSecurity)
-        {
-            return IsSecureConversationBinding(sbe, SecureConversationSecurityTokenParameters.defaultRequireCancellation, out bootstrapSecurity);
-        }
-
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation)
-        {
-            return CreateSecureConversationBindingElement(bootstrapSecurity, requireCancellation, null);
-        }
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSecureConversationBinding() method.
@@ -933,63 +891,8 @@ namespace CoreWCF.Channels
                 primary.RequireSignatureConfirmation = false;
                 result = primary;
             }
-
             return result;
         }
-
-        // this method reverses CreateSecureConversationBindingElement() logic
-        internal static bool IsSecureConversationBinding(SecurityBindingElement sbe, bool requireCancellation, out SecurityBindingElement bootstrapSecurity)
-        {
-            bootstrapSecurity = null;
-            SymmetricSecurityBindingElement ssbe = sbe as SymmetricSecurityBindingElement;
-            if (ssbe != null)
-            {
-                if (ssbe.RequireSignatureConfirmation)
-                    return false;
-
-                SecureConversationSecurityTokenParameters parameters = ssbe.ProtectionTokenParameters as SecureConversationSecurityTokenParameters;
-                if (parameters == null)
-                    return false;
-                if (parameters.RequireCancellation != requireCancellation)
-                    return false;
-                bootstrapSecurity = parameters.BootstrapSecurityBindingElement;
-            }
-            else
-            {
-                if (!sbe.IncludeTimestamp)
-                    return false;
-
-                // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
-
-                if (!(sbe is TransportSecurityBindingElement))
-                    return false;
-
-                SupportingTokenParameters parameters = sbe.EndpointSupportingTokenParameters;
-                if (parameters.Signed.Count != 0 || parameters.SignedEncrypted.Count != 0 || parameters.Endorsing.Count != 1 || parameters.SignedEndorsing.Count != 0)
-                    return false;
-                SecureConversationSecurityTokenParameters scParameters = parameters.Endorsing[0] as SecureConversationSecurityTokenParameters;
-                if (scParameters == null)
-                    return false;
-
-                if (scParameters.RequireCancellation != requireCancellation)
-                    return false;
-
-                bootstrapSecurity = scParameters.BootstrapSecurityBindingElement;
-
-            }
-
-            if (bootstrapSecurity != null && bootstrapSecurity.SecurityHeaderLayout != SecurityProtocolFactory.defaultSecurityHeaderLayout)
-                return false;
-
-            return bootstrapSecurity != null;
-        }
-
         //TODO other security mode
-
-
-
-
-
-
     }
 }

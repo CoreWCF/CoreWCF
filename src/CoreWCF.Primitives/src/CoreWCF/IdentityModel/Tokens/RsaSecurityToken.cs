@@ -1,10 +1,7 @@
-﻿using CoreWCF;
+﻿using CoreWCF.Security;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Tokens
 {

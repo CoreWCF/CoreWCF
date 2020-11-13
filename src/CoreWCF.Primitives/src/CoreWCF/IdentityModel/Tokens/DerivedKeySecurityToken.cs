@@ -1,22 +1,16 @@
-using System.Collections;
-using CoreWCF;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.IdentityModel.Selectors;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 using CoreWCF.IdentityModel;
-using System;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security.Tokens
 {
-
     sealed class DerivedKeySecurityToken : SecurityToken
     {
         //        public const string DefaultLabel = "WS-SecureConversationWS-SecureConversation";
@@ -144,7 +138,6 @@ namespace CoreWCF.Security.Tokens
             {
                 if (this.securityKeys == null)
                 {
-#pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.DerivedKeyNotInitialized)));
                 }
                 return this.securityKeys;

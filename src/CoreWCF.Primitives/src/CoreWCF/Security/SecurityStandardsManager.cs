@@ -1,18 +1,16 @@
 using CoreWCF.Channels;
 using CoreWCF.Description;
-using CoreWCF.Security.Tokens;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using System.Xml;
-using System.Runtime.CompilerServices;
-using CoreWCF;
-using CoreWCF.Security;
 using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security.Tokens;
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
-    public class SecurityStandardsManager
+    internal class SecurityStandardsManager
     {
         private static SecurityStandardsManager s_instance;
         private readonly SecurityTokenSerializer _tokenSerializer;
@@ -140,6 +138,50 @@ namespace CoreWCF.Security
         internal bool DoesMessageContainSecurityHeader(Message message)
         {
             return SecurityVersion.DoesMessageContainSecurityHeader(message);
+        }
+
+        internal bool TryGetSecurityContextIds(Message message, string[] actors, bool isStrictMode, ICollection<UniqueId> results)
+        {
+            if (results == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+            }
+            SecureConversationDriver driver = this.SecureConversationDriver;
+            int securityHeaderIndex = this.SecurityVersion.FindIndexOfSecurityHeader(message, actors);
+            if (securityHeaderIndex < 0)
+            {
+                return false;
+            }
+            bool addedContextIds = false;
+            using (XmlDictionaryReader reader = message.Headers.GetReaderAtHeader(securityHeaderIndex))
+            {
+                if (!reader.IsStartElement())
+                {
+                    return false;
+                }
+                if (reader.IsEmptyElement)
+                {
+                    return false;
+                }
+                reader.ReadStartElement();
+                while (reader.IsStartElement())
+                {
+                    if (driver.IsAtSecurityContextToken(reader))
+                    {
+                        results.Add(driver.GetSecurityContextTokenId(reader));
+                        addedContextIds = true;
+                        if (isStrictMode)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        reader.Skip();
+                    }
+                }
+            }
+            return addedContextIds;
         }
     }
 }

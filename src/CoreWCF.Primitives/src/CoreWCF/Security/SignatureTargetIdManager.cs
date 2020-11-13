@@ -1,15 +1,9 @@
-
-
 using System.Xml;
 
 namespace CoreWCF.Security
 {
     internal abstract class SignatureTargetIdManager
     {
-        protected SignatureTargetIdManager()
-        {
-        }
-
         public abstract string DefaultIdNamespacePrefix { get; }
 
         public abstract string DefaultIdNamespaceUri { get; }

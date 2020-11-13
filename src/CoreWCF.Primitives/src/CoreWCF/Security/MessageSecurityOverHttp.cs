@@ -20,7 +20,7 @@ namespace CoreWCF
         bool negotiateServiceCredential;
         SecurityAlgorithmSuite algorithmSuite;
         bool wasAlgorithmSuiteSet;
-
+        private static readonly TimeSpan defaultServerIssuedTransitionTokenLifetime = TimeSpan.FromMinutes(15);
         public MessageSecurityOverHttp()
         {
             clientCredentialType = DefaultClientCredentialType;
@@ -71,7 +71,6 @@ namespace CoreWCF
             return true;
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public SecurityBindingElement CreateSecurityBindingElement(bool isSecureTransportMode, bool isReliableSession, MessageSecurityVersion version)
         {
             if (isReliableSession && !this.IsSecureConversationEnabled())
@@ -93,9 +92,9 @@ namespace CoreWCF
                     case MessageCredentialType.UserName:
                         oneShotSecurity = SecurityBindingElement.CreateUserNameOverTransportBindingElement();
                         break;
-                    //case MessageCredentialType.Certificate:
-                    //    oneShotSecurity = SecurityBindingElement.CreateCertificateOverTransportBindingElement();
-                    //    break;
+                    case MessageCredentialType.Certificate:
+                        oneShotSecurity = SecurityBindingElement.CreateCertificateOverTransportBindingElement();
+                        break;
                     //case MessageCredentialType.Windows:
                     //    oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
                     //    break;
@@ -117,6 +116,7 @@ namespace CoreWCF
             }
             else
             {
+                throw new PlatformNotSupportedException();
                 //TODO 
                 //if (negotiateServiceCredential)
                 //{
@@ -193,18 +193,14 @@ namespace CoreWCF
             if (!isReliableSession)
             {
                 result.LocalServiceSettings.ReconnectTransportOnFailure = false;
-               // result.LocalClientSettings.ReconnectTransportOnFailure = false;
             }
             else
             {
                 result.LocalServiceSettings.ReconnectTransportOnFailure = true;
-               // result.LocalClientSettings.ReconnectTransportOnFailure = true;
             }
 
             if (this.IsSecureConversationEnabled())
             {
-                string defaultServerIssuedTransitionTokenLifetimeString = "00:15:00";
-                TimeSpan defaultServerIssuedTransitionTokenLifetime = TimeSpan.Parse(defaultServerIssuedTransitionTokenLifetimeString, CultureInfo.InvariantCulture);
                 oneShotSecurity.LocalServiceSettings.IssuedCookieLifetime = defaultServerIssuedTransitionTokenLifetime;
                 //TODO SpNego when port, remove above and enable below.
         // issue the transition SCT for a short duration only
@@ -213,225 +209,6 @@ namespace CoreWCF
 
             return result;
         }
-
-        //internal static bool TryCreate<TSecurity>(SecurityBindingElement sbe, bool isSecureTransportMode, bool isReliableSession, out TSecurity messageSecurity)
-        //    where TSecurity : MessageSecurityOverHttp
-        //{
-        //    Fx.Assert(null != sbe, string.Empty);
-
-        //    messageSecurity = null;
-
-        //    // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
-
-        //    if (!sbe.IncludeTimestamp)
-        //    {
-        //        return false;
-        //    }
-
-        //    // Do not check MessageSecurityVersion: it maybe changed by the wrapper element and gets checked later in the SecuritySection.AreBindingsMatching()
-
-        //    if (sbe.SecurityHeaderLayout != SecurityProtocolFactory.defaultSecurityHeaderLayout)
-        //    {
-        //        return false;
-        //    }
-
-        //    bool negotiateServiceCredential = DefaultNegotiateServiceCredential;
-        //    MessageCredentialType clientCredentialType;
-        //    SecurityAlgorithmSuite algorithmSuite = SecurityAlgorithmSuite.Default;
-        //    bool isSecureConversation;
-
-        //    SecurityBindingElement bootstrapSecurity;
-        //    if (!SecurityBindingElement.IsSecureConversationBinding(sbe, true, out bootstrapSecurity))
-        //    {
-        //        isSecureConversation = false;
-
-        //        bootstrapSecurity = sbe;
-        //    }
-        //    else
-        //    {
-        //        isSecureConversation = true;
-        //    }
-
-        //    if (!isSecureConversation && typeof(TSecurity).Equals(typeof(MessageSecurityOverHttp)))
-        //    {
-        //        return false;
-        //    }
-
-        //    if (!isSecureConversation && isReliableSession)
-        //    {
-        //        return false;
-        //    }
-
-        //    if (isSecureTransportMode && !(bootstrapSecurity is TransportSecurityBindingElement))
-        //    {
-        //        return false;
-        //    }
-
-        //    IssuedSecurityTokenParameters infocardParameters;
-        //    if (isSecureTransportMode)
-        //    {
-        //        if (SecurityBindingElement.IsUserNameOverTransportBinding(bootstrapSecurity))
-        //        {
-        //            clientCredentialType = MessageCredentialType.UserName;
-        //        }
-        //        else if (SecurityBindingElement.IsCertificateOverTransportBinding(bootstrapSecurity))
-        //        {
-        //            clientCredentialType = MessageCredentialType.Certificate;
-        //        }
-        //        else if (SecurityBindingElement.IsSspiNegotiationOverTransportBinding(bootstrapSecurity, true))
-        //        {
-        //            clientCredentialType = MessageCredentialType.Windows;
-        //        }
-        //        else if (SecurityBindingElement.IsIssuedTokenOverTransportBinding(bootstrapSecurity, out infocardParameters))
-        //        {
-        //            if (!IssuedSecurityTokenParameters.IsInfoCardParameters(
-        //                    infocardParameters,
-        //                    new SecurityStandardsManager(
-        //                        sbe.MessageSecurityVersion,
-        //                        new WSSecurityTokenSerializer(
-        //                            sbe.MessageSecurityVersion.SecurityVersion,
-        //                            sbe.MessageSecurityVersion.TrustVersion,
-        //                            sbe.MessageSecurityVersion.SecureConversationVersion,
-        //                            true,
-        //                            null, null, null))))
-        //            {
-        //                return false;
-        //            }
-        //            clientCredentialType = MessageCredentialType.IssuedToken;
-        //        }
-        //        else
-        //        {
-        //            // the standard binding does not support None client credential type in mixed mode
-        //            return false;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (SecurityBindingElement.IsSslNegotiationBinding(bootstrapSecurity, false, true))
-        //        {
-        //            negotiateServiceCredential = true;
-        //            clientCredentialType = MessageCredentialType.None;
-        //        }
-        //        else if (SecurityBindingElement.IsUserNameForSslBinding(bootstrapSecurity, true))
-        //        {
-        //            negotiateServiceCredential = true;
-        //            clientCredentialType = MessageCredentialType.UserName;
-        //        }
-        //        else if (SecurityBindingElement.IsSslNegotiationBinding(bootstrapSecurity, true, true))
-        //        {
-        //            negotiateServiceCredential = true;
-        //            clientCredentialType = MessageCredentialType.Certificate;
-        //        }
-        //        else if (SecurityBindingElement.IsSspiNegotiationBinding(bootstrapSecurity, true))
-        //        {
-        //            negotiateServiceCredential = true;
-        //            clientCredentialType = MessageCredentialType.Windows;
-        //        }
-        //        else if (SecurityBindingElement.IsIssuedTokenForSslBinding(bootstrapSecurity, true, out infocardParameters))
-        //        {
-        //            if (!IssuedSecurityTokenParameters.IsInfoCardParameters(
-        //                    infocardParameters,
-        //                    new SecurityStandardsManager(
-        //                        sbe.MessageSecurityVersion,
-        //                        new WSSecurityTokenSerializer(
-        //                            sbe.MessageSecurityVersion.SecurityVersion,
-        //                            sbe.MessageSecurityVersion.TrustVersion,
-        //                            sbe.MessageSecurityVersion.SecureConversationVersion,
-        //                            true,
-        //                            null, null, null))))
-        //            {
-        //                return false;
-        //            }
-        //            negotiateServiceCredential = true;
-        //            clientCredentialType = MessageCredentialType.IssuedToken;
-        //        }
-        //        else if (SecurityBindingElement.IsUserNameForCertificateBinding(bootstrapSecurity))
-        //        {
-        //            negotiateServiceCredential = false;
-        //            clientCredentialType = MessageCredentialType.UserName;
-        //        }
-        //        else if (SecurityBindingElement.IsMutualCertificateBinding(bootstrapSecurity))
-        //        {
-        //            negotiateServiceCredential = false;
-        //            clientCredentialType = MessageCredentialType.Certificate;
-        //        }
-        //        else if (SecurityBindingElement.IsKerberosBinding(bootstrapSecurity))
-        //        {
-        //            negotiateServiceCredential = false;
-        //            clientCredentialType = MessageCredentialType.Windows;
-        //        }
-        //        else if (SecurityBindingElement.IsIssuedTokenForCertificateBinding(bootstrapSecurity, out infocardParameters))
-        //        {
-        //            if (!IssuedSecurityTokenParameters.IsInfoCardParameters(
-        //                    infocardParameters,
-        //                    new SecurityStandardsManager(
-        //                        sbe.MessageSecurityVersion,
-        //                        new WSSecurityTokenSerializer(
-        //                            sbe.MessageSecurityVersion.SecurityVersion,
-        //                            sbe.MessageSecurityVersion.TrustVersion,
-        //                            sbe.MessageSecurityVersion.SecureConversationVersion,
-        //                            true,
-        //                            null, null, null))))
-        //            {
-        //                return false;
-        //            }
-        //            negotiateServiceCredential = false;
-        //            clientCredentialType = MessageCredentialType.IssuedToken;
-        //        }
-        //        else if (SecurityBindingElement.IsAnonymousForCertificateBinding(bootstrapSecurity))
-        //        {
-        //            negotiateServiceCredential = false;
-        //            clientCredentialType = MessageCredentialType.None;
-        //        }
-        //        else
-        //        {
-        //            return false;
-        //        }
-        //    }
-
-        //    // Do not check any Local* settings
-
-        //    // Do not check DefaultAlgorithmSuite: is it often changed after the Security element is created, it will verified by SecuritySectionBase.AreBindingsMatching().
-
-        //    if (typeof(NonDualMessageSecurityOverHttp).Equals(typeof(TSecurity)))
-        //    {
-        //        messageSecurity = (TSecurity)(object)new NonDualMessageSecurityOverHttp();
-        //        ((NonDualMessageSecurityOverHttp)(object)messageSecurity).EstablishSecurityContext = isSecureConversation;
-        //    }
-        //    else
-        //    {
-        //        messageSecurity = (TSecurity)(object)new MessageSecurityOverHttp();
-        //    }
-
-        //    messageSecurity.ClientCredentialType = clientCredentialType;
-        //    messageSecurity.NegotiateServiceCredential = negotiateServiceCredential;
-        //    messageSecurity.AlgorithmSuite = sbe.DefaultAlgorithmSuite;
-        //    return true;
-        //}
-
-        internal bool InternalShouldSerialize()
-        {
-            return this.ShouldSerializeAlgorithmSuite()
-                || this.ShouldSerializeClientCredentialType()
-                || ShouldSerializeNegotiateServiceCredential();
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool ShouldSerializeAlgorithmSuite()
-        {
-            return this.AlgorithmSuite != SecurityAlgorithmSuite.Default;
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool ShouldSerializeClientCredentialType()
-        {
-            return this.ClientCredentialType != DefaultClientCredentialType;
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool ShouldSerializeNegotiateServiceCredential()
-        {
-            return this.NegotiateServiceCredential != DefaultNegotiateServiceCredential;
-        }
+        
     }
 }

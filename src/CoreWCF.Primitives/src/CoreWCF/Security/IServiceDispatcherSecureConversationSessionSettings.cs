@@ -1,9 +1,8 @@
-
 using System;
 
 namespace CoreWCF.Security
 {
-    interface IListenerSecureConversationSessionSettings
+    interface IServiceDispatcherSecureConversationSessionSettings
     {
         bool TolerateTransportFailures
         {

@@ -17,6 +17,7 @@ namespace CoreWCF.Security
     {
         XmlDictionaryReader GetReader(object callbackContext);
     }
+
     sealed class ReceiveSecurityHeaderElementManager : ISignatureReaderProvider
     {
         const int InitialCapacity = 8;

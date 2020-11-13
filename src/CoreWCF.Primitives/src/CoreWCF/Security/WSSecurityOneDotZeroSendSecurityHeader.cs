@@ -1,21 +1,19 @@
-using CoreWCF.IdentityModel;
-//TODO signedXML replace
-using System.Security.Cryptography.Xml;
-using System.Text;
-using System.IO;
-using System.Runtime;
-using System.Security.Cryptography;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
+using System.Text;
 using System.Xml;
 using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
-using CoreWCF.Security.Tokens;
-using System;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -73,7 +71,8 @@ namespace CoreWCF.Security
         // 2. Else if strtransform is enabled it adds a reference the security token's keyIdentifier's id.
         private void AddTokenSignatureReference(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, bool strTransformEnabled)
         {
-            throw new PlatformNotSupportedException();
+            if(strTransformEnabled)
+                throw new PlatformNotSupportedException();
         }
 
         private void AddSignatureReference(SendSecurityHeaderElement[] elements)
@@ -653,51 +652,7 @@ namespace CoreWCF.Security
             {
                 return null;
             }
-
             throw new NotImplementedException();
-
-            //if (primarySignature != null && primarySignature.Item != null && primarySignature.MarkedForEncryption)
-            //{
-            //    EncryptElement(primarySignature);
-            //}
-
-            //if (basicTokens != null)
-            //{
-            //    for (int i = 0; i < basicTokens.Length; ++i)
-            //    {
-            //        if (basicTokens[i].MarkedForEncryption)
-            //            EncryptElement(basicTokens[i]);
-            //    }
-            //}
-
-            //if (signatureConfirmations != null)
-            //{
-            //    for (int i = 0; i < signatureConfirmations.Length; ++i)
-            //    {
-            //        if (signatureConfirmations[i].MarkedForEncryption)
-            //            EncryptElement(signatureConfirmations[i]);
-            //    }
-            //}
-
-            //if (endorsingSignatures != null)
-            //{
-            //    for (int i = 0; i < endorsingSignatures.Length; ++i)
-            //    {
-            //        if (endorsingSignatures[i].MarkedForEncryption)
-            //            EncryptElement(endorsingSignatures[i]);
-            //    }
-            //}
-
-            //try
-            //{
-            //    return this.referenceList.DataReferenceCount > 0 ? this.referenceList : null;
-            //}
-            //finally
-            //{
-            //    this.referenceList = null;
-            //    this.encryptingSymmetricAlgorithm = null;
-            //    this.encryptionKeyIdentifier = null;
-            //}
         }
     }
 

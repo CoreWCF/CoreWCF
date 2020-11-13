@@ -33,7 +33,7 @@ namespace CoreWCF
 
         internal static void TraceHandledException(Exception exception, TraceEventType traceEventType)
         {
-            //FxTrace.Exception.TraceHandledException(exception, traceEventType);
+            Fx.Exception.TraceHandledException(exception, traceEventType);
         }
 
         [Conditional("DEBUG")]

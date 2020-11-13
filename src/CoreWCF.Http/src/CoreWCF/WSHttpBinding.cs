@@ -1,17 +1,13 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.Security;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
+﻿using System;
+using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-   public class WSHttpBinding: WSHttpBindingBase
+    public class WSHttpBinding: WSHttpBindingBase
     {
         private static readonly MessageSecurityVersion s_WSMessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
 
-        private WSHttpSecurity _security = new WSHttpSecurity();
+        private WSHTTPSecurity _security = new WSHTTPSecurity();
 
         public WSHttpBinding() : base() { }
 
@@ -22,24 +18,12 @@ namespace CoreWCF
             _security.Mode = securityMode;
         }
 
-        internal WSHttpBinding(WSHttpSecurity security, bool reliableSessionEnabled) : base(reliableSessionEnabled)
+        internal WSHttpBinding(WSHTTPSecurity security, bool reliableSessionEnabled) : base(reliableSessionEnabled)
         {
-            _security = security == null ? new WSHttpSecurity() : security;
+            _security = security == null ? new WSHTTPSecurity() : security;
         }
 
-        /*
-        [DefaultValue(HttpTransportDefaults.AllowCookies)]
-        public bool AllowCookies
-        {
-            get { return HttpTransport.AllowCookies; }
-            set
-            {
-                HttpTransport.AllowCookies = value;
-                HttpsTransport.AllowCookies = value;
-            }
-        }*/
-
-        public WSHttpSecurity Security
+        public WSHTTPSecurity Security
         {
             get { return _security; }
             set
@@ -47,17 +31,6 @@ namespace CoreWCF
                 _security = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
-
-        //public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingParameterCollection parameters)
-        //{
-        //    if ((_security.Mode == SecurityMode.Transport) &&
-        //        _security.Transport.ClientCredentialType == HttpClientCredentialType.InheritedFromHost)
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.HttpClientCredentialTypeInvalid, _security.Transport.ClientCredentialType)));
-        //    }
-
-        //    return base.BuildChannelFactory<TChannel>(parameters);
-        //}
 
         public override BindingElementCollection CreateBindingElements()
         {

@@ -1,16 +1,10 @@
 using System;
-using CoreWCF.Description;
-using System.Xml;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.Serialization;
-using CoreWCF;
-using CoreWCF.Security;
-using CoreWCF.Security.Tokens;
-using CoreWCF.Dispatcher;
 using System.Net.Security;
 using System.Text;
 using CoreWCF.Configuration;
+using CoreWCF.Security;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Channels
 {
@@ -64,7 +58,7 @@ namespace CoreWCF.Channels
             set
             {
                 if (!MessageProtectionOrderHelper.IsDefined(value))
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 _messageProtectionOrder = value;
             }
         }
@@ -135,28 +129,14 @@ namespace CoreWCF.Channels
                 _protectionTokenParameters.RequireDerivedKeys = requireDerivedKeys;
         }
 
-        internal override bool IsSetKeyDerivation(bool requireDerivedKeys)
-        {
-            if (!base.IsSetKeyDerivation(requireDerivedKeys))
-                return false;
-
-            if (_protectionTokenParameters != null && _protectionTokenParameters.RequireDerivedKeys != requireDerivedKeys)
-                return false;
-
-            return true;
-        }
-
-       
-
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
 
             if (typeof(T) == typeof(ChannelProtectionRequirements))
             {
                 AddressingVersion addressing = MessageVersion.Default.Addressing;
-#pragma warning disable 56506
                 MessageEncodingBindingElement encoding = context.Binding.Elements.Find<MessageEncodingBindingElement>();
                 if (encoding != null)
                 {

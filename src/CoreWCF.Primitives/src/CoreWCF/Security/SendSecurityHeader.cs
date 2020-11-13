@@ -1,58 +1,49 @@
-using System.Collections.Generic;
 using CoreWCF.Channels;
-using CoreWCF;
 using CoreWCF.Description;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.IdentityModel.Selectors;
-using System.Security.Cryptography;
-using System;
-using CoreWCF.Security.Tokens;
-using System.Xml;
 using CoreWCF.Diagnostics;
-
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Xml;
 using DictionaryManager = CoreWCF.IdentityModel.DictionaryManager;
+using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
-using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
-using CoreWCF.IdentityModel;
 
 namespace CoreWCF.Security
 {
-   abstract class SendSecurityHeader : SecurityHeader, IMessageHeaderWithSharedNamespace
+    internal abstract class SendSecurityHeader : SecurityHeader, IMessageHeaderWithSharedNamespace
     {
-        bool basicTokenEncrypted;
-        SendSecurityHeaderElementContainer elementContainer;
-        bool primarySignatureDone;
-        bool encryptSignature;
-        SignatureConfirmations signatureValuesGenerated;
-        SignatureConfirmations signatureConfirmationsToSend;
-        int idCounter;
-        string idPrefix;
-        bool hasSignedTokens;
-        bool hasEncryptedTokens;
-        MessagePartSpecification signatureParts;
-        MessagePartSpecification encryptionParts;  
-        SecurityTokenParameters signingTokenParameters;
-        SecurityTokenParameters encryptingTokenParameters;
-        List<SecurityToken> basicTokens = null;
-        List<SecurityTokenParameters> basicSupportingTokenParameters = null;
-        List<SecurityTokenParameters> endorsingTokenParameters = null;
-        List<SecurityTokenParameters> signedEndorsingTokenParameters = null;
-        List<SecurityTokenParameters> signedTokenParameters = null;
-        SecurityToken encryptingToken;
-        bool skipKeyInfoForEncryption;
-        byte[] primarySignatureValue = null;
-        bool shouldProtectTokens;
-        BufferManager bufferManager;
-
-        bool shouldSignToHeader = false;
-
-        SecurityProtocolCorrelationState correlationState;
-        bool signThenEncrypt = true;
-        static readonly string[] ids = new string[] { "_0", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9" };
+        private bool basicTokenEncrypted;
+        private SendSecurityHeaderElementContainer elementContainer;
+        private bool primarySignatureDone;
+        private bool encryptSignature;
+        private SignatureConfirmations signatureValuesGenerated;
+        private SignatureConfirmations signatureConfirmationsToSend;
+        private int idCounter;
+        private string idPrefix;
+        private bool hasSignedTokens;
+        private bool hasEncryptedTokens;
+        private MessagePartSpecification signatureParts;
+        private MessagePartSpecification encryptionParts;
+        private SecurityTokenParameters signingTokenParameters;
+        private SecurityTokenParameters encryptingTokenParameters;
+        private List<SecurityToken> basicTokens = null;
+        private List<SecurityTokenParameters> basicSupportingTokenParameters = null;
+        private List<SecurityTokenParameters> endorsingTokenParameters = null;
+        private List<SecurityTokenParameters> signedEndorsingTokenParameters = null;
+        private List<SecurityTokenParameters> signedTokenParameters = null;
+        private SecurityToken encryptingToken;
+        private bool skipKeyInfoForEncryption;
+        private byte[] primarySignatureValue = null;
+        private bool shouldProtectTokens;
+        private BufferManager bufferManager;
+        private bool shouldSignToHeader = false;
+        private SecurityProtocolCorrelationState correlationState;
+        private bool signThenEncrypt = true;
+        private static readonly string[] ids = new string[] { "_0", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9" };
 
         protected SendSecurityHeader(Message message, string actor, bool mustUnderstand, bool relay,
             SecurityStandardsManager standardsManager,
@@ -63,10 +54,7 @@ namespace CoreWCF.Security
             this.elementContainer = new SendSecurityHeaderElementContainer();
         }
 
-        public SendSecurityHeaderElementContainer ElementContainer
-        {
-            get { return this.elementContainer; }
-        }
+        public SendSecurityHeaderElementContainer ElementContainer => this.elementContainer;
 
         public SecurityProtocolCorrelationState CorrelationState
         {
@@ -124,20 +112,11 @@ namespace CoreWCF.Security
             }
         }
 
-        internal byte[] PrimarySignatureValue
-        {
-            get { return this.primarySignatureValue; }
-        }
+        internal byte[] PrimarySignatureValue => this.primarySignatureValue;
 
-        protected internal SecurityTokenParameters SigningTokenParameters
-        {
-            get { return this.signingTokenParameters; }
-        }
+        protected internal SecurityTokenParameters SigningTokenParameters => this.signingTokenParameters;
 
-        protected bool ShouldSignToHeader
-        {
-            get { return this.shouldSignToHeader; }
-        }
+        protected bool ShouldSignToHeader => this.shouldSignToHeader;
 
         public string IdPrefix
         {
@@ -149,20 +128,11 @@ namespace CoreWCF.Security
             }
         }
 
-        public override string Name
-        {
-            get { return this.StandardsManager.SecurityVersion.HeaderName.Value; }
-        }
+        public override string Name => this.StandardsManager.SecurityVersion.HeaderName.Value;
 
-        public override string Namespace
-        {
-            get { return this.StandardsManager.SecurityVersion.HeaderNamespace.Value; }
-        }
+        public override string Namespace => this.StandardsManager.SecurityVersion.HeaderNamespace.Value;
 
-        protected SecurityAppliedMessage SecurityAppliedMessage
-        {
-            get { return (SecurityAppliedMessage) this.Message; }
-        }
+        protected SecurityAppliedMessage SecurityAppliedMessage => (SecurityAppliedMessage)this.Message;
 
         public bool SignThenEncrypt
         {
@@ -203,26 +173,11 @@ namespace CoreWCF.Security
             }
         }
 
-        public SecurityTimestamp Timestamp
-        {
-            get { return this.elementContainer.Timestamp; }
-        }
+        public SecurityTimestamp Timestamp => this.elementContainer.Timestamp;
 
-        public bool HasSignedTokens
-        {
-            get
-            {
-                return this.hasSignedTokens;
-            }
-        }
+        public bool HasSignedTokens => this.hasSignedTokens;
 
-        public bool HasEncryptedTokens
-        {
-            get
-            {
-                return this.hasEncryptedTokens;
-            }
-        }
+        public bool HasEncryptedTokens => this.hasEncryptedTokens;
 
         public void AddPrerequisiteToken(SecurityToken token)
         {
@@ -234,7 +189,7 @@ namespace CoreWCF.Security
             this.elementContainer.PrerequisiteToken = token;
         }
 
-        void AddParameters(ref List<SecurityTokenParameters> list, SecurityTokenParameters item)
+        private void AddParameters(ref List<SecurityTokenParameters> list, SecurityTokenParameters item)
         {
             if (list == null)
             {
@@ -247,10 +202,7 @@ namespace CoreWCF.Security
 
         public abstract void ApplySecurityAndWriteHeaders(MessageHeaders headers, XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator);
 
-        protected virtual bool HasSignedEncryptedMessagePart
-        {
-            get { return false; }
-        }
+        protected virtual bool HasSignedEncryptedMessagePart => false;
 
         public void SetSigningToken(SecurityToken token, SecurityTokenParameters tokenParameters)
         {
@@ -273,7 +225,6 @@ namespace CoreWCF.Security
             this.elementContainer.SourceEncryptionToken = token;
             this.encryptingTokenParameters = tokenParameters;
         }
-
 
         public void AddBasicSupportingToken(SecurityToken token, SecurityTokenParameters parameters)
         {
@@ -382,7 +333,7 @@ namespace CoreWCF.Security
                 SR.Format(SR.SignatureConfirmationNotSupported)));
         }
 
-        void StartEncryption()
+        private void StartEncryption()
         {
             if (this.elementContainer.SourceEncryptionToken == null)
             {
@@ -461,7 +412,7 @@ namespace CoreWCF.Security
             StartEncryptionCore(this.encryptingToken, identifier);
         }
 
-        void CompleteEncryption()
+        private void CompleteEncryption()
         {
             ISecurityElement referenceList = CompleteEncryptionCore(
                 elementContainer.PrimarySignature,
@@ -558,7 +509,7 @@ namespace CoreWCF.Security
             }
         }
 
-        SignatureConfirmations GetSignatureValues()
+        private SignatureConfirmations GetSignatureValues()
         {
             return this.signatureValuesGenerated;
         }
@@ -771,7 +722,7 @@ namespace CoreWCF.Security
             return (ShouldSerializeToken(parameters, this.MessageDirection)) ? SecurityTokenReferenceStyle.Internal : SecurityTokenReferenceStyle.External;
         }
 
-        void StartSignature()
+        private void StartSignature()
         {
             if (this.elementContainer.SourceSigningToken == null)
             {
@@ -830,7 +781,7 @@ namespace CoreWCF.Security
             this.StartPrimarySignatureCore(signingToken, signingKeyIdentifier, this.signatureParts, generateTargettablePrimarySignature);
         }
 
-        void CompleteSignature()
+        private void CompleteSignature()
         {
             ISignatureValueSecurityElement signedXml = this.CompletePrimarySignatureCore(
                 elementContainer.GetSignatureConfirmations(), elementContainer.GetSignedEndorsingSupportingTokens(), 
@@ -861,7 +812,7 @@ namespace CoreWCF.Security
         protected abstract ISecurityElement CompleteEncryptionCore(SendSecurityHeaderElement primarySignature, 
             SendSecurityHeaderElement[] basicTokens, SendSecurityHeaderElement[] signatureConfirmations, SendSecurityHeaderElement[] endorsingSignatures);
 
-        void SignWithSupportingToken(SecurityToken token, SecurityKeyIdentifierClause identifierClause)
+        private void SignWithSupportingToken(SecurityToken token, SecurityKeyIdentifierClause identifierClause)
         {
             if (token == null)
             {
@@ -909,7 +860,7 @@ namespace CoreWCF.Security
             this.elementContainer.AddEndorsingSignature(supportingSignatureElement);
         }
 
-        void SignWithSupportingTokens()
+        private void SignWithSupportingTokens()
         {
             SecurityToken[] endorsingTokens = this.elementContainer.GetEndorsingSupportingTokens();
             if (endorsingTokens != null)
@@ -976,7 +927,7 @@ namespace CoreWCF.Security
         }
 
         protected bool ShouldUseStrTransformForToken(SecurityToken securityToken, int position, SecurityTokenAttachmentMode mode, out SecurityKeyIdentifierClause keyIdentifierClause)
-        {
+        { 
             /*
                IssuedSecurityTokenParameters tokenParams = null;
                keyIdentifierClause = null;
@@ -1011,17 +962,11 @@ namespace CoreWCF.Security
             throw new NotImplementedException();
         }
 
-        XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedNamespace
-        {
-            get { return XD.UtilityDictionary.Namespace; }
-        }
+        XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedNamespace => XD.UtilityDictionary.Namespace;
 
-        XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedPrefix
-        {
-            get { return XD.UtilityDictionary.Prefix; }
-        }
+        XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedPrefix => XD.UtilityDictionary.Prefix;
 
-        void AddGeneratedSignatureValue(byte[] signatureValue, bool wasEncrypted)
+        private void AddGeneratedSignatureValue(byte[] signatureValue, bool wasEncrypted)
         {
             // cache outgoing signatures only on the client side
             if (this.MaintainSignatureConfirmationState && (this.signatureConfirmationsToSend == null))
@@ -1035,10 +980,10 @@ namespace CoreWCF.Security
         }
     }
 
-    class TokenElement : ISecurityElement
+    internal class TokenElement : ISecurityElement
     {
-        SecurityStandardsManager standardsManager;
-        SecurityToken token;
+        private SecurityStandardsManager standardsManager;
+        private SecurityToken token;
 
         public TokenElement(SecurityToken token, SecurityStandardsManager standardsManager)
         {
@@ -1057,20 +1002,11 @@ namespace CoreWCF.Security
             return token.GetHashCode() ^ standardsManager.GetHashCode();
         }
 
-        public bool HasId
-        {
-            get { return true; }
-        }
+        public bool HasId => true;
 
-        public string Id
-        {
-            get { return token.Id; }
-        }
+        public string Id => token.Id;
 
-        public SecurityToken Token
-        {
-            get { return token; }
-        }
+        public SecurityToken Token => token;
 
         public void WriteTo(XmlDictionaryWriter writer, DictionaryManager dictionaryManager)
         {

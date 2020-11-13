@@ -1,11 +1,9 @@
+using System;
 using System.Collections.Generic;
-using CoreWCF.IdentityModel.Tokens;
 using System.Reflection;
 using System.Security.Cryptography;
-using CoreWCF;
-using System;
+using CoreWCF.IdentityModel.Tokens;
 using Linq = System.Linq;
-
 
 namespace CoreWCF.IdentityModel
 {
@@ -33,6 +31,7 @@ namespace CoreWCF.IdentityModel
                 return emptyBuffer;
             }
         }
+
         public static bool FixedTimeEquals(byte[] a, byte[] b)
         {
             if (a == null && b == null)

@@ -16,7 +16,6 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security.Tokens;
 using System.IO;
 using CoreWCF.Security;
-
 using Psha1DerivedKeyGenerator = CoreWCF.IdentityModel.Psha1DerivedKeyGenerator;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel;
@@ -26,37 +25,37 @@ namespace CoreWCF.Security
 {
 
 
-    class RequestSecurityTokenResponse : BodyWriter
+   internal class RequestSecurityTokenResponse : BodyWriter
     {
-        static int minSaneKeySizeInBits = 8 * 8; // 8 Bytes.
-        static int maxSaneKeySizeInBits = (16 * 1024) * 8; // 16 K
+        private static int minSaneKeySizeInBits = 8 * 8; // 8 Bytes.
+        private static int maxSaneKeySizeInBits = (16 * 1024) * 8; // 16 K
 
-        SecurityStandardsManager standardsManager;
-        string context;
-        int keySize;
-        bool computeKey;
-        string tokenType;
-        SecurityKeyIdentifierClause requestedAttachedReference;
-        SecurityKeyIdentifierClause requestedUnattachedReference;
-        SecurityToken issuedToken;
-        SecurityToken proofToken;
-        SecurityToken entropyToken;
-        BinaryNegotiation negotiationData;
-        XmlElement rstrXml;
-        DateTime effectiveTime;
-        DateTime expirationTime;
-        bool isLifetimeSet;
-        byte[] authenticator;
-        bool isReceiver;
-        bool isReadOnly;
-        byte[] cachedWriteBuffer;
-        int cachedWriteBufferLength;
-        bool isRequestedTokenClosed;
-        object appliesTo;
-        XmlObjectSerializer appliesToSerializer;
-        Type appliesToType;
-        Object thisLock = new Object();
-        private IdentityModel.XmlBuffer issuedTokenBuffer;
+        private SecurityStandardsManager standardsManager;
+        private string context;
+        private int keySize;
+        private bool computeKey;
+        private string tokenType;
+        private SecurityKeyIdentifierClause requestedAttachedReference;
+        private SecurityKeyIdentifierClause requestedUnattachedReference;
+        private SecurityToken issuedToken;
+        private SecurityToken proofToken;
+        private SecurityToken entropyToken;
+        private BinaryNegotiation negotiationData;
+        private XmlElement rstrXml;
+        private DateTime effectiveTime;
+        private DateTime expirationTime;
+        private bool isLifetimeSet;
+        private byte[] authenticator;
+        private bool isReceiver;
+        private bool isReadOnly;
+        private byte[] cachedWriteBuffer;
+        private int cachedWriteBufferLength;
+        private bool isRequestedTokenClosed;
+        private object appliesTo;
+        private XmlObjectSerializer appliesToSerializer;
+        private Type appliesToType;
+        private Object thisLock = new Object();
+        private XmlBuffer issuedTokenBuffer;
 
         public RequestSecurityTokenResponse()
             : this(SecurityStandardsManager.DefaultInstance)
@@ -175,7 +174,7 @@ namespace CoreWCF.Security
             string context, 
             string tokenType, int keySize, SecurityKeyIdentifierClause requestedAttachedReference, 
             SecurityKeyIdentifierClause requestedUnattachedReference, bool computeKey, DateTime validFrom, DateTime validTo, 
-            bool isRequestedTokenClosed, IdentityModel.XmlBuffer issuedTokenBuffer) : 
+            bool isRequestedTokenClosed, XmlBuffer issuedTokenBuffer) : 
             this(standardsManager, rstrXml, context, tokenType, keySize, requestedAttachedReference, requestedUnattachedReference, computeKey, validFrom, validTo, isRequestedTokenClosed)
         {
             this.issuedTokenBuffer = issuedTokenBuffer;
@@ -459,7 +458,7 @@ namespace CoreWCF.Security
             }
         }
 
-        internal CoreWCF.IdentityModel.XmlBuffer IssuedTokenBuffer
+        internal CoreWCF.XmlBuffer IssuedTokenBuffer
         {
             get
             {

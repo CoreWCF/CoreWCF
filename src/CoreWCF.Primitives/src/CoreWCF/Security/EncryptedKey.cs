@@ -1,28 +1,25 @@
+using System;
+using System.Xml;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
-using System.Runtime.CompilerServices;
-using System.Xml;
 using DictionaryManager = CoreWCF.IdentityModel.DictionaryManager;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
-using System;
-using System.Runtime;
-
 
 namespace CoreWCF.Security
 {
 
-    sealed class EncryptedKey : EncryptedType
+   internal sealed class EncryptedKey : EncryptedType
     {
         internal static readonly XmlDictionaryString CarriedKeyElementName = XD.XmlEncryptionDictionary.CarriedKeyName;
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.EncryptedKey;
         internal static readonly XmlDictionaryString RecipientAttribute = XD.XmlEncryptionDictionary.Recipient;
 
-        string carriedKeyName;
-        string recipient;
-        ReferenceList referenceList;
-        byte[] wrappedKey;
+        private string carriedKeyName;
+        private string recipient;
+        private ReferenceList referenceList;
+        private byte[] wrappedKey;
 
         public string CarriedKeyName
         {
@@ -134,6 +131,7 @@ namespace CoreWCF.Security
             writer.WriteBase64(this.wrappedKey, 0, this.wrappedKey.Length);
         }
     }
+
     internal abstract class EncryptedType : ISecurityElement
     {
         internal static readonly XmlDictionaryString NamespaceUri = XD.XmlEncryptionDictionary.Namespace;

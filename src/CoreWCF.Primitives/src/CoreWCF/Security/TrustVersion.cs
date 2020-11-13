@@ -1,51 +1,26 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 
 namespace CoreWCF.Security
 {
     public abstract class TrustVersion
     {
-        readonly XmlDictionaryString trustNamespace;
         readonly XmlDictionaryString prefix;
 
         internal TrustVersion(XmlDictionaryString ns, XmlDictionaryString prefix)
         {
-            this.trustNamespace = ns;
+            this.Namespace = ns;
             this.prefix = prefix;
         }
 
-        public XmlDictionaryString Namespace
-        {
-            get
-            {
-                return this.trustNamespace;
-            }
-        }
+        public XmlDictionaryString Namespace { get; }
 
-        public XmlDictionaryString Prefix
-        {
-            get
-            {
-                return this.prefix;
-            }
-        }
+        public XmlDictionaryString Prefix => this.prefix;
 
-        public static TrustVersion Default
-        {
-            get { return WSTrustFeb2005; }
-        }
+        public static TrustVersion Default => WSTrustFeb2005;
 
-        public static TrustVersion WSTrustFeb2005
-        {
-            get { return WSTrustVersionFeb2005.Instance; }
-        }
+        public static TrustVersion WSTrustFeb2005 => WSTrustVersionFeb2005.Instance;
 
-        public static TrustVersion WSTrust13
-        {
-            get { return WSTrustVersion13.Instance; }
-        }
+        public static TrustVersion WSTrust13 => WSTrustVersion13.Instance;
 
         class WSTrustVersionFeb2005 : TrustVersion
         {
@@ -56,13 +31,7 @@ namespace CoreWCF.Security
             {
             }
 
-            public static TrustVersion Instance
-            {
-                get
-                {
-                    return instance;
-                }
-            }
+            public static TrustVersion Instance => instance;
         }
 
         class WSTrustVersion13 : TrustVersion
@@ -74,13 +43,7 @@ namespace CoreWCF.Security
             {
             }
 
-            public static TrustVersion Instance
-            {
-                get
-                {
-                    return instance;
-                }
-            }
+            public static TrustVersion Instance => instance;
         }
 
     }
