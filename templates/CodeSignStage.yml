@@ -1,0 +1,47 @@
+stages:
+- stage: CodeSign
+  displayName: Code Sign
+  dependsOn: Pack
+  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')))
+  jobs:
+  - deployment: CodeSign
+    displayName: Code Signing
+    pool:
+      vmImage: windows-latest
+    environment: Code Sign - Approvals
+    variables:
+    - group: Sign Client Credentials
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # If you have MSCA: https://aka.ms/mscadocs
+          #- task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-antimalware.AntiMalware@3
+          #  displayName: AntiMalware Scan
+          #  inputs:
+          #    EnableServices: true
+          #    FileDirPath: $(Pipeline.Workspace)\BuildPackages
+
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: custom
+              custom: tool
+              arguments: install --tool-path . SignClient
+            displayName: Install SignTool tool
+
+          - pwsh: |
+              .\SignClient "Sign" `
+              --baseDirectory "$(Pipeline.Workspace)\BuildPackages" `
+              --input "**/*.nupkg" `
+              --config "$(Pipeline.Workspace)\config\SignClient.json" `
+              --filelist "$(Pipeline.Workspace)\config\filelist.txt" `
+              --user '$(SignClientUser)' `
+              --secret '$(SignClientSecret)' `
+              --name "CoreWCF" `
+              --description "CoreWCF" `
+              --descriptionUrl "https://github.com/CoreWCF/CoreWCF"
+            displayName: Sign packages
+
+          - publish: $(Pipeline.Workspace)/BuildPackages
+            displayName: Publish Signed Packages
+            artifact: SignedPackages

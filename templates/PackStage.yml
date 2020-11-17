@@ -1,0 +1,46 @@
+parameters:
+- name: packProjects
+  default: ''
+
+stages:
+- stage: Pack
+  dependsOn: Test
+  displayName: Create Packages
+  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')))
+  jobs:
+  - job: Pack
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download build artifacts
+      inputs:
+        source: current
+        artifact: ReleaseBuild
+        path: $(System.DefaultWorkingDirectory)/bin
+
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: 'build'
+        projects: ${{ parameters.packProjects}}
+        arguments: '--configuration Release /t:restore'
+
+    - task: DotNetCoreCLI@2
+      displayName: Create packages
+      inputs:
+        command: 'pack'
+        configurationToPack: Release
+        searchPatternPack: ${{ parameters.packProjects}}
+        outputDir: '$(Build.ArtifactStagingDirectory)/Packages'
+        nobuild: true
+        includesymbols: true
+        arguments: '--no-restore'
+
+    - publish: $(Build.ArtifactStagingDirectory)/Packages
+      displayName: Publish Packages
+      artifact: BuildPackages
+
+    - publish: config
+      displayName: Publish Signing Scripts
+      artifact: config

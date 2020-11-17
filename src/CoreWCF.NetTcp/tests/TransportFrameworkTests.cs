@@ -31,7 +31,7 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 var nettcpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IRemoteEndpointMessageProperty>(nettcpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("net.tcp://localhost:8808/RemoteEndpointMessagePropertyService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri(host.GetNetTcpAddressInUse() + "/RemoteEndpointMessagePropertyService.svc")));
                 var channel = factory.CreateChannel();
 
                 Message request = Message.CreateMessage(nettcpBinding.MessageVersion, "echo", "PASS");
@@ -43,7 +43,7 @@ namespace CoreWCF.NetTcp.Tests
 
                 string clientIP = results[1];
                 CheckIP(clientIP);
-                ThreadPool.QueueUserWorkItem(NetstatResults, results[2]);
+                NetstatResults(results[2], host.GetNetTcpPortInUse().ToString());
             }
         }
 
@@ -64,7 +64,7 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
-        private void NetstatResults(object state)
+        private void NetstatResults(string clientPort, string endpointPort)
         {
             Process netstatProcess = new Process();
             netstatProcess.StartInfo.FileName = "netstat";
@@ -74,8 +74,6 @@ namespace CoreWCF.NetTcp.Tests
 
             // get the netstat results while the connection is open
             netstatProcess.Start();
-            string clientPort = (string)state;
-            string endpointPort = "8808";
             CheckPort(clientPort, endpointPort, netstatProcess);
         }
 

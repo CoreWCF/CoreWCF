@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using CoreWCF.Configuration;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF
 {
@@ -21,12 +22,15 @@ namespace CoreWCF
         private IDisposable _disposableInstance;
         private TService _singletonInstance;
         private readonly IServiceProvider _serviceProvider;
-        private IServerAddressesFeature _serverAddresses;
+        private readonly ILogger<ServiceHostObjectModel<TService>> _logger;
 
-        public ServiceHostObjectModel(IServiceProvider serviceProvider, IServer server, IServiceBuilder serviceBuilder)
+        public ServiceHostObjectModel(IServiceProvider serviceProvider, ServiceBuilder serviceBuilder, ILogger<ServiceHostObjectModel<TService>> logger)
         {
             _serviceProvider = serviceProvider;
-            _serverAddresses = server.Features.Get<IServerAddressesFeature>();
+            _logger = logger;
+
+            WaitForServiceBuilderOpening(serviceBuilder);
+
             InitializeDescription(new UriSchemeKeyedCollection(serviceBuilder.BaseAddresses.ToArray()));
         }
 
@@ -224,7 +228,6 @@ namespace CoreWCF
 
         internal Uri MakeAbsoluteUri(Uri uri, Binding binding)
         {
-            EnsureBaseAddresses();
             Uri result = uri;
             if (!result.IsAbsoluteUri)
             {
@@ -242,38 +245,6 @@ namespace CoreWCF
             }
 
             return result;
-        }
-
-        private void EnsureBaseAddresses()
-        {
-            if (_serverAddresses != null)
-            {
-                foreach(var addr in _serverAddresses.Addresses)
-                {
-                    var uri = new Uri(addr);
-                    bool skip = false;
-                    foreach(var baseAddress in InternalBaseAddresses)
-                    {
-                        if (baseAddress.Port == uri.Port && baseAddress.Scheme != uri.Scheme)
-                        {
-                            // ASP.NET Core adds net.tcp uri's as http{s} uri's
-                            skip = true;
-                            break;
-                        }
-                    }
-                    if (!skip && !InternalBaseAddresses.Contains(uri))
-                    {
-
-                        InternalBaseAddresses.Add(uri);
-                    }
-                }
-
-                if (_serverAddresses.Addresses.Count > 0)
-                {
-                    // It was populated by ASP.NET Core so can skip re-adding in future.
-                    _serverAddresses = null;
-                }
-            }
         }
 
         internal static String GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
@@ -349,6 +320,25 @@ namespace CoreWCF
         protected override Task OnOpenAsync(CancellationToken token)
         {
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Adds any implicitly-bound addresses to the service builder base addresses, so that net.tcp://
+        /// bindings will correctly work on them. This is only necessary when the port provided to `UseNetTcp` is 0.
+        ///
+        /// <remarks>
+        /// Currently, this does not remove the bound address from the server addresses. The framework removes
+        /// the `net.tcp` scheme and replaces with with `http`, so the host name itself is checked.
+        ///
+        /// Another option that might be cleaner, would be to remove the use of `serviceBuilder.BaseAddresses` or
+        /// populate it at runtime once from ServerAddresses, and disallow adding values by hand.
+        /// </remarks>
+        /// </summary>
+        /// <param name="serviceBuilder"></param>
+        private void WaitForServiceBuilderOpening(ServiceBuilder serviceBuilder)
+        {
+            serviceBuilder.WaitForOpening().GetAwaiter().GetResult();
+            serviceBuilder.ThrowIfDisposedOrNotOpen();
         }
     }
 }

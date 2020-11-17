@@ -228,7 +228,6 @@ namespace CoreWCF.Channels
             try
             {
                 bool closeOutputAfterReply = PrepareReply(ref responseMessage);
-                httpOutput = GetHttpOutput(message);
                 await httpOutput.SendAsync(token);
 
                 if (closeOutputAfterReply)

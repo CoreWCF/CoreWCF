@@ -19,7 +19,7 @@ namespace CoreWCF.Channels
         public HttpTransportBindingElement()
         {
             AuthenticationScheme = HttpTransportDefaults.AuthenticationScheme;
-            MaxBufferSize = TransportDefaults.MaxBufferSize;
+            _maxBufferSize = TransportDefaults.MaxBufferSize;
             KeepAliveEnabled = HttpTransportDefaults.KeepAliveEnabled;
             TransferMode = HttpTransportDefaults.TransferMode;
             WebSocketSettings = HttpTransportDefaults.GetDefaultWebSocketTransportSettings();
@@ -28,7 +28,8 @@ namespace CoreWCF.Channels
         protected HttpTransportBindingElement(HttpTransportBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
             AuthenticationScheme = elementToBeCloned.AuthenticationScheme;
-            MaxBufferSize = elementToBeCloned.MaxBufferSize;
+            _maxBufferSize = elementToBeCloned._maxBufferSize;
+            _maxBufferSizeInitialized = elementToBeCloned._maxBufferSizeInitialized;
             KeepAliveEnabled = elementToBeCloned.KeepAliveEnabled;
             TransferMode = elementToBeCloned.TransferMode;
             WebSocketSettings = elementToBeCloned.WebSocketSettings.Clone();
@@ -201,10 +202,13 @@ namespace CoreWCF.Channels
 
             //    return (T)(object)_anonymousUriPrefixMatcher;
             //}
-            //else if (typeof(T) == typeof(ITransportCompressionSupport))
-            //{
-            //    return (T)(object)new TransportCompressionSupportHelper();
-            //}
+            else if (typeof(T).FullName.Equals("CoreWCF.Channels.ITransportCompressionSupport"))
+            {
+                var app = context.BindingParameters.Find<IApplicationBuilder>();
+                if (app == null) return base.GetProperty<T>(context);
+                var tcs = app.ApplicationServices.GetService(typeof(T).Assembly.GetType("CoreWCF.Channels.TransportCompressionSupportHelper"));
+                return (T)tcs;
+            }
             else
             {
                 if (context.BindingParameters.Find<MessageEncodingBindingElement>() == null)

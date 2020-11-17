@@ -139,7 +139,7 @@ namespace CoreWCF.Description
             return new ListenUriInfo(listenUri, endpoint.ListenUriMode);
         }
 
-        internal static void InitializeServiceHost(ServiceHostBase serviceHost)
+        internal static void InitializeServiceHost(ServiceHostBase serviceHost, IServiceProvider services)
         {
             var description = serviceHost.Description;
             if (serviceHost.ImplementedContracts != null && serviceHost.ImplementedContracts.Count > 0)
@@ -163,6 +163,7 @@ namespace CoreWCF.Description
                     stuffPerListenUriInfo.Add(listenUriInfo, new StuffPerListenUriInfo());
                 }
                 stuffPerListenUriInfo[listenUriInfo].Endpoints.Add(endpoint);
+                stuffPerListenUriInfo[listenUriInfo].Parameters.Add(services);
             }
 
             foreach (KeyValuePair<ListenUriInfo, StuffPerListenUriInfo> stuff in stuffPerListenUriInfo)
@@ -690,7 +691,7 @@ namespace CoreWCF.Description
                 serviceHost.Description.Endpoints.Add(serviceEndpoint);
             }
 
-            InitializeServiceHost(serviceHost);
+            InitializeServiceHost(serviceHost, services);
             ServiceConfigurationDelegateHolder<TService> configDelegate = services.GetService<ServiceConfigurationDelegateHolder<TService>>();
             configDelegate?.Configure(serviceHost);
 

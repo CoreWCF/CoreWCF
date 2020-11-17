@@ -1,7 +1,6 @@
 ﻿using CoreWCF.Runtime;
 using System;
 using System.Buffers;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -11,16 +10,25 @@ namespace CoreWCF.Channels.Framing
 {
     public class RawStream : Stream
     {
+#if DEBUG
+#pragma warning disable IDE0052 // Remove unread private members
+        private readonly FramingConnection _connection;
+#pragma warning restore IDE0052 // Remove unread private members
+#endif
         private readonly PipeReader _input;
         private readonly PipeWriter _output;
         private bool _canRead;
         private object _thisLock;
         private TaskCompletionSource<object> _unwrapTcs;
+        private SemaphoreSlim _readSemaphore = new SemaphoreSlim(1, 1);
 
-        public RawStream(PipeReader input, PipeWriter output)
+        public RawStream(FramingConnection connection)
         {
-            _input = input;
-            _output = output;
+#if DEBUG
+            _connection = connection;
+#endif
+            _input = connection.Input;
+            _output = connection.Output;
             _canRead = true;
             _thisLock = new object();
         }
@@ -122,38 +130,47 @@ namespace CoreWCF.Channels.Framing
 
         private async ValueTask<int> ReadAsyncInternal(Memory<byte> destination)
         {
-            while (true)
+            await _readSemaphore.WaitAsync();
+            try
             {
-                if (!CanRead)
+                while (true)
                 {
-                    await _unwrapTcs.Task;
-                    return 0;
-                }
-
-                var result = await _input.ReadAsync();
-                if (!CanRead)
-                {
-                    _input.AdvanceTo(result.Buffer.Start);
-                    await _unwrapTcs.Task;
-                    return 0;
-                }
-
-                var readableBuffer = result.Buffer;
-                try
-                {
-                    if (!readableBuffer.IsEmpty)
+                    if (!CanRead)
                     {
-                        // buffer.Count is int
-                        var count = (int)Math.Min(readableBuffer.Length, destination.Length);
-                        readableBuffer = readableBuffer.Slice(0, count);
-                        readableBuffer.CopyTo(destination.Span);
-                        return count;
+                        await _unwrapTcs.Task;
+                        return 0;
+                    }
+
+                    var result = await _input.ReadAsync();
+                    if (!CanRead)
+                    {
+                        _input.AdvanceTo(result.Buffer.Start);
+                        await _unwrapTcs.Task;
+                        return 0;
+                    }
+
+                    var readableBuffer = result.Buffer;
+                    try
+                    {
+                        if (!readableBuffer.IsEmpty)
+                        {
+                            // buffer.Count is int
+                            var count = (int)Math.Min(readableBuffer.Length, destination.Length);
+                            readableBuffer = readableBuffer.Slice(0, count);
+                            readableBuffer.CopyTo(destination.Span);
+                            return count;
+                        }
+                    }
+                    finally
+                    {
+                        _input.AdvanceTo(readableBuffer.End, readableBuffer.End);
                     }
                 }
-                finally
-                {
-                    _input.AdvanceTo(readableBuffer.End, readableBuffer.End);
-                }
+            }
+            finally
+            {
+                Fx.Assert(_readSemaphore.CurrentCount == 0, "_readSemaphore double release");
+                _readSemaphore.Release();
             }
         }
 
@@ -242,19 +259,31 @@ namespace CoreWCF.Channels.Framing
             // sent. Calling StartUnwrapRead prevents any reads from completing until FinisheUnwrapRead has
             // been called. This ensures any client bytes from the next session are not consumed and still
             // allows a write to be sent through the wrapping stream.
-            lock (_thisLock)
-            {
-                _unwrapTcs = new TaskCompletionSource<object>();
-                _canRead = false;
-            }
 
-            _input.CancelPendingRead();
+            bool acquired = _readSemaphore.Wait(0);
+            try
+            {
+                lock (_thisLock)
+                {
+                    _unwrapTcs = new TaskCompletionSource<object>();
+                    _canRead = false;
+                }
+
+                _input.CancelPendingRead();
+            }
+            finally
+            {
+                if (acquired) _readSemaphore.Release();
+            }
         }
 
-        public void FinishUnwrapRead()
+        public async Task FinishUnwrapReadAsync()
         {
             Fx.Assert(_unwrapTcs != null, "StartUnwrapRead must be called first");
             _unwrapTcs.TrySetResult(null);
+            // Ensure any reads have completed before continuing on to connection reuse
+            await _readSemaphore.WaitAsync();
+            _readSemaphore.Release();
         }
     }
 }

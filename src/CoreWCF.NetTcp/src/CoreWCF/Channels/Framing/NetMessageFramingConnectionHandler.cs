@@ -1,27 +1,37 @@
-﻿using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Hosting.Server.Features;
+﻿using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using CoreWCF.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Channels.Framing
 {
-    public class NetMessageFramingConnectionHandler : ConnectionHandler
+    internal class NetMessageFramingConnectionHandler : ConnectionHandler
     {
-        private IServiceBuilder _serviceBuilder;
-        private IDispatcherBuilder _dispatcherBuilder;
-        private HandshakeDelegate _handshake;
+        private readonly IServiceBuilder _serviceBuilder;
+        private readonly IDispatcherBuilder _dispatcherBuilder;
+        private readonly HandshakeDelegate _handshake;
+        private readonly IServiceProvider _services;
+
+        public List<ListenOptions> ListenOptions { get; } = new List<ListenOptions>();
 
         public NetMessageFramingConnectionHandler(IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, IFramingConnectionHandshakeBuilder handshakeBuilder)
         {
             _serviceBuilder = serviceBuilder;
             _dispatcherBuilder = dispatcherBuilder;
             _handshake = BuildHandshake(handshakeBuilder);
+            _services = handshakeBuilder.HandshakeServices;
+            serviceBuilder.Opened += OnServiceBuilderOpened;
+        }
+
+        private void OnServiceBuilderOpened(object sender, EventArgs e)
+        {
+            // Trigger building all of the services to improve first request time and to catch any service config issues
+            _services.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
         }
 
         private HandshakeDelegate BuildHandshake(IFramingConnectionHandshakeBuilder handshakeBuilder)
@@ -60,6 +70,7 @@ namespace CoreWCF.Channels.Framing
 
         internal static UriPrefixTable<HandshakeDelegate> BuildAddressTable(IServiceProvider services)
         {
+            var logger = services.GetRequiredService <ILogger<NetMessageFramingConnectionHandler>>();
             var serviceBuilder = services.GetRequiredService<IServiceBuilder>();
             var dispatcherBuilder = services.GetRequiredService<IDispatcherBuilder>();
             var addressTable = new UriPrefixTable<HandshakeDelegate>();
@@ -84,6 +95,7 @@ namespace CoreWCF.Channels.Framing
                     }
 
                     var handshake = BuildHandshakeDelegateForDispatcher(dispatcher);
+                    logger.LogDebug($"Registering URI {dispatcher.BaseAddress} with NetMessageFramingConnectionHandler");
                     addressTable.RegisterUri(dispatcher.BaseAddress, cotbe.HostNameComparisonMode, handshake);
                 }
             }

@@ -98,8 +98,30 @@ namespace Helpers
                         }
                     });
                 })
-            .UseUrls("http://localhost:8080")
             .UseStartup<TStartup>();
+
+        public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
+            WebHost.CreateDefaultBuilder(new string[0])
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseKestrel(options =>
+            {
+                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                {
+                    if (Debugger.IsAttached)
+                    {
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+            })
+            .UseStartup(startupType);
 
         public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
             WebHost.CreateDefaultBuilder(new string[0])
@@ -135,7 +157,6 @@ namespace Helpers
                     }
                 });
             })
-            .UseUrls("http://localhost:8080", "https://localhost:8443")
             .UseStartup<TStartup>();
 
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)

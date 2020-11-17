@@ -38,6 +38,7 @@ namespace DispatcherClient
             services.AddSingleton<DispatcherChannelFactory>(this);
             services.AddScoped<DispatcherReplyChannel>();
             services.AddServiceModelServices();
+            services.AddLogging();
             IServer server = new Helpers.MockServer();
             services.AddSingleton(server);
             services.AddSingleton(GetType(), this);
@@ -96,6 +97,7 @@ namespace DispatcherClient
             var binding = new CoreWCF.Channels.CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new Helpers.MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<TService, TContract>(binding, channel.Via);
+            await serviceBuilder.OpenAsync();
             var dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
             var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
             var serviceDispatcher = dispatchers[0];

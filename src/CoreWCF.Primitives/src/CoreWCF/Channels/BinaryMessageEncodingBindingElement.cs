@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Xml;
+using CoreWCF.Configuration;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
@@ -164,14 +165,14 @@ namespace CoreWCF.Channels
         {
             if (compressionFormat != CompressionFormat.None)
             {
-                //ITransportCompressionSupport compressionSupport = context.GetInnerProperty<ITransportCompressionSupport>();
-                //if (compressionSupport == null || !compressionSupport.IsCompressionFormatSupported(this.compressionFormat))
-                //{
+                ITransportCompressionSupport compressionSupport = context.GetInnerProperty<ITransportCompressionSupport>();
+                if (compressionSupport == null || !compressionSupport.IsCompressionFormatSupported(this.compressionFormat))
+                {
                     throw Fx.Exception.AsError(new NotSupportedException(SR.Format(
                         SR.TransportDoesNotSupportCompression,compressionFormat.ToString(),
                         GetType().Name,
                         CompressionFormat.None.ToString())));
-                //}
+                }
             }
         }
 
@@ -185,6 +186,19 @@ namespace CoreWCF.Channels
                 // (InternalBuildChannelListener will call into the BindingContext. Validation happens there and it will throw) 
                 maxReceivedMessageSize = transport.MaxReceivedMessageSize;
             }
+        }
+
+        public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
+        {
+            if (context == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+
+            if (innerDispatcher == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerDispatcher));
+
+            VerifyCompression(context);
+            SetMaxReceivedMessageSizeFromTransport(context);
+            return context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
         }
 
         // TODO: Make sure this verification code is executed during pipeline build

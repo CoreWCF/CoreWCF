@@ -2,13 +2,16 @@ using Microsoft.Extensions.DependencyInjection;
 using CoreWCF.Channels;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace CoreWCF.Configuration
 {
-    internal class ServiceBuilder : IServiceBuilder
+    internal class ServiceBuilder : CommunicationObject, IServiceBuilder
     {
         private IServiceProvider _serviceProvider;
         private IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
+        private TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public ServiceBuilder(IServiceProvider serviceProvider)
         {
@@ -23,12 +26,16 @@ namespace CoreWCF.Configuration
 
         public IServiceProvider ServiceProvider => _serviceProvider;
 
-        public void AddService<TService>() where TService : class
+        protected override TimeSpan DefaultCloseTimeout => TimeSpan.FromMinutes(1);
+
+        protected override TimeSpan DefaultOpenTimeout => TimeSpan.FromMinutes(1);
+
+        public IServiceBuilder AddService<TService>() where TService : class
         {
-            AddService(typeof(TService));
+            return AddService(typeof(TService));
         }
 
-        public void AddService(Type service)
+        public IServiceBuilder AddService(Type service)
         {
             if (service is null)
             {
@@ -37,54 +44,55 @@ namespace CoreWCF.Configuration
             var serviceConfig = (IServiceConfiguration)_serviceProvider.GetRequiredService(
                 typeof(IServiceConfiguration<>).MakeGenericType(service));
             _services[serviceConfig.ServiceType] = serviceConfig;
+            return this;
         }
 
-        public void AddServiceEndpoint<TService, TContract>(Binding binding, string address)
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address)
         {
-            AddServiceEndpoint<TService>(typeof(TContract), binding, address);
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address);
         }
 
-        public void AddServiceEndpoint<TService, TContract>(Binding binding, Uri address)
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address)
         {
-            AddServiceEndpoint<TService>(typeof(TContract), binding, address);
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address);
         }
 
-        public void AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri)
         {
-            AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
         }
 
-        public void AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Uri listenUri)
         {
-            AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
         }
 
-        public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address)
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address)
         {
-            AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
+            return AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
         }
 
-        public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address)
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address)
         {
-            AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
+            return AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
         }
 
-        public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri)
         {
             if (address is null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(address)));
             }
 
-            AddServiceEndpoint<TService>(implementedContract, binding, new Uri(address, UriKind.RelativeOrAbsolute), listenUri);
+            return AddServiceEndpoint<TService>(implementedContract, binding, new Uri(address, UriKind.RelativeOrAbsolute), listenUri);
         }
 
-        public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri)
         {
-            AddServiceEndpoint(typeof(TService), implementedContract, binding, address, listenUri);
+            return AddServiceEndpoint(typeof(TService), implementedContract, binding, address, listenUri);
         }
 
-        public void AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri)
         {
             if (service is null)
             {
@@ -116,6 +124,36 @@ namespace CoreWCF.Configuration
                 // TODO: Either find an existing SR to use or create a new one.
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(nameof(service)));
             }
+
+            return this;
+        }
+
+        protected override void OnAbort()
+        {
+        }
+
+        protected override Task OnCloseAsync(CancellationToken token)
+        {
+            return Task.CompletedTask;
+        }
+
+        protected override Task OnOpenAsync(CancellationToken token)
+        {
+            _openingCompletedTcs.TrySetResult(null);
+            return Task.CompletedTask;
+        }
+
+        protected override void OnFaulted()
+        {
+            base.OnFaulted();
+            _openingCompletedTcs.TrySetResult(null);
+        }
+
+        // This is to allow the ServiceHostObjectModel to wait until all the Opening event handlers have ran
+        // to do some configuration such as adding base addresses before the actual service dispatcher is created.
+        internal Task WaitForOpening()
+        {
+            return _openingCompletedTcs.Task;
         }
     }
 }

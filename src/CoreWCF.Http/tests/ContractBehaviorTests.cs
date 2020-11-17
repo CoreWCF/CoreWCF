@@ -72,8 +72,10 @@ namespace CoreWCF.Http.Tests
         public void TwoAttributesSameType_Test()
         {
             Startup._method = "TwoAttributesSameType";
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
-            Assert.Throws<ArgumentException>(()=> host.Start());
+            using (var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build())
+            {
+                Assert.Throws<ArgumentException>(() => host.Start());
+            }
         }
 
         //Variation
