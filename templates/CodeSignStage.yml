@@ -15,13 +15,6 @@ stages:
       runOnce:
         deploy:
           steps:
-          # If you have MSCA: https://aka.ms/mscadocs
-          #- task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-antimalware.AntiMalware@3
-          #  displayName: AntiMalware Scan
-          #  inputs:
-          #    EnableServices: true
-          #    FileDirPath: $(Pipeline.Workspace)\BuildPackages
-
           - task: DotNetCoreCLI@2
             inputs:
               command: custom
@@ -41,6 +34,19 @@ stages:
               --description "CoreWCF" `
               --descriptionUrl "https://github.com/CoreWCF/CoreWCF"
             displayName: Sign packages
+
+          - pwsh: |
+              .\SignClient "Sign" `
+              --baseDirectory "$(Pipeline.Workspace)\BuildPackages" `
+              --input "**/*.snupkg" `
+              --config "$(Pipeline.Workspace)\config\SignClient.json" `
+              --filelist "$(Pipeline.Workspace)\config\filelist.txt" `
+              --user '$(SignClientUser)' `
+              --secret '$(SignClientSecret)' `
+              --name "CoreWCF" `
+              --description "CoreWCF" `
+              --descriptionUrl "https://github.com/CoreWCF/CoreWCF"
+            displayName: Sign symbol packages
 
           - publish: $(Pipeline.Workspace)/BuildPackages
             displayName: Publish Signed Packages
