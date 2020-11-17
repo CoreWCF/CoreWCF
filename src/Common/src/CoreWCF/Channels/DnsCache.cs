@@ -1,26 +1,20 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using CoreWCF.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace CoreWCF.Channels
 {
-    static class DnsCache
+    internal static class DnsCache
     {
-        const int mruWatermark = 64;
-        static MruCache<string, DnsCacheEntry> resolveCache = new MruCache<string, DnsCacheEntry>(mruWatermark);
-        static readonly TimeSpan cacheTimeout = TimeSpan.FromSeconds(2);
+        private const string LinuxProcHostnamePath = "/proc/sys/kernel/hostname";
 
         // Double-checked locking pattern requires volatile for read/write synchronization
-        static volatile string machineName;
+        private static volatile string machineName;
 
-        static object ThisLock
-        {
-            get
-            {
-                return resolveCache;
-            }
-        }
+        private static object ThisLock { get; } = new object();
 
         public static string MachineName
         {
@@ -32,7 +26,53 @@ namespace CoreWCF.Channels
                     {
                         if (machineName == null)
                         {
-                            machineName = Dns.GetHostEntryAsync(string.Empty).GetAwaiter().GetResult().HostName;
+                            try
+                            {
+                                machineName = Dns.GetHostEntry(String.Empty).HostName;
+                            }
+                            catch (SocketException exception)
+                            {
+                                DiagnosticUtility.TraceHandledException(exception,
+                                        TraceEventType.Information);
+                            }
+                        }
+
+                        if (machineName == null) // prior attempt failed
+                        {
+                            try
+                            {
+                                // This uses a different native API so might work where the previous one didn't.
+                                machineName = Dns.GetHostName();
+                            }
+                            catch (SocketException exception)
+                            {
+                                DiagnosticUtility.TraceHandledException(exception,
+                                        TraceEventType.Information);
+                            }
+                        }
+
+                        if (machineName == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && File.Exists(LinuxProcHostnamePath))
+                        {
+                            try
+                            {
+                                // Final attempt, try to get the hostname from the proc filesystem if running on Linux
+                                string[] hostnameFile = File.ReadAllLines(LinuxProcHostnamePath);
+                                if (hostnameFile.Length > 0 && !string.IsNullOrEmpty(hostnameFile[0]))
+                                {
+                                    machineName = hostnameFile[0];
+                                }
+                            }
+                            catch (Exception exception) // There's no common base exception that File.ReadAllLines can throw
+                            {
+                                DiagnosticUtility.TraceHandledException(exception,
+                                    TraceEventType.Information);
+                            }
+                        }
+
+                        // Final fallback if every other mechanism fails
+                        if (machineName == null)
+                        {
+                            machineName = "localhost";
                         }
                     }
                 }
@@ -40,91 +80,5 @@ namespace CoreWCF.Channels
                 return machineName;
             }
         }
-
-        // TODO: Convert to Async as Dns.GetHostEntry is now async
-        public static IPHostEntry Resolve(Uri uri)
-        {
-            string hostName = uri.DnsSafeHost;
-            IPHostEntry hostEntry = null;
-            DateTime now = DateTime.UtcNow;
-
-            lock (ThisLock)
-            {
-                DnsCacheEntry cacheEntry;
-                if (resolveCache.TryGetValue(hostName, out cacheEntry))
-                {
-                    if (now.Subtract(cacheEntry.TimeStamp) > cacheTimeout)
-                    {
-                        resolveCache.Remove(hostName);
-                    }
-                    else
-                    {
-                        if (cacheEntry.HostEntry == null)
-                        {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                                new EndpointNotFoundException(SR.Format(SR.DnsResolveFailed, hostName)));
-                        }
-                        hostEntry = cacheEntry.HostEntry;
-                    }
-                }
-            }
-
-            if (hostEntry == null)
-            {
-                SocketException dnsException = null;
-                try
-                {
-                    hostEntry = Dns.GetHostEntryAsync(hostName).GetAwaiter().GetResult();
-                }
-                catch (SocketException e)
-                {
-                    dnsException = e;
-                }
-
-                lock (ThisLock)
-                {
-                    // MruCache doesn't have a this[] operator, so we first remove (just in case it exists already)
-                    resolveCache.Remove(hostName);
-                    resolveCache.Add(hostName, new DnsCacheEntry(hostEntry, now));
-                }
-
-                if (dnsException != null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new EndpointNotFoundException(SR.Format(SR.DnsResolveFailed, hostName), dnsException));
-                }
-            }
-
-            return hostEntry;
-        }
-
-        class DnsCacheEntry
-        {
-            IPHostEntry hostEntry;
-            DateTime timeStamp;
-
-            public DnsCacheEntry(IPHostEntry hostEntry, DateTime timeStamp)
-            {
-                this.hostEntry = hostEntry;
-                this.timeStamp = timeStamp;
-            }
-
-            public IPHostEntry HostEntry
-            {
-                get
-                {
-                    return hostEntry;
-                }
-            }
-
-            public DateTime TimeStamp
-            {
-                get
-                {
-                    return timeStamp;
-                }
-            }
-        }
     }
-
 }
