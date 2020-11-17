@@ -3,7 +3,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    internal interface IMessageFilterTable<TFilterData> : IDictionary<MessageFilter, TFilterData>
+    public interface IMessageFilterTable<TFilterData> : IDictionary<MessageFilter, TFilterData>
     {
         // return a single match
         bool GetMatchingValue(Message message, out TFilterData value);

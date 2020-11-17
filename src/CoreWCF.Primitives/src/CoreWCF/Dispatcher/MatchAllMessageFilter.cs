@@ -4,7 +4,7 @@ using CoreWCF.Channels;
 namespace CoreWCF.Dispatcher
 {
     [DataContract]
-    internal class MatchAllMessageFilter : MessageFilter
+    public class MatchAllMessageFilter : MessageFilter
     {
         public MatchAllMessageFilter()
             : base()

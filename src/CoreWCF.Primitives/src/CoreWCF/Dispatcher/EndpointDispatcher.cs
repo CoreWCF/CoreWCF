@@ -82,7 +82,7 @@ namespace CoreWCF.Dispatcher
             id = baseEndpoint.id;
         }
 
-        internal MessageFilter AddressFilter
+        public MessageFilter AddressFilter
         {
             get { return addressFilter; }
             set
@@ -102,7 +102,7 @@ namespace CoreWCF.Dispatcher
             get { return addressFilterSetExplicit; }
         }
 
-        internal ChannelDispatcher ChannelDispatcher
+        public ChannelDispatcher ChannelDispatcher
         {
             get { return channelDispatcher; }
         }
