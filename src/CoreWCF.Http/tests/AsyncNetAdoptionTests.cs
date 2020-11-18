@@ -1,0 +1,91 @@
+﻿using CoreWCF.Configuration;
+using Helpers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace BasicHttp
+{
+    public class AsyncNetAdoptionTests
+    {
+        private ITestOutputHelper _output;
+
+        public AsyncNetAdoptionTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
+        [Fact]
+        public void OneWayPatternTest()
+        {
+            var host = ServiceHelper.CreateWebHostBuilder<AsyncNetAdoptionOneWayServiceStartup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOneWayContract>(httpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/OneWayPatternTest/basichttp.svc")));
+                var channel = factory.CreateChannel();                              
+                Task task = channel.OneWay("Hello");
+            }
+        }
+
+        //[Fact]
+        public void OneWayPatternWithSessionsTest()
+        {
+            var host = ServiceHelper.CreateWebHostBuilder<AsyncNetAdoptionOneWaySessionServiceStartup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOneWayContractSession>(httpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/OneWayPatternWithSessionsTest/basichttp.svc")));
+                var channel = factory.CreateChannel();
+                Task task = channel.OneWay("Hello");
+            }
+        }
+
+        internal class AsyncNetAdoptionOneWayServiceStartup
+        {
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+#pragma warning restore IDE0060 // Remove unused parameter
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.OneWayService>();                    
+                    builder.AddServiceEndpoint<Services.OneWayService, ServiceContract.IOneWayContract>(new CoreWCF.BasicHttpBinding(), "/OneWayPatternTest/basichttp.svc");                                        
+                });            
+            }
+        }
+
+        internal class AsyncNetAdoptionOneWaySessionServiceStartup
+        {
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+#pragma warning restore IDE0060 // Remove unused parameter
+            {
+                app.UseServiceModel(builder =>
+                {                   
+                    builder.AddService<Services.OneWayServiceSession>();  
+                    //WSHttpBinding not support
+                    builder.AddServiceEndpoint<Services.OneWayServiceSession, ServiceContract.IOneWayContractSession>(new CoreWCF.BasicHttpBinding(), "/OneWayPatternWithSessionsTest/basichttp.svc");
+                });
+            }
+        }
+    }
+}
