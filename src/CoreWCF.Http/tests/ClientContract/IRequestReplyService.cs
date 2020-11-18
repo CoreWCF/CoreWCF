@@ -31,5 +31,8 @@ namespace ClientContract
 
         [OperationContract]
         List<string> GetLog();
+
+        [OperationContract]
+        string Echo(string value);
     }
 }

@@ -111,5 +111,10 @@ namespace Services
         {
             return log;
         }
+
+        public string Echo(string value)
+        {
+            return value;
+        }
     }
 }
