@@ -305,7 +305,7 @@ namespace CoreWCF.Security
 
             if (idPrefix.Length == 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(idPrefix), SR.Format(SR.ValueMustBeGreaterThanZero)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(idPrefix), SR.ValueMustBeGreaterThanZero));
             }
 
             if ((!Char.IsLetter(idPrefix[0]) && idPrefix[0] != '_'))

@@ -1,32 +1,31 @@
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
 using System.Xml;
-using CoreWCF.IdentityModel;
 
 namespace CoreWCF.Security.Tokens
 {
-
     public class SecurityContextSecurityToken : SecurityToken, IDisposable , TimeBoundedCache.IExpirableItem
     {
-        byte[] cookieBlob;
-        UniqueId contextId = null;
-        UniqueId keyGeneration = null;
-        DateTime keyEffectiveTime;
-        DateTime keyExpirationTime;
-        DateTime tokenEffectiveTime;
-        DateTime tokenExpirationTime;
-        bool isCookieMode = false;
-        byte[] key;
-        string keyString;
-        ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
-        ReadOnlyCollection<SecurityKey> securityKeys;
-        string id;
-        SecurityMessageProperty bootstrapMessageProperty;
-        bool disposed = false;
+        private byte[] cookieBlob;
+        private UniqueId contextId = null;
+        private UniqueId keyGeneration = null;
+        private DateTime keyEffectiveTime;
+        private DateTime keyExpirationTime;
+        private DateTime tokenEffectiveTime;
+        private DateTime tokenExpirationTime;
+        private bool isCookieMode = false;
+        private byte[] key;
+        private string keyString;
+        private ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+        private ReadOnlyCollection<SecurityKey> securityKeys;
+        private string id;
+        private SecurityMessageProperty bootstrapMessageProperty;
+        private bool disposed = false;
 
         public SecurityContextSecurityToken(UniqueId contextId, byte[] key, DateTime validFrom, DateTime validTo)
             : this(contextId, SecurityUtils.GenerateId(), key, validFrom, validTo)
@@ -78,7 +77,7 @@ namespace CoreWCF.Security.Tokens
             this.cookieBlob = cookieBlob;
         }
 
-        SecurityContextSecurityToken(SecurityContextSecurityToken from)
+        private SecurityContextSecurityToken(SecurityContextSecurityToken from)
         {
             ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.CloneAuthorizationPoliciesIfNecessary(from.authorizationPolicies);
             this.id = from.id;
@@ -113,42 +112,15 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        public override string Id
-        {
-            get { return this.id; }
-        }
+        public override string Id => this.id;
 
-        public UniqueId ContextId
-        {
-            get
-            {
-                return this.contextId;
-            }
-        }
+        public UniqueId ContextId => this.contextId;
 
-        public UniqueId KeyGeneration
-        {
-            get
-            {
-                return this.keyGeneration;
-            }
-        }
+        public UniqueId KeyGeneration => this.keyGeneration;
 
-        public DateTime KeyEffectiveTime
-        {
-            get 
-            { 
-                return this.keyEffectiveTime; 
-            }
-        }
+        public DateTime KeyEffectiveTime => this.keyEffectiveTime;
 
-        public DateTime KeyExpirationTime
-        {
-            get 
-            { 
-                return this.keyExpirationTime; 
-            }
-        }
+        public DateTime KeyExpirationTime => this.keyExpirationTime;
 
         public ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies
         {
@@ -164,31 +136,13 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        public override ReadOnlyCollection<SecurityKey> SecurityKeys
-        {
-            get
-            {
-                return this.securityKeys;
-            }
-        }
+        public override ReadOnlyCollection<SecurityKey> SecurityKeys => this.securityKeys;
 
-        public override DateTime ValidFrom
-        {
-            get { return this.tokenEffectiveTime; }
-        }
+        public override DateTime ValidFrom => this.tokenEffectiveTime;
 
-        public override DateTime ValidTo
-        {
-            get { return this.tokenExpirationTime; }
-        }
+        public override DateTime ValidTo => this.tokenExpirationTime;
 
-        internal byte[] CookieBlob
-        {
-            get
-            {
-                return this.cookieBlob;
-            }
-        }
+        internal byte[] CookieBlob => this.cookieBlob;
 
         /// <summary>
         /// This is set by the issuer when creating the SCT to be sent in the RSTR
@@ -196,21 +150,9 @@ namespace CoreWCF.Security.Tokens
         /// out the SCT
         /// This field is set to true when the issuer reads in a cookie mode SCT
         /// </summary>
-        public bool IsCookieMode
-        {
-            get
-            {
-                return this.isCookieMode;
-            }
-        }
+        public bool IsCookieMode => this.isCookieMode;
 
-        DateTime TimeBoundedCache.IExpirableItem.ExpirationTime
-        {
-            get
-            {
-                return this.ValidTo;
-            }
-        }
+        DateTime TimeBoundedCache.IExpirableItem.ExpirationTime => this.ValidTo;
 
         internal string GetBase64KeyString()
         {
@@ -233,24 +175,24 @@ namespace CoreWCF.Security.Tokens
             return String.Format(CultureInfo.CurrentCulture, "SecurityContextSecurityToken(Identifier='{0}', KeyGeneration='{1}')", this.contextId, this.keyGeneration);
         }
 
-        void Initialize(UniqueId contextId, byte[] key, DateTime validFrom, DateTime validTo, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, bool isCookieMode,
+        private void Initialize(UniqueId contextId, byte[] key, DateTime validFrom, DateTime validTo, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, bool isCookieMode,
             UniqueId keyGeneration, DateTime keyEffectiveTime, DateTime keyExpirationTime)
         {
             if (contextId == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
 
             if (key == null || key.Length == 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("key");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
             }
 
             DateTime tokenEffectiveTimeUtc = validFrom.ToUniversalTime();
             DateTime tokenExpirationTimeUtc = validTo.ToUniversalTime();
             if (tokenEffectiveTimeUtc > tokenExpirationTimeUtc)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("validFrom", SR.Format(SR.EffectiveGreaterThanExpiration));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(validFrom), SR.EffectiveGreaterThanExpiration);
             }
             this.tokenEffectiveTime = tokenEffectiveTimeUtc;
             this.tokenExpirationTime = tokenExpirationTimeUtc;
@@ -259,7 +201,7 @@ namespace CoreWCF.Security.Tokens
             this.keyExpirationTime = keyExpirationTime.ToUniversalTime();
             if (this.keyEffectiveTime > this.keyExpirationTime)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("keyEffectiveTime", SR.Format(SR.EffectiveGreaterThanExpiration));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(keyEffectiveTime), SR.EffectiveGreaterThanExpiration);
             }
             if ((this.keyEffectiveTime < tokenEffectiveTimeUtc) || (this.keyExpirationTime > tokenExpirationTimeUtc))
             {
@@ -341,7 +283,7 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        void ThrowIfDisposed()
+        private void ThrowIfDisposed()
         {
             if (this.disposed)
             {

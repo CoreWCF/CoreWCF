@@ -1,36 +1,33 @@
-using System.IO;
-using System.Runtime;
-using CoreWCF.Runtime;
-using System.Security.Cryptography;
 using CoreWCF.Channels;
-using CoreWCF.Security.Tokens;
-using System.Xml;
-using System;
 using CoreWCF.IdentityModel.Tokens;
-using System.Collections.Generic;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Xml;
 using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 using XmlAttributeHolder = CoreWCF.IdentityModel.XmlAttributeHolder;
 
 namespace CoreWCF.Security
 {
-
-    sealed class SecurityAppliedMessage : DelegatingMessage
+    internal sealed class SecurityAppliedMessage : DelegatingMessage
     {
-        string bodyId;
-        bool bodyIdInserted;
-        string bodyPrefix = MessageStrings.Prefix;
-        XmlBuffer fullBodyBuffer;
-        ISecurityElement encryptedBodyContent;
-        XmlAttributeHolder[] bodyAttributes;
-        bool delayedApplicationHandled;
-        readonly MessagePartProtectionMode bodyProtectionMode;
-        BodyState state = BodyState.Created;
-        readonly SendSecurityHeader securityHeader;
-        MemoryStream startBodyFragment;
-        MemoryStream endBodyFragment;
-        byte[] fullBodyFragment;
-        int fullBodyFragmentLength;
+        private string bodyId;
+        private bool bodyIdInserted;
+        private string bodyPrefix = MessageStrings.Prefix;
+        private XmlBuffer fullBodyBuffer;
+        private ISecurityElement encryptedBodyContent;
+        private XmlAttributeHolder[] bodyAttributes;
+        private bool delayedApplicationHandled;
+        private readonly MessagePartProtectionMode bodyProtectionMode;
+        private BodyState state = BodyState.Created;
+        private readonly SendSecurityHeader securityHeader;
+        private MemoryStream startBodyFragment;
+        private MemoryStream endBodyFragment;
+        private byte[] fullBodyFragment;
+        private int fullBodyFragmentLength;
 
         public SecurityAppliedMessage(Message messageToProcess, SendSecurityHeader securityHeader, bool signBody, bool encryptBody)
             : base(messageToProcess)
@@ -40,28 +37,19 @@ namespace CoreWCF.Security
             this.bodyProtectionMode = MessagePartProtectionModeHelper.GetProtectionMode(signBody, encryptBody, securityHeader.SignThenEncrypt);
         }
 
-        public string BodyId
-        {
-            get { return this.bodyId; }
-        }
+        public string BodyId => this.bodyId;
 
-        public MessagePartProtectionMode BodyProtectionMode
-        {
-            get { return this.bodyProtectionMode; }
-        }
+        public MessagePartProtectionMode BodyProtectionMode => this.bodyProtectionMode;
 
-        internal byte[] PrimarySignatureValue
-        {
-            get { return this.securityHeader.PrimarySignatureValue; }
-        }
+        internal byte[] PrimarySignatureValue => this.securityHeader.PrimarySignatureValue;
 
-        Exception CreateBadStateException(string operation)
+        private Exception CreateBadStateException(string operation)
         {
             return new InvalidOperationException(SR.Format(SR.MessageBodyOperationNotValidInBodyState,
                 operation, this.state));
         }
 
-        void EnsureUniqueSecurityApplication()
+        private void EnsureUniqueSecurityApplication()
         {
             if (this.delayedApplicationHandled)
             {
@@ -126,7 +114,7 @@ namespace CoreWCF.Security
                     }
                     return;
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBadStateException("OnWriteStartBody"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBadStateException(nameof(OnWriteStartBody)));
             }
         }
 
@@ -151,7 +139,7 @@ namespace CoreWCF.Security
                     this.encryptedBodyContent.WriteTo(writer, ServiceModelDictionaryManager.Instance);
                     break;
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBadStateException("OnWriteBodyContents"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBadStateException(nameof(OnWriteBodyContents)));
             }
         }
 
@@ -214,7 +202,7 @@ namespace CoreWCF.Security
             writer.WriteEndElement();
         }
 
-        void AttachChannelBindingTokenIfFound()
+        private void AttachChannelBindingTokenIfFound()
         {
             ChannelBindingMessageProperty cbmp = null;
             ChannelBindingMessageProperty.TryGet(this.InnerMessage, out cbmp);
@@ -235,7 +223,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void SetBodyId()
+        private void SetBodyId()
         {
             this.bodyId = this.InnerMessage.GetBodyAttribute(
                 UtilityStrings.IdAttribute,
@@ -392,14 +380,14 @@ namespace CoreWCF.Security
             this.state = BodyState.Signed;
         }
 
-        void WriteInnerMessageWithId(XmlDictionaryWriter writer)
+        private void WriteInnerMessageWithId(XmlDictionaryWriter writer)
         {
             WriteStartInnerMessageWithId(writer);
             this.InnerMessage.WriteBodyContents(writer);
             writer.WriteEndElement();
         }
 
-        void WriteStartInnerMessageWithId(XmlDictionaryWriter writer)
+        private void WriteStartInnerMessageWithId(XmlDictionaryWriter writer)
         {
             this.InnerMessage.WriteStartBody(writer);
             if (this.bodyIdInserted)
@@ -408,7 +396,7 @@ namespace CoreWCF.Security
             }
         }
 
-        enum BodyState
+        private enum BodyState
         {
             Created,
             Signed,
@@ -418,10 +406,10 @@ namespace CoreWCF.Security
             Disposed,
         }
 
-        struct BodyContentHelper
+        private struct BodyContentHelper
         {
-            MemoryStream stream;
-            XmlDictionaryWriter writer;
+            private MemoryStream stream;
+            private XmlDictionaryWriter writer;
 
             public XmlDictionaryWriter CreateWriter()
             {
@@ -437,9 +425,9 @@ namespace CoreWCF.Security
             }
         }
 
-        sealed class MessagePrefixGenerator : IPrefixGenerator
+        private sealed class MessagePrefixGenerator : IPrefixGenerator
         {
-            XmlWriter writer;
+            private XmlWriter writer;
 
             public MessagePrefixGenerator(XmlWriter writer)
             {

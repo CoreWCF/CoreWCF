@@ -173,18 +173,10 @@ namespace CoreWCF.Channels
             return new SymmetricSecurityBindingElement(this);
         }
 
-       // void IPolicyExportExtension.ExportPolicy(MetadataExporter exporter, PolicyConversionContext context)
-      //  {
-      //      //SecurityBindingElement.ExportPolicy(exporter, context);
-     //       throw new NotImplementedException();
-       // }
-
         internal override SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuanceBindingContext)
         {
             throw new NotImplementedException();
         }
-
-
 
         protected override IServiceDispatcher BuildServiceDispatcherCore<TChannel>(BindingContext context, IServiceDispatcher serviceDispatcher)
         {

@@ -14,11 +14,11 @@ namespace CoreWCF.Security
         {
             if (valueTypeUri == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("valueTypeUri");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(valueTypeUri));
             }
             if (negotiationData == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("negotiationData");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
             }
             this.valueTypeUriDictionaryString = null;
             this.valueTypeUri = valueTypeUri;
@@ -31,11 +31,11 @@ namespace CoreWCF.Security
         {
             if (valueTypeDictionaryString == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("valueTypeDictionaryString");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(valueTypeDictionaryString));
             }
             if (negotiationData == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("negotiationData");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
             }
             this.valueTypeUriDictionaryString = valueTypeDictionaryString;
             this.valueTypeUri = valueTypeDictionaryString.Value;

@@ -91,12 +91,11 @@ namespace CoreWCF.Security
                 ThrowIfProcessingStarted();
                 if (value == null)
                 {
-                    throw TraceUtility.ThrowHelperError(new ArgumentNullException("value"), this.Message);
+                    throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(value)), this.Message);
                 }
                 if (!value.IsReadOnly)
                 {
-                    throw TraceUtility.ThrowHelperError(new InvalidOperationException(
-                        SR.Format(SR.MessagePartSpecificationMustBeImmutable)), this.Message);
+                    throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.MessagePartSpecificationMustBeImmutable), this.Message);
                 }
                 this.encryptionParts = value;
             }
@@ -162,12 +161,12 @@ namespace CoreWCF.Security
                 ThrowIfProcessingStarted();
                 if (value == null)
                 {
-                    throw TraceUtility.ThrowHelperError(new ArgumentNullException("value"), this.Message);
+                    throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(value)), this.Message);
                 }
                 if (!value.IsReadOnly)
                 {
                     throw TraceUtility.ThrowHelperError(new InvalidOperationException(
-                        SR.Format(SR.MessagePartSpecificationMustBeImmutable)), this.Message);
+                        SR.MessagePartSpecificationMustBeImmutable), this.Message);
                 }
                 this.signatureParts = value;
             }
@@ -184,7 +183,7 @@ namespace CoreWCF.Security
             ThrowIfProcessingStarted();
             if (token == null)
             {
-                throw TraceUtility.ThrowHelperError(new Exception("token"), this.Message);
+                throw TraceUtility.ThrowHelperError(new Exception(nameof(token)), this.Message);
             }
             this.elementContainer.PrerequisiteToken = token;
         }
@@ -229,9 +228,9 @@ namespace CoreWCF.Security
         public void AddBasicSupportingToken(SecurityToken token, SecurityTokenParameters parameters)
         {
             if (token == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
             ThrowIfProcessingStarted();
             SendSecurityHeaderElement tokenElement = new SendSecurityHeaderElement(token.Id, new TokenElement(token, this.StandardsManager));
             tokenElement.MarkedForEncryption = true;
@@ -243,7 +242,6 @@ namespace CoreWCF.Security
             {
                 this.basicTokens = new List<SecurityToken>();
             }
-
             //  We maintain a list of the basic tokens for the SignThenEncrypt case as we will 
             //  need this token to write STR entry on OnWriteHeaderContents. 
             this.basicTokens.Add(token);
@@ -253,9 +251,9 @@ namespace CoreWCF.Security
         public void AddEndorsingSupportingToken(SecurityToken token, SecurityTokenParameters parameters)
         {
             if (token == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
             ThrowIfProcessingStarted();
             this.elementContainer.AddEndorsingSupportingToken(token);
             // The ProviderBackedSecurityToken was added for the ChannelBindingToken (CBT) effort for win7.  
@@ -277,9 +275,9 @@ namespace CoreWCF.Security
         public void AddSignedEndorsingSupportingToken(SecurityToken token, SecurityTokenParameters parameters)
         {
             if (token == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
             ThrowIfProcessingStarted();
             this.elementContainer.AddSignedEndorsingSupportingToken(token);
             hasSignedTokens = true;
@@ -290,9 +288,9 @@ namespace CoreWCF.Security
         public void AddSignedSupportingToken(SecurityToken token, SecurityTokenParameters parameters)
         {
             if (token == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
             ThrowIfProcessingStarted();
             this.elementContainer.AddSignedSupportingToken(token);
             hasSignedTokens = true;
@@ -317,11 +315,11 @@ namespace CoreWCF.Security
             ThrowIfProcessingStarted();
             if (this.elementContainer.Timestamp != null)
             {
-                throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.TimestampAlreadySetForSecurityHeader)), this.Message);
+                throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.TimestampAlreadySetForSecurityHeader), this.Message);
             }
             if (timestamp == null)
             {
-                throw TraceUtility.ThrowHelperArgumentNull("timestamp", this.Message);
+                throw TraceUtility.ThrowHelperArgumentNull(nameof(timestamp), this.Message);
             }
 
             this.elementContainer.Timestamp = timestamp;
@@ -345,7 +343,7 @@ namespace CoreWCF.Security
             SecurityKeyIdentifierClause sourceEncryptingKeyIdentifierClause = this.encryptingTokenParameters.CreateKeyIdentifierClause(this.elementContainer.SourceEncryptionToken, sourceEncryptingKeyReferenceStyle);
             if (sourceEncryptingKeyIdentifierClause == null)
             {
-                throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenManagerCannotCreateTokenReference)), this.Message);
+                throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.TokenManagerCannotCreateTokenReference), this.Message);
             }
             SecurityToken sourceToken;
             SecurityKeyIdentifierClause sourceTokenIdentifierClause;
@@ -541,7 +539,7 @@ namespace CoreWCF.Security
             if (this.basicSupportingTokenParameters != null && this.basicSupportingTokenParameters.Count > 0 
                 && this.RequireMessageProtection && !basicTokenEncrypted)
             {
-                throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.BasicTokenCannotBeWrittenWithoutEncryption)), this.Message);
+                throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.BasicTokenCannotBeWrittenWithoutEncryption), this.Message);
             }
 
             if (this.elementContainer.Timestamp != null && this.Layout != SecurityHeaderLayout.LaxTimestampLast)
@@ -697,7 +695,7 @@ namespace CoreWCF.Security
             {
                 if (this.signatureParts == null)
                 {
-                    throw TraceUtility.ThrowHelperError(new ArgumentNullException("SignatureParts"), this.Message);
+                    throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(SignatureParts)), this.Message);
                 }
                 signBody = this.signatureParts.IsBodyIncluded;
             }
@@ -707,7 +705,7 @@ namespace CoreWCF.Security
             {
                 if (this.encryptionParts == null)
                 {
-                    throw TraceUtility.ThrowHelperError(new ArgumentNullException("EncryptionParts"), this.Message);
+                    throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(EncryptionParts)), this.Message);
                 }
                 encryptBody = this.encryptionParts.IsBodyIncluded;
             }
@@ -734,7 +732,7 @@ namespace CoreWCF.Security
             SecurityKeyIdentifierClause sourceSigningKeyIdentifierClause = this.signingTokenParameters.CreateKeyIdentifierClause(this.elementContainer.SourceSigningToken, sourceSigningKeyReferenceStyle);
             if (sourceSigningKeyIdentifierClause == null)
             {
-                throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenManagerCannotCreateTokenReference)), this.Message);
+                throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.TokenManagerCannotCreateTokenReference), this.Message);
             }
 
             SecurityToken signingToken;
@@ -802,7 +800,6 @@ namespace CoreWCF.Security
         protected abstract ISignatureValueSecurityElement CompletePrimarySignatureCore(SendSecurityHeaderElement[] signatureConfirmations,
            SecurityToken[] signedEndorsingTokens, SecurityToken[] signedTokens, SendSecurityHeaderElement[] basicTokens, bool isPrimarySignature);
 
-
         protected abstract ISignatureValueSecurityElement CreateSupportingSignature(SecurityToken token, SecurityKeyIdentifier identifier);
 
         protected abstract ISignatureValueSecurityElement CreateSupportingSignature(SecurityToken token, SecurityKeyIdentifier identifier, ISecurityElement primarySignature);
@@ -816,18 +813,18 @@ namespace CoreWCF.Security
         {
             if (token == null)
             {
-                throw TraceUtility.ThrowHelperArgumentNull("token", this.Message);
+                throw TraceUtility.ThrowHelperArgumentNull(nameof(token), this.Message);
             }
             if (identifierClause == null)
             {
-                throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenManagerCannotCreateTokenReference)), this.Message);
+                throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.TokenManagerCannotCreateTokenReference), this.Message);
             }
             if (!this.RequireMessageProtection)
             {
                 if (this.elementContainer.Timestamp == null)
                 {
                     throw TraceUtility.ThrowHelperError(new InvalidOperationException(
-                        SR.Format(SR.SigningWithoutPrimarySignatureRequiresTimestamp)), this.Message);
+                        SR.SigningWithoutPrimarySignatureRequiresTimestamp), this.Message);
                 }
             }
             else
@@ -835,7 +832,7 @@ namespace CoreWCF.Security
                 if (!this.primarySignatureDone)
                 {
                     throw TraceUtility.ThrowHelperError(new InvalidOperationException(
-                        SR.Format(SR.PrimarySignatureMustBeComputedBeforeSupportingTokenSignatures)), this.Message);
+                        SR.PrimarySignatureMustBeComputedBeforeSupportingTokenSignatures), this.Message);
                 }
                 if (this.elementContainer.PrimarySignature.Item == null)
                 {
@@ -927,39 +924,36 @@ namespace CoreWCF.Security
         }
 
         protected bool ShouldUseStrTransformForToken(SecurityToken securityToken, int position, SecurityTokenAttachmentMode mode, out SecurityKeyIdentifierClause keyIdentifierClause)
-        { 
-            /*
-               IssuedSecurityTokenParameters tokenParams = null;
-               keyIdentifierClause = null;
+        {
+            IssuedSecurityTokenParameters tokenParams = null;
+            keyIdentifierClause = null;
 
-               switch (mode)
-               {
-                   case SecurityTokenAttachmentMode.SignedEndorsing:
-                       tokenParams = this.signedEndorsingTokenParameters[position] as IssuedSecurityTokenParameters;
-                       break;
-                   case SecurityTokenAttachmentMode.Signed:
-                       tokenParams = this.signedTokenParameters[position] as IssuedSecurityTokenParameters;
-                       break;
-                   case SecurityTokenAttachmentMode.SignedEncrypted:
-                       tokenParams = this.basicSupportingTokenParameters[position] as IssuedSecurityTokenParameters;
-                       break;
-                   default:
-                       return false;
-               }
+            switch (mode)
+            {
+                case SecurityTokenAttachmentMode.SignedEndorsing:
+                    tokenParams = this.signedEndorsingTokenParameters[position] as IssuedSecurityTokenParameters;
+                    break;
+                case SecurityTokenAttachmentMode.Signed:
+                    tokenParams = this.signedTokenParameters[position] as IssuedSecurityTokenParameters;
+                    break;
+                case SecurityTokenAttachmentMode.SignedEncrypted:
+                    tokenParams = this.basicSupportingTokenParameters[position] as IssuedSecurityTokenParameters;
+                    break;
+                default:
+                    return false;
+            }
 
-               if (tokenParams != null && tokenParams.UseStrTransform)
-               {
-                   keyIdentifierClause = tokenParams.CreateKeyIdentifierClause(securityToken, GetTokenReferenceStyle(tokenParams));
-                   if (keyIdentifierClause == null)
-                   {
-                       throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenManagerCannotCreateTokenReference)), this.Message);
-                   }
+            if (tokenParams != null && tokenParams.UseStrTransform)
+            {
+                keyIdentifierClause = tokenParams.CreateKeyIdentifierClause(securityToken, GetTokenReferenceStyle(tokenParams));
+                if (keyIdentifierClause == null)
+                {
+                    throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenManagerCannotCreateTokenReference)), this.Message);
+                }
 
-                   return true;
-               }
-
-               return false;*/
-            throw new NotImplementedException();
+                return true;
+            }
+            return false;
         }
 
         XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedNamespace => XD.UtilityDictionary.Namespace;

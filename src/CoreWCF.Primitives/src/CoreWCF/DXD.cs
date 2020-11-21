@@ -191,10 +191,9 @@ namespace CoreWCF
             SecureConversationDictionaryStrings.Add(DXD.SecureConversationDec2005Dictionary.Length);
             SecureConversationDictionaryStrings.Add(DXD.SecureConversationDec2005Dictionary.Instance);
         }
-
     }
 
-  internal  class SecurityAlgorithmDec2005Dictionary
+    internal class SecurityAlgorithmDec2005Dictionary
     {
         public XmlDictionaryString Psha1KeyDerivationDec2005;
 

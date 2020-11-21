@@ -1,9 +1,6 @@
-﻿
-using System.Runtime;
-using System.Security.Cryptography;
-using CoreWCF;
+﻿using CoreWCF.Runtime;
 using System;
-using CoreWCF.Runtime;
+using System.Security.Cryptography;
 
 namespace CoreWCF.IdentityModel
 {

@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using CoreWCF.Runtime;
-using System.Runtime;
-using CoreWCF;
-using CoreWCF.Channels;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,8 +10,6 @@ namespace CoreWCF.Security
         private SecurityProtocolFactory securityProtocolFactory;
         private SecuritySessionServerSettings sessionSettings;
         private bool sessionMode;
-
-        // IChannelListener innerListener;
         private int referenceCount;
 
         public SecurityListenerSettingsLifetimeManager(SecurityProtocolFactory securityProtocolFactory, SecuritySessionServerSettings sessionSettings, bool sessionMode)
@@ -23,8 +17,6 @@ namespace CoreWCF.Security
             this.securityProtocolFactory = securityProtocolFactory;
             this.sessionSettings = sessionSettings;
             this.sessionMode = sessionMode;
-         //   this.innerListener = innerListener;
-            // have a reference right from the start so that the state can be aborted before open
             referenceCount = 1;
         }
 
@@ -44,16 +36,16 @@ namespace CoreWCF.Security
         public Task OpenAsync(TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            if (this.securityProtocolFactory != null)
-            {
-                this.securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
-            }
             if (this.sessionMode && this.sessionSettings != null)
             {
                 this.sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
             }
 
-          //  this.innerListener.Open(timeoutHelper.RemainingTime());
+           /* if (this.securityProtocolFactory != null)
+            {
+                this.securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
+            }*/
+
            // this.SetBufferManager();
             return Task.CompletedTask;
         }
@@ -81,6 +73,7 @@ namespace CoreWCF.Security
             }
             */
         }
+
         public Task CloseAsync(TimeSpan timeout)
         {
             if (Interlocked.Decrement(ref this.referenceCount) == 0)
@@ -97,7 +90,6 @@ namespace CoreWCF.Security
                     {
                         this.sessionSettings.CloseAsync(timeoutHelper.RemainingTime());
                     }
-                   // this.innerListener.Close(timeoutHelper.RemainingTime());
                     throwing = false;
                 }
                 finally
@@ -110,6 +102,7 @@ namespace CoreWCF.Security
             }
            return Task.CompletedTask;
         }
+
         void AbortCore()
         {
             if (this.securityProtocolFactory != null)
@@ -120,7 +113,6 @@ namespace CoreWCF.Security
             {
                 this.sessionSettings.Abort();
             }
-            //this.innerListener.Abort();
         }
 
     }

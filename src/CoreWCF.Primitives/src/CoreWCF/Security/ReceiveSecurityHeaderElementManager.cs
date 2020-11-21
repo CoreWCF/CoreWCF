@@ -1,15 +1,11 @@
-using CoreWCF.IdentityModel.Tokens;
-using System.Runtime;
-using CoreWCF.Runtime;
-using CoreWCF;
 using CoreWCF.Diagnostics;
-using System.Xml;
-//using ISignatureReaderProvider = CoreWCF.IdentityModel.ISignatureReaderProvider;
-using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
-using System.Collections.Generic;
-using  System.Security.Cryptography.Xml;
-using System;
 using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
+using System;
+using System.Security.Cryptography.Xml;
+using System.Xml;
+using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
 
 namespace CoreWCF.Security
 {
@@ -18,17 +14,17 @@ namespace CoreWCF.Security
         XmlDictionaryReader GetReader(object callbackContext);
     }
 
-    sealed class ReceiveSecurityHeaderElementManager : ISignatureReaderProvider
+    internal sealed class ReceiveSecurityHeaderElementManager : ISignatureReaderProvider
     {
-        const int InitialCapacity = 8;
-        readonly ReceiveSecurityHeader securityHeader;
-        ReceiveSecurityHeaderEntry[] elements;
-        int count;
-        readonly string[] headerIds;
-        string[] predecryptionHeaderIds;
-        string bodyId;
-        string bodyContentId;
-        bool isPrimaryTokenSigned = false;
+        private const int InitialCapacity = 8;
+        private readonly ReceiveSecurityHeader securityHeader;
+        private ReceiveSecurityHeaderEntry[] elements;
+        private int count;
+        private readonly string[] headerIds;
+        private string[] predecryptionHeaderIds;
+        private string bodyId;
+        private string bodyContentId;
+        private bool isPrimaryTokenSigned = false;
 
         public ReceiveSecurityHeaderElementManager(ReceiveSecurityHeader securityHeader)
         {
@@ -40,10 +36,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public int Count
-        {
-            get { return this.count; }
-        }
+        public int Count => this.count;
 
         public bool IsPrimaryTokenSigned
         {
@@ -148,7 +141,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void EnsureCapacityToAdd()
+        private void EnsureCapacityToAdd()
         {
             if (this.count == this.elements.Length)
             {
@@ -251,7 +244,7 @@ namespace CoreWCF.Security
             return null;
         }
 
-        void OnDuplicateId(string id)
+        private void OnDuplicateId(string id)
         {
             throw TraceUtility.ThrowHelperError(
                 new MessageSecurityException(SR.Format(SR.DuplicateIdInMessageToBeVerified, id)), this.securityHeader.SecurityVerifiedMessage);
@@ -407,7 +400,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void VerifyIdUniquenessInHeaderIdTable(string id, int headerCount, string[] headerIdTable)
+        private void VerifyIdUniquenessInHeaderIdTable(string id, int headerCount, string[] headerIdTable)
         {
             for (int i = 0; i < headerCount; i++)
             {
@@ -418,7 +411,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void VerifyIdUniquenessInSecurityHeader(string id)
+        private void VerifyIdUniquenessInSecurityHeader(string id)
         {
             Fx.Assert(id != null, "Uniqueness should only be tested for non-empty ids");
             for (int i = 0; i < this.count; i++)
@@ -430,7 +423,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void VerifyIdUniquenessInMessageHeadersAndBody(string id, int headerCount)
+        private void VerifyIdUniquenessInMessageHeadersAndBody(string id, int headerCount)
         {
             Fx.Assert(id != null, "Uniqueness should only be tested for non-empty ids");
             VerifyIdUniquenessInHeaderIdTable(id, headerCount, this.headerIds);
@@ -462,9 +455,7 @@ namespace CoreWCF.Security
                     return;
                 }
             }
-
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SignatureConfirmationWasExpected)));
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.SignatureConfirmationWasExpected));
         }
-
     }
 }

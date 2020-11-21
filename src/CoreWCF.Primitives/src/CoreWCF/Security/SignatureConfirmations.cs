@@ -2,14 +2,11 @@ using System;
 
 namespace CoreWCF.Security
 {
-
-    class SignatureConfirmations
+    internal class SignatureConfirmations
     {
-        SignatureConfirmation[] confirmations;
-        int length;
-        bool encrypted;
+        private SignatureConfirmation[] confirmations;
 
-        struct SignatureConfirmation
+        private struct SignatureConfirmation
         {
             public byte[] value;
 
@@ -22,41 +19,35 @@ namespace CoreWCF.Security
         public SignatureConfirmations()
         {
             confirmations = new SignatureConfirmation[1];
-            length = 0;
+            Count = 0;
         }
 
-        public int Count
-        {
-            get { return length; }
-        }
+        public int Count { get; private set; }
 
         public void AddConfirmation(byte[] value, bool encrypted)
         {
-            if (confirmations.Length == length)
+            if (confirmations.Length == Count)
             {
-                SignatureConfirmation[] newConfirmations = new SignatureConfirmation[length * 2];
-                Array.Copy(confirmations, 0, newConfirmations, 0, length);
+                SignatureConfirmation[] newConfirmations = new SignatureConfirmation[Count * 2];
+                Array.Copy(confirmations, 0, newConfirmations, 0, Count);
                 confirmations = newConfirmations;
             }
-            confirmations[length] = new SignatureConfirmation(value);
-            ++length;
-            this.encrypted |= encrypted;
+            confirmations[Count] = new SignatureConfirmation(value);
+            ++Count;
+            this.IsMarkedForEncryption |= encrypted;
         }
 
         public void GetConfirmation(int index, out byte[] value, out bool encrypted)
         {
-            if (index < 0 || index >= length)
+            if (index < 0 || index >= Count)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("index", SR.Format(SR.ValueMustBeInRange, 0, length)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), SR.Format(SR.ValueMustBeInRange, 0, Count)));
             }
 
             value = confirmations[index].value;
-            encrypted = this.encrypted;
+            encrypted = this.IsMarkedForEncryption;
         }
 
-        public bool IsMarkedForEncryption
-        {
-            get { return this.encrypted; }
-        }
+        public bool IsMarkedForEncryption { get; private set; }
     }
 }

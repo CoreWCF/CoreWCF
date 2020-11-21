@@ -1,14 +1,13 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using CoreWCF.Channels;
+using CoreWCF.Description;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
-using CoreWCF;
-using CoreWCF.Channels;
-using CoreWCF.Description;
 using CoreWCF.Security.Tokens;
-using System.Xml;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
@@ -71,7 +70,7 @@ namespace CoreWCF.Security
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
             this.outgoingSessionToken = token;
         }

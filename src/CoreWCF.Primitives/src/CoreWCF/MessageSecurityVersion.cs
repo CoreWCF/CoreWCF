@@ -107,7 +107,7 @@ namespace CoreWCF
         public abstract BasicSecurityProfileVersion BasicSecurityProfileVersion { get; }
         internal abstract MessageSecurityTokenVersion MessageSecurityTokenVersion { get; }
 
-       internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion : MessageSecurityVersion
+        internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion : MessageSecurityVersion
         {
             static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion();
 
@@ -227,7 +227,7 @@ namespace CoreWCF
             }
         }
 
-       internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion : MessageSecurityVersion
+        internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion : MessageSecurityVersion
         {
             static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion();
 

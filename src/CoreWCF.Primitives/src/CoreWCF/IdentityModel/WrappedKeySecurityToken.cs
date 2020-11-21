@@ -1,9 +1,9 @@
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Tokens;
 using System;
 using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Xml;
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security.Tokens
 {
@@ -51,11 +51,11 @@ namespace CoreWCF.Security.Tokens
         WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString)
         {
             if (id == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("id");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             if (wrappingAlgorithm == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappingAlgorithm");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappingAlgorithm));
             if (keyToWrap == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("securityKeyToWrap");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyToWrap));
 
             this.id = id;
             this.effectiveTime = DateTime.UtcNow;
@@ -64,21 +64,11 @@ namespace CoreWCF.Security.Tokens
             this.wrappingAlgorithmDictionaryString = wrappingAlgorithmDictionaryString;
         }
 
-        public override string Id
-        {
-            get { return this.id; }
-        }
+        public override string Id => this.id;
 
-        public override DateTime ValidFrom
-        {
-            get { return this.effectiveTime; }
-        }
+        public override DateTime ValidFrom => this.effectiveTime;
 
-        public override DateTime ValidTo
-        {
-            // Never expire
-            get { return DateTime.MaxValue; }
-        }
+        public override DateTime ValidTo => DateTime.MaxValue;
 
         internal EncryptedKey EncryptedKey
         {
@@ -86,43 +76,19 @@ namespace CoreWCF.Security.Tokens
             set { this.encryptedKey = value; }
         }
 
-        internal ReferenceList ReferenceList
-        {
-            get
-            {
-                return this.encryptedKey == null ? null : this.encryptedKey.ReferenceList;
-            }
-        }
+        internal ReferenceList ReferenceList => this.encryptedKey == null ? null : this.encryptedKey.ReferenceList;
 
-        public string WrappingAlgorithm
-        {
-            get { return this.wrappingAlgorithm; }
-        }
+        public string WrappingAlgorithm => this.wrappingAlgorithm;
 
-        internal SecurityKey WrappingSecurityKey
-        {
-            get { return this.wrappingSecurityKey; }
-        }
+        internal SecurityKey WrappingSecurityKey => this.wrappingSecurityKey;
 
-        public SecurityToken WrappingToken
-        {
-            get { return this.wrappingToken; }
-        }
+        public SecurityToken WrappingToken => this.wrappingToken;
 
-        public SecurityKeyIdentifier WrappingTokenReference
-        {
-            get { return this.wrappingTokenReference; }
-        }
+        public SecurityKeyIdentifier WrappingTokenReference => this.wrappingTokenReference;
 
-        internal string CarriedKeyName
-        {
-            get { return null; }
-        }
+        internal string CarriedKeyName => null;
 
-        public override ReadOnlyCollection<SecurityKey> SecurityKeys
-        {
-            get { return this.securityKey; }
-        }
+        public override ReadOnlyCollection<SecurityKey> SecurityKeys => this.securityKey;
 
         internal byte[] GetHash()
         {

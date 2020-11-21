@@ -13,24 +13,23 @@ using System.Xml;
 
 namespace CoreWCF.Security.Tokens
 {
-    struct SecurityContextCookieSerializer
+    internal struct SecurityContextCookieSerializer
     {
-        const int SupportedPersistanceVersion = 1;
-
-        SecurityStateEncoder securityStateEncoder;
-        IList<Type> knownTypes;
+        private const int SupportedPersistanceVersion = 1;
+        private SecurityStateEncoder securityStateEncoder;
+        private IList<Type> knownTypes;
 
         public SecurityContextCookieSerializer(SecurityStateEncoder securityStateEncoder, IList<Type> knownTypes)
         {
             if (securityStateEncoder == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("securityStateEncoder");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(securityStateEncoder));
             }
             this.securityStateEncoder = securityStateEncoder;
             this.knownTypes = knownTypes ?? new List<Type>();
         }
 
-        SecurityContextSecurityToken DeserializeContext(byte[] serializedContext, byte[] cookieBlob, string id, XmlDictionaryReaderQuotas quotas)
+        private SecurityContextSecurityToken DeserializeContext(byte[] serializedContext, byte[] cookieBlob, string id, XmlDictionaryReaderQuotas quotas)
         {
             SctClaimDictionary dictionary = SctClaimDictionary.Instance;
             XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(serializedContext, 0, serializedContext.Length, dictionary, quotas, null, null);
@@ -121,15 +120,15 @@ namespace CoreWCF.Security.Tokens
             }
             if (cookieContextId == null)
             {
-                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, "ContextId"));
+                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, nameof(cookieContextId)));
             }
             if (key == null || key.Length == 0)
             {
-                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, "Key"));
+                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, nameof(key)));
             }
             if (localId != id)
             {
-                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, "Id"));
+                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, nameof(id)));
             }
             List<IAuthorizationPolicy> authorizationPolicies;
             if (claimSets != null)
@@ -211,7 +210,6 @@ namespace CoreWCF.Security.Tokens
             return this.securityStateEncoder.EncodeSecurityState(serializedContext);
         }
 
-
         public SecurityContextSecurityToken CreateSecurityContextFromCookie(byte[] encodedCookie, UniqueId contextId, UniqueId generation, string id, XmlDictionaryReaderQuotas quotas)
         {
             byte[] cookie = null;
@@ -231,11 +229,11 @@ namespace CoreWCF.Security.Tokens
             SecurityContextSecurityToken sct = DeserializeContext(cookie, encodedCookie, id, quotas);
             if (sct.ContextId != contextId)
             {
-                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, "ContextId"));
+                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, nameof(contextId)));
             }
             if (sct.KeyGeneration != generation)
             {
-                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, "KeyGeneration"));
+                OnInvalidCookieFailure(SR.Format(SR.SctCookieValueMissingOrIncorrect, nameof(sct.KeyGeneration)));
             }
 
             return sct;
@@ -251,12 +249,12 @@ namespace CoreWCF.Security.Tokens
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.InvalidSecurityContextCookie, reason), e));
         }
 
-        class SctUnconditionalPolicy : IAuthorizationPolicy
-        {
-            SecurityUniqueId id = SecurityUniqueId.Create();
-            IList<IIdentity> identities; 
-            IList<ClaimSet> claimSets;
-            DateTime expirationTime;
+       internal class SctUnconditionalPolicy : IAuthorizationPolicy
+       {
+            private SecurityUniqueId id = SecurityUniqueId.Create();
+            private IList<IIdentity> identities;
+            private IList<ClaimSet> claimSets;
+            private DateTime expirationTime;
 
             public SctUnconditionalPolicy(IList<IIdentity> identities, IList<ClaimSet> claimSets, DateTime expirationTime)
             {

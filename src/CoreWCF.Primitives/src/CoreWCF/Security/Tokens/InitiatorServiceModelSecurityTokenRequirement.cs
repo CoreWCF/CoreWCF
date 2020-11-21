@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CoreWCF.Security.Tokens
 {
-    public sealed class InitiatorServiceModelSecurityTokenRequirement : ServiceModelSecurityTokenRequirement
+    internal sealed class InitiatorServiceModelSecurityTokenRequirement : ServiceModelSecurityTokenRequirement
     {
         //WebHeaderCollection webHeaderCollection;
 

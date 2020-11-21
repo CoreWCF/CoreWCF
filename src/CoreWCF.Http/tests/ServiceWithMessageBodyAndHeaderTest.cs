@@ -10,6 +10,7 @@ using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using CoreWCF;
+using System.ServiceModel.Channels;
 
 namespace BasicHttp
 {
@@ -37,7 +38,7 @@ namespace BasicHttp
              
                 CoreEchoMessageResponse result = channel.EchoWithMessageContract (new CoreEchoMessageRequest() { Text = "Message Hello", APIKey = "DEVKEYTOTEST" });
                 Assert.NotNull(result);
-
+                ((IChannel)channel).Close();
             }
         }
 

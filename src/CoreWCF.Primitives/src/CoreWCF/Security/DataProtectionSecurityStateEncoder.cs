@@ -1,24 +1,22 @@
+using CoreWCF.Runtime;
+using System;
+using System.Security.Cryptography;
+using System.Text;
+
 namespace CoreWCF.Security
 {
-    using System.Text;
-    using System.Security.Cryptography;
-    //using System.Security.Cryptography.
-    using CoreWCF.Runtime;
-    using System;
 
     public class DataProtectionSecurityStateEncoder : SecurityStateEncoder
     {
         byte[] entropy;
         bool useCurrentUserProtectionScope;
 
-        public DataProtectionSecurityStateEncoder()
-            : this(true)
+        public DataProtectionSecurityStateEncoder(): this(true)
         {
             // empty
         }
 
-        public DataProtectionSecurityStateEncoder(bool useCurrentUserProtectionScope)
-            : this(useCurrentUserProtectionScope, null)
+        public DataProtectionSecurityStateEncoder(bool useCurrentUserProtectionScope) : this(useCurrentUserProtectionScope, null)
         { }
 
         public DataProtectionSecurityStateEncoder(bool useCurrentUserProtectionScope, byte[] entropy)
@@ -71,7 +69,7 @@ namespace CoreWCF.Security
             }
             catch (CryptographicException exception)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.SecurityStateEncoderDecodingFailure), exception));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.SecurityStateEncoderDecodingFailure, exception));
             }
 
         }
@@ -84,7 +82,7 @@ namespace CoreWCF.Security
             }
             catch (CryptographicException exception)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.SecurityStateEncoderEncodingFailure), exception));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.SecurityStateEncoderEncodingFailure, exception));
             }
         }
     }

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Globalization;
-using System.Runtime;
-using CoreWCF.Runtime;
+﻿using CoreWCF.Runtime;
+using System;
 
 namespace CoreWCF.Security
 {
@@ -27,14 +21,14 @@ namespace CoreWCF.Security
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
-                        SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
+                        SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 this.cachingTime = value;
@@ -54,8 +48,8 @@ namespace CoreWCF.Security
             {
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
-                                                    SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
+                                                    SR.ValueMustBeNonNegative));
                 }
                 this.maxCachedNonces = value;
 

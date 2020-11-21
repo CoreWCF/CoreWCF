@@ -1,7 +1,6 @@
+using System.ComponentModel;
 namespace CoreWCF.Security
 {
-    using System.ComponentModel;
-
     public enum SecurityKeyEntropyMode
     {
         ClientEntropy,
@@ -9,7 +8,7 @@ namespace CoreWCF.Security
         CombinedEntropy
     }
 
-    sealed class SecurityKeyEntropyModeHelper
+    internal sealed class SecurityKeyEntropyModeHelper
     {
         internal static bool IsDefined(SecurityKeyEntropyMode value)
         {
@@ -22,7 +21,7 @@ namespace CoreWCF.Security
         {
             if (!IsDefined(value))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("value", (int)value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
                     typeof(SecurityKeyEntropyMode)));
             }
         }

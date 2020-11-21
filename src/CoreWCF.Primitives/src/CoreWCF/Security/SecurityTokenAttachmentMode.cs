@@ -1,8 +1,8 @@
-using System.ComponentModel;
 using System;
+using System.ComponentModel;
+
 namespace CoreWCF.Security
 {
-
     public enum SecurityTokenAttachmentMode
     {
         Signed,
@@ -11,7 +11,7 @@ namespace CoreWCF.Security
         SignedEncrypted
     }
 
-    static class SecurityTokenAttachmentModeHelper
+    internal static class SecurityTokenAttachmentModeHelper
     {
         internal static bool IsDefined(SecurityTokenAttachmentMode value)
         {
@@ -25,7 +25,7 @@ namespace CoreWCF.Security
         {
             if (!IsDefined(value))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("value", (int)value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
                     typeof(SecurityTokenAttachmentMode)));
             }
         }

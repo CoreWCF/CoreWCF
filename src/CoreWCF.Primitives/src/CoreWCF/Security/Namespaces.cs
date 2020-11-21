@@ -1,6 +1,6 @@
 namespace CoreWCF.Security
 {
-    static class Namespaces
+    internal static class Namespaces
     {
         internal const string WSPolicy = CoreWCF.Description.MetadataStrings.WSPolicy.NamespaceUri;
         internal const string WSPolicyPrefix = CoreWCF.Description.MetadataStrings.WSPolicy.Prefix;

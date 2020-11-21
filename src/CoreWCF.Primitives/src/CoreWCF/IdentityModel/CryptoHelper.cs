@@ -58,11 +58,6 @@ namespace CoreWCF.IdentityModel
             return result == 0;
         }
 
-        internal static bool IsSymmetricAlgorithm(string algorithm)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
         internal static byte[] UnwrapKey(byte[] wrappingKey, byte[] wrappedKey, string algorithm)
         {
             throw new PlatformNotSupportedException();
@@ -112,9 +107,7 @@ namespace CoreWCF.IdentityModel
             switch (algorithm)
             {
                 case SecurityAlgorithms.HmacSha1Signature:
-#pragma warning disable CA5350 // Do not use insecure cryptographic algorithm SHA1.
                     return new HMACSHA1(key);
-#pragma warning restore CA5350 // Do not use insecure cryptographic algorithm SHA1.
                 case SecurityAlgorithms.HmacSha256Signature:
                     return new HMACSHA256(key);
                 default:
@@ -123,11 +116,6 @@ namespace CoreWCF.IdentityModel
         }
 
         internal static SymmetricAlgorithm GetSymmetricAlgorithm(byte[] key, string algorithm)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        internal static bool IsAsymmetricAlgorithm(string algorithm)
         {
             throw new PlatformNotSupportedException();
         }
@@ -265,9 +253,7 @@ namespace CoreWCF.IdentityModel
                 case SHA1String:
                 case SystemSecurityCryptographySha1String:
                 case SecurityAlgorithms.Sha1Digest:
-#pragma warning disable CA5350 // Do not use insecure cryptographic algorithm SHA1.
                     return SHA1.Create();
-#pragma warning restore CA5350 // Do not use insecure cryptographic algorithm SHA1.
                 case SHA256String:
                 case SecurityAlgorithms.Sha256Digest:
                     return SHA256.Create();
@@ -292,9 +278,7 @@ namespace CoreWCF.IdentityModel
                 // If no custom algorithm is plugged-in, at least these two algorithms
                 // will be inside the delegate dictionary.
                 case SecurityAlgorithms.Sha1Digest:
-#pragma warning disable CA5350 // Do not use insecure cryptographic algorithm SHA1.
                     return SHA1.Create();
-#pragma warning restore CA5350 // Do not use insecure cryptographic algorithm SHA1.
                 case SecurityAlgorithms.ExclusiveC14n:
                     throw new PlatformNotSupportedException();
                 case SHA256String:
@@ -311,13 +295,9 @@ namespace CoreWCF.IdentityModel
                     return Aes.Create();
                 case SecurityAlgorithms.TripleDesEncryption:
                 case SecurityAlgorithms.TripleDesKeyWrap:
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
                     return TripleDES.Create();
-#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
                 case SecurityAlgorithms.HmacSha1Signature:
-#pragma warning disable CA5350 // Do not use insecure cryptographic algorithm SHA1.
                     return new HMACSHA1();
-#pragma warning restore CA5350 // Do not use insecure cryptographic algorithm SHA1.
                 case SecurityAlgorithms.HmacSha256Signature:
                     return new HMACSHA256();
                 case SecurityAlgorithms.ExclusiveC14nWithComments:
@@ -325,14 +305,11 @@ namespace CoreWCF.IdentityModel
                 case SecurityAlgorithms.Ripemd160Digest:
                     return null;
                 case SecurityAlgorithms.DesEncryption:
-#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
                     return DES.Create();
-#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
                 default:
                     return null;
             }
         }
-
 
         internal static object GetAlgorithmFromConfig(string algorithm)
         {
@@ -409,13 +386,9 @@ namespace CoreWCF.IdentityModel
                 case SecurityAlgorithms.Sha256Digest:
                     return SHA256.Create();
                 case SecurityAlgorithms.Sha1Digest:
-#pragma warning disable CA5350 // Do not use insecure cryptographic algorithm SHA1.
                     return SHA1.Create();
-#pragma warning restore CA5350 // Do not use insecure cryptographic algorithm SHA1.
                 case SecurityAlgorithms.HmacSha1Signature:
-#pragma warning disable CA5350 // Do not use insecure cryptographic algorithm SHA1.
                     return new HMACSHA1();
-#pragma warning restore CA5350 // Do not use insecure cryptographic algorithm SHA1.
                 default:
                     break;
             }

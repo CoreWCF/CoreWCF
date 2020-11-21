@@ -103,8 +103,7 @@ namespace CoreWCF.Security
 
         internal virtual ISignatureValueSecurityElement ReadSignatureConfirmation(XmlDictionaryReader reader)
         {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-                SR.Format(SR.SignatureConfirmationNotSupported)));
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SignatureConfirmationNotSupported));
         }
         class SecurityVersion10 : SecurityVersion
         {

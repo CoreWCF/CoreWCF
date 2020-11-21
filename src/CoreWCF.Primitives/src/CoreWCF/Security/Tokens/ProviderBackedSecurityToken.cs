@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
-using System.Security.Cryptography;
+using System;
 using System.Security.Authentication.ExtendedProtection;
-using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Security.Tokens
 {
@@ -17,14 +13,11 @@ namespace CoreWCF.Security.Tokens
     /// </summary>
     internal class ProviderBackedSecurityToken : SecurityToken
     {
-        SecurityTokenProvider _tokenProvider;
-
         // Double-checked locking pattern requires volatile for read/write synchronization
-        volatile SecurityToken _securityToken;
-        TimeSpan _timeout;
-        ChannelBinding _channelBinding;
-
-        object _lock;
+        private SecurityToken _securityToken;
+        private TimeSpan _timeout;
+        private ChannelBinding _channelBinding;
+        private object _lock;
 
         /// <summary>
         /// Constructor to create an instance of this class.
@@ -36,24 +29,21 @@ namespace CoreWCF.Security.Tokens
 
             if ( tokenProvider == null )
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("tokenProvider"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(tokenProvider)));
             }
 
-            _tokenProvider = tokenProvider;
+            TokenProvider = tokenProvider;
             _timeout = timeout;
         }
 
-        public SecurityTokenProvider TokenProvider
-        {
-            get { return _tokenProvider; }
-        }
+        public SecurityTokenProvider TokenProvider { get; }
 
         public ChannelBinding ChannelBinding
         {
             set { _channelBinding = value; }
         }
 
-        void ResolveSecurityToken()
+        private void ResolveSecurityToken()
         {
             throw new NotImplementedException();
             //TODO

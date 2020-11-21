@@ -26,8 +26,8 @@ namespace CoreWCF.IdentityModel.Tokens
         static byte[] GetHash(X509Certificate2 certificate)
         {
             if (certificate == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
-
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
+            //TODO  switch to stronger hash algorithm once we're no longer on netstandard2.0
             return certificate.GetCertHash();
         }
 

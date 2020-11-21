@@ -1,17 +1,13 @@
+using System;
 using System.Collections.Generic;
-using CoreWCF.IdentityModel;
-using System.Runtime.CompilerServices;
 using System.Xml;
 using DictionaryManager = CoreWCF.IdentityModel.DictionaryManager;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
-using CoreWCF;
-using XD = CoreWCF.IdentityModel.XD;
-using System;
 
 namespace CoreWCF.Security
 {
-   sealed class ReferenceList : ISecurityElement
-    {
+    sealed class ReferenceList : ISecurityElement
+   {
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.ReferenceList;
         const string NamespacePrefix = XmlEncryptionStrings.Prefix;
         internal static readonly XmlDictionaryString NamespaceUri = XD.XmlEncryptionDictionary.Namespace;// EncryptedType.NamespaceUri;
@@ -22,25 +18,11 @@ namespace CoreWCF.Security
         {
         }
 
-        public int DataReferenceCount
-        {
-            get { return this.referredIds.Count; }
-        }
+        public int DataReferenceCount => this.referredIds.Count;
 
-        public bool HasId
-        {
-            get { return false; }
-        }
+        public bool HasId => false;
 
-        public string Id
-        {
-            get
-            {
-                // PreSharp Bug: Property get methods should not throw exceptions.
-                #pragma warning suppress 56503
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
-            }
-        }
+        public string Id => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
 
         public void AddReferredId(string id)
         {

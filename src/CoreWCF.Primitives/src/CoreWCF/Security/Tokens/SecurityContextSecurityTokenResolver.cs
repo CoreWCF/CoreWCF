@@ -1,15 +1,12 @@
-using System.Xml;
-using CoreWCF;
-using System.Collections.ObjectModel;
+using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using System;
-using CoreWCF.IdentityModel;
+using System.Collections.ObjectModel;
+using System.Xml;
 
 namespace CoreWCF.Security.Tokens
 {
-
-
     public class SecurityContextSecurityTokenResolver : SecurityTokenResolver, ISecurityContextSecurityTokenCache
     {
         SecurityContextTokenCache tokenCache;
@@ -26,12 +23,12 @@ namespace CoreWCF.Security.Tokens
         {
             if (securityContextCacheCapacity <= 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("securityContextCacheCapacity", SR.Format(SR.ValueMustBeGreaterThanZero)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(securityContextCacheCapacity), SR.ValueMustBeGreaterThanZero));
             }
 
             if ( clockSkew < TimeSpan.Zero )
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError( new ArgumentOutOfRangeException( "clockSkew", SR.Format( SR.TimeSpanCannotBeLessThanTimeSpanZero ) ) );
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError( new ArgumentOutOfRangeException( nameof(clockSkew), SR.TimeSpanCannotBeLessThanTimeSpanZero) );
             }
 
             this.capacity = securityContextCacheCapacity;

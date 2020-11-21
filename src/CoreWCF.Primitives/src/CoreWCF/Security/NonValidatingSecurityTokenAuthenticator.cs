@@ -1,18 +1,13 @@
-﻿using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Policy;
+﻿using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 
 namespace CoreWCF.Security
 {
-    class NonValidatingSecurityTokenAuthenticator<TTokenType> : SecurityTokenAuthenticator
+    internal class NonValidatingSecurityTokenAuthenticator<TTokenType> : SecurityTokenAuthenticator
     {
-        public NonValidatingSecurityTokenAuthenticator()
-            : base()
+        public NonValidatingSecurityTokenAuthenticator() : base()
         { }
 
         protected override bool CanValidateTokenCore(SecurityToken token)

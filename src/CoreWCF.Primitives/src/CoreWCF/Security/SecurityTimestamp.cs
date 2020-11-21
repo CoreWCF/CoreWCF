@@ -1,26 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CoreWCF.Runtime;
+using System;
 using System.Globalization;
-using System.Runtime;
-using CoreWCF.Runtime;
 using System.Xml;
 
 namespace CoreWCF.Security
 {
-    sealed class SecurityTimestamp
+    internal sealed class SecurityTimestamp
     {
-        const string DefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
-        //                            012345678901234567890123
-
+        private const string DefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
         internal static readonly TimeSpan defaultTimeToLive = SecurityProtocolFactory.defaultTimestampValidityDuration;
-        char[] computedCreationTimeUtc;
-        char[] computedExpiryTimeUtc;
-        DateTime creationTimeUtc;
-        DateTime expiryTimeUtc;
-        readonly string id;
-        readonly string digestAlgorithm;
-        readonly byte[] digest;
+        private char[] computedCreationTimeUtc;
+        private char[] computedExpiryTimeUtc;
+        private DateTime creationTimeUtc;
+        private DateTime expiryTimeUtc;
+        private readonly string id;
+        private readonly string digestAlgorithm;
+        private readonly byte[] digest;
 
         public SecurityTimestamp(DateTime creationTimeUtc, DateTime expiryTimeUtc, string id)
             : this(creationTimeUtc, expiryTimeUtc, id, null, null)
@@ -34,7 +29,7 @@ namespace CoreWCF.Security
 
             if (creationTimeUtc > expiryTimeUtc)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new ArgumentOutOfRangeException("recordedExpiryTime", SR.Format(SR.CreationTimeUtcIsAfterExpiryTime)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new ArgumentOutOfRangeException(nameof(expiryTimeUtc), SR.CreationTimeUtcIsAfterExpiryTime));
             }
 
             this.creationTimeUtc = creationTimeUtc;
@@ -100,7 +95,7 @@ namespace CoreWCF.Security
             return this.computedExpiryTimeUtc;
         }
 
-        static char[] ToChars(ref DateTime utcTime)
+        private static char[] ToChars(ref DateTime utcTime)
         {
             char[] buffer = new char[DefaultFormat.Length];
             int offset = 0;
@@ -129,7 +124,7 @@ namespace CoreWCF.Security
             return buffer;
         }
 
-        static void ToChars(int n, char[] buffer, ref int offset, int count)
+        private static void ToChars(int n, char[] buffer, ref int offset, int count)
         {
             for (int i = offset + count - 1; i >= offset; i--)
             {

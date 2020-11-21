@@ -1,6 +1,4 @@
-﻿
-
-using CoreWCF.IdentityModel;
+﻿using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security

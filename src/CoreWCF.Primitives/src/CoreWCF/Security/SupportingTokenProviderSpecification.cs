@@ -1,36 +1,30 @@
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security.Tokens;
 
-
 namespace CoreWCF.Security
 {
     public class SupportingTokenProviderSpecification
     {
-        SecurityTokenParameters tokenParameters;
-
         public SupportingTokenProviderSpecification(SecurityTokenProvider tokenProvider, SecurityTokenAttachmentMode attachmentMode, SecurityTokenParameters tokenParameters)
         {
             if (tokenProvider == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenProvider");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenProvider));
             }
             SecurityTokenAttachmentModeHelper.Validate(attachmentMode);
             if (tokenParameters == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenParameters");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenParameters));
             }
             this.TokenProvider = tokenProvider;
             this.SecurityTokenAttachmentMode = attachmentMode;
-            this.tokenParameters = tokenParameters;
+            this.TokenParameters = tokenParameters;
         }
 
         public SecurityTokenProvider TokenProvider { get; }
 
         public SecurityTokenAttachmentMode SecurityTokenAttachmentMode { get; }
 
-        public SecurityTokenParameters TokenParameters
-        {
-            get { return this.tokenParameters; }
-        }
+        public SecurityTokenParameters TokenParameters { get; }
     }
 }

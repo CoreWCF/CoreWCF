@@ -4,19 +4,19 @@ using System.Collections.ObjectModel;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class UserNameSecurityToken : SecurityToken
+    internal class USerNameSecurityToken : SecurityToken
     {
         string id;
         string password;
         string userName;
         DateTime effectiveTime;
 
-        public UserNameSecurityToken(string userName, string password)
+        public USerNameSecurityToken(string userName, string password)
             : this(userName, password, SecurityUniqueId.Create().Value)
         {
         }
 
-        public UserNameSecurityToken(string userName, string password, string id)
+        public USerNameSecurityToken(string userName, string password, string id)
         {
             if (userName == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(userName));

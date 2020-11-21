@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF;
-using System.Security.Cryptography.X509Certificates;
 using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CoreWCF.Security
-{    public class IssuedTokenServiceCredential
+{
+    public class IssuedTokenServiceCredential
     {
         internal const bool DefaultAllowUntrustedRsaIssuers = false;
         internal const AudienceUriMode DefaultAudienceUriMode = AudienceUriMode.Always;

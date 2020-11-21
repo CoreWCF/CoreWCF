@@ -1,10 +1,9 @@
+using System;
+using System.Xml;
+using System.Collections.ObjectModel;
 
 namespace CoreWCF.Security.Tokens
 {
-    using System;
-    using System.Xml;
-    using System.Collections.ObjectModel;
-
     public interface ISecurityContextSecurityTokenCache 
     {
         void AddContext(SecurityContextSecurityToken token);

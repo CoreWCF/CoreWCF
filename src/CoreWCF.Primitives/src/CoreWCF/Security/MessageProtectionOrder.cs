@@ -1,4 +1,3 @@
-
 namespace CoreWCF.Security
 {
     public enum MessageProtectionOrder
@@ -8,7 +7,7 @@ namespace CoreWCF.Security
         EncryptBeforeSign,
     }
 
-    static class MessageProtectionOrderHelper
+    internal static class MessageProtectionOrderHelper
     {
         internal static bool IsDefined(MessageProtectionOrder value)
         {

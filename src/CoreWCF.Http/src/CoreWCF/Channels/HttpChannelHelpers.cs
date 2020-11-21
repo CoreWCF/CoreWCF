@@ -1863,7 +1863,7 @@ namespace CoreWCF.Channels
                 if (count < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), count,
-                        SR.Format(SR.ValueMustBeNonNegative)));
+                        SR.ValueMustBeNonNegative));
                 }
 
                 if (count == 0)

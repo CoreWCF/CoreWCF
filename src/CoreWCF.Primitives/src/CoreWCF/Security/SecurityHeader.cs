@@ -1,7 +1,7 @@
-using System;
-using System.Globalization;
 using CoreWCF.Channels;
 using CoreWCF.Description;
+using System;
+using System.Globalization;
 
 namespace CoreWCF.Security
 {
@@ -28,19 +28,19 @@ namespace CoreWCF.Security
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
             if (actor == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("actor");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
             }
             if (standardsManager == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("standardsManager");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
             }
             if (algorithmSuite == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("algorithmSuite");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithmSuite));
             }
 
             this.message = message;
@@ -52,15 +52,9 @@ namespace CoreWCF.Security
             this.transferDirection = transferDirection;
         }
 
-        public override string Actor
-        {
-            get { return this.actor; }
-        }
+        public override string Actor => this.actor;
 
-        public SecurityAlgorithmSuite AlgorithmSuite
-        {
-            get { return this.algorithmSuite; }
-        }
+        public SecurityAlgorithmSuite AlgorithmSuite => this.algorithmSuite;
 
         public bool EncryptedKeyContainsReferenceList
         {
@@ -98,15 +92,9 @@ namespace CoreWCF.Security
             set { this.message = value; }
         }
 
-        public override bool MustUnderstand
-        {
-            get { return this.mustUnderstand; }
-        }
+        public override bool MustUnderstand => this.mustUnderstand;
 
-        public override bool Relay
-        {
-            get { return this.relay; }
-        }
+        public override bool Relay => this.relay;
 
         public SecurityHeaderLayout Layout
         {
@@ -121,20 +109,11 @@ namespace CoreWCF.Security
             }
         }
 
-        public SecurityStandardsManager StandardsManager
-        {
-            get { return this.standardsManager; }
-        }
+        public SecurityStandardsManager StandardsManager => this.standardsManager;
 
-        public MessageDirection MessageDirection
-        {
-            get { return this.transferDirection; }
-        }
+        public MessageDirection MessageDirection => this.transferDirection;
 
-        protected MessageVersion Version
-        {
-            get { return this.message.Version; }
-        }
+        protected MessageVersion Version => this.message.Version;
 
         protected void SetProcessingStarted()
         {
@@ -145,7 +124,7 @@ namespace CoreWCF.Security
         {
             if (this.processingStarted)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.OperationCannotBeDoneAfterProcessingIsStarted)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.OperationCannotBeDoneAfterProcessingIsStarted));
             }
         }
 

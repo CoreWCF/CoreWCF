@@ -1,4 +1,3 @@
-
 namespace CoreWCF.Security
 {
     enum ReceiveSecurityHeaderElementCategory

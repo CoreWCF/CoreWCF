@@ -437,6 +437,7 @@ namespace CoreWCF.Security
             FaultCode senderCode = FaultCode.CreateSenderFaultCode(subCode);
             return MessageFault.CreateFault(senderCode, reason);
         }
+
         internal static MessageFault CreateSecurityMessageFault(Exception e, SecurityStandardsManager standardsManager)
         {
             bool isSecurityError = false;
@@ -510,8 +511,7 @@ namespace CoreWCF.Security
 
         internal static string GenerateId() => SecurityUniqueId.Create().Value;
 
-        internal static byte[] GenerateDerivedKey(SecurityToken tokenToDerive, string derivationAlgorithm, byte[] label, byte[] nonce,
-    int keySize, int offset)
+        internal static byte[] GenerateDerivedKey(SecurityToken tokenToDerive, string derivationAlgorithm, byte[] label, byte[] nonce, int keySize, int offset)
         {
             SymmetricSecurityKey symmetricSecurityKey = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(tokenToDerive);
             if (symmetricSecurityKey == null || !symmetricSecurityKey.IsSupportedAlgorithm(derivationAlgorithm))
@@ -559,6 +559,7 @@ namespace CoreWCF.Security
             Buffer.BlockCopy(buffer, 0, copy, 0, buffer.Length);
             return copy;
         }
+
         internal static bool IsSupportedAlgorithm(string algorithm, SecurityToken token)
         {
             if (token.SecurityKeys == null)
@@ -1065,11 +1066,11 @@ namespace CoreWCF.Security
         {
             if (messageSecurityVersion == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("securityVersion"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(messageSecurityVersion)));
             }
             if (securityTokenSerializer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("securityTokenSerializer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(securityTokenSerializer));
             }
             return new SecurityStandardsManager(messageSecurityVersion, securityTokenSerializer);
         }

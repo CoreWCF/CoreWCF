@@ -26,6 +26,5 @@ namespace CoreWCF.IdentityModel.Selectors
                     typeof(AudienceUriMode)));
             }
         }
-
     }
 }

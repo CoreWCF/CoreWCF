@@ -50,7 +50,7 @@ namespace CoreWCF.Security
         {
             SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
             if (securityBindingElement == null)
-                throw CoreWCF.DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format("TokenAuthenticatorRequiresSecurityBindingElement", (object)recipientRequirement));
+                throw CoreWCF.DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, (object)recipientRequirement));
             bool flag = !recipientRequirement.SupportSecurityContextCancellation;
             LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
             IMessageFilterTable<EndpointAddress> propertyOrDefault = recipientRequirement.GetPropertyOrDefault<IMessageFilterTable<EndpointAddress>>(ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty, (IMessageFilterTable<EndpointAddress>)null);

@@ -1,11 +1,9 @@
-using CoreWCF.Security.Tokens;
 using CoreWCF.Channels;
-using System.Xml;
 using System;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
-
     abstract class SecurityHeaderElementInferenceEngine
     {
         public abstract void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader);
@@ -26,7 +24,7 @@ namespace CoreWCF.Security
                 case SecurityHeaderLayout.LaxTimestampLast:
                     return LaxTimestampLastModeSecurityHeaderElementInferenceEngine.Instance;
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("layout"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(layout)));
             }
         }
     }

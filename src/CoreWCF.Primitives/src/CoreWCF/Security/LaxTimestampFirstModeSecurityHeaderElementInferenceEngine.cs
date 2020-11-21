@@ -1,4 +1,3 @@
-
 namespace CoreWCF.Security
 {
     sealed class LaxTimestampFirstModeSecurityHeaderElementInferenceEngine : LaxModeSecurityHeaderElementInferenceEngine

@@ -1,17 +1,14 @@
-using System;
-using CoreWCF;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using CoreWCF.Security.Tokens;
-using System.IO;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Net.Mail;
-using System.Xml;
-using System.Runtime.Serialization;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Net.Mail;
+using System.Runtime.Serialization;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
+using System.Xml;
 
 namespace CoreWCF.Security
 {

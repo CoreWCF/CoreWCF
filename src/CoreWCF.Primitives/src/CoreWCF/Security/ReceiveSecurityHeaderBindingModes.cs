@@ -1,8 +1,5 @@
-
-
 namespace CoreWCF.Security
 {
-    
     enum ReceiveSecurityHeaderBindingModes
     {
         Unknown = 0x0,

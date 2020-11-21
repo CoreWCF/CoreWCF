@@ -1,33 +1,29 @@
-
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Threading;
-using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Description;
-using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Security
 {
     // See SecurityProtocolFactory for contracts on subclasses etc
-    abstract class SecurityProtocol : ISecurityCommunicationObject
+    internal abstract class SecurityProtocol : ISecurityCommunicationObject
     {
         private static ReadOnlyCollection<SupportingTokenProviderSpecification> s_emptyTokenProviders;
         private Dictionary<string, Collection<SupportingTokenProviderSpecification>> _mergedSupportingTokenProvidersMap;
-       // private ChannelParameterCollection _channelParameters;
 
         protected SecurityProtocol(SecurityProtocolFactory factory, EndpointAddress target, Uri via)
         {
             SecurityProtocolFactory = factory;
             Target = target;
             Via = via;
-            //TODO is it needed ?
            CommunicationObject = new WrapperSecurityCommunicationObject(this);
         }
 
@@ -107,12 +103,6 @@ namespace CoreWCF.Security
             requirement.SecurityBindingElement = SecurityProtocolFactory.SecurityBindingElement;
             requirement.SecurityAlgorithmSuite = SecurityProtocolFactory.OutgoingAlgorithmSuite;
             requirement.MessageSecurityVersion = SecurityProtocolFactory.MessageSecurityVersion.SecurityTokenVersion;
-            //TODO
-            //if (_channelParameters != null)
-            //{
-            //    requirement.Properties[ServiceModelSecurityTokenRequirement.ChannelParametersCollectionProperty] = _channelParameters;
-            //}
-            //
             return requirement;
         }
 
@@ -579,12 +569,12 @@ namespace CoreWCF.Security
             return token;
         }
 
-        public abstract Task<Message> SecureOutgoingMessageAsync(Message message, CancellationToken token);
+        public abstract Message SecureOutgoingMessage(Message message, CancellationToken token);
 
         // subclasses that offer correlation should override this version
-        public virtual async Task<(SecurityProtocolCorrelationState, Message)> SecureOutgoingMessageAsync(Message message , CancellationToken token, SecurityProtocolCorrelationState correlationState)
+        public virtual (SecurityProtocolCorrelationState, Message) SecureOutgoingMessage(Message message , CancellationToken token, SecurityProtocolCorrelationState correlationState)
         {
-            return (null, await SecureOutgoingMessageAsync(message, token));
+            return (null, SecureOutgoingMessage(message, token));
         }
 
         protected virtual void OnOutgoingMessageSecured(Message securedMessage)
@@ -633,7 +623,6 @@ namespace CoreWCF.Security
         public Task OnCloseAsync(TimeSpan timeout)
         {
             return Task.CompletedTask;
-           // throw new NotImplementedException();
         }
     }
 }

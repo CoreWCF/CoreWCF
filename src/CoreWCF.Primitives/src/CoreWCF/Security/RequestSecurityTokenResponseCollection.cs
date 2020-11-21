@@ -1,12 +1,8 @@
-using CoreWCF;
 using CoreWCF.Channels;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using System.Xml;
 using System;
 using System.Collections.Generic;
-using CoreWCF.Security;
 using System.Globalization;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
@@ -23,7 +19,7 @@ namespace CoreWCF.Security
             : base(true)
         {
             if (rstrCollection == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("rstrCollection");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rstrCollection));
             int index = 0;
             foreach (RequestSecurityTokenResponse rstr in rstrCollection)
             {
@@ -34,7 +30,7 @@ namespace CoreWCF.Security
             this.rstrCollection = rstrCollection;
             if (standardsManager == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("standardsManager"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
             }
             this.standardsManager = standardsManager;
         }

@@ -69,7 +69,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 }
                 if (keyIdentifier.Count == 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException("ErrorDeserializingKeyIdentifierClause"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.ErrorDeserializingKeyIdentifierClause));
                 }
                 reader.ReadEndElement();
                 return keyIdentifier;
@@ -92,7 +92,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 writer.WriteEndElement(); // KeyInfo
                 if (!clauseWritten)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new System.Exception("NoKeyInfoClausesToWrite"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityMessageSerializationException(SR.NoKeyInfoClausesToWrite));
                 }
             }
         }
@@ -133,7 +133,7 @@ namespace CoreWCF.IdentityModel.Tokens
                         X509Certificate2 certificate = null;
                         if (!SecurityUtils.TryCreateX509CertificateFromRawData(reader.ReadElementContentAsBase64(), out certificate))
                         {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new System.Exception(SR.InvalidX509RawData));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityMessageSerializationException(SR.InvalidX509RawData));
                         }
                         ski = new X509RawDataKeyIdentifierClause(certificate);
                     }

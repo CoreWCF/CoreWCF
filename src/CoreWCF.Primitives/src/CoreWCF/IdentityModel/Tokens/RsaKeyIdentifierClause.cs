@@ -17,7 +17,7 @@ namespace CoreWCF.IdentityModel.Tokens
             : base(clauseType)
         {
             if (rsa == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("rsa");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
 
             this.rsa = rsa;
             this.rsaParameters = rsa.ExportParameters(false);
@@ -55,9 +55,6 @@ namespace CoreWCF.IdentityModel.Tokens
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             RsaKeyIdentifierClause that = keyIdentifierClause as RsaKeyIdentifierClause;
-
-            // PreSharp Bug: Parameter 'that' to this public method must be validated: A null-dereference can occur here.
-#pragma warning suppress 56506
             return ReferenceEquals(this, that) || (that != null && that.Matches(this.rsa));
         }
 
@@ -82,7 +79,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (writer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
             writer.WriteBase64(this.rsaParameters.Exponent, 0, this.rsaParameters.Exponent.Length);
         }
@@ -91,7 +88,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (writer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
             writer.WriteBase64(this.rsaParameters.Modulus, 0, this.rsaParameters.Modulus.Length);
         }

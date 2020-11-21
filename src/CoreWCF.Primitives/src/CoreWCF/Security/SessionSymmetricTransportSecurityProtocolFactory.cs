@@ -30,29 +30,22 @@ namespace CoreWCF.Security
 
         internal override SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, TimeSpan timeout)
         {
-            if (this.ActAsInitiator)
+            if (this.SecurityTokenParameters == null)
             {
-                throw new NotImplementedException(""); // Not needed for server side
-               // return new InitiatorSessionSymmetricTransportSecurityProtocol(this, target, via);
+                OnPropertySettingsError("SecurityTokenParameters", true);
             }
-            else
+            if (this.SecurityTokenParameters.RequireDerivedKeys)
             {
-                if (this.SecurityTokenParameters == null)
-                {
-                    OnPropertySettingsError("SecurityTokenParameters", true);
-                }
-                if (this.SecurityTokenParameters.RequireDerivedKeys)
-                {
-                    this.ExpectKeyDerivation = true;
-                    this.derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(this.ActAsInitiator);
-                }
-                return new AcceptorSessionSymmetricTransportSecurityProtocol(this);
+                this.ExpectKeyDerivation = true;
+                this.derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(this.ActAsInitiator);
             }
+            return new AcceptorSessionSymmetricTransportSecurityProtocol(this);
+
         }
 
-        public override Task OpenAsync(TimeSpan timeout)
+        public override Task OnOpenAsync(TimeSpan timeout)
         {
-            base.OpenAsync(timeout);
+            base.OnOpenAsync(timeout);
             if (this.SecurityTokenParameters == null)
             {
                 OnPropertySettingsError("SecurityTokenParameters", true);

@@ -1,30 +1,28 @@
+using CoreWCF.Channels;
+using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
-using CoreWCF;
-using CoreWCF.Channels;
-using CoreWCF.Dispatcher;
 using System.Xml;
 
 namespace CoreWCF.Security
 {
-
-    sealed class SecuritySessionFilter : HeaderFilter
+    internal sealed class SecuritySessionFilter : HeaderFilter
     {
-        static readonly string SessionContextIdsProperty = String.Format(CultureInfo.InvariantCulture, "{0}/SecuritySessionContextIds", DotNetSecurityStrings.Namespace);
-        UniqueId securityContextTokenId;
-        SecurityStandardsManager standardsManager;
-        string[] excludedActions;
-        bool isStrictMode;
+        private static readonly string SessionContextIdsProperty = String.Format(CultureInfo.InvariantCulture, "{0}/SecuritySessionContextIds", DotNetSecurityStrings.Namespace);
+        private UniqueId securityContextTokenId;
+        private SecurityStandardsManager standardsManager;
+        private string[] excludedActions;
+        private bool isStrictMode;
 
         public SecuritySessionFilter(UniqueId securityContextTokenId, SecurityStandardsManager standardsManager, bool isStrictMode, params string[] excludedActions)
         {
             if (securityContextTokenId == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("securityContextTokenId"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(securityContextTokenId)));
             }
 
             this.excludedActions = excludedActions;
@@ -41,7 +39,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static bool ShouldExcludeMessage(Message message, string[] excludedActions)
+        private static bool ShouldExcludeMessage(Message message, string[] excludedActions)
         {
             string action = message.Headers.Action;
             if (excludedActions == null || action == null)
@@ -87,7 +85,6 @@ namespace CoreWCF.Security
                         return false;
                     }
                 }
-#pragma warning suppress 56500 // covered by FxCOP
                 catch (Exception e)
                 {
                     if (!CanHandleException(e)) throw;
@@ -127,23 +124,23 @@ namespace CoreWCF.Security
             return new SecuritySessionFilterTable<FilterData>(this.standardsManager, this.isStrictMode, this.excludedActions);
         }
 
-        class SecuritySessionFilterTable<FilterData> : IMessageFilterTable<FilterData>
+        private class SecuritySessionFilterTable<FilterData> : IMessageFilterTable<FilterData>
         {
-            Dictionary<UniqueId, KeyValuePair<MessageFilter, FilterData>> contextMappings;
-            Dictionary<MessageFilter, FilterData> filterMappings;
-            SecurityStandardsManager standardsManager;
-            string[] excludedActions;
-            bool isStrictMode;
+            private Dictionary<UniqueId, KeyValuePair<MessageFilter, FilterData>> contextMappings;
+            private Dictionary<MessageFilter, FilterData> filterMappings;
+            private SecurityStandardsManager standardsManager;
+            private string[] excludedActions;
+            private bool isStrictMode;
 
             public SecuritySessionFilterTable(SecurityStandardsManager standardsManager, bool isStrictMode, string[] excludedActions)
             {
                 if (standardsManager == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("standardsManager");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
                 }
                 if (excludedActions == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("excludedActions");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(excludedActions));
                 }
                 this.standardsManager = standardsManager;
                 this.excludedActions = new string[excludedActions.Length];
@@ -247,12 +244,12 @@ namespace CoreWCF.Security
                 if (sessionFilter.standardsManager != this.standardsManager)
                 {
                     Fx.Assert("Standards manager of filter does not match that of filter table");
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.StandardsManagerDoesNotMatch)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.StandardsManagerDoesNotMatch));
                 }
                 if (sessionFilter.isStrictMode != this.isStrictMode)
                 {
                     Fx.Assert("Session filter's isStrictMode differs from filter table's isStrictMode");
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.FilterStrictModeDifferent)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.FilterStrictModeDifferent));
                 }
                 if (this.contextMappings.ContainsKey(sessionFilter.SecurityContextTokenId))
                 {
@@ -288,7 +285,7 @@ namespace CoreWCF.Security
                 return this.filterMappings.TryGetValue(filter, out data);
             }
 
-            bool TryGetContextIds(Message message, out List<UniqueId> contextIds)
+            private bool TryGetContextIds(Message message, out List<UniqueId> contextIds)
             {
                 object propertyValue;
                 if (!message.Properties.TryGetValue(SessionContextIdsProperty, out propertyValue))
@@ -304,7 +301,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            bool TryMatchCore(Message message, out KeyValuePair<MessageFilter, FilterData> match)
+            private bool TryMatchCore(Message message, out KeyValuePair<MessageFilter, FilterData> match)
             {
                 match = default(KeyValuePair<MessageFilter, FilterData>);
                 if (ShouldExcludeMessage(message, this.excludedActions))
@@ -319,7 +316,6 @@ namespace CoreWCF.Security
                         return false;
                     }
                 }
-#pragma warning suppress 56500 // covered by FxCOP
                 catch (Exception e)
                 {
                     if (!SecuritySessionFilter.CanHandleException(e)) throw;
@@ -335,7 +331,6 @@ namespace CoreWCF.Security
                 }
                 return false;
             }
-
 
             public bool GetMatchingValue(Message message, out FilterData data)
             {

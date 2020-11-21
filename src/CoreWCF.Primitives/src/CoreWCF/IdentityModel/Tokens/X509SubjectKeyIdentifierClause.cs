@@ -21,7 +21,7 @@ namespace CoreWCF.IdentityModel.Tokens
         static byte[] GetSkiRawData(X509Certificate2 certificate)
         {
             if (certificate == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("certificate");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
 
             X509SubjectKeyIdentifierExtension skiExtension =
                 certificate.Extensions[SubjectKeyIdentifierOid] as X509SubjectKeyIdentifierExtension;

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Globalization;
 
 namespace CoreWCF.IdentityModel.Tokens
@@ -35,11 +33,11 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (localId == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("localId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(localId));
             }
             if (localId == string.Empty)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format("ID can't be empty."));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.LocalIdCannotBeEmpty);
             }
             this.localId = localId;
             this.ownerTypes = ownerTypes;
@@ -58,9 +56,6 @@ namespace CoreWCF.IdentityModel.Tokens
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             LocalIdKeyIdentifierClause that = keyIdentifierClause as LocalIdKeyIdentifierClause;
-
-            // PreSharp Bug: Parameter 'that' to this public method must be validated: A null-dereference can occur here.
-#pragma warning suppress 56506
             return ReferenceEquals(this, that) || (that != null && that.Matches(this.localId, this.OwnerType));
         }
 

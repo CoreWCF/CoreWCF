@@ -1,23 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using CoreWCF.Channels;
-using CoreWCF;
-using System.Reflection;
-using System.Threading;
-using System.IO;
-
-using System.Runtime.InteropServices;
 using CoreWCF.IdentityModel.Tokens;
-using System.Text;
-using System.Xml;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
-
-using Psha1DerivedKeyGenerator = CoreWCF.IdentityModel.Psha1DerivedKeyGenerator;
-using CryptoAlgorithms = CoreWCF.IdentityModel.CryptoHelper;
-using System;
 using CoreWCF.Runtime;
+using System;
+using System.Security.Cryptography;
+using CryptoAlgorithms = CoreWCF.IdentityModel.CryptoHelper;
 
 namespace CoreWCF.Security
 {
@@ -117,16 +102,16 @@ namespace CoreWCF.Security
         {
             if (cipherText == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("cipherText");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(cipherText));
             }
             if (count < 0 || count > cipherText.Length)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("count", SR.Format(SR.ValueMustBeInRange, 0, cipherText.Length)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), SR.Format(SR.ValueMustBeInRange, 0, cipherText.Length)));
 
             }
             if (offset < 0 || offset > cipherText.Length - count)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("offset", SR.Format(SR.ValueMustBeInRange, 0, cipherText.Length - count)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset), SR.Format(SR.ValueMustBeInRange, 0, cipherText.Length - count)));
             }
 
             int ivSize = algorithm.BlockSize / 8;
@@ -312,7 +297,7 @@ namespace CoreWCF.Security
         {
             if (buffer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException( nameof(buffer)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(buffer)));
             }
             if (count < 0 || count > buffer.Length)
             {

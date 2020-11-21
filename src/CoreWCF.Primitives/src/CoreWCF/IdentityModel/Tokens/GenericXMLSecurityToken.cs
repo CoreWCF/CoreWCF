@@ -32,7 +32,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (tokenXml == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenXml");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenXml));
             }
 
             this.id = GetId(tokenXml);
@@ -46,45 +46,21 @@ namespace CoreWCF.IdentityModel.Tokens
             this.authorizationPolicies = authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
         }
 
-        public override string Id
-        {
-            get { return this.id; }
-        }
+        public override string Id => this.id;
 
-        public override DateTime ValidFrom
-        {
-            get { return this.effectiveTime; }
-        }
+        public override DateTime ValidFrom => this.effectiveTime;
 
-        public override DateTime ValidTo
-        {
-            get { return this.expirationTime; }
-        }
+        public override DateTime ValidTo => this.expirationTime;
 
-        public SecurityKeyIdentifierClause InternalTokenReference
-        {
-            get { return this.internalTokenReference; }
-        }
+        public SecurityKeyIdentifierClause InternalTokenReference => this.internalTokenReference;
 
-        public SecurityKeyIdentifierClause ExternalTokenReference
-        {
-            get { return this.externalTokenReference; }
-        }
+        public SecurityKeyIdentifierClause ExternalTokenReference => this.externalTokenReference;
 
-        public XmlElement TokenXml
-        {
-            get { return this.tokenXml; }
-        }
+        public XmlElement TokenXml => this.tokenXml;
 
-        public SecurityToken ProofToken
-        {
-            get { return this.proofToken; }
-        }
+        public SecurityToken ProofToken => this.proofToken;
 
-        public ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies
-        {
-            get { return this.authorizationPolicies; }
-        }
+        public ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies => this.authorizationPolicies;
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys
         {

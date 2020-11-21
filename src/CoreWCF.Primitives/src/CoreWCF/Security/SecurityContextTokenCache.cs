@@ -1,10 +1,10 @@
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Xml;
-using CoreWCF.Runtime;
-using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -49,7 +49,7 @@ namespace CoreWCF.Security
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
 
             if ( !SecurityUtils.IsCurrentlyTimeEffective( token.ValidFrom, token.ValidTo, this.clockSkew ) )
@@ -104,7 +104,7 @@ namespace CoreWCF.Security
         {
             if (contextId == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
             object hashKey = GetHashKey(contextId, generation);
             SecurityContextSecurityToken sct = (SecurityContextSecurityToken)base.GetItem(hashKey);
@@ -115,7 +115,7 @@ namespace CoreWCF.Security
         {
             if (contextId == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
             object hashKey = GetHashKey(contextId, generation);
             if (!base.TryRemoveItem(hashKey) && throwIfNotPresent)
@@ -131,7 +131,7 @@ namespace CoreWCF.Security
         {
             if (contextId == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
             ArrayList matchingKeys = new ArrayList(2);
 

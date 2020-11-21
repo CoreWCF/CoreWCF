@@ -609,7 +609,7 @@ namespace CoreWCF.Security
 
                 if (defaultKeySize < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("defaultKeySize", SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("defaultKeySize", SR.ValueMustBeNonNegative));
                 }
 
                 if (rstr == null)
@@ -1240,7 +1240,7 @@ namespace CoreWCF.Security
             {
                 if (keySize < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("keySize", SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("keySize", SR.ValueMustBeNonNegative));
                 }
                 XmlDocument doc = new XmlDocument();
                 XmlElement result = doc.CreateElement(this.DriverDictionary.Prefix.Value, this.DriverDictionary.KeySize.Value,

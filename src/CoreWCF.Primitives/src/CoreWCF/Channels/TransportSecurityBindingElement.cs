@@ -1,29 +1,20 @@
-using System;
+using CoreWCF.Configuration;
 using CoreWCF.Description;
-using System.Xml;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using CoreWCF;
+using CoreWCF.Dispatcher;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
-
+using System;
 using System.Net.Security;
-using CoreWCF.Channels;
-using CoreWCF.Configuration;
-using CoreWCF.Dispatcher;
-using Microsoft.AspNetCore.Builder;
 
 namespace CoreWCF.Channels
 {
     public sealed class TransportSecurityBindingElement : SecurityBindingElement //, IPolicyExportExtension
     {
-        public TransportSecurityBindingElement()
-            : base()
+        public TransportSecurityBindingElement() : base()
         {
         }
 
-        TransportSecurityBindingElement(TransportSecurityBindingElement elementToBeCloned)
-            : base(elementToBeCloned)
+        TransportSecurityBindingElement(TransportSecurityBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
             // empty
         }
@@ -105,9 +96,6 @@ namespace CoreWCF.Channels
             {
                 if (scParameters.BootstrapSecurityBindingElement == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecureConversationSecurityTokenParametersRequireBootstrapBinding)));
-
-                AddDemuxerForSecureConversation(channelBuilder, issuerBindingContext);
-
                 if (scParameters.RequireCancellation)
                 {
                     SessionSymmetricTransportSecurityProtocolFactory sessionFactory = new SessionSymmetricTransportSecurityProtocolFactory();
@@ -172,11 +160,9 @@ namespace CoreWCF.Channels
                 SecurityProtocolFactory protocolFactory = this.CreateSecurityProtocolFactory<TChannel>(context, credentialsManager, true, issuerBindingContext);
                 securityServiceDispatcher.SecurityProtocolFactory = protocolFactory;
             }
-
             securityServiceDispatcher.InitializeSecurityDispatcher(channelBuilder, typeof(TChannel));
-
             //return channelListener;
-           channelBuilder.BuildServiceDispatcher<TChannel>(context, securityServiceDispatcher);
+            channelBuilder.BuildServiceDispatcher<TChannel>(context, securityServiceDispatcher);
             return securityServiceDispatcher;
         }
 
@@ -188,7 +174,6 @@ namespace CoreWCF.Channels
             if (typeof(T) == typeof(ChannelProtectionRequirements))
             {
                 AddressingVersion addressing = MessageVersion.Default.Addressing;
-#pragma warning suppress 56506
                 MessageEncodingBindingElement encoding = context.Binding.Elements.Find<MessageEncodingBindingElement>();
                 if (encoding != null)
                 {

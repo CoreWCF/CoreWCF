@@ -1,7 +1,7 @@
+using System.ComponentModel;
+
 namespace CoreWCF.Channels
 {
-    using System.ComponentModel;
-
     public enum SecurityHeaderLayout
     {
         Strict = 0,

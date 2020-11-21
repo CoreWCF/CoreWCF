@@ -1,17 +1,15 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using System.Runtime;
-using System.Security.Authentication.ExtendedProtection;
-using CoreWCF;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
-using CoreWCF.Security.Tokens;
-using System.Globalization;
-using System;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Security.Authentication.ExtendedProtection;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Security
@@ -59,8 +57,7 @@ namespace CoreWCF.Security
      */
 
     // Whether we need to add support for targetting different SOAP roles is tracked by 19144
- 
-   public abstract class SecurityProtocolFactory : ISecurityCommunicationObject
+    public abstract class SecurityProtocolFactory : ISecurityCommunicationObject
     {
         internal const bool defaultAddTimestamp = true;
         internal const bool defaultDeriveKeys = true;
@@ -81,8 +78,6 @@ namespace CoreWCF.Security
         private bool expectIncomingMessages;
         private bool expectOutgoingMessages;
         private SecurityAlgorithmSuite incomingAlgorithmSuite = SecurityAlgorithmSuite.Default;
-
-
         // per receiver protocol factory lists
         private ICollection<SupportingTokenAuthenticatorSpecification> channelSupportingTokenAuthenticatorSpecification;
         private Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>> scopedSupportingTokenAuthenticatorSpecification;
@@ -126,12 +121,11 @@ namespace CoreWCF.Security
             this.communicationObject = new WrapperSecurityCommunicationObject(this);
         }
 
-        internal SecurityProtocolFactory(SecurityProtocolFactory factory)
-            : this()
+        internal SecurityProtocolFactory(SecurityProtocolFactory factory) : this()
         {
             if (factory == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("factory");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(factory));
             }
 
             this.actAsInitiator = factory.actAsInitiator;
@@ -274,7 +268,6 @@ namespace CoreWCF.Security
         //    }
         //}
 
-
         public bool DetectReplays
         {
             get
@@ -368,19 +361,11 @@ namespace CoreWCF.Security
                 ThrowIfImmutable();
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
                 }
                 this.incomingAlgorithmSuite = value;
             }
         }
-
-        //protected bool IsReadOnly
-        //{
-        //    get
-        //    {
-        //        return this.CommunicationObject.State != CommunicationState.Created;
-        //    }
-        //}
 
         public int MaxCachedNonces
         {
@@ -393,7 +378,7 @@ namespace CoreWCF.Security
                 ThrowIfImmutable();
                 if (value <= 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 this.maxCachedNonces = value;
             }
@@ -410,7 +395,7 @@ namespace CoreWCF.Security
                 ThrowIfImmutable();
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 this.maxClockSkew = value;
             }
@@ -440,7 +425,7 @@ namespace CoreWCF.Security
                 ThrowIfImmutable();
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
                 }
                 this.outgoingAlgorithmSuite = value;
             }
@@ -457,7 +442,7 @@ namespace CoreWCF.Security
                 ThrowIfImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustBeGreaterThanTimeSpanZero)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
                 this.replayWindow = value;
             }
@@ -521,7 +506,7 @@ namespace CoreWCF.Security
                 ThrowIfImmutable();
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
                 }
                 this.standardsManager = value;
             }
@@ -538,7 +523,7 @@ namespace CoreWCF.Security
                 ThrowIfImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format("TimeSpanMustbeGreaterThanTimeSpanZero")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
                 this.timestampValidityDuration = value;
             }
@@ -556,9 +541,9 @@ namespace CoreWCF.Security
 
         internal MessageSecurityVersion MessageSecurityVersion => this.messageSecurityVersion;
 
-        public TimeSpan DefaultOpenTimeout => throw new NotImplementedException();
+        public TimeSpan DefaultOpenTimeout => ServiceDefaults.OpenTimeout;
 
-        public TimeSpan DefaultCloseTimeout => throw new NotImplementedException();
+        public TimeSpan DefaultCloseTimeout => ServiceDefaults.CloseTimeout;
 
         public virtual void OnAbort()
         {
@@ -610,7 +595,7 @@ namespace CoreWCF.Security
             SecurityProtocol securityProtocol = OnCreateSecurityProtocol(target, via, timeout);
             if (securityProtocol == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.ProtocolFactoryCouldNotCreateProtocol)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.ProtocolFactoryCouldNotCreateProtocol));
             }
             return securityProtocol;
         }
@@ -871,7 +856,12 @@ namespace CoreWCF.Security
             }
         }
 
-        public virtual Task OpenAsync(TimeSpan timeout) // renaming to Init
+        public Task OpenAsync(TimeSpan timeout)
+        {
+            return this.communicationObject.OpenAsync();
+        }
+
+        public virtual Task OnOpenAsync(TimeSpan timeout)
         {
             if (this.SecurityBindingElement == null)
             {
@@ -955,24 +945,25 @@ namespace CoreWCF.Security
                 MergeSupportingTokenAuthenticators(timeoutHelper.RemainingTime());
             }
 
-            //if (this.DetectReplays)
-            //{
-            //    if (!this.SupportsReplayDetection)
-            //    {
-            //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("DetectReplays", SR.GetString(SR.SecurityProtocolCannotDoReplayDetection, this));
-            //    }
-            //    if (this.MaxClockSkew == TimeSpan.MaxValue || this.ReplayWindow == TimeSpan.MaxValue)
-            //    {
-            //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.NoncesCachedInfinitely)));
-            //    }
+            if (this.DetectReplays)
+            {
+                if (!this.SupportsReplayDetection)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("DetectReplays", SR.Format(SR.SecurityProtocolCannotDoReplayDetection, this));
+                }
+                if (this.MaxClockSkew == TimeSpan.MaxValue || this.ReplayWindow == TimeSpan.MaxValue)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.NoncesCachedInfinitely));
+                }
 
-            //    // If DetectReplays is true and nonceCache is null then use the default InMemoryNonceCache. 
-            //    if (this.nonceCache == null)
-            //    {
-            //        // The nonce needs to be cached for replayWindow + 2*clockSkew to eliminate replays
-            //        this.nonceCache = new InMemoryNonceCache(this.ReplayWindow + this.MaxClockSkew + this.MaxClockSkew, this.MaxCachedNonces);
-            //    }
-            //}
+                // If DetectReplays is true and nonceCache is null then use the default InMemoryNonceCache. 
+                if (this.nonceCache == null)
+                {
+                    //TODO below (InMemoryNonceCache) is coming along with WindowsAuth, so uncomment
+                    // The nonce needs to be cached for replayWindow + 2*clockSkew to eliminate replays
+                    // this.nonceCache = new InMemoryNonceCache(this.ReplayWindow + this.MaxClockSkew + this.MaxClockSkew, this.MaxCachedNonces);
+                }
+            }
 
             //this.derivedKeyTokenAuthenticator = new NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken>();
             return Task.CompletedTask;
@@ -1036,12 +1027,12 @@ namespace CoreWCF.Security
 
         internal void ThrowIfImmutable()
         {
-           // this.communicationObject.ThrowIfDisposedOrImmutable();
+           this.communicationObject.ThrowIfDisposedOrImmutable();
         }
 
         private void ThrowIfNotOpen()
         {
-           // this.communicationObject.ThrowIfNotOpened();
+            this.communicationObject.ThrowIfNotOpened();
         }
 
         public void OnClosed()
@@ -1055,11 +1046,6 @@ namespace CoreWCF.Security
         }
 
         public void OnFaulted()
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual Task OnOpenAsync(TimeSpan timeout)
         {
             throw new NotImplementedException();
         }

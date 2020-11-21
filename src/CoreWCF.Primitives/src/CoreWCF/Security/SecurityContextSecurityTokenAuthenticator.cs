@@ -1,16 +1,15 @@
-using System;
-using System.Collections.ObjectModel;
-using System.Xml;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
+using System;
+using System.Collections.ObjectModel;
+using System.Xml;
 
 namespace CoreWCF.Security.Tokens
 {
     public class SecurityContextSecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
-        public SecurityContextSecurityTokenAuthenticator()
-            : base()
+        public SecurityContextSecurityTokenAuthenticator() : base()
         { }
 
         protected override bool CanValidateTokenCore(SecurityToken token)

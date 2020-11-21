@@ -34,7 +34,6 @@ namespace CoreWCF.Security
             _tokenSerializer = tokenSerializer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
             if (messageSecurityVersion.SecureConversationVersion == SecureConversationVersion.WSSecureConversation13)
             {
-                
                  SecureConversationDriver = new WSSecureConversationDec2005.DriverDec2005();
             }
             else
@@ -73,10 +72,15 @@ namespace CoreWCF.Security
 
         public SecurityVersion SecurityVersion
         {
-            get { return MessageSecurityVersion == null ? null : MessageSecurityVersion.SecurityVersion; }
+            get { return MessageSecurityVersion?.SecurityVersion; }
         }
 
         public MessageSecurityVersion MessageSecurityVersion { get; }
+
+        public TrustVersion TrustVersion
+        {
+            get { return MessageSecurityVersion?.TrustVersion; }
+        }
 
         internal SecurityTokenSerializer SecurityTokenSerializer
         {
@@ -115,7 +119,6 @@ namespace CoreWCF.Security
             return WSSecurityTokenSerializer.TryCreateKeyIdentifierClauseFromTokenXml(element, tokenReferenceStyle, out securityKeyIdentifierClause);
         }
 
-
         internal SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXml(XmlElement element, SecurityTokenReferenceStyle tokenReferenceStyle)
         {
             return WSSecurityTokenSerializer.CreateKeyIdentifierClauseFromTokenXml(element, tokenReferenceStyle);
@@ -144,7 +147,7 @@ namespace CoreWCF.Security
         {
             if (results == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("results");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
             SecureConversationDriver driver = this.SecureConversationDriver;
             int securityHeaderIndex = this.SecurityVersion.FindIndexOfSecurityHeader(message, actors);

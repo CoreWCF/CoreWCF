@@ -14,7 +14,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (keyIdentifier == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifier");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifier));
             }
             SecurityToken token;
             if (!this.TryResolveTokenCore(keyIdentifier, out token))
@@ -28,7 +28,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (keyIdentifier == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifier");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifier));
             }
             return TryResolveTokenCore(keyIdentifier, out token);
         }
@@ -37,7 +37,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
             SecurityToken token;
             if (!this.TryResolveTokenCore(keyIdentifierClause, out token))
@@ -51,7 +51,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
             return this.TryResolveTokenCore(keyIdentifierClause, out token);
         }
@@ -60,7 +60,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
             SecurityKey key;
             if (!this.TryResolveSecurityKeyCore(keyIdentifierClause, out key))
@@ -74,32 +74,30 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
             return this.TryResolveSecurityKeyCore(keyIdentifierClause, out key);
         }
-
-       
 
         // protected methods
         protected abstract bool TryResolveTokenCore(SecurityKeyIdentifier keyIdentifier, out SecurityToken token);
         protected abstract bool TryResolveTokenCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token);
         protected abstract bool TryResolveSecurityKeyCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityKey key);
 
-
         public static SecurityTokenResolver CreateDefaultSecurityTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
         {
             return new SimpleTokenResolver(tokens, canMatchLocalId);
         }
+
         private class SimpleTokenResolver : SecurityTokenResolver
         {
-            ReadOnlyCollection<SecurityToken> tokens;
-            bool canMatchLocalId;
+            private ReadOnlyCollection<SecurityToken> tokens;
+            private bool canMatchLocalId;
 
             public SimpleTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
             {
                 if (tokens == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokens");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokens));
 
                 this.tokens = tokens;
                 this.canMatchLocalId = canMatchLocalId;
@@ -108,7 +106,7 @@ namespace CoreWCF.IdentityModel.Selectors
             protected override bool TryResolveSecurityKeyCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityKey key)
             {
                 if (keyIdentifierClause == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
 
                 key = null;
                 for (int i = 0; i < this.tokens.Count; ++i)
@@ -148,7 +146,7 @@ namespace CoreWCF.IdentityModel.Selectors
             protected override bool TryResolveTokenCore(SecurityKeyIdentifier keyIdentifier, out SecurityToken token)
             {
                 if (keyIdentifier == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifier");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifier));
 
                 token = null;
                 for (int i = 0; i < keyIdentifier.Count; ++i)
@@ -168,7 +166,7 @@ namespace CoreWCF.IdentityModel.Selectors
             protected override bool TryResolveTokenCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token)
             {
                 if (keyIdentifierClause == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
 
                 token = null;
 
@@ -182,7 +180,7 @@ namespace CoreWCF.IdentityModel.Selectors
             SecurityToken ResolveSecurityToken(SecurityKeyIdentifierClause keyIdentifierClause)
             {
                 if (keyIdentifierClause == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
 
                 if (!this.canMatchLocalId && keyIdentifierClause is LocalIdKeyIdentifierClause)
                     return null;

@@ -1,12 +1,10 @@
-using System.Collections.ObjectModel;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
-using System.Runtime.CompilerServices;
 using System;
+using System.Collections.ObjectModel;
 
 namespace CoreWCF.Security.Tokens
 {
-
     public class BinarySecretSecurityToken : SecurityToken
     {
         private string _id;

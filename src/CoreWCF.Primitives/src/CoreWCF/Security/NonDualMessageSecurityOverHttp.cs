@@ -1,8 +1,5 @@
-
 namespace CoreWCF
 {
-    using CoreWCF.Channels;
-
     public sealed class NonDualMessageSecurityOverHttp : MessageSecurityOverHttp
     {
         internal const bool DefaultEstablishSecurityContext = true;

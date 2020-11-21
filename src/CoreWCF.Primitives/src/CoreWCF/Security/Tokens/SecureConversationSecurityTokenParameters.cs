@@ -1,13 +1,10 @@
-using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Channels;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF;
-using CoreWCF.Security;
-
-using System.Text;
-using System.Globalization;
-using System;
 using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using System;
+using System.Globalization;
+using System.Text;
 
 namespace CoreWCF.Security.Tokens
 {
@@ -83,7 +80,7 @@ namespace CoreWCF.Security.Tokens
             this.requireCancellation = requireCancellation;
         }
 
-        internal protected override bool HasAsymmetricKey { get { return false; } }
+        internal protected override bool HasAsymmetricKey => false;
 
         public SecurityBindingElement BootstrapSecurityBindingElement
         {
@@ -97,13 +94,7 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        public ChannelProtectionRequirements BootstrapProtectionRequirements
-        {
-            get
-            {
-                return this.bootstrapProtectionRequirements;
-            }
-        }
+        public ChannelProtectionRequirements BootstrapProtectionRequirements => this.bootstrapProtectionRequirements;
 
         internal BindingContext IssuerBindingContext
         {
@@ -121,13 +112,7 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        ISecurityCapabilities BootstrapSecurityCapabilities
-        {
-            get
-            {
-                return this.bootstrapSecurityBindingElement.GetIndividualProperty<ISecurityCapabilities>();
-            }
-        }
+        ISecurityCapabilities BootstrapSecurityCapabilities => this.bootstrapSecurityBindingElement.GetIndividualProperty<ISecurityCapabilities>();
 
         public bool RequireCancellation
         {
@@ -153,29 +138,11 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        internal protected override bool SupportsClientAuthentication
-        {
-            get
-            {
-                return this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsClientAuthentication;
-            }
-        }
+        internal protected override bool SupportsClientAuthentication => this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsClientAuthentication;
 
-        internal protected override bool SupportsServerAuthentication
-        {
-            get
-            {
-                return this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsServerAuthentication;
-            }
-        }
+        internal protected override bool SupportsServerAuthentication => this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsServerAuthentication;
 
-        internal protected override bool SupportsClientWindowsIdentity
-        {
-            get
-            {
-                return this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsClientWindowsIdentity;
-            }
-        }
+        internal protected override bool SupportsClientWindowsIdentity => this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsClientWindowsIdentity;
 
         protected override SecurityTokenParameters CloneCore()
         {

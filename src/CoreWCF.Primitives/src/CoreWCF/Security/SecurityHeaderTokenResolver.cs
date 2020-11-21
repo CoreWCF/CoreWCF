@@ -1,15 +1,15 @@
-using System;
-using System.Globalization;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
+using System;
+using System.Globalization;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CoreWCF.Security
 {
-    internal sealed class SecurityHeaderTokenResolver : SecurityTokenResolver // , System.IdentityModel.IWrappedTokenKeyResolver
+    internal sealed class SecurityHeaderTokenResolver : SecurityTokenResolver
     {
         private const int InitialTokenArraySize = 10;
         private int tokenCount;
@@ -50,12 +50,12 @@ namespace CoreWCF.Security
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
 
             if ((allowedReferenceStyle == SecurityTokenReferenceStyle.External) && (tokenParameters == null))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.ResolvingExternalTokensRequireSecurityTokenParameters));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.ResolvingExternalTokensRequireSecurityTokenParameters);
             }
 
             EnsureCapacityToAddToken();
@@ -310,20 +310,11 @@ namespace CoreWCF.Security
                 this.allowedReferenceStyle = allowedReferenceStyle; 
             }
 
-            public SecurityToken Token
-            {
-                get { return this.token; }
-            }
+            public SecurityToken Token => this.token;
 
-            public SecurityTokenParameters TokenParameters
-            {
-                get { return this.tokenParameters; }
-            }
+            public SecurityTokenParameters TokenParameters => this.tokenParameters;
 
-            public SecurityTokenReferenceStyle AllowedReferenceStyle
-            {
-                get { return this.allowedReferenceStyle; }
-            }
+            public SecurityTokenReferenceStyle AllowedReferenceStyle => this.allowedReferenceStyle;
         }
     }
 }

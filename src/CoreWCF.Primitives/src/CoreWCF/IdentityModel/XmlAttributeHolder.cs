@@ -94,7 +94,7 @@ namespace CoreWCF.IdentityModel
             int byteCount = s.Length * sizeof(char);
             if (byteCount > maxSizeOfHeaders)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.XmlBufferQuotaExceeded)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.XmlBufferQuotaExceeded));
             }
             maxSizeOfHeaders -= byteCount;
         }

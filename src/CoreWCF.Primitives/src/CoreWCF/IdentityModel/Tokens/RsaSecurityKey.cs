@@ -4,7 +4,7 @@ using System.Security.Cryptography.Xml;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    sealed public class RsaSecurityKey : AsymmetricSecurityKey
+    public sealed class RsaSecurityKey : AsymmetricSecurityKey
     {
         PrivateKeyStatus privateKeyStatus = PrivateKeyStatus.AvailabilityNotDetermined;
         readonly RSA rsa;
@@ -12,7 +12,7 @@ namespace CoreWCF.IdentityModel.Tokens
         public RsaSecurityKey(RSA rsa)
         {
             if (rsa == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("rsa");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
 
             this.rsa = rsa;
         }
@@ -34,7 +34,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     if (IsSupportedAlgorithm(algorithm))
                         return EncryptedXml.DecryptKey(keyData, rsa, false);
 
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("UnsupportedAlgorithmForCryptoOperation",
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("c",
                  algorithm, "DecryptKey")));
             }
         }
@@ -51,8 +51,8 @@ namespace CoreWCF.IdentityModel.Tokens
                     if (IsSupportedAlgorithm(algorithm))
                         return EncryptedXml.EncryptKey(keyData, rsa, false);
 
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("UnsupportedAlgorithmForCryptoOperation",
-                        algorithm, "EncryptKey")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
+                        algorithm, nameof(EncryptKey))));
             }
         }
 
@@ -60,7 +60,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (requiresPrivateKey && !HasPrivateKey())
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("NoPrivateKeyAvailable")));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.NoPrivateKeyAvailable));
             }
 
             return this.rsa;
@@ -70,7 +70,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (string.IsNullOrEmpty(algorithm))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format("EmptyOrNullArgumentString", "algorithm"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format(SR.EmptyOrNullArgumentString, algorithm));
             }
 
             object algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
@@ -96,7 +96,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 case SecurityAlgorithms.RsaSha256Signature:
                     return CryptoHelper.NewSha256HashAlgorithm();
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("UnsupportedAlgorithmForCryptoOperation",
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
                         algorithm, "GetHashAlgorithmForSignature")));
             }
         }
@@ -105,7 +105,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (string.IsNullOrEmpty(algorithm))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format("EmptyOrNullArgumentString", "algorithm"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format(SR.EmptyOrNullArgumentString, algorithm));
             }
 
             object algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
@@ -126,10 +126,10 @@ namespace CoreWCF.IdentityModel.Tokens
                 }
                 catch (InvalidCastException e)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format("AlgorithmAndKeyMisMatch", algorithm), e));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.AlgorithmAndKeyMisMatch, algorithm), e));
                 }
 
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("UnsupportedAlgorithmForCryptoOperation",
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
                        algorithm, "GetSignatureDeformatter")));
             }
 
@@ -139,7 +139,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 case SecurityAlgorithms.RsaSha256Signature:
                     return new RSAPKCS1SignatureDeformatter(rsa);
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("UnsupportedAlgorithmForCryptoOperation",
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
                         algorithm, "GetSignatureDeformatter")));
             }
         }
@@ -148,7 +148,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (string.IsNullOrEmpty(algorithm))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format("EmptyOrNullArgumentString", "algorithm"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format(SR.EmptyOrNullArgumentString, algorithm));
             }
 
             object algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
@@ -170,11 +170,11 @@ namespace CoreWCF.IdentityModel.Tokens
                 }
                 catch (InvalidCastException e)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format("AlgorithmAndKeyMisMatch", algorithm), e));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.AlgorithmAndKeyMisMatch, algorithm), e));
                 }
 
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("UnsupportedAlgorithmForCryptoOperation",
-                       algorithm, "GetSignatureFormatter")));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format (SR.UnsupportedAlgorithmForCryptoOperation,
+                       algorithm, nameof(GetSignatureFormatter))));
             }
 
             switch (algorithm)
@@ -184,7 +184,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     // Ensure that we have an RSA algorithm object.
                     return new RSAPKCS1SignatureFormatter(this.rsa);
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("UnsupportedAlgorithmForCryptoOperation",
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
                         algorithm, "GetSignatureFormatter")));
             }
         }
@@ -215,25 +215,13 @@ namespace CoreWCF.IdentityModel.Tokens
             return this.privateKeyStatus == PrivateKeyStatus.HasPrivateKey;
         }
 
-        public override bool IsAsymmetricAlgorithm(string algorithm)
-        {
-            if (string.IsNullOrEmpty(algorithm))
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format("EmptyOrNullArgumentString", "algorithm"));
-            }
-
-            return CryptoHelper.IsAsymmetricAlgorithm(algorithm);
-        }
-
         public override bool IsSupportedAlgorithm(string algorithm)
         {
             if (string.IsNullOrEmpty(algorithm))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format("EmptyOrNullArgumentString", "algorithm"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format(SR.EmptyOrNullArgumentString, algorithm));
             }
-
             object algorithmObject = null;
-
             try
             {
                 algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
@@ -253,7 +241,6 @@ namespace CoreWCF.IdentityModel.Tokens
                     return true;
                 return false;
             }
-
             switch (algorithm)
             {
                 case SecurityAlgorithms.RsaV15KeyWrap:
@@ -264,11 +251,6 @@ namespace CoreWCF.IdentityModel.Tokens
                 default:
                     return false;
             }
-        }
-
-        public override bool IsSymmetricAlgorithm(string algorithm)
-        {
-            return CryptoHelper.IsSymmetricAlgorithm(algorithm);
         }
 
         enum PrivateKeyStatus

@@ -1,15 +1,12 @@
-﻿using System.Globalization;
-using CoreWCF.IdentityModel.Tokens;
-using System.Runtime.CompilerServices;
+﻿using CoreWCF.IdentityModel;
+using System.Globalization;
 using System.Xml;
-using CoreWCF.IdentityModel;
 
 namespace CoreWCF.Security
 {
     public class SecurityContextKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        readonly UniqueId contextId;
-        readonly UniqueId generation;
+        private readonly UniqueId generation;
 
         public SecurityContextKeyIdentifierClause(UniqueId contextId)
             : this(contextId, null)
@@ -28,14 +25,11 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
             }
-            this.contextId = contextId;
+            this.ContextId = contextId;
             this.generation = generation;
         }
 
-        public UniqueId ContextId
-        {
-            get { return this.contextId; }
-        }
+        public UniqueId ContextId { get; }
 
         public UniqueId Generation
         {
@@ -45,15 +39,12 @@ namespace CoreWCF.Security
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             SecurityContextKeyIdentifierClause that = keyIdentifierClause as SecurityContextKeyIdentifierClause;
-
-            // PreSharp Bug: Parameter 'that' to this public method must be validated: A null-dereference can occur here.
-#pragma warning suppress 56506
-            return ReferenceEquals(this, that) || (that != null && that.Matches(this.contextId, this.generation));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(this.ContextId, this.generation));
         }
 
         public bool Matches(UniqueId contextId, UniqueId generation)
         {
-            return contextId == this.contextId && generation == this.generation;
+            return contextId == this.ContextId && generation == this.generation;
         }
 
         public override string ToString()

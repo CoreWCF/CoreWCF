@@ -19,7 +19,7 @@ namespace CoreWCF.Security
         {
         }
 
-        public override async Task<Message> SecureOutgoingMessageAsync(Message message, CancellationToken token)
+        public override Message SecureOutgoingMessage(Message message, CancellationToken token)
         {
             if (message == null)
             {
@@ -35,7 +35,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    message = await SecureOutgoingMessageAtResponderAsync(message, actor);
+                    message = SecureOutgoingMessageAtResponder(message, actor);
                 }
                 base.OnOutgoingMessageSecured(message);
             }
@@ -48,7 +48,7 @@ namespace CoreWCF.Security
             return message;
         }
 
-        protected virtual async Task<Message> SecureOutgoingMessageAtResponderAsync(Message message, string actor)
+        protected virtual Message SecureOutgoingMessageAtResponder(Message message, string actor)
         {
             if (this.SecurityProtocolFactory.AddTimestamp && !this.SecurityProtocolFactory.SecurityBindingElement.EnableUnsecuredResponse)
             {

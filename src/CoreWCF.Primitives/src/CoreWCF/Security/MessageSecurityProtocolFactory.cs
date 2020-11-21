@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Security
 {
@@ -29,7 +29,7 @@ namespace CoreWCF.Security
             : base(factory)
         {
             if (factory == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("factory");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(factory));
 
             this.applyIntegrity = factory.applyIntegrity;
             this.applyConfidentiality = factory.applyConfidentiality;
@@ -163,19 +163,19 @@ namespace CoreWCF.Security
 
         public override Task OnOpenAsync(TimeSpan timeout)
         {
-          //  base.OnOpen(timeout);
+            base.OnOpenAsync(timeout);
             this.protectionRequirements.MakeReadOnly();
 
             if (this.DetectReplays && !this.RequireIntegrity)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("RequireIntegrity", SR.Format(SR.ForReplayDetectionToBeDoneRequireIntegrityMustBeSet));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(RequireIntegrity), SR.ForReplayDetectionToBeDoneRequireIntegrityMustBeSet);
             }
 
             if (this.DoRequestSignatureConfirmation)
             {
                 if (!this.SupportsRequestReply)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SignatureConfirmationRequiresRequestReply));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SignatureConfirmationRequiresRequestReply);
                 }
                 //TODO fix below
                 //if (!this.StandardsManager.SecurityVersion.SupportsSignatureConfirmation)
@@ -226,8 +226,6 @@ namespace CoreWCF.Security
         {
             if (this.RequireConfidentiality)
             {
-                //return ExtractMessageParts(action, (this.SecurityTokenManager is ClientCredentialsSecurityTokenManager) ? this.ProtectionRequirements.OutgoingEncryptionParts : this.ProtectionRequirements.IncomingEncryptionParts, false);
-
                 if (this.IsDuplexReply)
                     return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingEncryptionParts, false);
                 else
@@ -243,7 +241,6 @@ namespace CoreWCF.Security
         {
             if (this.RequireIntegrity)
             {
-                //return ExtractMessageParts(action, (this.SecurityTokenManager is ClientCredentialsSecurityTokenManager) ? this.ProtectionRequirements.OutgoingSignatureParts : this.ProtectionRequirements.IncomingSignatureParts, true);
                 if (this.IsDuplexReply)
                     return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingSignatureParts, true);
                 else
@@ -259,7 +256,6 @@ namespace CoreWCF.Security
         {
             if (this.ApplyConfidentiality)
             {
-                //return ExtractMessageParts(action, (this.SecurityTokenManager is ClientCredentialsSecurityTokenManager) ? this.ProtectionRequirements.IncomingEncryptionParts : this.ProtectionRequirements.OutgoingEncryptionParts, false);
                 if (this.IsDuplexReply)
                     return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingEncryptionParts, false);
                 else
@@ -275,7 +271,6 @@ namespace CoreWCF.Security
         {
             if (this.ApplyIntegrity)
             {
-                //return ExtractMessageParts(action, (this.SecurityTokenManager is ClientCredentialsSecurityTokenManager) ? this.ProtectionRequirements.IncomingSignatureParts : this.ProtectionRequirements.OutgoingSignatureParts, true);
                 if (this.IsDuplexReply)
                     return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingSignatureParts, true);
                 else

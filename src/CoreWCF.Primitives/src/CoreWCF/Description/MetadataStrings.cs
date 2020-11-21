@@ -15,6 +15,7 @@ namespace CoreWCF.Description
                 public const string URI = "URI";
                 public const string TargetNamespace = "TargetNamespace";
             }
+
             public static class Elements
             {
                 public const string PolicyReference = "PolicyReference";
@@ -23,6 +24,5 @@ namespace CoreWCF.Description
                 public const string Policy = "Policy";
             }
         }
-
     }
 }

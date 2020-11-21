@@ -1,3 +1,9 @@
+using CoreWCF.Channels;
+using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,16 +12,10 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Authentication.ExtendedProtection;
 using System.Xml;
-using CoreWCF.Channels;
-using CoreWCF.Dispatcher;
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-   internal class RequestSecurityToken : BodyWriter
+    internal class RequestSecurityToken : BodyWriter
     {
         private string context;
         private string tokenType;
@@ -48,7 +48,6 @@ namespace CoreWCF.Security
             : this(SecurityUtils.CreateSecurityStandardsManager(messageSecurityVersion, securityTokenSerializer))
         {
         }
-
 
         public RequestSecurityToken(MessageSecurityVersion messageSecurityVersion, 
                                     SecurityTokenSerializer securityTokenSerializer,
@@ -164,7 +163,6 @@ namespace CoreWCF.Security
             set { message = value; }
         }
 
- 
         public string Context
         {
             get
@@ -204,7 +202,7 @@ namespace CoreWCF.Security
                 if (this.IsReadOnly)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 if (value < 0)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.ValueMustBeNonNegative));
                 this.keySize = value;
             }
         }

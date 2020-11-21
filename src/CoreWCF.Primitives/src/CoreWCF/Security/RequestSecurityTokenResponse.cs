@@ -1,35 +1,26 @@
-using System;
 using CoreWCF.Channels;
-using CoreWCF;
-using System.Xml;
-using System.Security.Cryptography;
-using System.Runtime.Serialization;
-using System.Xml.Serialization;
-using System.Xml.Schema;
-using System.Security.Principal;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security.Tokens;
-using System.IO;
-using CoreWCF.Security;
-using Psha1DerivedKeyGenerator = CoreWCF.IdentityModel.Psha1DerivedKeyGenerator;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Security.Cryptography;
+using System.Xml;
+using Psha1DerivedKeyGenerator = CoreWCF.IdentityModel.Psha1DerivedKeyGenerator;
 
 namespace CoreWCF.Security
 {
-
-
-   internal class RequestSecurityTokenResponse : BodyWriter
+    internal class RequestSecurityTokenResponse : BodyWriter
     {
         private static int minSaneKeySizeInBits = 8 * 8; // 8 Bytes.
         private static int maxSaneKeySizeInBits = (16 * 1024) * 8; // 16 K
-
         private SecurityStandardsManager standardsManager;
         private string context;
         private int keySize;
@@ -122,7 +113,7 @@ namespace CoreWCF.Security
         {
             if (standardsManager == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("standardsManager"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
             }
             this.standardsManager = standardsManager;
             effectiveTime = SecurityUtils.MinUtcDateTime;
@@ -148,11 +139,11 @@ namespace CoreWCF.Security
         {
             if (standardsManager == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("standardsManager"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
             }
             this.standardsManager = standardsManager;
             if (rstrXml == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("rstrXml");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rstrXml));
             this.rstrXml = rstrXml;
             this.context = context;
             this.tokenType = tokenType;
@@ -189,7 +180,7 @@ namespace CoreWCF.Security
             set
             {
                 if (this.IsReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.context = value;
             }
         }
@@ -203,7 +194,7 @@ namespace CoreWCF.Security
             set
             {
                 if (this.IsReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.tokenType = value;
             }
         }
@@ -217,7 +208,7 @@ namespace CoreWCF.Security
             set 
             {
                 if (this.IsReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.requestedAttachedReference = value;
             } 
         }
@@ -231,26 +222,14 @@ namespace CoreWCF.Security
             set
             {
                 if (this.IsReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.requestedUnattachedReference = value;
             }
         }
 
-        public DateTime ValidFrom
-        {
-            get
-            {
-                return this.effectiveTime;
-            }
-        }
+        public DateTime ValidFrom => this.effectiveTime;
 
-        public DateTime ValidTo
-        {
-            get 
-            {
-                return this.expirationTime;
-            }
-        }
+        public DateTime ValidTo => this.expirationTime;
 
         public bool ComputeKey
         {
@@ -261,7 +240,7 @@ namespace CoreWCF.Security
             set 
             {
                 if (this.IsReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.computeKey = value;
             }
         }
@@ -275,9 +254,9 @@ namespace CoreWCF.Security
             set
             {
                 if (this.IsReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 if (value < 0)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeNonNegative));
                 this.keySize = value;
             } 
         }
@@ -291,34 +270,16 @@ namespace CoreWCF.Security
             set
             {
                 if (this.IsReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.isRequestedTokenClosed = value;
             }
         }
 
-        public bool IsReadOnly
-        {
-            get
-            {   
-                return this.isReadOnly;
-            }
-        }
+        public bool IsReadOnly => this.isReadOnly;
 
-        protected Object ThisLock
-        {
-            get
-            {
-                return this.thisLock;
-            }
-        }
+        protected Object ThisLock => this.thisLock;
 
-        internal bool IsReceiver
-        {
-            get
-            {
-                return this.isReceiver;
-            }
-        }
+        internal bool IsReceiver => this.isReceiver;
 
         internal SecurityStandardsManager StandardsManager
         {
@@ -329,7 +290,7 @@ namespace CoreWCF.Security
             set
             {
                 if (this.IsReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.standardsManager = (value != null ? value : SecurityStandardsManager.DefaultInstance);
             }
         }
@@ -340,9 +301,7 @@ namespace CoreWCF.Security
             {
                 if (this.isReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, "EntropyToken")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(EntropyToken))));
                 }
                 return this.entropyToken;
             }
@@ -354,16 +313,14 @@ namespace CoreWCF.Security
             {
                 if (this.isReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, "IssuedToken")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(issuedToken))));
                 }
                 return this.issuedToken;
             }
             set
             {
                 if (this.isReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.issuedToken = value;
             }
         }
@@ -374,16 +331,14 @@ namespace CoreWCF.Security
             {
                 if (this.isReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, "ProofToken")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(proofToken))));
                 }
                 return this.proofToken;
             }
             set
             {
                 if (this.isReadOnly)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.proofToken = value;
             }
         }
@@ -394,9 +349,7 @@ namespace CoreWCF.Security
             {
                 if (!this.isReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, "RequestSecurityTokenXml")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(RequestSecurityTokenResponseXml))));
                 }
                 return this.rstrXml;
             }
@@ -408,9 +361,7 @@ namespace CoreWCF.Security
             {
                 if (this.isReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesTo")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesTo))));
                 }
                 return this.appliesTo;
             }
@@ -422,9 +373,7 @@ namespace CoreWCF.Security
             {
                 if (this.isReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesToSerializer")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesToSerializer))));
                 }
                 return this.appliesToSerializer;
             }
@@ -436,9 +385,7 @@ namespace CoreWCF.Security
             {
                 if (this.isReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesToType")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesToType))));
                 }
                 return this.appliesToType;
             }
@@ -450,33 +397,25 @@ namespace CoreWCF.Security
             {
                 if (this.isReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, "IsLifetimeSet")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(IsLifetimeSet))));
                 }
                 return this.isLifetimeSet;
             }
         }
 
-        internal CoreWCF.XmlBuffer IssuedTokenBuffer
-        {
-            get
-            {
-                return this.issuedTokenBuffer;
-            }
-        }
+        internal CoreWCF.XmlBuffer IssuedTokenBuffer => this.issuedTokenBuffer;
 
         public void SetIssuerEntropy(byte[] issuerEntropy)
         {
             if (this.IsReadOnly)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             this.entropyToken = (issuerEntropy != null) ? new NonceToken(issuerEntropy) : null;
         }
 
         internal void SetIssuerEntropy(WrappedKeySecurityToken issuerEntropy)
         {
             if (this.IsReadOnly)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             this.entropyToken = issuerEntropy;
         }
 
@@ -498,10 +437,10 @@ namespace CoreWCF.Security
         public void SetLifetime(DateTime validFrom, DateTime validTo)
         {
             if (this.IsReadOnly)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             if (validFrom.ToUniversalTime() > validTo.ToUniversalTime())
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.EffectiveGreaterThanExpiration));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.EffectiveGreaterThanExpiration);
             }
             this.effectiveTime = validFrom.ToUniversalTime();
             this.expirationTime = validTo.ToUniversalTime();
@@ -511,10 +450,10 @@ namespace CoreWCF.Security
         public void SetAppliesTo<T>(T appliesTo, XmlObjectSerializer serializer)
         {
             if (this.IsReadOnly)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             if (appliesTo != null && serializer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
             }
             this.appliesTo = appliesTo;
             this.appliesToSerializer = serializer;
@@ -539,7 +478,7 @@ namespace CoreWCF.Security
             {
                 if (serializer == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
                 }
                 return this.standardsManager.TrustDriver.GetAppliesTo<T>(this, serializer);
             }
@@ -552,9 +491,9 @@ namespace CoreWCF.Security
         internal void SetBinaryNegotiation(BinaryNegotiation negotiation)
         {
             if (negotiation == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("negotiation");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiation));
             if (this.IsReadOnly)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             this.negotiationData = negotiation;
         }
 
@@ -569,9 +508,9 @@ namespace CoreWCF.Security
         internal void SetAuthenticator(byte[] authenticator)
         {
             if (authenticator == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("authenticator");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authenticator));
             if (this.IsReadOnly)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             this.authenticator = Fx.AllocateByteArray(authenticator.Length);
             Buffer.BlockCopy(authenticator, 0, this.authenticator, 0, authenticator.Length);
         }
@@ -608,7 +547,7 @@ namespace CoreWCF.Security
         public void WriteTo(XmlWriter writer)
         {
             if (writer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             if (this.IsReadOnly)
             {
                 // cache the serialized bytes to ensure repeatability
@@ -670,7 +609,7 @@ namespace CoreWCF.Security
             ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, int defaultKeySize, bool isBearerKeyType)
         {
             if (!this.isReceiver)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, "GetIssuedToken")));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(GetIssuedToken))));
 
             return this.standardsManager.TrustDriver.GetIssuedToken(this, resolver, allowedAuthenticators, keyEntropyMode, requestorEntropy, expectedTokenType, authorizationPolicies, defaultKeySize, isBearerKeyType);
         }
@@ -678,7 +617,7 @@ namespace CoreWCF.Security
         public virtual GenericXmlSecurityToken GetIssuedToken(string expectedTokenType, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, RSA clientKey)
         {
             if (!this.isReceiver)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, "GetIssuedToken")));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(GetIssuedToken))));
 
             return this.standardsManager.TrustDriver.GetIssuedToken(this, expectedTokenType, authorizationPolicies, clientKey);
         }
@@ -694,9 +633,9 @@ namespace CoreWCF.Security
         public static byte[] ComputeCombinedKey(byte[] requestorEntropy, byte[] issuerEntropy, int keySizeInBits)
         {
             if (requestorEntropy == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("requestorEntropy");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(requestorEntropy));
             if (issuerEntropy == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("issuerEntropy");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuerEntropy));
             // Do a sanity check here. We don't want to allow invalid keys or keys that are too
             // large.
             if ((keySizeInBits < minSaneKeySizeInBits) || (keySizeInBits > maxSaneKeySizeInBits))

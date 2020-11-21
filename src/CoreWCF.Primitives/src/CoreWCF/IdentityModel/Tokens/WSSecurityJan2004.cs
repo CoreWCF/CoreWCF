@@ -1,17 +1,15 @@
-﻿
+﻿using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
+using CoreWCF.Security.Tokens;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF;
-using CoreWCF.Security;
 using System.Text;
 using System.Xml;
-using System;
 using HexBinary = CoreWCF.Security.SoapHexBinary;
 using KeyIdentifierClauseEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.KeyIdentifierClauseEntry;
 using StrEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.StrEntry;
 using TokenEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.TokenEntry;
-using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
@@ -38,7 +36,6 @@ namespace CoreWCF.IdentityModel.Tokens
             strEntries.Add(new X509SkiStrEntry(SecurityTokenSerializer.EmitBspRequiredAttributes));
             strEntries.Add(new X509IssuerSerialStrEntry());
         }
-
 
         public override void PopulateStrEntries(IList<StrEntry> strEntries)
         {
@@ -119,7 +116,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             protected override XmlDictionaryString LocalName { get { return CoreWCF.XD.SecurityJan2004Dictionary.UserNameTokenElement; } }
             protected override XmlDictionaryString NamespaceUri { get { return CoreWCF.XD.SecurityJan2004Dictionary.Namespace; } }
-            protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(UserNameSecurityToken) }; }
+            protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(USerNameSecurityToken) }; }
             public override string TokenTypeUri { get { return SecurityJan2004Strings.UPTokenType; } }
             protected override string ValueTypeUri { get { return null; } }
         }
@@ -232,7 +229,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
                 if (clause == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format("CannotReadKeyIdentifierClause", reader.LocalName, reader.NamespaceURI)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.CannotReadKeyIdentifierClause, reader.LocalName, reader.NamespaceURI)));
                 }
 
                 if (!string.IsNullOrEmpty(strId))

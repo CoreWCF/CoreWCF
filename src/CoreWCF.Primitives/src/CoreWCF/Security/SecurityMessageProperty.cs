@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using CoreWCF.Channels;
-using CoreWCF.IdentityModel;
+﻿using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.ObjectModel;
 
 namespace CoreWCF.Security
 {
@@ -200,7 +199,7 @@ namespace CoreWCF.Security
         public static SecurityMessageProperty GetOrCreate(Message message)
         {
             if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
 
             SecurityMessageProperty result = null;
             if (message.Properties != null)

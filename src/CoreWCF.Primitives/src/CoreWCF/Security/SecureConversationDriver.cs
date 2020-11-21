@@ -1,57 +1,23 @@
-
-
-
-using CoreWCF;
-using System.Xml;
 using System;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
     internal abstract class SecureConversationDriver
     {
-        public virtual XmlDictionaryString CloseAction
-        {
-            get
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecureConversationDriverVersionDoesNotSupportSession));
-            }
-        }
+        public virtual XmlDictionaryString CloseAction => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecureConversationDriverVersionDoesNotSupportSession));
 
-        public virtual XmlDictionaryString CloseResponseAction
-        {
-            get
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecureConversationDriverVersionDoesNotSupportSession));
-            }
-        }
+        public virtual XmlDictionaryString CloseResponseAction => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecureConversationDriverVersionDoesNotSupportSession));
 
-        public virtual bool IsSessionSupported
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public virtual bool IsSessionSupported => false;
 
         public abstract XmlDictionaryString IssueAction { get; }
 
         public abstract XmlDictionaryString IssueResponseAction { get; }
 
-        public virtual XmlDictionaryString RenewAction
-        {
-            get
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecureConversationDriverVersionDoesNotSupportSession));
-            }
-        }
+        public virtual XmlDictionaryString RenewAction => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecureConversationDriverVersionDoesNotSupportSession));
 
-        public virtual XmlDictionaryString RenewResponseAction
-        {
-            get
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecureConversationDriverVersionDoesNotSupportSession));
-            }
-        }
+        public virtual XmlDictionaryString RenewResponseAction => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecureConversationDriverVersionDoesNotSupportSession));
 
         public abstract XmlDictionaryString Namespace { get; }
 

@@ -1,7 +1,6 @@
-using System.Security.Cryptography;
-using CoreWCF.Channels;
-using System.Xml;
 using System;
+using System.Security.Cryptography;
+using System.Xml;
 
 namespace CoreWCF.Security
 {
@@ -29,7 +28,7 @@ namespace CoreWCF.Security
             }
             else if (this.State != EncryptionState.Decrypted)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.BadEncryptionState)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
         }
 
@@ -66,11 +65,11 @@ namespace CoreWCF.Security
         {
             if (this.State != EncryptionState.Read)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.BadEncryptionState)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
             if (algorithm == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("algorithm");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
             }
             this.algorithm = algorithm;
             this.State = EncryptionState.DecryptionSetup;
@@ -80,11 +79,11 @@ namespace CoreWCF.Security
         {
             if (this.State != EncryptionState.New)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.BadEncryptionState)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
             if (algorithm == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("algorithm");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
             }
             this.algorithm = algorithm;
             this.buffer = buffer;

@@ -91,19 +91,9 @@ namespace CoreWCF.IdentityModel.Tokens
             return local;
         }
 
-        public override bool IsAsymmetricAlgorithm(string algorithm)
-        {
-            return (CryptoHelper.IsAsymmetricAlgorithm(algorithm));
-        }
-
         public override bool IsSupportedAlgorithm(string algorithm)
         {
             return (CryptoHelper.IsSymmetricSupportedAlgorithm(algorithm, KeySize));
-        }
-
-        public override bool IsSymmetricAlgorithm(string algorithm)
-        {
-            return CryptoHelper.IsSymmetricAlgorithm(algorithm);
         }
     }
 }

@@ -269,7 +269,6 @@ namespace CoreWCF.Security
             }
         }
 
-
         void EnforceQuota()
         {
             if (!(this.CacheLock.IsWriterLockHeld == true))
