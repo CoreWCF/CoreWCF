@@ -72,6 +72,7 @@ namespace CoreWCF.Http.Tests
             Startup._method = "TwoAttributesSameType";
             var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             Assert.Throws<ArgumentException>(()=> host.Start());
+            host.Dispose();
         }
 
         //Variations
@@ -238,6 +239,7 @@ namespace CoreWCF.Http.Tests
                             builder.ConfigureServiceHostBase<OperationBehaviorBasic_StarAction_Service>(serviceHost =>
                             {
                                 //doesn't work, similar cause as https://github.com/CoreWCF/CoreWCF/issues/193
+                                //related validation is skipped in the corresponding service
                                 var behavior = new ServiceContract.CustomStarActionBehavior();
                                 ContractDescription cd = serviceHost.Description.Endpoints[0].Contract;
                                 cd.ContractBehaviors.Add(behavior);
