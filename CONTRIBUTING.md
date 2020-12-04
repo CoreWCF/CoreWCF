@@ -19,7 +19,9 @@ Run `dotnet build` from the command line inside the src folder. This builds Core
 
 ## Other discussions
 
-https://gitter.im/CoreWCF/CoreWCF
+https://gitter.im/CoreWCF/CoreWCF  
+
+[Monthly community sync-up meeting](https://github.com/CoreWCF/CoreWCF/wiki/Community-Sync-up-meetings)  
 
 ## Filing issues
 

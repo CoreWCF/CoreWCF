@@ -2,6 +2,10 @@
 
 Core WCF is a port of Windows Communication Framework (WCF) to .NET Core. The goal of this project is to enable existing WCF projects to move to .NET Core. Please note that right now, this port is not production ready. We suggest waiting until there are release packages available before using WCF in a production environment. 
 
+### Announcements
+
+To keep up to date on what's going on with CoreWCF, you can subscribe to the [announcements](https://github.com/CoreWCF/announcements) repo to be notified about major changes and other noteworthy announcements.
+
 ### How do I get started?
 
 There are pre-release packages available from a NuGet feed hosted in Azure DevOps. You can download the packages by adding the following package source to your list of feeds.
@@ -22,7 +26,6 @@ If you are using a nuget.config file with only the default nuget.org package sou
 ### How do I contribute?
 
 Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for details.
-
 
 
 ### License, etc.
