@@ -20,12 +20,14 @@
     <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
     <IsTestProject>$(MSBuildProjectName.EndsWith(`Tests`, true, null))</IsTestProject>
   </PropertyGroup>
+
   <!-- Set up the default output and intermediate paths -->
   <PropertyGroup>
     <OutputPath Condition="'$(OutputPath)'==''">$(BinDir)$(ConfigPathSegment)/$(MSBuildProjectName)/</OutputPath>
     <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(BaseIntermediateOutputPath)</IntermediateOutputRootPath>
     <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)$(MSBuildProjectName)/</IntermediateOutputPath>
   </PropertyGroup>
+
   <!-- Disable the default embedded resource behavior as we have a naming convention which is different than what the SDK uses -->
   <PropertyGroup>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
@@ -43,6 +45,13 @@
     <!-- Include license file in packages -->
     <Content Include="$(ProjectDir)LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <!-- Configuring strong name signing -->
+  <PropertyGroup Condition="!($(IsTestProject) OR $(IsSampleProject)) AND Exists('$(ProjectDir)corewcf.snk')">
+    <AssemblyOriginatorKeyFile>$(ProjectDir)corewcf.snk</AssemblyOriginatorKeyFile>
+	<SignAssembly>true</SignAssembly>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
 
   <PropertyGroup Condition="$(IsTestProject) AND '$(CollectCoverage)' == 'true'">
     <CoverletOutput Condition="'$(CoverletOutputDir)' != '' AND '$(CoverletOutput)' == ''">$(CoverletOutputDir)/$(MSBuildProjectName).xml</CoverletOutput>
