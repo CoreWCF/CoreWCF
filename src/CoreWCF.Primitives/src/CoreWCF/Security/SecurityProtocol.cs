@@ -620,8 +620,13 @@ namespace CoreWCF.Security
             return authenticators;
         }
 
+        public Task CloseAsync(TimeSpan timeout)
+        {
+            return this.CommunicationObject.CloseAsync();
+        }
         public Task OnCloseAsync(TimeSpan timeout)
         {
+            OnClosed();
             return Task.CompletedTask;
         }
     }

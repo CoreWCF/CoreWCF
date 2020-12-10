@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -272,8 +273,14 @@ namespace CoreWCF.Dispatcher
         /// <returns></returns>
         internal IServiceChannelDispatcher GetAuthChannelDispatcher(IReplyChannel outerChannel)
         {
-            Task<IServiceChannelDispatcher> channelTask = SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
-            securityAuthServiceChannelDispatcher = channelTask.GetAwaiter().GetResult();
+            if(securityAuthServiceChannelDispatcher == null)
+            {
+                lock (ThisLock)
+                {
+                    Task<IServiceChannelDispatcher> channelTask = SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
+                    securityAuthServiceChannelDispatcher = channelTask.GetAwaiter().GetResult();
+                }
+            }
             return securityAuthServiceChannelDispatcher;
         }
 

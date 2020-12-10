@@ -1659,7 +1659,7 @@ namespace CoreWCF.Channels
             ServiceChannel channel;
             long idleTicks;
             long lastActivity;
-            Timer timer;
+            IOThreadTimer timer;
             static Action<object> timerCallback;
             bool didIdleAbort;
             bool isTimerCancelled;
@@ -1678,7 +1678,8 @@ namespace CoreWCF.Channels
                 if (binder.HasSession && (idle != TimeSpan.MaxValue))
                 {
                     this.binder = binder;
-                    timer = new Timer(new TimerCallback(GetTimerCallback()), this, idle, TimeSpan.FromMilliseconds(-1));
+                    // timer = new Timer(new TimerCallback(GetTimerCallback()), this, idle, TimeSpan.FromMilliseconds(-1));
+                    timer = new IOThreadTimer(GetTimerCallback(), this, false);
                     idleTicks = Ticks.FromTimeSpan(idle);
                     thisLock = new object();
                     isNeeded = true;
@@ -1707,7 +1708,8 @@ namespace CoreWCF.Channels
                 lock (thisLock)
                 {
                     isTimerCancelled = true;
-                    timer.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
+                    // timer.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
+                    timer.Cancel();
                 }
             }
 
@@ -1776,7 +1778,8 @@ namespace CoreWCF.Channels
                     {
                         if (!isTimerCancelled && binder.Channel.State != CommunicationState.Faulted && binder.Channel.State != CommunicationState.Closed)
                         {
-                            timer.Change(Ticks.ToTimeSpan(abortTime - ticksNow), TimeSpan.FromMilliseconds(-1));
+                            //  timer.Change(Ticks.ToTimeSpan(abortTime - ticksNow), TimeSpan.FromMilliseconds(-1));
+                            timer.SetAt(abortTime - ticksNow + 1);
                         }
                     }
                 }
