@@ -88,7 +88,7 @@ namespace CoreWCF.Dispatcher
             if (concurrencyMode != ConcurrencyMode.Multiple)
             {
                 ConcurrencyInstanceContextFacet resource = rpc.InstanceContext.Concurrency;
-                bool needToWait = false;
+                Task waiter = null;
                 lock (rpc.InstanceContext.ThisLock)
                 {
                     if (!resource.Locked)
@@ -97,13 +97,13 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        needToWait = true;
+                        waiter = resource.EnqueueNewMessage();
                     }
                 }
 
-                if (needToWait)
+                if (waiter != null)
                 {
-                    await resource.EnqueueNewMessage();
+                    await waiter;
                 }
 
                 // TODO: Throw this on setup
