@@ -27,7 +27,7 @@ namespace CoreWCF.Dispatcher
         private bool sessionMode;
         private bool sendUnsecuredFaults;
         //ServiceChannelDispatcher to call SCT (just keep one instance)
-        private IServiceChannelDispatcher securityAuthServiceChannelDispatcher;
+        private volatile IServiceChannelDispatcher securityAuthServiceChannelDispatcher;
         //ServiceChannelDispatcher to call real service (just keep one instance)
         private IServiceChannelDispatcher innerServiceChanelDispatcher;
         private IChannel outerChannel;
@@ -273,12 +273,15 @@ namespace CoreWCF.Dispatcher
         /// <returns></returns>
         internal IServiceChannelDispatcher GetAuthChannelDispatcher(IReplyChannel outerChannel)
         {
-            if(securityAuthServiceChannelDispatcher == null)
+            if (securityAuthServiceChannelDispatcher == null)
             {
                 lock (ThisLock)
                 {
-                    Task<IServiceChannelDispatcher> channelTask = SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
-                    securityAuthServiceChannelDispatcher = channelTask.GetAwaiter().GetResult();
+                    if (securityAuthServiceChannelDispatcher == null)
+                    {
+                        Task<IServiceChannelDispatcher> channelTask = SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
+                        securityAuthServiceChannelDispatcher = channelTask.GetAwaiter().GetResult();
+                    }
                 }
             }
             return securityAuthServiceChannelDispatcher;

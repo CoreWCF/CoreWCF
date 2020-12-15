@@ -1,15 +1,13 @@
-﻿using System;
+﻿using CoreWCF.Configuration;
+using CoreWCF.Description;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Runtime;
-using CoreWCF.Description;
-using CoreWCF.Diagnostics;
-using CoreWCF.Dispatcher;
-using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
@@ -217,7 +215,7 @@ namespace CoreWCF.Channels
                 //}
                 //else
                 //{
-                    return timeouts.CloseTimeout;
+                return timeouts.CloseTimeout;
                 //}
             }
         }
@@ -303,7 +301,7 @@ namespace CoreWCF.Channels
                 //}
                 //else
                 //{
-                    return ChannelDispatcher.InternalOpenTimeout;
+                return ChannelDispatcher.InternalOpenTimeout;
                 //}
             }
         }
@@ -683,46 +681,46 @@ namespace CoreWCF.Channels
             //        ServiceModelActivity.Start(rpc.Activity, SR.Format(SR.ActivityProcessAction, action), ActivityType.ProcessAction);
             //    }
 
-                PrepareCall(operation, oneway, ref rpc);
+            PrepareCall(operation, oneway, ref rpc);
 
-                if (!explicitlyOpened)
+            if (!explicitlyOpened)
+            {
+                await EnsureOpenedAsync(token);
+            }
+            else
+            {
+                ThrowIfOpening();
+                ThrowIfDisposedOrNotOpen();
+            }
+
+            try
+            {
+                ConcurrencyBehavior.UnlockInstanceBeforeCallout(OperationContext.Current);
+
+                if (oneway)
                 {
-                    await EnsureOpenedAsync(token);
+                    await binder.SendAsync(rpc.Request, rpc.CancellationToken);
                 }
                 else
                 {
-                    ThrowIfOpening();
-                    ThrowIfDisposedOrNotOpen();
-                }
+                    rpc.Reply = await binder.RequestAsync(rpc.Request, rpc.CancellationToken);
 
-                try
-                {
-                    ConcurrencyBehavior.UnlockInstanceBeforeCallout(OperationContext.Current);
-
-                    if (oneway)
+                    if (rpc.Reply == null)
                     {
-                        await binder.SendAsync(rpc.Request, rpc.CancellationToken);
-                    }
-                    else
-                    {
-                        rpc.Reply = await binder.RequestAsync(rpc.Request, rpc.CancellationToken);
-
-                        if (rpc.Reply == null)
-                        {
-                            ThrowIfFaulted();
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(SR.SFxServerDidNotReply));
-                        }
+                        ThrowIfFaulted();
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(SR.SFxServerDidNotReply));
                     }
                 }
-                finally
-                {
-                    CompletedIOOperation();
-                    CallOnceManager.SignalNextIfNonNull(autoOpenManager);
-                    await ConcurrencyBehavior.LockInstanceAfterCalloutAsync(OperationContext.Current);
-                }
+            }
+            finally
+            {
+                CompletedIOOperation();
+                CallOnceManager.SignalNextIfNonNull(autoOpenManager);
+                await ConcurrencyBehavior.LockInstanceAfterCalloutAsync(OperationContext.Current);
+            }
 
-                rpc.OutputParameters = outs;
-                HandleReply(operation, ref rpc);
+            rpc.OutputParameters = outs;
+            HandleReply(operation, ref rpc);
             //}
             return rpc.ReturnValue;
         }
@@ -844,7 +842,7 @@ namespace CoreWCF.Channels
                     {
                         if (string.CompareOrdinal(operation.ReplyAction, rpc.Reply.Headers.Action) != 0)
                         {
-                            Exception error = new ProtocolException(SR.Format(SR.SFxReplyActionMismatch3,operation.Name,
+                            Exception error = new ProtocolException(SR.Format(SR.SFxReplyActionMismatch3, operation.Name,
                                                                                   rpc.Reply.Headers.Action,
                                                                                   operation.ReplyAction));
                             TerminateIfNecessary(ref rpc);
@@ -1090,7 +1088,7 @@ namespace CoreWCF.Channels
 
         #region IChannel Members
         public Task SendAsync(Message message)
-        { 
+        {
             var helper = new TimeoutHelper(OperationTimeout);
             return SendAsync(message, helper.GetCancellationToken());
         }
@@ -1332,10 +1330,10 @@ namespace CoreWCF.Channels
             }
         }
 
-        IServiceChannelDispatcher IChannel.ChannelDispatcher 
-        { 
-            get => throw new NotSupportedException(); 
-            set => throw new NotSupportedException(); 
+        IServiceChannelDispatcher IChannel.ChannelDispatcher
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
         }
 
         event EventHandler<UnknownMessageReceivedEventArgs> IClientChannel.UnknownMessageReceived
@@ -1652,7 +1650,7 @@ namespace CoreWCF.Channels
                 }
             }
         }
- 
+
         internal class SessionIdleManager
         {
             IChannelBinder binder;
@@ -1678,9 +1676,9 @@ namespace CoreWCF.Channels
                 if (binder.HasSession && (idle != TimeSpan.MaxValue))
                 {
                     this.binder = binder;
-                    // timer = new Timer(new TimerCallback(GetTimerCallback()), this, idle, TimeSpan.FromMilliseconds(-1));
                     timer = new IOThreadTimer(GetTimerCallback(), this, false);
                     idleTicks = Ticks.FromTimeSpan(idle);
+                    timer.SetAt(Ticks.Now + this.idleTicks);
                     thisLock = new object();
                     isNeeded = true;
                     return this;
@@ -1708,7 +1706,6 @@ namespace CoreWCF.Channels
                 lock (thisLock)
                 {
                     isTimerCancelled = true;
-                    // timer.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
                     timer.Cancel();
                 }
             }
@@ -1753,17 +1750,6 @@ namespace CoreWCF.Channels
                     long ticksNow = Ticks.Now;
                     if (ticksNow > abortTime)
                     {
-                        //if (TD.SessionIdleTimeoutIsEnabled())
-                        //{
-                        //    string listenUri = string.Empty;
-                        //    if (this.binder.ListenUri != null)
-                        //    {
-                        //        listenUri = this.binder.ListenUri.AbsoluteUri;
-                        //    }
-
-                        //    TD.SessionIdleTimeout(listenUri);
-                        //}
-
                         didIdleAbort = true;
                         if (channel != null)
                         {
@@ -1778,8 +1764,7 @@ namespace CoreWCF.Channels
                     {
                         if (!isTimerCancelled && binder.Channel.State != CommunicationState.Faulted && binder.Channel.State != CommunicationState.Closed)
                         {
-                            //  timer.Change(Ticks.ToTimeSpan(abortTime - ticksNow), TimeSpan.FromMilliseconds(-1));
-                            timer.SetAt(abortTime - ticksNow + 1);
+                            timer.SetAt(abortTime);
                         }
                     }
                 }
