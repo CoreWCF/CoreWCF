@@ -4,7 +4,6 @@ using CoreWCF.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
@@ -12,7 +11,6 @@ namespace CoreWCF.Channels
     class ChannelDemuxer
     {
         public readonly static TimeSpan UseDefaultReceiveTimeout = TimeSpan.MinValue;
-
         TypedChannelDemuxer inputDemuxer;
         TypedChannelDemuxer replyDemuxer;
         Dictionary<Type, TypedChannelDemuxer> typeDemuxers;

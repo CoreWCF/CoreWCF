@@ -296,9 +296,11 @@ namespace CoreWCF.Dispatcher
         /// <returns></returns>
         internal IServiceChannelDispatcher GetInnerServiceChannelDispatcher(IReplyChannel outerChannel)
         {
-           Task<IServiceChannelDispatcher> channelTask = InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
-           innerServiceChanelDispatcher = channelTask.GetAwaiter().GetResult();
-            return innerServiceChanelDispatcher;
+            lock (ThisLock)
+            {
+                Task<IServiceChannelDispatcher> channelTask = InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
+                return channelTask.GetAwaiter().GetResult();
+            }
         }
 
         //Reference OnAcceptChannel/SecurityChannelListner
