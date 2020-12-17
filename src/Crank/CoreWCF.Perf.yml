@@ -3,20 +3,20 @@ jobs:
     source:
       repository: https://github.com/v-joesun/CoreWCF.git
       branchOrCommit: CoreWCFPerfBranch
-      project:  Src/Crank//CoreWCFPerfClient/CoreWCFPerfClient.csproj
+      project:  Src/Crank/CoreWCFPerfClient/CoreWCFPerfClient.csproj
     isConsoleApp: true
     waitForExit: true
     variables:
       Duration: 300
       requests: 3000
-    arguments: "binding:{{Binding}} serviceurl:{{Protocol}}://{{serverAddress}}:{{serverPort}}/SayHello/SayHello.svc} perfmeasurementduration:{{Duration}} Request:{{requests}} closeandopen:{{closeandopen}}"
+    arguments: "binding:{{Binding}} serviceurl:{{Protocol}}://{{serverAddress}}:{{serverPort}}/SayHello/SayHello.svc perfmeasurementduration:{{Duration}} Requests:{{requests}} closeandopen:{{closeandopen}}"
   CoreWCFPerfService:
     source:
       repository: https://github.com/v-joesun/CoreWCF.git
       branchOrCommit: CoreWCFPerfBranch
       project: Src/Crank/CoreWCFPerfService/CoreWCFPerfService.csproj
-      arguments: "baseaddress:{{Protocol}}://{{serverAddress}}:{{serverPort}}"
-      isConsoleApp: true
+    arguments: "baseaddress:{{Protocol}}://{{serverAddress}}:{{serverPort}}"
+    isConsoleApp: true
 
 scenarios:
   BasicHttpWithCloseAndOpen:  
@@ -25,7 +25,7 @@ scenarios:
     load:
       job: CoreWCFPerfClient
       variables:
-        Protocol: Http
+        Protocol: http
         Binding: BasicHttp
         closeandopen: true
 
@@ -39,14 +39,15 @@ scenarios:
         Binding: NetTcp
         closeandopen: true
 
-scenariosnoclose:
   BasicHttpWithoutCloseAndOpen:   
     application:
       job: CoreWCFPerfService
+      variables:
+        Protocol: http
     load:
       job: CoreWCFPerfClient
       variables:
-        Protocol: Http
+        Protocol: http
         Binding: BasicHttp
         closeandopen: false
 
@@ -63,8 +64,8 @@ scenariosnoclose:
 profiles:
   local:
     variables:
-      serverAddress: localhost
-      serverPort: 5000
+      serverAddress: joey-local
+      serverPort: 5010
     jobs: 
       application:
         endpoints: 
