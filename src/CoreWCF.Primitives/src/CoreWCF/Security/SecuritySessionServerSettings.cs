@@ -828,7 +828,7 @@ namespace CoreWCF.Security
                                     replySessionChannelDispatcher = new ServerSecuritySimplexSessionChannel.
                                     SecurityReplySessionServiceChannelDispatcher(this.settings, this.sessionToken,
                                     null, this.settings.SettingsLifetimeManager, channel, this.remoteAddress);
-                                Task openTask = replySessionChannelDispatcher.OpenAsync( new TimeoutHelper(ServiceDefaults.OpenTimeout).GetCancellationToken());
+                                Task openTask = replySessionChannelDispatcher.OpenAsync(ServiceDefaults.OpenTimeout);
                                 openTask.GetAwaiter().GetResult();
                                 sessionChannelDispatcher = replySessionChannelDispatcher;
                                 settings.AddSessionChannel(this.sessionToken.ContextId, replySessionChannelDispatcher, this.messageFilter);
@@ -866,8 +866,6 @@ namespace CoreWCF.Security
             private List<SecurityContextSecurityToken> futureSessionTokens;
             private RequestContext initialRequestContext;
             private bool isInputClosed;
-           // public static AsyncLocal<String> messageIdUniq = new AsyncLocal<string>();
-            // ThreadNeutralSemaphore receiveLock;
             private MessageVersion messageVersion;
             private SecurityListenerSettingsLifetimeManager settingsLifetimeManager;
             private bool hasSecurityStateReference;
@@ -908,9 +906,9 @@ namespace CoreWCF.Security
 
             public CommunicationState State => this.Settings.WrapperCommunicationObj.State;
 
-            public virtual Task OpenAsync(CancellationToken token)
+            public virtual Task OpenAsync(TimeSpan timeout)
             {
-                this.securityProtocol.Open(ServiceDefaults.OpenTimeout);
+                this.securityProtocol.OpenAsync(timeout);
                 if (this.CanDoSecurityCorrelation)
                 {
                     ((IAcceptorSecuritySessionProtocol)this.securityProtocol).ReturnCorrelationState = true;
@@ -1106,7 +1104,6 @@ namespace CoreWCF.Security
 
             public RequestContext ReceiveRequest(RequestContext initialRequestContext)
             {
-              //  messageIdUniq.Value = "sessionid = " + this.sessionId.ToString() + " , " + initialRequestContext.RequestMessage.ToString();
                 return this.ReceiveRequest(ServiceDefaults.ReceiveTimeout, initialRequestContext);
             }
 
@@ -1615,7 +1612,6 @@ namespace CoreWCF.Security
             private bool sentCloseResponse;
             private RequestContext closeRequestContext;
             private Message closeResponse;
-            
 
             public ServerSecuritySimplexSessionChannel(
                 SecuritySessionServerSettings settings,
@@ -1936,11 +1932,15 @@ namespace CoreWCF.Security
                     return Task.CompletedTask;
                 }
 
-                public override Task OpenAsync(CancellationToken token)
+                public async override Task OpenAsync(TimeSpan timeout)
                 {
-                    base.OpenAsync(token);
-                    this.channelDispatcher = this.Settings.SecurityServiceDispatcher.
+                    await base.OpenAsync(timeout);
+                    this.channelDispatcher = await this.Settings.SecurityServiceDispatcher.
                         GetInnerServiceChannelDispatcher(this);
+                }
+
+                public Task OpenAsync(CancellationToken token)
+                {
                     return Task.CompletedTask;
                 }
             }

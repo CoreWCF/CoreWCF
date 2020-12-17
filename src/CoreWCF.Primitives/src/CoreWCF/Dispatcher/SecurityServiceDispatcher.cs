@@ -294,13 +294,9 @@ namespace CoreWCF.Dispatcher
         /// </summary>
         /// <param name="outerChannel"></param>
         /// <returns></returns>
-        internal IServiceChannelDispatcher GetInnerServiceChannelDispatcher(IReplyChannel outerChannel)
+        internal  Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IReplyChannel outerChannel)
         {
-            lock (ThisLock)
-            {
-                Task<IServiceChannelDispatcher> channelTask = InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
-                return channelTask.GetAwaiter().GetResult();
-            }
+            return InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
         }
 
         //Reference OnAcceptChannel/SecurityChannelListner
@@ -309,7 +305,7 @@ namespace CoreWCF.Dispatcher
             IServiceChannelDispatcher securityChannelDispatcher = null;
             SecurityProtocol securityProtocol = this.SecurityProtocolFactory.CreateSecurityProtocol(null, null,
             (outerChannel is IReplyChannel || outerChannel is IReplySessionChannel), TimeSpan.Zero);
-            securityProtocol.Open(TimeSpan.Zero);
+            securityProtocol.OpenAsync(TimeSpan.Zero);
             /* TODO once we add more features
             if (outerChannel is IInputChannel)
             {

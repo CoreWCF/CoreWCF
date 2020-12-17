@@ -62,7 +62,7 @@ namespace CoreWCF.Security
             get { return ServiceDefaults.CloseTimeout; }
         }
 
-        public Task Open(TimeSpan timeout)
+        public Task OpenAsync(TimeSpan timeout)
         {
             return this.CommunicationObject.OpenAsync();
         }
