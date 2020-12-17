@@ -7,7 +7,6 @@ jobs:
     isConsoleApp: true
     waitForExit: true
     variables:
-      Server: /
       Duration: 300
       requests: 3000
     arguments: "binding:{{Binding}} serviceurl:{{Protocol}}://{{serverAddress}}:{{serverPort}}/SayHello/SayHello.svc} perfmeasurementduration:{{Duration}} Request:{{requests}} closeandopen:{{closeandopen}}"
@@ -16,7 +15,7 @@ jobs:
       repository: https://github.com/v-joesun/CoreWCF.git
       branchOrCommit: CoreWCFPerfBranch
       project: Src/Crank/CoreWCFPerfService/CoreWCFPerfService.csproj
-      arguments: "baseaddress:{{Protocol}}://{{Server}}:{{serverPort}}"
+      arguments: "baseaddress:{{Protocol}}://{{serverAddress}}:{{serverPort}}"
       isConsoleApp: true
 
 scenarios:
@@ -64,7 +63,7 @@ scenariosnoclose:
 profiles:
   local:
     variables:
-      serverAddress: Http://localhost
+      serverAddress: localhost
       serverPort: 5000
     jobs: 
       application:
