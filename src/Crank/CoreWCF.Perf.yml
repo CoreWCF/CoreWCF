@@ -1,0 +1,183 @@
+jobs:
+  CoreWCFPerfClient:
+    source:
+      repository: https://github.com/v-joesun/CoreWCF.git
+      branchOrCommit: CoreWCFPerfBranch
+      project:  Src/Crank//CoreWCFPerfClient/CoreWCFPerfClient.csproj
+    isConsoleApp: true
+    waitForExit: true
+    variables:
+      Server: /
+      Duration: 300
+      requests: 3000
+    arguments: "binding:{{Binding}} serviceurl:{{Protocol}}://{{serverAddress}}:{{serverPort}}/SayHello/SayHello.svc} perfmeasurementduration:{{Duration}} Request:{{requests}} closeandopen:{{closeandopen}}"
+  CoreWCFPerfService:
+    source:
+      repository: https://github.com/v-joesun/CoreWCF.git
+      branchOrCommit: CoreWCFPerfBranch
+      project: Src/Crank/CoreWCFPerfService/CoreWCFPerfService.csproj
+      arguments: "baseaddress:{{Protocol}}://{{Server}}:{{serverPort}}"
+      isConsoleApp: true
+
+scenarios:
+  BasicHttpWithCloseAndOpen:  
+    application:
+      job: CoreWCFPerfService
+    load:
+      job: CoreWCFPerfClient
+      variables:
+        Protocol: Http
+        Binding: BasicHttp
+        closeandopen: true
+
+  NetTcpWithCloseAndOpen: 
+    application:
+      job: CoreWCFPerfService
+    load:
+      job: CoreWCFPerfClient
+      variables:
+        Protocol: net.tcp
+        Binding: NetTcp
+        closeandopen: true
+
+scenariosnoclose:
+  BasicHttpWithoutCloseAndOpen:   
+    application:
+      job: CoreWCFPerfService
+    load:
+      job: CoreWCFPerfClient
+      variables:
+        Protocol: Http
+        Binding: BasicHttp
+        closeandopen: false
+
+  NetTcpWithoutCloseAndOpen:    
+    application:
+      job: CoreWCFPerfService
+    load:
+      job: CoreWCFPerfClient
+      variables:
+        Protocol: net.tcp
+        Binding: NetTcp
+        closeandopen: false
+
+profiles:
+  local:
+    variables:
+      serverAddress: Http://localhost
+      serverPort: 5000
+    jobs: 
+      application:
+        endpoints: 
+          - http://localhost:5010
+      load:
+        endpoints: 
+          - http://localhost:5010
+
+  aspnet-citrine-lin:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.0.0.102
+      cores: 28
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-db:5001
+      application:
+        endpoints: 
+          - http://asp-citrine-lin:5001
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - http://asp-citrine-load:5001
+
+  aspnet-citrine-win:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.0.0.104
+      cores: 28
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-load:5001
+      application:
+        endpoints: 
+          - http://asp-citrine-win:5001
+        variables:
+          databaseServer: 10.0.0.105
+      load:
+        endpoints: 
+          - http://asp-citrine-db:5001
+
+  aspnet-citrine-arm:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.0.0.107
+      cores: 32
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-db:5001
+      application:
+        endpoints: 
+          - http://asp-citrine-arm:5001
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - http://asp-citrine-load:5001
+
+  aspnet-citrine-amd:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.0.0.106
+      cores: 48
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-load:5001
+      application:
+        endpoints: 
+          - http://asp-citrine-amd:5001
+        variables:
+          databaseServer: 10.0.0.105
+      load:
+        endpoints: 
+          - http://asp-citrine-db:5001
+
+  aspnet-perf-lin:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.0.0.102
+      cores: 12
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-perf-db:5001
+      application:
+        endpoints: 
+          - http://asp-perf-lin:5001
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - http://asp-perf-load:5001
+
+  aspnet-perf-win:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.0.0.110
+      cores: 12
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-perf-load:5001
+      application:
+        endpoints: 
+          - http://asp-perf-win:5001
+        variables:
+          databaseServer: 10.0.0.104
+      load:
+        endpoints: 
+          - http://asp-perf-db:5001
