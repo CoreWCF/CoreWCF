@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreWCF.Http" Version="0.1.0-alpha.214" />
-    <PackageReference Include="CoreWCF.NetTcp" Version="0.1.0-alpha.214" />
-    <PackageReference Include="CoreWCF.Primitives" Version="0.1.0-alpha.214" />
+    <PackageReference Include="CoreWCF.Http" Version="0.1.0-alpha.217" />
+    <PackageReference Include="CoreWCF.NetTcp" Version="0.1.0-alpha.217" />
+    <PackageReference Include="CoreWCF.Primitives" Version="0.1.0-alpha.217" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
   </ItemGroup>
 
