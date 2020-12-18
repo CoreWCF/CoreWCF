@@ -1,8 +1,8 @@
 jobs:
   CoreWCFPerfClient:
     source:
-      repository: https://github.com/v-joesun/CoreWCF.git
-      branchOrCommit: CoreWCFPerfBranch
+      repository: https://github.com/CoreWCF/CoreWCF.git
+      branchOrCommit: master
       project:  Src/Crank/CoreWCFPerfClient/CoreWCFPerfClient.csproj
     isConsoleApp: true
     waitForExit: true
@@ -12,8 +12,8 @@ jobs:
     arguments: "binding:{{Binding}} serviceurl:{{Protocol}}://{{serverAddress}}:{{serverPort}}/SayHello/SayHello.svc perfmeasurementduration:{{Duration}} Requests:{{requests}} closeandopen:{{closeandopen}}"
   CoreWCFPerfService:
     source:
-      repository: https://github.com/v-joesun/CoreWCF.git
-      branchOrCommit: CoreWCFPerfBranch
+      repository: https://github.com/CoreWCF/CoreWCF.git
+      branchOrCommit: master
       project: Src/Crank/CoreWCFPerfService/CoreWCFPerfService.csproj
     arguments: "baseaddress:{{Protocol}}://{{serverAddress}}:{{serverPort}}"
     isConsoleApp: true
@@ -22,6 +22,8 @@ scenarios:
   BasicHttpWithCloseAndOpen:  
     application:
       job: CoreWCFPerfService
+      variables:
+        Protocol: http
     load:
       job: CoreWCFPerfClient
       variables:
@@ -32,6 +34,8 @@ scenarios:
   NetTcpWithCloseAndOpen: 
     application:
       job: CoreWCFPerfService
+      variables:
+        Protocol: net.tcp
     load:
       job: CoreWCFPerfClient
       variables:
@@ -54,6 +58,8 @@ scenarios:
   NetTcpWithoutCloseAndOpen:    
     application:
       job: CoreWCFPerfService
+      variables:
+        Protocol: net.tcp
     load:
       job: CoreWCFPerfClient
       variables:
@@ -64,8 +70,8 @@ scenarios:
 profiles:
   local:
     variables:
-      serverAddress: joey-local
-      serverPort: 5010
+      serverAddress: localhost
+      serverPort: 5000
     jobs: 
       application:
         endpoints: 
