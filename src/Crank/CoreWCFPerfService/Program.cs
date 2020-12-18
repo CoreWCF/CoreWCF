@@ -23,9 +23,11 @@ namespace CoreWCFPerfService
         static void Main(string[] args)
         {
             string filePath = Path.Combine(Environment.CurrentDirectory, "CoreWCFPerfService.exe");
-            string command = $" advfirewall firewall add rule name=\"CoreWCFPerfService\" dir=in protocol=TCP action=allow program=\"{filePath}\" enable=yes";
+            Console.WriteLine(filePath);
+            string command = $" advfirewall firewall add rule name=\"CoreWCFPerfService\" dir=in protocol=any action=allow program=\"{filePath}\" enable=yes";
             ExecuteCommand(command, Environment.CurrentDirectory, TimeSpan.FromSeconds(20));
             Console.WriteLine("Application start.");
+
             Program test = new Program();
 
             if (test.ProcessRunOptions(args))
