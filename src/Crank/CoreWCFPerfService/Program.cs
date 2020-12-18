@@ -29,7 +29,6 @@ namespace CoreWCFPerfService
             Console.WriteLine("Application start.");
 
             Program test = new Program();
-
             if (test.ProcessRunOptions(args))
             {
                 Uri baseAddress = new Uri(test._paramUrl);
@@ -98,7 +97,6 @@ namespace CoreWCFPerfService
                         continue;
                 }
             }
-
             return true;
         }
 
