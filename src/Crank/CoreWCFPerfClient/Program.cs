@@ -4,10 +4,8 @@ using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
-
 namespace CoreWCFPerf
 {
-
     public class Parameters
     {
         public const string Binding = "binding";
@@ -19,6 +17,7 @@ namespace CoreWCFPerf
     }
 
     public enum TestBinding { BasicHttp, NetTcp }
+
     class Program
     {
         private TestBinding _paramBinding = TestBinding.BasicHttp;
@@ -59,9 +58,6 @@ namespace CoreWCFPerf
                 BenchmarksEventSource.Log.Metadata("corewcfperf/requests", "max", "sum", "Requests (" + test._paramPerfMeasurementDuration.TotalMilliseconds + " ms)", "Total number of requests", "n0");
                 BenchmarksEventSource.Log.Metadata("corewcfperf/rps/max", "max", "sum", "Requests/sec (max)", "Max requests per second", "n0");
 
-                Console.WriteLine($"binding: {binding.Name}");
-
-
                 startTime = DateTime.Now;
                 ChannelFactory<ISayHello> factory = new ChannelFactory<ISayHello>(binding, new EndpointAddress(test._paramServiceUrl));
                 factory.Open();
@@ -87,10 +83,8 @@ namespace CoreWCFPerf
                     if (((IClientChannel)client).State == CommunicationState.Closed)
                         client = factory.CreateChannel();
                 }
-
                 factory.Close();
                 Console.WriteLine("ChannelFactory Closed.");
-
 
                 BenchmarksEventSource.Measure("corewcfperf/requests", request);
                 BenchmarksEventSource.Measure("corewcfperf/rps/max", request / test._paramPerfMeasurementDuration.TotalSeconds);
@@ -149,7 +143,6 @@ namespace CoreWCFPerf
                         continue;
                 }
             }
-
             return true;
         }
 
