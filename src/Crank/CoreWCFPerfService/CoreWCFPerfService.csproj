@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,10 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreWCF.Http" Version="0.1.0-alpha.217" />
-    <PackageReference Include="CoreWCF.NetTcp" Version="0.1.0-alpha.217" />
-    <PackageReference Include="CoreWCF.Primitives" Version="0.1.0-alpha.217" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CoreWCF.Http\src\CoreWCF.Http.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.NetTcp\src\CoreWCF.NetTcp.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
   </ItemGroup>
 
 </Project>
