@@ -68,13 +68,13 @@ namespace CoreWCFPerf
                 var client = factory.CreateChannel();
                 var stopwatchFirstReq = new Stopwatch();
                 stopwatchFirstReq.Start();
-                var result = client.HelloAsync("helloworld").Result;
+                var result = client.Hello("helloworld");
 
                 BenchmarksEventSource.Measure("firstrequest", stopwatchFirstReq.ElapsedMilliseconds);
 
                 while (DateTime.Now <= startTime.Add(measurementDurationPerTime))
                 {
-                    var rtnResult = client.HelloAsync("helloworld").Result;
+                    var rtnResult = client.Hello("helloworld");
                     Console.WriteLine(rtnResult);
                     request++;
                     requestTime = request;

@@ -4,7 +4,7 @@ namespace CoreWCFPerfService
 {
     public class SayHello : ISayHello
     {
-        public string HelloAsync(string name)
+        public string Hello(string name)
         {
             return name;
         }
