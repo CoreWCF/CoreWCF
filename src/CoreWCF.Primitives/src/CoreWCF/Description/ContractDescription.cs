@@ -109,7 +109,7 @@ namespace CoreWCF.Description
             get { return Behaviors; }
         }
 
-        internal KeyedByTypeCollection<IContractBehavior> Behaviors
+        public KeyedByTypeCollection<IContractBehavior> Behaviors
         {
             get { return _behaviors; }
         }
