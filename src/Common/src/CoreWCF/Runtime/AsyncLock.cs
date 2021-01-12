@@ -83,7 +83,9 @@ namespace CoreWCF.Runtime
             }
             else
             {
+#if DEBUG
                 Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
+#endif
                 existingLocks.Add(this);
             }
 #if DEBUG
@@ -131,7 +133,9 @@ namespace CoreWCF.Runtime
             }
             else
             {
+#if DEBUG
                 Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
+#endif 
                 existingLocks.Add(this);
             }
 #if DEBUG
@@ -189,7 +193,9 @@ namespace CoreWCF.Runtime
             }
             else
             {
+#if DEBUG
                 Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
+#endif               
                 existingLocks.Add(this);
             }
 #if DEBUG
@@ -220,7 +226,9 @@ namespace CoreWCF.Runtime
                 }
                 else if (s_heldLocks.Value is List<AsyncLock> listOfLocks)
                 {
+#if DEBUG
                     Debug.Assert(listOfLocks.Contains(_asyncLock), "The list of AsyncLock's didn't contain the expected lock");
+#endif 
                     // As locks are expected to be released in the order they are taken and they are always appended to the end,
                     // removal should be O(n) simply to look for the lock and removal should be constant time. If this becomes
                     // a significant overhead, then manual search in reverse will fix it. Keeping simple for now.
