@@ -219,8 +219,6 @@ namespace WSHttp
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
-                services.AddSingleton(typeof(ServiceConfigurationDelegateHolder<>));
-
             }
 
             public abstract void ChangeHostBehavior(ServiceHostBase host);
