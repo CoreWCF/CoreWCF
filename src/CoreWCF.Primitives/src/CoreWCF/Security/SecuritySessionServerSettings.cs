@@ -783,6 +783,7 @@ namespace CoreWCF.Security
             private volatile IServiceChannelDispatcher sessionChannelDispatcher;
             private MessageFilter messageFilter;
             private EndpointAddress remoteAddress;
+            AsyncLock _asyncLock = new AsyncLock();
 
             public SessionInitiationMessageServiceDispatcher(/*IServerReliableChannelBinder channelBinder,*/ SecuritySessionServerSettings settings, SecurityContextSecurityToken sessionToken, MessageFilter filter, EndpointAddress address)
             {
@@ -798,7 +799,7 @@ namespace CoreWCF.Security
 
             public ServiceHostBase Host => throw new NotImplementedException();
 
-            private object Lock { get; } = new object();
+            public AsyncLock AsyncLock { get { return _asyncLock; } }
 
             public IList<Type> SupportedChannelTypes => throw new NotImplementedException();
 
@@ -810,7 +811,7 @@ namespace CoreWCF.Security
             {
                 if (sessionChannelDispatcher == null)
                 {
-                    lock (this.Lock)
+                    using (await AsyncLock.TakeLockAsync())
                     {
                         if (sessionChannelDispatcher == null)
                         {
@@ -828,8 +829,7 @@ namespace CoreWCF.Security
                                     replySessionChannelDispatcher = new ServerSecuritySimplexSessionChannel.
                                     SecurityReplySessionServiceChannelDispatcher(this.settings, this.sessionToken,
                                     null, this.settings.SettingsLifetimeManager, channel, this.remoteAddress);
-                                Task openTask = replySessionChannelDispatcher.OpenAsync(ServiceDefaults.OpenTimeout);
-                                openTask.GetAwaiter().GetResult();
+                                await replySessionChannelDispatcher.OpenAsync(ServiceDefaults.OpenTimeout);
                                 sessionChannelDispatcher = replySessionChannelDispatcher;
                                 settings.AddSessionChannel(this.sessionToken.ContextId, replySessionChannelDispatcher, this.messageFilter);
                             }

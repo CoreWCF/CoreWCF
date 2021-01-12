@@ -628,8 +628,7 @@ namespace CoreWCF.Security
             }
             else
             {
-              var task =  this.CommunicationObject.CloseAsync();
-               task.GetAwaiter().GetResult();
+              this.CommunicationObject.CloseAsync();
             }
            return Task.CompletedTask;
         }

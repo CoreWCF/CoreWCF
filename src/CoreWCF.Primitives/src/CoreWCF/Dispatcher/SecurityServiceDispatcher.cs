@@ -28,6 +28,7 @@ namespace CoreWCF.Dispatcher
         private bool sendUnsecuredFaults;
         //ServiceChannelDispatcher to call SCT (just keep one instance)
         private volatile IServiceChannelDispatcher securityAuthServiceChannelDispatcher;
+        Task<IServiceChannelDispatcher> channelTask;
         //ServiceChannelDispatcher to call real service (just keep one instance)
         private IServiceChannelDispatcher innerServiceChanelDispatcher;
         private IChannel outerChannel;
@@ -261,28 +262,24 @@ namespace CoreWCF.Dispatcher
             //Below dispatches all SCT call for first time for all clients
             else
             {
-                IServiceChannelDispatcher securityReplyChannelDispatcher = GetInnerChannelDispatcher(outerChannel);
+                IServiceChannelDispatcher securityReplyChannelDispatcher = await GetInnerChannelDispatcherAsync(outerChannel);
                 return securityReplyChannelDispatcher;
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="outerChannel"></param>
-        /// <returns></returns>
-        internal IServiceChannelDispatcher GetAuthChannelDispatcher(IReplyChannel outerChannel)
+        internal async Task<IServiceChannelDispatcher> GetAuthChannelDispatcher(IReplyChannel outerChannel)
         {
             if (securityAuthServiceChannelDispatcher == null)
             {
                 lock (ThisLock)
                 {
-                    if (securityAuthServiceChannelDispatcher == null)
+                    if (channelTask == null)
                     {
-                        Task<IServiceChannelDispatcher> channelTask = SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
-                        securityAuthServiceChannelDispatcher = channelTask.GetAwaiter().GetResult();
+                        channelTask = SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
                     }
                 }
+                securityAuthServiceChannelDispatcher = await channelTask;
+                Thread.MemoryBarrier();
             }
             return securityAuthServiceChannelDispatcher;
         }
@@ -300,12 +297,12 @@ namespace CoreWCF.Dispatcher
         }
 
         //Reference OnAcceptChannel/SecurityChannelListner
-        private IServiceChannelDispatcher GetInnerChannelDispatcher(IChannel outerChannel)
+        private async Task<IServiceChannelDispatcher> GetInnerChannelDispatcherAsync(IChannel outerChannel)
         {
             IServiceChannelDispatcher securityChannelDispatcher = null;
             SecurityProtocol securityProtocol = this.SecurityProtocolFactory.CreateSecurityProtocol(null, null,
             (outerChannel is IReplyChannel || outerChannel is IReplySessionChannel), TimeSpan.Zero);
-            securityProtocol.OpenAsync(TimeSpan.Zero);
+            await securityProtocol.OpenAsync(TimeSpan.Zero);
             /* TODO once we add more features
             if (outerChannel is IInputChannel)
             {
@@ -504,12 +501,12 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public override Task DispatchAsync(RequestContext context)
+        public override async Task DispatchAsync(RequestContext context)
         {
             SecurityRequestContext securedMessage = (SecurityRequestContext)ProcessReceivedRequest(context);
-            IServiceChannelDispatcher serviceChannelDispatcher = 
-                SecurityServiceDispatcher.GetAuthChannelDispatcher(this.OuterChannel);
-             return serviceChannelDispatcher.DispatchAsync(securedMessage);
+            IServiceChannelDispatcher serviceChannelDispatcher =
+               await SecurityServiceDispatcher.GetAuthChannelDispatcher(this.OuterChannel);
+            await serviceChannelDispatcher.DispatchAsync(securedMessage);
         }
 
         public override Task DispatchAsync(Message message)
