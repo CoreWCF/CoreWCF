@@ -9,7 +9,7 @@ namespace DesktopServer
 {
     class Program
     {
-        static void N_Main(string[] args)
+        static void Main(string[] args)
         {
             var host = new ServiceHost(typeof(EchoService), 
                 new Uri("net.tcp://localhost:8808/"), 
