@@ -1,4 +1,5 @@
 ﻿using CoreWCF;
+using CoreWCF.Security;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,6 +12,7 @@ namespace CoreWCF.IdentityModel.Tokens
     {
         string id;
         X509Certificate2 certificate;
+        ReadOnlyCollection<SecurityKey> securityKeys;
         DateTime effectiveTime = SecurityUtils.MaxUtcDateTime;
         DateTime expirationTime = SecurityUtils.MinUtcDateTime;
         bool disposed = false;
@@ -63,8 +65,14 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             get
             {
-                // I believe this is only used in MessageSecurity
-                throw new PlatformNotSupportedException("X509AsymmetricSecurityKey");
+                ThrowIfDisposed();
+                if (this.securityKeys == null)
+                {
+                    List<SecurityKey> temp = new List<SecurityKey>(1);
+                    temp.Add(new X509AsymmetricSecurityKey(this.certificate));
+                    this.securityKeys = temp.AsReadOnly();
+                }
+                return this.securityKeys;
             }
         }
 

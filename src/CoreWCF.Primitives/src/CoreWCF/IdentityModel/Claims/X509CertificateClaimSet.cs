@@ -1,5 +1,5 @@
 ﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF;
+using CoreWCF.Security;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Claims
 {

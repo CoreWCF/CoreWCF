@@ -1,11 +1,9 @@
 ﻿using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
-using CoreWCF;
-using System;
+using CoreWCF.Security;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Security.Principal;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Selectors
 {

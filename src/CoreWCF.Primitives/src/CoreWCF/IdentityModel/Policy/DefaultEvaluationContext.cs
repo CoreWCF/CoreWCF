@@ -1,8 +1,8 @@
 ﻿using CoreWCF.IdentityModel.Claims;
+using CoreWCF.Security;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Policy
 {

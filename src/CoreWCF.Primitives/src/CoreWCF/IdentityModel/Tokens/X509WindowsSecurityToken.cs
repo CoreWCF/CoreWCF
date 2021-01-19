@@ -1,9 +1,6 @@
-﻿using CoreWCF;
-using System;
-using System.Collections.Generic;
+﻿using CoreWCF.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Tokens
 {

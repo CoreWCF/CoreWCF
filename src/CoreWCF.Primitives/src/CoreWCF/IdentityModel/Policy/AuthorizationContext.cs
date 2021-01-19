@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CoreWCF.IdentityModel.Claims;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Policy
 {

@@ -3,6 +3,7 @@ using System.Reflection;
 using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
+using CoreWCF.Security;
 
 namespace CoreWCF.Diagnostics
 {
@@ -57,6 +58,16 @@ namespace CoreWCF.Diagnostics
             //    TraceUtility.TraceEvent(TraceEventType.Information, TraceCode.DroppedAMessage,
             //        SR.Format(SR.TraceCodeDroppedAMessage), new MessageDroppedTraceRecord(message, endpointAddress));
             //}
+        }
+
+        internal static Exception ThrowHelperArgumentNull(string v, Message message)
+        {
+            return new Exception(v);
+        }
+
+        internal static Exception ThrowHelperWarning(Exception exception, Message request)
+        {
+            return exception;
         }
     }
 }

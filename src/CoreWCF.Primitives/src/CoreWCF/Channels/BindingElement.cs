@@ -22,6 +22,13 @@ namespace CoreWCF.Channels
             return GetProperty<T>(new BindingContext(new CustomBinding(), new BindingParameterCollection()));
         }
 
+
+        //TODO: Move back to internal
+        protected virtual bool IsMatch(BindingElement b)
+        {
+            Fx.Assert(true, "Should not be called unless this binding element is used in one of the standard bindings. In which case, please re-implement the IsMatch() method.");
+            return false;
+        }
         public virtual IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             if (context == null)
@@ -41,11 +48,5 @@ namespace CoreWCF.Channels
             return context.CanBuildNextServiceDispatcher<TChannel>();
         }
 
-        //TODO: Move back to internal
-        protected virtual bool IsMatch(BindingElement b)
-        {
-            Fx.Assert(true, "Should not be called unless this binding element is used in one of the standard bindings. In which case, please re-implement the IsMatch() method.");
-            return false;
-        }
     }
 }

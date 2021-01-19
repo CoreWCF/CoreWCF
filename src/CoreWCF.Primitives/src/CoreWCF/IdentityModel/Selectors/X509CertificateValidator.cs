@@ -1,7 +1,6 @@
 ﻿using CoreWCF.IdentityModel.Tokens;
-using CoreWCF;
+using CoreWCF.Security;
 using System;
-using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -112,7 +111,7 @@ namespace CoreWCF.IdentityModel.Selectors
                 try
                 {
                     store.Open(OpenFlags.ReadOnly);
-                    certificates = store.Certificates.Find(X509FindType.FindByThumbprint, certificate.GetCertHash(), false);
+                    certificates = store.Certificates.Find(X509FindType.FindByThumbprint, certificate.Thumbprint, false);
                     return certificates.Count > 0;
                 }
                 finally

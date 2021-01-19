@@ -15,12 +15,12 @@ namespace CoreWCF.IdentityModel.Selectors
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
-            return token is UserNameSecurityToken;
+            return token is USerNameSecurityToken;
         }
 
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
         {
-            UserNameSecurityToken userNameToken = (UserNameSecurityToken)token;
+            USerNameSecurityToken userNameToken = (USerNameSecurityToken)token;
             return ValidateUserNamePasswordCore(userNameToken.UserName, userNameToken.Password);
         }
 

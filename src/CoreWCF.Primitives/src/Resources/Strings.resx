@@ -7984,4 +7984,58 @@
   <data name="UserNameCannotBeEmpty" xml:space="preserve">
     <value>The username cannot be empty.</value>
   </data>
+  <data name="UnableToCreateKeyedHashAlgorithm" xml:space="preserve">
+    <value>Unable to create a KeyedHashAlgorithm from '{0}' for the signature algorithm '{1}'.</value>
+  </data>
+    <data name="UnsupportedAlgorithmForCryptoOperation" xml:space="preserve">
+    <value>The algorithm {0} is not supported for operation {1}.</value>
+  </data>
+  <data name="EmptyOrNullArgumentString" xml:space="preserve">
+    <value>The argument '{0}' is null or empty string.</value>
+  </data>
+  <data name="AlgorithmAndKeyMisMatch" xml:space="preserve">
+    <value>The specified algorithm '{0}' and the rsa security token's key do not match.</value>
+  </data>
+    <data name="AlgorithmAndPrivateKeyMisMatch" xml:space="preserve">
+    <value>The algorithm specified and the private key do not match.</value>
+  </data>
+    <data name="AlgorithmAndPublicKeyMisMatch" xml:space="preserve">
+    <value>The algorithm specified and the public key do not match.</value>
+  </data>
+    <data name="NoPrivateKeyAvailable" xml:space="preserve">
+    <value>No private key is available.</value>
+  </data>
+  <data name="LocalIdCannotBeEmpty" xml:space="preserve">
+    <value>The localId cannot be empty. Specify a valid 'localId'.</value>
+  </data>
+  <data name="CannotReadKeyIdentifierClause" xml:space="preserve">
+    <value>Cannot read KeyIdentifierClause from element '{0}' with namespace '{1}'.  Custom KeyIdentifierClauses require custom SecurityTokenSerializers, please refer to the SDK for examples.</value>
+  </data>
+  <data name="PrivateKeyNotSupported" xml:space="preserve">
+    <value>The key algorithm for this private key is not supported.</value>
+ </data>
+ <data name="PublicKeyNotSupported" xml:space="preserve">
+    <value>The key algorithm for this public key is not supported.</value>
+ </data>
+  <data name="PrivateKeyNotDSA" xml:space="preserve">
+    <value>The private key is not a DSA key.</value>
+ </data>
+  <data name="PrivateKeyNotRSA" xml:space="preserve">
+    <value>The private key is not a RSA key.</value>
+ </data>
+  <data name="PublicKeyNotDSA" xml:space="preserve">
+    <value>The public key is not a DSA key.</value>
+ </data>
+   <data name="ErrorDeserializingKeyIdentifierClause" xml:space="preserve">
+    <value>There was an error deserializing the security key identifier clause XML. Please see the inner exception for more details.</value>
+ </data>
+   <data name="ErrorSerializingKeyIdentifier" xml:space="preserve">
+    <value>There was an error serializing the security key identifier. Please see the inner exception for more details.</value>
+ </data>
+   <data name="ErrorSerializingKeyIdentifierClause" xml:space="preserve">
+    <value>There was an error serializing the security key identifier clause. Please see the inner exception for more details.</value>
+ </data>
+   <data name="NoKeyInfoClausesToWrite" xml:space="preserve">
+    <value>The SecurityKeyIdentifier has no key identifier clauses to write.</value>
+ </data>
 </root>

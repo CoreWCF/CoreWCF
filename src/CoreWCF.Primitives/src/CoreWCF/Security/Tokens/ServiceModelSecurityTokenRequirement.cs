@@ -7,7 +7,7 @@ using System.Text;
 
 namespace CoreWCF.Security.Tokens
 {
-    internal abstract class ServiceModelSecurityTokenRequirement : SecurityTokenRequirement
+    public abstract class ServiceModelSecurityTokenRequirement : SecurityTokenRequirement
     {
         protected const string Namespace = "http://schemas.microsoft.com/ws/2006/05/servicemodel/securitytokenrequirement";
         const string securityAlgorithmSuiteProperty = Namespace + "/SecurityAlgorithmSuite";
@@ -101,17 +101,17 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        //public SecurityBindingElement SecurityBindingElement
-        //{
-        //    get
-        //    {
-        //        return GetPropertyOrDefault<SecurityBindingElement>(SecurityBindingElementProperty, null);
-        //    }
-        //    set
-        //    {
-        //        this.Properties[SecurityBindingElementProperty] = value;
-        //    }
-        //}
+        public SecurityBindingElement SecurityBindingElement
+        {
+            get
+            {
+                return GetPropertyOrDefault<SecurityBindingElement>(SecurityBindingElementProperty, null);
+            }
+            set
+            {
+                this.Properties[SecurityBindingElementProperty] = value;
+            }
+        }
 
         public EndpointAddress IssuerAddress
         {
@@ -137,42 +137,42 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        //public SecurityBindingElement SecureConversationSecurityBindingElement
-        //{
-        //    get
-        //    {
-        //        return GetPropertyOrDefault<SecurityBindingElement>(SecureConversationSecurityBindingElementProperty, null);
-        //    }
-        //    set
-        //    {
-        //        this.Properties[SecureConversationSecurityBindingElementProperty] = value;
-        //    }
-        //}
+        public SecurityBindingElement SecureConversationSecurityBindingElement
+        {
+            get
+            {
+                return GetPropertyOrDefault<SecurityBindingElement>(SecureConversationSecurityBindingElementProperty, null);
+            }
+            set
+            {
+                this.Properties[SecureConversationSecurityBindingElementProperty] = value;
+            }
+        }
 
-        //public SecurityTokenVersion MessageSecurityVersion
-        //{
-        //    get
-        //    {
-        //        return GetPropertyOrDefault<SecurityTokenVersion>(MessageSecurityVersionProperty, null);
-        //    }
-        //    set
-        //    {
-        //        this.Properties[MessageSecurityVersionProperty] = value;
-        //    }
-        //}
+        public SecurityTokenVersion MessageSecurityVersion
+        {
+            get
+            {
+                return GetPropertyOrDefault<SecurityTokenVersion>(MessageSecurityVersionProperty, null);
+            }
+            set
+            {
+                this.Properties[MessageSecurityVersionProperty] = value;
+            }
+        }
 
-        //internal MessageSecurityVersion DefaultMessageSecurityVersion
-        //{
-        //    get
-        //    {
-        //        MessageSecurityVersion messageSecurityVersion;
-        //        return (this.TryGetProperty<MessageSecurityVersion>(DefaultMessageSecurityVersionProperty, out messageSecurityVersion)) ? messageSecurityVersion : null;
-        //    }
-        //    set
-        //    {
-        //        this.Properties[DefaultMessageSecurityVersionProperty] = (object)value;
-        //    }
-        //}
+        internal MessageSecurityVersion DefaultMessageSecurityVersion
+        {
+            get
+            {
+                MessageSecurityVersion messageSecurityVersion;
+                return (this.TryGetProperty<MessageSecurityVersion>(DefaultMessageSecurityVersionProperty, out messageSecurityVersion)) ? messageSecurityVersion : null;
+            }
+            set
+            {
+                this.Properties[DefaultMessageSecurityVersionProperty] = (object)value;
+            }
+        }
 
         public string TransportScheme
         {

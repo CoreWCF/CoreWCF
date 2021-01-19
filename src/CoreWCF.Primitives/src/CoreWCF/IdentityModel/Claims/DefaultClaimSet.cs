@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using CoreWCF.Security;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
-using CoreWCF;
 
 namespace CoreWCF.IdentityModel.Claims
 {

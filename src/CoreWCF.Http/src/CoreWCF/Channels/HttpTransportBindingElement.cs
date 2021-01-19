@@ -1,8 +1,8 @@
+using System;
+using System.Net;
+using System.Security.Authentication.ExtendedProtection;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
-using System;
-using System.ComponentModel;
-using System.Net;
 
 namespace CoreWCF.Channels
 {
@@ -13,6 +13,7 @@ namespace CoreWCF.Channels
         private string _realm;
         private TransferMode _transferMode;
         private WebSocketTransportSettings _webSocketSettings;
+        private ExtendedProtectionPolicy _extendedProtectionPolicy;
 
         //HttpAnonymousUriPrefixMatcher _anonymousUriPrefixMatcher;
 
@@ -261,5 +262,30 @@ namespace CoreWCF.Channels
                 return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
             //}
         }
+
+        public ExtendedProtectionPolicy ExtendedProtectionPolicy
+        {
+            get
+            {
+                return _extendedProtectionPolicy;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
+                if (value.PolicyEnforcement == PolicyEnforcement.Always &&
+                    !System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+                {
+                   throw new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported);
+                }
+
+                _extendedProtectionPolicy = value;
+            }
+        }
+
+      //  public override Type MiddlewareType => typeof(ServiceModelHttpMiddleware);
     }
 }

@@ -1,6 +1,8 @@
 ﻿using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 using System.Xml;
 
@@ -229,173 +231,173 @@ namespace CoreWCF.Security
 
         }
 
-        //internal string GetEncryptionKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal string GetEncryptionKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
+        {
+            if (token == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
-        //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
-        //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
-        //        return derivationAlgorithm;
-        //    else
-        //        return null;
-        //}
+            string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
+            if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
+                return derivationAlgorithm;
+            else
+                return null;
+        }
 
-        //internal int GetEncryptionKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal int GetEncryptionKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
+        {
+            if (token == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
-        //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
-        //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
-        //    {
-        //        if (this.DefaultEncryptionKeyDerivationLength % 8 != 0)
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.Psha1KeyLengthInvalid, this.DefaultEncryptionKeyDerivationLength)));
+            string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
+            if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
+            {
+                if (this.DefaultEncryptionKeyDerivationLength % 8 != 0)
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.Psha1KeyLengthInvalid, this.DefaultEncryptionKeyDerivationLength)));
 
-        //        return this.DefaultEncryptionKeyDerivationLength / 8;
-        //    }
-        //    else
-        //        return 0;
-        //}
+                return this.DefaultEncryptionKeyDerivationLength / 8;
+            }
+            else
+                return 0;
+        }
 
-        //internal void GetKeyWrapAlgorithm(SecurityToken token, out string keyWrapAlgorithm, out XmlDictionaryString keyWrapAlgorithmDictionaryString)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal void GetKeyWrapAlgorithm(SecurityToken token, out string keyWrapAlgorithm, out XmlDictionaryString keyWrapAlgorithmDictionaryString)
+        {
+            if (token == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
-        //    if (SecurityUtils.IsSupportedAlgorithm(this.DefaultSymmetricKeyWrapAlgorithm, token))
-        //    {
-        //        keyWrapAlgorithm = this.DefaultSymmetricKeyWrapAlgorithm;
-        //        keyWrapAlgorithmDictionaryString = this.DefaultSymmetricKeyWrapAlgorithmDictionaryString;
-        //    }
-        //    else
-        //    {
-        //        keyWrapAlgorithm = this.DefaultAsymmetricKeyWrapAlgorithm;
-        //        keyWrapAlgorithmDictionaryString = this.DefaultAsymmetricKeyWrapAlgorithmDictionaryString;
-        //    }
-        //}
+            if (SecurityUtils.IsSupportedAlgorithm(this.DefaultSymmetricKeyWrapAlgorithm, token))
+            {
+                keyWrapAlgorithm = this.DefaultSymmetricKeyWrapAlgorithm;
+                keyWrapAlgorithmDictionaryString = this.DefaultSymmetricKeyWrapAlgorithmDictionaryString;
+            }
+            else
+            {
+                keyWrapAlgorithm = this.DefaultAsymmetricKeyWrapAlgorithm;
+                keyWrapAlgorithmDictionaryString = this.DefaultAsymmetricKeyWrapAlgorithmDictionaryString;
+            }
+        }
 
-        //internal void GetSignatureAlgorithmAndKey(SecurityToken token, out string signatureAlgorithm, out SecurityKey key, out XmlDictionaryString signatureAlgorithmDictionaryString)
-        //{
-        //    ReadOnlyCollection<SecurityKey> keys = token.SecurityKeys;
-        //    if (keys == null || keys.Count == 0)
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SigningTokenHasNoKeys, token)));
-        //    }
+        internal void GetSignatureAlgorithmAndKey(SecurityToken token, out string signatureAlgorithm, out SecurityKey key, out XmlDictionaryString signatureAlgorithmDictionaryString)
+        {
+            ReadOnlyCollection<SecurityKey> keys = token.SecurityKeys;
+            if (keys == null || keys.Count == 0)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SigningTokenHasNoKeys, token)));
+            }
 
-        //    for (int i = 0; i < keys.Count; i++)
-        //    {
-        //        if (keys[i].IsSupportedAlgorithm(this.DefaultSymmetricSignatureAlgorithm))
-        //        {
-        //            signatureAlgorithm = this.DefaultSymmetricSignatureAlgorithm;
-        //            signatureAlgorithmDictionaryString = this.DefaultSymmetricSignatureAlgorithmDictionaryString;
-        //            key = keys[i];
-        //            return;
-        //        }
-        //        else if (keys[i].IsSupportedAlgorithm(this.DefaultAsymmetricSignatureAlgorithm))
-        //        {
-        //            signatureAlgorithm = this.DefaultAsymmetricSignatureAlgorithm;
-        //            signatureAlgorithmDictionaryString = this.DefaultAsymmetricSignatureAlgorithmDictionaryString;
-        //            key = keys[i];
-        //            return;
-        //        }
-        //    }
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (keys[i].IsSupportedAlgorithm(this.DefaultSymmetricSignatureAlgorithm))
+                {
+                    signatureAlgorithm = this.DefaultSymmetricSignatureAlgorithm;
+                    signatureAlgorithmDictionaryString = this.DefaultSymmetricSignatureAlgorithmDictionaryString;
+                    key = keys[i];
+                    return;
+                }
+                else if (keys[i].IsSupportedAlgorithm(this.DefaultAsymmetricSignatureAlgorithm))
+                {
+                    signatureAlgorithm = this.DefaultAsymmetricSignatureAlgorithm;
+                    signatureAlgorithmDictionaryString = this.DefaultAsymmetricSignatureAlgorithmDictionaryString;
+                    key = keys[i];
+                    return;
+                }
+            }
 
-        //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SigningTokenHasNoKeysSupportingTheAlgorithmSuite, token, this)));
-        //}
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SigningTokenHasNoKeysSupportingTheAlgorithmSuite, token, this)));
+        }
 
-        //internal string GetSignatureKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal string GetSignatureKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
+        {
+            if (token == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
-        //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
-        //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
-        //        return derivationAlgorithm;
-        //    else
-        //        return null;
-        //}
+            string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
+            if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
+                return derivationAlgorithm;
+            else
+                return null;
+        }
 
-        //internal int GetSignatureKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal int GetSignatureKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
+        {
+            if (token == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
 
-        //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
-        //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
-        //    {
-        //        if (this.DefaultSignatureKeyDerivationLength % 8 != 0)
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.Psha1KeyLengthInvalid, this.DefaultSignatureKeyDerivationLength)));
+            string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
+            if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
+            {
+                if (this.DefaultSignatureKeyDerivationLength % 8 != 0)
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.Psha1KeyLengthInvalid, this.DefaultSignatureKeyDerivationLength)));
 
-        //        return this.DefaultSignatureKeyDerivationLength / 8;
-        //    }
-        //    else
-        //        return 0;
-        //}
+                return this.DefaultSignatureKeyDerivationLength / 8;
+            }
+            else
+                return 0;
+        }
 
-        //internal void EnsureAcceptableSymmetricSignatureAlgorithm(string algorithm)
-        //{
-        //    if (!IsSymmetricSignatureAlgorithmSupported(algorithm))
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //            algorithm, "SymmetricSignature", this)));
-        //    }
-        //}
+        internal void EnsureAcceptableSymmetricSignatureAlgorithm(string algorithm)
+        {
+            if (!IsSymmetricSignatureAlgorithmSupported(algorithm))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                    algorithm, "SymmetricSignature", this)));
+            }
+        }
 
-        //internal void EnsureAcceptableSignatureKeySize(SecurityKey securityKey, SecurityToken token)
-        //{
-        //    AsymmetricSecurityKey asymmetricSecurityKey = securityKey as AsymmetricSecurityKey;
-        //    if (asymmetricSecurityKey != null)
-        //    {
-        //        if (!IsAsymmetricKeyLengthSupported(asymmetricSecurityKey.KeySize))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
-        //                SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, asymmetricSecurityKey.KeySize)));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        SymmetricSecurityKey symmetricSecurityKey = securityKey as SymmetricSecurityKey;
-        //        if (symmetricSecurityKey == null)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, symmetricSecurityKey)));
-        //        }
-        //        EnsureAcceptableSignatureSymmetricKeySize(symmetricSecurityKey, token);
-        //    }
-        //}
+        internal void EnsureAcceptableSignatureKeySize(SecurityKey securityKey, SecurityToken token)
+        {
+            AsymmetricSecurityKey asymmetricSecurityKey = securityKey as AsymmetricSecurityKey;
+            if (asymmetricSecurityKey != null)
+            {
+                if (!IsAsymmetricKeyLengthSupported(asymmetricSecurityKey.KeySize))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                        SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, asymmetricSecurityKey.KeySize)));
+                }
+            }
+            else
+            {
+                SymmetricSecurityKey symmetricSecurityKey = securityKey as SymmetricSecurityKey;
+                if (symmetricSecurityKey == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, symmetricSecurityKey)));
+                }
+                EnsureAcceptableSignatureSymmetricKeySize(symmetricSecurityKey, token);
+            }
+        }
 
         //// Ensure acceptable signing symmetric key.
         //// 1) if derived key, validate derived key against DefaultSignatureKeyDerivationLength and validate
         ////    source key against DefaultSymmetricKeyLength
         //// 2) if not derived key, validate key against DefaultSymmetricKeyLength
-        //internal void EnsureAcceptableSignatureSymmetricKeySize(SymmetricSecurityKey securityKey, SecurityToken token)
-        //{
-        //    int keySize;
-        //    DerivedKeySecurityToken dkt = token as DerivedKeySecurityToken;
-        //    if (dkt != null)
-        //    {
-        //        token = dkt.TokenToDerive;
-        //        keySize = ((SymmetricSecurityKey)token.SecurityKeys[0]).KeySize;
+        internal void EnsureAcceptableSignatureSymmetricKeySize(SymmetricSecurityKey securityKey, SecurityToken token)
+        {
+            int keySize;
+            DerivedKeySecurityToken dkt = token as DerivedKeySecurityToken;
+            if (dkt != null)
+            {
+                token = dkt.TokenToDerive;
+                keySize = ((SymmetricSecurityKey)token.SecurityKeys[0]).KeySize;
 
-        //        // doing special case for derived key token signing length since
-        //        // the sending side doesn't honor the algorithm suite. It used the DefaultSignatureKeyDerivationLength instead
-        //        if (dkt.SecurityKeys[0].KeySize < this.DefaultSignatureKeyDerivationLength)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
-        //                SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, dkt, dkt.SecurityKeys[0].KeySize)));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        keySize = securityKey.KeySize;
-        //    }
+                // doing special case for derived key token signing length since
+                // the sending side doesn't honor the algorithm suite. It used the DefaultSignatureKeyDerivationLength instead
+                if (dkt.SecurityKeys[0].KeySize < this.DefaultSignatureKeyDerivationLength)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                        SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, dkt, dkt.SecurityKeys[0].KeySize)));
+                }
+            }
+            else
+            {
+                keySize = securityKey.KeySize;
+            }
 
-        //    if (!IsSymmetricKeyLengthSupported(keySize))
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
-        //            SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, keySize)));
-        //    }
-        //}
+            if (!IsSymmetricKeyLengthSupported(keySize))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                    SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, keySize)));
+            }
+        }
 
         //// Ensure acceptable decrypting symmetric key.
         //// 1) if derived key, validate derived key against DefaultEncryptionKeyDerivationLength and validate
@@ -430,53 +432,53 @@ namespace CoreWCF.Security
         //    }
         //}
 
-        //internal void EnsureAcceptableSignatureAlgorithm(SecurityKey verificationKey, string algorithm)
-        //{
-        //    InMemorySymmetricSecurityKey symmeticKey = verificationKey as InMemorySymmetricSecurityKey;
-        //    if (symmeticKey != null)
-        //    {
-        //        this.EnsureAcceptableSymmetricSignatureAlgorithm(algorithm);
-        //    }
-        //    else
-        //    {
-        //        AsymmetricSecurityKey asymmetricKey = verificationKey as AsymmetricSecurityKey;
-        //        if (asymmetricKey == null)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, verificationKey)));
-        //        }
+        internal void EnsureAcceptableSignatureAlgorithm(SecurityKey verificationKey, string algorithm)
+        {
+            InMemorySymmetricSecurityKey symmeticKey = verificationKey as InMemorySymmetricSecurityKey;
+            if (symmeticKey != null)
+            {
+                this.EnsureAcceptableSymmetricSignatureAlgorithm(algorithm);
+            }
+            else
+            {
+                AsymmetricSecurityKey asymmetricKey = verificationKey as AsymmetricSecurityKey;
+                if (asymmetricKey == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, verificationKey)));
+                }
 
-        //        this.EnsureAcceptableAsymmetricSignatureAlgorithm(algorithm);
-        //    }
-        //}
+                this.EnsureAcceptableAsymmetricSignatureAlgorithm(algorithm);
+            }
+        }
 
-        //internal void EnsureAcceptableAsymmetricSignatureAlgorithm(string algorithm)
-        //{
-        //    if (!IsAsymmetricSignatureAlgorithmSupported(algorithm))
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //            algorithm, "AsymmetricSignature", this)));
-        //    }
-        //}
+        internal void EnsureAcceptableAsymmetricSignatureAlgorithm(string algorithm)
+        {
+            if (!IsAsymmetricSignatureAlgorithmSupported(algorithm))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                    algorithm, "AsymmetricSignature", this)));
+            }
+        }
 
-        //internal void EnsureAcceptableKeyWrapAlgorithm(string algorithm, bool isAsymmetric)
-        //{
-        //    if (isAsymmetric)
-        //    {
-        //        if (!IsAsymmetricKeyWrapAlgorithmSupported(algorithm))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //                algorithm, "AsymmetricKeyWrap", this)));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (!IsSymmetricKeyWrapAlgorithmSupported(algorithm))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //                algorithm, "SymmetricKeyWrap", this)));
-        //        }
-        //    }
-        //}
+        internal void EnsureAcceptableKeyWrapAlgorithm(string algorithm, bool isAsymmetric)
+        {
+            if (isAsymmetric)
+            {
+                if (!IsAsymmetricKeyWrapAlgorithmSupported(algorithm))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                        algorithm, "AsymmetricKeyWrap", this)));
+                }
+            }
+            else
+            {
+                if (!IsSymmetricKeyWrapAlgorithmSupported(algorithm))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                        algorithm, "SymmetricKeyWrap", this)));
+                }
+            }
+        }
 
         //internal void EnsureAcceptableEncryptionAlgorithm(string algorithm)
         //{

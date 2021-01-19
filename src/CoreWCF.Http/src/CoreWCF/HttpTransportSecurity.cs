@@ -67,26 +67,25 @@ namespace CoreWCF
             }
         }
 
-        //internal void ConfigureTransportProtectionOnly(HttpsTransportBindingElement https)
-        //{
-        //    DisableAuthentication(https);
-        //    https.RequireClientCertificate = false;
-        //}
+        internal void ConfigureTransportProtectionOnly(HttpsTransportBindingElement https)
+        {
+            DisableAuthentication(https);
+            https.RequireClientCertificate = false;
+        }
 
         void ConfigureAuthentication(HttpTransportBindingElement http)
         {
             http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(clientCredentialType);
             http.Realm = Realm;
-            //http.ExtendedProtectionPolicy = extendedProtectionPolicy;
+            http.ExtendedProtectionPolicy = extendedProtectionPolicy;
         }
 
-        //static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
-        //{
-        //    transportSecurity.clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
-        //    transportSecurity.proxyCredentialType = HttpProxyCredentialTypeHelper.MapToProxyCredentialType(http.ProxyAuthenticationScheme);
-        //    transportSecurity.Realm = http.Realm;
-        //    transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
-        //}
+        static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
+        {
+            transportSecurity.clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
+            transportSecurity.realm = http.Realm;
+            transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
+        }
 
         void DisableAuthentication(HttpTransportBindingElement http)
         {
@@ -108,12 +107,12 @@ namespace CoreWCF
             https.RequireClientCertificate = (clientCredentialType == HttpClientCredentialType.Certificate);
         }
 
-        //internal static void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https, HttpTransportSecurity transportSecurity)
-        //{
-        //    ConfigureAuthentication(https, transportSecurity);
-        //    if (https.RequireClientCertificate)
-        //        transportSecurity.ClientCredentialType = HttpClientCredentialType.Certificate;
-        //}
+        internal static void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https, HttpTransportSecurity transportSecurity)
+        {
+            ConfigureAuthentication(https, transportSecurity);
+            if (https.RequireClientCertificate)
+                transportSecurity.ClientCredentialType = HttpClientCredentialType.Certificate;
+        }
 
         internal void ConfigureTransportAuthentication(HttpTransportBindingElement http)
         {

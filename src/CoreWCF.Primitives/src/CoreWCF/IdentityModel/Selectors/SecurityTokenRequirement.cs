@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
-    internal class SecurityTokenRequirement
+    public class SecurityTokenRequirement
     {
         const string Namespace = "http://schemas.microsoft.com/ws/2006/05/identitymodel/securitytokenrequirement";
         const string tokenTypeProperty = Namespace + "/TokenType";
@@ -78,7 +78,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        public SecurityKeyUsage KeyUsage
+        internal SecurityKeyUsage KeyUsage
         {
             get
             {
@@ -92,7 +92,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        public SecurityKeyType KeyType
+        internal SecurityKeyType KeyType
         {
             get
             {

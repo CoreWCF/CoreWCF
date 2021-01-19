@@ -1,12 +1,9 @@
-﻿using CoreWCF.IdentityModel.Selectors;
+﻿using System;
+using System.Collections.ObjectModel;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace CoreWCF.Description
 {
@@ -16,9 +13,9 @@ namespace CoreWCF.Description
         X509CertificateInitiatorServiceCredential clientCertificate;
         X509CertificateRecipientServiceCredential serviceCertificate;
         WindowsServiceCredential windows;
-        //IssuedTokenServiceCredential issuedToken;
-        //SecureConversationServiceCredential secureConversation;
-        //bool useIdentityConfiguration = false;
+        IssuedTokenServiceCredential issuedToken;
+        SecureConversationServiceCredential secureConversation;
+        bool useIdentityConfiguration = false;
 
         bool isReadOnly = false;
         bool saveBootstrapTokenInSession = true;
@@ -31,8 +28,8 @@ namespace CoreWCF.Description
             clientCertificate = new X509CertificateInitiatorServiceCredential();
             serviceCertificate = new X509CertificateRecipientServiceCredential();
             windows = new WindowsServiceCredential();
-            //this.issuedToken = new IssuedTokenServiceCredential();
-            //this.secureConversation = new SecureConversationServiceCredential();
+            this.issuedToken = new IssuedTokenServiceCredential();
+            this.secureConversation = new SecureConversationServiceCredential();
             exceptionMapper = new ExceptionMapper();
         }
 
@@ -46,8 +43,8 @@ namespace CoreWCF.Description
             clientCertificate = new X509CertificateInitiatorServiceCredential(other.clientCertificate);
             serviceCertificate = new X509CertificateRecipientServiceCredential(other.serviceCertificate);
             windows = new WindowsServiceCredential(other.windows);
-            //this.issuedToken = new IssuedTokenServiceCredential(other.issuedToken);
-            //this.secureConversation = new SecureConversationServiceCredential(other.secureConversation);
+            this.issuedToken = new IssuedTokenServiceCredential(other.issuedToken);
+            this.secureConversation = new SecureConversationServiceCredential(other.secureConversation);
             saveBootstrapTokenInSession = other.saveBootstrapTokenInSession;
             exceptionMapper = other.exceptionMapper;
         }
@@ -84,21 +81,21 @@ namespace CoreWCF.Description
             }
         }
 
-        //public IssuedTokenServiceCredential IssuedTokenAuthentication
-        //{
-        //    get
-        //    {
-        //        return this.issuedToken;
-        //    }
-        //}
+        public IssuedTokenServiceCredential IssuedTokenAuthentication
+        {
+            get
+            {
+                return this.issuedToken;
+            }
+        }
 
-        //public SecureConversationServiceCredential SecureConversationAuthentication
-        //{
-        //    get
-        //    {
-        //        return this.secureConversation;
-        //    }
-        //}
+        public SecureConversationServiceCredential SecureConversationAuthentication
+        {
+            get
+            {
+                return this.secureConversation;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the ExceptionMapper to be used when throwing exceptions.
@@ -185,8 +182,8 @@ namespace CoreWCF.Description
         {
             isReadOnly = true;
             ClientCertificate.MakeReadOnly();
-            //this.IssuedTokenAuthentication.MakeReadOnly();
-            //this.SecureConversationAuthentication.MakeReadOnly();
+            this.IssuedTokenAuthentication.MakeReadOnly();
+            this.SecureConversationAuthentication.MakeReadOnly();
             ServiceCertificate.MakeReadOnly();
             UserNameAuthentication.MakeReadOnly();
             WindowsAuthentication.MakeReadOnly();

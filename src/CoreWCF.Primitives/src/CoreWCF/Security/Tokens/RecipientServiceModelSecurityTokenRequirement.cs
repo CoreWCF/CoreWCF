@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CoreWCF.Security.Tokens
 {
-    internal sealed class RecipientServiceModelSecurityTokenRequirement : ServiceModelSecurityTokenRequirement
+    public sealed class RecipientServiceModelSecurityTokenRequirement : ServiceModelSecurityTokenRequirement
     {
         public RecipientServiceModelSecurityTokenRequirement()
             : base()
