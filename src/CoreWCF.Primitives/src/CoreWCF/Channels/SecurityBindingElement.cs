@@ -233,6 +233,48 @@ namespace CoreWCF.Channels
             GetSupportingTokensCapabilities(EndpointSupportingTokenParameters, out supportsClientAuth, out supportsWindowsIdentity);
         }
 
+        // SecureConversation needs a demuxer below security to 1) demux between the security sessions and 2) demux the SCT issue and renewal messages
+        // to the authenticator
+        internal void AddDemuxerForSecureConversation(ChannelBuilder builder, BindingContext secureConversationBindingContext)
+        {
+            // add a demuxer element  right below security unless there's a demuxer already present below and the only 
+            // binding elements between security and the demuxer are "ancillary" binding elements like message encoding element and
+            // stream-security upgrade element. We could always add the channel demuxer below security but not doing so in the ancillary
+            // binding elements case improves perf
+            //int numChannelDemuxersBelowSecurity = 0;
+            //bool doesBindingHaveShapeChangingElements = false;
+            //for (int i = 0; i < builder.Binding.Elements.Count; ++i)
+            //{
+            //    if ((builder.Binding.Elements[i] is MessageEncodingBindingElement) || (builder.Binding.Elements[i] is StreamUpgradeBindingElement))
+            //    {
+            //        continue;
+            //    }
+            //    if (builder.Binding.Elements[i] is ChannelDemuxerBindingElement)
+            //    {
+            //        ++numChannelDemuxersBelowSecurity;
+            //    }
+            //    else if (builder.Binding.Elements[i] is TransportBindingElement)
+            //    {
+            //        break;
+            //    }
+            //    else
+            //    {
+            //        doesBindingHaveShapeChangingElements = true;
+            //    }
+            //}
+            //if (numChannelDemuxersBelowSecurity == 1 && !doesBindingHaveShapeChangingElements)
+            //{
+            //    return;
+            //}
+
+            //ChannelDemuxerBindingElement demuxer = new ChannelDemuxerBindingElement(false);
+            //demuxer.MaxPendingSessions = this.LocalServiceSettings.MaxPendingSessions;
+            //demuxer.PeekTimeout = this.LocalServiceSettings.NegotiationTimeout;
+
+            //builder.Binding.Elements.Insert(0, demuxer);
+            //secureConversationBindingContext.RemainingBindingElements.Insert(0, demuxer);
+        }
+
         internal void ApplyPropertiesOnDemuxer(ChannelBuilder builder, BindingContext context)
         {
             /* TODO later
@@ -247,29 +289,29 @@ namespace CoreWCF.Channels
              }*/
         }
 
-        /*
+        
         static BindingContext CreateIssuerBindingContextForNegotiation(BindingContext issuerBindingContext)
         {
             TransportBindingElement transport = issuerBindingContext.RemainingBindingElements.Find<TransportBindingElement>();
             if (transport == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.TransportBindingElementNotFound)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.TransportBindingElementNotFound)));
             }
-            ChannelDemuxerBindingElement demuxer = null;
-            // pick the demuxer above transport (i.e. the last demuxer in the array)
-            for (int i = 0; i < issuerBindingContext.RemainingBindingElements.Count; ++i)
-            {
-                if (issuerBindingContext.RemainingBindingElements[i] is ChannelDemuxerBindingElement)
-                {
-                    demuxer = (ChannelDemuxerBindingElement)issuerBindingContext.RemainingBindingElements[i];
-                }
-            }
-            if (demuxer == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.ChannelDemuxerBindingElementNotFound)));
-            }
+            //ChannelDemuxerBindingElement demuxer = null;
+            //// pick the demuxer above transport (i.e. the last demuxer in the array)
+            //for (int i = 0; i < issuerBindingContext.RemainingBindingElements.Count; ++i)
+            //{
+            //    if (issuerBindingContext.RemainingBindingElements[i] is ChannelDemuxerBindingElement)
+            //    {
+            //        demuxer = (ChannelDemuxerBindingElement)issuerBindingContext.RemainingBindingElements[i];
+            //    }
+            //}
+            //if (demuxer == null)
+            //{
+            //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.ChannelDemuxerBindingElementNotFound)));
+            //}
             BindingElementCollection negotiationBindingElements = new BindingElementCollection();
-            negotiationBindingElements.Add(demuxer.Clone());
+            //negotiationBindingElements.Add(demuxer.Clone());
             negotiationBindingElements.Add(transport.Clone());
             CustomBinding binding = new CustomBinding(negotiationBindingElements);
             binding.OpenTimeout = issuerBindingContext.Binding.OpenTimeout;
@@ -279,14 +321,14 @@ namespace CoreWCF.Channels
             if (issuerBindingContext.ListenUriBaseAddress != null)
             {
                 return new BindingContext(binding, new BindingParameterCollection(issuerBindingContext.BindingParameters), issuerBindingContext.ListenUriBaseAddress,
-                    issuerBindingContext.ListenUriRelativeAddress, issuerBindingContext.ListenUriMode);
+                    issuerBindingContext.ListenUriRelativeAddress);//, issuerBindingContext.ListenUriMode);
             }
             else
             {
                 return new BindingContext(binding, new BindingParameterCollection(issuerBindingContext.BindingParameters));
             }
         }
-
+        /*
         protected static void SetIssuerBindingContextIfRequired(SecurityTokenParameters parameters, BindingContext issuerBindingContext)
         {
             if (parameters is SslSecurityTokenParameters)
@@ -632,13 +674,11 @@ namespace CoreWCF.Channels
         {
             if (parameters is SslSecurityTokenParameters)
             {
-                throw new NotImplementedException();
-                //((SslSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
+                ((SslSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
             }
             else if (parameters is SspiSecurityTokenParameters)
             {
-                throw new NotImplementedException();
-                // ((SspiSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
+                ((SspiSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
             }
         }
 
@@ -807,6 +847,51 @@ namespace CoreWCF.Channels
             }
             return result;
         }
+
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsSspiNegotiationOverTransportBinding() method.
+        static public TransportSecurityBindingElement CreateSspiNegotiationOverTransportBindingElement(bool requireCancellation)
+        {
+            TransportSecurityBindingElement result = new TransportSecurityBindingElement();
+            SspiSecurityTokenParameters sspiParameters = new SspiSecurityTokenParameters(requireCancellation);
+            sspiParameters.RequireDerivedKeys = false;
+            result.EndpointSupportingTokenParameters.Endorsing.Add(
+                sspiParameters);
+            result.IncludeTimestamp = true;
+           // result.LocalClientSettings.DetectReplays = false;
+            result.LocalServiceSettings.DetectReplays = false;
+            result.SupportsExtendedProtectionPolicy = true;
+
+            return result;
+        }
+
+        // this method reverses CreateSspiNegotiationOverTransportBindingElement() logic
+        internal static bool IsSspiNegotiationOverTransportBinding(SecurityBindingElement sbe, bool requireCancellation)
+        {
+            // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
+
+            if (!sbe.IncludeTimestamp)
+                return false;
+
+            SupportingTokenParameters parameters = sbe.EndpointSupportingTokenParameters;
+            if (parameters.Signed.Count != 0 || parameters.SignedEncrypted.Count != 0 || parameters.Endorsing.Count != 1 || parameters.SignedEndorsing.Count != 0)
+                return false;
+            SspiSecurityTokenParameters sspiParameters = parameters.Endorsing[0] as SspiSecurityTokenParameters;
+            if (sspiParameters == null)
+                return false;
+
+            if (sspiParameters.RequireDerivedKeys)
+                return false;
+
+            if (sspiParameters.RequireCancellation != requireCancellation)
+                return false;
+
+            if (!(sbe is TransportSecurityBindingElement))
+                return false;
+
+            return true;
+        }
+
         //TODO other security mode
     }
 }

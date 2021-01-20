@@ -77,7 +77,7 @@ namespace CoreWCF.Security
                 };
             }
             throw new NotImplementedException();
-            /* TODO later
+            /*
             sctResolver = (SecurityTokenResolver)new SecurityContextSecurityTokenResolver(localServiceSettings.MaxCachedCookies, true, localServiceSettings.MaxClockSkew);
             AcceleratedTokenAuthenticator tokenAuthenticator = new AcceleratedTokenAuthenticator();
             tokenAuthenticator.BootstrapSecurityBindingElement = SecurityUtils.GetIssuerSecurityBindingElement((ServiceModelSecurityTokenRequirement)recipientRequirement);
@@ -96,9 +96,9 @@ namespace CoreWCF.Security
             tokenAuthenticator.NegotiationTimeout = localServiceSettings.NegotiationTimeout;
             tokenAuthenticator.ServiceTokenLifetime = localServiceSettings.IssuedCookieLifetime;
             tokenAuthenticator.MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations;
-            tokenAuthenticator.AuditLogLocation = recipientRequirement.AuditLogLocation;
-            tokenAuthenticator.SuppressAuditFailure = recipientRequirement.SuppressAuditFailure;
-            tokenAuthenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
+           // tokenAuthenticator.AuditLogLocation = recipientRequirement.AuditLogLocation;
+           // tokenAuthenticator.SuppressAuditFailure = recipientRequirement.SuppressAuditFailure;
+           // tokenAuthenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
             tokenAuthenticator.EndpointFilterTable = propertyOrDefault;
             return (SecurityTokenAuthenticator)tokenAuthenticator;*/
 
@@ -106,120 +106,121 @@ namespace CoreWCF.Security
 
         private SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
         {
-            throw new PlatformNotSupportedException("SpnegoSecurityTokenAuthenticator");
-            //SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
-            //if (securityBindingElement == null)
-            //{
-            //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, recipientRequirement));
-            //}
-            //bool isCookieMode = !recipientRequirement.SupportSecurityContextCancellation;
-            //LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
-            //sctResolver = new SecurityContextSecurityTokenResolver(localServiceSettings.MaxCachedCookies, true);
-            //ExtendedProtectionPolicy extendedProtectionPolicy = null;
-            //recipientRequirement.TryGetProperty<ExtendedProtectionPolicy>(ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy, out extendedProtectionPolicy);
+            
+            SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
+            if (securityBindingElement == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, recipientRequirement));
+            }
+            bool isCookieMode = !recipientRequirement.SupportSecurityContextCancellation;
+            LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
+            sctResolver = new SecurityContextSecurityTokenResolver(localServiceSettings.MaxCachedCookies, true);
+            ExtendedProtectionPolicy extendedProtectionPolicy = null;
+            recipientRequirement.TryGetProperty<ExtendedProtectionPolicy>(ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy, out extendedProtectionPolicy);
 
-            //SpnegoTokenAuthenticator authenticator = new SpnegoTokenAuthenticator();
-            //authenticator.ExtendedProtectionPolicy = extendedProtectionPolicy;
-            //authenticator.AllowUnauthenticatedCallers = parent.WindowsAuthentication.AllowAnonymousLogons;
-            //authenticator.ExtractGroupsForWindowsAccounts = parent.WindowsAuthentication.IncludeWindowsGroups;
-            //authenticator.IsClientAnonymous = false;
-            //authenticator.EncryptStateInServiceToken = isCookieMode;
-            //authenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
-            //authenticator.IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver;
-            //authenticator.IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
-            //authenticator.ListenUri = recipientRequirement.ListenUri;
-            //authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
-            //authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
-            //authenticator.SecurityStateEncoder = parent.SecureConversationAuthentication.SecurityStateEncoder;
-            //authenticator.KnownTypes = parent.SecureConversationAuthentication.SecurityContextClaimTypes;
-            //// if the SPNEGO is being done in mixed-mode, the nego blobs are from an anonymous client and so there size bound needs to be enforced.
-            //if (securityBindingElement is TransportSecurityBindingElement)
-            //{
-            //    authenticator.MaxMessageSize = SecurityUtils.GetMaxNegotiationBufferSize(authenticator.IssuerBindingContext);
-            //}
+            SpnegoTokenAuthenticator authenticator = new SpnegoTokenAuthenticator();
+            authenticator.ExtendedProtectionPolicy = extendedProtectionPolicy;
+            authenticator.AllowUnauthenticatedCallers = parent.WindowsAuthentication.AllowAnonymousLogons;
+            authenticator.ExtractGroupsForWindowsAccounts = parent.WindowsAuthentication.IncludeWindowsGroups;
+            authenticator.IsClientAnonymous = false;
+            authenticator.EncryptStateInServiceToken = isCookieMode;
+            authenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
+            authenticator.IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver;
+            authenticator.IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
+            authenticator.ListenUri = recipientRequirement.ListenUri;
+            authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
+            authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
+            authenticator.SecurityStateEncoder = parent.SecureConversationAuthentication.SecurityStateEncoder;
+            authenticator.KnownTypes = parent.SecureConversationAuthentication.SecurityContextClaimTypes;
+            // if the SPNEGO is being done in mixed-mode, the nego blobs are from an anonymous client and so there size bound needs to be enforced.
+            if (securityBindingElement is TransportSecurityBindingElement)
+            {
+                authenticator.MaxMessageSize = SecurityUtils.GetMaxNegotiationBufferSize(authenticator.IssuerBindingContext);
+            }
 
-            //// local security quotas
-            //authenticator.MaximumCachedNegotiationState = localServiceSettings.MaxStatefulNegotiations;
-            //authenticator.NegotiationTimeout = localServiceSettings.NegotiationTimeout;
-            //authenticator.ServiceTokenLifetime = localServiceSettings.IssuedCookieLifetime;
-            //authenticator.MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations;
+            // local security quotas
+            authenticator.MaximumCachedNegotiationState = localServiceSettings.MaxStatefulNegotiations;
+            authenticator.NegotiationTimeout = localServiceSettings.NegotiationTimeout;
+            authenticator.ServiceTokenLifetime = localServiceSettings.IssuedCookieLifetime;
+            authenticator.MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations;
 
-            //// audit settings
+            // audit settings
             //authenticator.AuditLogLocation = recipientRequirement.AuditLogLocation;
             //authenticator.SuppressAuditFailure = recipientRequirement.SuppressAuditFailure;
             //authenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
-            //return authenticator;
+            return authenticator;
         }
 
         private SecurityTokenAuthenticator CreateTlsnegoClientX509TokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
-            throw new PlatformNotSupportedException("TlsnegoClientX509Token");
-            //RecipientServiceModelSecurityTokenRequirement clientX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
-            //clientX509Requirement.TokenType = SecurityTokenTypes.X509Certificate;
-            //clientX509Requirement.KeyUsage = SecurityKeyUsage.Signature;
-            //clientX509Requirement.ListenUri = recipientRequirement.ListenUri;
-            //clientX509Requirement.KeyType = SecurityKeyType.AsymmetricKey;
-            //clientX509Requirement.SecurityBindingElement = recipientRequirement.SecurityBindingElement;
-            //SecurityTokenResolver dummy;
-            //return this.CreateSecurityTokenAuthenticator(clientX509Requirement, out dummy);
+            //throw new PlatformNotSupportedException("TlsnegoClientX509Token");
+            RecipientServiceModelSecurityTokenRequirement clientX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
+            clientX509Requirement.TokenType = SecurityTokenTypes.X509Certificate;
+            clientX509Requirement.KeyUsage = SecurityKeyUsage.Signature;
+            clientX509Requirement.ListenUri = recipientRequirement.ListenUri;
+            clientX509Requirement.KeyType = SecurityKeyType.AsymmetricKey;
+            clientX509Requirement.SecurityBindingElement = recipientRequirement.SecurityBindingElement;
+            SecurityTokenResolver dummy;
+            return this.CreateSecurityTokenAuthenticator(clientX509Requirement, out dummy);
         }
 
         private SecurityTokenProvider CreateTlsnegoServerX509TokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
-            throw new PlatformNotSupportedException("TlsnegoServerX509Token");
-            //RecipientServiceModelSecurityTokenRequirement serverX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
-            //serverX509Requirement.TokenType = SecurityTokenTypes.X509Certificate;
-            //serverX509Requirement.KeyUsage = SecurityKeyUsage.Exchange;
-            //serverX509Requirement.ListenUri = recipientRequirement.ListenUri;
-            //serverX509Requirement.KeyType = SecurityKeyType.AsymmetricKey;
-            //serverX509Requirement.SecurityBindingElement = recipientRequirement.SecurityBindingElement;
-            //return this.CreateSecurityTokenProvider(serverX509Requirement);
+            //throw new PlatformNotSupportedException("TlsnegoServerX509Token");
+            RecipientServiceModelSecurityTokenRequirement serverX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
+            serverX509Requirement.TokenType = SecurityTokenTypes.X509Certificate;
+            serverX509Requirement.KeyUsage = SecurityKeyUsage.Exchange;
+            serverX509Requirement.ListenUri = recipientRequirement.ListenUri;
+            serverX509Requirement.KeyType = SecurityKeyType.AsymmetricKey;
+            serverX509Requirement.SecurityBindingElement = recipientRequirement.SecurityBindingElement;
+            return this.CreateSecurityTokenProvider(serverX509Requirement);
         }
 
         private SecurityTokenAuthenticator CreateTlsnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool requireClientCertificate, out SecurityTokenResolver sctResolver)
         {
             throw new PlatformNotSupportedException("TlsnegoSecurityToken");
-            //SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
-            //if (securityBindingElement == null)
-            //{
-            //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, recipientRequirement));
-            //}
-            //bool isCookieMode = !recipientRequirement.SupportSecurityContextCancellation;
-            //LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
-            //sctResolver = new SecurityContextSecurityTokenResolver(localServiceSettings.MaxCachedCookies, true);
+            /*
+            SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
+            if (securityBindingElement == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, recipientRequirement));
+            }
+            bool isCookieMode = !recipientRequirement.SupportSecurityContextCancellation;
+            LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
+            sctResolver = new SecurityContextSecurityTokenResolver(localServiceSettings.MaxCachedCookies, true);
 
-            //TlsnegoTokenAuthenticator authenticator = new TlsnegoTokenAuthenticator();
-            //authenticator.IsClientAnonymous = !requireClientCertificate;
-            //if (requireClientCertificate)
-            //{
-            //    authenticator.ClientTokenAuthenticator = this.CreateTlsnegoClientX509TokenAuthenticator(recipientRequirement);
-            //    authenticator.MapCertificateToWindowsAccount = this.ServiceCredentials.ClientCertificate.Authentication.MapClientCertificateToWindowsAccount;
-            //}
-            //authenticator.EncryptStateInServiceToken = isCookieMode;
-            //authenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
-            //authenticator.IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver;
-            //authenticator.IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
-            //authenticator.ListenUri = recipientRequirement.ListenUri;
-            //authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
-            //authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
-            //authenticator.SecurityStateEncoder = parent.SecureConversationAuthentication.SecurityStateEncoder;
-            //authenticator.KnownTypes = parent.SecureConversationAuthentication.SecurityContextClaimTypes;
-            //authenticator.ServerTokenProvider = CreateTlsnegoServerX509TokenProvider(recipientRequirement);
-            //// local security quotas
-            //authenticator.MaximumCachedNegotiationState = localServiceSettings.MaxStatefulNegotiations;
-            //authenticator.NegotiationTimeout = localServiceSettings.NegotiationTimeout;
-            //authenticator.ServiceTokenLifetime = localServiceSettings.IssuedCookieLifetime;
-            //authenticator.MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations;
-            //// if the TLSNEGO is being done in mixed-mode, the nego blobs are from an anonymous client and so there size bound needs to be enforced.
-            //if (securityBindingElement is TransportSecurityBindingElement)
-            //{
-            //    authenticator.MaxMessageSize = SecurityUtils.GetMaxNegotiationBufferSize(authenticator.IssuerBindingContext);
-            //}
-            //// audit settings
-            //authenticator.AuditLogLocation = recipientRequirement.AuditLogLocation;
-            //authenticator.SuppressAuditFailure = recipientRequirement.SuppressAuditFailure;
-            //authenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
-            //return authenticator;
+            TlsnegoTokenAuthenticator authenticator = new TlsnegoTokenAuthenticator();
+            authenticator.IsClientAnonymous = !requireClientCertificate;
+            if (requireClientCertificate)
+            {
+                authenticator.ClientTokenAuthenticator = this.CreateTlsnegoClientX509TokenAuthenticator(recipientRequirement);
+                authenticator.MapCertificateToWindowsAccount = this.ServiceCredentials.ClientCertificate.Authentication.MapClientCertificateToWindowsAccount;
+            }
+            authenticator.EncryptStateInServiceToken = isCookieMode;
+            authenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
+            authenticator.IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver;
+            authenticator.IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
+            authenticator.ListenUri = recipientRequirement.ListenUri;
+            authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
+            authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
+            authenticator.SecurityStateEncoder = parent.SecureConversationAuthentication.SecurityStateEncoder;
+            authenticator.KnownTypes = parent.SecureConversationAuthentication.SecurityContextClaimTypes;
+            authenticator.ServerTokenProvider = CreateTlsnegoServerX509TokenProvider(recipientRequirement);
+            // local security quotas
+            authenticator.MaximumCachedNegotiationState = localServiceSettings.MaxStatefulNegotiations;
+            authenticator.NegotiationTimeout = localServiceSettings.NegotiationTimeout;
+            authenticator.ServiceTokenLifetime = localServiceSettings.IssuedCookieLifetime;
+            authenticator.MaximumConcurrentNegotiations = localServiceSettings.MaxStatefulNegotiations;
+            // if the TLSNEGO is being done in mixed-mode, the nego blobs are from an anonymous client and so there size bound needs to be enforced.
+            if (securityBindingElement is TransportSecurityBindingElement)
+            {
+                authenticator.MaxMessageSize = SecurityUtils.GetMaxNegotiationBufferSize(authenticator.IssuerBindingContext);
+            }
+            // audit settings
+           // authenticator.AuditLogLocation = recipientRequirement.AuditLogLocation;
+           // authenticator.SuppressAuditFailure = recipientRequirement.SuppressAuditFailure;
+           // authenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
+            return authenticator;*/
         }
 
         private X509SecurityTokenAuthenticator CreateClientX509TokenAuthenticator()
@@ -359,11 +360,13 @@ namespace CoreWCF.Security
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.AnonymousSslnego)
             {
-                result = CreateTlsnegoSecurityTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
+                throw new NotSupportedException(); 
+              //  result = CreateTlsnegoSecurityTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.MutualSslnego)
             {
-                result = CreateTlsnegoSecurityTokenAuthenticator(recipientRequirement, true, out outOfBandTokenResolver);
+                throw new NotSupportedException();
+                //  result = CreateTlsnegoSecurityTokenAuthenticator(recipientRequirement, true, out outOfBandTokenResolver);
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.Spnego)
             {

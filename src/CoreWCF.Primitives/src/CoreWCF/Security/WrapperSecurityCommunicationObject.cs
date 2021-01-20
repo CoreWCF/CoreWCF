@@ -149,7 +149,7 @@ namespace CoreWCF.Security
             return Task.CompletedTask;
         }
 
-        public void OnAbort()
+        public virtual void OnAbort()
         {
         }
 

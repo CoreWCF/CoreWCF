@@ -228,7 +228,126 @@ namespace CoreWCF.Security
                 }
             }
         }
+        protected class WrappedKeyTokenEntry : TokenEntry
+        {
+            WSSecurityTokenSerializer tokenSerializer;
 
+            public WrappedKeyTokenEntry(WSSecurityTokenSerializer tokenSerializer)
+            {
+                this.tokenSerializer = tokenSerializer;
+            }
+
+            protected override XmlDictionaryString LocalName { get { return EncryptedKey.ElementName; } }
+            protected override XmlDictionaryString NamespaceUri { get { return XD.XmlEncryptionDictionary.Namespace; } }
+            protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(WrappedKeySecurityToken) }; }
+            public override string TokenTypeUri { get { return null; } }
+            protected override string ValueTypeUri { get { return null; } }
+
+            public override SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXmlCore(XmlElement issuedTokenXml,
+                SecurityTokenReferenceStyle tokenReferenceStyle)
+            {
+
+                TokenReferenceStyleHelper.Validate(tokenReferenceStyle);
+
+                switch (tokenReferenceStyle)
+                {
+                    case SecurityTokenReferenceStyle.Internal:
+                        return CreateDirectReference(issuedTokenXml, XmlEncryptionStrings.Id, null, null);
+                    case SecurityTokenReferenceStyle.External:
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.CantInferReferenceForToken, EncryptedKey.ElementName.Value)));
+                    default:
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("tokenReferenceStyle"));
+                }
+            }
+
+            public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
+            {
+                EncryptedKey encryptedKey = new EncryptedKey();
+                encryptedKey.SecurityTokenSerializer = this.tokenSerializer;
+                encryptedKey.ReadFrom(reader);
+                SecurityKeyIdentifier unwrappingTokenIdentifier = encryptedKey.KeyIdentifier;
+                byte[] wrappedKey = encryptedKey.GetWrappedKey();
+                WrappedKeySecurityToken wrappedKeyToken = CreateWrappedKeyToken(encryptedKey.Id, encryptedKey.EncryptionMethod,
+                    encryptedKey.CarriedKeyName, unwrappingTokenIdentifier, wrappedKey, tokenResolver);
+                wrappedKeyToken.EncryptedKey = encryptedKey;
+
+                return wrappedKeyToken;
+            }
+
+            WrappedKeySecurityToken CreateWrappedKeyToken(string id, string encryptionMethod, string carriedKeyName,
+                SecurityKeyIdentifier unwrappingTokenIdentifier, byte[] wrappedKey, SecurityTokenResolver tokenResolver)
+            {
+                ISspiNegotiationInfo sspiResolver = tokenResolver as ISspiNegotiationInfo;
+                if (sspiResolver != null)
+                {
+                    ISspiNegotiation unwrappingSspiContext = sspiResolver.SspiNegotiation;
+                    // ensure that the encryption algorithm is compatible
+                    if (encryptionMethod != unwrappingSspiContext.KeyEncryptionAlgorithm)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.BadKeyEncryptionAlgorithm, encryptionMethod)));
+                    }
+                    byte[] unwrappedKey = unwrappingSspiContext.Decrypt(wrappedKey);
+                    return new WrappedKeySecurityToken(id, unwrappedKey, encryptionMethod, unwrappingSspiContext, unwrappedKey);
+                }
+                else
+                {
+                    if (tokenResolver == null)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("tokenResolver"));
+                    }
+                    if (unwrappingTokenIdentifier == null || unwrappingTokenIdentifier.Count == 0)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.MissingKeyInfoInEncryptedKey)));
+                    }
+
+                    SecurityToken unwrappingToken;
+                    SecurityHeaderTokenResolver resolver = tokenResolver as SecurityHeaderTokenResolver;
+                    if (resolver != null)
+                    {
+                        unwrappingToken = resolver.ExpectedWrapper;
+                        if (unwrappingToken != null)
+                        {
+                            if (!resolver.CheckExternalWrapperMatch(unwrappingTokenIdentifier))
+                            {
+                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                                    SR.Format(SR.EncryptedKeyWasNotEncryptedWithTheRequiredEncryptingToken, unwrappingToken)));
+                            }
+                        }
+                        else
+                        {
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                                SR.Format(SR.UnableToResolveKeyInfoForUnwrappingToken, unwrappingTokenIdentifier, resolver)));
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            unwrappingToken = tokenResolver.ResolveToken(unwrappingTokenIdentifier);
+                        }
+                        catch (Exception exception)
+                        {
+                            if (exception is MessageSecurityException)
+                                throw;
+
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                                SR.Format(SR.UnableToResolveKeyInfoForUnwrappingToken, unwrappingTokenIdentifier, tokenResolver), exception));
+                        }
+                    }
+                    SecurityKey unwrappingSecurityKey;
+                    byte[] unwrappedKey = SecurityUtils.DecryptKey(unwrappingToken, encryptionMethod, wrappedKey, out unwrappingSecurityKey);
+                    return new WrappedKeySecurityToken(id, unwrappedKey, encryptionMethod, unwrappingToken, unwrappingTokenIdentifier, wrappedKey, unwrappingSecurityKey);
+                }
+            }
+
+            public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
+            {
+                WrappedKeySecurityToken wrappedKeyToken = token as WrappedKeySecurityToken;
+                wrappedKeyToken.EnsureEncryptedKeySetUp();
+                wrappedKeyToken.EncryptedKey.SecurityTokenSerializer = this.tokenSerializer;
+                wrappedKeyToken.EncryptedKey.WriteTo(writer, ServiceModelDictionaryManager.Instance);
+            }
+        }
         private class UserNamePasswordTokenEntry : TokenEntry
         {
             private readonly WSSecurityTokenSerializer _tokenSerializer;

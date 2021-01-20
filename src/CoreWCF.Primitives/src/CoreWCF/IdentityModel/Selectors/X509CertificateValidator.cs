@@ -142,6 +142,11 @@ namespace CoreWCF.IdentityModel.Selectors
                     certificates = store.Certificates.Find(X509FindType.FindByThumbprint, certificate.Thumbprint, false);
                     return certificates.Count > 0;
                 }
+                catch(Exception e)
+                {
+                    Console.WriteLine("Exception :" + e.Message);
+                    return false;
+                }
                 finally
                 {
                     SecurityUtils.ResetAllCertificates(certificates);

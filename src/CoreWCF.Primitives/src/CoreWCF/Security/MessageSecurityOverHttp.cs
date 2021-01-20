@@ -76,9 +76,9 @@ namespace CoreWCF
                     case MessageCredentialType.Certificate:
                         oneShotSecurity = SecurityBindingElement.CreateCertificateOverTransportBindingElement();
                         break;
-                    //case MessageCredentialType.Windows:
-                    //    oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
-                    //    break;
+                    case MessageCredentialType.Windows:
+                       oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
+                       break;
                     //case MessageCredentialType.IssuedToken:
                     //    oneShotSecurity = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes: true)), this.algorithmSuite));
                     //    break;

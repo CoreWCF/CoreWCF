@@ -244,7 +244,33 @@ namespace CoreWCF.IdentityModel.Claims
 
         public static bool TryCreateWindowsSidClaim(WindowsIdentity windowsIdentity, out Claim claim)
         {
-            throw new PlatformNotSupportedException("CreateWindowsSidClaim is not yet supported");
+            //TODO validate with MS
+           // SafeHGlobalHandle safeAllocHandle = SafeHGlobalHandle.InvalidHandle;
+            try
+            {
+                //uint dwLength;
+                //safeAllocHandle = GetTokenInformation(windowsIdentity.Token, TokenInformationClass.TokenUser, out dwLength);
+                //SID_AND_ATTRIBUTES user = (SID_AND_ATTRIBUTES)Marshal.PtrToStructure(safeAllocHandle.DangerousGetHandle(), typeof(SID_AND_ATTRIBUTES));
+                //uint mask = NativeMethods.SE_GROUP_USE_FOR_DENY_ONLY;
+               // if (user.Attributes == 0)
+               if(windowsIdentity.User != null && windowsIdentity.User.IsAccountSid())
+                {
+                    // claim = Claim.CreateWindowsSidClaim(new SecurityIdentifier(user.Sid));
+                    claim = Claim.CreateWindowsSidClaim(new SecurityIdentifier(windowsIdentity.User.Value));
+                    return true;
+                }
+                //else if ((user.Attributes & mask) == NativeMethods.SE_GROUP_USE_FOR_DENY_ONLY)
+                //{
+                //    claim = Claim.CreateDenyOnlyWindowsSidClaim(new SecurityIdentifier(user.Sid));
+                //    return true;
+                //}
+            }
+            finally
+            {
+               // safeAllocHandle.Close();
+            }
+            claim = null;
+            return false;
         }
     }
 }

@@ -237,6 +237,32 @@ namespace CoreWCF
             }
         }
 
+        public string SessionId
+        {
+            get
+            {
+                if (this.channel != null)
+                {
+                    IChannel inner = this.channel.InnerChannel;
+                    if (inner != null)
+                    {
+                        ISessionChannel<IDuplexSession> duplex = inner as ISessionChannel<IDuplexSession>;
+                        if ((duplex != null) && (duplex.Session != null))
+                            return duplex.Session.Id;
+
+                        ISessionChannel<IInputSession> input = inner as ISessionChannel<IInputSession>;
+                        if ((input != null) && (input.Session != null))
+                            return input.Session.Id;
+
+                        ISessionChannel<IOutputSession> output = inner as ISessionChannel<IOutputSession>;
+                        if ((output != null) && (output.Session != null))
+                            return output.Session.Id;
+                    }
+                }
+                return null;
+            }
+        }
+
         internal IPrincipal ThreadPrincipal
         {
             get { return threadPrincipal; }
