@@ -3,9 +3,11 @@ using System.Runtime.Serialization;
 
 namespace Contract
 {
+    [XmlSerializerFormat]
     [ServiceContract]
     public interface IEchoService
     {
+
         [OperationContract]
         string Echo(string text);
 

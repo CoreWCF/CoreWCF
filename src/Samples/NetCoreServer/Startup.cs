@@ -15,12 +15,13 @@ namespace NetCoreServer
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            WSHttpBinding wSHttpBinding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
+            wSHttpBinding.Security.Message.ClientCredentialType = MessageCredentialType.Windows;
             app.UseServiceModel(builder =>
             {
-                builder
-                    .AddService<EchoService>()
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new BasicHttpBinding(), "/basichttp")
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp");
+                builder.AddService<EchoService>();
+                builder.AddServiceEndpoint<EchoService, Contract.IEchoService>(wSHttpBinding, "/wsHttp");
+                builder.AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp");
             });
         }
     }
