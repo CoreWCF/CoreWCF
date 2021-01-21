@@ -14,7 +14,6 @@ namespace CoreWCF.Dispatcher
     {
         private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
         private readonly IInstanceContextInitializer[] initializers;
-        private readonly IInstanceContextProvider instanceContextProvider;
         private readonly IInstanceProvider provider;
         private readonly InstanceContext singleton;
         private readonly bool isSynchronized;
@@ -27,7 +26,7 @@ namespace CoreWCF.Dispatcher
             provider = dispatch.InstanceProvider;
             singleton = dispatch.SingletonInstanceContext;
             isSynchronized = (dispatch.ConcurrencyMode != ConcurrencyMode.Multiple);
-            instanceContextProvider = dispatch.InstanceContextProvider;
+            InstanceContextProvider = dispatch.InstanceContextProvider;
 
             if (provider == null)
             {
@@ -67,13 +66,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal IInstanceContextProvider InstanceContextProvider
-        {
-            get
-            {
-                return instanceContextProvider;
-            }
-        }
+        internal IInstanceContextProvider InstanceContextProvider { get; }
 
         internal void AfterReply(ref MessageRpc rpc, ErrorBehavior error)
         {
@@ -117,21 +110,21 @@ namespace CoreWCF.Dispatcher
 
         internal bool CanUnload(InstanceContext instanceContext)
         {
-            if (InstanceContextProviderBase.IsProviderSingleton(instanceContextProvider))
+            if (InstanceContextProviderBase.IsProviderSingleton(InstanceContextProvider))
             {
                 return false;
             }
 
-            if (InstanceContextProviderBase.IsProviderPerCall(instanceContextProvider) ||
-                InstanceContextProviderBase.IsProviderSessionful(instanceContextProvider))
+            if (InstanceContextProviderBase.IsProviderPerCall(InstanceContextProvider) ||
+                InstanceContextProviderBase.IsProviderSessionful(InstanceContextProvider))
             {
                 return true;
             }
 
             //User provided InstanceContextProvider. Call the provider to check for idle.
-            if (!instanceContextProvider.IsIdle(instanceContext))
+            if (!InstanceContextProvider.IsIdle(instanceContext))
             {
-                instanceContextProvider.NotifyIdle(InstanceContext.NotifyIdleCallback, instanceContext);
+                InstanceContextProvider.NotifyIdle(InstanceContext.NotifyIdleCallback, instanceContext);
                 return false;
             }
             return true;
@@ -210,7 +203,7 @@ namespace CoreWCF.Dispatcher
             if (current != null && current.InternalServiceChannel != null)
             {
                 IContextChannel transparentProxy = (IContextChannel)current.InternalServiceChannel.Proxy;
-                instanceContextProvider.InitializeInstanceContext(instanceContext, message, transparentProxy);
+                InstanceContextProvider.InitializeInstanceContext(instanceContext, message, transparentProxy);
             }
 
             for (int i = 0; i < initializers.Length; i++)

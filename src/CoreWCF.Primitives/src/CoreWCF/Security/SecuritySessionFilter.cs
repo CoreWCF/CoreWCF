@@ -16,7 +16,6 @@ namespace CoreWCF.Security
     internal sealed class SecuritySessionFilter : HeaderFilter
     {
         private static readonly string SessionContextIdsProperty = String.Format(CultureInfo.InvariantCulture, "{0}/SecuritySessionContextIds", DotNetSecurityStrings.Namespace);
-        private readonly UniqueId securityContextTokenId;
         private readonly SecurityStandardsManager standardsManager;
         private readonly string[] excludedActions;
         private readonly bool isStrictMode;
@@ -29,18 +28,12 @@ namespace CoreWCF.Security
             }
 
             this.excludedActions = excludedActions;
-            this.securityContextTokenId = securityContextTokenId;
+            SecurityContextTokenId = securityContextTokenId;
             this.standardsManager = standardsManager;
             this.isStrictMode = isStrictMode;
         }
 
-        public UniqueId SecurityContextTokenId
-        {
-            get
-            {
-                return securityContextTokenId;
-            }
-        }
+        public UniqueId SecurityContextTokenId { get; }
 
         private static bool ShouldExcludeMessage(Message message, string[] excludedActions)
         {
@@ -108,7 +101,7 @@ namespace CoreWCF.Security
             }
             for (int i = 0; i < contextIds.Count; ++i)
             {
-                if (contextIds[i] == securityContextTokenId)
+                if (contextIds[i] == SecurityContextTokenId)
                 {
                     message.Properties.Remove(SessionContextIdsProperty);
                     return true;

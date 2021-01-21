@@ -10,8 +10,6 @@ namespace CoreWCF.Security
 {
     public class SupportingTokenSpecification : SecurityTokenSpecification
     {
-        private readonly SecurityTokenParameters tokenParameters;
-
         public SupportingTokenSpecification(SecurityToken token, ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies, SecurityTokenAttachmentMode attachmentMode)
             : this(token, tokenPolicies, attachmentMode, null)
         { }
@@ -21,14 +19,11 @@ namespace CoreWCF.Security
         {
             SecurityTokenAttachmentModeHelper.Validate(attachmentMode);
             SecurityTokenAttachmentMode = attachmentMode;
-            this.tokenParameters = tokenParameters;
+            SecurityTokenParameters = tokenParameters;
         }
 
         public SecurityTokenAttachmentMode SecurityTokenAttachmentMode { get; }
 
-        internal SecurityTokenParameters SecurityTokenParameters
-        {
-            get { return tokenParameters; }
-        }
+        internal SecurityTokenParameters SecurityTokenParameters { get; }
     }
 }

@@ -9,8 +9,6 @@ namespace CoreWCF.Security
 {
     public class SecurityContextKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        private readonly UniqueId generation;
-
         public SecurityContextKeyIdentifierClause(UniqueId contextId)
             : this(contextId, null)
         {
@@ -29,25 +27,22 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
             }
             ContextId = contextId;
-            this.generation = generation;
+            Generation = generation;
         }
 
         public UniqueId ContextId { get; }
 
-        public UniqueId Generation
-        {
-            get { return generation; }
-        }
+        public UniqueId Generation { get; }
 
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             SecurityContextKeyIdentifierClause that = keyIdentifierClause as SecurityContextKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(ContextId, generation));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(ContextId, Generation));
         }
 
         public bool Matches(UniqueId contextId, UniqueId generation)
         {
-            return contextId == ContextId && generation == this.generation;
+            return contextId == ContextId && generation == Generation;
         }
 
         public override string ToString()

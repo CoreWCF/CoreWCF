@@ -775,36 +775,30 @@ namespace CoreWCF.Description
         #region InnerClasses
         private class EndpointInfo
         {
-            private readonly ServiceEndpoint endpoint;
-            private readonly EndpointDispatcher endpointDispatcher;
             private readonly EndpointFilterProvider provider;
 
             public EndpointInfo(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher, EndpointFilterProvider provider)
             {
-                this.endpoint = endpoint;
-                this.endpointDispatcher = endpointDispatcher;
+                Endpoint = endpoint;
+                EndpointDispatcher = endpointDispatcher;
                 this.provider = provider;
             }
-            public ServiceEndpoint Endpoint { get { return endpoint; } }
+            public ServiceEndpoint Endpoint { get; }
             public EndpointFilterProvider FilterProvider { get { return provider; } }
-            public EndpointDispatcher EndpointDispatcher { get { return endpointDispatcher; } }
+            public EndpointDispatcher EndpointDispatcher { get; }
         }
 
         internal class ListenUriInfo
         {
-            private readonly Uri listenUri;
             private readonly ListenUriMode listenUriMode;
 
             public ListenUriInfo(Uri listenUri, ListenUriMode listenUriMode)
             {
-                this.listenUri = listenUri;
+                ListenUri = listenUri;
                 this.listenUriMode = listenUriMode;
             }
 
-            public Uri ListenUri
-            {
-                get { return listenUri; }
-            }
+            public Uri ListenUri { get; }
 
             public ListenUriMode ListenUriMode
             {
@@ -830,12 +824,12 @@ namespace CoreWCF.Description
                 }
 
                 return (listenUriMode == other.listenUriMode)
-                    && EndpointAddress.UriEquals(listenUri, other.listenUri, true /* ignoreCase */, true /* includeHost */);
+                    && EndpointAddress.UriEquals(ListenUri, other.ListenUri, true /* ignoreCase */, true /* includeHost */);
             }
 
             public override int GetHashCode()
             {
-                return EndpointAddress.UriGetHashCode(listenUri, true /* includeHost */);
+                return EndpointAddress.UriGetHashCode(ListenUri, true /* includeHost */);
             }
         }
 

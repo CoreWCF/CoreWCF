@@ -49,7 +49,6 @@ namespace CoreWCF.Security
         private bool acceptNewWork;
         private Uri listenUri;
         private SecurityListenerSettingsLifetimeManager settingsLifetimeManager;
-        private Type acceptorChannelType;
 
         public SecuritySessionServerSettings()
         {
@@ -107,17 +106,7 @@ namespace CoreWCF.Security
         /// <summary>
         /// AcceptorChannelType will help determine if it's a duplex or simple reply channel
         /// </summary>
-        internal Type AcceptorChannelType
-        {
-            get
-            {
-                return acceptorChannelType;
-            }
-            set
-            {
-                acceptorChannelType = value;
-            }
-        }
+        internal Type AcceptorChannelType { get; set; }
 
         private Uri Uri
         {
@@ -795,7 +784,6 @@ namespace CoreWCF.Security
             private volatile IServiceChannelDispatcher sessionChannelDispatcher;
             private readonly MessageFilter messageFilter;
             private readonly EndpointAddress remoteAddress;
-            private readonly AsyncLock _asyncLock = new AsyncLock();
 
             public SessionInitiationMessageServiceDispatcher(/*IServerReliableChannelBinder channelBinder,*/ SecuritySessionServerSettings settings, SecurityContextSecurityToken sessionToken, MessageFilter filter, EndpointAddress address)
             {
@@ -811,7 +799,7 @@ namespace CoreWCF.Security
 
             public ServiceHostBase Host => throw new NotImplementedException();
 
-            public AsyncLock AsyncLock { get { return _asyncLock; } }
+            public AsyncLock AsyncLock { get; } = new AsyncLock();
 
             public IList<Type> SupportedChannelTypes => throw new NotImplementedException();
 

@@ -17,9 +17,7 @@ namespace CoreWCF.Channels
         private const int maxPooledXmlReaderPerMessage = 2;
         private readonly BinaryMessageEncoder messageEncoder;
         private readonly MessageVersion messageVersion;
-        private readonly int maxReadPoolSize;
         private readonly int maxWritePoolSize;
-        private readonly CompressionFormat compressionFormat;
 
         // Double-checked locking pattern requires volatile for read/write synchronization
         //volatile SynchronizedPool<XmlDictionaryWriter> streamedWriterPool;
@@ -27,10 +25,7 @@ namespace CoreWCF.Channels
         private volatile SynchronizedPool<BinaryBufferedMessageData> bufferedDataPool;
         private volatile SynchronizedPool<BinaryBufferedMessageWriter> bufferedWriterPool;
         private volatile SynchronizedPool<RecycledMessageState> recycledStatePool;
-        private readonly object thisLock;
-        private readonly int maxSessionSize;
         private readonly OnXmlDictionaryReaderClose onStreamedReaderClose;
-        private readonly XmlDictionaryReaderQuotas readerQuotas;
         private readonly XmlDictionaryReaderQuotas bufferedReadReaderQuotas;
         private readonly BinaryVersion binaryVersion;
 
@@ -38,22 +33,22 @@ namespace CoreWCF.Channels
             XmlDictionaryReaderQuotas readerQuotas, long maxReceivedMessageSize, BinaryVersion version, CompressionFormat compressionFormat)
         {
             this.messageVersion = messageVersion;
-            this.maxReadPoolSize = maxReadPoolSize;
+            MaxReadPoolSize = maxReadPoolSize;
             this.maxWritePoolSize = maxWritePoolSize;
-            this.maxSessionSize = maxSessionSize;
-            thisLock = new object();
+            MaxSessionSize = maxSessionSize;
+            ThisLock = new object();
             onStreamedReaderClose = new OnXmlDictionaryReaderClose(ReturnStreamedReader);
-            this.readerQuotas = new XmlDictionaryReaderQuotas();
+            ReaderQuotas = new XmlDictionaryReaderQuotas();
             if (readerQuotas != null)
             {
-                readerQuotas.CopyTo(this.readerQuotas);
+                readerQuotas.CopyTo(ReaderQuotas);
             }
 
-            bufferedReadReaderQuotas = EncoderHelpers.GetBufferedReadQuotas(this.readerQuotas);
+            bufferedReadReaderQuotas = EncoderHelpers.GetBufferedReadQuotas(ReaderQuotas);
             MaxReceivedMessageSize = maxReceivedMessageSize;
 
             binaryVersion = version;
-            this.compressionFormat = compressionFormat;
+            CompressionFormat = compressionFormat;
             messageEncoder = new BinaryMessageEncoder(this, false, 0);
         }
 
@@ -80,28 +75,13 @@ namespace CoreWCF.Channels
             get { return maxWritePoolSize; }
         }
 
-        public XmlDictionaryReaderQuotas ReaderQuotas
-        {
-            get
-            {
-                return readerQuotas;
-            }
-        }
+        public XmlDictionaryReaderQuotas ReaderQuotas { get; }
 
-        public int MaxReadPoolSize
-        {
-            get { return maxReadPoolSize; }
-        }
+        public int MaxReadPoolSize { get; }
 
-        public int MaxSessionSize
-        {
-            get { return maxSessionSize; }
-        }
+        public int MaxSessionSize { get; }
 
-        public CompressionFormat CompressionFormat
-        {
-            get { return compressionFormat; }
-        }
+        public CompressionFormat CompressionFormat { get; }
 
         private long MaxReceivedMessageSize
         {
@@ -109,10 +89,7 @@ namespace CoreWCF.Channels
             set;
         }
 
-        private object ThisLock
-        {
-            get { return thisLock; }
-        }
+        private object ThisLock { get; }
 
         private SynchronizedPool<RecycledMessageState> RecycledStatePool
         {
@@ -125,7 +102,7 @@ namespace CoreWCF.Channels
                         if (recycledStatePool == null)
                         {
                             //running = true;
-                            recycledStatePool = new SynchronizedPool<RecycledMessageState>(maxReadPoolSize);
+                            recycledStatePool = new SynchronizedPool<RecycledMessageState>(MaxReadPoolSize);
                         }
                     }
                 }
@@ -135,7 +112,7 @@ namespace CoreWCF.Channels
 
         public override MessageEncoder CreateSessionEncoder()
         {
-            return new BinaryMessageEncoder(this, true, maxSessionSize);
+            return new BinaryMessageEncoder(this, true, MaxSessionSize);
         }
 
         private XmlDictionaryWriter TakeStreamedWriter(Stream stream)
@@ -202,7 +179,7 @@ namespace CoreWCF.Channels
         {
             return XmlDictionaryReader.CreateBinaryReader(stream,
                 binaryVersion.Dictionary,
-                readerQuotas,
+                ReaderQuotas,
                 null);
             // TODO: Revert once IXmlBinaryReaderInitializer is available
             //if (streamedReaderPool == null)
@@ -256,7 +233,7 @@ namespace CoreWCF.Channels
                     if (bufferedDataPool == null)
                     {
                         //running = true;
-                        bufferedDataPool = new SynchronizedPool<BinaryBufferedMessageData>(maxReadPoolSize);
+                        bufferedDataPool = new SynchronizedPool<BinaryBufferedMessageData>(MaxReadPoolSize);
                     }
                 }
             }
@@ -297,7 +274,7 @@ namespace CoreWCF.Channels
 
             public override XmlDictionaryReaderQuotas Quotas
             {
-                get { return factory.readerQuotas; }
+                get { return factory.ReaderQuotas; }
             }
 
             public void SetMessageEncoder(BinaryMessageEncoder messageEncoder)
@@ -404,7 +381,6 @@ namespace CoreWCF.Channels
             private readonly bool isSession;
             private XmlBinaryWriterSessionWithQuota writerSession;
             private BinaryBufferedMessageWriter sessionMessageWriter;
-            private XmlBinaryReaderSession readerSession;
 
             //XmlBinaryReaderSession readerSessionForLogging;
             //bool readerSessionForLoggingIsInvalid = false;
@@ -465,10 +441,7 @@ namespace CoreWCF.Channels
                 get { return contentType; }
             }
 
-            public XmlBinaryReaderSession ReaderSession
-            {
-                get { return readerSession; }
-            }
+            public XmlBinaryReaderSession ReaderSession { get; private set; }
 
             public bool CompressionEnabled
             {
@@ -585,7 +558,7 @@ namespace CoreWCF.Channels
                             string value = Encoding.UTF8.GetString(buffer, offset, utf8ValueSize);
                             offset += utf8ValueSize;
                             size -= utf8ValueSize;
-                            readerSession.Add(idCounter, value);
+                            ReaderSession.Add(idCounter, value);
                             idCounter++;
                         }
                     }
@@ -618,10 +591,10 @@ namespace CoreWCF.Channels
 
                 if (isSession)
                 {
-                    if (readerSession == null)
+                    if (ReaderSession == null)
                     {
-                        readerSession = new XmlBinaryReaderSession();
-                        messagePatterns = new MessagePatterns(factory.binaryVersion.Dictionary, readerSession, MessageVersion);
+                        ReaderSession = new XmlBinaryReaderSession();
+                        messagePatterns = new MessagePatterns(factory.binaryVersion.Dictionary, ReaderSession, MessageVersion);
                     }
                     try
                     {
@@ -1725,7 +1698,6 @@ namespace CoreWCF.Channels
             private IBufferedMessageData messageDataAtBody;
             private MessageVersion messageVersion;
             private KeyValuePair<string, object>[] properties;
-            private readonly object thisLock = new object();
             private RecycledMessageState recycledMessageState;
 
             public PatternMessageBuffer(IBufferedMessageData messageDataAtBody, MessageVersion messageVersion,
@@ -1766,17 +1738,11 @@ namespace CoreWCF.Channels
                 }
             }
 
-            private object ThisLock
-            {
-                get
-                {
-                    return thisLock;
-                }
-            }
+            private object ThisLock { get; } = new object();
 
             public override void Close()
             {
-                lock (thisLock)
+                lock (ThisLock)
                 {
                     if (!closed)
                     {

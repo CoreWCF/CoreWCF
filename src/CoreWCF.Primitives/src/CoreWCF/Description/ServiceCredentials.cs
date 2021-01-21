@@ -12,12 +12,7 @@ namespace CoreWCF.Description
 {
     public class ServiceCredentials : SecurityCredentialsManager, IServiceBehavior
     {
-        private readonly UserNamePasswordServiceCredential userName;
-        private readonly X509CertificateInitiatorServiceCredential clientCertificate;
         private readonly X509CertificateRecipientServiceCredential serviceCertificate;
-        private readonly WindowsServiceCredential windows;
-        private readonly IssuedTokenServiceCredential issuedToken;
-        private readonly SecureConversationServiceCredential secureConversation;
         private readonly bool useIdentityConfiguration = false;
         private bool isReadOnly = false;
         private readonly bool saveBootstrapTokenInSession = true;
@@ -25,12 +20,12 @@ namespace CoreWCF.Description
 
         public ServiceCredentials()
         {
-            userName = new UserNamePasswordServiceCredential();
-            clientCertificate = new X509CertificateInitiatorServiceCredential();
+            UserNameAuthentication = new UserNamePasswordServiceCredential();
+            ClientCertificate = new X509CertificateInitiatorServiceCredential();
             serviceCertificate = new X509CertificateRecipientServiceCredential();
-            windows = new WindowsServiceCredential();
-            issuedToken = new IssuedTokenServiceCredential();
-            secureConversation = new SecureConversationServiceCredential();
+            WindowsAuthentication = new WindowsServiceCredential();
+            IssuedTokenAuthentication = new IssuedTokenServiceCredential();
+            SecureConversationAuthentication = new SecureConversationServiceCredential();
             exceptionMapper = new ExceptionMapper();
         }
 
@@ -40,31 +35,19 @@ namespace CoreWCF.Description
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
             }
-            userName = new UserNamePasswordServiceCredential(other.userName);
-            clientCertificate = new X509CertificateInitiatorServiceCredential(other.clientCertificate);
+            UserNameAuthentication = new UserNamePasswordServiceCredential(other.UserNameAuthentication);
+            ClientCertificate = new X509CertificateInitiatorServiceCredential(other.ClientCertificate);
             serviceCertificate = new X509CertificateRecipientServiceCredential(other.serviceCertificate);
-            windows = new WindowsServiceCredential(other.windows);
-            issuedToken = new IssuedTokenServiceCredential(other.issuedToken);
-            secureConversation = new SecureConversationServiceCredential(other.secureConversation);
+            WindowsAuthentication = new WindowsServiceCredential(other.WindowsAuthentication);
+            IssuedTokenAuthentication = new IssuedTokenServiceCredential(other.IssuedTokenAuthentication);
+            SecureConversationAuthentication = new SecureConversationServiceCredential(other.SecureConversationAuthentication);
             saveBootstrapTokenInSession = other.saveBootstrapTokenInSession;
             exceptionMapper = other.exceptionMapper;
         }
 
-        public UserNamePasswordServiceCredential UserNameAuthentication
-        {
-            get
-            {
-                return userName;
-            }
-        }
+        public UserNamePasswordServiceCredential UserNameAuthentication { get; }
 
-        public X509CertificateInitiatorServiceCredential ClientCertificate
-        {
-            get
-            {
-                return clientCertificate;
-            }
-        }
+        public X509CertificateInitiatorServiceCredential ClientCertificate { get; }
 
         public X509CertificateRecipientServiceCredential ServiceCertificate
         {
@@ -74,29 +57,11 @@ namespace CoreWCF.Description
             }
         }
 
-        public WindowsServiceCredential WindowsAuthentication
-        {
-            get
-            {
-                return windows;
-            }
-        }
+        public WindowsServiceCredential WindowsAuthentication { get; }
 
-        public IssuedTokenServiceCredential IssuedTokenAuthentication
-        {
-            get
-            {
-                return issuedToken;
-            }
-        }
+        public IssuedTokenServiceCredential IssuedTokenAuthentication { get; }
 
-        public SecureConversationServiceCredential SecureConversationAuthentication
-        {
-            get
-            {
-                return secureConversation;
-            }
-        }
+        public SecureConversationServiceCredential SecureConversationAuthentication { get; }
 
         /// <summary>
         /// Gets or sets the ExceptionMapper to be used when throwing exceptions.

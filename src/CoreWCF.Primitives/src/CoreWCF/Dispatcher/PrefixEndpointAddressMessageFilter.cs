@@ -9,7 +9,6 @@ namespace CoreWCF.Dispatcher
 {
     internal class PrefixEndpointAddressMessageFilter : MessageFilter
     {
-        private readonly EndpointAddress _address;
         private readonly EndpointAddressMessageFilterHelper _helper;
         private readonly UriPrefixTable<object> _addressTable;
         private readonly HostNameComparisonMode _hostNameComparisonMode;
@@ -26,21 +25,18 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
 
-            _address = address;
-            _helper = new EndpointAddressMessageFilterHelper(_address);
+            Address = address;
+            _helper = new EndpointAddressMessageFilterHelper(Address);
 
             _hostNameComparisonMode = includeHostNameInComparison
                 ? HostNameComparisonMode.Exact
                 : HostNameComparisonMode.StrongWildcard;
 
             _addressTable = new UriPrefixTable<object>();
-            _addressTable.RegisterUri(_address.Uri, _hostNameComparisonMode, new object());
+            _addressTable.RegisterUri(Address.Uri, _hostNameComparisonMode, new object());
         }
 
-        public EndpointAddress Address
-        {
-            get { return _address; }
-        }
+        public EndpointAddress Address { get; }
 
         public bool IncludeHostNameInComparison
         {

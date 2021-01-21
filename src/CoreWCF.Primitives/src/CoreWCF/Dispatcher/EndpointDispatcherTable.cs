@@ -10,13 +10,12 @@ namespace CoreWCF.Dispatcher
     internal class EndpointDispatcherTable
     {
         private MessageFilterTable<EndpointDispatcher> filters;
-        private readonly object thisLock;
         private const int optimizationThreshold = 2;
         private List<EndpointDispatcher> cachedEndpoints;
 
         public EndpointDispatcherTable(object thisLock)
         {
-            this.thisLock = thisLock;
+            ThisLock = thisLock;
         }
 
         public int Count
@@ -28,10 +27,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private object ThisLock
-        {
-            get { return thisLock; }
-        }
+        private object ThisLock { get; }
 
         public void AddEndpoint(EndpointDispatcher endpoint)
         {

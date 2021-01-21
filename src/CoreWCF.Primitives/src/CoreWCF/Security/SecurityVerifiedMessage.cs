@@ -26,14 +26,13 @@ namespace CoreWCF.Security
         private bool isDecryptedBodyFault;
         private bool isDecryptedBodyEmpty;
         private XmlDictionaryReader cachedReaderAtSecurityHeader;
-        private readonly ReceiveSecurityHeader securityHeader;
         private XmlBuffer messageBuffer;
         private bool canDelegateCreateBufferedCopyToInnerMessage;
 
         public SecurityVerifiedMessage(Message messageToProcess, ReceiveSecurityHeader securityHeader)
             : base(messageToProcess)
         {
-            this.securityHeader = securityHeader;
+            ReceivedSecurityHeader = securityHeader;
             if (securityHeader.RequireMessageProtection)
             {
                 XmlDictionaryReader messageReader;
@@ -45,7 +44,7 @@ namespace CoreWCF.Security
                 else
                 {
                     messageBuffer = new XmlBuffer(int.MaxValue);
-                    XmlDictionaryWriter writer = messageBuffer.OpenSection(this.securityHeader.ReaderQuotas);
+                    XmlDictionaryWriter writer = messageBuffer.OpenSection(ReceivedSecurityHeader.ReaderQuotas);
                     InnerMessage.WriteMessage(writer);
                     messageBuffer.CloseSection();
                     messageBuffer.Close();
@@ -102,9 +101,9 @@ namespace CoreWCF.Security
             }
         }
 
-        internal byte[] PrimarySignatureValue => securityHeader.PrimarySignatureValue;
+        internal byte[] PrimarySignatureValue => ReceivedSecurityHeader.PrimarySignatureValue;
 
-        internal ReceiveSecurityHeader ReceivedSecurityHeader => securityHeader;
+        internal ReceiveSecurityHeader ReceivedSecurityHeader { get; }
 
         private Exception CreateBadStateException(string operation)
         {
@@ -141,7 +140,7 @@ namespace CoreWCF.Security
 
         private XmlDictionaryReader CreateFullBodyReaderFromDecryptedState()
         {
-            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(decryptedBuffer, 0, decryptedBuffer.Length, securityHeader.ReaderQuotas);
+            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(decryptedBuffer, 0, decryptedBuffer.Length, ReceivedSecurityHeader.ReaderQuotas);
             MoveToBody(reader);
             return reader;
         }
@@ -201,7 +200,7 @@ namespace CoreWCF.Security
                 cachedReaderAtSecurityHeader = null;
                 return result;
             }
-            return Headers.GetReaderAtHeader(securityHeader.HeaderIndex);
+            return Headers.GetReaderAtHeader(ReceivedSecurityHeader.HeaderIndex);
         }
 
         private void MoveToBody(XmlDictionaryReader reader)

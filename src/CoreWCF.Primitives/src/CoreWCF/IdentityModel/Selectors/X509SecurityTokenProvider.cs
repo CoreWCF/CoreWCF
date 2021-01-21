@@ -10,8 +10,6 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     internal class X509SecurityTokenProvider : SecurityTokenProvider, IDisposable
     {
-        private readonly X509Certificate2 certificate;
-
         public X509SecurityTokenProvider(X509Certificate2 certificate)
         {
             if (certificate == null)
@@ -19,7 +17,7 @@ namespace CoreWCF.IdentityModel.Selectors
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
             }
 
-            this.certificate = new X509Certificate2(certificate);
+            Certificate = new X509Certificate2(certificate);
         }
 
         public X509SecurityTokenProvider(StoreLocation storeLocation, StoreName storeName, X509FindType findType, object findValue)
@@ -44,7 +42,7 @@ namespace CoreWCF.IdentityModel.Selectors
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.FoundMultipleCerts, storeName, storeLocation, findType, findValue)));
                 }
 
-                certificate = new X509Certificate2(certificates[0]);
+                Certificate = new X509Certificate2(certificates[0]);
             }
             finally
             {
@@ -53,19 +51,16 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        public X509Certificate2 Certificate
-        {
-            get { return certificate; }
-        }
+        public X509Certificate2 Certificate { get; }
 
         protected override SecurityToken GetTokenCore(TimeSpan timeout)
         {
-            return new X509SecurityToken(certificate);
+            return new X509SecurityToken(Certificate);
         }
 
         public void Dispose()
         {
-            SecurityUtils.ResetCertificate(certificate);
+            SecurityUtils.ResetCertificate(Certificate);
         }
     }
 

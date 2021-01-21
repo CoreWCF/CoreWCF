@@ -16,7 +16,6 @@ namespace CoreWCF.Dispatcher
         private Dictionary<Type, Type> filterTypeMappings;
         private Dictionary<MessageFilter, TFilterData> filters;
         private SortedBuffer<FilterTableEntry, TableEntryComparer> tables;
-        private int defaultPriority;
         private static readonly TableEntryComparer staticComparerInstance = new TableEntryComparer();
 
         public MessageFilterTable()
@@ -38,7 +37,7 @@ namespace CoreWCF.Dispatcher
         private void Init(int defaultPriority)
         {
             CreateEmptyTables();
-            this.defaultPriority = defaultPriority;
+            DefaultPriority = defaultPriority;
         }
 
         public TFilterData this[MessageFilter filter]
@@ -57,7 +56,7 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    Add(filter, value, defaultPriority);
+                    Add(filter, value, DefaultPriority);
                 }
             }
         }
@@ -71,17 +70,7 @@ namespace CoreWCF.Dispatcher
         }
 
         [DataMember]
-        public int DefaultPriority
-        {
-            get
-            {
-                return defaultPriority;
-            }
-            set
-            {
-                defaultPriority = value;
-            }
-        }
+        public int DefaultPriority { get; set; }
 
         [DataMember]
         private Entry[] Entries
@@ -132,7 +121,7 @@ namespace CoreWCF.Dispatcher
 
         public void Add(MessageFilter filter, TFilterData data)
         {
-            Add(filter, data, defaultPriority);
+            Add(filter, data, DefaultPriority);
         }
 
         public void Add(MessageFilter filter, TFilterData data, int priority)

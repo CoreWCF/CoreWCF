@@ -14,7 +14,6 @@ namespace CoreWCF
     public class ServiceSecurityContext
     {
         private static ServiceSecurityContext anonymous;
-        private ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
         private AuthorizationContext authorizationContext;
         private IIdentity primaryIdentity;
         private Claim identityClaim;
@@ -28,7 +27,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
             }
             authorizationContext = null;
-            this.authorizationPolicies = authorizationPolicies;
+            AuthorizationPolicies = authorizationPolicies;
         }
 
         public ServiceSecurityContext(AuthorizationContext authorizationContext)
@@ -47,7 +46,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
             }
             this.authorizationContext = authorizationContext;
-            this.authorizationPolicies = authorizationPolicies;
+            AuthorizationPolicies = authorizationPolicies;
         }
 
         public static ServiceSecurityContext Anonymous
@@ -159,17 +158,7 @@ namespace CoreWCF
             }
         }
 
-        internal ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies
-        {
-            get
-            {
-                return authorizationPolicies;
-            }
-            set
-            {
-                authorizationPolicies = value;
-            }
-        }
+        internal ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies { get; set; }
 
         public AuthorizationContext AuthorizationContext
         {
@@ -177,7 +166,7 @@ namespace CoreWCF
             {
                 if (authorizationContext == null)
                 {
-                    authorizationContext = AuthorizationContext.CreateDefaultAuthorizationContext(authorizationPolicies);
+                    authorizationContext = AuthorizationContext.CreateDefaultAuthorizationContext(AuthorizationPolicies);
                 }
                 return authorizationContext;
             }

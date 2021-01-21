@@ -14,7 +14,6 @@ namespace CoreWCF
 
     internal class ServiceChannelManager : LifetimeManager
     {
-        private int activityCount;
         private ICommunicationWaiter activityWaiter;
         private int activityWaiterCount;
         private readonly Action<InstanceContext> emptyCallback;
@@ -35,10 +34,7 @@ namespace CoreWCF
             this.emptyCallback = emptyCallback;
         }
 
-        public int ActivityCount
-        {
-            get { return activityCount; }
-        }
+        public int ActivityCount { get; private set; }
 
         public ICollection<IChannel> IncomingChannels
         {
@@ -155,7 +151,7 @@ namespace CoreWCF
 
             lock (ThisLock)
             {
-                if (activityCount > 0)
+                if (ActivityCount > 0)
                 {
                     activityWaiter = new AsyncCommunicationWaiter(ThisLock);
                     if (!(this.activityWaiter == null))
@@ -193,11 +189,11 @@ namespace CoreWCF
 
             lock (ThisLock)
             {
-                if (!(activityCount > 0))
+                if (!(ActivityCount > 0))
                 {
                     Fx.Assert("ServiceChannelManager.DecrementActivityCount: (this.activityCount > 0)");
                 }
-                if (--activityCount == 0)
+                if (--ActivityCount == 0)
                 {
                     if (this.activityWaiter != null)
                     {
@@ -253,7 +249,7 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().ToString()));
                 }
 
-                activityCount++;
+                ActivityCount++;
             }
         }
 

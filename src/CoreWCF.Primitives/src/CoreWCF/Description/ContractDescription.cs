@@ -9,14 +9,10 @@ namespace CoreWCF.Description
 {
     public class ContractDescription
     {
-        private Type _callbackContractType;
-        private string _configurationName;
-        private Type _contractType;
         private XmlName _name;
         private string _ns;
-        private readonly OperationDescriptionCollection _operations;
         private SessionMode _sessionMode;
-        private readonly KeyedByTypeCollection<IContractBehavior> _behaviors = new KeyedByTypeCollection<IContractBehavior>();
+
         //ProtectionLevel protectionLevel;
         //bool hasProtectionLevel;
 
@@ -35,27 +31,15 @@ namespace CoreWCF.Description
                 NamingHelper.CheckUriParameter(ns, "ns");
             }
 
-            _operations = new OperationDescriptionCollection();
+            Operations = new OperationDescriptionCollection();
             _ns = ns ?? NamingHelper.DefaultNamespace; // ns can be ""
         }
 
-        public string ConfigurationName
-        {
-            get { return _configurationName; }
-            set { _configurationName = value; }
-        }
+        public string ConfigurationName { get; set; }
 
-        public Type ContractType
-        {
-            get { return _contractType; }
-            set { _contractType = value; }
-        }
+        public Type ContractType { get; set; }
 
-        public Type CallbackContractType
-        {
-            get { return _callbackContractType; }
-            set { _callbackContractType = value; }
-        }
+        public Type CallbackContractType { get; set; }
 
         public string Name
         {
@@ -90,10 +74,7 @@ namespace CoreWCF.Description
             }
         }
 
-        public OperationDescriptionCollection Operations
-        {
-            get { return _operations; }
-        }
+        public OperationDescriptionCollection Operations { get; }
 
         internal bool HasProtectionLevel => false;
 
@@ -116,10 +97,7 @@ namespace CoreWCF.Description
             get { return Behaviors; }
         }
 
-        internal KeyedByTypeCollection<IContractBehavior> Behaviors
-        {
-            get { return _behaviors; }
-        }
+        internal KeyedByTypeCollection<IContractBehavior> Behaviors { get; } = new KeyedByTypeCollection<IContractBehavior>();
 
         public Collection<ContractDescription> GetInheritedContracts()
         {
@@ -211,9 +189,9 @@ namespace CoreWCF.Description
 
         internal bool IsDuplex()
         {
-            for (int i = 0; i < _operations.Count; ++i)
+            for (int i = 0; i < Operations.Count; ++i)
             {
-                if (_operations[i].IsServerInitiated())
+                if (Operations[i].IsServerInitiated())
                 {
                     return true;
                 }

@@ -18,32 +18,24 @@ namespace CoreWCF.Channels
     internal class LifetimeManager
     {
         private bool _aborted;
-        private int _busyCount;
         private ICommunicationWaiter _busyWaiter;
         private int _busyWaiterCount;
-        private readonly object _mutex;
         private LifetimeState _state;
 
         public LifetimeManager(object mutex)
         {
-            _mutex = mutex;
+            ThisLock = mutex;
             _state = LifetimeState.Opened;
         }
 
-        public int BusyCount
-        {
-            get { return _busyCount; }
-        }
+        public int BusyCount { get; private set; }
 
         protected LifetimeState State
         {
             get { return _state; }
         }
 
-        protected object ThisLock
-        {
-            get { return _mutex; }
-        }
+        protected object ThisLock { get; }
 
         public void Abort()
         {
@@ -102,7 +94,7 @@ namespace CoreWCF.Channels
 
             lock (ThisLock)
             {
-                if (_busyCount > 0)
+                if (BusyCount > 0)
                 {
                     if (_busyWaiter != null)
                     {
@@ -142,7 +134,7 @@ namespace CoreWCF.Channels
 
             lock (ThisLock)
             {
-                if (_busyCount > 0)
+                if (BusyCount > 0)
                 {
                     if (_busyWaiter != null)
                     {
@@ -177,11 +169,11 @@ namespace CoreWCF.Channels
 
             lock (ThisLock)
             {
-                if (_busyCount <= 0)
+                if (BusyCount <= 0)
                 {
                     throw Fx.AssertAndThrow("LifetimeManager.DecrementBusyCount: (this.busyCount > 0)");
                 }
-                if (--_busyCount == 0)
+                if (--BusyCount == 0)
                 {
                     if (_busyWaiter != null)
                     {
@@ -213,14 +205,14 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 Fx.Assert(State == LifetimeState.Opened, "LifetimeManager.IncrementBusyCount: (this.State == LifetimeState.Opened)");
-                _busyCount++;
+                BusyCount++;
             }
         }
 
         protected virtual void IncrementBusyCountWithoutLock()
         {
             Fx.Assert(State == LifetimeState.Opened, "LifetimeManager.IncrementBusyCountWithoutLock: (this.State == LifetimeState.Opened)");
-            _busyCount++;
+            BusyCount++;
         }
 
         protected virtual void OnAbort()
@@ -252,21 +244,17 @@ namespace CoreWCF.Channels
     internal class AsyncCommunicationWaiter : ICommunicationWaiter
     {
         private bool _closed;
-        private readonly object _mutex;
         private CommunicationWaitResult _result;
 
         private TaskCompletionSource<bool> _tcs;
 
         internal AsyncCommunicationWaiter(object mutex)
         {
-            _mutex = mutex;
+            ThisLock = mutex;
             _tcs = new TaskCompletionSource<bool>();
         }
 
-        private object ThisLock
-        {
-            get { return _mutex; }
-        }
+        private object ThisLock { get; }
 
         public void Dispose()
         {

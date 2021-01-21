@@ -7,11 +7,7 @@ namespace CoreWCF.Description
 {
     public class FaultDescription
     {
-        private string _action;
-        private Type _detailType;
-        private XmlName _elementName;
         private XmlName _name;
-        private string _ns;
 
         public FaultDescription(string action)
         {
@@ -20,22 +16,14 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
             }
 
-            _action = action;
+            Action = action;
         }
 
-        public string Action
-        {
-            get { return _action; }
-            internal set { _action = value; }
-        }
+        public string Action { get; internal set; }
 
         // Not serializable on purpose, metadata import/export cannot
         // produce it, only available when binding to runtime
-        public Type DetailType
-        {
-            get { return _detailType; }
-            set { _detailType = value; }
-        }
+        public Type DetailType { get; set; }
 
         public string Name
         {
@@ -43,23 +31,15 @@ namespace CoreWCF.Description
             set { SetNameAndElement(new XmlName(value, true /*isEncoded*/)); }
         }
 
-        public string Namespace
-        {
-            get { return _ns; }
-            set { _ns = value; }
-        }
+        public string Namespace { get; set; }
 
-        internal XmlName ElementName
-        {
-            get { return _elementName; }
-            set { _elementName = value; }
-        }
+        internal XmlName ElementName { get; set; }
 
         internal bool HasProtectionLevel => false;
 
         internal void SetNameAndElement(XmlName name)
         {
-            _elementName = _name = name;
+            ElementName = _name = name;
         }
 
         internal void SetNameOnly(XmlName name)

@@ -8,16 +8,11 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = false, AllowMultiple = false)]
     public sealed class XmlSerializerFormatAttribute : Attribute
     {
-        private bool supportFaults = false;
         private OperationFormatStyle style;
         private bool isStyleSet;
         private OperationFormatUse use;
 
-        public bool SupportFaults
-        {
-            get { return supportFaults; }
-            set { supportFaults = value; }
-        }
+        public bool SupportFaults { get; set; } = false;
 
         public OperationFormatStyle Style
         {

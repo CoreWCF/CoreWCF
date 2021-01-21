@@ -8,18 +8,13 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchOperation
     {
-        private readonly string action;
         private readonly SynchronizedCollection<FaultContractInfo> faultContractInfos;
-        private IDispatchMessageFormatter formatter;
         private IDispatchFaultFormatter faultFormatter;
         private ImpersonationOption impersonation;
-        private IOperationInvoker invoker;
         private bool isTerminating;
         private bool isSessionOpenNotificationEnabled;
-        private readonly string name;
         private bool releaseInstanceAfterCall;
         private bool releaseInstanceBeforeCall;
-        private readonly string replyAction;
         private bool deserializeRequest = true;
         private bool serializeReply = true;
         private bool autoDisposeParameters = true;
@@ -27,8 +22,8 @@ namespace CoreWCF.Dispatcher
         public DispatchOperation(DispatchRuntime parent, string name, string action)
         {
             Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            this.name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
-            this.action = action;
+            Name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            Action = action;
             impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
             // Not necessary for basic functionality
             CallContextInitializers = parent.NewBehaviorCollection<ICallContextInitializer>();
@@ -39,14 +34,11 @@ namespace CoreWCF.Dispatcher
 
         internal DispatchOperation(DispatchRuntime parent, string name, string action, string replyAction) : this(parent, name, action)
         {
-            this.replyAction = replyAction;
+            ReplyAction = replyAction;
             IsOneWay = false;
         }
 
-        public string Action
-        {
-            get { return action; }
-        }
+        public string Action { get; }
 
         internal SynchronizedCollection<ICallContextInitializer> CallContextInitializers { get; }
 
@@ -57,13 +49,13 @@ namespace CoreWCF.Dispatcher
 
         internal IDispatchMessageFormatter Formatter
         {
-            get { return formatter; }
+            get { return InternalFormatter; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    formatter = value;
+                    InternalFormatter = value;
                 }
             }
         }
@@ -135,27 +127,19 @@ namespace CoreWCF.Dispatcher
 
         internal bool HasNoDisposableParameters { get; set; }
 
-        internal IDispatchMessageFormatter InternalFormatter
-        {
-            get { return formatter; }
-            set { formatter = value; }
-        }
+        internal IDispatchMessageFormatter InternalFormatter { get; set; }
 
-        internal IOperationInvoker InternalInvoker
-        {
-            get { return invoker; }
-            set { invoker = value; }
-        }
+        internal IOperationInvoker InternalInvoker { get; set; }
 
         public IOperationInvoker Invoker
         {
-            get { return invoker; }
+            get { return InternalInvoker; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    invoker = value;
+                    InternalInvoker = value;
                 }
             }
         }
@@ -186,10 +170,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public string Name
-        {
-            get { return name; }
-        }
+        public string Name { get; }
 
         public ICollection<IParameterInspector> ParameterInspectors { get; }
 
@@ -223,10 +204,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public string ReplyAction
-        {
-            get { return replyAction; }
-        }
+        public string ReplyAction { get; }
 
         public bool SerializeReply
         {

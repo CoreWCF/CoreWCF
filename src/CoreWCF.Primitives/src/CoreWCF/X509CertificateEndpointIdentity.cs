@@ -10,8 +10,6 @@ namespace CoreWCF
 {
     public class X509CertificateEndpointIdentity : EndpointIdentity
     {
-        private readonly X509Certificate2Collection certificateCollection = new X509Certificate2Collection();
-
         public X509CertificateEndpointIdentity(X509Certificate2 certificate)
         {
             if (certificate == null)
@@ -21,7 +19,7 @@ namespace CoreWCF
 
             base.Initialize(new Claim(ClaimTypes.Thumbprint, certificate.GetCertHash(), Rights.PossessProperty));
 
-            certificateCollection.Add(certificate);
+            Certificates.Add(certificate);
         }
 
         public X509CertificateEndpointIdentity(X509Certificate2 primaryCertificate, X509Certificate2Collection supportingCertificates)
@@ -38,11 +36,11 @@ namespace CoreWCF
 
             base.Initialize(new Claim(ClaimTypes.Thumbprint, primaryCertificate.GetCertHash(), Rights.PossessProperty));
 
-            certificateCollection.Add(primaryCertificate);
+            Certificates.Add(primaryCertificate);
 
             for (int i = 0; i < supportingCertificates.Count; ++i)
             {
-                certificateCollection.Add(supportingCertificates[i]);
+                Certificates.Add(supportingCertificates[i]);
             }
         }
 
@@ -63,28 +61,25 @@ namespace CoreWCF
             while (reader.IsStartElement(XD.XmlSignatureDictionary.X509Certificate, XD.XmlSignatureDictionary.Namespace))
             {
                 X509Certificate2 certificate = new X509Certificate2(Convert.FromBase64String(reader.ReadElementString()));
-                if (certificateCollection.Count == 0)
+                if (Certificates.Count == 0)
                 {
                     // This is the first certificate. We assume this as the primary 
                     // certificate and initialize the base class.
                     base.Initialize(new Claim(ClaimTypes.Thumbprint, certificate.GetCertHash(), Rights.PossessProperty));
                 }
 
-                certificateCollection.Add(certificate);
+                Certificates.Add(certificate);
             }
 
             reader.ReadEndElement();
 
-            if (certificateCollection.Count == 0)
+            if (Certificates.Count == 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.UnexpectedEmptyElementExpectingClaim, XD.AddressingDictionary.X509v3Certificate.Value, XD.AddressingDictionary.IdentityExtensionNamespace.Value)));
             }
         }
 
-        public X509Certificate2Collection Certificates
-        {
-            get { return certificateCollection; }
-        }
+        public X509Certificate2Collection Certificates { get; } = new X509Certificate2Collection();
 
         internal override void WriteContentsTo(XmlDictionaryWriter writer)
         {
@@ -95,9 +90,9 @@ namespace CoreWCF
 
             writer.WriteStartElement(XD.XmlSignatureDictionary.Prefix.Value, XD.XmlSignatureDictionary.KeyInfo, XD.XmlSignatureDictionary.Namespace);
             writer.WriteStartElement(XD.XmlSignatureDictionary.Prefix.Value, XD.XmlSignatureDictionary.X509Data, XD.XmlSignatureDictionary.Namespace);
-            for (int i = 0; i < certificateCollection.Count; ++i)
+            for (int i = 0; i < Certificates.Count; ++i)
             {
-                writer.WriteElementString(XD.XmlSignatureDictionary.X509Certificate, XD.XmlSignatureDictionary.Namespace, Convert.ToBase64String(certificateCollection[i].RawData));
+                writer.WriteElementString(XD.XmlSignatureDictionary.X509Certificate, XD.XmlSignatureDictionary.Namespace, Convert.ToBase64String(Certificates[i].RawData));
             }
             writer.WriteEndElement();
             writer.WriteEndElement();

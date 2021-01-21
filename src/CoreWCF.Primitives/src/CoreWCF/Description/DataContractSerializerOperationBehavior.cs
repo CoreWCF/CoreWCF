@@ -12,19 +12,12 @@ namespace CoreWCF.Description
 {
     public class DataContractSerializerOperationBehavior : IOperationBehavior //, IWsdlExportExtension
     {
-        private readonly bool builtInOperationBehavior;
         private readonly OperationDescription operation;
-        private readonly DataContractFormatAttribute dataContractFormatAttribute;
         internal bool ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
-        private bool ignoreExtensionDataObjectSetExplicit;
         internal int maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
-        private bool maxItemsInObjectGraphSetExplicit;
         private DataContractResolver dataContractResolver;
 
-        public DataContractFormatAttribute DataContractFormatAttribute
-        {
-            get { return dataContractFormatAttribute; }
-        }
+        public DataContractFormatAttribute DataContractFormatAttribute { get; }
 
         public DataContractSerializerOperationBehavior(OperationDescription operation)
             : this(operation, null)
@@ -33,7 +26,7 @@ namespace CoreWCF.Description
 
         public DataContractSerializerOperationBehavior(OperationDescription operation, DataContractFormatAttribute dataContractFormatAttribute)
         {
-            this.dataContractFormatAttribute = dataContractFormatAttribute ?? new DataContractFormatAttribute();
+            DataContractFormatAttribute = dataContractFormatAttribute ?? new DataContractFormatAttribute();
             this.operation = operation;
         }
 
@@ -41,13 +34,10 @@ namespace CoreWCF.Description
             DataContractFormatAttribute dataContractFormatAttribute, bool builtInOperationBehavior)
             : this(operation, dataContractFormatAttribute)
         {
-            this.builtInOperationBehavior = builtInOperationBehavior;
+            IsBuiltInOperationBehavior = builtInOperationBehavior;
         }
 
-        internal bool IsBuiltInOperationBehavior
-        {
-            get { return builtInOperationBehavior; }
-        }
+        internal bool IsBuiltInOperationBehavior { get; }
 
         public int MaxItemsInObjectGraph
         {
@@ -55,15 +45,11 @@ namespace CoreWCF.Description
             set
             {
                 maxItemsInObjectGraph = value;
-                maxItemsInObjectGraphSetExplicit = true;
+                MaxItemsInObjectGraphSetExplicit = true;
             }
         }
 
-        internal bool MaxItemsInObjectGraphSetExplicit
-        {
-            get { return maxItemsInObjectGraphSetExplicit; }
-            set { maxItemsInObjectGraphSetExplicit = value; }
-        }
+        internal bool MaxItemsInObjectGraphSetExplicit { get; set; }
 
         public bool IgnoreExtensionDataObject
         {
@@ -71,15 +57,11 @@ namespace CoreWCF.Description
             set
             {
                 ignoreExtensionDataObject = value;
-                ignoreExtensionDataObjectSetExplicit = true;
+                IgnoreExtensionDataObjectSetExplicit = true;
             }
         }
 
-        internal bool IgnoreExtensionDataObjectSetExplicit
-        {
-            get { return ignoreExtensionDataObjectSetExplicit; }
-            set { ignoreExtensionDataObjectSetExplicit = value; }
-        }
+        internal bool IgnoreExtensionDataObjectSetExplicit { get; set; }
 
         public DataContractResolver DataContractResolver
         {
@@ -113,11 +95,11 @@ namespace CoreWCF.Description
             {
                 if (PrimitiveOperationFormatter.IsContractSupported(operation))
                 {
-                    return new PrimitiveOperationFormatter(operation, dataContractFormatAttribute.Style == OperationFormatStyle.Rpc);
+                    return new PrimitiveOperationFormatter(operation, DataContractFormatAttribute.Style == OperationFormatStyle.Rpc);
                 }
                 else
                 {
-                    return new DataContractSerializerOperationFormatter(operation, dataContractFormatAttribute, this);
+                    return new DataContractSerializerOperationFormatter(operation, DataContractFormatAttribute, this);
                 }
             }
 

@@ -7,7 +7,6 @@ namespace CoreWCF.Dispatcher
 {
     internal class AndMessageFilter : MessageFilter
     {
-        private readonly MessageFilter filter1;
         private readonly MessageFilter filter2;
 
         public AndMessageFilter(MessageFilter filter1, MessageFilter filter2)
@@ -22,17 +21,11 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter2));
             }
 
-            this.filter1 = filter1;
+            Filter1 = filter1;
             this.filter2 = filter2;
         }
 
-        public MessageFilter Filter1
-        {
-            get
-            {
-                return filter1;
-            }
-        }
+        public MessageFilter Filter1 { get; }
 
         public MessageFilter Filter2
         {
@@ -54,7 +47,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
-            return filter1.Match(message) && filter2.Match(message);
+            return Filter1.Match(message) && filter2.Match(message);
         }
 
         internal bool Match(Message message, out bool addressMatched)
@@ -64,7 +57,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
-            if (filter1.Match(message))
+            if (Filter1.Match(message))
             {
                 addressMatched = true;
                 return filter2.Match(message);
@@ -83,7 +76,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
-            return filter1.Match(messageBuffer) && filter2.Match(messageBuffer);
+            return Filter1.Match(messageBuffer) && filter2.Match(messageBuffer);
         }
     }
 

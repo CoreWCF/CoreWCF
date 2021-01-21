@@ -10,7 +10,6 @@ namespace CoreWCF.Description
     internal sealed class MessagePropertyAttribute : Attribute
     {
         private string _name;
-        private bool _isNameSetExplicit;
 
         public MessagePropertyAttribute()
         {
@@ -24,16 +23,10 @@ namespace CoreWCF.Description
             }
             set
             {
-                _isNameSetExplicit = true;
+                IsNameSetExplicit = true;
                 _name = value;
             }
         }
-        internal bool IsNameSetExplicit
-        {
-            get
-            {
-                return _isNameSetExplicit;
-            }
-        }
+        internal bool IsNameSetExplicit { get; private set; }
     }
 }

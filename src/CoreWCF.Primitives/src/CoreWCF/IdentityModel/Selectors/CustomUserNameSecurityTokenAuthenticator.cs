@@ -32,8 +32,6 @@ namespace CoreWCF.IdentityModel.Selectors
 
         private class UserNameClaimSet : DefaultClaimSet, IIdentityInfo
         {
-            private readonly IIdentity identity;
-
             public UserNameClaimSet(string userName, string authType)
             {
                 if (userName == null)
@@ -41,7 +39,7 @@ namespace CoreWCF.IdentityModel.Selectors
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(userName));
                 }
 
-                identity = SecurityUtils.CreateIdentity(userName, authType);
+                Identity = SecurityUtils.CreateIdentity(userName, authType);
 
                 List<Claim> claims = new List<Claim>(2);
                 claims.Add(new Claim(ClaimTypes.Name, userName, Rights.Identity));
@@ -49,10 +47,7 @@ namespace CoreWCF.IdentityModel.Selectors
                 Initialize(ClaimSet.System, claims);
             }
 
-            public IIdentity Identity
-            {
-                get { return identity; }
-            }
+            public IIdentity Identity { get; }
         }
     }
 }

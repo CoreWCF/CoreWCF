@@ -111,13 +111,11 @@ namespace CoreWCF.Security
 
         private class SecurityVersion10 : SecurityVersion
         {
-            private static readonly SecurityVersion10 instance = new SecurityVersion10();
-
             protected SecurityVersion10() : base(XD.SecurityJan2004Dictionary.Security, XD.SecurityJan2004Dictionary.Namespace, XD.SecurityJan2004Dictionary.Prefix)
             {
             }
 
-            public static SecurityVersion10 Instance => instance;
+            public static SecurityVersion10 Instance { get; } = new SecurityVersion10();
 
             internal override SendSecurityHeader CreateSendSecurityHeader(Message message,
                 string actor, bool mustUnderstand, bool relay,
@@ -154,14 +152,12 @@ namespace CoreWCF.Security
 
         private sealed class SecurityVersion11 : SecurityVersion10
         {
-            private static readonly SecurityVersion11 instance = new SecurityVersion11();
-
             private SecurityVersion11()
                 : base()
             {
             }
 
-            public new static SecurityVersion11 Instance => instance;
+            public new static SecurityVersion11 Instance { get; } = new SecurityVersion11();
 
             internal bool SupportsSignatureConfirmation => true;
 

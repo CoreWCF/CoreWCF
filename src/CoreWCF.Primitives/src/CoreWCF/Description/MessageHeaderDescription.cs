@@ -7,10 +7,7 @@ namespace CoreWCF.Description
 {
     public class MessageHeaderDescription : MessagePartDescription
     {
-        private bool mustUnderstand;
         private bool relay;
-        private string actor;
-        private bool typedHeader;
         private bool isUnknownHeader;
 
         public MessageHeaderDescription(string name, string ns)
@@ -34,17 +31,9 @@ namespace CoreWCF.Description
             return new MessageHeaderDescription(this);
         }
 
-        public string Actor
-        {
-            get { return actor; }
-            set { actor = value; }
-        }
+        public string Actor { get; set; }
 
-        public bool MustUnderstand
-        {
-            get { return mustUnderstand; }
-            set { mustUnderstand = value; }
-        }
+        public bool MustUnderstand { get; set; }
 
         public bool Relay
         {
@@ -52,11 +41,7 @@ namespace CoreWCF.Description
             set { relay = value; }
         }
 
-        public bool TypedHeader
-        {
-            get { return typedHeader; }
-            set { typedHeader = value; }
-        }
+        public bool TypedHeader { get; set; }
 
         internal bool IsUnknownHeaderCollection
         {

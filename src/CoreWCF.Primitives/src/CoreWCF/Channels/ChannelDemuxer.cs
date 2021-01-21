@@ -18,12 +18,11 @@ namespace CoreWCF.Channels
         private TypedChannelDemuxer replyDemuxer;
         private readonly Dictionary<Type, TypedChannelDemuxer> typeDemuxers;
         private TimeSpan peekTimeout;
-        private int maxPendingSessions;
 
         public ChannelDemuxer()
         {
             peekTimeout = ChannelDemuxer.UseDefaultReceiveTimeout; //use the default receive timeout (original behavior)
-            maxPendingSessions = 10;
+            MaxPendingSessions = 10;
             typeDemuxers = new Dictionary<Type, TypedChannelDemuxer>();
         }
 
@@ -39,17 +38,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public int MaxPendingSessions
-        {
-            get
-            {
-                return maxPendingSessions;
-            }
-            set
-            {
-                maxPendingSessions = value;
-            }
-        }
+        public int MaxPendingSessions { get; set; }
 
         internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
         {
@@ -170,8 +159,6 @@ namespace CoreWCF.Channels
         where TInnerItem : class, IDisposable
     {
         private readonly MessageFilterTable<IServiceDispatcher> filterTable;
-        private readonly TInnerChannel innerChannel;
-        private readonly IServiceDispatcher innerDispatcher;
         private readonly IChannelDemuxFailureHandler demuxFailureHandler;
         // since the OnOuterListenerOpen method will be called for every outer listener and we will open
         // the inner listener only once, we need to ensure that all the outer listeners wait till the 
@@ -187,15 +174,9 @@ namespace CoreWCF.Channels
             demuxFailureHandler = demuxFailureHandlerPassed;
         }
 
-        protected TInnerChannel InnerChannel
-        {
-            get { return innerChannel; }
-        }
+        protected TInnerChannel InnerChannel { get; }
 
-        protected IServiceDispatcher InnerDispatcher
-        {
-            get { return innerDispatcher; }
-        }
+        protected IServiceDispatcher InnerDispatcher { get; }
 
         protected object ThisLock
         {
@@ -564,19 +545,15 @@ namespace CoreWCF.Channels
 
     internal class ChannelDemuxerFilter
     {
-        private readonly MessageFilter filter;
         private readonly int priority;
 
         public ChannelDemuxerFilter(MessageFilter filter, int priority)
         {
-            this.filter = filter;
+            Filter = filter;
             this.priority = priority;
         }
 
-        public MessageFilter Filter
-        {
-            get { return filter; }
-        }
+        public MessageFilter Filter { get; }
 
         public int Priority
         {

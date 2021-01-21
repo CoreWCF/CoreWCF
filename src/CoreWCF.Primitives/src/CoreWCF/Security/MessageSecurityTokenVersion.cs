@@ -9,22 +9,9 @@ namespace CoreWCF.Security
 {
     internal sealed class MessageSecurityTokenVersion : SecurityTokenVersion
     {
-        private readonly SecurityVersion securityVersion;
-        private readonly TrustVersion trustVersion;
-        private readonly SecureConversationVersion secureConversationVersion;
-        private readonly bool emitBspRequiredAttributes;
         private readonly string toString;
         private readonly ReadOnlyCollection<string> supportedSpecs;
         private const string bsp10ns = @"http://ws-i.org/profiles/basic-security/core/1.0";
-        private static readonly MessageSecurityTokenVersion wss11 = new MessageSecurityTokenVersion(
-            SecurityVersion.WSSecurity11,
-            TrustVersion.WSTrustFeb2005,
-            SecureConversationVersion.WSSecureConversationFeb2005,
-            "WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005",
-            false,
-            XD.SecurityXXX2005Dictionary.Namespace.Value,
-            XD.TrustFeb2005Dictionary.Namespace.Value,
-            XD.SecureConversationFeb2005Dictionary.Namespace.Value);
         private static readonly MessageSecurityTokenVersion wss10bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity10,
             TrustVersion.WSTrustFeb2005,
@@ -76,13 +63,15 @@ namespace CoreWCF.Security
             DXD.SecureConversationDec2005Dictionary.Namespace.Value
             );
 
-        public static MessageSecurityTokenVersion WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005
-        {
-            get
-            {
-                return wss11;
-            }
-        }
+        public static MessageSecurityTokenVersion WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005 { get; } = new MessageSecurityTokenVersion(
+            SecurityVersion.WSSecurity11,
+            TrustVersion.WSTrustFeb2005,
+            SecureConversationVersion.WSSecureConversationFeb2005,
+            "WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005",
+            false,
+            XD.SecurityXXX2005Dictionary.Namespace.Value,
+            XD.TrustFeb2005Dictionary.Namespace.Value,
+            XD.SecureConversationFeb2005Dictionary.Namespace.Value);
 
         public static MessageSecurityTokenVersion WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10
         {
@@ -157,45 +146,21 @@ namespace CoreWCF.Security
         private MessageSecurityTokenVersion(SecurityVersion securityVersion, TrustVersion trustVersion, SecureConversationVersion secureConversationVersion, string toString, bool emitBspRequiredAttributes, params string[] supportedSpecs)
             : base()
         {
-            this.emitBspRequiredAttributes = emitBspRequiredAttributes;
+            EmitBspRequiredAttributes = emitBspRequiredAttributes;
             this.supportedSpecs = new ReadOnlyCollection<string>(supportedSpecs);
             this.toString = toString;
-            this.securityVersion = securityVersion;
-            this.trustVersion = trustVersion;
-            this.secureConversationVersion = secureConversationVersion;
+            SecurityVersion = securityVersion;
+            TrustVersion = trustVersion;
+            SecureConversationVersion = secureConversationVersion;
         }
 
-        public bool EmitBspRequiredAttributes
-        {
-            get
-            {
-                return emitBspRequiredAttributes;
-            }
-        }
+        public bool EmitBspRequiredAttributes { get; }
 
-        public SecurityVersion SecurityVersion
-        {
-            get
-            {
-                return securityVersion;
-            }
-        }
+        public SecurityVersion SecurityVersion { get; }
 
-        public TrustVersion TrustVersion
-        {
-            get
-            {
-                return trustVersion;
-            }
-        }
+        public TrustVersion TrustVersion { get; }
 
-        public SecureConversationVersion SecureConversationVersion
-        {
-            get
-            {
-                return secureConversationVersion;
-            }
-        }
+        public SecureConversationVersion SecureConversationVersion { get; }
 
         public override ReadOnlyCollection<string> GetSecuritySpecifications()
         {

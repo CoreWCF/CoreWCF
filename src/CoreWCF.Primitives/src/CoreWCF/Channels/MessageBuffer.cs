@@ -187,7 +187,6 @@ namespace CoreWCF.Channels
         private IBufferedMessageData messageData;
         private readonly KeyValuePair<string, object>[] properties;
         private bool closed;
-        private readonly object thisLock = new object();
         private readonly bool[] understoodHeaders;
         private readonly bool understoodHeadersModified;
 
@@ -252,10 +251,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        private object ThisLock
-        {
-            get { return thisLock; }
-        }
+        private object ThisLock { get; } = new object();
 
         public override void Close()
         {
@@ -295,18 +291,14 @@ namespace CoreWCF.Channels
 
     internal class BodyWriterMessageBuffer : MessageBuffer
     {
-        private BodyWriter bodyWriter;
-        private KeyValuePair<string, object>[] properties;
-        private MessageHeaders headers;
-        private bool closed;
         private readonly object thisLock = new object();
 
         public BodyWriterMessageBuffer(MessageHeaders headers,
             KeyValuePair<string, object>[] properties, BodyWriter bodyWriter)
         {
-            this.bodyWriter = bodyWriter;
-            this.headers = new MessageHeaders(headers);
-            this.properties = properties;
+            BodyWriter = bodyWriter;
+            Headers = new MessageHeaders(headers);
+            Properties = properties;
         }
 
         protected object ThisLock
@@ -323,12 +315,12 @@ namespace CoreWCF.Channels
         {
             lock (ThisLock)
             {
-                if (!closed)
+                if (!Closed)
                 {
-                    closed = true;
-                    bodyWriter = null;
-                    headers = null;
-                    properties = null;
+                    Closed = true;
+                    BodyWriter = null;
+                    Headers = null;
+                    Properties = null;
                 }
             }
         }
@@ -337,34 +329,22 @@ namespace CoreWCF.Channels
         {
             lock (ThisLock)
             {
-                if (closed)
+                if (Closed)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
                 }
 
-                return new BodyWriterMessage(headers, properties, bodyWriter);
+                return new BodyWriterMessage(Headers, Properties, BodyWriter);
             }
         }
 
-        protected BodyWriter BodyWriter
-        {
-            get { return bodyWriter; }
-        }
+        protected BodyWriter BodyWriter { get; private set; }
 
-        protected MessageHeaders Headers
-        {
-            get { return headers; }
-        }
+        protected MessageHeaders Headers { get; private set; }
 
-        protected KeyValuePair<string, object>[] Properties
-        {
-            get { return properties; }
-        }
+        protected KeyValuePair<string, object>[] Properties { get; private set; }
 
-        protected bool Closed
-        {
-            get { return closed; }
-        }
+        protected bool Closed { get; private set; }
     }
 
 }

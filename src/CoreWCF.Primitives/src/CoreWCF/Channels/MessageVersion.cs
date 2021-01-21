@@ -9,22 +9,19 @@ namespace CoreWCF.Channels
 {
     public sealed class MessageVersion
     {
-        private readonly EnvelopeVersion envelope;
         private readonly AddressingVersion addressing;
-        private static readonly MessageVersion none;
-        private static readonly MessageVersion soap11;
         private static readonly MessageVersion soap12Addressing10;
 
         static MessageVersion()
         {
-            none = new MessageVersion(EnvelopeVersion.None, AddressingVersion.None);
-            soap11 = new MessageVersion(EnvelopeVersion.Soap11, AddressingVersion.None);
+            None = new MessageVersion(EnvelopeVersion.None, AddressingVersion.None);
+            Soap11 = new MessageVersion(EnvelopeVersion.Soap11, AddressingVersion.None);
             soap12Addressing10 = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.WSAddressing10);
         }
 
         private MessageVersion(EnvelopeVersion envelopeVersion, AddressingVersion addressingVersion)
         {
-            envelope = envelopeVersion;
+            Envelope = envelopeVersion;
             addressing = addressingVersion;
         }
 
@@ -61,7 +58,7 @@ namespace CoreWCF.Channels
             {
                 if (addressingVersion == AddressingVersion.None)
                 {
-                    return soap11;
+                    return Soap11;
                 }
                 else
                 {
@@ -73,7 +70,7 @@ namespace CoreWCF.Channels
             {
                 if (addressingVersion == AddressingVersion.None)
                 {
-                    return none;
+                    return None;
                 }
                 else
                 {
@@ -98,10 +95,7 @@ namespace CoreWCF.Channels
             get { return soap12Addressing10; }
         }
 
-        public EnvelopeVersion Envelope
-        {
-            get { return envelope; }
-        }
+        public EnvelopeVersion Envelope { get; }
 
         public override bool Equals(object obj)
         {
@@ -119,24 +113,18 @@ namespace CoreWCF.Channels
             return code;
         }
 
-        public static MessageVersion None
-        {
-            get { return none; }
-        }
+        public static MessageVersion None { get; private set; }
 
         public static MessageVersion Soap12WSAddressing10
         {
             get { return soap12Addressing10; }
         }
 
-        public static MessageVersion Soap11
-        {
-            get { return soap11; }
-        }
+        public static MessageVersion Soap11 { get; private set; }
 
         public override string ToString()
         {
-            return SR.Format(SR.MessageVersionToStringFormat, envelope.ToString(), addressing.ToString());
+            return SR.Format(SR.MessageVersionToStringFormat, Envelope.ToString(), addressing.ToString());
         }
 
         internal bool IsMatch(MessageVersion messageVersion)
@@ -152,7 +140,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "MessageVersion.Addressing cannot be null")));
             }
 
-            if (envelope != messageVersion.Envelope)
+            if (Envelope != messageVersion.Envelope)
             {
                 return false;
             }

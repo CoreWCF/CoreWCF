@@ -10,8 +10,6 @@ namespace CoreWCF
 {
     public class FaultReason
     {
-        private ReadOnlyCollection<FaultReasonText> _translations;
-
         public FaultReason(FaultReasonText translation)
         {
             if (translation == null)
@@ -75,7 +73,7 @@ namespace CoreWCF
 
         private void Init(FaultReasonText[] translations)
         {
-            _translations = new ReadOnlyCollection<FaultReasonText>(translations);
+            Translations = new ReadOnlyCollection<FaultReasonText>(translations);
         }
 
         public FaultReasonText GetMatchingTranslation()
@@ -91,23 +89,23 @@ namespace CoreWCF
             }
 
             // If there's only one translation, use it
-            if (_translations.Count == 1)
+            if (Translations.Count == 1)
             {
-                return _translations[0];
+                return Translations[0];
             }
 
             // Search for an exact match
-            for (int i = 0; i < _translations.Count; i++)
+            for (int i = 0; i < Translations.Count; i++)
             {
-                if (_translations[i].Matches(cultureInfo))
+                if (Translations[i].Matches(cultureInfo))
                 {
-                    return _translations[i];
+                    return Translations[i];
                 }
             }
 
             // If no exact match is found, proceed by looking for the a translation with a language that is a parent of the current culture
 
-            if (_translations.Count == 0)
+            if (Translations.Count == 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     new ArgumentException(SR.NoMatchingTranslationFoundForFaultText));
@@ -128,28 +126,25 @@ namespace CoreWCF
                 // Clip off the last subtag and look for a match
                 localLang = localLang.Substring(0, idx);
 
-                for (int i = 0; i < _translations.Count; i++)
+                for (int i = 0; i < Translations.Count; i++)
                 {
-                    if (_translations[i].XmlLang == localLang)
+                    if (Translations[i].XmlLang == localLang)
                     {
-                        return _translations[i];
+                        return Translations[i];
                     }
                 }
             }
 
             // Return the first translation if no match is found
-            return _translations[0];
+            return Translations[0];
         }
 
         // public on full framework, but exposes a SynchronizedReadOnlyCollection
-        internal ReadOnlyCollection<FaultReasonText> Translations
-        {
-            get { return _translations; }
-        }
+        internal ReadOnlyCollection<FaultReasonText> Translations { get; private set; }
 
         public override string ToString()
         {
-            if (_translations.Count == 0)
+            if (Translations.Count == 0)
             {
                 return string.Empty;
             }

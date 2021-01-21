@@ -18,9 +18,7 @@ namespace CoreWCF.Channels
         private Message requestMessage;
         private Exception requestMessageException;
         private bool replySent;
-        private bool replyInitiated;
         private bool aborted;
-        private readonly object thisLock = new object();
 
         protected RequestContextBase(Message requestMessage, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
         {
@@ -34,7 +32,7 @@ namespace CoreWCF.Channels
             state = CommunicationState.Opened;
             requestMessageException = null;
             replySent = false;
-            replyInitiated = false;
+            ReplyInitiated = false;
             aborted = false;
             this.requestMessage = requestMessage;
         }
@@ -64,18 +62,9 @@ namespace CoreWCF.Channels
             this.requestMessageException = requestMessageException;
         }
 
-        protected bool ReplyInitiated
-        {
-            get { return replyInitiated; }
-        }
+        protected bool ReplyInitiated { get; private set; }
 
-        protected object ThisLock
-        {
-            get
-            {
-                return thisLock;
-            }
-        }
+        protected object ThisLock { get; } = new object();
 
         public bool Aborted
         {
@@ -208,7 +197,7 @@ namespace CoreWCF.Channels
                 }
             }
 
-            if (replyInitiated)
+            if (ReplyInitiated)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ReplyAlreadySent));
             }
@@ -220,15 +209,15 @@ namespace CoreWCF.Channels
         /// </summary>
         protected bool TryInitiateReply()
         {
-            lock (thisLock)
+            lock (ThisLock)
             {
-                if ((state != CommunicationState.Opened) || replyInitiated)
+                if ((state != CommunicationState.Opened) || ReplyInitiated)
                 {
                     return false;
                 }
                 else
                 {
-                    replyInitiated = true;
+                    ReplyInitiated = true;
                     return true;
                 }
             }
@@ -243,10 +232,10 @@ namespace CoreWCF.Channels
         public override async Task ReplyAsync(Message message, CancellationToken token)
         {
             // "null" is a valid reply (signals a 202-style "ack"), so we don't have a null-check here
-            lock (thisLock)
+            lock (ThisLock)
             {
                 ThrowIfInvalidReply();
-                replyInitiated = true;
+                ReplyInitiated = true;
             }
 
             await OnReplyAsync(message, token);
@@ -260,10 +249,10 @@ namespace CoreWCF.Channels
         // are disposing the HttpRequestContext, we will see a bunch of warnings in trace log.
         protected void SetReplySent()
         {
-            lock (thisLock)
+            lock (ThisLock)
             {
                 ThrowIfInvalidReply();
-                replyInitiated = true;
+                ReplyInitiated = true;
             }
 
             replySent = true;

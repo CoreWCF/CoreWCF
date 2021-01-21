@@ -11,27 +11,21 @@ namespace CoreWCF
     //[Serializable]
     internal class MustUnderstandSoapException : CommunicationException
     {
-        // for serialization
-        //public MustUnderstandSoapException() { }
-        //protected MustUnderstandSoapException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-
-
-        private readonly Collection<MessageHeaderInfo> notUnderstoodHeaders;
         private readonly EnvelopeVersion envelopeVersion;
 
         public MustUnderstandSoapException(Collection<MessageHeaderInfo> notUnderstoodHeaders, EnvelopeVersion envelopeVersion)
         {
-            this.notUnderstoodHeaders = notUnderstoodHeaders;
+            NotUnderstoodHeaders = notUnderstoodHeaders;
             this.envelopeVersion = envelopeVersion;
         }
 
-        public Collection<MessageHeaderInfo> NotUnderstoodHeaders { get { return notUnderstoodHeaders; } }
+        public Collection<MessageHeaderInfo> NotUnderstoodHeaders { get; }
         public EnvelopeVersion EnvelopeVersion { get { return envelopeVersion; } }
 
         internal Message ProvideFault(MessageVersion messageVersion)
         {
-            string name = notUnderstoodHeaders[0].Name;
-            string ns = notUnderstoodHeaders[0].Namespace;
+            string name = NotUnderstoodHeaders[0].Name;
+            string ns = NotUnderstoodHeaders[0].Namespace;
             FaultCode code = new FaultCode(MessageStrings.MustUnderstandFault, envelopeVersion.Namespace);
             FaultReason reason = new FaultReason(SR.Format(SR.SFxHeaderNotUnderstood, name, ns), CultureInfo.CurrentCulture);
             MessageFault fault = MessageFault.CreateFault(code, reason);
@@ -46,9 +40,9 @@ namespace CoreWCF
 
         private void AddNotUnderstoodHeaders(MessageHeaders headers)
         {
-            for (int i = 0; i < notUnderstoodHeaders.Count; ++i)
+            for (int i = 0; i < NotUnderstoodHeaders.Count; ++i)
             {
-                headers.Add(new NotUnderstoodHeader(notUnderstoodHeaders[i].Name, notUnderstoodHeaders[i].Namespace));
+                headers.Add(new NotUnderstoodHeader(NotUnderstoodHeaders[i].Name, NotUnderstoodHeaders[i].Namespace));
             }
         }
 

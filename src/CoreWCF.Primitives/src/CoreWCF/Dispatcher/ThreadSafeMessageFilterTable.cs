@@ -10,31 +10,27 @@ namespace CoreWCF.Dispatcher
     internal class ThreadSafeMessageFilterTable<FilterData> : IMessageFilterTable<FilterData>
     {
         private readonly MessageFilterTable<FilterData> table;
-        private readonly object syncRoot;
 
         internal ThreadSafeMessageFilterTable()
         {
             table = new MessageFilterTable<FilterData>();
-            syncRoot = new object();
+            SyncRoot = new object();
         }
 
-        internal object SyncRoot
-        {
-            get { return syncRoot; }
-        }
+        internal object SyncRoot { get; }
 
         public int DefaultPriority
         {
             get
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
                     return table.DefaultPriority;
                 }
             }
             set
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
                     table.DefaultPriority = value;
                 }
@@ -43,7 +39,7 @@ namespace CoreWCF.Dispatcher
 
         internal void Add(MessageFilter filter, FilterData data, int priority)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 table.Add(filter, data, priority);
             }
@@ -57,7 +53,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
                     return table.Count;
                 }
@@ -66,7 +62,7 @@ namespace CoreWCF.Dispatcher
 
         public void Clear()
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 table.Clear();
             }
@@ -74,7 +70,7 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingValue(Message message, out FilterData data)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.GetMatchingValue(message, out data);
             }
@@ -82,7 +78,7 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingValue(MessageBuffer buffer, out FilterData data)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.GetMatchingValue(buffer, out data);
             }
@@ -90,7 +86,7 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingValues(Message message, ICollection<FilterData> results)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.GetMatchingValues(message, results);
             }
@@ -98,7 +94,7 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingValues(MessageBuffer buffer, ICollection<FilterData> results)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.GetMatchingValues(buffer, results);
             }
@@ -106,7 +102,7 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingFilter(Message message, out MessageFilter filter)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.GetMatchingFilter(message, out filter);
             }
@@ -114,7 +110,7 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingFilter(MessageBuffer buffer, out MessageFilter filter)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.GetMatchingFilter(buffer, out filter);
             }
@@ -122,7 +118,7 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingFilters(Message message, ICollection<MessageFilter> results)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.GetMatchingFilters(message, results);
             }
@@ -130,7 +126,7 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingFilters(MessageBuffer buffer, ICollection<MessageFilter> results)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.GetMatchingFilters(buffer, results);
             }
@@ -144,14 +140,14 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
                     return table[key];
                 }
             }
             set
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
                     table[key] = value;
                 }
@@ -162,7 +158,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
                     return table.Keys;
                 }
@@ -173,7 +169,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
                     return table.Values;
                 }
@@ -182,7 +178,7 @@ namespace CoreWCF.Dispatcher
 
         public bool ContainsKey(MessageFilter key)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.ContainsKey(key);
             }
@@ -190,7 +186,7 @@ namespace CoreWCF.Dispatcher
 
         public void Add(MessageFilter key, FilterData value)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 table.Add(key, value);
             }
@@ -198,7 +194,7 @@ namespace CoreWCF.Dispatcher
 
         public bool Remove(MessageFilter key)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.Remove(key);
             }
@@ -212,7 +208,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
                     return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).IsReadOnly;
                 }
@@ -221,7 +217,7 @@ namespace CoreWCF.Dispatcher
 
         void ICollection<KeyValuePair<MessageFilter, FilterData>>.Add(KeyValuePair<MessageFilter, FilterData> item)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).Add(item);
             }
@@ -229,7 +225,7 @@ namespace CoreWCF.Dispatcher
 
         bool ICollection<KeyValuePair<MessageFilter, FilterData>>.Contains(KeyValuePair<MessageFilter, FilterData> item)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).Contains(item);
             }
@@ -237,7 +233,7 @@ namespace CoreWCF.Dispatcher
 
         void ICollection<KeyValuePair<MessageFilter, FilterData>>.CopyTo(KeyValuePair<MessageFilter, FilterData>[] array, int arrayIndex)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).CopyTo(array, arrayIndex);
             }
@@ -245,7 +241,7 @@ namespace CoreWCF.Dispatcher
 
         bool ICollection<KeyValuePair<MessageFilter, FilterData>>.Remove(KeyValuePair<MessageFilter, FilterData> item)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).Remove(item);
             }
@@ -253,7 +249,7 @@ namespace CoreWCF.Dispatcher
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return ((IEnumerable<KeyValuePair<MessageFilter, FilterData>>)this).GetEnumerator();
             }
@@ -261,7 +257,7 @@ namespace CoreWCF.Dispatcher
 
         IEnumerator<KeyValuePair<MessageFilter, FilterData>> IEnumerable<KeyValuePair<MessageFilter, FilterData>>.GetEnumerator()
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).GetEnumerator();
             }
@@ -269,7 +265,7 @@ namespace CoreWCF.Dispatcher
 
         public bool TryGetValue(MessageFilter filter, out FilterData data)
         {
-            lock (syncRoot)
+            lock (SyncRoot)
             {
                 return table.TryGetValue(filter, out data);
             }

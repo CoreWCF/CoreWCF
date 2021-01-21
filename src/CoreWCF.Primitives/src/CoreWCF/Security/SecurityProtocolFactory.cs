@@ -74,16 +74,10 @@ namespace CoreWCF.Security
         internal static readonly TimeSpan defaultTimestampValidityDuration = TimeSpan.Parse(defaultTimestampValidityDurationString, CultureInfo.InvariantCulture);
         internal const SecurityHeaderLayout defaultSecurityHeaderLayout = SecurityHeaderLayout.Strict;
         private static ReadOnlyCollection<SupportingTokenAuthenticatorSpecification> emptyTokenAuthenticators;
-        private readonly bool actAsInitiator;
-        private bool isDuplexReply;
         private bool addTimestamp = defaultAddTimestamp;
         private bool detectReplays = defaultDetectReplays;
-        private bool expectIncomingMessages;
         private bool expectOutgoingMessages;
         private SecurityAlgorithmSuite incomingAlgorithmSuite = SecurityAlgorithmSuite.Default;
-        // per receiver protocol factory lists
-        private ICollection<SupportingTokenAuthenticatorSpecification> channelSupportingTokenAuthenticatorSpecification;
-        private readonly Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>> scopedSupportingTokenAuthenticatorSpecification;
         private Dictionary<string, MergedSupportingTokenAuthenticatorSpecification> mergedSupportingTokenAuthenticatorsMap;
         private int maxCachedNonces = defaultMaxCachedNonces;
         private TimeSpan maxClockSkew = defaultMaxClockSkew;
@@ -94,34 +88,25 @@ namespace CoreWCF.Security
         private SecurityTokenManager securityTokenManager;
         private SecurityBindingElement securityBindingElement;
         private string requestReplyErrorPropertyName;
-        private readonly NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken> derivedKeyTokenAuthenticator;
         private TimeSpan timestampValidityDuration = defaultTimestampValidityDuration;
 
         // AuditLogLocation auditLogLocation;
         private readonly bool suppressAuditFailure;
         private SecurityHeaderLayout securityHeaderLayout;
-
-        // AuditLevel serviceAuthorizationAuditLevel;
-        // AuditLevel messageAuthenticationAuditLevel;
-        private bool expectKeyDerivation;
         private bool expectChannelBasicTokens;
         private bool expectChannelSignedTokens;
         private bool expectChannelEndorsingTokens;
-        private bool expectSupportingTokens;
         private Uri listenUri;
-        private MessageSecurityVersion messageSecurityVersion;
-        private readonly WrapperSecurityCommunicationObject communicationObject;
         private Uri privacyNoticeUri;
         private int privacyNoticeVersion;
         private IMessageFilterTable<EndpointAddress> endpointFilterTable;
-        private ExtendedProtectionPolicy extendedProtectionPolicy;
         private BufferManager streamBufferManager = null;
 
         protected SecurityProtocolFactory()
         {
-            channelSupportingTokenAuthenticatorSpecification = new Collection<SupportingTokenAuthenticatorSpecification>();
-            scopedSupportingTokenAuthenticatorSpecification = new Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>>();
-            communicationObject = new WrapperSecurityCommunicationObject(this);
+            ChannelSupportingTokenAuthenticatorSpecification = new Collection<SupportingTokenAuthenticatorSpecification>();
+            ScopedSupportingTokenAuthenticatorSpecification = new Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>>();
+            CommunicationObject = new WrapperSecurityCommunicationObject(this);
         }
 
         internal SecurityProtocolFactory(SecurityProtocolFactory factory) : this()
@@ -131,7 +116,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(factory));
             }
 
-            actAsInitiator = factory.actAsInitiator;
+            ActAsInitiator = factory.ActAsInitiator;
             addTimestamp = factory.addTimestamp;
             detectReplays = factory.detectReplays;
             incomingAlgorithmSuite = factory.incomingAlgorithmSuite;
@@ -139,8 +124,8 @@ namespace CoreWCF.Security
             maxClockSkew = factory.maxClockSkew;
             outgoingAlgorithmSuite = factory.outgoingAlgorithmSuite;
             replayWindow = factory.replayWindow;
-            channelSupportingTokenAuthenticatorSpecification = new Collection<SupportingTokenAuthenticatorSpecification>(new List<SupportingTokenAuthenticatorSpecification>(factory.channelSupportingTokenAuthenticatorSpecification));
-            scopedSupportingTokenAuthenticatorSpecification = new Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>>(factory.scopedSupportingTokenAuthenticatorSpecification);
+            ChannelSupportingTokenAuthenticatorSpecification = new Collection<SupportingTokenAuthenticatorSpecification>(new List<SupportingTokenAuthenticatorSpecification>(factory.ChannelSupportingTokenAuthenticatorSpecification));
+            ScopedSupportingTokenAuthenticatorSpecification = new Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>>(factory.ScopedSupportingTokenAuthenticatorSpecification);
             standardsManager = factory.standardsManager;
             timestampValidityDuration = factory.timestampValidityDuration;
             // this.auditLogLocation = factory.auditLogLocation;
@@ -155,18 +140,18 @@ namespace CoreWCF.Security
             privacyNoticeUri = factory.privacyNoticeUri;
             privacyNoticeVersion = factory.privacyNoticeVersion;
             endpointFilterTable = factory.endpointFilterTable;
-            extendedProtectionPolicy = factory.extendedProtectionPolicy;
+            ExtendedProtectionPolicy = factory.ExtendedProtectionPolicy;
             nonceCache = factory.nonceCache;
         }
 
-        internal WrapperSecurityCommunicationObject CommunicationObject => communicationObject;
+        internal WrapperSecurityCommunicationObject CommunicationObject { get; }
 
         // The ActAsInitiator value is set automatically on Open and
         // remains unchanged thereafter.  ActAsInitiator is true for
         // the initiator of the message exchange, such as the sender
         // of a datagram, sender of a request and sender of either leg
         // of a duplex exchange.
-        public bool ActAsInitiator => actAsInitiator;
+        public bool ActAsInitiator { get; }
 
         public BufferManager StreamBufferManager
         {
@@ -185,23 +170,9 @@ namespace CoreWCF.Security
             }
         }
 
-        public ExtendedProtectionPolicy ExtendedProtectionPolicy
-        {
-            get { return extendedProtectionPolicy; }
-            set { extendedProtectionPolicy = value; }
-        }
+        public ExtendedProtectionPolicy ExtendedProtectionPolicy { get; set; }
 
-        internal bool IsDuplexReply
-        {
-            get
-            {
-                return isDuplexReply;
-            }
-            set
-            {
-                isDuplexReply = value;
-            }
-        }
+        internal bool IsDuplexReply { get; set; }
 
         public bool AddTimestamp
         {
@@ -335,23 +306,15 @@ namespace CoreWCF.Security
             }
         }
 
-        internal NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken> DerivedKeyTokenAuthenticator => derivedKeyTokenAuthenticator;
+        internal NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken> DerivedKeyTokenAuthenticator { get; }
 
-        internal bool ExpectIncomingMessages => expectIncomingMessages;
+        internal bool ExpectIncomingMessages { get; private set; }
 
         internal bool ExpectOutgoingMessages => expectOutgoingMessages;
 
-        internal bool ExpectKeyDerivation
-        {
-            get { return expectKeyDerivation; }
-            set { expectKeyDerivation = value; }
-        }
+        internal bool ExpectKeyDerivation { get; set; }
 
-        internal bool ExpectSupportingTokens
-        {
-            get { return expectSupportingTokens; }
-            set { expectSupportingTokens = value; }
-        }
+        internal bool ExpectSupportingTokens { get; set; }
 
         public SecurityAlgorithmSuite IncomingAlgorithmSuite
         {
@@ -451,9 +414,9 @@ namespace CoreWCF.Security
             }
         }
 
-        public ICollection<SupportingTokenAuthenticatorSpecification> ChannelSupportingTokenAuthenticatorSpecification => channelSupportingTokenAuthenticatorSpecification;
+        public ICollection<SupportingTokenAuthenticatorSpecification> ChannelSupportingTokenAuthenticatorSpecification { get; private set; }
 
-        public Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>> ScopedSupportingTokenAuthenticatorSpecification => scopedSupportingTokenAuthenticatorSpecification;
+        public Dictionary<string, ICollection<SupportingTokenAuthenticatorSpecification>> ScopedSupportingTokenAuthenticatorSpecification { get; }
 
         public SecurityBindingElement SecurityBindingElement
         {
@@ -542,7 +505,7 @@ namespace CoreWCF.Security
             }
         }
 
-        internal MessageSecurityVersion MessageSecurityVersion => messageSecurityVersion;
+        internal MessageSecurityVersion MessageSecurityVersion { get; private set; }
 
         public TimeSpan DefaultOpenTimeout => ServiceDefaults.OpenTimeout;
 
@@ -550,15 +513,15 @@ namespace CoreWCF.Security
 
         public virtual void OnAbort()
         {
-            if (!actAsInitiator)
+            if (!ActAsInitiator)
             {
-                foreach (SupportingTokenAuthenticatorSpecification spec in channelSupportingTokenAuthenticatorSpecification)
+                foreach (SupportingTokenAuthenticatorSpecification spec in ChannelSupportingTokenAuthenticatorSpecification)
                 {
                     SecurityUtils.AbortTokenAuthenticatorIfRequired(spec.TokenAuthenticator);
                 }
-                foreach (string action in scopedSupportingTokenAuthenticatorSpecification.Keys)
+                foreach (string action in ScopedSupportingTokenAuthenticatorSpecification.Keys)
                 {
-                    ICollection<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = scopedSupportingTokenAuthenticatorSpecification[action];
+                    ICollection<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = ScopedSupportingTokenAuthenticatorSpecification[action];
                     foreach (SupportingTokenAuthenticatorSpecification spec in supportingAuthenticators)
                     {
                         SecurityUtils.AbortTokenAuthenticatorIfRequired(spec.TokenAuthenticator);
@@ -570,15 +533,15 @@ namespace CoreWCF.Security
         public virtual void OnClose(TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            if (!actAsInitiator)
+            if (!ActAsInitiator)
             {
-                foreach (SupportingTokenAuthenticatorSpecification spec in channelSupportingTokenAuthenticatorSpecification)
+                foreach (SupportingTokenAuthenticatorSpecification spec in ChannelSupportingTokenAuthenticatorSpecification)
                 {
                     SecurityUtils.CloseTokenAuthenticatorIfRequiredAsync(spec.TokenAuthenticator, timeoutHelper.GetCancellationToken());
                 }
-                foreach (string action in scopedSupportingTokenAuthenticatorSpecification.Keys)
+                foreach (string action in ScopedSupportingTokenAuthenticatorSpecification.Keys)
                 {
-                    ICollection<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = scopedSupportingTokenAuthenticatorSpecification[action];
+                    ICollection<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = ScopedSupportingTokenAuthenticatorSpecification[action];
                     foreach (SupportingTokenAuthenticatorSpecification spec in supportingAuthenticators)
                     {
                         SecurityUtils.CloseTokenAuthenticatorIfRequiredAsync(spec.TokenAuthenticator, timeoutHelper.GetCancellationToken());
@@ -614,9 +577,9 @@ namespace CoreWCF.Security
             {
                 ThrowIfNotOpen();
                 Collection<ISecurityContextSecurityTokenCache> result = new Collection<ISecurityContextSecurityTokenCache>();
-                if (channelSupportingTokenAuthenticatorSpecification != null)
+                if (ChannelSupportingTokenAuthenticatorSpecification != null)
                 {
-                    foreach (SupportingTokenAuthenticatorSpecification spec in channelSupportingTokenAuthenticatorSpecification)
+                    foreach (SupportingTokenAuthenticatorSpecification spec in ChannelSupportingTokenAuthenticatorSpecification)
                     {
                         if (spec.TokenAuthenticator is ISecurityContextSecurityTokenCacheProvider)
                         {
@@ -685,23 +648,23 @@ namespace CoreWCF.Security
             expectBasicTokens = expectChannelBasicTokens;
             expectEndorsingTokens = expectChannelEndorsingTokens;
             // in case the channelSupportingTokenAuthenticators is empty return null so that its Count does not get accessed.
-            return (Object.ReferenceEquals(channelSupportingTokenAuthenticatorSpecification, EmptyTokenAuthenticators)) ? null : (IList<SupportingTokenAuthenticatorSpecification>)channelSupportingTokenAuthenticatorSpecification;
+            return (Object.ReferenceEquals(ChannelSupportingTokenAuthenticatorSpecification, EmptyTokenAuthenticators)) ? null : (IList<SupportingTokenAuthenticatorSpecification>)ChannelSupportingTokenAuthenticatorSpecification;
         }
 
         private void MergeSupportingTokenAuthenticators(TimeSpan timeout)
         {
-            if (scopedSupportingTokenAuthenticatorSpecification.Count == 0)
+            if (ScopedSupportingTokenAuthenticatorSpecification.Count == 0)
             {
                 mergedSupportingTokenAuthenticatorsMap = null;
             }
             else
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-                expectSupportingTokens = true;
+                ExpectSupportingTokens = true;
                 mergedSupportingTokenAuthenticatorsMap = new Dictionary<string, MergedSupportingTokenAuthenticatorSpecification>();
-                foreach (string action in scopedSupportingTokenAuthenticatorSpecification.Keys)
+                foreach (string action in ScopedSupportingTokenAuthenticatorSpecification.Keys)
                 {
-                    ICollection<SupportingTokenAuthenticatorSpecification> scopedAuthenticators = scopedSupportingTokenAuthenticatorSpecification[action];
+                    ICollection<SupportingTokenAuthenticatorSpecification> scopedAuthenticators = ScopedSupportingTokenAuthenticatorSpecification[action];
                     if (scopedAuthenticators == null || scopedAuthenticators.Count == 0)
                     {
                         continue;
@@ -710,7 +673,7 @@ namespace CoreWCF.Security
                     bool expectSignedTokens = expectChannelSignedTokens;
                     bool expectBasicTokens = expectChannelBasicTokens;
                     bool expectEndorsingTokens = expectChannelEndorsingTokens;
-                    foreach (SupportingTokenAuthenticatorSpecification spec in channelSupportingTokenAuthenticatorSpecification)
+                    foreach (SupportingTokenAuthenticatorSpecification spec in ChannelSupportingTokenAuthenticatorSpecification)
                     {
                         mergedAuthenticators.Add(spec);
                     }
@@ -724,7 +687,7 @@ namespace CoreWCF.Security
                         {
                             if (spec.TokenParameters.RequireDerivedKeys && !spec.TokenParameters.HasAsymmetricKey)
                             {
-                                expectKeyDerivation = true;
+                                ExpectKeyDerivation = true;
                             }
                         }
                         SecurityTokenAttachmentMode mode = spec.SecurityTokenAttachmentMode;
@@ -764,7 +727,7 @@ namespace CoreWCF.Security
             // requirement.AuditLogLocation = this.auditLogLocation;
             // requirement.SuppressAuditFailure = this.suppressAuditFailure;
             // requirement.MessageAuthenticationAuditLevel = this.messageAuthenticationAuditLevel;
-            requirement.Properties[ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy] = extendedProtectionPolicy;
+            requirement.Properties[ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy] = ExtendedProtectionPolicy;
             if (endpointFilterTable != null)
             {
                 requirement.Properties.Add(ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty, endpointFilterTable);
@@ -779,7 +742,7 @@ namespace CoreWCF.Security
             requirement.KeyUsage = SecurityKeyUsage.Signature;
             requirement.Properties[ServiceModelSecurityTokenRequirement.MessageDirectionProperty] = MessageDirection.Input;
             requirement.Properties[ServiceModelSecurityTokenRequirement.SupportingTokenAttachmentModeProperty] = attachmentMode;
-            requirement.Properties[ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy] = extendedProtectionPolicy;
+            requirement.Properties[ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy] = ExtendedProtectionPolicy;
             return requirement;
         }
 
@@ -857,7 +820,7 @@ namespace CoreWCF.Security
 
         public Task OpenAsync(TimeSpan timeout)
         {
-            return communicationObject.OpenAsync();
+            return CommunicationObject.OpenAsync();
         }
 
         public virtual Task OnOpenAsync(TimeSpan timeout)
@@ -870,45 +833,45 @@ namespace CoreWCF.Security
             {
                 OnPropertySettingsError("SecurityTokenManager", true);
             }
-            messageSecurityVersion = standardsManager.MessageSecurityVersion;
+            MessageSecurityVersion = standardsManager.MessageSecurityVersion;
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             expectOutgoingMessages = ActAsInitiator || SupportsRequestReply;
-            expectIncomingMessages = !ActAsInitiator || SupportsRequestReply;
-            if (!actAsInitiator)
+            ExpectIncomingMessages = !ActAsInitiator || SupportsRequestReply;
+            if (!ActAsInitiator)
             {
-                AddSupportingTokenAuthenticators(securityBindingElement.EndpointSupportingTokenParameters, false, (IList<SupportingTokenAuthenticatorSpecification>)channelSupportingTokenAuthenticatorSpecification);
-                AddSupportingTokenAuthenticators(securityBindingElement.OptionalEndpointSupportingTokenParameters, true, (IList<SupportingTokenAuthenticatorSpecification>)channelSupportingTokenAuthenticatorSpecification);
+                AddSupportingTokenAuthenticators(securityBindingElement.EndpointSupportingTokenParameters, false, (IList<SupportingTokenAuthenticatorSpecification>)ChannelSupportingTokenAuthenticatorSpecification);
+                AddSupportingTokenAuthenticators(securityBindingElement.OptionalEndpointSupportingTokenParameters, true, (IList<SupportingTokenAuthenticatorSpecification>)ChannelSupportingTokenAuthenticatorSpecification);
                 foreach (string action in securityBindingElement.OperationSupportingTokenParameters.Keys)
                 {
                     Collection<SupportingTokenAuthenticatorSpecification> authenticatorSpecList = new Collection<SupportingTokenAuthenticatorSpecification>();
                     AddSupportingTokenAuthenticators(securityBindingElement.OperationSupportingTokenParameters[action], false, authenticatorSpecList);
-                    scopedSupportingTokenAuthenticatorSpecification.Add(action, authenticatorSpecList);
+                    ScopedSupportingTokenAuthenticatorSpecification.Add(action, authenticatorSpecList);
                 }
                 foreach (string action in securityBindingElement.OptionalOperationSupportingTokenParameters.Keys)
                 {
                     Collection<SupportingTokenAuthenticatorSpecification> authenticatorSpecList;
-                    if (scopedSupportingTokenAuthenticatorSpecification.TryGetValue(action, out ICollection<SupportingTokenAuthenticatorSpecification> existingList))
+                    if (ScopedSupportingTokenAuthenticatorSpecification.TryGetValue(action, out ICollection<SupportingTokenAuthenticatorSpecification> existingList))
                     {
                         authenticatorSpecList = ((Collection<SupportingTokenAuthenticatorSpecification>)existingList);
                     }
                     else
                     {
                         authenticatorSpecList = new Collection<SupportingTokenAuthenticatorSpecification>();
-                        scopedSupportingTokenAuthenticatorSpecification.Add(action, authenticatorSpecList);
+                        ScopedSupportingTokenAuthenticatorSpecification.Add(action, authenticatorSpecList);
                     }
                     AddSupportingTokenAuthenticators(securityBindingElement.OptionalOperationSupportingTokenParameters[action], true, authenticatorSpecList);
                 }
                 // validate the token authenticator types and create a merged map if needed.
-                if (!channelSupportingTokenAuthenticatorSpecification.IsReadOnly)
+                if (!ChannelSupportingTokenAuthenticatorSpecification.IsReadOnly)
                 {
-                    if (channelSupportingTokenAuthenticatorSpecification.Count == 0)
+                    if (ChannelSupportingTokenAuthenticatorSpecification.Count == 0)
                     {
-                        channelSupportingTokenAuthenticatorSpecification = EmptyTokenAuthenticators;
+                        ChannelSupportingTokenAuthenticatorSpecification = EmptyTokenAuthenticators;
                     }
                     else
                     {
-                        expectSupportingTokens = true;
-                        foreach (SupportingTokenAuthenticatorSpecification tokenAuthenticatorSpec in channelSupportingTokenAuthenticatorSpecification)
+                        ExpectSupportingTokens = true;
+                        foreach (SupportingTokenAuthenticatorSpecification tokenAuthenticatorSpec in ChannelSupportingTokenAuthenticatorSpecification)
                         {
                             SecurityUtils.OpenTokenAuthenticatorIfRequiredAsync(tokenAuthenticatorSpec.TokenAuthenticator, timeoutHelper.GetCancellationToken());
                             if (tokenAuthenticatorSpec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.Endorsing
@@ -916,7 +879,7 @@ namespace CoreWCF.Security
                             {
                                 if (tokenAuthenticatorSpec.TokenParameters.RequireDerivedKeys && !tokenAuthenticatorSpec.TokenParameters.HasAsymmetricKey)
                                 {
-                                    expectKeyDerivation = true;
+                                    ExpectKeyDerivation = true;
                                 }
                             }
                             SecurityTokenAttachmentMode mode = tokenAuthenticatorSpec.SecurityTokenAttachmentMode;
@@ -935,11 +898,11 @@ namespace CoreWCF.Security
                                 expectChannelEndorsingTokens = true;
                             }
                         }
-                        channelSupportingTokenAuthenticatorSpecification =
-                            new ReadOnlyCollection<SupportingTokenAuthenticatorSpecification>((Collection<SupportingTokenAuthenticatorSpecification>)channelSupportingTokenAuthenticatorSpecification);
+                        ChannelSupportingTokenAuthenticatorSpecification =
+                            new ReadOnlyCollection<SupportingTokenAuthenticatorSpecification>((Collection<SupportingTokenAuthenticatorSpecification>)ChannelSupportingTokenAuthenticatorSpecification);
                     }
                 }
-                VerifyTypeUniqueness(channelSupportingTokenAuthenticatorSpecification);
+                VerifyTypeUniqueness(ChannelSupportingTokenAuthenticatorSpecification);
                 MergeSupportingTokenAuthenticators(timeoutHelper.RemainingTime());
             }
 
@@ -1025,12 +988,12 @@ namespace CoreWCF.Security
 
         internal void ThrowIfImmutable()
         {
-            communicationObject.ThrowIfDisposedOrImmutable();
+            CommunicationObject.ThrowIfDisposedOrImmutable();
         }
 
         private void ThrowIfNotOpen()
         {
-            communicationObject.ThrowIfNotOpened();
+            CommunicationObject.ThrowIfNotOpened();
         }
 
         public void OnClosed()

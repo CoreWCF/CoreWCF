@@ -91,7 +91,6 @@ namespace CoreWCF.Runtime
             private const long maxTimeToWaitForMoreTimers = 1000 * TimeSpan.TicksPerMillisecond;
             private static readonly TimerManager value = new TimerManager();
             private readonly Action<object> onWaitCallback;
-            private readonly TimerGroup stableTimerGroup;
             private readonly TimerGroup volatileTimerGroup;
             private readonly WaitableTimer[] waitableTimers;
             private bool waitScheduled;
@@ -99,9 +98,9 @@ namespace CoreWCF.Runtime
             public TimerManager()
             {
                 onWaitCallback = new Action<object>(OnWaitCallback);
-                stableTimerGroup = new TimerGroup();
+                StableTimerGroup = new TimerGroup();
                 volatileTimerGroup = new TimerGroup();
-                waitableTimers = new WaitableTimer[] { stableTimerGroup.WaitableTimer, volatileTimerGroup.WaitableTimer };
+                waitableTimers = new WaitableTimer[] { StableTimerGroup.WaitableTimer, volatileTimerGroup.WaitableTimer };
             }
 
             private object ThisLock
@@ -117,13 +116,7 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            public TimerGroup StableTimerGroup
-            {
-                get
-                {
-                    return stableTimerGroup;
-                }
-            }
+            public TimerGroup StableTimerGroup { get; private set; }
             public TimerGroup VolatileTimerGroup
             {
                 get
@@ -134,7 +127,7 @@ namespace CoreWCF.Runtime
 
             internal void Kill()
             {
-                stableTimerGroup.WaitableTimer.Kill();
+                StableTimerGroup.WaitableTimer.Kill();
                 volatileTimerGroup.WaitableTimer.Kill();
             }
 
@@ -228,7 +221,7 @@ namespace CoreWCF.Runtime
             {
                 if (object.ReferenceEquals(timerGroup, volatileTimerGroup))
                 {
-                    return stableTimerGroup;
+                    return StableTimerGroup;
                 }
                 else
                 {
@@ -251,7 +244,7 @@ namespace CoreWCF.Runtime
 
             private void ReactivateWaitableTimers()
             {
-                ReactivateWaitableTimer(stableTimerGroup);
+                ReactivateWaitableTimer(StableTimerGroup);
                 ReactivateWaitableTimer(volatileTimerGroup);
             }
 
@@ -276,7 +269,7 @@ namespace CoreWCF.Runtime
 
             private void ScheduleElapsedTimers(long now)
             {
-                ScheduleElapsedTimers(stableTimerGroup, now);
+                ScheduleElapsedTimers(StableTimerGroup, now);
                 ScheduleElapsedTimers(volatileTimerGroup, now);
             }
 
@@ -307,13 +300,13 @@ namespace CoreWCF.Runtime
 
             private void ScheduleWaitIfAnyTimersLeft()
             {
-                if (stableTimerGroup.WaitableTimer.dead &&
+                if (StableTimerGroup.WaitableTimer.dead &&
                     volatileTimerGroup.WaitableTimer.dead)
                 {
                     return;
                 }
 
-                if (stableTimerGroup.TimerQueue.Count > 0 ||
+                if (StableTimerGroup.TimerQueue.Count > 0 ||
                     volatileTimerGroup.TimerQueue.Count > 0)
                 {
                     ScheduleWait();
@@ -338,22 +331,15 @@ namespace CoreWCF.Runtime
 
         private class TimerGroup
         {
-            private readonly TimerQueue timerQueue;
             private readonly WaitableTimer waitableTimer;
 
             public TimerGroup()
             {
                 waitableTimer = new WaitableTimer();
-                timerQueue = new TimerQueue();
+                TimerQueue = new TimerQueue();
             }
 
-            public TimerQueue TimerQueue
-            {
-                get
-                {
-                    return timerQueue;
-                }
-            }
+            public TimerQueue TimerQueue { get; private set; }
             public WaitableTimer WaitableTimer
             {
                 get
@@ -365,7 +351,6 @@ namespace CoreWCF.Runtime
 
         private class TimerQueue
         {
-            private int count;
             private IOThreadTimer[] timers;
 
             public TimerQueue()
@@ -373,16 +358,13 @@ namespace CoreWCF.Runtime
                 timers = new IOThreadTimer[4];
             }
 
-            public int Count
-            {
-                get { return count; }
-            }
+            public int Count { get; private set; }
 
             public IOThreadTimer MinTimer
             {
                 get
                 {
-                    Fx.Assert(count > 0, "Should have at least one timer in our queue.");
+                    Fx.Assert(Count > 0, "Should have at least one timer in our queue.");
                     return timers[1];
                 }
             }
@@ -398,7 +380,7 @@ namespace CoreWCF.Runtime
                 int index = timer.index;
 
                 Fx.Assert(index > 0, "");
-                Fx.Assert(index <= count, "");
+                Fx.Assert(index <= Count, "");
 
                 IOThreadTimer[] timers = this.timers;
 
@@ -432,7 +414,7 @@ namespace CoreWCF.Runtime
 
                 IOThreadTimer[] timers = this.timers;
 
-                int index = count + 1;
+                int index = Count + 1;
 
                 if (index == timers.Length)
                 {
@@ -441,7 +423,7 @@ namespace CoreWCF.Runtime
                     this.timers = timers;
                 }
 
-                count = index;
+                Count = index;
 
                 if (index > 1)
                 {
@@ -479,7 +461,7 @@ namespace CoreWCF.Runtime
                 int index = timer.index;
 
                 IOThreadTimer[] timers = this.timers;
-                int count = this.count;
+                int count = Count;
 
                 Fx.Assert(index > 0, "");
                 Fx.Assert(index <= count, "");
@@ -509,18 +491,18 @@ namespace CoreWCF.Runtime
 
             private void DeleteMinTimerCore()
             {
-                int count = this.count;
+                int count = Count;
 
                 if (count == 1)
                 {
-                    this.count = 0;
+                    Count = 0;
                     timers[1] = null;
                 }
                 else
                 {
                     IOThreadTimer[] timers = this.timers;
                     IOThreadTimer lastTimer = timers[count];
-                    this.count = --count;
+                    Count = --count;
 
                     int index = 1;
                     for (; ; )
@@ -585,28 +567,24 @@ namespace CoreWCF.Runtime
 
         public class WaitableTimer : EventWaitHandle
         {
-            private long dueTime; // Ticks
             public bool dead;
 
             public WaitableTimer() : base(false, EventResetMode.AutoReset)
             {
             }
 
-            public long DueTime
-            {
-                get { return dueTime; }
-            }
+            public long DueTime { get; private set; }
 
             public void Set(long dueTime)
             {
-                if (dueTime < this.dueTime)
+                if (dueTime < DueTime)
                 {
-                    this.dueTime = dueTime;
+                    DueTime = dueTime;
                     Set(); // We might be waiting on a later time so nudge it to reworkout the time
                 }
                 else
                 {
-                    this.dueTime = dueTime;
+                    DueTime = dueTime;
                 }
             }
 
@@ -620,7 +598,7 @@ namespace CoreWCF.Runtime
             {
                 do
                 {
-                    var earliestDueTime = waitableTimers[0].dueTime;
+                    var earliestDueTime = waitableTimers[0].DueTime;
                     for (int i = 1; i < waitableTimers.Length; i++)
                     {
                         if (waitableTimers[i].dead)
@@ -628,9 +606,9 @@ namespace CoreWCF.Runtime
                             return 0;
                         }
 
-                        if (waitableTimers[i].dueTime < earliestDueTime)
+                        if (waitableTimers[i].DueTime < earliestDueTime)
                         {
-                            earliestDueTime = waitableTimers[i].dueTime;
+                            earliestDueTime = waitableTimers[i].DueTime;
                         }
 
                         waitableTimers[i].Reset();

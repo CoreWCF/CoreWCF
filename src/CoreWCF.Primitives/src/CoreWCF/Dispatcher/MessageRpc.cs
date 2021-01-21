@@ -64,8 +64,6 @@ namespace CoreWCF.Dispatcher
         //internal MessageRpcInvokeNotification InvokeNotification;
         //internal EventTraceActivity EventTraceActivity;
         internal bool _processCallReturned;
-        private bool paused;
-        private readonly bool switchedThreads;
         private bool isInstanceContextSingleton;
         private SignalGate<IAsyncResult> invokeContinueGate;
 
@@ -96,7 +94,7 @@ namespace CoreWCF.Dispatcher
             NotUnderstoodHeaders = null;
             Operation = operation;
             OperationContext = operationContext;
-            paused = false;
+            IsPaused = false;
             ParametersDisposed = false;
             Request = request;
             RequestContext = requestContext;
@@ -110,7 +108,7 @@ namespace CoreWCF.Dispatcher
             SuccessfullyBoundInstance = false;
             SuccessfullyIncrementedActivity = false;
             SuccessfullyLockedInstance = false;
-            switchedThreads = !cleanThread;
+            SwitchedThreads = !cleanThread;
             //this.transaction = null;
             InputParameters = null;
             OutputParameters = null;
@@ -152,15 +150,9 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        internal bool IsPaused
-        {
-            get { return paused; }
-        }
+        internal bool IsPaused { get; private set; }
 
-        internal bool SwitchedThreads
-        {
-            get { return switchedThreads; }
-        }
+        internal bool SwitchedThreads { get; }
 
         internal bool IsInstanceContextSingleton
         {
@@ -529,7 +521,7 @@ namespace CoreWCF.Dispatcher
         // Since the copy is ignored, Decrement the BusyCount
         internal void UnPause()
         {
-            paused = false;
+            IsPaused = false;
             DecrementBusyCount();
 
         }

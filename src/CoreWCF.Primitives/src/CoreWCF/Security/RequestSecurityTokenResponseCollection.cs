@@ -11,7 +11,6 @@ namespace CoreWCF.Security
 {
     internal sealed class RequestSecurityTokenResponseCollection : BodyWriter
     {
-        private readonly IEnumerable<RequestSecurityTokenResponse> rstrCollection;
         private readonly SecurityStandardsManager standardsManager;
 
         public RequestSecurityTokenResponseCollection(IEnumerable<RequestSecurityTokenResponse> rstrCollection)
@@ -36,7 +35,7 @@ namespace CoreWCF.Security
 
                 ++index;
             }
-            this.rstrCollection = rstrCollection;
+            RstrCollection = rstrCollection;
             if (standardsManager == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
@@ -44,13 +43,7 @@ namespace CoreWCF.Security
             this.standardsManager = standardsManager;
         }
 
-        public IEnumerable<RequestSecurityTokenResponse> RstrCollection
-        {
-            get
-            {
-                return rstrCollection;
-            }
-        }
+        public IEnumerable<RequestSecurityTokenResponse> RstrCollection { get; }
 
         public void WriteTo(XmlWriter writer)
         {

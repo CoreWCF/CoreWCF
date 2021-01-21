@@ -15,25 +15,22 @@ namespace CoreWCF.Security.Tokens
     {
         internal const bool defaultRequireCancellation = true;
         internal const bool defaultCanRenewSession = true;
-        private SecurityBindingElement bootstrapSecurityBindingElement;
-        private readonly ChannelProtectionRequirements bootstrapProtectionRequirements;
-        private bool requireCancellation;
         private bool canRenewSession = defaultCanRenewSession;
         private BindingContext issuerBindingContext;
 
         protected SecureConversationSecurityTokenParameters(SecureConversationSecurityTokenParameters other)
             : base(other)
         {
-            requireCancellation = other.requireCancellation;
+            RequireCancellation = other.RequireCancellation;
             canRenewSession = other.canRenewSession;
-            if (other.bootstrapSecurityBindingElement != null)
+            if (other.BootstrapSecurityBindingElement != null)
             {
-                bootstrapSecurityBindingElement = (SecurityBindingElement)other.bootstrapSecurityBindingElement.Clone();
+                BootstrapSecurityBindingElement = (SecurityBindingElement)other.BootstrapSecurityBindingElement.Clone();
             }
 
-            if (other.bootstrapProtectionRequirements != null)
+            if (other.BootstrapProtectionRequirements != null)
             {
-                bootstrapProtectionRequirements = new ChannelProtectionRequirements(other.bootstrapProtectionRequirements);
+                BootstrapProtectionRequirements = new ChannelProtectionRequirements(other.BootstrapProtectionRequirements);
             }
 
             if (other.issuerBindingContext != null)
@@ -75,38 +72,28 @@ namespace CoreWCF.Security.Tokens
         public SecureConversationSecurityTokenParameters(SecurityBindingElement bootstrapSecurityBindingElement, bool requireCancellation, bool canRenewSession, ChannelProtectionRequirements bootstrapProtectionRequirements)
             : base()
         {
-            this.bootstrapSecurityBindingElement = bootstrapSecurityBindingElement;
+            BootstrapSecurityBindingElement = bootstrapSecurityBindingElement;
             this.canRenewSession = canRenewSession;
             if (bootstrapProtectionRequirements != null)
             {
-                this.bootstrapProtectionRequirements = new ChannelProtectionRequirements(bootstrapProtectionRequirements);
+                BootstrapProtectionRequirements = new ChannelProtectionRequirements(bootstrapProtectionRequirements);
             }
             else
             {
-                this.bootstrapProtectionRequirements = new ChannelProtectionRequirements();
-                this.bootstrapProtectionRequirements.IncomingEncryptionParts.AddParts(new MessagePartSpecification(true));
-                this.bootstrapProtectionRequirements.IncomingSignatureParts.AddParts(new MessagePartSpecification(true));
-                this.bootstrapProtectionRequirements.OutgoingEncryptionParts.AddParts(new MessagePartSpecification(true));
-                this.bootstrapProtectionRequirements.OutgoingSignatureParts.AddParts(new MessagePartSpecification(true));
+                BootstrapProtectionRequirements = new ChannelProtectionRequirements();
+                BootstrapProtectionRequirements.IncomingEncryptionParts.AddParts(new MessagePartSpecification(true));
+                BootstrapProtectionRequirements.IncomingSignatureParts.AddParts(new MessagePartSpecification(true));
+                BootstrapProtectionRequirements.OutgoingEncryptionParts.AddParts(new MessagePartSpecification(true));
+                BootstrapProtectionRequirements.OutgoingSignatureParts.AddParts(new MessagePartSpecification(true));
             }
-            this.requireCancellation = requireCancellation;
+            RequireCancellation = requireCancellation;
         }
 
         internal protected override bool HasAsymmetricKey => false;
 
-        public SecurityBindingElement BootstrapSecurityBindingElement
-        {
-            get
-            {
-                return bootstrapSecurityBindingElement;
-            }
-            set
-            {
-                bootstrapSecurityBindingElement = value;
-            }
-        }
+        public SecurityBindingElement BootstrapSecurityBindingElement { get; set; }
 
-        public ChannelProtectionRequirements BootstrapProtectionRequirements => bootstrapProtectionRequirements;
+        public ChannelProtectionRequirements BootstrapProtectionRequirements { get; }
 
         internal BindingContext IssuerBindingContext
         {
@@ -124,19 +111,9 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        private ISecurityCapabilities BootstrapSecurityCapabilities => bootstrapSecurityBindingElement.GetIndividualProperty<ISecurityCapabilities>();
+        private ISecurityCapabilities BootstrapSecurityCapabilities => BootstrapSecurityBindingElement.GetIndividualProperty<ISecurityCapabilities>();
 
-        public bool RequireCancellation
-        {
-            get
-            {
-                return requireCancellation;
-            }
-            set
-            {
-                requireCancellation = value;
-            }
-        }
+        public bool RequireCancellation { get; set; }
 
         public bool CanRenewSession
         {
@@ -189,8 +166,8 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", requireCancellation.ToString()));
-            if (bootstrapSecurityBindingElement == null)
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", RequireCancellation.ToString()));
+            if (BootstrapSecurityBindingElement == null)
             {
                 sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "BootstrapSecurityBindingElement: null"));
             }

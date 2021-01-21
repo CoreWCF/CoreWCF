@@ -9,8 +9,6 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509IssuerSerialKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        private readonly string _issuerSerialNumber;
-
         public X509IssuerSerialKeyIdentifierClause(string issuerName, string issuerSerialNumber)
             : base(null)
         {
@@ -25,7 +23,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             IssuerName = issuerName;
-            _issuerSerialNumber = issuerSerialNumber;
+            IssuerSerialNumber = issuerSerialNumber;
         }
 
         public X509IssuerSerialKeyIdentifierClause(X509Certificate2 certificate)
@@ -37,20 +35,17 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             IssuerName = certificate.Issuer;
-            _issuerSerialNumber = certificate.GetSerialNumberString();
+            IssuerSerialNumber = certificate.GetSerialNumberString();
         }
 
         public string IssuerName { get; }
 
-        public string IssuerSerialNumber
-        {
-            get { return _issuerSerialNumber; }
-        }
+        public string IssuerSerialNumber { get; }
 
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             X509IssuerSerialKeyIdentifierClause that = keyIdentifierClause as X509IssuerSerialKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(IssuerName, _issuerSerialNumber));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(IssuerName, IssuerSerialNumber));
         }
 
         public bool Matches(X509Certificate2 certificate)
@@ -71,7 +66,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             // If serial numbers dont match, we can avoid the potentially expensive issuer name comparison
-            if (_issuerSerialNumber != issuerSerialNumber)
+            if (IssuerSerialNumber != issuerSerialNumber)
             {
                 return false;
             }

@@ -35,12 +35,9 @@ namespace System.Xml.XmlDiff
         private XmlTextWriter _Writer;     // Writer to write out the result
         private StringBuilder _Output;
 
-        // Option Flags
-        private XmlDiffOption _XmlDiffOption = XmlDiffOption.None;
-
         public XmlDiff()
         {
-            _XmlDiffOption = XmlDiffOption.IgnoreEmptyElement |
+            Option = XmlDiffOption.IgnoreEmptyElement |
                              XmlDiffOption.IgnoreWhitespace |
                              XmlDiffOption.IgnoreAttributeOrder |
                              XmlDiffOption.IgnoreNS |
@@ -49,87 +46,77 @@ namespace System.Xml.XmlDiff
                              XmlDiffOption.IgnoreChildOrder;
         }
 
-        public XmlDiffOption Option
-        {
-            get
-            {
-                return _XmlDiffOption;
-            }
-            set
-            {
-                _XmlDiffOption = value;
-            }
-        }
+        public XmlDiffOption Option { get; set; } = XmlDiffOption.None;
 
         internal bool IgnoreEmptyElement
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreEmptyElement) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreEmptyElement) != 0); }
         }
 
         internal bool IgnoreComments
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreComments) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreComments) != 0); }
         }
 
         internal bool IgnoreAttributeOrder
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreAttributeOrder) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreAttributeOrder) != 0); }
         }
 
         internal bool IgnoreWhitespace
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreWhitespace) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreWhitespace) != 0); }
         }
 
         internal bool IgnoreNS
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreNS) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreNS) != 0); }
         }
 
         internal bool IgnorePrefix
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnorePrefix) != 0); }
+            get { return ((Option & XmlDiffOption.IgnorePrefix) != 0); }
         }
 
         internal bool IgnoreDTD
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreDTD) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreDTD) != 0); }
         }
 
         internal bool IgnoreChildOrder
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreChildOrder) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreChildOrder) != 0); }
         }
 
         internal bool ConcatenateAdjacentTextNodes
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.ConcatenateAdjacentTextNodes) != 0); }
+            get { return ((Option & XmlDiffOption.ConcatenateAdjacentTextNodes) != 0); }
         }
 
         internal bool TreatWhitespaceTextAsWSNode
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.TreatWhitespaceTextAsWSNode) != 0); }
+            get { return ((Option & XmlDiffOption.TreatWhitespaceTextAsWSNode) != 0); }
         }
 
         internal bool ParseAttributeValuesAsQName
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.ParseAttributeValuesAsQName) != 0); }
+            get { return ((Option & XmlDiffOption.ParseAttributeValuesAsQName) != 0); }
         }
 
         internal bool DontWriteMatchingNodesToOutput
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.DontWriteMatchingNodesToOutput) != 0); }
+            get { return ((Option & XmlDiffOption.DontWriteMatchingNodesToOutput) != 0); }
         }
 
         internal bool DontWriteAnythingToOutput
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.DontWriteAnythingToOutput) != 0); }
+            get { return ((Option & XmlDiffOption.DontWriteAnythingToOutput) != 0); }
         }
 
         private void InitFiles()
         {
             _SourceDoc = new XmlDiffDocument();
-            _SourceDoc.Option = _XmlDiffOption;
+            _SourceDoc.Option = Option;
             _TargetDoc = new XmlDiffDocument();
             _TargetDoc.Option = Option;
             _Output = new StringBuilder(string.Empty);

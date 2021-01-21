@@ -17,9 +17,7 @@ namespace CoreWCF.Dispatcher
     public class ChannelDispatcher : ChannelDispatcherBase
     {
         private readonly ThreadSafeMessageFilterTable<EndpointAddress> addressTable;
-        private CommunicationObjectManager<IChannel> channels;
         private EndpointDispatcherCollection endpointDispatchers;
-        private EndpointDispatcherTable filterTable;
         private ServiceHostBase host;
 
         //bool isTransactedReceive;
@@ -64,7 +62,7 @@ namespace CoreWCF.Dispatcher
             this.shared = shared;
             endpointDispatchers = new EndpointDispatcherCollection(this);
             ChannelInitializers = NewBehaviorCollection<IChannelInitializer>();
-            channels = new CommunicationObjectManager<IChannel>(ThisLock);
+            Channels = new CommunicationObjectManager<IChannel>(ThisLock);
             PendingChannels = new SynchronizedChannelCollection<IChannel>(ThisLock);
             ErrorHandlers = new Collection<IErrorHandler>();
             //this.isTransactedReceive = false;
@@ -111,15 +109,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal EndpointDispatcherTable EndpointDispatcherTable
-        {
-            get { return filterTable; }
-        }
+        internal EndpointDispatcherTable EndpointDispatcherTable { get; private set; }
 
-        internal CommunicationObjectManager<IChannel> Channels
-        {
-            get { return channels; }
-        }
+        internal CommunicationObjectManager<IChannel> Channels { get; private set; }
 
         public SynchronizedCollection<EndpointDispatcher> Endpoints
         {
@@ -304,7 +296,7 @@ namespace CoreWCF.Dispatcher
         {
             errorBehavior = new ErrorBehavior(this);
 
-            filterTable = new EndpointDispatcherTable(ThisLock);
+            EndpointDispatcherTable = new EndpointDispatcherTable(ThisLock);
             for (int i = 0; i < endpointDispatchers.Count; i++)
             {
                 EndpointDispatcher endpoint = endpointDispatchers[i];
@@ -314,7 +306,7 @@ namespace CoreWCF.Dispatcher
                 // Lock down the DispatchRuntime.
                 endpoint.DispatchRuntime.LockDownProperties();
 
-                filterTable.AddEndpoint(endpoint);
+                EndpointDispatcherTable.AddEndpoint(endpoint);
 
                 if ((addressTable != null) && (endpoint.OriginalAddress != null))
                 {
@@ -361,7 +353,7 @@ namespace CoreWCF.Dispatcher
                         addressTable.Add(endpoint.AddressFilter, endpoint.EndpointAddress, endpoint.FilterPriority);
                     }
 
-                    filterTable.AddEndpoint(endpoint);
+                    EndpointDispatcherTable.AddEndpoint(endpoint);
                 }
             }
         }
@@ -372,7 +364,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (State == CommunicationState.Opened)
                 {
-                    filterTable.RemoveEndpoint(endpoint);
+                    EndpointDispatcherTable.RemoveEndpoint(endpoint);
 
                     if (addressTable != null)
                     {

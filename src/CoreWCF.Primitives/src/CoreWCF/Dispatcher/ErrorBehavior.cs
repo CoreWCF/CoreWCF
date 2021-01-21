@@ -10,7 +10,6 @@ namespace CoreWCF.Dispatcher
 {
     internal class ErrorBehavior
     {
-        private readonly IErrorHandler[] handlers;
         private readonly bool debug;
         private readonly bool isOnServer;
         private readonly MessageVersion messageVersion;
@@ -19,11 +18,11 @@ namespace CoreWCF.Dispatcher
         {
             if (channelDispatcher?.ErrorHandlers == null)
             {
-                handlers = EmptyArray<IErrorHandler>.Allocate(0);
+                Handlers = EmptyArray<IErrorHandler>.Allocate(0);
             }
             else
             {
-                handlers = EmptyArray<IErrorHandler>.ToArray(channelDispatcher.ErrorHandlers);
+                Handlers = EmptyArray<IErrorHandler>.ToArray(channelDispatcher.ErrorHandlers);
             }
             debug = channelDispatcher.IncludeExceptionDetailInFaults;
             //isOnServer = channelDispatcher.IsOnServer;
@@ -50,13 +49,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal IErrorHandler[] Handlers
-        {
-            get
-            {
-                return handlers;
-            }
-        }
+        internal IErrorHandler[] Handlers { get; }
 
         internal void ProvideMessageFault(MessageRpc rpc)
         {
@@ -133,10 +126,10 @@ namespace CoreWCF.Dispatcher
         internal void ProvideFault(Exception e, FaultConverter faultConverter, ref ErrorHandlerFaultInfo faultInfo)
         {
             ProvideWellKnownFault(e, faultConverter, ref faultInfo);
-            for (int i = 0; i < handlers.Length; i++)
+            for (int i = 0; i < Handlers.Length; i++)
             {
                 Message m = faultInfo.Fault;
-                handlers[i].ProvideFault(e, messageVersion, ref m);
+                Handlers[i].ProvideFault(e, messageVersion, ref m);
                 faultInfo.Fault = m;
                 //if (TD.FaultProviderInvokedIsEnabled())
                 //{
@@ -204,9 +197,9 @@ namespace CoreWCF.Dispatcher
                 //{
                 //    TD.ServiceException(null, error.ToString(), error.GetType().FullName);
                 //}
-                for (int i = 0; i < handlers.Length; i++)
+                for (int i = 0; i < Handlers.Length; i++)
                 {
-                    bool handledByThis = handlers[i].HandleError(error);
+                    bool handledByThis = Handlers[i].HandleError(error);
                     handled = handledByThis || handled;
                     //if (TD.ErrorHandlerInvokedIsEnabled())
                     //{

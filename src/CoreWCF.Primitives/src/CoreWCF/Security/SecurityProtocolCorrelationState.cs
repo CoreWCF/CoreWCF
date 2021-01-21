@@ -7,20 +7,16 @@ namespace CoreWCF.Security
 {
     internal class SecurityProtocolCorrelationState
     {
-        private readonly SecurityToken token;
         private SignatureConfirmations signatureConfirmations;
         // ServiceModelActivity activity;
 
         public SecurityProtocolCorrelationState(SecurityToken token)
         {
-            this.token = token;
+            Token = token;
             //  this.activity = DiagnosticUtility.ShouldUseActivity ? ServiceModelActivity.Current : null;
         }
 
-        public SecurityToken Token
-        {
-            get { return token; }
-        }
+        public SecurityToken Token { get; }
 
         internal SignatureConfirmations SignatureConfirmations
         {

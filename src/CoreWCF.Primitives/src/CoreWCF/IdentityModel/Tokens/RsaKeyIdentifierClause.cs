@@ -12,7 +12,6 @@ namespace CoreWCF.IdentityModel.Tokens
     public class RsaKeyIdentifierClause : SecurityKeyIdentifierClause
     {
         private static readonly string clauseType = XmlSignatureStrings.Namespace + XmlSignatureStrings.RsaKeyValue;
-        private readonly RSA rsa;
         private readonly RSAParameters rsaParameters;
         private RsaSecurityKey rsaSecurityKey;
 
@@ -24,7 +23,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
             }
 
-            this.rsa = rsa;
+            Rsa = rsa;
             rsaParameters = rsa.ExportParameters(false);
         }
 
@@ -33,16 +32,13 @@ namespace CoreWCF.IdentityModel.Tokens
             get { return true; }
         }
 
-        public RSA Rsa
-        {
-            get { return rsa; }
-        }
+        public RSA Rsa { get; }
 
         public override SecurityKey CreateKey()
         {
             if (rsaSecurityKey == null)
             {
-                rsaSecurityKey = new RsaSecurityKey(rsa);
+                rsaSecurityKey = new RsaSecurityKey(Rsa);
             }
             return rsaSecurityKey;
         }
@@ -60,7 +56,7 @@ namespace CoreWCF.IdentityModel.Tokens
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             RsaKeyIdentifierClause that = keyIdentifierClause as RsaKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(rsa));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(Rsa));
         }
 
         public bool Matches(RSA rsa)

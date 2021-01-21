@@ -17,19 +17,11 @@ namespace CoreWCF.Dispatcher
 
     internal abstract class InstanceContextProviderBase : IInstanceContextProvider
     {
-        private readonly DispatchRuntime dispatchRuntime;
-
-        public DispatchRuntime DispatchRuntime
-        {
-            get
-            {
-                return dispatchRuntime;
-            }
-        }
+        public DispatchRuntime DispatchRuntime { get; }
 
         internal InstanceContextProviderBase(DispatchRuntime dispatchRuntime)
         {
-            this.dispatchRuntime = dispatchRuntime;
+            DispatchRuntime = dispatchRuntime;
         }
 
         internal static bool IsProviderSingleton(IInstanceContextProvider provider)

@@ -8,16 +8,11 @@ namespace CoreWCF
 {
     public sealed class UnknownMessageReceivedEventArgs : EventArgs
     {
-        private readonly Message message;
-
         internal UnknownMessageReceivedEventArgs(Message message)
         {
-            this.message = message;
+            Message = message;
         }
 
-        public Message Message
-        {
-            get { return message; }
-        }
+        public Message Message { get; }
     }
 }

@@ -12,10 +12,10 @@ namespace CoreWCF.IdentityModel.Tokens
         private readonly string _id;
         private readonly DateTime _effectiveTime;
         private readonly DateTime _expirationTime;
-        private readonly string _name;
+
         internal GenericSecurityToken(string name, string id)
         {
-            _name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            Name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             _effectiveTime = DateTime.UtcNow;
             _expirationTime = DateTime.UtcNow.AddHours(10);
@@ -41,7 +41,7 @@ namespace CoreWCF.IdentityModel.Tokens
             get { return _expirationTime; }
         }
 
-        public string Name { get { return _name; } }
+        public string Name { get; }
     }
 }
 

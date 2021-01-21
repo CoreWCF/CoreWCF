@@ -17,19 +17,15 @@ namespace CoreWCF
     {
         internal static Action<InstanceContext> NotifyEmptyCallback = NotifyEmpty;
         internal static Action<InstanceContext> NotifyIdleCallback = NotifyIdle;
-
-        private bool _autoClose;
         private InstanceBehavior _behavior;
         private readonly ServiceChannelManager _channels;
         private ConcurrencyInstanceContextFacet _concurrency;
         private ExtensionCollection<InstanceContext> _extensions;
         private readonly ServiceHostBase _host;
         private ServiceThrottle serviceThrottle;
-        private int _instanceContextManagerIndex;
         private readonly object _serviceInstanceLock = new object();
         private SynchronizationContext _synchronizationContext;
         private object _userObject;
-        private readonly bool _wellKnown;
         private bool _isUserCreated;
 
         public InstanceContext(object implementation)
@@ -53,9 +49,9 @@ namespace CoreWCF
             if (implementation != null)
             {
                 _userObject = implementation;
-                _wellKnown = wellKnown;
+                IsWellKnown = wellKnown;
             }
-            _autoClose = false;
+            AutoClose = false;
             _channels = new ServiceChannelManager(this);
             _isUserCreated = isUserCreated;
         }
@@ -68,7 +64,7 @@ namespace CoreWCF
             }
 
             _host = host;
-            _autoClose = true;
+            AutoClose = true;
             _channels = new ServiceChannelManager(this, NotifyEmptyCallback);
             _isUserCreated = isUserCreated;
         }
@@ -79,16 +75,9 @@ namespace CoreWCF
             set { _isUserCreated = value; }
         }
 
-        internal bool IsWellKnown
-        {
-            get { return _wellKnown; }
-        }
+        internal bool IsWellKnown { get; }
 
-        internal bool AutoClose
-        {
-            get { return _autoClose; }
-            set { _autoClose = value; }
-        }
+        internal bool AutoClose { get; set; }
 
         internal InstanceBehavior Behavior
         {
@@ -229,11 +218,7 @@ namespace CoreWCF
             }
         }
 
-        internal int InstanceContextManagerIndex
-        {
-            get { return _instanceContextManagerIndex; }
-            set { _instanceContextManagerIndex = value; }
-        }
+        internal int InstanceContextManagerIndex { get; set; }
 
         public SynchronizationContext SynchronizationContext
         {
@@ -424,7 +409,7 @@ namespace CoreWCF
 
         private static void NotifyEmpty(InstanceContext instanceContext)
         {
-            if (instanceContext._autoClose)
+            if (instanceContext.AutoClose)
             {
                 instanceContext.CloseIfNotBusy();
             }
@@ -483,7 +468,7 @@ namespace CoreWCF
 
         private void SetUserObject(object newUserObject)
         {
-            if (_behavior != null && !_wellKnown)
+            if (_behavior != null && !IsWellKnown)
             {
                 object oldUserObject = Interlocked.Exchange(ref _userObject, newUserObject);
 

@@ -15,10 +15,8 @@ namespace CoreWCF
     {
         internal static readonly Uri EmptyUri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
         private bool initializeDescriptionHasFinished;
-        private readonly UriSchemeKeyedCollection baseAddresses;
         private readonly ChannelDispatcherCollection channelDispatchers;
         private TimeSpan closeTimeout = ServiceDefaults.ServiceHostCloseTimeout;
-        private ServiceDescription description;
         private readonly ExtensionCollection<ServiceHostBase> extensions;
         private ReadOnlyCollection<Uri> externalBaseAddresses;
         private IDictionary<string, ContractDescription> implementedContracts;
@@ -36,7 +34,7 @@ namespace CoreWCF
 
         protected ServiceHostBase()
         {
-            baseAddresses = new UriSchemeKeyedCollection(ThisLock);
+            InternalBaseAddresses = new UriSchemeKeyedCollection(ThisLock);
             channelDispatchers = new ChannelDispatcherCollection(this, ThisLock);
             extensions = new ExtensionCollection<ServiceHostBase>(this, ThisLock);
             instances = new InstanceContextManager(ThisLock);
@@ -85,7 +83,7 @@ namespace CoreWCF
         {
             get
             {
-                externalBaseAddresses = new ReadOnlyCollection<Uri>(new List<Uri>(baseAddresses));
+                externalBaseAddresses = new ReadOnlyCollection<Uri>(new List<Uri>(InternalBaseAddresses));
                 return externalBaseAddresses;
             }
         }
@@ -147,10 +145,7 @@ namespace CoreWCF
             get { return OpenTimeout; }
         }
 
-        public ServiceDescription Description
-        {
-            get { return description; }
-        }
+        public ServiceDescription Description { get; private set; }
 
         public IExtensionCollection<ServiceHostBase> Extensions
         {
@@ -162,10 +157,7 @@ namespace CoreWCF
             get { return implementedContracts; }
         }
 
-        internal UriSchemeKeyedCollection InternalBaseAddresses
-        {
-            get { return baseAddresses; }
-        }
+        internal UriSchemeKeyedCollection InternalBaseAddresses { get; }
 
         public int ManualFlowControlLimit
         {
@@ -211,7 +203,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.SFxCannotCallAddBaseAddress));
             }
-            baseAddresses.Add(baseAddress);
+            InternalBaseAddresses.Add(baseAddress);
         }
 
         public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, string address)
@@ -331,10 +323,10 @@ namespace CoreWCF
         {
             foreach (Uri baseAddress in baseAddresses)
             {
-                this.baseAddresses.Add(baseAddress);
+                InternalBaseAddresses.Add(baseAddress);
             }
 
-            description = CreateDescription(out implementedContracts);
+            Description = CreateDescription(out implementedContracts);
             ApplyConfiguration();
             initializeDescriptionHasFinished = true;
         }
@@ -407,17 +399,13 @@ namespace CoreWCF
         internal class ServiceAndBehaviorsContractResolver : IContractResolver
         {
             private readonly IContractResolver serviceResolver;
-            private readonly Dictionary<string, ContractDescription> behaviorContracts;
 
-            public Dictionary<string, ContractDescription> BehaviorContracts
-            {
-                get { return behaviorContracts; }
-            }
+            public Dictionary<string, ContractDescription> BehaviorContracts { get; }
 
             public ServiceAndBehaviorsContractResolver(IContractResolver serviceResolver)
             {
                 this.serviceResolver = serviceResolver;
-                behaviorContracts = new Dictionary<string, ContractDescription>();
+                BehaviorContracts = new Dictionary<string, ContractDescription>();
             }
 
             public ContractDescription ResolveContract(string contractName)
@@ -426,7 +414,7 @@ namespace CoreWCF
 
                 if (contract == null)
                 {
-                    contract = behaviorContracts.ContainsKey(contractName) ? behaviorContracts[contractName] : null;
+                    contract = BehaviorContracts.ContainsKey(contractName) ? BehaviorContracts[contractName] : null;
                 }
 
                 return contract;

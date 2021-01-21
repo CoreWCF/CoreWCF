@@ -10,21 +10,12 @@ namespace CoreWCF.Description
 {
     public class MessagePartDescription
     {
-        private readonly XmlName name;
         private readonly string ns;
-        private int index;
-        private Type type;
-        private int serializationPosition;
         private ProtectionLevel protectionLevel;
         private bool hasProtectionLevel;
-        private MemberInfo memberInfo;
 
         // TODO: Was ICustomAttributeProvider
         private CustomAttributeProvider additionalAttributesProvider;
-        private bool multiple;
-
-        //string baseType;
-        private string uniquePartName;
 
         public MessagePartDescription(string name, string ns)
         {
@@ -33,7 +24,7 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name", SR.SFxParameterNameCannotBeNull);
             }
 
-            this.name = new XmlName(name, true /*isEncoded*/);
+            XmlName = new XmlName(name, true /*isEncoded*/);
 
             if (!string.IsNullOrEmpty(ns))
             {
@@ -45,15 +36,15 @@ namespace CoreWCF.Description
 
         internal MessagePartDescription(MessagePartDescription other)
         {
-            name = other.name;
+            XmlName = other.XmlName;
             ns = other.ns;
-            index = other.index;
-            type = other.type;
-            serializationPosition = other.serializationPosition;
+            Index = other.Index;
+            Type = other.Type;
+            SerializationPosition = other.SerializationPosition;
             hasProtectionLevel = other.hasProtectionLevel;
             protectionLevel = other.protectionLevel;
-            memberInfo = other.memberInfo;
-            multiple = other.multiple;
+            MemberInfo = other.MemberInfo;
+            Multiple = other.Multiple;
             additionalAttributesProvider = other.additionalAttributesProvider;
             //this.baseType = other.baseType;
             //this.uniquePartName = other.uniquePartName;
@@ -64,14 +55,11 @@ namespace CoreWCF.Description
             return new MessagePartDescription(this);
         }
 
-        internal XmlName XmlName
-        {
-            get { return name; }
-        }
+        internal XmlName XmlName { get; }
 
         public string Name
         {
-            get { return name.EncodedName; }
+            get { return XmlName.EncodedName; }
         }
 
         public string Namespace
@@ -79,23 +67,11 @@ namespace CoreWCF.Description
             get { return ns; }
         }
 
-        public Type Type
-        {
-            get { return type; }
-            set { type = value; }
-        }
+        public Type Type { get; set; }
 
-        public int Index
-        {
-            get { return index; }
-            set { index = value; }
-        }
+        public int Index { get; set; }
 
-        public bool Multiple
-        {
-            get { return multiple; }
-            set { multiple = value; }
-        }
+        public bool Multiple { get; set; }
 
         public ProtectionLevel ProtectionLevel
         {
@@ -111,30 +87,18 @@ namespace CoreWCF.Description
                 hasProtectionLevel = true;
             }
         }
-        public MemberInfo MemberInfo
-        {
-            get { return memberInfo; }
-            set { memberInfo = value; }
-        }
+        public MemberInfo MemberInfo { get; set; }
 
         internal bool HasProtectionLevel => false;
 
         internal CustomAttributeProvider AdditionalAttributesProvider
         {
-            get { return additionalAttributesProvider ?? memberInfo; }
+            get { return additionalAttributesProvider ?? MemberInfo; }
             set { additionalAttributesProvider = value; }
         }
 
-        internal string UniquePartName
-        {
-            get { return uniquePartName; }
-            set { uniquePartName = value; }
-        }
+        internal string UniquePartName { get; set; }
 
-        internal int SerializationPosition
-        {
-            get { return serializationPosition; }
-            set { serializationPosition = value; }
-        }
+        internal int SerializationPosition { get; set; }
     }
 }

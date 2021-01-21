@@ -10,12 +10,8 @@ namespace CoreWCF.Description
 {
     public class ServiceDescription
     {
-        private readonly KeyedByTypeCollection<IServiceBehavior> _behaviors = new KeyedByTypeCollection<IServiceBehavior>();
         private string _configurationName;
-        private readonly ServiceEndpointCollection _endpoints = new ServiceEndpointCollection();
-        private Type _serviceType;
         private XmlName _serviceName;
-        private string _serviceNamespace = NamingHelper.DefaultNamespace;
         private readonly IDictionary<string, ContractDescription> _implementedContracts;
         private readonly ReflectedContractCollection _reflectedContracts;
 
@@ -40,7 +36,7 @@ namespace CoreWCF.Description
 
             foreach (ServiceEndpoint endpoint in endpoints)
             {
-                _endpoints.Add(endpoint);
+                Endpoints.Add(endpoint);
             }
         }
 
@@ -75,23 +71,10 @@ namespace CoreWCF.Description
             }
         }
 
-        public string Namespace
-        {
-            get
-            {
-                return _serviceNamespace;
-            }
-            set
-            {
-                _serviceNamespace = value;
-            }
-        }
+        public string Namespace { get; set; } = NamingHelper.DefaultNamespace;
 
         // This was KeyedByTypeCollection, maybe change to Collection<IServiceBehavior>
-        public KeyedByTypeCollection<IServiceBehavior> Behaviors
-        {
-            get { return _behaviors; }
-        }
+        public KeyedByTypeCollection<IServiceBehavior> Behaviors { get; } = new KeyedByTypeCollection<IServiceBehavior>();
 
         public string ConfigurationName
         {
@@ -107,16 +90,9 @@ namespace CoreWCF.Description
             }
         }
 
-        public ServiceEndpointCollection Endpoints
-        {
-            get { return _endpoints; }
-        }
+        public ServiceEndpointCollection Endpoints { get; } = new ServiceEndpointCollection();
 
-        public Type ServiceType
-        {
-            get { return _serviceType; }
-            set { _serviceType = value; }
-        }
+        public Type ServiceType { get; set; }
 
         internal static void AddBehaviors<TService>(ServiceDescription serviceDescription) where TService : class
         {

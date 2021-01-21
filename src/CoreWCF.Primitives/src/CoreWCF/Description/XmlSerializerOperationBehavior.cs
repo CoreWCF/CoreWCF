@@ -18,7 +18,6 @@ namespace CoreWCF.Description
 {
     internal class XmlSerializerOperationBehavior : IOperationBehavior
     {
-        private readonly Reflector.OperationReflector reflector;
         private readonly bool builtInOperationBehavior;
 
         public XmlSerializerOperationBehavior(OperationDescription operation)
@@ -34,27 +33,24 @@ namespace CoreWCF.Description
             }
 
             Reflector parentReflector = new Reflector(operation.DeclaringContract.Namespace, operation.DeclaringContract.ContractType);
-            reflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
+            OperationReflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
 
         internal XmlSerializerOperationBehavior(OperationDescription operation, XmlSerializerFormatAttribute attribute, Reflector parentReflector)
             : this(operation, attribute)
         {
             // used by System.ServiceModel.Web
-            reflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
+            OperationReflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
 
         private XmlSerializerOperationBehavior(Reflector.OperationReflector reflector, bool builtInOperationBehavior)
         {
             Fx.Assert(reflector != null, "");
-            this.reflector = reflector;
+            OperationReflector = reflector;
             this.builtInOperationBehavior = builtInOperationBehavior;
         }
 
-        internal Reflector.OperationReflector OperationReflector
-        {
-            get { return reflector; }
-        }
+        internal Reflector.OperationReflector OperationReflector { get; }
 
         internal bool IsBuiltInOperationBehavior
         {
@@ -65,7 +61,7 @@ namespace CoreWCF.Description
         {
             get
             {
-                return reflector.Attribute;
+                return OperationReflector.Attribute;
             }
         }
 
@@ -111,12 +107,12 @@ namespace CoreWCF.Description
 
         internal XmlSerializerOperationFormatter CreateFormatter()
         {
-            return new XmlSerializerOperationFormatter(reflector.Operation, reflector.Attribute, reflector.Request, reflector.Reply);
+            return new XmlSerializerOperationFormatter(OperationReflector.Operation, OperationReflector.Attribute, OperationReflector.Request, OperationReflector.Reply);
         }
 
         private XmlSerializerFaultFormatter CreateFaultFormatter(SynchronizedCollection<FaultContractInfo> faultContractInfos)
         {
-            return new XmlSerializerFaultFormatter(faultContractInfos, reflector.XmlSerializerFaultContractInfos);
+            return new XmlSerializerFaultFormatter(faultContractInfos, OperationReflector.XmlSerializerFaultContractInfos);
         }
 
         void IOperationBehavior.Validate(OperationDescription description)
@@ -142,11 +138,11 @@ namespace CoreWCF.Description
             if (dispatch.Formatter == null)
             {
                 dispatch.Formatter = (IDispatchMessageFormatter)CreateFormatter();
-                dispatch.DeserializeRequest = reflector.RequestRequiresSerialization;
-                dispatch.SerializeReply = reflector.ReplyRequiresSerialization;
+                dispatch.DeserializeRequest = OperationReflector.RequestRequiresSerialization;
+                dispatch.SerializeReply = OperationReflector.ReplyRequiresSerialization;
             }
 
-            if (reflector.Attribute.SupportFaults)
+            if (OperationReflector.Attribute.SupportFaults)
             {
                 if (!dispatch.IsFaultFormatterSetExplicit)
                 {
@@ -178,11 +174,11 @@ namespace CoreWCF.Description
             if (proxy.Formatter == null)
             {
                 proxy.Formatter = (IClientMessageFormatter)CreateFormatter();
-                proxy.SerializeRequest = reflector.RequestRequiresSerialization;
-                proxy.DeserializeReply = reflector.ReplyRequiresSerialization;
+                proxy.SerializeRequest = OperationReflector.RequestRequiresSerialization;
+                proxy.DeserializeReply = OperationReflector.ReplyRequiresSerialization;
             }
 
-            if (reflector.Attribute.SupportFaults && !proxy.IsFaultFormatterSetExplicit)
+            if (OperationReflector.Attribute.SupportFaults && !proxy.IsFaultFormatterSetExplicit)
             {
                 proxy.FaultFormatter = (IClientFaultFormatter)CreateFaultFormatter(proxy.FaultContractInfos);
             }
@@ -912,9 +908,7 @@ namespace CoreWCF.Description
 
             internal class XmlSerializerFaultContractInfo
             {
-                private readonly FaultContractInfo faultContractInfo;
                 private readonly SerializerStub serializerStub;
-                private readonly XmlQualifiedName faultContractElementName;
                 private XmlSerializerObjectSerializer serializer;
 
                 internal XmlSerializerFaultContractInfo(FaultContractInfo faultContractInfo, SerializerStub serializerStub,
@@ -928,20 +922,14 @@ namespace CoreWCF.Description
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultContractElementName));
                     }
-                    this.faultContractInfo = faultContractInfo;
+                    FaultContractInfo = faultContractInfo;
                     this.serializerStub = serializerStub;
-                    this.faultContractElementName = faultContractElementName;
+                    FaultContractElementName = faultContractElementName;
                 }
 
-                internal FaultContractInfo FaultContractInfo
-                {
-                    get { return faultContractInfo; }
-                }
+                internal FaultContractInfo FaultContractInfo { get; }
 
-                internal XmlQualifiedName FaultContractElementName
-                {
-                    get { return faultContractElementName; }
-                }
+                internal XmlQualifiedName FaultContractElementName { get; }
 
                 internal XmlSerializerObjectSerializer Serializer
                 {
@@ -949,7 +937,7 @@ namespace CoreWCF.Description
                     {
                         if (serializer == null)
                         {
-                            serializer = new XmlSerializerObjectSerializer(faultContractInfo.Detail, faultContractElementName, serializerStub.GetSerializer());
+                            serializer = new XmlSerializerObjectSerializer(FaultContractInfo.Detail, FaultContractElementName, serializerStub.GetSerializer());
                         }
 
                         return serializer;

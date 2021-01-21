@@ -7,22 +7,15 @@ namespace CoreWCF.Security
 {
     public abstract class SecureConversationVersion
     {
-        private readonly XmlDictionaryString scNamespace;
         private readonly XmlDictionaryString prefix;
 
         internal SecureConversationVersion(XmlDictionaryString ns, XmlDictionaryString prefix)
         {
-            scNamespace = ns;
+            Namespace = ns;
             this.prefix = prefix;
         }
 
-        public XmlDictionaryString Namespace
-        {
-            get
-            {
-                return scNamespace;
-            }
-        }
+        public XmlDictionaryString Namespace { get; }
 
         public XmlDictionaryString Prefix
         {

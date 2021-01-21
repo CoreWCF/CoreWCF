@@ -12,18 +12,17 @@ namespace CoreWCF.Security
         internal const StoreName DefaultStoreName = StoreName.My;
         internal const X509FindType DefaultFindType = X509FindType.FindBySubjectDistinguishedName;
         private X509Certificate2 certificate;
-        private readonly X509ClientCertificateAuthentication authentication;
         private bool isReadOnly;
 
         internal X509CertificateInitiatorServiceCredential()
         {
-            authentication = new X509ClientCertificateAuthentication();
+            Authentication = new X509ClientCertificateAuthentication();
         }
 
         internal X509CertificateInitiatorServiceCredential(X509CertificateInitiatorServiceCredential other)
         {
             certificate = other.certificate;
-            authentication = new X509ClientCertificateAuthentication(other.authentication);
+            Authentication = new X509ClientCertificateAuthentication(other.Authentication);
             isReadOnly = other.isReadOnly;
         }
 
@@ -40,13 +39,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public X509ClientCertificateAuthentication Authentication
-        {
-            get
-            {
-                return authentication;
-            }
-        }
+        public X509ClientCertificateAuthentication Authentication { get; }
 
         public void SetCertificate(string subjectName, StoreLocation storeLocation, StoreName storeName)
         {

@@ -13,14 +13,12 @@ namespace CoreWCF
         internal const MessageCredentialType DefaultClientCredentialType = MessageCredentialType.Windows;
         internal const bool DefaultNegotiateServiceCredential = true;
         private MessageCredentialType clientCredentialType;
-        private bool negotiateServiceCredential;
         private SecurityAlgorithmSuite algorithmSuite;
-        private bool wasAlgorithmSuiteSet;
         private static readonly TimeSpan defaultServerIssuedTransitionTokenLifetime = TimeSpan.FromMinutes(15);
         public MessageSecurityOverHttp()
         {
             clientCredentialType = DefaultClientCredentialType;
-            negotiateServiceCredential = DefaultNegotiateServiceCredential;
+            NegotiateServiceCredential = DefaultNegotiateServiceCredential;
             algorithmSuite = SecurityAlgorithmSuite.Default;
         }
 
@@ -37,11 +35,7 @@ namespace CoreWCF
             }
         }
 
-        public bool NegotiateServiceCredential
-        {
-            get { return negotiateServiceCredential; }
-            set { negotiateServiceCredential = value; }
-        }
+        public bool NegotiateServiceCredential { get; set; }
 
         public SecurityAlgorithmSuite AlgorithmSuite
         {
@@ -53,14 +47,11 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
                 }
                 algorithmSuite = value;
-                wasAlgorithmSuiteSet = true;
+                WasAlgorithmSuiteSet = true;
             }
         }
 
-        internal bool WasAlgorithmSuiteSet
-        {
-            get { return wasAlgorithmSuiteSet; }
-        }
+        internal bool WasAlgorithmSuiteSet { get; private set; }
 
         protected virtual bool IsSecureConversationEnabled()
         {
@@ -174,7 +165,7 @@ namespace CoreWCF
             }
 
             // set the algorithm suite and issued token params if required
-            if (wasAlgorithmSuiteSet || (!isKerberosSelected))
+            if (WasAlgorithmSuiteSet || (!isKerberosSelected))
             {
                 result.DefaultAlgorithmSuite = oneShotSecurity.DefaultAlgorithmSuite = AlgorithmSuite;
             }

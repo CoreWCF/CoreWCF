@@ -8,17 +8,12 @@ namespace CoreWCF.Channels
 {
     internal class ReplyChannel : ServiceChannelBase, IReplyChannel
     {
-        private readonly EndpointAddress localAddress;
-
         public ReplyChannel(IDefaultCommunicationTimeouts timeouts, EndpointAddress localAddress) : base(timeouts)
         {
-            this.localAddress = localAddress;
+            LocalAddress = localAddress;
         }
 
-        public EndpointAddress LocalAddress
-        {
-            get { return localAddress; }
-        }
+        public EndpointAddress LocalAddress { get; }
 
         public override T GetProperty<T>()
         {

@@ -9,7 +9,6 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract, Inherited = false, AllowMultiple = false)]
     public sealed class ServiceContractAttribute : Attribute
     {
-        private Type _callbackContract;
         private string _configurationName;
         private string _name;
         private string _ns;
@@ -79,11 +78,7 @@ namespace CoreWCF
             }
         }
 
-        public Type CallbackContract
-        {
-            get { return _callbackContract; }
-            set { _callbackContract = value; }
-        }
+        public Type CallbackContract { get; set; }
 
     }
 }

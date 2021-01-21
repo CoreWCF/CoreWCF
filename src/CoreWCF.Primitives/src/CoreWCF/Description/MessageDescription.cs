@@ -9,10 +9,7 @@ namespace CoreWCF.Description
     public class MessageDescription
     {
         private static Type typeOfUntypedMessage;
-        private string action;
-        private readonly MessageDirection direction;
         private MessageDescriptionItems items;
-        private XmlName messageName;
         private Type messageType;
         //XmlQualifiedName xsdType;
 
@@ -25,26 +22,19 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(direction)));
             }
 
-            this.action = action;
-            this.direction = direction;
+            Action = action;
+            Direction = direction;
             this.items = items;
         }
 
-        public string Action
-        {
-            get { return action; }
-            internal set { action = value; }
-        }
+        public string Action { get; internal set; }
 
         public MessageBodyDescription Body
         {
             get { return Items.Body; }
         }
 
-        public MessageDirection Direction
-        {
-            get { return direction; }
-        }
+        public MessageDirection Direction { get; }
 
         public MessageHeaderDescriptionCollection Headers
         {
@@ -83,11 +73,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal XmlName MessageName
-        {
-            get { return messageName; }
-            set { messageName = value; }
-        }
+        internal XmlName MessageName { get; set; }
 
         public Type MessageType
         {

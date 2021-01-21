@@ -10,28 +10,16 @@ namespace CoreWCF.Dispatcher
     public class EndpointDispatcher
     {
         private MessageFilter addressFilter;
-        private bool addressFilterSetExplicit;
-        private ChannelDispatcher channelDispatcher;
         private MessageFilter contractFilter;
-        private readonly string contractName;
         private readonly string contractNamespace;
-        private ServiceChannel datagramChannel;
-        private readonly DispatchRuntime dispatchRuntime;
         private MessageFilter endpointFilter;
-        private int filterPriority;
-        private readonly Uri listenUri;
         private readonly EndpointAddress originalAddress;
-
-        //string perfCounterId;
-        //string perfCounterBaseId;
-        private string id; // for ServiceMetadataBehavior, to help get EndpointIdentity of ServiceEndpoint from EndpointDispatcher
-        private readonly bool isSystemEndpoint;
 
         internal EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, string id, bool isSystemEndpoint)
             : this(address, contractName, contractNamespace)
         {
-            this.id = id;
-            this.isSystemEndpoint = isSystemEndpoint;
+            Id = id;
+            IsSystemEndpoint = isSystemEndpoint;
         }
 
         public EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace)
@@ -42,7 +30,7 @@ namespace CoreWCF.Dispatcher
         public EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, bool isSystemEndpoint)
         {
             originalAddress = address;
-            this.contractName = contractName;
+            ContractName = contractName;
             this.contractNamespace = contractNamespace;
 
             if (address != null)
@@ -55,9 +43,9 @@ namespace CoreWCF.Dispatcher
             }
 
             contractFilter = new MatchAllMessageFilter();
-            dispatchRuntime = new DispatchRuntime(this);
-            filterPriority = 0;
-            this.isSystemEndpoint = isSystemEndpoint;
+            DispatchRuntime = new DispatchRuntime(this);
+            FilterPriority = 0;
+            IsSystemEndpoint = isSystemEndpoint;
         }
 
         private EndpointDispatcher(EndpointDispatcher baseEndpoint, IEnumerable<AddressHeader> headers)
@@ -72,18 +60,18 @@ namespace CoreWCF.Dispatcher
             addressFilter = new EndpointAddressMessageFilter(address);
             // channelDispatcher is Attached
             contractFilter = baseEndpoint.ContractFilter;
-            contractName = baseEndpoint.ContractName;
+            ContractName = baseEndpoint.ContractName;
             contractNamespace = baseEndpoint.ContractNamespace;
-            dispatchRuntime = baseEndpoint.DispatchRuntime;
+            DispatchRuntime = baseEndpoint.DispatchRuntime;
             // endpointFilter is lazy
-            filterPriority = baseEndpoint.FilterPriority + 1;
+            FilterPriority = baseEndpoint.FilterPriority + 1;
             originalAddress = address;
             //if (PerformanceCounters.PerformanceCountersEnabled)
             //{
             //    this.perfCounterId = baseEndpoint.perfCounterId;
             //    this.perfCounterBaseId = baseEndpoint.perfCounterBaseId;
             //}
-            id = baseEndpoint.id;
+            Id = baseEndpoint.Id;
         }
 
         public MessageFilter AddressFilter
@@ -97,19 +85,13 @@ namespace CoreWCF.Dispatcher
                 }
                 ThrowIfDisposedOrImmutable();
                 addressFilter = value;
-                addressFilterSetExplicit = true;
+                AddressFilterSetExplicit = true;
             }
         }
 
-        internal bool AddressFilterSetExplicit
-        {
-            get { return addressFilterSetExplicit; }
-        }
+        internal bool AddressFilterSetExplicit { get; private set; }
 
-        public ChannelDispatcher ChannelDispatcher
-        {
-            get { return channelDispatcher; }
-        }
+        public ChannelDispatcher ChannelDispatcher { get; private set; }
 
         internal MessageFilter ContractFilter
         {
@@ -125,31 +107,18 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public string ContractName
-        {
-            get { return contractName; }
-        }
+        public string ContractName { get; }
 
         public string ContractNamespace
         {
             get { return contractNamespace; }
         }
 
-        internal ServiceChannel DatagramChannel
-        {
-            get { return datagramChannel; }
-            set { datagramChannel = value; }
-        }
+        internal ServiceChannel DatagramChannel { get; set; }
 
-        public DispatchRuntime DispatchRuntime
-        {
-            get { return dispatchRuntime; }
-        }
+        public DispatchRuntime DispatchRuntime { get; }
 
-        internal Uri ListenUri
-        {
-            get { return listenUri; }
-        }
+        internal Uri ListenUri { get; }
 
         internal EndpointAddress OriginalAddress
         {
@@ -160,7 +129,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (channelDispatcher == null)
+                if (ChannelDispatcher == null)
                 {
                     return originalAddress;
                 }
@@ -188,10 +157,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public bool IsSystemEndpoint
-        {
-            get { return isSystemEndpoint; }
-        }
+        public bool IsSystemEndpoint { get; }
 
         internal MessageFilter EndpointFilter
         {
@@ -218,17 +184,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public int FilterPriority
-        {
-            get { return filterPriority; }
-            set { filterPriority = value; }
-        }
+        public int FilterPriority { get; set; }
 
-        internal string Id
-        {
-            get { return id; }
-            set { id = value; }
-        }
+        internal string Id { get; set; }
 
         //internal string PerfCounterId
         //{
@@ -257,13 +215,13 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelDispatcher));
             }
 
-            if (this.channelDispatcher != null)
+            if (ChannelDispatcher != null)
             {
                 Exception error = new InvalidOperationException(SR.SFxEndpointDispatcherMultipleChannelDispatcher0);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
             }
 
-            this.channelDispatcher = channelDispatcher;
+            ChannelDispatcher = channelDispatcher;
             // TODO: Plumb through the listening Uri
             //listenUri = channelDispatcher.Listener?.Uri;
         }
@@ -275,14 +233,14 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelDispatcher));
             }
 
-            if (this.channelDispatcher != channelDispatcher)
+            if (ChannelDispatcher != channelDispatcher)
             {
                 Exception error = new InvalidOperationException(SR.SFxEndpointDispatcherDifferentChannelDispatcher0);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
             }
 
             //this.ReleasePerformanceCounters();
-            this.channelDispatcher = null;
+            ChannelDispatcher = null;
         }
 
         //internal void ReleasePerformanceCounters()
@@ -324,7 +282,7 @@ namespace CoreWCF.Dispatcher
 
         private void ThrowIfDisposedOrImmutable()
         {
-            ChannelDispatcher channelDispatcher = this.channelDispatcher;
+            ChannelDispatcher channelDispatcher = ChannelDispatcher;
             if (channelDispatcher != null)
             {
                 channelDispatcher.ThrowIfDisposedOrImmutable();

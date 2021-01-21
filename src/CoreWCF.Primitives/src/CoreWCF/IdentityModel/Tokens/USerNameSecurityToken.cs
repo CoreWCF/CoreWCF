@@ -10,7 +10,6 @@ namespace CoreWCF.IdentityModel.Tokens
     internal class USerNameSecurityToken : SecurityToken
     {
         private readonly string id;
-        private readonly string password;
         private readonly string userName;
         private readonly DateTime effectiveTime;
 
@@ -32,7 +31,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             this.userName = userName;
-            this.password = password;
+            Password = password;
             this.id = id;
             effectiveTime = DateTime.UtcNow;
         }
@@ -63,10 +62,7 @@ namespace CoreWCF.IdentityModel.Tokens
             get { return userName; }
         }
 
-        public string Password
-        {
-            get { return password; }
-        }
+        public string Password { get; }
     }
 
 }

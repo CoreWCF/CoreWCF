@@ -8,16 +8,9 @@ namespace CoreWCF.Dispatcher
 {
     public abstract class ExceptionHandler
     {
-        private static readonly ExceptionHandler alwaysHandle = new AlwaysHandleExceptionHandler();
-        private static ExceptionHandler transportExceptionHandler = alwaysHandle;
+        private static ExceptionHandler transportExceptionHandler = AlwaysHandle;
 
-        public static ExceptionHandler AlwaysHandle
-        {
-            get
-            {
-                return alwaysHandle;
-            }
-        }
+        public static ExceptionHandler AlwaysHandle { get; } = new AlwaysHandleExceptionHandler();
 
         public static ExceptionHandler AsynchronousThreadExceptionHandler
         {

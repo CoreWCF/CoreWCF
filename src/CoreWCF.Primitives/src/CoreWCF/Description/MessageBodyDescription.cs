@@ -8,19 +8,14 @@ namespace CoreWCF.Description
     public class MessageBodyDescription
     {
         private XmlName _wrapperName;
-        private string _wrapperNs;
-        private readonly MessagePartDescriptionCollection _parts;
         private MessagePartDescription _returnValue;
 
         public MessageBodyDescription()
         {
-            _parts = new MessagePartDescriptionCollection();
+            Parts = new MessagePartDescriptionCollection();
         }
 
-        public MessagePartDescriptionCollection Parts
-        {
-            get { return _parts; }
-        }
+        public MessagePartDescriptionCollection Parts { get; }
 
         [DefaultValue(null)]
         public MessagePartDescription ReturnValue
@@ -37,10 +32,6 @@ namespace CoreWCF.Description
         }
 
         [DefaultValue(null)]
-        public string WrapperNamespace
-        {
-            get { return _wrapperNs; }
-            set { _wrapperNs = value; }
-        }
+        public string WrapperNamespace { get; set; }
     }
 }

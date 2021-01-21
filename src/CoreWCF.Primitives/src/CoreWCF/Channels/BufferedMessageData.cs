@@ -10,7 +10,6 @@ namespace CoreWCF.Channels
     internal abstract class BufferedMessageData : IBufferedMessageData
     {
         private ArraySegment<byte> buffer;
-        private BufferManager bufferManager;
         private int refCount;
         private int outstandingReaders;
         private bool multipleUsers;
@@ -27,10 +26,7 @@ namespace CoreWCF.Channels
             get { return buffer; }
         }
 
-        public BufferManager BufferManager
-        {
-            get { return bufferManager; }
-        }
+        public BufferManager BufferManager { get; private set; }
 
         public virtual XmlDictionaryReaderQuotas Quotas
         {
@@ -69,10 +65,10 @@ namespace CoreWCF.Channels
 
         private void DoClose()
         {
-            bufferManager.ReturnBuffer(buffer.Array);
+            BufferManager.ReturnBuffer(buffer.Array);
             if (outstandingReaders == 0)
             {
-                bufferManager = null;
+                BufferManager = null;
                 buffer = new ArraySegment<byte>();
                 OnClosed();
             }
@@ -179,7 +175,7 @@ namespace CoreWCF.Channels
         public void Open(ArraySegment<byte> buffer, BufferManager bufferManager)
         {
             refCount = 1;
-            this.bufferManager = bufferManager;
+            BufferManager = bufferManager;
             this.buffer = buffer;
             multipleUsers = false;
         }

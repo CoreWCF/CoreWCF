@@ -9,24 +9,20 @@ namespace CoreWCF.Channels
 {
     public abstract class BodyWriter
     {
-        private readonly bool isBuffered;
         private bool canWrite;
         private readonly object thisLock;
 
         protected BodyWriter(bool isBuffered)
         {
-            this.isBuffered = isBuffered;
+            IsBuffered = isBuffered;
             canWrite = true;
-            if (!this.isBuffered)
+            if (!IsBuffered)
             {
                 thisLock = new object();
             }
         }
 
-        public bool IsBuffered
-        {
-            get { return isBuffered; }
-        }
+        public bool IsBuffered { get; }
 
         internal virtual bool IsEmpty
         {
@@ -46,7 +42,7 @@ namespace CoreWCF.Channels
                                                     SR.ValueMustBeNonNegative));
             }
 
-            if (isBuffered)
+            if (IsBuffered)
             {
                 return this;
             }
@@ -105,7 +101,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
 
-            if (!isBuffered)
+            if (!IsBuffered)
             {
                 lock (thisLock)
                 {

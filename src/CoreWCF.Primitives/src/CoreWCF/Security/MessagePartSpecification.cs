@@ -13,7 +13,6 @@ namespace CoreWCF.Security
     {
         private List<XmlQualifiedName> _headerTypes;
         private bool _isBodyIncluded;
-        private bool _isReadOnly;
         private static MessagePartSpecification _noParts;
 
         public ICollection<XmlQualifiedName> HeaderTypes
@@ -25,7 +24,7 @@ namespace CoreWCF.Security
                     _headerTypes = new List<XmlQualifiedName>();
                 }
 
-                if (_isReadOnly)
+                if (IsReadOnly)
                 {
                     return new ReadOnlyCollection<XmlQualifiedName>(_headerTypes);
                 }
@@ -49,7 +48,7 @@ namespace CoreWCF.Security
             }
             set
             {
-                if (_isReadOnly)
+                if (IsReadOnly)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
@@ -58,13 +57,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return _isReadOnly;
-            }
-        }
+        public bool IsReadOnly { get; private set; }
 
         static public MessagePartSpecification NoParts
         {
@@ -82,7 +75,7 @@ namespace CoreWCF.Security
 
         public void Clear()
         {
-            if (_isReadOnly)
+            if (IsReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
@@ -97,7 +90,7 @@ namespace CoreWCF.Security
 
         public void Union(MessagePartSpecification specification)
         {
-            if (_isReadOnly)
+            if (IsReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
@@ -127,7 +120,7 @@ namespace CoreWCF.Security
 
         public void MakeReadOnly()
         {
-            if (_isReadOnly)
+            if (IsReadOnly)
             {
                 return;
             }
@@ -162,7 +155,7 @@ namespace CoreWCF.Security
                 _headerTypes = noDuplicates;
             }
 
-            _isReadOnly = true;
+            IsReadOnly = true;
         }
 
         public MessagePartSpecification()

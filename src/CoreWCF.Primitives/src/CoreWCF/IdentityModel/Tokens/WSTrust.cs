@@ -16,21 +16,14 @@ namespace CoreWCF.IdentityModel.Security
     internal class WSTrust : SecurityTokenSerializer.SerializerEntries
     {
         private readonly KeyInfoSerializer securityTokenSerializer;
-        private readonly TrustDictionary serializerDictionary;
 
         public WSTrust(KeyInfoSerializer securityTokenSerializer, TrustDictionary serializerDictionary)
         {
             this.securityTokenSerializer = securityTokenSerializer;
-            this.serializerDictionary = serializerDictionary;
+            SerializerDictionary = serializerDictionary;
         }
 
-        public TrustDictionary SerializerDictionary
-        {
-            get
-            {
-                return serializerDictionary;
-            }
-        }
+        public TrustDictionary SerializerDictionary { get; }
 
         public override void PopulateTokenEntries(IList<SecurityTokenSerializer.TokenEntry> tokenEntryList)
         {

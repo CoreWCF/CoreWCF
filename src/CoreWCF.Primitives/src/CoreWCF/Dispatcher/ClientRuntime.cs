@@ -20,14 +20,11 @@ namespace CoreWCF.Dispatcher
         internal SynchronizedKeyedCollection<string, ClientOperation> operations;
         private Type callbackProxyType;
         private readonly ProxyBehaviorCollection<IChannelInitializer> channelInitializers;
-        private readonly string contractName;
         private readonly string contractNamespace;
         private Type contractProxyType;
-        private DispatchRuntime dispatchRuntime;
         private IdentityVerifier identityVerifier;
         private IClientOperationSelector operationSelector;
         private ImmutableClientRuntime runtime;
-        private readonly ClientOperation unhandled;
         private bool useSynchronizationContext = true;
         private Uri via;
         private readonly SharedRuntimeState shared;
@@ -44,7 +41,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatchRuntime));
             }
 
-            this.dispatchRuntime = dispatchRuntime;
+            DispatchRuntime = dispatchRuntime;
             this.shared = shared;
 
             Fx.Assert(shared.IsOnServer, "Server constructor called on client?");
@@ -58,7 +55,7 @@ namespace CoreWCF.Dispatcher
 
         private ClientRuntime(string contractName, string contractNamespace, SharedRuntimeState shared)
         {
-            this.contractName = contractName;
+            ContractName = contractName;
             this.contractNamespace = contractNamespace;
             this.shared = shared;
 
@@ -67,8 +64,8 @@ namespace CoreWCF.Dispatcher
             channelInitializers = new ProxyBehaviorCollection<IChannelInitializer>(this);
             messageInspectors = new ProxyBehaviorCollection<IClientMessageInspector>(this);
 
-            unhandled = new ClientOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
-            unhandled.InternalFormatter = new MessageOperationFormatter();
+            UnhandledClientOperation = new ClientOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
+            UnhandledClientOperation.InternalFormatter = new MessageOperationFormatter();
             maxFaultSize = TransportDefaults.MaxFaultSize;
         }
 
@@ -103,10 +100,7 @@ namespace CoreWCF.Dispatcher
             get { return channelInitializers; }
         }
 
-        public string ContractName
-        {
-            get { return contractName; }
-        }
+        public string ContractName { get; }
 
         public string ContractNamespace
         {
@@ -188,21 +182,18 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal DispatchRuntime DispatchRuntime
-        {
-            get { return dispatchRuntime; }
-        }
+        internal DispatchRuntime DispatchRuntime { get; private set; }
 
         public DispatchRuntime CallbackDispatchRuntime
         {
             get
             {
-                if (dispatchRuntime == null)
+                if (DispatchRuntime == null)
                 {
-                    dispatchRuntime = new DispatchRuntime(this, shared);
+                    DispatchRuntime = new DispatchRuntime(this, shared);
                 }
 
-                return dispatchRuntime;
+                return DispatchRuntime;
             }
         }
 
@@ -212,7 +203,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (IsOnServer)
                 {
-                    return dispatchRuntime.EnableFaults;
+                    return DispatchRuntime.EnableFaults;
                 }
                 else
                 {
@@ -261,7 +252,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (IsOnServer)
                 {
-                    return dispatchRuntime.ManualAddressing;
+                    return DispatchRuntime.ManualAddressing;
                 }
                 else
                 {
@@ -343,10 +334,7 @@ namespace CoreWCF.Dispatcher
             get { return shared; }
         }
 
-        public ClientOperation UnhandledClientOperation
-        {
-            get { return unhandled; }
-        }
+        public ClientOperation UnhandledClientOperation { get; }
 
         internal bool UseSynchronizationContext
         {

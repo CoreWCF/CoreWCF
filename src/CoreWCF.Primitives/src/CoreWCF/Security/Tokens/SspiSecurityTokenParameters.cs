@@ -14,13 +14,12 @@ namespace CoreWCF.Security.Tokens
     public class SspiSecurityTokenParameters : SecurityTokenParameters
     {
         internal const bool defaultRequireCancellation = false;
-        private bool requireCancellation = defaultRequireCancellation;
         private BindingContext issuerBindingContext;
 
         protected SspiSecurityTokenParameters(SspiSecurityTokenParameters other)
             : base(other)
         {
-            requireCancellation = other.requireCancellation;
+            RequireCancellation = other.RequireCancellation;
             if (other.issuerBindingContext != null)
             {
                 issuerBindingContext = other.issuerBindingContext.Clone();
@@ -37,22 +36,12 @@ namespace CoreWCF.Security.Tokens
         public SspiSecurityTokenParameters(bool requireCancellation)
             : base()
         {
-            this.requireCancellation = requireCancellation;
+            RequireCancellation = requireCancellation;
         }
 
         internal protected override bool HasAsymmetricKey { get { return false; } }
 
-        public bool RequireCancellation
-        {
-            get
-            {
-                return requireCancellation;
-            }
-            set
-            {
-                requireCancellation = value;
-            }
-        }
+        public bool RequireCancellation { get; set; } = defaultRequireCancellation;
 
         internal BindingContext IssuerBindingContext
         {

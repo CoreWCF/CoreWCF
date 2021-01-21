@@ -11,10 +11,7 @@ namespace CoreWCF
 {
     public class MessageHeader<T>
     {
-        private string actor;
-        private bool mustUnderstand;
         private bool relay;
-        private T content;
 
         public MessageHeader()
         {
@@ -27,29 +24,17 @@ namespace CoreWCF
 
         public MessageHeader(T content, bool mustUnderstand, string actor, bool relay)
         {
-            this.content = content;
-            this.mustUnderstand = mustUnderstand;
-            this.actor = actor;
+            Content = content;
+            MustUnderstand = mustUnderstand;
+            Actor = actor;
             this.relay = relay;
         }
 
-        public string Actor
-        {
-            get { return actor; }
-            set { actor = value; }
-        }
+        public string Actor { get; set; }
 
-        public T Content
-        {
-            get { return content; }
-            set { content = value; }
-        }
+        public T Content { get; set; }
 
-        public bool MustUnderstand
-        {
-            get { return mustUnderstand; }
-            set { mustUnderstand = value; }
-        }
+        public bool MustUnderstand { get; set; }
 
         public bool Relay
         {
@@ -64,7 +49,7 @@ namespace CoreWCF
 
         public MessageHeader GetUntypedHeader(string name, string ns)
         {
-            return MessageHeader.CreateHeader(name, ns, content, mustUnderstand, actor, relay);
+            return MessageHeader.CreateHeader(name, ns, Content, MustUnderstand, Actor, relay);
         }
     }
 

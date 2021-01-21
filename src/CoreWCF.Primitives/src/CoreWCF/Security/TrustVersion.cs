@@ -7,17 +7,15 @@ namespace CoreWCF.Security
 {
     public abstract class TrustVersion
     {
-        private readonly XmlDictionaryString prefix;
-
         internal TrustVersion(XmlDictionaryString ns, XmlDictionaryString prefix)
         {
             Namespace = ns;
-            this.prefix = prefix;
+            Prefix = prefix;
         }
 
         public XmlDictionaryString Namespace { get; }
 
-        public XmlDictionaryString Prefix => prefix;
+        public XmlDictionaryString Prefix { get; }
 
         public static TrustVersion Default => WSTrustFeb2005;
 

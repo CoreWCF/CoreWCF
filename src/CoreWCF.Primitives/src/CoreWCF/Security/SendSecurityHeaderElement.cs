@@ -7,24 +7,18 @@ namespace CoreWCF.Security
 {
     internal class SendSecurityHeaderElement
     {
-        private bool markedForEncryption;
-
         public SendSecurityHeaderElement(string id, ISecurityElement item)
         {
             Id = id;
             Item = item;
-            markedForEncryption = false;
+            MarkedForEncryption = false;
         }
 
         public string Id { get; private set; }
 
         public ISecurityElement Item { get; private set; }
 
-        public bool MarkedForEncryption
-        {
-            get { return markedForEncryption; }
-            set { markedForEncryption = value; }
-        }
+        public bool MarkedForEncryption { get; set; }
 
         public bool IsSameItem(ISecurityElement item)
         {

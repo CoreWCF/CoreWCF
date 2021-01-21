@@ -112,7 +112,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            this.filters.Add(filter, data);
+            filters.Add(filter, data);
             if (filter.Actions.Count == 0)
             {
                 always.Add(filter);

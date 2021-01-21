@@ -48,10 +48,10 @@ namespace CoreWCF.Runtime
             }
         }
 
-        private static IOThreadScheduler current = new IOThreadScheduler(32, 32);
-        private readonly ScheduledOverlapped overlapped;
-        private readonly Slot[] slots;
-        private readonly Slot[] slotsLowPri;
+        private static IOThreadScheduler s_current = new IOThreadScheduler(32, 32);
+        private readonly ScheduledOverlapped _overlapped;
+        private readonly Slot[] _slots;
+        private readonly Slot[] _slotsLowPri;
 
         // This field holds both the head (HiWord) and tail (LoWord) indices into the slot array.  This limits each
         // value to 64k.  In order to be able to distinguish wrapping the slot array (allowed) from wrapping the
@@ -64,11 +64,11 @@ namespace CoreWCF.Runtime
         //
         // When the tail is *two* slots ahead of the head (equivalent to a count of -1), that means the IOTS is
         // idle.  Hence, we start out headTail with a -2 (equivalent) in the head and zero in the tail.
-        private int headTail = -2 << Bits.HiShift;
+        private int _headTail = -2 << Bits.HiShift;
 
         // This field is the same except that it governs the low-priority work items.  It doesn't have a concept
         // of idle (-2) so starts empty (-1).
-        private int headTailLowPri = -1 << Bits.HiShift;
+        private int _headTailLowPri = -1 << Bits.HiShift;
 
         private IOThreadScheduler(int capacity, int capacityLowPri)
         {
@@ -78,13 +78,13 @@ namespace CoreWCF.Runtime
             Fx.Assert(capacityLowPri > 0, "Low-priority capacity must be positive.");
             Fx.Assert(capacityLowPri <= 0x8000, "Low-priority capacity cannot exceed 32k.");
 
-            slots = new Slot[capacity];
-            Fx.Assert((slots.Length & SlotMask) == 0, "Capacity must be a power of two.");
+            _slots = new Slot[capacity];
+            Fx.Assert((_slots.Length & SlotMask) == 0, "Capacity must be a power of two.");
 
-            slotsLowPri = new Slot[capacityLowPri];
-            Fx.Assert((slotsLowPri.Length & SlotMaskLowPri) == 0, "Low-priority capacity must be a power of two.");
+            _slotsLowPri = new Slot[capacityLowPri];
+            Fx.Assert((_slotsLowPri.Length & SlotMaskLowPri) == 0, "Low-priority capacity must be a power of two.");
 
-            overlapped = new ScheduledOverlapped();
+            _overlapped = new ScheduledOverlapped();
         }
 
         public static void ScheduleCallbackNoFlow(Action<object> callback, object state)
@@ -101,7 +101,7 @@ namespace CoreWCF.Runtime
                 finally
                 {
                     // Called in a finally because it needs to run uninterrupted in order to maintain consistency.
-                    queued = IOThreadScheduler.current.ScheduleCallbackHelper(callback, state);
+                    queued = IOThreadScheduler.s_current.ScheduleCallbackHelper(callback, state);
                 }
             }
         }
@@ -120,7 +120,7 @@ namespace CoreWCF.Runtime
                 finally
                 {
                     // Called in a finally because it needs to run uninterrupted in order to maintain consistency.
-                    queued = IOThreadScheduler.current.ScheduleCallbackLowPriHelper(callback, state);
+                    queued = IOThreadScheduler.s_current.ScheduleCallbackLowPriHelper(callback, state);
                 }
             }
         }
@@ -129,14 +129,14 @@ namespace CoreWCF.Runtime
         private bool ScheduleCallbackHelper(Action<object> callback, object state)
         {
             // See if there's a free slot.  Fortunately the overflow bit is simply lost.
-            int slot = Interlocked.Add(ref headTail, Bits.HiOne);
+            int slot = Interlocked.Add(ref _headTail, Bits.HiOne);
 
             // If this brings us to 'empty', then the IOTS used to be 'idle'.  Remember that, and increment
             // again.  This doesn't need to be in a loop, because until we call Post(), we can't go back to idle.
             bool wasIdle = Bits.Count(slot) == 0;
             if (wasIdle)
             {
-                slot = Interlocked.Add(ref headTail, Bits.HiOne);
+                slot = Interlocked.Add(ref _headTail, Bits.HiOne);
                 Fx.Assert(Bits.Count(slot) != 0, "IOTS went idle when it shouldn't have.");
             }
 
@@ -149,20 +149,20 @@ namespace CoreWCF.Runtime
                 throw Fx.AssertAndThrowFatal("Head/Tail overflow!");
             }
 
-            bool queued = slots[slot >> Bits.HiShift & SlotMask].TryEnqueueWorkItem(callback, state, out bool wrapped);
+            bool queued = _slots[slot >> Bits.HiShift & SlotMask].TryEnqueueWorkItem(callback, state, out bool wrapped);
 
             if (wrapped)
             {
                 // Wrapped around the circular buffer.  Create a new, bigger IOThreadScheduler.
                 IOThreadScheduler next =
-                    new IOThreadScheduler(Math.Min(slots.Length * 2, MaximumCapacity), slotsLowPri.Length);
-                Interlocked.CompareExchange<IOThreadScheduler>(ref IOThreadScheduler.current, next, this);
+                    new IOThreadScheduler(Math.Min(_slots.Length * 2, MaximumCapacity), _slotsLowPri.Length);
+                Interlocked.CompareExchange<IOThreadScheduler>(ref IOThreadScheduler.s_current, next, this);
             }
 
             if (wasIdle)
             {
                 // It's our responsibility to kick off the overlapped.
-                overlapped.Post(this);
+                _overlapped.Post(this);
             }
 
             return queued;
@@ -172,7 +172,7 @@ namespace CoreWCF.Runtime
         private bool ScheduleCallbackLowPriHelper(Action<object> callback, object state)
         {
             // See if there's a free slot.  Fortunately the overflow bit is simply lost.
-            int slot = Interlocked.Add(ref headTailLowPri, Bits.HiOne);
+            int slot = Interlocked.Add(ref _headTailLowPri, Bits.HiOne);
 
             // If this is the first low-priority work item, make sure we're not idle.
             bool wasIdle = false;
@@ -181,13 +181,13 @@ namespace CoreWCF.Runtime
                 // Since Interlocked calls create a full thread barrier, this will read the value of headTail
                 // at the time of the Interlocked.Add or later.  The invariant is that the IOTS is unidle at some
                 // point after the Add.
-                int ht = headTail;
+                int ht = _headTail;
 
                 if (Bits.Count(ht) == -1)
                 {
                     // Use a temporary local here to store the result of the Interlocked.CompareExchange.  This
                     // works around a codegen bug in the 32-bit JIT (TFS 749182).
-                    int interlockedResult = Interlocked.CompareExchange(ref headTail, ht + Bits.HiOne, ht);
+                    int interlockedResult = Interlocked.CompareExchange(ref _headTail, ht + Bits.HiOne, ht);
                     if (ht == interlockedResult)
                     {
                         wasIdle = true;
@@ -204,20 +204,20 @@ namespace CoreWCF.Runtime
                 throw Fx.AssertAndThrowFatal("Low-priority Head/Tail overflow!");
             }
 
-            bool queued = slotsLowPri[slot >> Bits.HiShift & SlotMaskLowPri].TryEnqueueWorkItem(
+            bool queued = _slotsLowPri[slot >> Bits.HiShift & SlotMaskLowPri].TryEnqueueWorkItem(
                 callback, state, out bool wrapped);
 
             if (wrapped)
             {
                 IOThreadScheduler next =
-                    new IOThreadScheduler(slots.Length, Math.Min(slotsLowPri.Length * 2, MaximumCapacity));
-                Interlocked.CompareExchange<IOThreadScheduler>(ref IOThreadScheduler.current, next, this);
+                    new IOThreadScheduler(_slots.Length, Math.Min(_slotsLowPri.Length * 2, MaximumCapacity));
+                Interlocked.CompareExchange<IOThreadScheduler>(ref IOThreadScheduler.s_current, next, this);
             }
 
             if (wasIdle)
             {
                 // It's our responsibility to kick off the overlapped.
-                overlapped.Post(this);
+                _overlapped.Post(this);
             }
 
             return queued;
@@ -225,7 +225,7 @@ namespace CoreWCF.Runtime
 
         private void CompletionCallback(out Action<object> callback, out object state)
         {
-            int slot = headTail;
+            int slot = _headTail;
             int slotLowPri;
             while (true)
             {
@@ -237,25 +237,25 @@ namespace CoreWCF.Runtime
                     // We're about to set this to idle.  First check the low-priority queue.  This alone doesn't
                     // guarantee we service all the low-pri items - there hasn't even been an Interlocked yet.  But
                     // we take care of that later.
-                    slotLowPri = headTailLowPri;
+                    slotLowPri = _headTailLowPri;
                     while (Bits.CountNoIdle(slotLowPri) != 0)
                     {
-                        if (slotLowPri == (slotLowPri = Interlocked.CompareExchange(ref headTailLowPri,
+                        if (slotLowPri == (slotLowPri = Interlocked.CompareExchange(ref _headTailLowPri,
                             Bits.IncrementLo(slotLowPri), slotLowPri)))
                         {
-                            overlapped.Post(this);
-                            slotsLowPri[slotLowPri & SlotMaskLowPri].DequeueWorkItem(out callback, out state);
+                            _overlapped.Post(this);
+                            _slotsLowPri[slotLowPri & SlotMaskLowPri].DequeueWorkItem(out callback, out state);
                             return;
                         }
                     }
                 }
 
-                if (slot == (slot = Interlocked.CompareExchange(ref headTail, Bits.IncrementLo(slot), slot)))
+                if (slot == (slot = Interlocked.CompareExchange(ref _headTail, Bits.IncrementLo(slot), slot)))
                 {
                     if (!wasEmpty)
                     {
-                        overlapped.Post(this);
-                        slots[slot & SlotMask].DequeueWorkItem(out callback, out state);
+                        _overlapped.Post(this);
+                        _slots[slot & SlotMask].DequeueWorkItem(out callback, out state);
                         return;
                     }
 
@@ -267,14 +267,14 @@ namespace CoreWCF.Runtime
                     // idle (so that the next enqueue will notice, and issue a Post), or that the IOTS was unidle at
                     // some point after we set it to idle (so that the next attempt to go idle will verify that the
                     // low-priority queue is empty).
-                    slotLowPri = headTailLowPri;
+                    slotLowPri = _headTailLowPri;
 
                     if (Bits.CountNoIdle(slotLowPri) != 0)
                     {
                         // Whoops, go back from being idle (unless someone else already did).  If we go back, start
                         // over.  (We still owe a Post.)
                         slot = Bits.IncrementLo(slot);
-                        if (slot == Interlocked.CompareExchange(ref headTail, slot + Bits.HiOne, slot))
+                        if (slot == Interlocked.CompareExchange(ref _headTail, slot + Bits.HiOne, slot))
                         {
                             slot += Bits.HiOne;
                             continue;
@@ -296,30 +296,30 @@ namespace CoreWCF.Runtime
 
         private bool TryCoalesce(out Action<object> callback, out object state)
         {
-            int slot = headTail;
+            int slot = _headTail;
             int slotLowPri;
             while (true)
             {
                 if (Bits.Count(slot) > 0)
                 {
-                    if (slot == (slot = Interlocked.CompareExchange(ref headTail, Bits.IncrementLo(slot), slot)))
+                    if (slot == (slot = Interlocked.CompareExchange(ref _headTail, Bits.IncrementLo(slot), slot)))
                     {
-                        slots[slot & SlotMask].DequeueWorkItem(out callback, out state);
+                        _slots[slot & SlotMask].DequeueWorkItem(out callback, out state);
                         return true;
                     }
                     continue;
                 }
 
-                slotLowPri = headTailLowPri;
+                slotLowPri = _headTailLowPri;
                 if (Bits.CountNoIdle(slotLowPri) > 0)
                 {
-                    if (slotLowPri == (slotLowPri = Interlocked.CompareExchange(ref headTailLowPri,
+                    if (slotLowPri == (slotLowPri = Interlocked.CompareExchange(ref _headTailLowPri,
                         Bits.IncrementLo(slotLowPri), slotLowPri)))
                     {
-                        slotsLowPri[slotLowPri & SlotMaskLowPri].DequeueWorkItem(out callback, out state);
+                        _slotsLowPri[slotLowPri & SlotMaskLowPri].DequeueWorkItem(out callback, out state);
                         return true;
                     }
-                    slot = headTail;
+                    slot = _headTail;
                     continue;
                 }
 
@@ -335,7 +335,7 @@ namespace CoreWCF.Runtime
         {
             get
             {
-                return slots.Length - 1;
+                return _slots.Length - 1;
             }
         }
 
@@ -343,7 +343,7 @@ namespace CoreWCF.Runtime
         {
             get
             {
-                return slotsLowPri.Length - 1;
+                return _slotsLowPri.Length - 1;
             }
         }
 
@@ -365,34 +365,34 @@ namespace CoreWCF.Runtime
 
         private void Cleanup()
         {
-            if (overlapped != null)
+            if (_overlapped != null)
             {
-                overlapped.Cleanup();
+                _overlapped.Cleanup();
             }
         }
 
 #if DEBUG
         private void DebugVerifyHeadTail()
         {
-            if (slots != null)
+            if (_slots != null)
             {
                 // The headTail value could technically be zero if the constructor was aborted early.  The
                 // constructor wasn't aborted early if the slot array got created.
-                Fx.Assert(Bits.Count(headTail) == -1, "IOTS finalized while not idle.");
+                Fx.Assert(Bits.Count(_headTail) == -1, "IOTS finalized while not idle.");
 
-                for (int i = 0; i < slots.Length; i++)
+                for (int i = 0; i < _slots.Length; i++)
                 {
-                    slots[i].DebugVerifyEmpty();
+                    _slots[i].DebugVerifyEmpty();
                 }
             }
 
-            if (slotsLowPri != null)
+            if (_slotsLowPri != null)
             {
-                Fx.Assert(Bits.CountNoIdle(headTailLowPri) == 0, "IOTS finalized with low-priority items queued.");
+                Fx.Assert(Bits.CountNoIdle(_headTailLowPri) == 0, "IOTS finalized with low-priority items queued.");
 
-                for (int i = 0; i < slotsLowPri.Length; i++)
+                for (int i = 0; i < _slotsLowPri.Length; i++)
                 {
-                    slotsLowPri[i].DebugVerifyEmpty();
+                    _slotsLowPri[i].DebugVerifyEmpty();
                 }
             }
         }
@@ -435,32 +435,32 @@ namespace CoreWCF.Runtime
         //   -  The state field follows the same rules as callback.
         private struct Slot
         {
-            private int gate;
-            private Action<object> callback;
-            private object state;
+            private int _gate;
+            private Action<object> _callback;
+            private object _state;
 
             public bool TryEnqueueWorkItem(Action<object> callback, object state, out bool wrapped)
             {
                 // Register our arrival and check the state of this slot.  If the slot was already full, we wrapped.
-                int gateSnapshot = Interlocked.Increment(ref gate);
+                int gateSnapshot = Interlocked.Increment(ref _gate);
                 wrapped = (gateSnapshot & Bits.LoCountMask) != 1;
                 if (wrapped)
                 {
                     if ((gateSnapshot & Bits.LoHiBit) != 0 && Bits.IsComplete(gateSnapshot))
                     {
-                        Interlocked.CompareExchange(ref gate, 0, gateSnapshot);
+                        Interlocked.CompareExchange(ref _gate, 0, gateSnapshot);
                     }
                     return false;
                 }
 
-                Fx.Assert(this.callback == null, "Slot already has a work item.");
+                Fx.Assert(_callback == null, "Slot already has a work item.");
                 Fx.Assert((gateSnapshot & Bits.HiBits) == 0, "Slot already marked.");
 
-                this.state = state;
-                this.callback = callback;
+                _state = state;
+                _callback = callback;
 
                 // Set the special bit to show that the slot is filled.
-                gateSnapshot = Interlocked.Add(ref gate, Bits.LoHiBit);
+                gateSnapshot = Interlocked.Add(ref _gate, Bits.LoHiBit);
                 Fx.Assert((gateSnapshot & Bits.HiBits) == Bits.LoHiBit, "Slot already empty.");
 
                 if ((gateSnapshot & Bits.HiCountMask) == 0)
@@ -470,17 +470,17 @@ namespace CoreWCF.Runtime
                 }
 
                 // Oops - someone already came looking for this work.  We have to abort and reschedule.
-                this.state = null;
-                this.callback = null;
+                _state = null;
+                _callback = null;
 
                 // Indicate that the slot is clear.  We might be able to bypass setting the high bit.
                 if (gateSnapshot >> Bits.HiShift != (gateSnapshot & Bits.LoCountMask) ||
-                    Interlocked.CompareExchange(ref gate, 0, gateSnapshot) != gateSnapshot)
+                    Interlocked.CompareExchange(ref _gate, 0, gateSnapshot) != gateSnapshot)
                 {
-                    gateSnapshot = Interlocked.Add(ref gate, Bits.HiHiBit);
+                    gateSnapshot = Interlocked.Add(ref _gate, Bits.HiHiBit);
                     if (Bits.IsComplete(gateSnapshot))
                     {
-                        Interlocked.CompareExchange(ref gate, 0, gateSnapshot);
+                        Interlocked.CompareExchange(ref _gate, 0, gateSnapshot);
                     }
                 }
 
@@ -490,7 +490,7 @@ namespace CoreWCF.Runtime
             public void DequeueWorkItem(out Action<object> callback, out object state)
             {
                 // Stake our claim on the item.
-                int gateSnapshot = Interlocked.Add(ref gate, Bits.HiOne);
+                int gateSnapshot = Interlocked.Add(ref _gate, Bits.HiOne);
 
                 if ((gateSnapshot & Bits.LoHiBit) == 0)
                 {
@@ -506,20 +506,20 @@ namespace CoreWCF.Runtime
                 // If we're the first, we get to do the work.
                 if ((gateSnapshot & Bits.HiCountMask) == Bits.HiOne)
                 {
-                    callback = this.callback;
-                    state = this.state;
-                    this.state = null;
-                    this.callback = null;
+                    callback = _callback;
+                    state = _state;
+                    _state = null;
+                    _callback = null;
 
                     // Indicate that the slot is clear.
                     // We should be able to bypass setting the high-bit in the common case.
                     if ((gateSnapshot & Bits.LoCountMask) != 1 ||
-                        Interlocked.CompareExchange(ref gate, 0, gateSnapshot) != gateSnapshot)
+                        Interlocked.CompareExchange(ref _gate, 0, gateSnapshot) != gateSnapshot)
                     {
-                        gateSnapshot = Interlocked.Add(ref gate, Bits.HiHiBit);
+                        gateSnapshot = Interlocked.Add(ref _gate, Bits.HiHiBit);
                         if (Bits.IsComplete(gateSnapshot))
                         {
-                            Interlocked.CompareExchange(ref gate, 0, gateSnapshot);
+                            Interlocked.CompareExchange(ref _gate, 0, gateSnapshot);
                         }
                     }
                 }
@@ -531,7 +531,7 @@ namespace CoreWCF.Runtime
                     // If we're the last, we get to reset the slot.
                     if (Bits.IsComplete(gateSnapshot))
                     {
-                        Interlocked.CompareExchange(ref gate, 0, gateSnapshot);
+                        Interlocked.CompareExchange(ref _gate, 0, gateSnapshot);
                     }
                 }
             }
@@ -539,9 +539,9 @@ namespace CoreWCF.Runtime
 #if DEBUG
             public void DebugVerifyEmpty()
             {
-                Fx.Assert(gate == 0, "Finalized with unfinished slot.");
-                Fx.Assert(callback == null, "Finalized with leaked callback.");
-                Fx.Assert(state == null, "Finalized with leaked state.");
+                Fx.Assert(_gate == 0, "Finalized with unfinished slot.");
+                Fx.Assert(_callback == null, "Finalized with leaked callback.");
+                Fx.Assert(_state == null, "Finalized with leaked state.");
             }
 #endif
         }

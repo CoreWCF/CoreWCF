@@ -11,20 +11,10 @@ namespace CoreWCF.Description
     public class OperationDescription
     {
         internal const string SessionOpenedAction = "http://schemas.microsoft.com/2011/02/session/onopen"; //Channels.WebSocketTransportSettings.ConnectionOpenedAction;
-        private readonly XmlName _name;
-        private bool _isInitiating;
-        private bool _isTerminating;
         private bool _isSessionOpenNotificationEnabled;
         private ContractDescription _declaringContract;
-        private readonly FaultDescriptionCollection _faults;
-        private readonly MessageDescriptionCollection _messages;
-        private readonly KeyedByTypeCollection<IOperationBehavior> _behaviors;
         private readonly Collection<Type> _knownTypes;
-        private MethodInfo _beginMethod;
-        private MethodInfo _endMethod;
-        private MethodInfo _syncMethod;
         private MethodInfo _taskMethod;
-        private readonly bool _validateRpcWrapperName = true;
         private bool _hasNoDisposableParameters;
 
         public OperationDescription(string name, ContractDescription declaringContract)
@@ -40,18 +30,18 @@ namespace CoreWCF.Description
                     new ArgumentOutOfRangeException(nameof(name), SR.SFxOperationDescriptionNameCannotBeEmpty));
             }
 
-            _name = new XmlName(name, true /*isEncoded*/);
+            XmlName = new XmlName(name, true /*isEncoded*/);
             if (declaringContract == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(declaringContract));
             }
 
             _declaringContract = declaringContract;
-            _isInitiating = true;
-            _isTerminating = false;
-            _faults = new FaultDescriptionCollection();
-            _messages = new MessageDescriptionCollection();
-            _behaviors = new KeyedByTypeCollection<IOperationBehavior>();
+            IsInitiating = true;
+            IsTerminating = false;
+            Faults = new FaultDescriptionCollection();
+            Messages = new MessageDescriptionCollection();
+            Behaviors = new KeyedByTypeCollection<IOperationBehavior>();
             _knownTypes = new Collection<Type>();
         }
 
@@ -63,27 +53,15 @@ namespace CoreWCF.Description
 
         // Not serializable on purpose, metadata import/export cannot
         // produce it, only available when binding to runtime
-        public MethodInfo SyncMethod
-        {
-            get { return _syncMethod; }
-            set { _syncMethod = value; }
-        }
+        public MethodInfo SyncMethod { get; set; }
 
         // Not serializable on purpose, metadata import/export cannot
         // produce it, only available when binding to runtime
-        public MethodInfo BeginMethod
-        {
-            get { return _beginMethod; }
-            set { _beginMethod = value; }
-        }
+        public MethodInfo BeginMethod { get; set; }
 
         // Not serializable on purpose, metadata import/export cannot
         // produce it, only available when binding to runtime
-        public MethodInfo EndMethod
-        {
-            get { return _endMethod; }
-            set { _endMethod = value; }
-        }
+        public MethodInfo EndMethod { get; set; }
 
         // Not serializable on purpose, metadata import/export cannot
         // produce it, only available when binding to runtime
@@ -126,10 +104,7 @@ namespace CoreWCF.Description
             }
         }
 
-        public FaultDescriptionCollection Faults
-        {
-            get { return _faults; }
-        }
+        public FaultDescriptionCollection Faults { get; }
 
         public bool IsOneWay
         {
@@ -142,43 +117,30 @@ namespace CoreWCF.Description
         }
 
         // Messages[0] is the 'request' (first of MEP), and for non-oneway MEPs, Messages[1] is the 'response' (second of MEP)
-        public MessageDescriptionCollection Messages
-        {
-            get { return _messages; }
-        }
+        public MessageDescriptionCollection Messages { get; }
 
         internal string CodeName
         {
-            get { return _name.DecodedName; }
+            get { return XmlName.DecodedName; }
         }
 
         public string Name
         {
-            get { return _name.EncodedName; }
+            get { return XmlName.EncodedName; }
         }
 
-        internal bool IsValidateRpcWrapperName { get { return _validateRpcWrapperName; } }
+        internal bool IsValidateRpcWrapperName { get; } = true;
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {
-            get { return _behaviors; }
+            get { return Behaviors; }
         }
 
-        internal KeyedByTypeCollection<IOperationBehavior> Behaviors
-        {
-            get { return _behaviors; }
-        }
+        internal KeyedByTypeCollection<IOperationBehavior> Behaviors { get; }
 
-        internal XmlName XmlName
-        {
-            get { return _name; }
-        }
+        internal XmlName XmlName { get; }
 
-        internal bool IsInitiating
-        {
-            get { return _isInitiating; }
-            set { _isInitiating = value; }
-        }
+        internal bool IsInitiating { get; set; }
 
         internal bool IsServerInitiated()
         {
@@ -186,11 +148,7 @@ namespace CoreWCF.Description
             return Messages[0].Direction == MessageDirection.Output;
         }
 
-        internal bool IsTerminating
-        {
-            get { return _isTerminating; }
-            set { _isTerminating = value; }
-        }
+        internal bool IsTerminating { get; set; }
 
         internal void EnsureInvariants()
         {

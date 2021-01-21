@@ -25,14 +25,12 @@ namespace CoreWCF.Security
 {
     internal abstract class WSTrust : WSSecurityTokenSerializer.SerializerEntries
     {
-        private readonly WSSecurityTokenSerializer tokenSerializer;
-
         public WSTrust(WSSecurityTokenSerializer tokenSerializer)
         {
-            this.tokenSerializer = tokenSerializer;
+            WSSecurityTokenSerializer = tokenSerializer;
         }
 
-        public WSSecurityTokenSerializer WSSecurityTokenSerializer => tokenSerializer;
+        public WSSecurityTokenSerializer WSSecurityTokenSerializer { get; }
 
         public abstract TrustDictionary SerializerDictionary
         {

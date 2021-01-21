@@ -93,20 +93,12 @@ namespace CoreWCF.Channels
 
         private class ToDictionary : IXmlDictionary
         {
-            private readonly XmlDictionaryString to;
-
             public ToDictionary(string to)
             {
-                this.to = new XmlDictionaryString(this, to, 0);
+                To = new XmlDictionaryString(this, to, 0);
             }
 
-            public XmlDictionaryString To
-            {
-                get
-                {
-                    return to;
-                }
-            }
+            public XmlDictionaryString To { get; private set; }
 
             public bool TryLookup(string value, out XmlDictionaryString result)
             {
@@ -115,9 +107,9 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
-                if (value == to.Value)
+                if (value == To.Value)
                 {
-                    result = to;
+                    result = To;
                     return true;
                 }
                 result = null;
@@ -128,7 +120,7 @@ namespace CoreWCF.Channels
             {
                 if (key == 0)
                 {
-                    result = to;
+                    result = To;
                     return true;
                 }
                 result = null;
@@ -142,9 +134,9 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
-                if (value == to)
+                if (value == To)
                 {
-                    result = to;
+                    result = To;
                     return true;
                 }
                 result = null;

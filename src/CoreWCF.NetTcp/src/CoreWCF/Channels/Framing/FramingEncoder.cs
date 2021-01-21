@@ -44,41 +44,36 @@ namespace CoreWCF.Channels.Framing
 
     internal abstract class EncodedFramingRecord
     {
-        private byte[] _encodedBytes;
-
         protected EncodedFramingRecord(byte[] encodedBytes)
         {
-            _encodedBytes = encodedBytes;
+            EncodedBytes = encodedBytes;
         }
 
         internal EncodedFramingRecord(FramingRecordType recordType, string value)
         {
             int valueByteCount = Encoding.UTF8.GetByteCount(value);
             int sizeByteCount = IntEncoder.GetEncodedSize(valueByteCount);
-            _encodedBytes = Fx.AllocateByteArray(checked(1 + sizeByteCount + valueByteCount));
-            _encodedBytes[0] = (byte)recordType;
+            EncodedBytes = Fx.AllocateByteArray(checked(1 + sizeByteCount + valueByteCount));
+            EncodedBytes[0] = (byte)recordType;
             int offset = 1;
-            offset += IntEncoder.Encode(valueByteCount, _encodedBytes, offset);
-            Encoding.UTF8.GetBytes(value, 0, value.Length, _encodedBytes, offset);
-            SetEncodedBytes(_encodedBytes);
+            offset += IntEncoder.Encode(valueByteCount, EncodedBytes, offset);
+            Encoding.UTF8.GetBytes(value, 0, value.Length, EncodedBytes, offset);
+            SetEncodedBytes(EncodedBytes);
         }
 
 
-        public byte[] EncodedBytes
-        {
-            get { return _encodedBytes; }
-        }
+        public byte[] EncodedBytes { get; private set; }
 
         protected void SetEncodedBytes(byte[] encodedBytes)
         {
-            _encodedBytes = encodedBytes;
+            EncodedBytes = encodedBytes;
         }
 
         public override int GetHashCode()
         {
-            return (_encodedBytes[0] << 16) |
-                (_encodedBytes[_encodedBytes.Length / 2] << 8) |
-                _encodedBytes[_encodedBytes.Length - 1];
+            return (EncodedBytes[0] << 16) |
+                (EncodedBytes[EncodedBytes.Length / 2] << 8) |
+                EncodedBytes[EncodedBytes.Length - 1];
         }
 
         public override bool Equals(object o)
@@ -103,15 +98,15 @@ namespace CoreWCF.Channels.Framing
                 return true;
             }
 
-            byte[] otherBytes = other._encodedBytes;
-            if (_encodedBytes.Length != otherBytes.Length)
+            byte[] otherBytes = other.EncodedBytes;
+            if (EncodedBytes.Length != otherBytes.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < _encodedBytes.Length; i++)
+            for (int i = 0; i < EncodedBytes.Length; i++)
             {
-                if (_encodedBytes[i] != otherBytes[i])
+                if (EncodedBytes[i] != otherBytes[i])
                 {
                     return false;
                 }

@@ -16,9 +16,7 @@ namespace CoreWCF.Security
     internal class SecurityStandardsManager
     {
         private static SecurityStandardsManager s_instance;
-        private readonly SecurityTokenSerializer _tokenSerializer;
         private WSSecurityTokenSerializer _wsSecurityTokenSerializer;
-        private readonly TrustDriver trustDriver;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public SecurityStandardsManager()
@@ -34,7 +32,7 @@ namespace CoreWCF.Security
         public SecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer tokenSerializer)
         {
             MessageSecurityVersion = messageSecurityVersion ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(messageSecurityVersion)));
-            _tokenSerializer = tokenSerializer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
+            SecurityTokenSerializer = tokenSerializer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
             if (messageSecurityVersion.SecureConversationVersion == SecureConversationVersion.WSSecureConversation13)
             {
                 SecureConversationDriver = new WSSecureConversationDec2005.DriverDec2005();
@@ -56,11 +54,11 @@ namespace CoreWCF.Security
             WSUtilitySpecificationVersion = WSUtilitySpecificationVersion.Default;
             if (messageSecurityVersion.MessageSecurityTokenVersion.TrustVersion == TrustVersion.WSTrust13)
             {
-                trustDriver = new WSTrustDec2005.DriverDec2005(this);
+                TrustDriver = new WSTrustDec2005.DriverDec2005(this);
             }
             else
             {
-                trustDriver = new WSTrustFeb2005.DriverFeb2005(this);
+                TrustDriver = new WSTrustFeb2005.DriverFeb2005(this);
             }
         }
 
@@ -89,10 +87,7 @@ namespace CoreWCF.Security
             get { return MessageSecurityVersion?.TrustVersion; }
         }
 
-        internal SecurityTokenSerializer SecurityTokenSerializer
-        {
-            get { return _tokenSerializer; }
-        }
+        internal SecurityTokenSerializer SecurityTokenSerializer { get; }
 
         internal WSUtilitySpecificationVersion WSUtilitySpecificationVersion { get; }
 
@@ -100,7 +95,7 @@ namespace CoreWCF.Security
 
         internal SecureConversationDriver SecureConversationDriver { get; }
 
-        internal TrustDriver TrustDriver { get { return trustDriver; } }
+        internal TrustDriver TrustDriver { get; }
 
         private WSSecurityTokenSerializer WSSecurityTokenSerializer
         {
@@ -108,7 +103,7 @@ namespace CoreWCF.Security
             {
                 if (_wsSecurityTokenSerializer == null)
                 {
-                    WSSecurityTokenSerializer wsSecurityTokenSerializer = _tokenSerializer as WSSecurityTokenSerializer;
+                    WSSecurityTokenSerializer wsSecurityTokenSerializer = SecurityTokenSerializer as WSSecurityTokenSerializer;
                     if (wsSecurityTokenSerializer == null)
                     {
                         wsSecurityTokenSerializer = new WSSecurityTokenSerializer(SecurityVersion);

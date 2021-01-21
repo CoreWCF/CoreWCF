@@ -13,7 +13,6 @@ namespace CoreWCF.IdentityModel.Tokens
     {
         private const int InitialSize = 2;
         private readonly List<SecurityKeyIdentifierClause> clauses;
-        private bool isReadOnly;
 
         public SecurityKeyIdentifier()
         {
@@ -58,14 +57,11 @@ namespace CoreWCF.IdentityModel.Tokens
             get { return clauses.Count; }
         }
 
-        public bool IsReadOnly
-        {
-            get { return isReadOnly; }
-        }
+        public bool IsReadOnly { get; private set; }
 
         public void Add(SecurityKeyIdentifierClause clause)
         {
-            if (isReadOnly)
+            if (IsReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
@@ -104,7 +100,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public void MakeReadOnly()
         {
-            isReadOnly = true;
+            IsReadOnly = true;
         }
 
         public override string ToString()

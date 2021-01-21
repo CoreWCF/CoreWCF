@@ -461,8 +461,6 @@ namespace CoreWCF.Channels
 
         internal struct MethodData
         {
-            private readonly MethodBase _methodBase;
-            private readonly MethodType _methodType;
             private readonly ProxyOperationRuntime _operation;
 
             public MethodData(MethodBase methodBase, MethodType methodType)
@@ -472,20 +470,14 @@ namespace CoreWCF.Channels
 
             public MethodData(MethodBase methodBase, MethodType methodType, ProxyOperationRuntime operation)
             {
-                _methodBase = methodBase;
-                _methodType = methodType;
+                MethodBase = methodBase;
+                MethodType = methodType;
                 _operation = operation;
             }
 
-            public MethodBase MethodBase
-            {
-                get { return _methodBase; }
-            }
+            public MethodBase MethodBase { get; }
 
-            public MethodType MethodType
-            {
-                get { return _methodType; }
-            }
+            public MethodType MethodType { get; }
 
             public ProxyOperationRuntime Operation
             {

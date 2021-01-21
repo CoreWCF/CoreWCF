@@ -17,8 +17,6 @@ namespace CoreWCF.Security
         private const int InitialTokenArraySize = 10;
         private int tokenCount;
         private SecurityTokenEntry[] tokens;
-        private SecurityToken expectedWrapper;
-        private SecurityTokenParameters expectedWrapperTokenParameters;
         private readonly ReceiveSecurityHeader securityHeader;
 
         public SecurityHeaderTokenResolver()
@@ -32,17 +30,9 @@ namespace CoreWCF.Security
             this.securityHeader = securityHeader;
         }
 
-        public SecurityToken ExpectedWrapper
-        {
-            get { return expectedWrapper; }
-            set { expectedWrapper = value; }
-        }
+        public SecurityToken ExpectedWrapper { get; set; }
 
-        public SecurityTokenParameters ExpectedWrapperTokenParameters
-        {
-            get { return expectedWrapperTokenParameters; }
-            set { expectedWrapperTokenParameters = value; }
-        }
+        public SecurityTokenParameters ExpectedWrapperTokenParameters { get; set; }
 
         public void Add(SecurityToken token)
         {
@@ -77,14 +67,14 @@ namespace CoreWCF.Security
 
         public bool CheckExternalWrapperMatch(SecurityKeyIdentifier keyIdentifier)
         {
-            if (expectedWrapper == null || expectedWrapperTokenParameters == null)
+            if (ExpectedWrapper == null || ExpectedWrapperTokenParameters == null)
             {
                 return false;
             }
 
             for (int i = 0; i < keyIdentifier.Count; i++)
             {
-                if (expectedWrapperTokenParameters.MatchesKeyIdentifierClause(expectedWrapper, keyIdentifier[i], SecurityTokenReferenceStyle.External))
+                if (ExpectedWrapperTokenParameters.MatchesKeyIdentifierClause(ExpectedWrapper, keyIdentifier[i], SecurityTokenReferenceStyle.External))
                 {
                     return true;
                 }
@@ -186,10 +176,10 @@ namespace CoreWCF.Security
                 EncryptedKeyIdentifierClause keyClause = (EncryptedKeyIdentifierClause)keyIdentifierClause;
                 SecurityKeyIdentifier wrappingTokenReference = keyClause.EncryptingKeyIdentifier;
                 SecurityToken unwrappingToken;
-                if (expectedWrapper != null
+                if (ExpectedWrapper != null
                     && CheckExternalWrapperMatch(wrappingTokenReference))
                 {
-                    unwrappingToken = expectedWrapper;
+                    unwrappingToken = ExpectedWrapper;
                 }
                 else
                 {
@@ -314,20 +304,18 @@ namespace CoreWCF.Security
 
         private struct SecurityTokenEntry
         {
-            private readonly SecurityTokenParameters tokenParameters;
-            private readonly SecurityToken token;
             private readonly SecurityTokenReferenceStyle allowedReferenceStyle;
 
             public SecurityTokenEntry(SecurityToken token, SecurityTokenParameters tokenParameters, SecurityTokenReferenceStyle allowedReferenceStyle)
             {
-                this.token = token;
-                this.tokenParameters = tokenParameters;
+                Token = token;
+                TokenParameters = tokenParameters;
                 this.allowedReferenceStyle = allowedReferenceStyle;
             }
 
-            public SecurityToken Token => token;
+            public SecurityToken Token { get; }
 
-            public SecurityTokenParameters TokenParameters => tokenParameters;
+            public SecurityTokenParameters TokenParameters { get; }
 
             public SecurityTokenReferenceStyle AllowedReferenceStyle => allowedReferenceStyle;
         }

@@ -14,9 +14,7 @@ namespace CoreWCF.IdentityModel
 
     public abstract class SecurityKeyIdentifierClause
     {
-        private readonly string clauseType;
         private readonly byte[] derivationNonce;
-        private readonly int derivationLength;
         private string id = null;
 
         protected SecurityKeyIdentifierClause(string clauseType)
@@ -26,9 +24,9 @@ namespace CoreWCF.IdentityModel
 
         protected SecurityKeyIdentifierClause(string clauseType, byte[] nonce, int length)
         {
-            this.clauseType = clauseType;
+            ClauseType = clauseType;
             derivationNonce = nonce;
-            derivationLength = length;
+            DerivationLength = length;
         }
 
         public virtual bool CanCreateKey
@@ -36,10 +34,7 @@ namespace CoreWCF.IdentityModel
             get { return false; }
         }
 
-        public string ClauseType
-        {
-            get { return clauseType; }
-        }
+        public string ClauseType { get; }
 
         public string Id
         {
@@ -62,10 +57,7 @@ namespace CoreWCF.IdentityModel
             return (derivationNonce != null) ? (byte[])derivationNonce.Clone() : null;
         }
 
-        public int DerivationLength
-        {
-            get { return derivationLength; }
-        }
+        public int DerivationLength { get; }
     }
 
 }

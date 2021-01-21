@@ -13,7 +13,6 @@ namespace CoreWCF.Security.Tokens
     public class SecurityContextSecurityTokenResolver : SecurityTokenResolver, ISecurityContextSecurityTokenCache
     {
         private readonly SecurityContextTokenCache tokenCache;
-        private readonly bool removeOldestTokensOnCacheFull;
         private readonly int capacity;
         private TimeSpan clockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
 
@@ -35,9 +34,9 @@ namespace CoreWCF.Security.Tokens
             }
 
             capacity = securityContextCacheCapacity;
-            this.removeOldestTokensOnCacheFull = removeOldestTokensOnCacheFull;
+            RemoveOldestTokensOnCacheFull = removeOldestTokensOnCacheFull;
             this.clockSkew = clockSkew;
-            tokenCache = new SecurityContextTokenCache(capacity, this.removeOldestTokensOnCacheFull, clockSkew);
+            tokenCache = new SecurityContextTokenCache(capacity, RemoveOldestTokensOnCacheFull, clockSkew);
         }
 
         public int SecurityContextTokenCacheCapacity
@@ -56,13 +55,7 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        public bool RemoveOldestTokensOnCacheFull
-        {
-            get
-            {
-                return removeOldestTokensOnCacheFull;
-            }
-        }
+        public bool RemoveOldestTokensOnCacheFull { get; }
 
         public void AddContext(SecurityContextSecurityToken token)
         {

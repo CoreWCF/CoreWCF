@@ -13,10 +13,8 @@ namespace CoreWCF.Channels
     // TODO: Go through and verify all the internal methods to see if they are needed/used
     public abstract class CommunicationObject : ICommunicationObject
     {
-        private bool _aborted;
         private bool _closeCalled;
         private ExceptionQueue _exceptionQueue;
-        private readonly object _mutex;
         private bool _onClosingCalled;
         private bool _onClosedCalled;
         private bool _onOpeningCalled;
@@ -24,30 +22,20 @@ namespace CoreWCF.Channels
         private bool _raisedClosed;
         private bool _raisedClosing;
         private bool _raisedFaulted;
-
-        //bool traceOpenAndClose;
-        private object _eventSender;
         private CommunicationState _state;
 
         protected CommunicationObject() : this(new object()) { }
 
         protected CommunicationObject(object mutex)
         {
-            _mutex = mutex;
-            _eventSender = this;
+            ThisLock = mutex;
+            EventSender = this;
             _state = CommunicationState.Created;
         }
 
-        internal bool Aborted
-        {
-            get { return _aborted; }
-        }
+        internal bool Aborted { get; private set; }
 
-        internal object EventSender
-        {
-            get { return _eventSender; }
-            set { _eventSender = value; }
-        }
+        internal object EventSender { get; set; }
 
         protected bool IsDisposed
         {
@@ -59,10 +47,7 @@ namespace CoreWCF.Channels
             get { return _state; }
         }
 
-        protected object ThisLock
-        {
-            get { return _mutex; }
-        }
+        protected object ThisLock { get; }
 
         protected abstract TimeSpan DefaultCloseTimeout { get; }
         protected abstract TimeSpan DefaultOpenTimeout { get; }
@@ -87,12 +72,12 @@ namespace CoreWCF.Channels
         {
             lock (ThisLock)
             {
-                if (_aborted || _state == CommunicationState.Closed)
+                if (Aborted || _state == CommunicationState.Closed)
                 {
                     return;
                 }
 
-                _aborted = true;
+                Aborted = true;
                 _state = CommunicationState.Closing;
             }
 
@@ -410,7 +395,7 @@ namespace CoreWCF.Channels
             {
                 try
                 {
-                    handler(_eventSender, EventArgs.Empty);
+                    handler(EventSender, EventArgs.Empty);
                 }
                 catch (Exception exception)
                 {
@@ -447,7 +432,7 @@ namespace CoreWCF.Channels
             {
                 try
                 {
-                    handler(_eventSender, EventArgs.Empty);
+                    handler(EventSender, EventArgs.Empty);
                 }
                 catch (Exception exception)
                 {
@@ -483,7 +468,7 @@ namespace CoreWCF.Channels
             {
                 try
                 {
-                    handler(_eventSender, EventArgs.Empty);
+                    handler(EventSender, EventArgs.Empty);
                 }
                 catch (Exception exception)
                 {
@@ -503,7 +488,7 @@ namespace CoreWCF.Channels
 
             lock (ThisLock)
             {
-                if (_aborted || _state != CommunicationState.Opening)
+                if (Aborted || _state != CommunicationState.Opening)
                 {
                     return;
                 }
@@ -519,7 +504,7 @@ namespace CoreWCF.Channels
             {
                 try
                 {
-                    handler(_eventSender, EventArgs.Empty);
+                    handler(EventSender, EventArgs.Empty);
                 }
                 catch (Exception exception)
                 {
@@ -547,7 +532,7 @@ namespace CoreWCF.Channels
             {
                 try
                 {
-                    handler(_eventSender, EventArgs.Empty);
+                    handler(EventSender, EventArgs.Empty);
                 }
                 catch (Exception exception)
                 {
@@ -591,7 +576,7 @@ namespace CoreWCF.Channels
 
         internal void ThrowIfAborted()
         {
-            if (_aborted && !_closeCalled)
+            if (Aborted && !_closeCalled)
             {
                 throw TraceUtility.ThrowHelperError(CreateAbortedException(), Guid.Empty, this);
             }
@@ -807,17 +792,13 @@ namespace CoreWCF.Channels
         private class ExceptionQueue
         {
             private readonly Queue<Exception> _exceptions = new Queue<Exception>();
-            private readonly object _thisLock;
 
             internal ExceptionQueue(object thisLock)
             {
-                _thisLock = thisLock;
+                ThisLock = thisLock;
             }
 
-            private object ThisLock
-            {
-                get { return _thisLock; }
-            }
+            private object ThisLock { get; }
 
             public void AddException(Exception exception)
             {

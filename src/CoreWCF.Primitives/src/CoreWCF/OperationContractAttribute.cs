@@ -13,7 +13,6 @@ namespace CoreWCF
         private string _name;
         private string _action;
         private string _replyAction;
-        private bool _asyncPattern;
         private bool _isOneWay;
 
         public string Name
@@ -65,11 +64,7 @@ namespace CoreWCF
             }
         }
 
-        public bool AsyncPattern
-        {
-            get { return _asyncPattern; }
-            set { _asyncPattern = value; }
-        }
+        public bool AsyncPattern { get; set; }
 
         public bool IsOneWay
         {

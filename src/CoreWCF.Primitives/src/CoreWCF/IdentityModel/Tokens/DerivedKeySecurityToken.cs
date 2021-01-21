@@ -28,16 +28,8 @@ namespace CoreWCF.Security.Tokens
         public const int DefaultDerivedKeyLength = 32;
         private string id;
         private byte[] key;
-        private string keyDerivationAlgorithm;
         private string label;
-        private int length = -1;
         private byte[] nonce;
-
-        // either offset or generation must be specified.
-        private int offset = -1;
-        private int generation = -1;
-        private SecurityToken tokenToDerive;
-        private SecurityKeyIdentifierClause tokenToDeriveIdentifier;
         private ReadOnlyCollection<SecurityKey> securityKeys;
 
         // create from scratch
@@ -83,25 +75,25 @@ namespace CoreWCF.Security.Tokens
 
         public override string Id => id;
 
-        public override DateTime ValidFrom => tokenToDerive.ValidFrom;
+        public override DateTime ValidFrom => TokenToDerive.ValidFrom;
 
-        public override DateTime ValidTo => tokenToDerive.ValidTo;
+        public override DateTime ValidTo => TokenToDerive.ValidTo;
 
-        public string KeyDerivationAlgorithm => keyDerivationAlgorithm;
+        public string KeyDerivationAlgorithm { get; private set; }
 
-        public int Generation => generation;
+        public int Generation { get; private set; } = -1;
 
         public string Label => label;
 
-        public int Length => length;
+        public int Length { get; private set; } = -1;
 
         internal byte[] Nonce => nonce;
 
-        public int Offset => offset;
+        public int Offset { get; private set; } = -1;
 
-        internal SecurityToken TokenToDerive => tokenToDerive;
+        internal SecurityToken TokenToDerive { get; private set; }
 
-        internal SecurityKeyIdentifierClause TokenToDeriveIdentifier => tokenToDeriveIdentifier;
+        internal SecurityKeyIdentifierClause TokenToDeriveIdentifier { get; private set; }
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys
         {
@@ -196,16 +188,16 @@ namespace CoreWCF.Security.Tokens
             this.id = id;
             this.label = label;
             this.nonce = nonce;
-            this.length = length;
-            this.offset = offset;
-            this.generation = generation;
-            this.tokenToDerive = tokenToDerive;
-            this.tokenToDeriveIdentifier = tokenToDeriveIdentifier;
-            keyDerivationAlgorithm = derivationAlgorithm;
+            Length = length;
+            Offset = offset;
+            Generation = generation;
+            TokenToDerive = tokenToDerive;
+            TokenToDeriveIdentifier = tokenToDeriveIdentifier;
+            KeyDerivationAlgorithm = derivationAlgorithm;
 
             if (initializeDerivedKey)
             {
-                InitializeDerivedKey(this.length);
+                InitializeDerivedKey(Length);
             }
         }
 
@@ -215,14 +207,14 @@ namespace CoreWCF.Security.Tokens
             {
                 return;
             }
-            if (length > maxKeyLength)
+            if (Length > maxKeyLength)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.DerivedKeyLengthTooLong, length, maxKeyLength));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.DerivedKeyLengthTooLong, Length, maxKeyLength));
             }
 
-            key = SecurityUtils.GenerateDerivedKey(tokenToDerive, keyDerivationAlgorithm,
-                (label != null ? Encoding.UTF8.GetBytes(label) : DefaultLabel), nonce, length * 8,
-                ((offset >= 0) ? offset : generation * length));
+            key = SecurityUtils.GenerateDerivedKey(TokenToDerive, KeyDerivationAlgorithm,
+                (label != null ? Encoding.UTF8.GetBytes(label) : DefaultLabel), nonce, Length * 8,
+                ((Offset >= 0) ? Offset : Generation * Length));
             if ((key == null) || (key.Length == 0))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.DerivedKeyCannotDeriveFromSecret);

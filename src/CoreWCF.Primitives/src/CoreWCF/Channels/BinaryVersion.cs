@@ -10,20 +10,18 @@ namespace CoreWCF.Channels
         static public readonly BinaryVersion Version1 = new BinaryVersion(FramingEncodingString.Binary, FramingEncodingString.BinarySession, ServiceModelDictionary.Version1);
         static public readonly BinaryVersion GZipVersion1 = new BinaryVersion(FramingEncodingString.ExtendedBinaryGZip, FramingEncodingString.ExtendedBinarySessionGZip, ServiceModelDictionary.Version1);
         static public readonly BinaryVersion DeflateVersion1 = new BinaryVersion(FramingEncodingString.ExtendedBinaryDeflate, FramingEncodingString.ExtendedBinarySessionDeflate, ServiceModelDictionary.Version1);
-        private readonly string contentType;
         private readonly string sessionContentType;
-        private readonly IXmlDictionary dictionary;
 
         private BinaryVersion(string contentType, string sessionContentType, IXmlDictionary dictionary)
         {
-            this.contentType = contentType;
+            ContentType = contentType;
             this.sessionContentType = sessionContentType;
-            this.dictionary = dictionary;
+            Dictionary = dictionary;
         }
 
         static public BinaryVersion CurrentVersion { get { return Version1; } }
-        public string ContentType { get { return contentType; } }
+        public string ContentType { get; }
         public string SessionContentType { get { return sessionContentType; } }
-        public IXmlDictionary Dictionary { get { return dictionary; } }
+        public IXmlDictionary Dictionary { get; }
     }
 }

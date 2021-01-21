@@ -8,14 +8,9 @@ namespace CoreWCF.Security
 {
     internal class LaxModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
     {
-        private static readonly LaxModeSecurityHeaderElementInferenceEngine instance = new LaxModeSecurityHeaderElementInferenceEngine();
-
         protected LaxModeSecurityHeaderElementInferenceEngine() { }
 
-        internal static LaxModeSecurityHeaderElementInferenceEngine Instance
-        {
-            get { return instance; }
-        }
+        internal static LaxModeSecurityHeaderElementInferenceEngine Instance { get; } = new LaxModeSecurityHeaderElementInferenceEngine();
 
         public override void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader)
         {

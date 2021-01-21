@@ -12,7 +12,6 @@ namespace CoreWCF.Security
     public class DataProtectionSecurityStateEncoder : SecurityStateEncoder
     {
         private readonly byte[] entropy;
-        private readonly bool useCurrentUserProtectionScope;
 
         public DataProtectionSecurityStateEncoder() : this(true)
         {
@@ -24,7 +23,7 @@ namespace CoreWCF.Security
 
         public DataProtectionSecurityStateEncoder(bool useCurrentUserProtectionScope, byte[] entropy)
         {
-            this.useCurrentUserProtectionScope = useCurrentUserProtectionScope;
+            UseCurrentUserProtectionScope = useCurrentUserProtectionScope;
             if (entropy == null)
             {
                 this.entropy = null;
@@ -36,13 +35,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public bool UseCurrentUserProtectionScope
-        {
-            get
-            {
-                return useCurrentUserProtectionScope;
-            }
-        }
+        public bool UseCurrentUserProtectionScope { get; }
 
         public byte[] GetEntropy()
         {
@@ -59,7 +52,7 @@ namespace CoreWCF.Security
         {
             StringBuilder result = new StringBuilder();
             result.Append(GetType().ToString());
-            result.AppendFormat("{0}  UseCurrentUserProtectionScope={1}", Environment.NewLine, useCurrentUserProtectionScope);
+            result.AppendFormat("{0}  UseCurrentUserProtectionScope={1}", Environment.NewLine, UseCurrentUserProtectionScope);
             result.AppendFormat("{0}  Entropy Length={1}", Environment.NewLine, (entropy == null) ? 0 : entropy.Length);
             return result.ToString();
         }
@@ -68,7 +61,7 @@ namespace CoreWCF.Security
         {
             try
             {
-                return ProtectedData.Unprotect(data, entropy, (useCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
+                return ProtectedData.Unprotect(data, entropy, (UseCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
             }
             catch (CryptographicException exception)
             {
@@ -81,7 +74,7 @@ namespace CoreWCF.Security
         {
             try
             {
-                return ProtectedData.Protect(data, entropy, (useCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
+                return ProtectedData.Protect(data, entropy, (UseCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
             }
             catch (CryptographicException exception)
             {

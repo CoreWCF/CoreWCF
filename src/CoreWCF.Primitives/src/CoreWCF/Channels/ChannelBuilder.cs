@@ -9,11 +9,8 @@ namespace CoreWCF.Channels
 {
     internal class ChannelBuilder
     {
-        private CustomBinding binding;
         private BindingContext context;
-        private BindingParameterCollection bindingParameters;
         private readonly Uri listenUri;
-        private readonly ChannelDemuxer channelDemuxer;
         private readonly bool isChannelDemuxerRequired = false;
 
         public ChannelBuilder(BindingContext context, bool addChannelDemuxerIfRequired)
@@ -22,37 +19,26 @@ namespace CoreWCF.Channels
             isChannelDemuxerRequired = addChannelDemuxerIfRequired;
             if (isChannelDemuxerRequired)
             {
-                channelDemuxer = new ChannelDemuxer();
+                ChannelDemuxer = new ChannelDemuxer();
             }
 
-            binding = new CustomBinding(context.Binding, context.RemainingBindingElements);
-            bindingParameters = context.BindingParameters;
+            Binding = new CustomBinding(context.Binding, context.RemainingBindingElements);
+            BindingParameters = context.BindingParameters;
         }
 
         public ChannelBuilder(Binding binding, BindingParameterCollection bindingParameters, bool addChannelDemuxerIfRequired)
         {
-            this.binding = new CustomBinding(binding);
-            this.bindingParameters = bindingParameters;
+            Binding = new CustomBinding(binding);
+            BindingParameters = bindingParameters;
             isChannelDemuxerRequired = addChannelDemuxerIfRequired;
 
         }
 
-        public CustomBinding Binding
-        {
-            get { return binding; }
-            set { binding = value; }
-        }
+        public CustomBinding Binding { get; set; }
 
-        public BindingParameterCollection BindingParameters
-        {
-            get { return bindingParameters; }
-            set { bindingParameters = value; }
-        }
+        public BindingParameterCollection BindingParameters { get; set; }
 
-        public ChannelDemuxer ChannelDemuxer
-        {
-            get { return channelDemuxer; }
-        }
+        public ChannelDemuxer ChannelDemuxer { get; }
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             if (!isChannelDemuxerRequired)
@@ -60,7 +46,7 @@ namespace CoreWCF.Channels
                 throw new Exception("ChannelDemuxerRequired is set to false");
             }
 
-            return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher);
+            return ChannelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher);
         }
 
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter) where TChannel : class, IChannel
@@ -70,17 +56,17 @@ namespace CoreWCF.Channels
                 throw new Exception("ChannelDemuxerRequired is set to false");
             }
 
-            return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter);
+            return ChannelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter);
         }
 
         public void RemoveServiceDispatcher<TChannel>(MessageFilter filter) where TChannel : class, IChannel
         {
-            if (channelDemuxer == null)
+            if (ChannelDemuxer == null)
             {
                 throw new Exception("Demuxer can't be null");
             }
 
-            channelDemuxer.RemoveServiceDispatcher<TChannel>(filter);
+            ChannelDemuxer.RemoveServiceDispatcher<TChannel>(filter);
         }
 
         public IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
@@ -94,7 +80,7 @@ namespace CoreWCF.Channels
             }
             else
             {
-                return binding.BuildServiceDispatcher<TChannel>(bindingParameters, innerDispatcher);
+                return Binding.BuildServiceDispatcher<TChannel>(BindingParameters, innerDispatcher);
             }
         }
     }

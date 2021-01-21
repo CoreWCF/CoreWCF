@@ -7,7 +7,6 @@ namespace CoreWCF
 {
     public class FaultReasonText
     {
-        private readonly string _xmlLang;
         private readonly string _text;
 
         public FaultReasonText(string text)
@@ -18,7 +17,7 @@ namespace CoreWCF
             }
 
             _text = text;
-            _xmlLang = CultureInfo.CurrentCulture.Name;
+            XmlLang = CultureInfo.CurrentCulture.Name;
         }
 
         public FaultReasonText(string text, string xmlLang)
@@ -34,7 +33,7 @@ namespace CoreWCF
             }
 
             _text = text;
-            _xmlLang = xmlLang;
+            XmlLang = xmlLang;
         }
 
         // public on full framework
@@ -51,7 +50,7 @@ namespace CoreWCF
             }
 
             _text = text;
-            _xmlLang = cultureInfo.Name;
+            XmlLang = cultureInfo.Name;
         }
 
         public bool Matches(CultureInfo cultureInfo)
@@ -61,10 +60,10 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(cultureInfo));
             }
 
-            return _xmlLang == cultureInfo.Name;
+            return XmlLang == cultureInfo.Name;
         }
 
-        public string XmlLang => _xmlLang;
+        public string XmlLang { get; }
 
         public string Text => _text;
     }

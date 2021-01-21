@@ -13,7 +13,6 @@ namespace CoreWCF.IdentityModel.Claims
     {
         internal const bool DefaultIncludeWindowsGroups = true;
         private readonly WindowsIdentity _windowsIdentity;
-        private readonly DateTime _expirationTime;
         private readonly bool _includeWindowsGroups;
         private IList<Claim> _claims;
         private bool _disposed = false;
@@ -58,12 +57,12 @@ namespace CoreWCF.IdentityModel.Claims
 
             _windowsIdentity = clone ? CoreWCF.Security.SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
             _includeWindowsGroups = includeWindowsGroups;
-            _expirationTime = expirationTime;
+            ExpirationTime = expirationTime;
             _authenticationType = authenticationType;
         }
 
         private WindowsClaimSet(WindowsClaimSet from)
-            : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from._expirationTime, true)
+            : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from.ExpirationTime, true)
         {
         }
 
@@ -110,10 +109,7 @@ namespace CoreWCF.IdentityModel.Claims
             get { return ClaimSet.Windows; }
         }
 
-        public DateTime ExpirationTime
-        {
-            get { return _expirationTime; }
-        }
+        public DateTime ExpirationTime { get; }
 
         internal WindowsClaimSet Clone()
         {

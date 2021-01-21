@@ -14,8 +14,6 @@ namespace CoreWCF.Security
     // to allow minimal changes to ported code.
     public class ChannelProtectionRequirements
     {
-        private bool _isReadOnly;
-
         public ChannelProtectionRequirements()
         {
             IncomingSignatureParts = new ScopedMessagePartSpecification();
@@ -24,7 +22,7 @@ namespace CoreWCF.Security
             OutgoingEncryptionParts = new ScopedMessagePartSpecification();
         }
 
-        public bool IsReadOnly => _isReadOnly;
+        public bool IsReadOnly { get; private set; }
 
         public ChannelProtectionRequirements(ChannelProtectionRequirements other)
         {
@@ -115,13 +113,13 @@ namespace CoreWCF.Security
 
         public void MakeReadOnly()
         {
-            if (!_isReadOnly)
+            if (!IsReadOnly)
             {
                 IncomingSignatureParts.MakeReadOnly();
                 IncomingEncryptionParts.MakeReadOnly();
                 OutgoingSignatureParts.MakeReadOnly();
                 OutgoingEncryptionParts.MakeReadOnly();
-                _isReadOnly = true;
+                IsReadOnly = true;
             }
         }
 

@@ -12,7 +12,6 @@ namespace CoreWCF
     {
         internal const SecurityMode DefaultMode = SecurityMode.Transport;
         private SecurityMode mode;
-        private TcpTransportSecurity transportSecurity;
 
         public NetTcpSecurity()
             : this(DefaultMode, new TcpTransportSecurity())
@@ -24,7 +23,7 @@ namespace CoreWCF
             Fx.Assert(SecurityModeHelper.IsDefined(mode), string.Format("Invalid SecurityMode value: {0}.", mode.ToString()));
 
             this.mode = mode;
-            this.transportSecurity = transportSecurity == null ? new TcpTransportSecurity() : transportSecurity;
+            Transport = transportSecurity == null ? new TcpTransportSecurity() : transportSecurity;
         }
 
         [DefaultValue(DefaultMode)]
@@ -41,11 +40,7 @@ namespace CoreWCF
             }
         }
 
-        public TcpTransportSecurity Transport
-        {
-            get { return transportSecurity; }
-            set { transportSecurity = value; }
-        }
+        public TcpTransportSecurity Transport { get; set; }
 
         internal BindingElement CreateTransportSecurity()
         {
@@ -56,7 +51,7 @@ namespace CoreWCF
             }
             else if (mode == SecurityMode.Transport)
             {
-                return transportSecurity.CreateTransportProtectionAndAuthentication();
+                return Transport.CreateTransportProtectionAndAuthentication();
             }
             else
             {

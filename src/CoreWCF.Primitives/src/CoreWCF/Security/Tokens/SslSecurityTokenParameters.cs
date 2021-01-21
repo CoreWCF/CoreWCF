@@ -15,7 +15,6 @@ namespace CoreWCF.Security.Tokens
     {
         internal const bool defaultRequireClientCertificate = false;
         internal const bool defaultRequireCancellation = false;
-        private bool requireCancellation = defaultRequireCancellation;
         private bool requireClientCertificate;
         private BindingContext issuerBindingContext;
 
@@ -23,7 +22,7 @@ namespace CoreWCF.Security.Tokens
             : base(other)
         {
             requireClientCertificate = other.requireClientCertificate;
-            requireCancellation = other.requireCancellation;
+            RequireCancellation = other.RequireCancellation;
             if (other.issuerBindingContext != null)
             {
                 issuerBindingContext = other.issuerBindingContext.Clone();
@@ -46,22 +45,12 @@ namespace CoreWCF.Security.Tokens
             : base()
         {
             this.requireClientCertificate = requireClientCertificate;
-            this.requireCancellation = requireCancellation;
+            RequireCancellation = requireCancellation;
         }
 
         internal protected override bool HasAsymmetricKey { get { return false; } }
 
-        public bool RequireCancellation
-        {
-            get
-            {
-                return requireCancellation;
-            }
-            set
-            {
-                requireCancellation = value;
-            }
-        }
+        public bool RequireCancellation { get; set; } = defaultRequireCancellation;
 
         public bool RequireClientCertificate
         {

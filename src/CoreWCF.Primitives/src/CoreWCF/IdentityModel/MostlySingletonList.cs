@@ -8,7 +8,6 @@ namespace CoreWCF.IdentityModel
 {
     internal struct MostlySingletonList<T> where T : class
     {
-        private int count;
         private T singleton;
         private List<T> list;
 
@@ -28,19 +27,16 @@ namespace CoreWCF.IdentityModel
             }
         }
 
-        public int Count
-        {
-            get { return count; }
-        }
+        public int Count { get; private set; }
 
         public void Add(T item)
         {
             if (list == null)
             {
-                if (count == 0)
+                if (Count == 0)
                 {
                     singleton = item;
-                    count = 1;
+                    Count = 1;
                     return;
                 }
                 list = new List<T>();
@@ -48,7 +44,7 @@ namespace CoreWCF.IdentityModel
                 singleton = null;
             }
             list.Add(item);
-            count++;
+            Count++;
         }
 
         private static bool Compare(T x, T y)
@@ -63,7 +59,7 @@ namespace CoreWCF.IdentityModel
 
         private void EnsureValidSingletonIndex(int index)
         {
-            if (count != 1)
+            if (Count != 1)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("count", SR.Format("ValueMustBeOne")));
             }
@@ -77,7 +73,7 @@ namespace CoreWCF.IdentityModel
 
         private bool MatchesSingleton(T item)
         {
-            return count == 1 && Compare(singleton, item);
+            return Count == 1 && Compare(singleton, item);
         }
 
         public int IndexOf(T item)
@@ -99,7 +95,7 @@ namespace CoreWCF.IdentityModel
                 if (MatchesSingleton(item))
                 {
                     singleton = null;
-                    count = 0;
+                    Count = 0;
                     return true;
                 }
                 else
@@ -112,7 +108,7 @@ namespace CoreWCF.IdentityModel
                 bool result = list.Remove(item);
                 if (result)
                 {
-                    count--;
+                    Count--;
                 }
                 return result;
             }
@@ -124,12 +120,12 @@ namespace CoreWCF.IdentityModel
             {
                 EnsureValidSingletonIndex(index);
                 singleton = null;
-                count = 0;
+                Count = 0;
             }
             else
             {
                 list.RemoveAt(index);
-                count--;
+                Count--;
             }
         }
     }

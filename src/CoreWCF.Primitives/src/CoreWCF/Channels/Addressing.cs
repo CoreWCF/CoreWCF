@@ -10,17 +10,12 @@ namespace CoreWCF.Channels
     // TODO: This needed to be made public for NetTcp, investigate making it internal again
     public abstract class AddressingHeader : DictionaryHeader, IMessageHeaderWithSharedNamespace
     {
-        private readonly AddressingVersion version;
-
         protected AddressingHeader(AddressingVersion version)
         {
-            this.version = version;
+            Version = version;
         }
 
-        internal AddressingVersion Version
-        {
-            get { return version; }
-        }
+        internal AddressingVersion Version { get; }
 
         XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedPrefix
         {
@@ -29,30 +24,26 @@ namespace CoreWCF.Channels
 
         XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedNamespace
         {
-            get { return version.DictionaryNamespace; }
+            get { return Version.DictionaryNamespace; }
         }
 
         public override XmlDictionaryString DictionaryNamespace
         {
-            get { return version.DictionaryNamespace; }
+            get { return Version.DictionaryNamespace; }
         }
     }
 
     internal class ActionHeader : AddressingHeader
     {
-        private readonly string action;
         private const bool mustUnderstandValue = true;
 
         private ActionHeader(string action, AddressingVersion version)
             : base(version)
         {
-            this.action = action;
+            Action = action;
         }
 
-        public string Action
-        {
-            get { return action; }
-        }
+        public string Action { get; }
 
         public override bool MustUnderstand
         {
@@ -83,7 +74,7 @@ namespace CoreWCF.Channels
         {
             if (dictionaryAction == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(Action));
             }
 
             if (addressingVersion == null)
@@ -96,7 +87,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            writer.WriteString(action);
+            writer.WriteString(Action);
         }
 
         public static string ReadHeaderValue(XmlDictionaryReader reader, AddressingVersion addressingVersion)
@@ -176,19 +167,15 @@ namespace CoreWCF.Channels
 
     internal class FromHeader : AddressingHeader
     {
-        private readonly EndpointAddress from;
         private const bool mustUnderstandValue = false;
 
         private FromHeader(EndpointAddress from, AddressingVersion version)
             : base(version)
         {
-            this.from = from;
+            From = from;
         }
 
-        public EndpointAddress From
-        {
-            get { return from; }
-        }
+        public EndpointAddress From { get; }
 
         public override XmlDictionaryString DictionaryName
         {
@@ -217,7 +204,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            from.WriteContentsTo(Version, writer);
+            From.WriteContentsTo(Version, writer);
         }
 
         public static FromHeader ReadHeader(XmlDictionaryReader reader, AddressingVersion version,
@@ -274,19 +261,15 @@ namespace CoreWCF.Channels
 
     internal class FaultToHeader : AddressingHeader
     {
-        private readonly EndpointAddress faultTo;
         private const bool mustUnderstandValue = false;
 
         private FaultToHeader(EndpointAddress faultTo, AddressingVersion version)
             : base(version)
         {
-            this.faultTo = faultTo;
+            FaultTo = faultTo;
         }
 
-        public EndpointAddress FaultTo
-        {
-            get { return faultTo; }
-        }
+        public EndpointAddress FaultTo { get; }
 
         public override XmlDictionaryString DictionaryName
         {
@@ -300,7 +283,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            faultTo.WriteContentsTo(Version, writer);
+            FaultTo.WriteContentsTo(Version, writer);
         }
 
         public static FaultToHeader Create(EndpointAddress faultTo, AddressingVersion addressingVersion)
@@ -373,7 +356,6 @@ namespace CoreWCF.Channels
     // TODO: This needed to be made public for NetTcp, investigate making it internal again
     public class ToHeader : AddressingHeader
     {
-        private readonly Uri to;
         private const bool mustUnderstandValue = true;
         private static ToHeader anonymousToHeader10;
         //static ToHeader anonymousToHeader200408;
@@ -381,7 +363,7 @@ namespace CoreWCF.Channels
         protected ToHeader(Uri to, AddressingVersion version)
             : base(version)
         {
-            this.to = to;
+            To = to;
         }
 
         private static ToHeader AnonymousTo10
@@ -417,10 +399,7 @@ namespace CoreWCF.Channels
             get { return mustUnderstandValue; }
         }
 
-        public Uri To
-        {
-            get { return to; }
-        }
+        public Uri To { get; }
 
         public static ToHeader Create(Uri toUri, XmlDictionaryString dictionaryTo, AddressingVersion addressingVersion)
         {
@@ -473,7 +452,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            writer.WriteString(to.AbsoluteUri);
+            writer.WriteString(To.AbsoluteUri);
         }
 
         public static Uri ReadHeaderValue(XmlDictionaryReader reader, AddressingVersion version)
@@ -592,20 +571,16 @@ namespace CoreWCF.Channels
 
     internal class ReplyToHeader : AddressingHeader
     {
-        private readonly EndpointAddress replyTo;
         private const bool mustUnderstandValue = false;
         private static ReplyToHeader anonymousReplyToHeader10;
 
         private ReplyToHeader(EndpointAddress replyTo, AddressingVersion version)
             : base(version)
         {
-            this.replyTo = replyTo;
+            ReplyTo = replyTo;
         }
 
-        public EndpointAddress ReplyTo
-        {
-            get { return replyTo; }
-        }
+        public EndpointAddress ReplyTo { get; }
 
         public override XmlDictionaryString DictionaryName
         {
@@ -657,7 +632,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            replyTo.WriteContentsTo(Version, writer);
+            ReplyTo.WriteContentsTo(Version, writer);
         }
 
         public static ReplyToHeader ReadHeader(XmlDictionaryReader reader, AddressingVersion version,
@@ -726,13 +701,12 @@ namespace CoreWCF.Channels
 
     internal class MessageIDHeader : AddressingHeader
     {
-        private readonly UniqueId messageId;
         private const bool mustUnderstandValue = false;
 
         private MessageIDHeader(UniqueId messageId, AddressingVersion version)
             : base(version)
         {
-            this.messageId = messageId;
+            MessageId = messageId;
         }
 
         public override XmlDictionaryString DictionaryName
@@ -740,10 +714,7 @@ namespace CoreWCF.Channels
             get { return XD.AddressingDictionary.MessageId; }
         }
 
-        public UniqueId MessageId
-        {
-            get { return messageId; }
-        }
+        public UniqueId MessageId { get; }
 
         public override bool MustUnderstand
         {
@@ -767,7 +738,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            writer.WriteValue(messageId);
+            writer.WriteValue(MessageId);
         }
 
         public static UniqueId ReadHeaderValue(XmlDictionaryReader reader, AddressingVersion version)
@@ -824,14 +795,13 @@ namespace CoreWCF.Channels
 
     internal class RelatesToHeader : AddressingHeader
     {
-        private readonly UniqueId messageId;
         private const bool mustUnderstandValue = false;
         internal static readonly Uri ReplyRelationshipType = new Uri(Addressing10Strings.ReplyRelationship);
 
         private RelatesToHeader(UniqueId messageId, AddressingVersion version)
             : base(version)
         {
-            this.messageId = messageId;
+            UniqueId = messageId;
         }
 
         public override XmlDictionaryString DictionaryName
@@ -839,10 +809,7 @@ namespace CoreWCF.Channels
             get { return XD.AddressingDictionary.RelatesTo; }
         }
 
-        public UniqueId UniqueId
-        {
-            get { return messageId; }
-        }
+        public UniqueId UniqueId { get; }
 
         public override bool MustUnderstand
         {
@@ -898,7 +865,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            writer.WriteValue(messageId);
+            writer.WriteValue(UniqueId);
         }
 
         public static void ReadHeaderValue(XmlDictionaryReader reader, AddressingVersion version, out Uri relationshipType, out UniqueId messageId)
@@ -986,7 +953,7 @@ namespace CoreWCF.Channels
                     writer.WriteEndAttribute();
                 }
                 */
-                writer.WriteValue(messageId);
+                writer.WriteValue(UniqueId);
             }
         }
     }

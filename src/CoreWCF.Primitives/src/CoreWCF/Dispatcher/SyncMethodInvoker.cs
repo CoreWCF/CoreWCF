@@ -10,7 +10,6 @@ namespace CoreWCF.Dispatcher
 {
     internal class SyncMethodInvoker : IOperationInvoker
     {
-        private readonly MethodInfo _method;
         private InvokeDelegate _invokeDelegate;
         private int _inputParameterCount;
         private int _outputParameterCount;
@@ -23,16 +22,10 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(method));
             }
 
-            _method = method;
+            Method = method;
         }
 
-        public MethodInfo Method
-        {
-            get
-            {
-                return _method;
-            }
-        }
+        public MethodInfo Method { get; }
 
         public string MethodName
         {
@@ -40,7 +33,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (_methodName == null)
                 {
-                    _methodName = _method.Name;
+                    _methodName = Method.Name;
                 }
 
                 return _methodName;

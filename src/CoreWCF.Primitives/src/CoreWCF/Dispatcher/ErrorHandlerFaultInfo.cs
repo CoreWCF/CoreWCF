@@ -7,22 +7,16 @@ namespace CoreWCF.Dispatcher
 {
     internal struct ErrorHandlerFaultInfo
     {
-        private Message fault;   // if this is null, then we aren't interested in sending back a fault
-        private bool isConsideredUnhandled;  // if this is true, it means Fault is the 'internal server error' fault
         private string defaultFaultAction;
 
         public ErrorHandlerFaultInfo(string defaultFaultAction)
         {
             this.defaultFaultAction = defaultFaultAction;
-            fault = null;
-            isConsideredUnhandled = false;
+            Fault = null;
+            IsConsideredUnhandled = false;
         }
 
-        public Message Fault
-        {
-            get { return fault; }
-            set { fault = value; }
-        }
+        public Message Fault { get; set; }
 
         public string DefaultFaultAction
         {
@@ -30,10 +24,6 @@ namespace CoreWCF.Dispatcher
             set { defaultFaultAction = value; }
         }
 
-        public bool IsConsideredUnhandled
-        {
-            get { return isConsideredUnhandled; }
-            set { isConsideredUnhandled = value; }
-        }
+        public bool IsConsideredUnhandled { get; set; }
     }
 }

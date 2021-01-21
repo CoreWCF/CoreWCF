@@ -21,14 +21,13 @@ namespace CoreWCF.Channels
     {
         private int value;
         private short index;
-        private bool isValueDecoded;
         private const int LastIndex = 4;
 
         public int Value
         {
             get
             {
-                if (!isValueDecoded)
+                if (!IsValueDecoded)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
@@ -37,22 +36,19 @@ namespace CoreWCF.Channels
             }
         }
 
-        public bool IsValueDecoded
-        {
-            get { return isValueDecoded; }
-        }
+        public bool IsValueDecoded { get; private set; }
 
         public void Reset()
         {
             index = 0;
             value = 0;
-            isValueDecoded = false;
+            IsValueDecoded = false;
         }
 
         public int Decode(byte[] buffer, int offset, int size)
         {
             DecoderHelper.ValidateSize(size);
-            if (isValueDecoded)
+            if (IsValueDecoded)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
             }
@@ -69,7 +65,7 @@ namespace CoreWCF.Channels
                 index++;
                 if ((next & 0x80) == 0)
                 {
-                    isValueDecoded = true;
+                    IsValueDecoded = true;
                     break;
                 }
                 offset++;

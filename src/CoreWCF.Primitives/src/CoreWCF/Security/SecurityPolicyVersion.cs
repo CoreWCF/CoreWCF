@@ -7,22 +7,15 @@ namespace CoreWCF.Security
 {
     public abstract class SecurityPolicyVersion
     {
-        private readonly String spNamespace;
         private readonly String prefix;
 
         internal SecurityPolicyVersion(String ns, String prefix)
         {
-            spNamespace = ns;
+            Namespace = ns;
             this.prefix = prefix;
         }
 
-        public String Namespace
-        {
-            get
-            {
-                return spNamespace;
-            }
-        }
+        public String Namespace { get; }
 
         public String Prefix
         {

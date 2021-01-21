@@ -16,17 +16,9 @@ namespace CoreWCF.Dispatcher
         static internal readonly ParameterInfo[] NoParams = new ParameterInfo[0];
         static internal readonly object[] EmptyArray = new object[0];
         private readonly IClientMessageFormatter _formatter;
-        private readonly bool _isInitiating;
-        private readonly bool _isOneWay;
-        private readonly bool _isTerminating;
         private readonly bool _isSessionOpenNotificationEnabled;
-        private readonly string _name;
         private readonly IParameterInspector[] _parameterInspectors;
-        private readonly IClientFaultFormatter _faultFormatter;
-        private readonly ImmutableClientRuntime _parent;
-        private readonly bool _serializeRequest;
         private readonly bool _deserializeReply;
-        private readonly string _action;
         private readonly string _replyAction;
         private readonly MethodInfo _beginMethod;
         private readonly MethodInfo _syncMethod;
@@ -48,18 +40,18 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             }
 
-            _parent = parent;
+            Parent = parent;
             _formatter = operation.Formatter;
-            _isInitiating = operation.IsInitiating;
-            _isOneWay = operation.IsOneWay;
-            _isTerminating = operation.IsTerminating;
+            IsInitiating = operation.IsInitiating;
+            IsOneWay = operation.IsOneWay;
+            IsTerminating = operation.IsTerminating;
             _isSessionOpenNotificationEnabled = operation.IsSessionOpenNotificationEnabled;
-            _name = operation.Name;
+            Name = operation.Name;
             _parameterInspectors = EmptyArray<IParameterInspector>.ToArray(operation.ParameterInspectors);
-            _faultFormatter = operation.FaultFormatter;
-            _serializeRequest = operation.SerializeRequest;
+            FaultFormatter = operation.FaultFormatter;
+            SerializeRequest = operation.SerializeRequest;
             _deserializeReply = operation.DeserializeReply;
-            _action = operation.Action;
+            Action = operation.Action;
             _replyAction = operation.ReplyAction;
             _beginMethod = operation.BeginMethod;
             _syncMethod = operation.SyncMethod;
@@ -87,51 +79,30 @@ namespace CoreWCF.Dispatcher
                 _returnParam = _syncMethod.ReturnParameter;
             }
 
-            if (_formatter == null && (_serializeRequest || _deserializeReply))
+            if (_formatter == null && (SerializeRequest || _deserializeReply))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ClientRuntimeRequiresFormatter0, _name)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ClientRuntimeRequiresFormatter0, Name)));
             }
         }
 
-        internal string Action
-        {
-            get { return _action; }
-        }
+        internal string Action { get; }
 
-        internal IClientFaultFormatter FaultFormatter
-        {
-            get { return _faultFormatter; }
-        }
+        internal IClientFaultFormatter FaultFormatter { get; }
 
-        internal bool IsInitiating
-        {
-            get { return _isInitiating; }
-        }
+        internal bool IsInitiating { get; }
 
-        internal bool IsOneWay
-        {
-            get { return _isOneWay; }
-        }
+        internal bool IsOneWay { get; }
 
-        internal bool IsTerminating
-        {
-            get { return _isTerminating; }
-        }
+        internal bool IsTerminating { get; }
 
         internal bool IsSessionOpenNotificationEnabled
         {
             get { return _isSessionOpenNotificationEnabled; }
         }
 
-        internal string Name
-        {
-            get { return _name; }
-        }
+        internal string Name { get; }
 
-        internal ImmutableClientRuntime Parent
-        {
-            get { return _parent; }
-        }
+        internal ImmutableClientRuntime Parent { get; }
 
         internal string ReplyAction
         {
@@ -143,10 +114,7 @@ namespace CoreWCF.Dispatcher
             get { return _deserializeReply; }
         }
 
-        internal bool SerializeRequest
-        {
-            get { return _serializeRequest; }
-        }
+        internal bool SerializeRequest { get; }
 
         internal Type TaskTResult
         {
@@ -156,7 +124,7 @@ namespace CoreWCF.Dispatcher
 
         internal void AfterReply(ref ProxyRpc rpc)
         {
-            if (!_isOneWay)
+            if (!IsOneWay)
             {
                 Message reply = rpc.Reply;
 
@@ -180,12 +148,12 @@ namespace CoreWCF.Dispatcher
                     rpc.ReturnValue = reply;
                 }
 
-                int offset = _parent.ParameterInspectorCorrelationOffset;
+                int offset = Parent.ParameterInspectorCorrelationOffset;
                 try
                 {
                     for (int i = _parameterInspectors.Length - 1; i >= 0; i--)
                     {
-                        _parameterInspectors[i].AfterCall(_name,
+                        _parameterInspectors[i].AfterCall(Name,
                                                               rpc.OutputParameters,
                                                               rpc.ReturnValue,
                                                               rpc.Correlation[offset + i]);
@@ -208,7 +176,7 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperCallback(e);
                 }
 
-                if (_parent.ValidateMustUnderstand)
+                if (Parent.ValidateMustUnderstand)
                 {
                     Collection<MessageHeaderInfo> headersNotUnderstood = reply.Headers.GetHeadersNotUnderstood();
                     if (headersNotUnderstood != null && headersNotUnderstood.Count > 0)
@@ -221,12 +189,12 @@ namespace CoreWCF.Dispatcher
 
         internal void BeforeRequest(ref ProxyRpc rpc)
         {
-            int offset = _parent.ParameterInspectorCorrelationOffset;
+            int offset = Parent.ParameterInspectorCorrelationOffset;
             try
             {
                 for (int i = 0; i < _parameterInspectors.Length; i++)
                 {
-                    rpc.Correlation[offset + i] = _parameterInspectors[i].BeforeCall(_name, rpc.InputParameters);
+                    rpc.Correlation[offset + i] = _parameterInspectors[i].BeforeCall(Name, rpc.InputParameters);
                     //if (TD.ClientParameterInspectorBeforeCallInvokedIsEnabled())
                     //{
                     //    TD.ClientParameterInspectorBeforeCallInvoked(rpc.EventTraceActivity, this._parameterInspectors[i].GetType().FullName);
@@ -246,7 +214,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperCallback(e);
             }
 
-            if (_serializeRequest)
+            if (SerializeRequest)
             {
                 //if (TD.ClientFormatterSerializeRequestStartIsEnabled())
                 //{
@@ -266,7 +234,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (rpc.InputParameters[0] == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxProxyRuntimeMessageCannotBeNull, _name)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxProxyRuntimeMessageCannotBeNull, Name)));
                 }
 
                 rpc.Request = (Message)rpc.InputParameters[0];

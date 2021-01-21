@@ -10,11 +10,6 @@ namespace CoreWCF
     //[Serializable]
     public class MessageHeaderException : ProtocolException
     {
-        //[NonSerialized]
-        private readonly string headerName;
-
-        //[NonSerialized]
-        private readonly string headerNamespace;
 
         //[NonSerialized]
         private readonly bool isDuplicate;
@@ -46,14 +41,14 @@ namespace CoreWCF
         public MessageHeaderException(string message, string headerName, string ns, bool isDuplicate, Exception innerException)
             : base(message, innerException)
         {
-            this.headerName = headerName;
-            headerNamespace = ns;
+            HeaderName = headerName;
+            HeaderNamespace = ns;
             this.isDuplicate = isDuplicate;
         }
 
-        public string HeaderName { get { return headerName; } }
+        public string HeaderName { get; }
 
-        public string HeaderNamespace { get { return headerNamespace; } }
+        public string HeaderNamespace { get; }
 
         // IsDuplicate==true means there was more than one; IsDuplicate==false means there were zero
         public bool IsDuplicate { get { return isDuplicate; } }

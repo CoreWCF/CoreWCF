@@ -417,7 +417,7 @@ namespace CoreWCF.Channels
 
         internal class ConnectionDuplexSession : IDuplexSession
         {
-            private static UriGenerator _uriGenerator;
+            private static UriGenerator s_uriGenerator;
             private string _id;
 
             public ConnectionDuplexSession(TransportDuplexSessionChannel channel)
@@ -451,12 +451,12 @@ namespace CoreWCF.Channels
             {
                 get
                 {
-                    if (_uriGenerator == null)
+                    if (s_uriGenerator == null)
                     {
-                        _uriGenerator = new UriGenerator();
+                        s_uriGenerator = new UriGenerator();
                     }
 
-                    return _uriGenerator;
+                    return s_uriGenerator;
                 }
             }
 

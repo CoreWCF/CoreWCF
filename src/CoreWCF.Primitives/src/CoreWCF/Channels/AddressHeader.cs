@@ -350,7 +350,6 @@ namespace CoreWCF.Channels
         private readonly string name;
         private readonly string ns;
         private readonly XmlBuffer buffer;
-        private readonly bool isReferenceProperty;
 
         public BufferedAddressHeader(XmlDictionaryReader reader)
         {
@@ -364,16 +363,16 @@ namespace CoreWCF.Channels
             writer.WriteNode(reader, false);
             buffer.CloseSection();
             buffer.Close();
-            isReferenceProperty = false;
+            IsReferencePropertyHeader = false;
         }
 
         public BufferedAddressHeader(XmlDictionaryReader reader, bool isReferenceProperty)
             : this(reader)
         {
-            this.isReferenceProperty = isReferenceProperty;
+            IsReferencePropertyHeader = isReferenceProperty;
         }
 
-        public bool IsReferencePropertyHeader { get { return isReferenceProperty; } }
+        public bool IsReferencePropertyHeader { get; }
 
         public override string Name
         {

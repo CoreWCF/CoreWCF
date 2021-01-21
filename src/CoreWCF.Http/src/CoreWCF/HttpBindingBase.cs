@@ -14,14 +14,13 @@ namespace CoreWCF
     {
         private readonly HttpTransportBindingElement _httpTransport;
         private readonly HttpsTransportBindingElement _httpsTransport;
-        private readonly TextMessageEncodingBindingElement _textEncoding;
 
         internal HttpBindingBase()
         {
             _httpTransport = new HttpTransportBindingElement();
             _httpsTransport = new HttpsTransportBindingElement();
-            _textEncoding = new TextMessageEncodingBindingElement();
-            _textEncoding.MessageVersion = MessageVersion.Soap11;
+            TextMessageEncodingBindingElement = new TextMessageEncodingBindingElement();
+            TextMessageEncodingBindingElement.MessageVersion = MessageVersion.Soap11;
         }
         // [System.ComponentModel.DefaultValueAttribute(false)]
         // public bool AllowCookies { get { return default(bool); } set { } }
@@ -59,7 +58,7 @@ namespace CoreWCF
         {
             get
             {
-                return _textEncoding.ReaderQuotas;
+                return TextMessageEncodingBindingElement.ReaderQuotas;
             }
 
             set
@@ -69,7 +68,7 @@ namespace CoreWCF
                     throw Fx.Exception.ArgumentNull(nameof(value));
                 }
 
-                value.CopyTo(_textEncoding.ReaderQuotas);
+                value.CopyTo(TextMessageEncodingBindingElement.ReaderQuotas);
                 //value.CopyTo(this.mtomEncoding.ReaderQuotas);
 
                 SetReaderQuotas(value);
@@ -82,12 +81,12 @@ namespace CoreWCF
         {
             get
             {
-                return _textEncoding.WriteEncoding;
+                return TextMessageEncodingBindingElement.WriteEncoding;
             }
 
             set
             {
-                _textEncoding.WriteEncoding = value;
+                TextMessageEncodingBindingElement.WriteEncoding = value;
                 //_mtomEncoding.WriteEncoding = value;
             }
         }
@@ -107,13 +106,7 @@ namespace CoreWCF
             }
         }
 
-        internal TextMessageEncodingBindingElement TextMessageEncodingBindingElement
-        {
-            get
-            {
-                return _textEncoding;
-            }
-        }
+        internal TextMessageEncodingBindingElement TextMessageEncodingBindingElement { get; }
 
         internal abstract BasicHttpSecurity BasicHttpSecurity
         {

@@ -9,13 +9,12 @@ namespace CoreWCF
     //[Serializable]
     internal class ActionMismatchAddressingException : ProtocolException
     {
-        private readonly string httpActionHeader;
         private readonly string soapActionHeader;
 
         public ActionMismatchAddressingException(string message, string soapActionHeader, string httpActionHeader)
             : base(message)
         {
-            this.httpActionHeader = httpActionHeader;
+            HttpActionHeader = httpActionHeader;
             this.soapActionHeader = soapActionHeader;
         }
 
@@ -24,13 +23,7 @@ namespace CoreWCF
         //{
         //}
 
-        public string HttpActionHeader
-        {
-            get
-            {
-                return httpActionHeader;
-            }
-        }
+        public string HttpActionHeader { get; }
 
         public string SoapActionHeader
         {

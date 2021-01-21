@@ -36,11 +36,9 @@ namespace CoreWCF.Security
         private SecurityToken entropyToken;
         private BinaryNegotiation negotiationData;
         private readonly XmlElement rstrXml;
-        private DateTime effectiveTime;
         private DateTime expirationTime;
         private bool isLifetimeSet;
         private byte[] authenticator;
-        private readonly bool isReceiver;
         private bool isReadOnly;
         private byte[] cachedWriteBuffer;
         private int cachedWriteBufferLength;
@@ -48,7 +46,6 @@ namespace CoreWCF.Security
         private object appliesTo;
         private XmlObjectSerializer appliesToSerializer;
         private Type appliesToType;
-        private readonly Object thisLock = new Object();
         private readonly XmlBuffer issuedTokenBuffer;
 
         public RequestSecurityTokenResponse()
@@ -119,11 +116,11 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
             }
             this.standardsManager = standardsManager;
-            effectiveTime = SecurityUtils.MinUtcDateTime;
+            ValidFrom = SecurityUtils.MinUtcDateTime;
             expirationTime = SecurityUtils.MaxUtcDateTime;
             isRequestedTokenClosed = false;
             isLifetimeSet = false;
-            isReceiver = false;
+            IsReceiver = false;
             isReadOnly = false;
         }
 
@@ -157,12 +154,12 @@ namespace CoreWCF.Security
             this.requestedAttachedReference = requestedAttachedReference;
             this.requestedUnattachedReference = requestedUnattachedReference;
             this.computeKey = computeKey;
-            effectiveTime = validFrom.ToUniversalTime();
+            ValidFrom = validFrom.ToUniversalTime();
             expirationTime = validTo.ToUniversalTime();
             isLifetimeSet = true;
             this.isRequestedTokenClosed = isRequestedTokenClosed;
             // this.issuedTokenBuffer = issuedTokenBuffer;
-            isReceiver = true;
+            IsReceiver = true;
             isReadOnly = true;
         }
 
@@ -245,7 +242,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public DateTime ValidFrom => effectiveTime;
+        public DateTime ValidFrom { get; private set; }
 
         public DateTime ValidTo => expirationTime;
 
@@ -307,9 +304,9 @@ namespace CoreWCF.Security
 
         public bool IsReadOnly => isReadOnly;
 
-        protected Object ThisLock => thisLock;
+        protected Object ThisLock { get; } = new Object();
 
-        internal bool IsReceiver => isReceiver;
+        internal bool IsReceiver { get; }
 
         internal SecurityStandardsManager StandardsManager
         {
@@ -332,7 +329,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(EntropyToken))));
                 }
@@ -344,7 +341,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(issuedToken))));
                 }
@@ -365,7 +362,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(proofToken))));
                 }
@@ -386,7 +383,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (!isReceiver)
+                if (!IsReceiver)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(RequestSecurityTokenResponseXml))));
                 }
@@ -398,7 +395,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesTo))));
                 }
@@ -410,7 +407,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesToSerializer))));
                 }
@@ -422,7 +419,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesToType))));
                 }
@@ -434,7 +431,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(IsLifetimeSet))));
                 }
@@ -471,7 +468,7 @@ namespace CoreWCF.Security
 
         internal SecurityToken GetIssuerEntropy(SecurityTokenResolver resolver)
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 return standardsManager.TrustDriver.GetEntropy(this, resolver);
             }
@@ -492,7 +489,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.EffectiveGreaterThanExpiration);
             }
-            effectiveTime = validFrom.ToUniversalTime();
+            ValidFrom = validFrom.ToUniversalTime();
             expirationTime = validTo.ToUniversalTime();
             isLifetimeSet = true;
         }
@@ -515,7 +512,7 @@ namespace CoreWCF.Security
 
         public void GetAppliesToQName(out string localName, out string namespaceUri)
         {
-            if (!isReceiver)
+            if (!IsReceiver)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTOnly, "MatchesAppliesTo")));
             }
@@ -530,7 +527,7 @@ namespace CoreWCF.Security
 
         public T GetAppliesTo<T>(XmlObjectSerializer serializer)
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 if (serializer == null)
                 {
@@ -561,7 +558,7 @@ namespace CoreWCF.Security
 
         internal BinaryNegotiation GetBinaryNegotiation()
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 return standardsManager.TrustDriver.GetBinaryNegotiation(this);
             }
@@ -589,7 +586,7 @@ namespace CoreWCF.Security
 
         internal byte[] GetAuthenticator()
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 return standardsManager.TrustDriver.GetAuthenticator(this);
             }
@@ -610,7 +607,7 @@ namespace CoreWCF.Security
 
         private void OnWriteTo(XmlWriter w)
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 rstrXml.WriteTo(w);
             }
@@ -689,7 +686,7 @@ namespace CoreWCF.Security
         public virtual GenericXmlSecurityToken GetIssuedToken(SecurityTokenResolver resolver, IList<SecurityTokenAuthenticator> allowedAuthenticators, SecurityKeyEntropyMode keyEntropyMode, byte[] requestorEntropy, string expectedTokenType,
             ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, int defaultKeySize, bool isBearerKeyType)
         {
-            if (!isReceiver)
+            if (!IsReceiver)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(GetIssuedToken))));
             }
@@ -699,7 +696,7 @@ namespace CoreWCF.Security
 
         public virtual GenericXmlSecurityToken GetIssuedToken(string expectedTokenType, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, RSA clientKey)
         {
-            if (!isReceiver)
+            if (!IsReceiver)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(GetIssuedToken))));
             }

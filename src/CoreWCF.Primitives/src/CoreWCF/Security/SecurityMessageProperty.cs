@@ -19,8 +19,6 @@ namespace CoreWCF.Security
         private SecurityTokenSpecification initiatorToken;
         private SecurityTokenSpecification recipientToken;
         private ServiceSecurityContext securityContext;
-        private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
-        private string senderIdPrefix = "_";
         private bool disposed = false;
 
         public SecurityMessageProperty()
@@ -42,17 +40,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
-        {
-            get
-            {
-                return externalAuthorizationPolicies;
-            }
-            set
-            {
-                externalAuthorizationPolicies = value;
-            }
-        }
+        public ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies { get; set; }
 
         public SecurityTokenSpecification ProtectionToken
         {
@@ -111,18 +99,7 @@ namespace CoreWCF.Security
         }
 
 
-        public string SenderIdPrefix
-        {
-            get
-            {
-                return senderIdPrefix;
-            }
-            set
-            {
-                /// XmlHelper.ValidateIdPrefix(value);
-                senderIdPrefix = value;
-            }
-        }
+        public string SenderIdPrefix { get; set; } = "_";
 
         public bool HasIncomingSupportingTokens
         {
@@ -188,8 +165,8 @@ namespace CoreWCF.Security
             }
 
             result.securityContext = securityContext;
-            result.externalAuthorizationPolicies = externalAuthorizationPolicies;
-            result.senderIdPrefix = senderIdPrefix;
+            result.ExternalAuthorizationPolicies = ExternalAuthorizationPolicies;
+            result.SenderIdPrefix = SenderIdPrefix;
 
             result.protectionToken = protectionToken;
             result.initiatorToken = initiatorToken;

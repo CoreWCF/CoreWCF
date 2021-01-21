@@ -20,10 +20,6 @@ namespace CoreWCF.Dispatcher
         private FlowThrottle _instanceContexts;
 
         private readonly ServiceHostBase _host;
-
-        // TODO: Performance counters
-        //ServicePerformanceCountersBase servicePerformanceCounters;
-        private bool _isActive;
         private readonly object _thisLock = new object();
 
         internal ServiceThrottle(ServiceHostBase host)
@@ -37,7 +33,7 @@ namespace CoreWCF.Dispatcher
             MaxConcurrentCalls = DefaultMaxConcurrentCallsCpuCount;
             MaxConcurrentSessions = DefaultMaxConcurrentSessionsCpuCount;
 
-            _isActive = true;
+            IsActive = true;
         }
 
         private FlowThrottle Calls
@@ -196,10 +192,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal bool IsActive
-        {
-            get { return _isActive; }
-        }
+        internal bool IsActive { get; private set; }
 
         internal object ThisLock
         {
@@ -319,7 +312,7 @@ namespace CoreWCF.Dispatcher
 
         internal void DeactivateChannel()
         {
-            if (_isActive)
+            if (IsActive)
             {
                 if (_sessions != null)
                 {
@@ -330,7 +323,7 @@ namespace CoreWCF.Dispatcher
 
         internal void DeactivateCall()
         {
-            if (_isActive)
+            if (IsActive)
             {
                 if (_calls != null)
                 {
@@ -341,7 +334,7 @@ namespace CoreWCF.Dispatcher
 
         internal void DeactivateInstanceContext()
         {
-            if (_isActive)
+            if (IsActive)
             {
                 if (_instanceContexts != null)
                 {
@@ -369,7 +362,7 @@ namespace CoreWCF.Dispatcher
 
         private void UpdateIsActive()
         {
-            _isActive = ((_dynamic != null) ||
+            IsActive = ((_dynamic != null) ||
                              ((_calls != null) && (_calls.Capacity != Int32.MaxValue)) ||
                              ((_sessions != null) && (_sessions.Capacity != Int32.MaxValue)) ||
                              ((_instanceContexts != null) && (_instanceContexts.Capacity != Int32.MaxValue)));

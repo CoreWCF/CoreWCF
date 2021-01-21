@@ -6,29 +6,18 @@ namespace CoreWCF
     public sealed class NonDualMessageSecurityOverHttp : MessageSecurityOverHttp
     {
         internal const bool DefaultEstablishSecurityContext = true;
-        private bool establishSecurityContext;
 
         public NonDualMessageSecurityOverHttp()
             : base()
         {
-            establishSecurityContext = DefaultEstablishSecurityContext;
+            EstablishSecurityContext = DefaultEstablishSecurityContext;
         }
 
-        public bool EstablishSecurityContext
-        {
-            get
-            {
-                return establishSecurityContext;
-            }
-            set
-            {
-                establishSecurityContext = value;
-            }
-        }
+        public bool EstablishSecurityContext { get; set; }
 
         protected override bool IsSecureConversationEnabled()
         {
-            return establishSecurityContext;
+            return EstablishSecurityContext;
         }
     }
 }

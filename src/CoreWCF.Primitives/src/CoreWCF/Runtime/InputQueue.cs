@@ -630,8 +630,6 @@ namespace CoreWCF.Runtime
 
         private struct Item
         {
-            private readonly Action dequeuedCallback;
-            private readonly Exception exception;
             private readonly T value;
 
             public Item(T value, Action dequeuedCallback)
@@ -647,19 +645,13 @@ namespace CoreWCF.Runtime
             private Item(T value, Exception exception, Action dequeuedCallback)
             {
                 this.value = value;
-                this.exception = exception;
-                this.dequeuedCallback = dequeuedCallback;
+                Exception = exception;
+                DequeuedCallback = dequeuedCallback;
             }
 
-            public Action DequeuedCallback
-            {
-                get { return dequeuedCallback; }
-            }
+            public Action DequeuedCallback { get; }
 
-            public Exception Exception
-            {
-                get { return exception; }
-            }
+            public Exception Exception { get; }
 
             public T Value
             {
@@ -668,9 +660,9 @@ namespace CoreWCF.Runtime
 
             public T GetValue()
             {
-                if (exception != null)
+                if (Exception != null)
                 {
-                    throw Fx.Exception.AsError(exception);
+                    throw Fx.Exception.AsError(Exception);
                 }
 
                 return value;
@@ -682,7 +674,6 @@ namespace CoreWCF.Runtime
             private int head;
             private Item[] items;
             private int pendingCount;
-            private int totalCount;
 
             public ItemQueue()
             {
@@ -691,22 +682,19 @@ namespace CoreWCF.Runtime
 
             public bool HasAnyItem
             {
-                get { return totalCount > 0; }
+                get { return ItemCount > 0; }
             }
 
             public bool HasAvailableItem
             {
-                get { return totalCount > pendingCount; }
+                get { return ItemCount > pendingCount; }
             }
 
-            public int ItemCount
-            {
-                get { return totalCount; }
-            }
+            public int ItemCount { get; private set; }
 
             public Item DequeueAnyItem()
             {
-                if (pendingCount == totalCount)
+                if (pendingCount == ItemCount)
                 {
                     pendingCount--;
                 }
@@ -715,7 +703,7 @@ namespace CoreWCF.Runtime
 
             public Item DequeueAvailableItem()
             {
-                Fx.AssertAndThrow(totalCount != pendingCount, "ItemQueue does not contain any available items");
+                Fx.AssertAndThrow(ItemCount != pendingCount, "ItemQueue does not contain any available items");
                 return DequeueItemCore();
             }
 
@@ -738,29 +726,29 @@ namespace CoreWCF.Runtime
 
             private Item DequeueItemCore()
             {
-                Fx.AssertAndThrow(totalCount != 0, "ItemQueue does not contain any items");
+                Fx.AssertAndThrow(ItemCount != 0, "ItemQueue does not contain any items");
                 Item item = items[head];
                 items[head] = new Item();
-                totalCount--;
+                ItemCount--;
                 head = (head + 1) % items.Length;
                 return item;
             }
 
             private void EnqueueItemCore(Item item)
             {
-                if (totalCount == items.Length)
+                if (ItemCount == items.Length)
                 {
                     Item[] newItems = new Item[items.Length * 2];
-                    for (int i = 0; i < totalCount; i++)
+                    for (int i = 0; i < ItemCount; i++)
                     {
                         newItems[i] = items[(head + i) % items.Length];
                     }
                     head = 0;
                     items = newItems;
                 }
-                int tail = (head + totalCount) % items.Length;
+                int tail = (head + ItemCount) % items.Length;
                 items[tail] = item;
-                totalCount++;
+                ItemCount++;
             }
         }
 

@@ -9,8 +9,6 @@ namespace CoreWCF.Dispatcher
     //[Serializable]
     internal class MultipleFilterMatchesException : Exception //SystemException
     {
-        //[NonSerialized]
-        private readonly Collection<MessageFilter> filters;
 
         //protected MultipleFilterMatchesException(SerializationInfo info, StreamingContext context)
         //    : base(info, context)
@@ -41,16 +39,10 @@ namespace CoreWCF.Dispatcher
         public MultipleFilterMatchesException(string message, Exception innerException, Collection<MessageFilter> filters)
             : base(message, innerException)
         {
-            this.filters = filters;
+            Filters = filters;
         }
 
-        public Collection<MessageFilter> Filters
-        {
-            get
-            {
-                return filters;
-            }
-        }
+        public Collection<MessageFilter> Filters { get; }
     }
 
 }

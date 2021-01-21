@@ -11,12 +11,11 @@ namespace CoreWCF.Channels
     public class SslStreamSecurityBindingElement : StreamUpgradeBindingElement
     {
         private IdentityVerifier identityVerifier;
-        private bool requireClientCertificate;
         private SslProtocols sslProtocols;
 
         public SslStreamSecurityBindingElement()
         {
-            requireClientCertificate = TransportDefaults.RequireClientCertificate;
+            RequireClientCertificate = TransportDefaults.RequireClientCertificate;
             sslProtocols = TransportDefaults.SslProtocols;
         }
 
@@ -24,7 +23,7 @@ namespace CoreWCF.Channels
             : base(elementToBeCloned)
         {
             identityVerifier = elementToBeCloned.identityVerifier;
-            requireClientCertificate = elementToBeCloned.requireClientCertificate;
+            RequireClientCertificate = elementToBeCloned.RequireClientCertificate;
             sslProtocols = elementToBeCloned.sslProtocols;
         }
 
@@ -51,17 +50,7 @@ namespace CoreWCF.Channels
         }
 
         [DefaultValue(TransportDefaults.RequireClientCertificate)]
-        public bool RequireClientCertificate
-        {
-            get
-            {
-                return requireClientCertificate;
-            }
-            set
-            {
-                requireClientCertificate = value;
-            }
-        }
+        public bool RequireClientCertificate { get; set; }
 
         [DefaultValue(TransportDefaults.SslProtocols)]
         public SslProtocols SslProtocols
@@ -120,7 +109,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            return requireClientCertificate == ssl.requireClientCertificate && sslProtocols == ssl.sslProtocols;
+            return RequireClientCertificate == ssl.RequireClientCertificate && sslProtocols == ssl.sslProtocols;
         }
     }
 }

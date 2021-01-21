@@ -14,13 +14,8 @@ namespace CoreWCF.Security.Tokens
     {
         private readonly string id;
         private readonly DateTime effectiveTime;
-        private EncryptedKey encryptedKey;
         private readonly ReadOnlyCollection<SecurityKey> securityKey;
         private readonly byte[] wrappedKey;
-        private readonly string wrappingAlgorithm;
-        private readonly SecurityToken wrappingToken;
-        private readonly SecurityKey wrappingSecurityKey;
-        private readonly SecurityKeyIdentifier wrappingTokenReference;
         private readonly bool serializeCarriedKeyName;
         private byte[] wrappedKeyHash;
         private readonly XmlDictionaryString wrappingAlgorithmDictionaryString;
@@ -37,8 +32,8 @@ namespace CoreWCF.Security.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappingToken");
             }
-            this.wrappingToken = wrappingToken;
-            this.wrappingTokenReference = wrappingTokenReference;
+            WrappingToken = wrappingToken;
+            WrappingTokenReference = wrappingTokenReference;
             if (wrappedKey == null)
             {
                 this.wrappedKey = SecurityUtils.EncryptKey(wrappingToken, wrappingAlgorithm, keyToWrap);
@@ -47,7 +42,7 @@ namespace CoreWCF.Security.Tokens
             {
                 this.wrappedKey = wrappedKey;
             }
-            this.wrappingSecurityKey = wrappingSecurityKey;
+            WrappingSecurityKey = wrappingSecurityKey;
             serializeCarriedKeyName = true;
         }
 
@@ -71,7 +66,7 @@ namespace CoreWCF.Security.Tokens
             this.id = id;
             effectiveTime = DateTime.UtcNow;
             securityKey = SecurityUtils.CreateSymmetricSecurityKeys(keyToWrap);
-            this.wrappingAlgorithm = wrappingAlgorithm;
+            WrappingAlgorithm = wrappingAlgorithm;
             this.wrappingAlgorithmDictionaryString = wrappingAlgorithmDictionaryString;
         }
 
@@ -81,21 +76,17 @@ namespace CoreWCF.Security.Tokens
 
         public override DateTime ValidTo => DateTime.MaxValue;
 
-        internal EncryptedKey EncryptedKey
-        {
-            get { return encryptedKey; }
-            set { encryptedKey = value; }
-        }
+        internal EncryptedKey EncryptedKey { get; set; }
 
-        internal ReferenceList ReferenceList => encryptedKey == null ? null : encryptedKey.ReferenceList;
+        internal ReferenceList ReferenceList => EncryptedKey == null ? null : EncryptedKey.ReferenceList;
 
-        public string WrappingAlgorithm => wrappingAlgorithm;
+        public string WrappingAlgorithm { get; }
 
-        internal SecurityKey WrappingSecurityKey => wrappingSecurityKey;
+        internal SecurityKey WrappingSecurityKey { get; }
 
-        public SecurityToken WrappingToken => wrappingToken;
+        public SecurityToken WrappingToken { get; }
 
-        public SecurityKeyIdentifier WrappingTokenReference => wrappingTokenReference;
+        public SecurityKeyIdentifier WrappingTokenReference { get; }
 
         internal string CarriedKeyName => null;
 
@@ -108,7 +99,7 @@ namespace CoreWCF.Security.Tokens
                 EnsureEncryptedKeySetUp();
                 using (HashAlgorithm hash = CryptoHelper.NewSha1HashAlgorithm())
                 {
-                    wrappedKeyHash = hash.ComputeHash(encryptedKey.GetWrappedKey());
+                    wrappedKeyHash = hash.ComputeHash(EncryptedKey.GetWrappedKey());
                 }
             }
             return wrappedKeyHash;
@@ -121,7 +112,7 @@ namespace CoreWCF.Security.Tokens
 
         internal void EnsureEncryptedKeySetUp()
         {
-            if (encryptedKey == null)
+            if (EncryptedKey == null)
             {
                 EncryptedKey ek = new EncryptedKey();
                 ek.Id = Id;
@@ -140,7 +131,7 @@ namespace CoreWCF.Security.Tokens
                 {
                     ek.KeyIdentifier = WrappingTokenReference;
                 }
-                encryptedKey = ek;
+                EncryptedKey = ek;
             }
         }
 

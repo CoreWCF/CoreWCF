@@ -14,7 +14,6 @@ namespace CoreWCF.IdentityModel.Selectors
     public class X509SecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
         private readonly X509CertificateValidator validator;
-        private readonly bool mapToWindows;
         private readonly bool includeWindowsGroups;
         private readonly bool cloneHandle;
 
@@ -46,15 +45,12 @@ namespace CoreWCF.IdentityModel.Selectors
             }
 
             this.validator = validator;
-            this.mapToWindows = mapToWindows;
+            MapCertificateToWindowsAccount = mapToWindows;
             this.includeWindowsGroups = includeWindowsGroups;
             this.cloneHandle = cloneHandle;
         }
 
-        public bool MapCertificateToWindowsAccount
-        {
-            get { return mapToWindows; }
-        }
+        public bool MapCertificateToWindowsAccount { get; }
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
@@ -67,7 +63,7 @@ namespace CoreWCF.IdentityModel.Selectors
             validator.Validate(x509Token.Certificate);
 
             X509CertificateClaimSet x509ClaimSet = new X509CertificateClaimSet(x509Token.Certificate, cloneHandle);
-            if (!mapToWindows)
+            if (!MapCertificateToWindowsAccount)
             {
                 return SecurityUtils.CreateAuthorizationPolicies(x509ClaimSet, x509Token.ValidTo);
             }

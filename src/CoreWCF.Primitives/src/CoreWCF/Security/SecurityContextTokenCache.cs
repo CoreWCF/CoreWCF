@@ -297,23 +297,16 @@ namespace CoreWCF.Security
 
         private struct ContextAndGenerationKey
         {
-            private readonly UniqueId contextId;
             private readonly UniqueId generation;
 
             public ContextAndGenerationKey(UniqueId contextId, UniqueId generation)
             {
                 Fx.Assert(contextId != null && generation != null, "");
-                this.contextId = contextId;
+                ContextId = contextId;
                 this.generation = generation;
             }
 
-            public UniqueId ContextId
-            {
-                get
-                {
-                    return contextId;
-                }
-            }
+            public UniqueId ContextId { get; }
 
             public UniqueId Generation
             {
@@ -325,7 +318,7 @@ namespace CoreWCF.Security
 
             public override int GetHashCode()
             {
-                return contextId.GetHashCode() ^ generation.GetHashCode();
+                return ContextId.GetHashCode() ^ generation.GetHashCode();
             }
 
             public override bool Equals(object obj)
@@ -333,7 +326,7 @@ namespace CoreWCF.Security
                 if (obj is ContextAndGenerationKey)
                 {
                     ContextAndGenerationKey key2 = ((ContextAndGenerationKey)obj);
-                    return (key2.ContextId == contextId && key2.Generation == generation);
+                    return (key2.ContextId == ContextId && key2.Generation == generation);
                 }
                 else
                 {

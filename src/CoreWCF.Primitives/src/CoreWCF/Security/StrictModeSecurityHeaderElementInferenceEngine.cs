@@ -7,14 +7,9 @@ namespace CoreWCF.Security
 {
     internal sealed class StrictModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
     {
-        private static readonly StrictModeSecurityHeaderElementInferenceEngine instance = new StrictModeSecurityHeaderElementInferenceEngine();
-
         private StrictModeSecurityHeaderElementInferenceEngine() { }
 
-        internal static StrictModeSecurityHeaderElementInferenceEngine Instance
-        {
-            get { return instance; }
-        }
+        internal static StrictModeSecurityHeaderElementInferenceEngine Instance { get; } = new StrictModeSecurityHeaderElementInferenceEngine();
 
         public override void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader)
         {

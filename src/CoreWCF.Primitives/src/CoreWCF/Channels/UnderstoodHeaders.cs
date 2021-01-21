@@ -9,24 +9,19 @@ namespace CoreWCF.Channels
     internal sealed class UnderstoodHeaders : IEnumerable<MessageHeaderInfo>
     {
         private readonly MessageHeaders messageHeaders;
-        private bool modified;
 
         internal UnderstoodHeaders(MessageHeaders messageHeaders, bool modified)
         {
             this.messageHeaders = messageHeaders;
-            this.modified = modified;
+            Modified = modified;
         }
 
-        internal bool Modified
-        {
-            get { return modified; }
-            set { modified = value; }
-        }
+        internal bool Modified { get; set; }
 
         public void Add(MessageHeaderInfo headerInfo)
         {
             messageHeaders.AddUnderstood(headerInfo);
-            modified = true;
+            Modified = true;
         }
 
         public bool Contains(MessageHeaderInfo headerInfo)
@@ -47,7 +42,7 @@ namespace CoreWCF.Channels
         public void Remove(MessageHeaderInfo headerInfo)
         {
             messageHeaders.RemoveUnderstood(headerInfo);
-            modified = true;
+            Modified = true;
         }
     }
 }

@@ -17,9 +17,9 @@ namespace CoreWCF.Channels
 {
     internal class ServerFramingDuplexSessionChannel : FramingDuplexSessionChannel
     {
-        private readonly StreamUpgradeAcceptor upgradeAcceptor;
+        private readonly StreamUpgradeAcceptor _upgradeAcceptor;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IStreamUpgradeChannelBindingProvider channelBindingProvider;
+        private readonly IStreamUpgradeChannelBindingProvider _channelBindingProvider;
         private CancellationTokenRegistration _applicationStoppingRegistration;
 
         public ServerFramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings,
@@ -27,7 +27,7 @@ namespace CoreWCF.Channels
             : base(connection, settings, exposeConnectionProperty)
         {
             Connection = connection;
-            upgradeAcceptor = connection.StreamUpgradeAcceptor;
+            _upgradeAcceptor = connection.StreamUpgradeAcceptor;
             _serviceProvider = serviceProvider;
             SetMessageSource(new ServerSessionConnectionMessageSource(connection));
         }
@@ -62,7 +62,7 @@ namespace CoreWCF.Channels
         {
             if (typeof(T) == typeof(IChannelBindingProvider))
             {
-                return (T)(object)channelBindingProvider;
+                return (T)(object)_channelBindingProvider;
             }
 
             T service = _serviceProvider.GetService<T>();
@@ -291,13 +291,13 @@ namespace CoreWCF.Channels
 
     internal abstract class FramingDuplexSessionChannel : TransportDuplexSessionChannel
     {
-        private readonly bool exposeConnectionProperty;
+        private readonly bool _exposeConnectionProperty;
 
         private FramingDuplexSessionChannel(ITransportFactorySettings settings,
             EndpointAddress localAddress, Uri localVia, EndpointAddress remoteAddress, Uri via, bool exposeConnectionProperty)
             : base(settings, localAddress, localVia, remoteAddress, via)
         {
-            this.exposeConnectionProperty = exposeConnectionProperty;
+            _exposeConnectionProperty = exposeConnectionProperty;
         }
 
         protected FramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings, bool exposeConnectionProperty)
@@ -389,7 +389,7 @@ namespace CoreWCF.Channels
 
             private class SecureConnectionDuplexSession : FramingConnectionDuplexSession, ISecuritySession
             {
-                private EndpointIdentity remoteIdentity;
+                private EndpointIdentity _remoteIdentity;
 
                 public SecureConnectionDuplexSession(FramingDuplexSessionChannel channel)
                     : base(channel)
@@ -401,19 +401,19 @@ namespace CoreWCF.Channels
                 {
                     get
                     {
-                        if (remoteIdentity == null)
+                        if (_remoteIdentity == null)
                         {
                             SecurityMessageProperty security = Channel.RemoteSecurity;
                             if (security != null && security.ServiceSecurityContext != null &&
                                 security.ServiceSecurityContext.IdentityClaim != null &&
                                 security.ServiceSecurityContext.PrimaryIdentity != null)
                             {
-                                remoteIdentity = EndpointIdentity.CreateIdentity(
+                                _remoteIdentity = EndpointIdentity.CreateIdentity(
                                     security.ServiceSecurityContext.IdentityClaim);
                             }
                         }
 
-                        return remoteIdentity;
+                        return _remoteIdentity;
                     }
                 }
             }

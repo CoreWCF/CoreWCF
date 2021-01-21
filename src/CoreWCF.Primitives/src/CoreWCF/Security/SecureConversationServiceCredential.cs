@@ -10,23 +10,22 @@ namespace CoreWCF.Security
     {
         private static readonly SecurityStateEncoder defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
         private SecurityStateEncoder securityStateEncoder;
-        private readonly Collection<Type> securityContextClaimTypes;
         private bool isReadOnly;
 
         internal SecureConversationServiceCredential()
         {
             securityStateEncoder = defaultSecurityStateEncoder;
-            securityContextClaimTypes = new Collection<Type>();
+            SecurityContextClaimTypes = new Collection<Type>();
             // SamlAssertion.AddSamlClaimTypes(securityContextClaimTypes);
         }
 
         internal SecureConversationServiceCredential(SecureConversationServiceCredential other)
         {
             securityStateEncoder = other.securityStateEncoder;
-            securityContextClaimTypes = new Collection<Type>();
-            for (int i = 0; i < other.securityContextClaimTypes.Count; ++i)
+            SecurityContextClaimTypes = new Collection<Type>();
+            for (int i = 0; i < other.SecurityContextClaimTypes.Count; ++i)
             {
-                securityContextClaimTypes.Add(other.securityContextClaimTypes[i]);
+                SecurityContextClaimTypes.Add(other.SecurityContextClaimTypes[i]);
             }
             isReadOnly = other.isReadOnly;
         }
@@ -44,10 +43,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public Collection<Type> SecurityContextClaimTypes
-        {
-            get { return securityContextClaimTypes; }
-        }
+        public Collection<Type> SecurityContextClaimTypes { get; }
 
         internal void MakeReadOnly()
         {

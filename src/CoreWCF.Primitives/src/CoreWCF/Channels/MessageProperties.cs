@@ -986,19 +986,15 @@ namespace CoreWCF.Channels
 
         private struct Property : IDisposable
         {
-            private readonly string name;
             private object value;
 
             public Property(string name, object value)
             {
-                this.name = name;
+                Name = name;
                 this.value = value;
             }
 
-            public string Name
-            {
-                get { return name; }
-            }
+            public string Name { get; }
 
             public object Value
             {

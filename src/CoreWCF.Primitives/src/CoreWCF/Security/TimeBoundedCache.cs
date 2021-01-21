@@ -13,7 +13,6 @@ namespace CoreWCF.Security
     internal class TimeBoundedCache
     {
         private static Action<object> purgeCallback;
-        private readonly Hashtable entries;
 
         // if there are less than lowWaterMark entries, no purging is done
         private readonly int lowWaterMark;
@@ -25,7 +24,7 @@ namespace CoreWCF.Security
 
         protected TimeBoundedCache(int lowWaterMark, int maxCacheItems, IEqualityComparer keyComparer, PurgingMode purgingMode, TimeSpan purgeInterval, bool doRemoveNotification)
         {
-            entries = new Hashtable(keyComparer);
+            Entries = new Hashtable(keyComparer);
             CacheLock = new ReaderWriterLock();
             this.lowWaterMark = lowWaterMark;
             Capacity = maxCacheItems;
@@ -35,7 +34,7 @@ namespace CoreWCF.Security
             nextPurgeTimeUtc = DateTime.UtcNow.Add(this.purgeInterval);
         }
 
-        public int Count => entries.Count;
+        public int Count => Entries.Count;
 
         private static Action<object> PurgeCallback
         {
@@ -51,7 +50,7 @@ namespace CoreWCF.Security
 
         protected int Capacity { get; }
 
-        protected Hashtable Entries => entries;
+        protected Hashtable Entries { get; }
 
         protected ReaderWriterLock CacheLock { get; }
 
@@ -95,10 +94,10 @@ namespace CoreWCF.Security
                 }
                 PurgeIfNeeded();
                 EnforceQuota();
-                IExpirableItem currentItem = entries[key] as IExpirableItem;
+                IExpirableItem currentItem = Entries[key] as IExpirableItem;
                 if (currentItem == null || IsExpired(currentItem))
                 {
-                    entries[key] = item;
+                    Entries[key] = item;
                 }
                 else if (!replaceExistingEntry)
                 {
@@ -106,7 +105,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    entries[key] = item;
+                    Entries[key] = item;
                 }
                 if (currentItem != null && doRemoveNotification)
                 {
@@ -137,14 +136,14 @@ namespace CoreWCF.Security
                 }
                 PurgeIfNeeded();
                 EnforceQuota();
-                IExpirableItem currentItem = entries[key] as IExpirableItem;
+                IExpirableItem currentItem = Entries[key] as IExpirableItem;
                 if (currentItem == null || IsExpired(currentItem))
                 {
                     return false;
                 }
                 else
                 {
-                    entries[key] = new ExpirableItem(item, expirationTime);
+                    Entries[key] = new ExpirableItem(item, expirationTime);
                     if (currentItem != null && doRemoveNotification)
                     {
                         OnRemove(ExtractItem(currentItem));
@@ -174,15 +173,15 @@ namespace CoreWCF.Security
                     lockHeld = true;
                 }
 
-                int count = entries.Count;
+                int count = Entries.Count;
                 if (doRemoveNotification)
                 {
-                    foreach (IExpirableItem item in entries.Values)
+                    foreach (IExpirableItem item in Entries.Values)
                     {
                         OnRemove(ExtractItem(item));
                     }
                 }
-                entries.Clear();
+                Entries.Clear();
                 CancelTimerIfNeeded();
             }
             finally
@@ -205,7 +204,7 @@ namespace CoreWCF.Security
                     CacheLock.AcquireReaderLock(-1);
                     lockHeld = true;
                 }
-                IExpirableItem item = entries[key] as IExpirableItem;
+                IExpirableItem item = Entries[key] as IExpirableItem;
                 if (item == null)
                 {
                     return null;
@@ -251,11 +250,11 @@ namespace CoreWCF.Security
                     lockHeld = true;
                 }
                 PurgeIfNeeded();
-                IExpirableItem currentItem = entries[key] as IExpirableItem;
+                IExpirableItem currentItem = Entries[key] as IExpirableItem;
                 bool result = (currentItem != null) && !IsExpired(currentItem);
                 if (currentItem != null)
                 {
-                    entries.Remove(key);
+                    Entries.Remove(key);
                     if (doRemoveNotification)
                     {
                         OnRemove(ExtractItem(currentItem));
@@ -284,12 +283,12 @@ namespace CoreWCF.Security
             if (Count >= Capacity)
             {
                 ArrayList keysToBeRemoved;
-                keysToBeRemoved = OnQuotaReached(entries);
+                keysToBeRemoved = OnQuotaReached(Entries);
                 if (keysToBeRemoved != null)
                 {
                     for (int i = 0; i < keysToBeRemoved.Count; ++i)
                     {
-                        entries.Remove(keysToBeRemoved[i]);
+                        Entries.Remove(keysToBeRemoved[i]);
                     }
 
                 }
@@ -362,9 +361,9 @@ namespace CoreWCF.Security
                 DiagnosticUtility.FailFast("Cache write lock is not held.");
             }
             ArrayList expiredItems = new ArrayList();
-            foreach (object key in entries.Keys)
+            foreach (object key in Entries.Keys)
             {
-                IExpirableItem item = entries[key] as IExpirableItem;
+                IExpirableItem item = Entries[key] as IExpirableItem;
                 if (IsExpired(item))
                 {
                     // this is a stale item. Remove!
@@ -374,7 +373,7 @@ namespace CoreWCF.Security
             }
             for (int i = 0; i < expiredItems.Count; ++i)
             {
-                entries.Remove(expiredItems[i]);
+                Entries.Remove(expiredItems[i]);
             }
             CancelTimerIfNeeded();
             nextPurgeTimeUtc = DateTime.UtcNow.Add(purgeInterval);
@@ -466,17 +465,15 @@ namespace CoreWCF.Security
 
         internal sealed class ExpirableItem : IExpirableItem
         {
-            private readonly object item;
-
             public ExpirableItem(object item, DateTime expirationTime)
             {
-                this.item = item;
+                Item = item;
                 Fx.Assert(expirationTime == DateTime.MaxValue || expirationTime.Kind == DateTimeKind.Utc, "");
                 ExpirationTime = expirationTime;
             }
 
             public DateTime ExpirationTime { get; }
-            public object Item => item;
+            public object Item { get; }
         }
     }
 

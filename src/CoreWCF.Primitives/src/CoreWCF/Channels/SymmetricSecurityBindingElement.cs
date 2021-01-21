@@ -14,16 +14,15 @@ namespace CoreWCF.Channels
     public sealed class SymmetricSecurityBindingElement : SecurityBindingElement //, IPolicyExportExtension
     {
         private MessageProtectionOrder _messageProtectionOrder;
-        private SecurityTokenParameters _protectionTokenParameters;
         private bool _requireSignatureConfirmation;
 
         private SymmetricSecurityBindingElement(SymmetricSecurityBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
             _messageProtectionOrder = elementToBeCloned._messageProtectionOrder;
-            if (elementToBeCloned._protectionTokenParameters != null)
+            if (elementToBeCloned.ProtectionTokenParameters != null)
             {
-                _protectionTokenParameters = (SecurityTokenParameters)elementToBeCloned._protectionTokenParameters.Clone();
+                ProtectionTokenParameters = (SecurityTokenParameters)elementToBeCloned.ProtectionTokenParameters.Clone();
             }
 
             _requireSignatureConfirmation = elementToBeCloned._requireSignatureConfirmation;
@@ -40,7 +39,7 @@ namespace CoreWCF.Channels
         {
             _messageProtectionOrder = SecurityBindingElement.defaultMessageProtectionOrder;
             _requireSignatureConfirmation = SecurityBindingElement.defaultRequireSignatureConfirmation;
-            _protectionTokenParameters = protectionTokenParameters;
+            ProtectionTokenParameters = protectionTokenParameters;
         }
 
         public bool RequireSignatureConfirmation
@@ -72,17 +71,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public SecurityTokenParameters ProtectionTokenParameters
-        {
-            get
-            {
-                return _protectionTokenParameters;
-            }
-            set
-            {
-                _protectionTokenParameters = value;
-            }
-        }
+        public SecurityTokenParameters ProtectionTokenParameters { get; set; }
 
         internal override ISecurityCapabilities GetIndividualISecurityCapabilities()
         {
@@ -136,9 +125,9 @@ namespace CoreWCF.Channels
         public override void SetKeyDerivation(bool requireDerivedKeys)
         {
             base.SetKeyDerivation(requireDerivedKeys);
-            if (_protectionTokenParameters != null)
+            if (ProtectionTokenParameters != null)
             {
-                _protectionTokenParameters.RequireDerivedKeys = requireDerivedKeys;
+                ProtectionTokenParameters.RequireDerivedKeys = requireDerivedKeys;
             }
         }
 
@@ -175,9 +164,9 @@ namespace CoreWCF.Channels
             sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "MessageProtectionOrder: {0}", _messageProtectionOrder.ToString()));
             sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireSignatureConfirmation: {0}", _requireSignatureConfirmation.ToString()));
             sb.Append("ProtectionTokenParameters: ");
-            if (_protectionTokenParameters != null)
+            if (ProtectionTokenParameters != null)
             {
-                sb.AppendLine(_protectionTokenParameters.ToString().Trim().Replace("\n", "\n  "));
+                sb.AppendLine(ProtectionTokenParameters.ToString().Trim().Replace("\n", "\n  "));
             }
             else
             {

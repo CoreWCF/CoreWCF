@@ -11,10 +11,9 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
     public class MyTestAuthorizationPolicy : IAuthorizationPolicy
     {
-        private readonly string id;
         public MyTestAuthorizationPolicy()
         {
-            id = Guid.NewGuid().ToString();
+            Id = Guid.NewGuid().ToString();
         }
 
         public bool Evaluate(EvaluationContext evaluationContext, ref object state)
@@ -61,26 +60,17 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
             get { return ClaimSet.System; }
         }
 
-        public string Id
-        {
-            get { return id; }
-        }
+        public string Id { get; private set; }
 
         // Internal class for keeping track of state.
         private class CustomAuthState
         {
-            private bool bClaimsAdded;
-
             public CustomAuthState()
             {
-                bClaimsAdded = false;
+                ClaimsAdded = false;
             }
 
-            public bool ClaimsAdded
-            {
-                get { return bClaimsAdded; }
-                set { bClaimsAdded = value; }
-            }
+            public bool ClaimsAdded { get; set; }
         }
     }
 }

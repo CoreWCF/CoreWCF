@@ -14,23 +14,12 @@ namespace CoreWCF.Runtime
     {
         //SecurityContext context;
         private bool isScheduled;
-        private bool lowPriority;
 
         protected ActionItem()
         {
         }
 
-        public bool LowPriority
-        {
-            get
-            {
-                return lowPriority;
-            }
-            protected set
-            {
-                lowPriority = value;
-            }
-        }
+        public bool LowPriority { get; protected set; }
 
         public static void Schedule(Action<object> callback, object state)
         {
@@ -124,7 +113,7 @@ namespace CoreWCF.Runtime
 
         private void ScheduleCallback(Action<object> callback)
         {
-            ScheduleCallback(callback, this, lowPriority);
+            ScheduleCallback(callback, this, LowPriority);
         }
 
         private static class CallbackHelper

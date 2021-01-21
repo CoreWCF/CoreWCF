@@ -776,21 +776,18 @@ namespace CoreWCF.Dispatcher
 
         private class PartInfo
         {
-            private readonly XmlDictionaryString dictionaryName;
-            private readonly XmlDictionaryString dictionaryNamespace;
             private readonly XmlDictionaryString itemName;
             private readonly XmlDictionaryString itemNamespace;
-            private readonly MessagePartDescription description;
             private readonly TypeCode typeCode;
             private readonly bool isArray;
 
             public PartInfo(MessagePartDescription description, XmlDictionaryString dictionaryName, XmlDictionaryString dictionaryNamespace, XmlDictionaryString itemName, XmlDictionaryString itemNamespace)
             {
-                this.dictionaryName = dictionaryName;
-                this.dictionaryNamespace = dictionaryNamespace;
+                DictionaryName = dictionaryName;
+                DictionaryNamespace = dictionaryNamespace;
                 this.itemName = itemName;
                 this.itemNamespace = itemNamespace;
-                this.description = description;
+                Description = description;
                 if (description.Type.IsArray)
                 {
                     isArray = true;
@@ -803,20 +800,11 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
-            public MessagePartDescription Description
-            {
-                get { return description; }
-            }
+            public MessagePartDescription Description { get; }
 
-            public XmlDictionaryString DictionaryName
-            {
-                get { return dictionaryName; }
-            }
+            public XmlDictionaryString DictionaryName { get; }
 
-            public XmlDictionaryString DictionaryNamespace
-            {
-                get { return dictionaryNamespace; }
-            }
+            public XmlDictionaryString DictionaryNamespace { get; }
 
             public object ReadValue(XmlDictionaryReader reader)
             {

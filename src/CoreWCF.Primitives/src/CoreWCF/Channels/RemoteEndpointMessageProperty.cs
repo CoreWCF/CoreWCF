@@ -13,7 +13,6 @@ namespace CoreWCF.Channels
         private IPEndPoint remoteEndPoint;
         private IRemoteEndpointProvider remoteEndpointProvider;
         private InitializationState state;
-        private readonly object thisLock = new object();
 
         public RemoteEndpointMessageProperty(string address, int port)
         {
@@ -84,10 +83,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        private object ThisLock
-        {
-            get { return thisLock; }
-        }
+        private object ThisLock { get; } = new object();
 
         private void Initialize(bool getHostedPort)
         {

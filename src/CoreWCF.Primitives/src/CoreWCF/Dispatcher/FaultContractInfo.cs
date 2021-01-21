@@ -10,11 +10,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class FaultContractInfo
     {
-        private readonly string _action;
-        private readonly Type _detail;
-        private readonly string _elementName;
         private readonly string _ns;
-        private readonly IList<Type> _knownTypes;
         private DataContractSerializer _serializer;
 
         public FaultContractInfo(string action, Type detail)
@@ -32,26 +28,26 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(detail));
             }
 
-            _action = action;
-            _detail = detail;
+            Action = action;
+            Detail = detail;
             if (elementName != null)
             {
-                _elementName = elementName.EncodedName;
+                ElementName = elementName.EncodedName;
             }
 
             _ns = ns;
-            _knownTypes = knownTypes;
+            KnownTypes = knownTypes;
         }
 
-        public string Action => _action;
+        public string Action { get; }
 
-        public Type Detail => _detail;
+        public Type Detail { get; }
 
-        internal string ElementName => _elementName;
+        internal string ElementName { get; }
 
         internal string ElementNamespace => _ns;
 
-        internal IList<Type> KnownTypes => _knownTypes;
+        internal IList<Type> KnownTypes { get; }
 
         internal DataContractSerializer Serializer
         {
@@ -59,13 +55,13 @@ namespace CoreWCF.Dispatcher
             {
                 if (_serializer == null)
                 {
-                    if (_elementName == null)
+                    if (ElementName == null)
                     {
-                        _serializer = DataContractSerializerDefaults.CreateSerializer(_detail, _knownTypes, int.MaxValue /* maxItemsInObjectGraph */);
+                        _serializer = DataContractSerializerDefaults.CreateSerializer(Detail, KnownTypes, int.MaxValue /* maxItemsInObjectGraph */);
                     }
                     else
                     {
-                        _serializer = DataContractSerializerDefaults.CreateSerializer(_detail, _knownTypes, _elementName, _ns ?? string.Empty, int.MaxValue /* maxItemsInObjectGraph */);
+                        _serializer = DataContractSerializerDefaults.CreateSerializer(Detail, KnownTypes, ElementName, _ns ?? string.Empty, int.MaxValue /* maxItemsInObjectGraph */);
                     }
                 }
                 return _serializer;

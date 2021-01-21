@@ -324,33 +324,20 @@ namespace CoreWCF.Runtime
 
             private abstract class BufferPool
             {
-                private readonly int bufferSize;
                 private int count;
-                private readonly int limit;
-                private int misses;
                 private int peak;
 
                 public BufferPool(int bufferSize, int limit)
                 {
-                    this.bufferSize = bufferSize;
-                    this.limit = limit;
+                    BufferSize = bufferSize;
+                    Limit = limit;
                 }
 
-                public int BufferSize
-                {
-                    get { return bufferSize; }
-                }
+                public int BufferSize { get; }
 
-                public int Limit
-                {
-                    get { return limit; }
-                }
+                public int Limit { get; }
 
-                public int Misses
-                {
-                    get { return misses; }
-                    set { misses = value; }
-                }
+                public int Misses { get; set; }
 
                 public int Peak
                 {
@@ -375,7 +362,7 @@ namespace CoreWCF.Runtime
                 public void IncrementCount()
                 {
                     int newValue = count + 1;
-                    if (newValue <= limit)
+                    if (newValue <= Limit)
                     {
                         count = newValue;
                         if (newValue > peak)
@@ -490,16 +477,11 @@ namespace CoreWCF.Runtime
 
         private class GCBufferManager : InternalBufferManager
         {
-            private static readonly GCBufferManager value = new GCBufferManager();
-
             private GCBufferManager()
             {
             }
 
-            public static GCBufferManager Value
-            {
-                get { return value; }
-            }
+            public static GCBufferManager Value { get; } = new GCBufferManager();
 
             public override void Clear()
             {

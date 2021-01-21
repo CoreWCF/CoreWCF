@@ -23,23 +23,12 @@ namespace CoreWCF.Channels
         internal const bool defaultEnableUnsecuredResponse = false;
         internal const bool defaultProtectTokens = false;
         private SecurityAlgorithmSuite defaultAlgorithmSuite;
-        private readonly SupportingTokenParameters endpointSupportingTokenParameters;
         private readonly SupportingTokenParameters optionalEndpointSupportingTokenParameters;
-        private bool includeTimestamp;
         private SecurityKeyEntropyMode keyEntropyMode;
         private readonly Dictionary<string, SupportingTokenParameters> operationSupportingTokenParameters;
         private readonly Dictionary<string, SupportingTokenParameters> optionalOperationSupportingTokenParameters;
-        private readonly LocalServiceSecuritySettings localServiceSettings;
         private MessageSecurityVersion messageSecurityVersion;
         private SecurityHeaderLayout securityHeaderLayout;
-
-        // InternalDuplexBindingElement internalDuplexBindingElement;
-        private long maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
-        private XmlDictionaryReaderQuotas readerQuotas;
-        private bool doNotEmitTrust = false; // true if user create a basic http standard binding, the custombinding equivalent will not set this flag 
-        private bool supportsExtendedProtectionPolicy;
-        private bool allowInsecureTransport;
-        private bool enableUnsecuredResponse;
         private bool protectTokens = defaultProtectTokens;
 
         internal SecurityBindingElement()
@@ -47,16 +36,16 @@ namespace CoreWCF.Channels
         {
             messageSecurityVersion = MessageSecurityVersion.Default;
             keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy; // AcceleratedTokenProvider.defaultKeyEntropyMode;
-            includeTimestamp = defaultIncludeTimestamp;
+            IncludeTimestamp = defaultIncludeTimestamp;
             defaultAlgorithmSuite = defaultDefaultAlgorithmSuite;
-            localServiceSettings = new LocalServiceSecuritySettings();
-            endpointSupportingTokenParameters = new SupportingTokenParameters();
+            LocalServiceSettings = new LocalServiceSecuritySettings();
+            EndpointSupportingTokenParameters = new SupportingTokenParameters();
             optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
             operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             securityHeaderLayout = SecurityHeaderLayout.Strict; // SecurityProtocolFactory.defaultSecurityHeaderLayout;
-            allowInsecureTransport = defaultAllowInsecureTransport;
-            enableUnsecuredResponse = defaultEnableUnsecuredResponse;
+            AllowInsecureTransport = defaultAllowInsecureTransport;
+            EnableUnsecuredResponse = defaultEnableUnsecuredResponse;
             protectTokens = defaultProtectTokens;
         }
 
@@ -69,11 +58,11 @@ namespace CoreWCF.Channels
             }
 
             defaultAlgorithmSuite = elementToBeCloned.defaultAlgorithmSuite;
-            includeTimestamp = elementToBeCloned.includeTimestamp;
+            IncludeTimestamp = elementToBeCloned.IncludeTimestamp;
             keyEntropyMode = elementToBeCloned.keyEntropyMode;
             messageSecurityVersion = elementToBeCloned.messageSecurityVersion;
             securityHeaderLayout = elementToBeCloned.securityHeaderLayout;
-            endpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.endpointSupportingTokenParameters.Clone();
+            EndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.EndpointSupportingTokenParameters.Clone();
             optionalEndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.optionalEndpointSupportingTokenParameters.Clone();
             operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             foreach (string key in elementToBeCloned.operationSupportingTokenParameters.Keys)
@@ -85,30 +74,20 @@ namespace CoreWCF.Channels
             {
                 optionalOperationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned.optionalOperationSupportingTokenParameters[key].Clone();
             }
-            localServiceSettings = (LocalServiceSecuritySettings)elementToBeCloned.localServiceSettings.Clone();
+            LocalServiceSettings = (LocalServiceSecuritySettings)elementToBeCloned.LocalServiceSettings.Clone();
             // this.internalDuplexBindingElement = elementToBeCloned.internalDuplexBindingElement;
-            maxReceivedMessageSize = elementToBeCloned.maxReceivedMessageSize;
-            readerQuotas = elementToBeCloned.readerQuotas;
-            doNotEmitTrust = elementToBeCloned.doNotEmitTrust;
-            allowInsecureTransport = elementToBeCloned.allowInsecureTransport;
-            enableUnsecuredResponse = elementToBeCloned.enableUnsecuredResponse;
-            supportsExtendedProtectionPolicy = elementToBeCloned.supportsExtendedProtectionPolicy;
+            MaxReceivedMessageSize = elementToBeCloned.MaxReceivedMessageSize;
+            ReaderQuotas = elementToBeCloned.ReaderQuotas;
+            DoNotEmitTrust = elementToBeCloned.DoNotEmitTrust;
+            AllowInsecureTransport = elementToBeCloned.AllowInsecureTransport;
+            EnableUnsecuredResponse = elementToBeCloned.EnableUnsecuredResponse;
+            SupportsExtendedProtectionPolicy = elementToBeCloned.SupportsExtendedProtectionPolicy;
             protectTokens = elementToBeCloned.protectTokens;
         }
 
-        internal bool SupportsExtendedProtectionPolicy
-        {
-            get { return supportsExtendedProtectionPolicy; }
-            set { supportsExtendedProtectionPolicy = value; }
-        }
+        internal bool SupportsExtendedProtectionPolicy { get; set; }
 
-        public SupportingTokenParameters EndpointSupportingTokenParameters
-        {
-            get
-            {
-                return endpointSupportingTokenParameters;
-            }
-        }
+        public SupportingTokenParameters EndpointSupportingTokenParameters { get; }
 
         public SupportingTokenParameters OptionalEndpointSupportingTokenParameters
         {
@@ -168,41 +147,11 @@ namespace CoreWCF.Channels
             }
         }
 
-        public bool EnableUnsecuredResponse
-        {
-            get
-            {
-                return enableUnsecuredResponse;
-            }
-            set
-            {
-                enableUnsecuredResponse = value;
-            }
-        }
+        public bool EnableUnsecuredResponse { get; set; }
 
-        public bool IncludeTimestamp
-        {
-            get
-            {
-                return includeTimestamp;
-            }
-            set
-            {
-                includeTimestamp = value;
-            }
-        }
+        public bool IncludeTimestamp { get; set; }
 
-        public bool AllowInsecureTransport
-        {
-            get
-            {
-                return allowInsecureTransport;
-            }
-            set
-            {
-                allowInsecureTransport = value;
-            }
-        }
+        public bool AllowInsecureTransport { get; set; }
 
         public SecurityAlgorithmSuite DefaultAlgorithmSuite
         {
@@ -233,13 +182,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public LocalServiceSecuritySettings LocalServiceSettings
-        {
-            get
-            {
-                return localServiceSettings;
-            }
-        }
+        public LocalServiceSecuritySettings LocalServiceSettings { get; }
 
         public SecurityKeyEntropyMode KeyEntropyMode
         {
@@ -272,23 +215,11 @@ namespace CoreWCF.Channels
             get { return false; }
         }
 
-        internal long MaxReceivedMessageSize
-        {
-            get { return maxReceivedMessageSize; }
-            set { maxReceivedMessageSize = value; }
-        }
+        internal long MaxReceivedMessageSize { get; set; } = TransportDefaults.MaxReceivedMessageSize;
 
-        internal bool DoNotEmitTrust
-        {
-            get { return doNotEmitTrust; }
-            set { doNotEmitTrust = value; }
-        }
+        internal bool DoNotEmitTrust { get; set; } = false;
 
-        internal XmlDictionaryReaderQuotas ReaderQuotas
-        {
-            get { return readerQuotas; }
-            set { readerQuotas = value; }
-        }
+        internal XmlDictionaryReaderQuotas ReaderQuotas { get; set; }
 
         private void GetSupportingTokensCapabilities(ICollection<SecurityTokenParameters> parameters, out bool supportsClientAuth, out bool supportsWindowsIdentity)
         {
@@ -558,8 +489,8 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.ChannelTypeNotSupported, typeof(TChannel)), "TChannel"));
             }
 
-            readerQuotas = context.GetInnerProperty<XmlDictionaryReaderQuotas>();
-            if (readerQuotas == null)
+            ReaderQuotas = context.GetInnerProperty<XmlDictionaryReaderQuotas>();
+            if (ReaderQuotas == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.EncodingBindingElementDoesNotHandleReaderQuotas)));
             }
@@ -572,7 +503,7 @@ namespace CoreWCF.Channels
 
             if (transportBindingElement != null)
             {
-                maxReceivedMessageSize = transportBindingElement.MaxReceivedMessageSize;
+                MaxReceivedMessageSize = transportBindingElement.MaxReceivedMessageSize;
             }
 
             return BuildServiceDispatcherCore<TChannel>(context, innerDispatcher);

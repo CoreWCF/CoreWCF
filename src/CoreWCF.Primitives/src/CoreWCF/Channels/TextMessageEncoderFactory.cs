@@ -248,7 +248,6 @@ namespace CoreWCF.Channels
 
         private class TextMessageEncoder : MessageEncoder
         {
-            private readonly int maxReadPoolSize;
             private readonly int maxWritePoolSize;
 
             // Double-checked locking pattern requires volatile for read/write synchronization
@@ -257,14 +256,12 @@ namespace CoreWCF.Channels
             private volatile SynchronizedPool<UTF8BufferedMessageData> bufferedReaderPool;
             private volatile SynchronizedPool<TextBufferedMessageWriter> bufferedWriterPool;
             private volatile SynchronizedPool<RecycledMessageState> recycledStatePool;
-            private readonly object thisLock;
             private readonly string contentType;
             private readonly string mediaType;
             private readonly Encoding writeEncoding;
             private readonly MessageVersion version;
             private readonly bool optimizeWriteForUTF8;
             private const int maxPooledXmlReadersPerMessage = 2;
-            private readonly XmlDictionaryReaderQuotas readerQuotas;
             private readonly XmlDictionaryReaderQuotas bufferedReadReaderQuotas;
             private readonly OnXmlDictionaryReaderClose onStreamedReaderClose;
             private readonly ContentEncoding[] contentEncodingMap;
@@ -285,16 +282,16 @@ namespace CoreWCF.Channels
                 this.writeEncoding = writeEncoding;
                 optimizeWriteForUTF8 = IsUTF8Encoding(writeEncoding);
 
-                thisLock = new object();
+                ThisLock = new object();
 
                 this.version = version;
-                this.maxReadPoolSize = maxReadPoolSize;
+                MaxReadPoolSize = maxReadPoolSize;
                 this.maxWritePoolSize = maxWritePoolSize;
 
-                readerQuotas = new XmlDictionaryReaderQuotas();
-                quotas.CopyTo(readerQuotas);
+                ReaderQuotas = new XmlDictionaryReaderQuotas();
+                quotas.CopyTo(ReaderQuotas);
 
-                bufferedReadReaderQuotas = EncoderHelpers.GetBufferedReadQuotas(readerQuotas);
+                bufferedReadReaderQuotas = EncoderHelpers.GetBufferedReadQuotas(ReaderQuotas);
 
                 onStreamedReaderClose = new OnXmlDictionaryReaderClose(ReturnStreamedReader);
 
@@ -334,18 +331,9 @@ namespace CoreWCF.Channels
                 get { return maxWritePoolSize; }
             }
 
-            public int MaxReadPoolSize
-            {
-                get { return maxReadPoolSize; }
-            }
+            public int MaxReadPoolSize { get; }
 
-            public XmlDictionaryReaderQuotas ReaderQuotas
-            {
-                get
-                {
-                    return readerQuotas;
-                }
-            }
+            public XmlDictionaryReaderQuotas ReaderQuotas { get; }
 
             public override string MediaType
             {
@@ -357,10 +345,7 @@ namespace CoreWCF.Channels
                 get { return version; }
             }
 
-            private object ThisLock
-            {
-                get { return thisLock; }
-            }
+            private object ThisLock { get; }
 
 
             internal override bool IsCharSetSupported(string charSet)
@@ -581,14 +566,14 @@ namespace CoreWCF.Channels
                     {
                         if (streamedReaderPool == null)
                         {
-                            streamedReaderPool = new SynchronizedPool<XmlDictionaryReader>(maxReadPoolSize);
+                            streamedReaderPool = new SynchronizedPool<XmlDictionaryReader>(MaxReadPoolSize);
                         }
                     }
                 }
                 XmlDictionaryReader xmlReader = streamedReaderPool.Take();
                 if (xmlReader == null)
                 {
-                    xmlReader = XmlDictionaryReader.CreateTextReader(stream, enc, readerQuotas, null);
+                    xmlReader = XmlDictionaryReader.CreateTextReader(stream, enc, ReaderQuotas, null);
                 }
                 // TODO: Use the reinitialization API's once moved to .Net Standard 2.0
                 //else
@@ -616,7 +601,7 @@ namespace CoreWCF.Channels
                     {
                         if (bufferedReaderPool == null)
                         {
-                            bufferedReaderPool = new SynchronizedPool<UTF8BufferedMessageData>(maxReadPoolSize);
+                            bufferedReaderPool = new SynchronizedPool<UTF8BufferedMessageData>(MaxReadPoolSize);
                         }
                     }
                 }
@@ -643,7 +628,7 @@ namespace CoreWCF.Channels
                         {
                             if (recycledStatePool == null)
                             {
-                                recycledStatePool = new SynchronizedPool<RecycledMessageState>(maxReadPoolSize);
+                                recycledStatePool = new SynchronizedPool<RecycledMessageState>(MaxReadPoolSize);
                             }
                         }
                     }

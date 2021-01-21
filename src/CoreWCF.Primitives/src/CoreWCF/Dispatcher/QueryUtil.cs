@@ -307,13 +307,12 @@ namespace CoreWCF.Dispatcher
     internal struct SortedBuffer<T, C>
             where C : IComparer<T>
     {
-        private int size;
         private T[] buffer;
         private static DefaultComparer Comparer;
 
         internal SortedBuffer(C comparerInstance)
         {
-            size = 0;
+            Count = 0;
             buffer = null;
 
             if (Comparer == null)
@@ -342,7 +341,7 @@ namespace CoreWCF.Dispatcher
                 {
                     if (value != buffer.Length)
                     {
-                        Fx.Assert(value >= size, "New capacity must be >= size");
+                        Fx.Assert(value >= Count, "New capacity must be >= size");
                         if (value > 0)
                         {
                             Array.Resize(ref buffer, value);
@@ -360,13 +359,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal int Count
-        {
-            get
-            {
-                return size;
-            }
-        }
+        internal int Count { get; private set; }
 
         internal int Add(T item)
         {
@@ -383,7 +376,7 @@ namespace CoreWCF.Dispatcher
 
         internal void Clear()
         {
-            size = 0;
+            Count = 0;
         }
         internal void Exchange(T old, T replace)
         {
@@ -409,7 +402,7 @@ namespace CoreWCF.Dispatcher
 
         internal T GetAt(int index)
         {
-            Fx.Assert(index < size, "Index is greater than size");
+            Fx.Assert(index < Count, "Index is greater than size");
             return buffer[index];
         }
 
@@ -440,40 +433,40 @@ namespace CoreWCF.Dispatcher
 
         private void InsertAt(int index, T item)
         {
-            Fx.Assert(index >= 0 && index <= size, "");
+            Fx.Assert(index >= 0 && index <= Count, "");
 
             if (buffer == null)
             {
                 buffer = new T[1];
             }
-            else if (buffer.Length == size)
+            else if (buffer.Length == Count)
             {
                 // PERF, astern, how should we choose a new size?
-                T[] tmp = new T[size + 1];
+                T[] tmp = new T[Count + 1];
 
                 if (index == 0)
                 {
-                    Array.Copy(buffer, 0, tmp, 1, size);
+                    Array.Copy(buffer, 0, tmp, 1, Count);
                 }
-                else if (index == size)
+                else if (index == Count)
                 {
-                    Array.Copy(buffer, 0, tmp, 0, size);
+                    Array.Copy(buffer, 0, tmp, 0, Count);
                 }
                 else
                 {
                     Array.Copy(buffer, 0, tmp, 0, index);
-                    Array.Copy(buffer, index, tmp, index + 1, size - index);
+                    Array.Copy(buffer, index, tmp, index + 1, Count - index);
                 }
 
                 buffer = tmp;
             }
             else
             {
-                Array.Copy(buffer, index, buffer, index + 1, size - index);
+                Array.Copy(buffer, index, buffer, index + 1, Count - index);
             }
 
             buffer[index] = item;
-            ++size;
+            ++Count;
         }
 
         internal bool Remove(T item)
@@ -491,19 +484,19 @@ namespace CoreWCF.Dispatcher
 
         internal void RemoveAt(int index)
         {
-            Fx.Assert(index >= 0 && index < size, "");
+            Fx.Assert(index >= 0 && index < Count, "");
 
-            if (index < size - 1)
+            if (index < Count - 1)
             {
-                Array.Copy(buffer, index + 1, buffer, index, size - index - 1);
+                Array.Copy(buffer, index + 1, buffer, index, Count - index - 1);
             }
 
-            buffer[--size] = default(T);
+            buffer[--Count] = default(T);
         }
 
         private int Search(T item)
         {
-            if (size == 0)
+            if (Count == 0)
             {
                 return ~0;
             }
@@ -513,9 +506,9 @@ namespace CoreWCF.Dispatcher
 
         private int Search<K>(K key, IItemComparer<K, T> comparer)
         {
-            if (size <= 8)
+            if (Count <= 8)
             {
-                return LinearSearch<K>(key, comparer, 0, size);
+                return LinearSearch<K>(key, comparer, 0, Count);
             }
             else
             {
@@ -527,7 +520,7 @@ namespace CoreWCF.Dispatcher
         {
             // [low, high)
             int low = 0;
-            int high = size;
+            int high = Count;
             int mid, result;
 
             // Binary search is implemented here so we could look for a type that is different from the
@@ -578,7 +571,7 @@ namespace CoreWCF.Dispatcher
         }
         internal void Trim()
         {
-            Capacity = size;
+            Capacity = Count;
         }
 
         internal class DefaultComparer : IItemComparer<T, T>

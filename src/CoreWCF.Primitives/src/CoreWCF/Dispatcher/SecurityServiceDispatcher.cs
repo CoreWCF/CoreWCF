@@ -25,15 +25,12 @@ namespace CoreWCF.Dispatcher
         private SecurityProtocolFactory securityProtocolFactory;
         private SecuritySessionServerSettings sessionServerSettings;
         private SecurityListenerSettingsLifetimeManager settingsLifetimeManager;
-        private bool sessionMode;
         private bool sendUnsecuredFaults;
         //ServiceChannelDispatcher to call SCT (just keep one instance)
         private volatile IServiceChannelDispatcher securityAuthServiceChannelDispatcher;
         private Task<IServiceChannelDispatcher> channelTask;
         //ServiceChannelDispatcher to call real service (just keep one instance)
         private readonly IServiceChannelDispatcher innerServiceChanelDispatcher;
-        private IChannel outerChannel;
-        private Type acceptorChannelType;
         private bool _disposed = false;
 
         public SecurityServiceDispatcher(SecurityBindingElement transportSecurityBindingElement, BindingContext context, IServiceDispatcher serviceDispatcher)
@@ -93,17 +90,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public bool SessionMode
-        {
-            get
-            {
-                return sessionMode;
-            }
-            set
-            {
-                sessionMode = value;
-            }
-        }
+        public bool SessionMode { get; set; }
 
         internal SecuritySessionServerSettings SessionServerSettings
         {
@@ -156,16 +143,8 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public IChannel OuterChannel
-        {
-            get { return outerChannel; }
-            set { outerChannel = value; }
-        }
-        public Type AcceptorChannelType
-        {
-            get { return acceptorChannelType; }
-            set { acceptorChannelType = value; }
-        }
+        public IChannel OuterChannel { get; set; }
+        public Type AcceptorChannelType { get; set; }
 
         IList<Type> IServiceDispatcher.SupportedChannelTypes => throw new NotImplementedException();
 
@@ -180,7 +159,7 @@ namespace CoreWCF.Dispatcher
                 sessionServerSettings.ChannelBuilder = ChannelBuilder;
                 //this.InnerChannelListener = this.sessionServerSettings.CreateInnerChannelListener();
                 // this.Acceptor = this.sessionServerSettings.CreateAcceptor<TChannel>();
-                acceptorChannelType = type;
+                AcceptorChannelType = type;
                 sessionServerSettings.AcceptorChannelType = type;
             }
             else
@@ -207,7 +186,7 @@ namespace CoreWCF.Dispatcher
                 ThrowIfProtocolFactoryNotSet();
                 //  this.securityProtocolFactory.ListenUri = this.Uri;
             }
-            settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(securityProtocolFactory, sessionServerSettings, sessionMode);//, this.InnerChannelListener);
+            settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(securityProtocolFactory, sessionServerSettings, SessionMode);//, this.InnerChannelListener);
             if (sessionServerSettings != null)
             {
                 sessionServerSettings.SettingsLifetimeManager = settingsLifetimeManager;

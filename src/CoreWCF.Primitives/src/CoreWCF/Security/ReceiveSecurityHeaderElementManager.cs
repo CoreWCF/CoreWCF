@@ -22,12 +22,10 @@ namespace CoreWCF.Security
         private const int InitialCapacity = 8;
         private readonly ReceiveSecurityHeader securityHeader;
         private ReceiveSecurityHeaderEntry[] elements;
-        private int count;
         private readonly string[] headerIds;
         private string[] predecryptionHeaderIds;
         private string bodyId;
         private string bodyContentId;
-        private bool isPrimaryTokenSigned = false;
 
         public ReceiveSecurityHeaderElementManager(ReceiveSecurityHeader securityHeader)
         {
@@ -39,13 +37,9 @@ namespace CoreWCF.Security
             }
         }
 
-        public int Count => count;
+        public int Count { get; private set; }
 
-        public bool IsPrimaryTokenSigned
-        {
-            get { return isPrimaryTokenSigned; }
-            set { isPrimaryTokenSigned = value; }
-        }
+        public bool IsPrimaryTokenSigned { get; set; } = false;
 
         public void AppendElement(
             ReceiveSecurityHeaderElementCategory elementCategory, object element,
@@ -56,7 +50,7 @@ namespace CoreWCF.Security
                 VerifyIdUniquenessInSecurityHeader(id);
             }
             EnsureCapacityToAdd();
-            elements[count++].SetElement(elementCategory, element, bindingMode, id, false, null, supportingTokenTracker);
+            elements[Count++].SetElement(elementCategory, element, bindingMode, id, false, null, supportingTokenTracker);
         }
 
         public void AppendSignature(SignedXml signedXml)
@@ -107,7 +101,7 @@ namespace CoreWCF.Security
         public void EnsureAllRequiredSecurityHeaderTargetsWereProtected()
         {
             Fx.Assert(securityHeader.RequireMessageProtection, "security header protection checks should only be done for message security");
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 GetElementEntry(i, out ReceiveSecurityHeaderEntry entry);
                 if (!entry.signed)
@@ -145,41 +139,41 @@ namespace CoreWCF.Security
 
         private void EnsureCapacityToAdd()
         {
-            if (count == elements.Length)
+            if (Count == elements.Length)
             {
                 ReceiveSecurityHeaderEntry[] newElements = new ReceiveSecurityHeaderEntry[elements.Length * 2];
-                Array.Copy(elements, 0, newElements, 0, count);
+                Array.Copy(elements, 0, newElements, 0, Count);
                 elements = newElements;
             }
         }
 
         public object GetElement(int index)
         {
-            Fx.Assert(0 <= index && index < count, "");
+            Fx.Assert(0 <= index && index < Count, "");
             return elements[index].element;
         }
 
         public T GetElement<T>(int index) where T : class
         {
-            Fx.Assert(0 <= index && index < count, "");
+            Fx.Assert(0 <= index && index < Count, "");
             return (T)elements[index].element;
         }
 
         public void GetElementEntry(int index, out ReceiveSecurityHeaderEntry element)
         {
-            Fx.Assert(0 <= index && index < count, "index out of range");
+            Fx.Assert(0 <= index && index < Count, "index out of range");
             element = elements[index];
         }
 
         public ReceiveSecurityHeaderElementCategory GetElementCategory(int index)
         {
-            Fx.Assert(0 <= index && index < count, "index out of range");
+            Fx.Assert(0 <= index && index < Count, "index out of range");
             return elements[index].elementCategory;
         }
 
         public void GetPrimarySignature(out XmlDictionaryReader reader, out string id)
         {
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 GetElementEntry(i, out ReceiveSecurityHeaderEntry entry);
                 if (entry.elementCategory == ReceiveSecurityHeaderElementCategory.Signature &&
@@ -197,7 +191,7 @@ namespace CoreWCF.Security
 
         internal XmlDictionaryReader GetReader(int index, bool requiresEncryptedFormReader)
         {
-            Fx.Assert(0 <= index && index < count, "index out of range");
+            Fx.Assert(0 <= index && index < Count, "index out of range");
             if (!requiresEncryptedFormReader)
             {
                 byte[] decryptedBuffer = elements[index].decryptedBuffer;
@@ -217,7 +211,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryReader GetSignatureVerificationReader(string id, bool requiresEncryptedFormReaderIfDecrypted)
         {
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 GetElementEntry(i, out ReceiveSecurityHeaderEntry entry);
                 bool encryptedForm = entry.encrypted && requiresEncryptedFormReaderIfDecrypted;
@@ -252,19 +246,19 @@ namespace CoreWCF.Security
 
         public void SetBindingMode(int index, ReceiveSecurityHeaderBindingModes bindingMode)
         {
-            Fx.Assert(0 <= index && index < count, "index out of range");
+            Fx.Assert(0 <= index && index < Count, "index out of range");
             elements[index].bindingMode = bindingMode;
         }
 
         public void SetElement(int index, object element)
         {
-            Fx.Assert(0 <= index && index < count, "");
+            Fx.Assert(0 <= index && index < Count, "");
             elements[index].element = element;
         }
 
         public void ReplaceHeaderEntry(int index, ReceiveSecurityHeaderEntry element)
         {
-            Fx.Assert(0 <= index && index < count, "");
+            Fx.Assert(0 <= index && index < Count, "");
             elements[index] = element;
         }
 
@@ -273,7 +267,7 @@ namespace CoreWCF.Security
             ReceiveSecurityHeaderElementCategory elementCategory, object element,
             ReceiveSecurityHeaderBindingModes bindingMode, string id, byte[] decryptedBuffer, TokenTracker supportingTokenTracker)
         {
-            Fx.Assert(0 <= index && index < count, "index out of range");
+            Fx.Assert(0 <= index && index < Count, "index out of range");
             Fx.Assert(elements[index].elementCategory == ReceiveSecurityHeaderElementCategory.EncryptedData, "Replaced item must be EncryptedData");
             if (id != null)
             {
@@ -297,7 +291,7 @@ namespace CoreWCF.Security
 
         internal void SetSigned(int index)
         {
-            Fx.Assert(0 <= index && index < count, "");
+            Fx.Assert(0 <= index && index < Count, "");
             elements[index].signed = true;
             if (elements[index].supportingTokenTracker != null)
             {
@@ -307,7 +301,7 @@ namespace CoreWCF.Security
 
         public void SetTimestampSigned(string id)
         {
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 if (elements[i].elementCategory == ReceiveSecurityHeaderElementCategory.Timestamp &&
                     elements[i].id == id)
@@ -418,7 +412,7 @@ namespace CoreWCF.Security
         private void VerifyIdUniquenessInSecurityHeader(string id)
         {
             Fx.Assert(id != null, "Uniqueness should only be tested for non-empty ids");
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 if (elements[i].id == id || elements[i].encryptedFormId == id)
                 {
@@ -450,7 +444,7 @@ namespace CoreWCF.Security
 
         public void VerifySignatureConfirmationWasFound()
         {
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < Count; i++)
             {
                 GetElementEntry(i, out ReceiveSecurityHeaderEntry entry);
                 if (entry.elementCategory == ReceiveSecurityHeaderElementCategory.SignatureConfirmation)

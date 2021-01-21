@@ -8,7 +8,6 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class LocalIdKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        private readonly string localId;
         private readonly Type[] ownerTypes;
 
         public LocalIdKeyIdentifierClause(string localId)
@@ -42,14 +41,11 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.LocalIdCannotBeEmpty);
             }
-            this.localId = localId;
+            LocalId = localId;
             this.ownerTypes = ownerTypes;
         }
 
-        public string LocalId
-        {
-            get { return localId; }
-        }
+        public string LocalId { get; }
 
         public Type OwnerType
         {
@@ -59,7 +55,7 @@ namespace CoreWCF.IdentityModel.Tokens
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             LocalIdKeyIdentifierClause that = keyIdentifierClause as LocalIdKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(localId, OwnerType));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(LocalId, OwnerType));
         }
 
         public bool Matches(string localId, Type ownerType)
@@ -69,7 +65,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 return false;
             }
 
-            if (this.localId != localId)
+            if (LocalId != localId)
             {
                 return false;
             }

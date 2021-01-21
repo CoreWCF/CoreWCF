@@ -11,15 +11,12 @@ namespace CoreWCF.Description
 {
     public class ServiceEndpoint
     {
-        private EndpointAddress _address;
-        private Binding _binding;
         private ContractDescription _contract;
         private Uri _listenUri;
         private ListenUriMode _listenUriMode = ListenUriMode.Explicit;
         private KeyedByTypeCollection<IEndpointBehavior> _behaviors;
         private string _id;
         private XmlName _name;
-        private bool _isEndpointFullyConfigured = false;
 
         public ServiceEndpoint(ContractDescription contract)
         {
@@ -39,15 +36,11 @@ namespace CoreWCF.Description
             }
 
             _contract = contract;
-            _binding = binding;
-            _address = address;
+            Binding = binding;
+            Address = address;
         }
 
-        public EndpointAddress Address
-        {
-            get { return _address; }
-            set { _address = value; }
-        }
+        public EndpointAddress Address { get; set; }
 
         public KeyedCollection<Type, IEndpointBehavior> EndpointBehaviors
         {
@@ -67,11 +60,7 @@ namespace CoreWCF.Description
             }
         }
 
-        public Binding Binding
-        {
-            get { return _binding; }
-            set { _binding = value; }
-        }
+        public Binding Binding { get; set; }
 
         public ContractDescription Contract
         {
@@ -100,7 +89,7 @@ namespace CoreWCF.Description
                 {
                     return _name.EncodedName;
                 }
-                else if (_binding != null)
+                else if (Binding != null)
                 {
                     return string.Format(CultureInfo.InvariantCulture, "{0}_{1}", new XmlName(Binding.Name).EncodedName, Contract.Name);
                 }
@@ -121,13 +110,13 @@ namespace CoreWCF.Description
             {
                 if (_listenUri == null)
                 {
-                    if (_address == null)
+                    if (Address == null)
                     {
                         return null;
                     }
                     else
                     {
-                        return _address.Uri;
+                        return Address.Uri;
                     }
                 }
                 else
@@ -209,11 +198,7 @@ namespace CoreWCF.Description
             Validate(runOperationValidators, true);
         }
 
-        internal bool IsFullyConfigured
-        {
-            get { return _isEndpointFullyConfigured; }
-            set { _isEndpointFullyConfigured = value; }
-        }
+        internal bool IsFullyConfigured { get; set; } = false;
 
         // for V1 legacy reasons, a mex endpoint is considered a system endpoint even if IsSystemEndpoint = false
         internal bool InternalIsSystemEndpoint(ServiceDescription description)

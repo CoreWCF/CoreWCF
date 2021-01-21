@@ -617,41 +617,29 @@ namespace CoreWCF.Dispatcher
 
         protected class PartInfo
         {
-            private readonly XmlDictionaryString dictionaryName;
             private readonly XmlDictionaryString dictionaryNamespace;
-            private readonly MessagePartDescription description;
             private XmlObjectSerializer serializer;
             private readonly IList<Type> knownTypes;
             private readonly DataContractSerializerOperationBehavior serializerFactory;
-            private readonly Type contractType;
             private readonly bool isQueryable;
 
             public PartInfo(MessagePartDescription description, XmlDictionaryString dictionaryName, XmlDictionaryString dictionaryNamespace,
                 IList<Type> knownTypes, DataContractSerializerOperationBehavior behavior)
             {
-                this.dictionaryName = dictionaryName;
+                DictionaryName = dictionaryName;
                 this.dictionaryNamespace = dictionaryNamespace;
-                this.description = description;
+                Description = description;
                 this.knownTypes = knownTypes;
                 serializerFactory = behavior;
 
-                contractType = DataContractSerializerOperationFormatter.GetSubstituteDataContractType(description.Type, out isQueryable);
+                ContractType = DataContractSerializerOperationFormatter.GetSubstituteDataContractType(description.Type, out isQueryable);
             }
 
-            public Type ContractType
-            {
-                get { return contractType; }
-            }
+            public Type ContractType { get; }
 
-            public MessagePartDescription Description
-            {
-                get { return description; }
-            }
+            public MessagePartDescription Description { get; }
 
-            public XmlDictionaryString DictionaryName
-            {
-                get { return dictionaryName; }
-            }
+            public XmlDictionaryString DictionaryName { get; }
 
             public XmlDictionaryString DictionaryNamespace
             {
@@ -664,7 +652,7 @@ namespace CoreWCF.Dispatcher
                 {
                     if (serializer == null)
                     {
-                        serializer = serializerFactory.CreateSerializer(contractType, DictionaryName, DictionaryNamespace, knownTypes);
+                        serializer = serializerFactory.CreateSerializer(ContractType, DictionaryName, DictionaryNamespace, knownTypes);
                     }
                     return serializer;
                 }

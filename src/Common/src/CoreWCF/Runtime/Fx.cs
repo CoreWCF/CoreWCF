@@ -19,7 +19,6 @@ namespace CoreWCF.Runtime
         private const string defaultEventSource = "Microsoft.Runtime";
         private static ExceptionTrace s_exceptionTrace;
         private static EtwDiagnosticTrace s_diagnosticTrace;
-        private static ExceptionHandler s_asynchronousThreadExceptionHandler;
 
         public static ExceptionTrace Exception
         {
@@ -63,18 +62,7 @@ namespace CoreWCF.Runtime
             return trace;
         }
 
-        public static ExceptionHandler AsynchronousThreadExceptionHandler
-        {
-            get
-            {
-                return s_asynchronousThreadExceptionHandler;
-            }
-
-            set
-            {
-                s_asynchronousThreadExceptionHandler = value;
-            }
-        }
+        public static ExceptionHandler AsynchronousThreadExceptionHandler { get; set; }
 
         public static void AssertAndThrow(bool condition, string description)
         {
@@ -234,20 +222,12 @@ namespace CoreWCF.Runtime
 
         private abstract class Thunk<T> where T : class
         {
-            private readonly T callback;
-
             protected Thunk(T callback)
             {
-                this.callback = callback;
+                Callback = callback;
             }
 
-            internal T Callback
-            {
-                get
-                {
-                    return callback;
-                }
-            }
+            internal T Callback { get; private set; }
         }
 
         private sealed class ActionThunk<T1> : Thunk<Action<T1>>

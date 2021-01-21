@@ -332,8 +332,6 @@ namespace CoreWCF.IdentityModel.Claims
 
         private class X500DistinguishedNameClaimSet : DefaultClaimSet, IIdentityInfo
         {
-            private readonly IIdentity identity;
-
             public X500DistinguishedNameClaimSet(X500DistinguishedName x500DistinguishedName)
             {
                 if (x500DistinguishedName == null)
@@ -341,17 +339,14 @@ namespace CoreWCF.IdentityModel.Claims
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(x500DistinguishedName));
                 }
 
-                identity = new X509Identity(x500DistinguishedName);
+                Identity = new X509Identity(x500DistinguishedName);
                 List<Claim> claims = new List<Claim>(2);
                 claims.Add(new Claim(ClaimTypes.X500DistinguishedName, x500DistinguishedName, Rights.Identity));
                 claims.Add(Claim.CreateX500DistinguishedNameClaim(x500DistinguishedName));
                 Initialize(ClaimSet.Anonymous, claims);
             }
 
-            public IIdentity Identity
-            {
-                get { return identity; }
-            }
+            public IIdentity Identity { get; }
         }
 
         // We don't have a strongly typed extension to parse Subject Alt Names, so we have to do a workaround 

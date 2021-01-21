@@ -8,20 +8,13 @@ namespace CoreWCF.Security
 {
     internal sealed class SctClaimDictionary : XmlDictionary
     {
-        private readonly XmlDictionaryString x509CertificateClaimSet;
-        private readonly XmlDictionaryString binaryClaim;
-        private readonly XmlDictionaryString x509ThumbprintClaim;
-        private readonly XmlDictionaryString windowsSidIdentity;
-        private readonly XmlDictionaryString contextId;
-        private readonly XmlDictionaryString name;
-        private readonly XmlDictionaryString genericXmlToken;
         private readonly XmlDictionaryString emptyString;
 
         private SctClaimDictionary()
         {
             SecurityContextSecurityToken = Add("SecurityContextSecurityToken");
             Version = Add("Version");
-            contextId = Add("ContextId");
+            ContextId = Add("ContextId");
             Id = Add("Id");
             Key = Add("Key");
             IsCookieMode = Add("IsCookieMode");
@@ -38,12 +31,12 @@ namespace CoreWCF.Security
             PrimaryIdentity = Add("PrimaryIdentity");
             PrimaryIssuer = Add("PrimaryIssuer");
 
-            x509CertificateClaimSet = Add("X509CertificateClaimSet");
+            X509CertificateClaimSet = Add("X509CertificateClaimSet");
             SystemClaimSet = Add("SystemClaimSet");
             WindowsClaimSet = Add("WindowsClaimSet");
             AnonymousClaimSet = Add("AnonymousClaimSet");
 
-            binaryClaim = Add("BinaryClaim");
+            BinaryClaim = Add("BinaryClaim");
             DnsClaim = Add("DnsClaim");
             GenericIdentity = Add("GenericIdentity");
             AuthenticationType = Add("AuthenticationType");
@@ -58,15 +51,15 @@ namespace CoreWCF.Security
             UrlClaim = Add("UrlClaim");
             WindowsSidClaim = Add("WindowsSidClaim");
             DenyOnlySidClaim = Add("DenyOnlySidClaim");
-            windowsSidIdentity = Add("WindowsSidIdentity");
+            WindowsSidIdentity = Add("WindowsSidIdentity");
             X500DistinguishedNameClaim = Add("X500DistinguishedClaim");
-            x509ThumbprintClaim = Add("X509ThumbprintClaim");
+            X509ThumbprintClaim = Add("X509ThumbprintClaim");
 
-            name = Add("Name");
+            Name = Add("Name");
             Sid = Add("Sid");
             Value = Add("Value");
             NullValue = Add("Null");
-            genericXmlToken = Add("GenericXmlSecurityToken");
+            GenericXmlSecurityToken = Add("GenericXmlSecurityToken");
             TokenType = Add("TokenType");
             InternalTokenReference = Add("InternalTokenReference");
             ExternalTokenReference = Add("ExternalTokenReference");
@@ -88,7 +81,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString PrimaryIdentity { get; }
 
-        public XmlDictionaryString X509CertificateClaimSet => x509CertificateClaimSet;
+        public XmlDictionaryString X509CertificateClaimSet { get; }
 
         public XmlDictionaryString SystemClaimSet { get; }
 
@@ -96,9 +89,9 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString AnonymousClaimSet { get; }
 
-        public XmlDictionaryString ContextId => contextId;
+        public XmlDictionaryString ContextId { get; }
 
-        public XmlDictionaryString BinaryClaim => binaryClaim;
+        public XmlDictionaryString BinaryClaim { get; }
 
         public XmlDictionaryString DnsClaim { get; }
 
@@ -128,11 +121,11 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString DenyOnlySidClaim { get; }
 
-        public XmlDictionaryString WindowsSidIdentity => windowsSidIdentity;
+        public XmlDictionaryString WindowsSidIdentity { get; }
 
         public XmlDictionaryString X500DistinguishedNameClaim { get; }
 
-        public XmlDictionaryString X509ThumbprintClaim => x509ThumbprintClaim;
+        public XmlDictionaryString X509ThumbprintClaim { get; }
 
         public XmlDictionaryString EffectiveTime { get; }
 
@@ -146,7 +139,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString Sid { get; }
 
-        public XmlDictionaryString Name => name;
+        public XmlDictionaryString Name { get; }
 
         public XmlDictionaryString NullValue { get; }
 
@@ -158,7 +151,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString Version { get; }
 
-        public XmlDictionaryString GenericXmlSecurityToken => genericXmlToken;
+        public XmlDictionaryString GenericXmlSecurityToken { get; }
 
         public XmlDictionaryString TokenType { get; }
 

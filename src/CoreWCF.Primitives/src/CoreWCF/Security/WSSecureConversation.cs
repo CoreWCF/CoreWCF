@@ -15,7 +15,6 @@ namespace CoreWCF.Security
 {
     internal abstract class WSSecureConversation : WSSecurityTokenSerializer.SerializerEntries
     {
-        private readonly WSSecurityTokenSerializer tokenSerializer;
         private readonly DerivedKeyTokenEntry derivedKeyEntry;
 
         protected WSSecureConversation(WSSecurityTokenSerializer tokenSerializer, int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
@@ -24,7 +23,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
             }
-            this.tokenSerializer = tokenSerializer;
+            WSSecurityTokenSerializer = tokenSerializer;
             derivedKeyEntry = new DerivedKeyTokenEntry(this, maxKeyDerivationOffset, maxKeyDerivationLabelLength, maxKeyDerivationNonceLength);
         }
 
@@ -33,7 +32,7 @@ namespace CoreWCF.Security
             get;
         }
 
-        public WSSecurityTokenSerializer WSSecurityTokenSerializer => tokenSerializer;
+        public WSSecurityTokenSerializer WSSecurityTokenSerializer { get; }
 
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
         {
@@ -301,21 +300,20 @@ namespace CoreWCF.Security
 
         protected abstract class SecurityContextTokenEntry : WSSecurityTokenSerializer.TokenEntry
         {
-            private readonly WSSecureConversation parent;
             private SecurityContextCookieSerializer cookieSerializer;
 
             public SecurityContextTokenEntry(WSSecureConversation parent, SecurityStateEncoder securityStateEncoder, IList<Type> knownClaimTypes)
             {
-                this.parent = parent;
+                Parent = parent;
                 cookieSerializer = new SecurityContextCookieSerializer(securityStateEncoder, knownClaimTypes);
             }
 
-            protected WSSecureConversation Parent => parent;
+            protected WSSecureConversation Parent { get; }
 
-            protected override XmlDictionaryString LocalName => parent.SerializerDictionary.SecurityContextToken;
-            protected override XmlDictionaryString NamespaceUri => parent.SerializerDictionary.Namespace;
+            protected override XmlDictionaryString LocalName => Parent.SerializerDictionary.SecurityContextToken;
+            protected override XmlDictionaryString NamespaceUri => Parent.SerializerDictionary.Namespace;
             protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(SecurityContextSecurityToken) }; }
-            public override string TokenTypeUri => parent.SerializerDictionary.SecurityContextTokenType.Value;
+            public override string TokenTypeUri => Parent.SerializerDictionary.SecurityContextTokenType.Value;
             protected override string ValueTypeUri => null;
 
             public override SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXmlCore(XmlElement issuedTokenXml,
@@ -336,7 +334,7 @@ namespace CoreWCF.Security
                             XmlElement element = node as XmlElement;
                             if (element != null)
                             {
-                                if (element.LocalName == parent.SerializerDictionary.Identifier.Value && element.NamespaceURI == parent.SerializerDictionary.Namespace.Value)
+                                if (element.LocalName == Parent.SerializerDictionary.Identifier.Value && element.NamespaceURI == Parent.SerializerDictionary.Namespace.Value)
                                 {
                                     contextId = XmlHelper.ReadTextElementAsUniqueId(element);
                                 }
@@ -420,13 +418,13 @@ namespace CoreWCF.Security
 
                 // There needs to be at least a contextId in here.
                 reader.ReadFullStartElement();
-                reader.MoveToStartElement(parent.SerializerDictionary.Identifier, parent.SerializerDictionary.Namespace);
+                reader.MoveToStartElement(Parent.SerializerDictionary.Identifier, Parent.SerializerDictionary.Namespace);
                 contextId = reader.ReadElementContentAsUniqueId();
                 if (CanReadGeneration(reader))
                 {
                     generation = ReadGeneration(reader);
                 }
-                if (reader.IsStartElement(parent.SerializerDictionary.Cookie, CoreWCF.XD.DotNetSecurityDictionary.Namespace))
+                if (reader.IsStartElement(Parent.SerializerDictionary.Cookie, CoreWCF.XD.DotNetSecurityDictionary.Namespace))
                 {
                     isCookieMode = true;
                     sct = TryResolveSecurityContextToken(contextId, generation, id, tokenResolver, out ISecurityContextSecurityTokenCache sctCache);
@@ -474,14 +472,14 @@ namespace CoreWCF.Security
                 SecurityContextSecurityToken sct = (token as SecurityContextSecurityToken);
 
                 // serialize the name and any wsu:Id attribute
-                writer.WriteStartElement(parent.SerializerDictionary.Prefix.Value, parent.SerializerDictionary.SecurityContextToken, parent.SerializerDictionary.Namespace);
+                writer.WriteStartElement(Parent.SerializerDictionary.Prefix.Value, Parent.SerializerDictionary.SecurityContextToken, Parent.SerializerDictionary.Namespace);
                 if (sct.Id != null)
                 {
                     writer.WriteAttributeString(CoreWCF.XD.UtilityDictionary.Prefix.Value, CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace, sct.Id);
                 }
 
                 // serialize the context id
-                writer.WriteStartElement(parent.SerializerDictionary.Prefix.Value, parent.SerializerDictionary.Identifier, parent.SerializerDictionary.Namespace);
+                writer.WriteStartElement(Parent.SerializerDictionary.Prefix.Value, Parent.SerializerDictionary.Identifier, Parent.SerializerDictionary.Namespace);
                 XmlHelper.WriteStringAsUniqueId(writer, sct.ContextId);
                 writer.WriteEndElement();
 
@@ -496,7 +494,7 @@ namespace CoreWCF.Security
                     }
 
                     // if the token has a cookie, write it out
-                    writer.WriteStartElement(CoreWCF.XD.DotNetSecurityDictionary.Prefix.Value, parent.SerializerDictionary.Cookie, CoreWCF.XD.DotNetSecurityDictionary.Namespace);
+                    writer.WriteStartElement(CoreWCF.XD.DotNetSecurityDictionary.Prefix.Value, Parent.SerializerDictionary.Cookie, CoreWCF.XD.DotNetSecurityDictionary.Namespace);
                     writer.WriteBase64(sct.CookieBlob, 0, sct.CookieBlob.Length);
                     writer.WriteEndElement();
                 }

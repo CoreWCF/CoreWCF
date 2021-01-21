@@ -11,7 +11,6 @@ namespace CoreWCF.IdentityModel.Tokens
     {
         private WindowsIdentity windowsIdentity;
         private bool disposed = false;
-        private readonly string authenticationType;
 
         public X509WindowsSecurityToken(X509Certificate2 certificate, WindowsIdentity windowsIdentity)
             : this(certificate, windowsIdentity, null, true)
@@ -41,7 +40,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
             }
 
-            this.authenticationType = authenticationType;
+            AuthenticationType = authenticationType;
             this.windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
         }
 
@@ -55,13 +54,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        public string AuthenticationType
-        {
-            get
-            {
-                return authenticationType;
-            }
-        }
+        public string AuthenticationType { get; }
 
         public override void Dispose()
         {

@@ -13,8 +13,6 @@ namespace CoreWCF.Dispatcher
 
     internal class EndpointAddressMessageFilter : MessageFilter
     {
-        private readonly EndpointAddress address;
-        private readonly bool includeHostNameInComparison;
         private readonly EndpointAddressMessageFilterHelper helper;
         private readonly UriComparer comparer;
 
@@ -30,9 +28,9 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
 
-            this.address = address;
-            this.includeHostNameInComparison = includeHostNameInComparison;
-            helper = new EndpointAddressMessageFilterHelper(this.address);
+            Address = address;
+            IncludeHostNameInComparison = includeHostNameInComparison;
+            helper = new EndpointAddressMessageFilterHelper(Address);
 
             if (includeHostNameInComparison)
             {
@@ -56,18 +54,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public EndpointAddress Address
-        {
-            get
-            {
-                return address;
-            }
-        }
+        public EndpointAddress Address { get; }
 
-        public bool IncludeHostNameInComparison
-        {
-            get { return includeHostNameInComparison; }
-        }
+        public bool IncludeHostNameInComparison { get; }
 
         protected internal override IMessageFilterTable<FilterData> CreateFilterTable<FilterData>()
         {
@@ -101,7 +90,7 @@ namespace CoreWCF.Dispatcher
 
             // To
             Uri to = message.Headers.To;
-            Uri actingAs = address.Uri;
+            Uri actingAs = Address.Uri;
 
             if (to == null || !comparer.Equals(actingAs, to))
             {

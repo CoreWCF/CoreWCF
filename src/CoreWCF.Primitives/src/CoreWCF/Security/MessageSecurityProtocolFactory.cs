@@ -18,11 +18,9 @@ namespace CoreWCF.Security
         private bool applyConfidentiality = true;
         private bool doRequestSignatureConfirmation = defaultDoRequestSignatureConfirmation;
         private IdentityVerifier identityVerifier;
-        private readonly ChannelProtectionRequirements protectionRequirements = new ChannelProtectionRequirements();
         private MessageProtectionOrder messageProtectionOrder = defaultMessageProtectionOrder;
         private bool requireIntegrity = true;
         private bool requireConfidentiality = true;
-        private List<SecurityTokenAuthenticator> wrappedKeyTokenAuthenticator;
 
         protected MessageSecurityProtocolFactory()
         {
@@ -39,7 +37,7 @@ namespace CoreWCF.Security
             applyIntegrity = factory.applyIntegrity;
             applyConfidentiality = factory.applyConfidentiality;
             identityVerifier = factory.identityVerifier;
-            protectionRequirements = new ChannelProtectionRequirements(factory.protectionRequirements);
+            ProtectionRequirements = new ChannelProtectionRequirements(factory.ProtectionRequirements);
             messageProtectionOrder = factory.messageProtectionOrder;
             requireIntegrity = factory.requireIntegrity;
             requireConfidentiality = factory.requireConfidentiality;
@@ -98,13 +96,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public ChannelProtectionRequirements ProtectionRequirements
-        {
-            get
-            {
-                return protectionRequirements;
-            }
-        }
+        public ChannelProtectionRequirements ProtectionRequirements { get; } = new ChannelProtectionRequirements();
 
         public MessageProtectionOrder MessageProtectionOrder
         {
@@ -145,13 +137,7 @@ namespace CoreWCF.Security
             }
         }
 
-        internal List<SecurityTokenAuthenticator> WrappedKeySecurityTokenAuthenticator
-        {
-            get
-            {
-                return wrappedKeyTokenAuthenticator;
-            }
-        }
+        internal List<SecurityTokenAuthenticator> WrappedKeySecurityTokenAuthenticator { get; private set; }
 
         protected virtual void ValidateCorrelationSecuritySettings()
         {
@@ -169,7 +155,7 @@ namespace CoreWCF.Security
         public override Task OnOpenAsync(TimeSpan timeout)
         {
             base.OnOpenAsync(timeout);
-            protectionRequirements.MakeReadOnly();
+            ProtectionRequirements.MakeReadOnly();
 
             if (DetectReplays && !RequireIntegrity)
             {
@@ -189,9 +175,9 @@ namespace CoreWCF.Security
                 //}
             }
 
-            wrappedKeyTokenAuthenticator = new List<SecurityTokenAuthenticator>(1);
+            WrappedKeySecurityTokenAuthenticator = new List<SecurityTokenAuthenticator>(1);
             SecurityTokenAuthenticator authenticator = new NonValidatingSecurityTokenAuthenticator<WrappedKeySecurityToken>();
-            wrappedKeyTokenAuthenticator.Add(authenticator);
+            WrappedKeySecurityTokenAuthenticator.Add(authenticator);
 
             ValidateCorrelationSecuritySettings();
             return Task.CompletedTask;

@@ -12,7 +12,6 @@ namespace CoreWCF
         private string action;
         private string name;
         private string ns;
-        private readonly Type type;
 
         public FaultContractAttribute(Type detailType)
         {
@@ -21,13 +20,10 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(detailType));
             }
 
-            type = detailType;
+            DetailType = detailType;
         }
 
-        public Type DetailType
-        {
-            get { return type; }
-        }
+        public Type DetailType { get; }
 
         public string Action
         {

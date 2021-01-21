@@ -19,7 +19,6 @@ namespace CoreWCF.Security.Tokens
         internal const bool defaultRequireDerivedKeys = true;
         private SecurityTokenInclusionMode inclusionMode = defaultInclusionMode;
         private SecurityTokenReferenceStyle referenceStyle = defaultReferenceStyle;
-        private bool requireDerivedKeys = defaultRequireDerivedKeys;
 
         protected SecurityTokenParameters(SecurityTokenParameters other)
         {
@@ -28,7 +27,7 @@ namespace CoreWCF.Security.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("other");
             }
 
-            requireDerivedKeys = other.requireDerivedKeys;
+            RequireDerivedKeys = other.RequireDerivedKeys;
             inclusionMode = other.inclusionMode;
             referenceStyle = other.referenceStyle;
         }
@@ -66,17 +65,7 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        public bool RequireDerivedKeys
-        {
-            get
-            {
-                return requireDerivedKeys;
-            }
-            set
-            {
-                requireDerivedKeys = value;
-            }
-        }
+        public bool RequireDerivedKeys { get; set; } = defaultRequireDerivedKeys;
 
         internal protected abstract bool SupportsClientAuthentication { get; }
         internal protected abstract bool SupportsServerAuthentication { get; }
@@ -222,7 +211,7 @@ namespace CoreWCF.Security.Tokens
             sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "{0}:", GetType().ToString()));
             sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "InclusionMode: {0}", inclusionMode.ToString()));
             sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "ReferenceStyle: {0}", referenceStyle.ToString()));
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireDerivedKeys: {0}", requireDerivedKeys.ToString()));
+            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireDerivedKeys: {0}", RequireDerivedKeys.ToString()));
 
             return sb.ToString();
         }

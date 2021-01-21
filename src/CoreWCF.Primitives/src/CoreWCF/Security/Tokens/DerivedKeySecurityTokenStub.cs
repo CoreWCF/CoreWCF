@@ -17,7 +17,6 @@ namespace CoreWCF.Security.Tokens
         private readonly byte[] nonce;
         private readonly int offset;
         private readonly int generation;
-        private readonly SecurityKeyIdentifierClause tokenToDeriveIdentifier;
 
         public DerivedKeySecurityTokenStub(int generation, int offset, int length,
             string label, byte[] nonce,
@@ -29,7 +28,7 @@ namespace CoreWCF.Security.Tokens
             this.length = length;
             this.label = label;
             this.nonce = nonce;
-            this.tokenToDeriveIdentifier = tokenToDeriveIdentifier;
+            TokenToDeriveIdentifier = tokenToDeriveIdentifier;
             this.derivationAlgorithm = derivationAlgorithm;
         }
 
@@ -41,12 +40,12 @@ namespace CoreWCF.Security.Tokens
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys => null;
 
-        public SecurityKeyIdentifierClause TokenToDeriveIdentifier => tokenToDeriveIdentifier;
+        public SecurityKeyIdentifierClause TokenToDeriveIdentifier { get; }
 
         public DerivedKeySecurityToken CreateToken(SecurityToken tokenToDerive, int maxKeyLength)
         {
             DerivedKeySecurityToken result = new DerivedKeySecurityToken(generation, offset, length,
-                label, nonce, tokenToDerive, tokenToDeriveIdentifier, derivationAlgorithm, Id);
+                label, nonce, tokenToDerive, TokenToDeriveIdentifier, derivationAlgorithm, Id);
             result.InitializeDerivedKey(maxKeyLength);
             return result;
         }

@@ -9,7 +9,6 @@ namespace CoreWCF.IdentityModel
 {
     internal sealed class HashStream : Stream
     {
-        private HashAlgorithm hash;
         private long length;
         private bool disposed;
         private bool hashNeedsReset;
@@ -43,10 +42,7 @@ namespace CoreWCF.IdentityModel
             get { return false; }
         }
 
-        public HashAlgorithm Hash
-        {
-            get { return hash; }
-        }
+        public HashAlgorithm Hash { get; private set; }
 
         public override long Length
         {
@@ -74,7 +70,7 @@ namespace CoreWCF.IdentityModel
         public void FlushHash(MemoryStream preCanonicalBytes)
         {
 
-            hash.TransformFinalBlock(CryptoHelper.EmptyBuffer, 0, 0);
+            Hash.TransformFinalBlock(CryptoHelper.EmptyBuffer, 0, 0);
             //TODO logs Pii data
             //if (DigestTraceRecordHelper.ShouldTraceDigest)
             //    DigestTraceRecordHelper.TraceDigest(this.logStream, this.hash);
@@ -88,7 +84,7 @@ namespace CoreWCF.IdentityModel
         public byte[] FlushHashAndGetValue(MemoryStream preCanonicalBytes)
         {
             FlushHash(preCanonicalBytes);
-            return hash.Hash;
+            return Hash.Hash;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -100,7 +96,7 @@ namespace CoreWCF.IdentityModel
         {
             if (hashNeedsReset)
             {
-                hash.Initialize();
+                Hash.Initialize();
                 hashNeedsReset = false;
             }
             length = 0;
@@ -112,7 +108,7 @@ namespace CoreWCF.IdentityModel
 
         public void Reset(HashAlgorithm hash)
         {
-            this.hash = hash;
+            Hash = hash;
             hashNeedsReset = false;
             length = 0;
 
@@ -122,7 +118,7 @@ namespace CoreWCF.IdentityModel
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            hash.TransformBlock(buffer, offset, count, buffer, offset);
+            Hash.TransformBlock(buffer, offset, count, buffer, offset);
             length += count;
             hashNeedsReset = true;
 

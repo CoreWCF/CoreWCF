@@ -44,7 +44,6 @@ namespace CoreWCF.Security
         private int maximumConcurrentNegotiations;
         private TimeSpan negotiationTimeout;
         private readonly Object thisLock = new Object();
-        private IssuedSecurityTokenHandler issuedSecurityTokenHandler;
 
         public SecuritySessionSecurityTokenAuthenticator()
         {
@@ -57,17 +56,7 @@ namespace CoreWCF.Security
             negotiationTimeout = TimeSpan.Parse("00:01:00", CultureInfo.InvariantCulture); // AcceleratedTokenAuthenticator.defaultServerMaxNegotiationLifetime;
         }
 
-        public IssuedSecurityTokenHandler IssuedSecurityTokenHandler
-        {
-            get
-            {
-                return issuedSecurityTokenHandler;
-            }
-            set
-            {
-                issuedSecurityTokenHandler = value;
-            }
-        }
+        public IssuedSecurityTokenHandler IssuedSecurityTokenHandler { get; set; }
 
         public RenewedSecurityTokenHandler RenewedSecurityTokenHandler { get; set; }
 
@@ -452,9 +441,9 @@ namespace CoreWCF.Security
         {
             if (operation == SecuritySessionOperation.Issue)
             {
-                if (issuedSecurityTokenHandler != null)
+                if (IssuedSecurityTokenHandler != null)
                 {
-                    issuedSecurityTokenHandler(newSessionToken, remoteAddress);
+                    IssuedSecurityTokenHandler(newSessionToken, remoteAddress);
                 }
                 else
                 {

@@ -23,8 +23,6 @@ namespace CoreWCF.Security
         private readonly List<SerializerEntries> _serializerEntries;
         private readonly WSSecureConversation _secureConversation;
         private readonly List<TokenEntry> _tokenEntries = new List<TokenEntry>();
-        private readonly int _maximumKeyDerivationNonceLength;
-
         private readonly KeyInfoSerializer _keyInfoSerializer;
 
         public WSSecurityTokenSerializer()
@@ -87,7 +85,7 @@ namespace CoreWCF.Security
             SecurityVersion = securityVersion ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(securityVersion)));
             EmitBspRequiredAttributes = emitBspRequiredAttributes;
             MaximumKeyDerivationOffset = maximumKeyDerivationOffset;
-            _maximumKeyDerivationNonceLength = maximumKeyDerivationNonceLength;
+            MaximumKeyDerivationNonceLength = maximumKeyDerivationNonceLength;
             MaximumKeyDerivationLabelLength = maximumKeyDerivationLabelLength;
 
             _serializerEntries = new List<SerializerEntries>();
@@ -171,7 +169,7 @@ namespace CoreWCF.Security
 
         public int MaximumKeyDerivationLabelLength { get; }
 
-        public int MaximumKeyDerivationNonceLength => _maximumKeyDerivationNonceLength;
+        public int MaximumKeyDerivationNonceLength { get; }
 
         private bool ShouldWrapException(Exception e)
         {

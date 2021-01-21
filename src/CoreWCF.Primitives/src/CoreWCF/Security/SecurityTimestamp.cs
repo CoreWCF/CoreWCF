@@ -16,7 +16,6 @@ namespace CoreWCF.Security
         private char[] computedExpiryTimeUtc;
         private DateTime creationTimeUtc;
         private DateTime expiryTimeUtc;
-        private readonly string id;
         private readonly string digestAlgorithm;
         private readonly byte[] digest;
 
@@ -37,7 +36,7 @@ namespace CoreWCF.Security
 
             this.creationTimeUtc = creationTimeUtc;
             this.expiryTimeUtc = expiryTimeUtc;
-            this.id = id;
+            Id = id;
 
             this.digestAlgorithm = digestAlgorithm;
             this.digest = digest;
@@ -59,13 +58,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public string Id
-        {
-            get
-            {
-                return id;
-            }
-        }
+        public string Id { get; }
 
         public string DigestAlgorithm
         {

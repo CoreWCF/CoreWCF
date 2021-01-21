@@ -10,7 +10,6 @@ namespace CoreWCF
     {
         private string _name;
         private string _ns;
-        private bool _isNameSetExplicit;
         private bool _isNamespaceSetExplicit;
         //ProtectionLevel protectionLevel = ProtectionLevel.None;
         //bool hasProtectionLevel = false;
@@ -57,14 +56,11 @@ namespace CoreWCF
                         SR.SFxNameCannotBeEmpty));
                 }
 
-                _name = value; _isNameSetExplicit = true;
+                _name = value; IsNameSetExplicit = true;
             }
         }
 
-        internal bool IsNameSetExplicit
-        {
-            get { return _isNameSetExplicit; }
-        }
+        internal bool IsNameSetExplicit { get; private set; }
 
         //internal const string ProtectionLevelPropertyName = "ProtectionLevel";
         //public ProtectionLevel ProtectionLevel

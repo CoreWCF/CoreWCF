@@ -11,13 +11,13 @@ namespace CoreWCF.Channels
 {
     internal class SynchronizedMessageSource
     {
-        private readonly IMessageSource source;
-        private readonly SemaphoreSlim sourceLock;
+        private readonly IMessageSource _source;
+        private readonly SemaphoreSlim _sourceLock;
 
         public SynchronizedMessageSource(IMessageSource source)
         {
-            this.source = source;
-            sourceLock = new SemaphoreSlim(1);
+            _source = source;
+            _sourceLock = new SemaphoreSlim(1);
         }
 
         public async Task<bool> WaitForMessageAsync(CancellationToken token)
@@ -25,9 +25,9 @@ namespace CoreWCF.Channels
             bool lockAcquired = false;
             try
             {
-                await sourceLock.WaitAsync(token);
+                await _sourceLock.WaitAsync(token);
                 lockAcquired = true;
-                return await source.WaitForMessageAsync(token);
+                return await _source.WaitForMessageAsync(token);
             }
             catch (OperationCanceledException)
             {
@@ -40,7 +40,7 @@ namespace CoreWCF.Channels
             {
                 if (lockAcquired)
                 {
-                    sourceLock.Release();
+                    _sourceLock.Release();
                 }
             }
         }
@@ -50,9 +50,9 @@ namespace CoreWCF.Channels
             bool lockAcquired = false;
             try
             {
-                await sourceLock.WaitAsync(token);
+                await _sourceLock.WaitAsync(token);
                 lockAcquired = true;
-                return await source.ReceiveAsync(token);
+                return await _source.ReceiveAsync(token);
             }
             catch (OperationCanceledException)
             {
@@ -65,7 +65,7 @@ namespace CoreWCF.Channels
             {
                 if (lockAcquired)
                 {
-                    sourceLock.Release();
+                    _sourceLock.Release();
                 }
             }
         }

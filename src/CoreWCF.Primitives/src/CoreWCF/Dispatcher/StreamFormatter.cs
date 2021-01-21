@@ -14,9 +14,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class StreamFormatter
     {
-        private string wrapperName;
         private string wrapperNS;
-        private readonly string partName;
         private readonly string partNS;
         private readonly int streamIndex;
         private readonly bool isRequest;
@@ -45,9 +43,9 @@ namespace CoreWCF.Dispatcher
                 streamIndex = streamPart.Index;
             }
 
-            wrapperName = messageDescription.Body.WrapperName;
+            WrapperName = messageDescription.Body.WrapperName;
             wrapperNS = messageDescription.Body.WrapperNamespace;
-            partName = streamPart.Name;
+            PartName = streamPart.Name;
             partNS = streamPart.Namespace;
             this.isRequest = isRequest;
             this.operationName = operationName;
@@ -78,7 +76,7 @@ namespace CoreWCF.Dispatcher
             Stream streamValue = GetStreamValue(parameters, returnValue);
             if (streamValue == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(partName);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(PartName);
             }
 
             if (WrapperName != null)
@@ -93,7 +91,7 @@ namespace CoreWCF.Dispatcher
         private void WriteEndWrapperIfNecessary(XmlDictionaryWriter writer)
         {
             writer.WriteEndElement();
-            if (wrapperName != null)
+            if (WrapperName != null)
             {
                 writer.WriteEndElement();
             }
@@ -102,7 +100,7 @@ namespace CoreWCF.Dispatcher
         private Task WriteEndWrapperIfNecessaryAsync(XmlDictionaryWriter writer)
         {
             writer.WriteEndElement();
-            if (wrapperName != null)
+            if (WrapperName != null)
             {
                 writer.WriteEndElement();
             }
@@ -115,11 +113,7 @@ namespace CoreWCF.Dispatcher
             SetStreamValue(parameters, ref retVal, new MessageBodyStream(message, WrapperName, WrapperNamespace, PartName, PartNamespace, isRequest));
         }
 
-        internal string WrapperName
-        {
-            get { return wrapperName; }
-            set { wrapperName = value; }
-        }
+        internal string WrapperName { get; set; }
 
         internal string WrapperNamespace
         {
@@ -127,10 +121,7 @@ namespace CoreWCF.Dispatcher
             set { wrapperNS = value; }
         }
 
-        internal string PartName
-        {
-            get { return partName; }
-        }
+        internal string PartName { get; }
 
         internal string PartNamespace
         {

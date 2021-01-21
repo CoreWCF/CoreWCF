@@ -18,12 +18,9 @@ namespace CoreWCF.IdentityModel.Policy
     internal class UnconditionalPolicy : IAuthorizationPolicy, IDisposable
     {
         private SecurityUniqueId id;
-        private ClaimSet issuer;
         private ClaimSet issuance;
         private ReadOnlyCollection<ClaimSet> issuances;
-        private DateTime expirationTime;
         private IIdentity primaryIdentity;
-        private bool disposable = false;
         private bool disposed = false;
 
         public UnconditionalPolicy(ClaimSet issuance)
@@ -71,29 +68,29 @@ namespace CoreWCF.IdentityModel.Policy
 
         private UnconditionalPolicy(UnconditionalPolicy from)
         {
-            disposable = from.disposable;
-            primaryIdentity = from.disposable ? SecurityUtils.CloneIdentityIfNecessary(from.primaryIdentity) : from.primaryIdentity;
+            IsDisposable = from.IsDisposable;
+            primaryIdentity = from.IsDisposable ? SecurityUtils.CloneIdentityIfNecessary(from.primaryIdentity) : from.primaryIdentity;
             if (from.issuance != null)
             {
-                issuance = from.disposable ? SecurityUtils.CloneClaimSetIfNecessary(from.issuance) : from.issuance;
+                issuance = from.IsDisposable ? SecurityUtils.CloneClaimSetIfNecessary(from.issuance) : from.issuance;
             }
             else
             {
-                issuances = from.disposable ? SecurityUtils.CloneClaimSetsIfNecessary(from.issuances) : from.issuances;
+                issuances = from.IsDisposable ? SecurityUtils.CloneClaimSetsIfNecessary(from.issuances) : from.issuances;
             }
-            issuer = from.issuer;
-            expirationTime = from.expirationTime;
+            Issuer = from.Issuer;
+            ExpirationTime = from.ExpirationTime;
         }
 
         private void Initialize(ClaimSet issuer, ClaimSet issuance, ReadOnlyCollection<ClaimSet> issuances, DateTime expirationTime)
         {
-            this.issuer = issuer;
+            Issuer = issuer;
             this.issuance = issuance;
             this.issuances = issuances;
-            this.expirationTime = expirationTime;
+            ExpirationTime = expirationTime;
             if (issuance != null)
             {
-                disposable = issuance is WindowsClaimSet;
+                IsDisposable = issuance is WindowsClaimSet;
             }
             else
             {
@@ -101,7 +98,7 @@ namespace CoreWCF.IdentityModel.Policy
                 {
                     if (issuances[i] is WindowsClaimSet)
                     {
-                        disposable = true;
+                        IsDisposable = true;
                         break;
                     }
                 }
@@ -121,10 +118,7 @@ namespace CoreWCF.IdentityModel.Policy
             }
         }
 
-        public ClaimSet Issuer
-        {
-            get { return issuer; }
-        }
+        public ClaimSet Issuer { get; private set; }
 
         internal IIdentity PrimaryIdentity
         {
@@ -178,25 +172,19 @@ namespace CoreWCF.IdentityModel.Policy
             }
         }
 
-        public DateTime ExpirationTime
-        {
-            get { return expirationTime; }
-        }
+        public DateTime ExpirationTime { get; private set; }
 
-        internal bool IsDisposable
-        {
-            get { return disposable; }
-        }
+        internal bool IsDisposable { get; private set; } = false;
 
         internal UnconditionalPolicy Clone()
         {
             ThrowIfDisposed();
-            return (disposable) ? new UnconditionalPolicy(this) : this;
+            return (IsDisposable) ? new UnconditionalPolicy(this) : this;
         }
 
         public virtual void Dispose()
         {
-            if (disposable && !disposed)
+            if (IsDisposable && !disposed)
             {
                 disposed = true;
                 SecurityUtils.DisposeIfNecessary(primaryIdentity as WindowsIdentity);
@@ -252,7 +240,7 @@ namespace CoreWCF.IdentityModel.Policy
                 }
             }
 
-            evaluationContext.RecordExpirationTime(expirationTime);
+            evaluationContext.RecordExpirationTime(ExpirationTime);
             return true;
         }
     }

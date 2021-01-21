@@ -17,14 +17,12 @@ namespace CoreWCF.Security
 {
     internal sealed class SecurityAppliedMessage : DelegatingMessage
     {
-        private string bodyId;
         private bool bodyIdInserted;
         private string bodyPrefix = MessageStrings.Prefix;
         private XmlBuffer fullBodyBuffer;
         private ISecurityElement encryptedBodyContent;
         private XmlAttributeHolder[] bodyAttributes;
         private bool delayedApplicationHandled;
-        private readonly MessagePartProtectionMode bodyProtectionMode;
         private BodyState state = BodyState.Created;
         private readonly SendSecurityHeader securityHeader;
         private MemoryStream startBodyFragment;
@@ -37,12 +35,12 @@ namespace CoreWCF.Security
         {
             Fx.Assert(!(messageToProcess is SecurityAppliedMessage), "SecurityAppliedMessage should not be wrapped");
             this.securityHeader = securityHeader;
-            bodyProtectionMode = MessagePartProtectionModeHelper.GetProtectionMode(signBody, encryptBody, securityHeader.SignThenEncrypt);
+            BodyProtectionMode = MessagePartProtectionModeHelper.GetProtectionMode(signBody, encryptBody, securityHeader.SignThenEncrypt);
         }
 
-        public string BodyId => bodyId;
+        public string BodyId { get; private set; }
 
-        public MessagePartProtectionMode BodyProtectionMode => bodyProtectionMode;
+        public MessagePartProtectionMode BodyProtectionMode { get; }
 
         internal byte[] PrimarySignatureValue => securityHeader.PrimarySignatureValue;
 
@@ -230,12 +228,12 @@ namespace CoreWCF.Security
 
         private void SetBodyId()
         {
-            bodyId = InnerMessage.GetBodyAttribute(
+            BodyId = InnerMessage.GetBodyAttribute(
                 UtilityStrings.IdAttribute,
                 securityHeader.StandardsManager.IdManager.DefaultIdNamespaceUri);
-            if (bodyId == null)
+            if (BodyId == null)
             {
-                bodyId = securityHeader.GenerateId();
+                BodyId = securityHeader.GenerateId();
                 bodyIdInserted = true;
             }
         }
@@ -396,7 +394,7 @@ namespace CoreWCF.Security
             InnerMessage.WriteStartBody(writer);
             if (bodyIdInserted)
             {
-                securityHeader.StandardsManager.IdManager.WriteIdAttribute(writer, bodyId);
+                securityHeader.StandardsManager.IdManager.WriteIdAttribute(writer, BodyId);
             }
         }
 

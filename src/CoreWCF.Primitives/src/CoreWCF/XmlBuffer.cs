@@ -28,31 +28,23 @@ namespace CoreWCF
 
         private struct Section
         {
-            private readonly int _offset;
             private readonly int _size;
-            private readonly XmlDictionaryReaderQuotas _quotas;
 
             public Section(int offset, int size, XmlDictionaryReaderQuotas quotas)
             {
-                _offset = offset;
+                Offset = offset;
                 _size = size;
-                _quotas = quotas;
+                Quotas = quotas;
             }
 
-            public int Offset
-            {
-                get { return _offset; }
-            }
+            public int Offset { get; }
 
             public int Size
             {
                 get { return _size; }
             }
 
-            public XmlDictionaryReaderQuotas Quotas
-            {
-                get { return _quotas; }
-            }
+            public XmlDictionaryReaderQuotas Quotas { get; }
         }
 
         public XmlBuffer(int maxBufferSize)

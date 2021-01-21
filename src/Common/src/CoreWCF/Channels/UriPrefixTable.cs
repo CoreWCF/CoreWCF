@@ -12,10 +12,8 @@ namespace CoreWCF.Channels
     internal sealed class UriPrefixTable<TItem>
         where TItem : class
     {
-        private int count;
         private const int HopperSize = 128;
         private volatile HopperCache lookupCache; // cache matches, for lookup speed
-        private readonly AsyncLock _asyncLock = new AsyncLock();
         private readonly SegmentHierarchyNode<TItem> root;
         private readonly bool useWeakReferences;
         private readonly bool includePortInComparison;
@@ -61,15 +59,9 @@ namespace CoreWCF.Channels
             }
         }
 
-        public int Count
-        {
-            get
-            {
-                return count;
-            }
-        }
+        public int Count { get; private set; }
 
-        public AsyncLock AsyncLock { get { return _asyncLock; } }
+        public AsyncLock AsyncLock { get; } = new AsyncLock();
 
         public bool IsRegistered(BaseUriWithWildcard key)
         {
@@ -162,7 +154,7 @@ namespace CoreWCF.Channels
                         SR.DuplicateRegistration, uri)));
                 }
                 node.SetData(item, key);
-                count++;
+                Count++;
             }
         }
 
@@ -183,7 +175,7 @@ namespace CoreWCF.Channels
                 {
                     root.RemovePath(path, 0);
                 }
-                count--;
+                Count--;
             }
         }
 

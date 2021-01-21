@@ -9,7 +9,6 @@ namespace CoreWCF.Security
     {
         private readonly byte[] negotiationData;
         private XmlDictionaryString valueTypeUriDictionaryString;
-        private readonly string valueTypeUri;
 
         public BinaryNegotiation(
             string valueTypeUri,
@@ -24,7 +23,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
             }
             valueTypeUriDictionaryString = null;
-            this.valueTypeUri = valueTypeUri;
+            ValueTypeUri = valueTypeUri;
             this.negotiationData = negotiationData;
         }
 
@@ -41,15 +40,15 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
             }
             valueTypeUriDictionaryString = valueTypeDictionaryString;
-            valueTypeUri = valueTypeDictionaryString.Value;
+            ValueTypeUri = valueTypeDictionaryString.Value;
             this.negotiationData = negotiationData;
         }
 
         public void Validate(XmlDictionaryString valueTypeUriDictionaryString)
         {
-            if (valueTypeUri != valueTypeUriDictionaryString.Value)
+            if (ValueTypeUri != valueTypeUriDictionaryString.Value)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.IncorrectBinaryNegotiationValueType, valueTypeUri)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.IncorrectBinaryNegotiationValueType, ValueTypeUri)));
             }
             this.valueTypeUriDictionaryString = valueTypeUriDictionaryString;
         }
@@ -64,7 +63,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                writer.WriteString(valueTypeUri);
+                writer.WriteString(ValueTypeUri);
             }
 
             writer.WriteEndAttribute();
@@ -75,13 +74,7 @@ namespace CoreWCF.Security
             writer.WriteEndElement();
         }
 
-        public string ValueTypeUri
-        {
-            get
-            {
-                return valueTypeUri;
-            }
-        }
+        public string ValueTypeUri { get; }
 
         public byte[] GetNegotiationData()
         {

@@ -10,25 +10,20 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class ClientOperation
     {
-        private readonly string action;
         private readonly SynchronizedCollection<FaultContractInfo> faultContractInfos;
         private bool serializeRequest;
         private bool deserializeReply;
-        private IClientMessageFormatter formatter;
         private IClientFaultFormatter faultFormatter;
         private bool isInitiating = true;
         private bool isOneWay;
         private bool isTerminating;
         private bool isSessionOpenNotificationEnabled;
-        private readonly string name;
-        private readonly ClientRuntime parent;
         private readonly string replyAction;
         private MethodInfo beginMethod;
         private MethodInfo endMethod;
         private MethodInfo syncMethod;
         private MethodInfo taskMethod;
         private Type taskTResult;
-        private bool isFaultFormatterSetExplicit = false;
         private readonly SynchronizedCollection<IParameterInspector> parameterInspectors;
 
         public ClientOperation(ClientRuntime parent, string name, string action)
@@ -48,19 +43,16 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             }
 
-            this.parent = parent;
-            this.name = name;
-            this.action = action;
+            Parent = parent;
+            Name = name;
+            Action = action;
             this.replyAction = replyAction;
 
             faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
             parameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
         }
 
-        public string Action
-        {
-            get { return action; }
-        }
+        public string Action { get; }
 
         internal SynchronizedCollection<FaultContractInfo> FaultContractInfos
         {
@@ -72,9 +64,9 @@ namespace CoreWCF.Dispatcher
             get { return beginMethod; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     beginMethod = value;
                 }
             }
@@ -85,9 +77,9 @@ namespace CoreWCF.Dispatcher
             get { return endMethod; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     endMethod = value;
                 }
             }
@@ -98,9 +90,9 @@ namespace CoreWCF.Dispatcher
             get { return syncMethod; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     syncMethod = value;
                 }
             }
@@ -108,13 +100,13 @@ namespace CoreWCF.Dispatcher
 
         public IClientMessageFormatter Formatter
         {
-            get { return formatter; }
+            get { return InternalFormatter; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    formatter = value;
+                    Parent.InvalidateRuntime();
+                    InternalFormatter = value;
                 }
             }
         }
@@ -131,37 +123,27 @@ namespace CoreWCF.Dispatcher
             }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     faultFormatter = value;
-                    isFaultFormatterSetExplicit = true;
+                    IsFaultFormatterSetExplicit = true;
                 }
             }
         }
 
-        internal bool IsFaultFormatterSetExplicit
-        {
-            get
-            {
-                return isFaultFormatterSetExplicit;
-            }
-        }
+        internal bool IsFaultFormatterSetExplicit { get; private set; } = false;
 
-        internal IClientMessageFormatter InternalFormatter
-        {
-            get { return formatter; }
-            set { formatter = value; }
-        }
+        internal IClientMessageFormatter InternalFormatter { get; set; }
 
         public bool IsInitiating
         {
             get { return isInitiating; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     isInitiating = value;
                 }
             }
@@ -172,9 +154,9 @@ namespace CoreWCF.Dispatcher
             get { return isOneWay; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     isOneWay = value;
                 }
             }
@@ -185,18 +167,15 @@ namespace CoreWCF.Dispatcher
             get { return isTerminating; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     isTerminating = value;
                 }
             }
         }
 
-        public string Name
-        {
-            get { return name; }
-        }
+        public string Name { get; }
 
         public ICollection<IParameterInspector> ClientParameterInspectors
         {
@@ -208,10 +187,7 @@ namespace CoreWCF.Dispatcher
             get { return parameterInspectors; }
         }
 
-        public ClientRuntime Parent
-        {
-            get { return parent; }
-        }
+        public ClientRuntime Parent { get; }
 
         public string ReplyAction
         {
@@ -223,9 +199,9 @@ namespace CoreWCF.Dispatcher
             get { return serializeRequest; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     serializeRequest = value;
                 }
             }
@@ -236,9 +212,9 @@ namespace CoreWCF.Dispatcher
             get { return deserializeReply; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     deserializeReply = value;
                 }
             }
@@ -249,9 +225,9 @@ namespace CoreWCF.Dispatcher
             get { return taskMethod; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     taskMethod = value;
                 }
             }
@@ -262,9 +238,9 @@ namespace CoreWCF.Dispatcher
             get { return taskTResult; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     taskTResult = value;
                 }
             }
@@ -275,9 +251,9 @@ namespace CoreWCF.Dispatcher
             get { return isSessionOpenNotificationEnabled; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
+                    Parent.InvalidateRuntime();
                     isSessionOpenNotificationEnabled = value;
                 }
             }

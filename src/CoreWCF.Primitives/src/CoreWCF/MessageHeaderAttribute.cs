@@ -9,21 +9,19 @@ namespace CoreWCF
     public class MessageHeaderAttribute : MessageContractMemberAttribute
     {
         private bool _mustUnderstand;
-        private bool _isMustUnderstandSet;
         private bool _relay;
-        private bool _isRelaySet;
         private string _actor;
 
         public bool MustUnderstand
         {
             get { return _mustUnderstand; }
-            set { _mustUnderstand = value; _isMustUnderstandSet = true; }
+            set { _mustUnderstand = value; IsMustUnderstandSet = true; }
         }
 
         public bool Relay
         {
             get { return _relay; }
-            set { _relay = value; _isRelaySet = true; }
+            set { _relay = value; IsRelaySet = true; }
         }
 
         public string Actor
@@ -32,14 +30,8 @@ namespace CoreWCF
             set { _actor = value; }
         }
 
-        internal bool IsMustUnderstandSet
-        {
-            get { return _isMustUnderstandSet; }
-        }
+        internal bool IsMustUnderstandSet { get; private set; }
 
-        internal bool IsRelaySet
-        {
-            get { return _isRelaySet; }
-        }
+        internal bool IsRelaySet { get; private set; }
     }
 }

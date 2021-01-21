@@ -29,7 +29,6 @@ namespace CoreWCF.Dispatcher
         //AuditLevel messageAuthenticationAuditLevel;
         private bool automaticInputSessionShutdown;
         private readonly ChannelDispatcher channelDispatcher;
-        private readonly SynchronizedCollection<IInputSessionShutdown> inputSessionShutdownHandlers;
         private readonly EndpointDispatcher endpointDispatcher;
         private IInstanceProvider instanceProvider;
         private IInstanceContextProvider instanceContextProvider;
@@ -37,11 +36,8 @@ namespace CoreWCF.Dispatcher
         private bool ignoreTransactionMessageProperty;
         private readonly OperationCollection operations;
         private IDispatchOperationSelector operationSelector;
-        private ClientRuntime proxyRuntime;
         private ImmutableDispatchRuntime runtime;
-        private readonly SynchronizedCollection<IInstanceContextInitializer> instanceContextInitializers;
         private bool isExternalPoliciesSet;
-        private bool isAuthenticationManagerSet;
         private bool isAuthorizationManagerSet;
         private SynchronizationContext synchronizationContext;
         private PrincipalPermissionMode principalPermissionMode;
@@ -65,7 +61,7 @@ namespace CoreWCF.Dispatcher
         internal DispatchRuntime(ClientRuntime proxyRuntime, SharedRuntimeState shared)
             : this(shared)
         {
-            this.proxyRuntime = proxyRuntime ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxyRuntime));
+            ClientRuntime = proxyRuntime ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxyRuntime));
             instanceProvider = new CallbackInstanceProvider();
             channelDispatcher = new ChannelDispatcher(shared);
             instanceContextProvider = InstanceContextProviderBase.GetProviderForMode(InstanceContextMode.PerSession, this);
@@ -79,9 +75,9 @@ namespace CoreWCF.Dispatcher
 
             operations = new OperationCollection(this);
 
-            inputSessionShutdownHandlers = NewBehaviorCollection<IInputSessionShutdown>();
+            InputSessionShutdownHandlers = NewBehaviorCollection<IInputSessionShutdown>();
             MessageInspectors = NewBehaviorCollection<IDispatchMessageInspector>();
-            instanceContextInitializers = NewBehaviorCollection<IInstanceContextInitializer>();
+            InstanceContextInitializers = NewBehaviorCollection<IInstanceContextInitializer>();
             synchronizationContext = ThreadBehavior.GetCurrentSynchronizationContext();
             automaticInputSessionShutdown = true;
             principalPermissionMode = ServiceAuthorizationBehavior.DefaultPrincipalPermissionMode;
@@ -191,7 +187,7 @@ namespace CoreWCF.Dispatcher
                 {
                     InvalidateRuntime();
                     serviceAuthenticationManager = value;
-                    isAuthenticationManagerSet = true;
+                    RequiresAuthentication = true;
                 }
             }
         }
@@ -235,18 +231,18 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (proxyRuntime == null)
+                if (ClientRuntime == null)
                 {
                     lock (ThisLock)
                     {
-                        if (proxyRuntime == null)
+                        if (ClientRuntime == null)
                         {
-                            proxyRuntime = new ClientRuntime(this, shared);
+                            ClientRuntime = new ClientRuntime(this, shared);
                         }
                     }
                 }
 
-                return proxyRuntime;
+                return ClientRuntime;
             }
         }
 
@@ -303,10 +299,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal SynchronizedCollection<IInputSessionShutdown> InputSessionShutdownHandlers
-        {
-            get { return inputSessionShutdownHandlers; }
-        }
+        internal SynchronizedCollection<IInputSessionShutdown> InputSessionShutdownHandlers { get; }
 
         public bool IgnoreTransactionMessageProperty
         {
@@ -354,10 +347,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal SynchronizedCollection<IInstanceContextInitializer> InstanceContextInitializers
-        {
-            get { return instanceContextInitializers; }
-        }
+        internal SynchronizedCollection<IInstanceContextInitializer> InstanceContextInitializers { get; }
 
         public SynchronizationContext SynchronizationContext
         {
@@ -478,13 +468,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal bool RequiresAuthentication
-        {
-            get
-            {
-                return isAuthenticationManagerSet;
-            }
-        }
+        internal bool RequiresAuthentication { get; private set; }
 
         internal bool RequiresAuthorization
         {
@@ -579,10 +563,7 @@ namespace CoreWCF.Dispatcher
         }
 
         // Internal access to CallbackClientRuntime, but this one doesn't create on demand
-        internal ClientRuntime ClientRuntime
-        {
-            get { return proxyRuntime; }
-        }
+        internal ClientRuntime ClientRuntime { get; private set; }
 
         internal object ThisLock
         {

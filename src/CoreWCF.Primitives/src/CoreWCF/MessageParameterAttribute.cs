@@ -9,7 +9,6 @@ namespace CoreWCF
     internal sealed class MessageParameterAttribute : Attribute
     {
         private string name;
-        private bool isNameSetExplicit;
         internal const string NamePropertyName = "Name";
         public string Name
         {
@@ -25,13 +24,10 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value),
                         SR.SFxNameCannotBeEmpty));
                 }
-                name = value; isNameSetExplicit = true;
+                name = value; IsNameSetExplicit = true;
             }
         }
 
-        internal bool IsNameSetExplicit
-        {
-            get { return isNameSetExplicit; }
-        }
+        internal bool IsNameSetExplicit { get; private set; }
     }
 }

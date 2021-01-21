@@ -30,17 +30,14 @@ namespace CoreWCF.Security
         private byte[] cachedWriteBuffer;
         private int cachedWriteBufferLength;
         private int keySize;
-        private Message message;
         private SecurityKeyIdentifierClause renewTarget;
         private SecurityKeyIdentifierClause closeTarget;
         private OnGetBinaryNegotiationCallback onGetBinaryNegotiation;
         private SecurityStandardsManager standardsManager;
-        private readonly bool isReceiver;
         private bool isReadOnly;
         private object appliesTo;
         private DataContractSerializer appliesToSerializer;
         private Type appliesToType;
-        private readonly object thisLock = new Object();
 
         public RequestSecurityToken()
             : this(SecurityStandardsManager.DefaultInstance)
@@ -117,7 +114,7 @@ namespace CoreWCF.Security
             this.requestType = requestType;
             this.renewTarget = renewTarget;
             this.closeTarget = closeTarget;
-            isReceiver = true;
+            IsReceiver = true;
             isReadOnly = true;
         }
 
@@ -137,18 +134,18 @@ namespace CoreWCF.Security
             this.standardsManager = standardsManager;
             requestType = this.standardsManager.TrustDriver.RequestTypeIssue;
             requestProperties = null;
-            isReceiver = false;
+            IsReceiver = false;
             isReadOnly = false;
         }
 
         public ChannelBinding GetChannelBinding()
         {
-            if (message == null)
+            if (Message == null)
             {
                 return null;
             }
 
-            ChannelBindingMessageProperty.TryGet(message, out ChannelBindingMessageProperty channelBindingMessageProperty);
+            ChannelBindingMessageProperty.TryGet(Message, out ChannelBindingMessageProperty channelBindingMessageProperty);
             ChannelBinding channelBinding = null;
 
             if (channelBindingMessageProperty != null)
@@ -162,11 +159,7 @@ namespace CoreWCF.Security
         /// <summary>
         /// Will hold a reference to the outbound message from which we will fish the ChannelBinding out of.
         /// </summary>
-        public Message Message
-        {
-            get { return message; }
-            set { message = value; }
-        }
+        public Message Message { get; set; }
 
         public string Context
         {
@@ -253,7 +246,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
 #pragma warning suppress 56503
@@ -351,7 +344,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (!isReceiver)
+                if (!IsReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
 #pragma warning suppress 56503
@@ -382,19 +375,13 @@ namespace CoreWCF.Security
             }
         }
 
-        internal bool IsReceiver
-        {
-            get
-            {
-                return isReceiver;
-            }
-        }
+        internal bool IsReceiver { get; }
 
         internal object AppliesTo
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
 #pragma warning suppress 56503
@@ -408,7 +395,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
 #pragma warning suppress 56503
@@ -422,7 +409,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReceiver)
+                if (IsReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
 #pragma warning suppress 56503
@@ -432,13 +419,7 @@ namespace CoreWCF.Security
             }
         }
 
-        protected Object ThisLock
-        {
-            get
-            {
-                return thisLock;
-            }
-        }
+        protected Object ThisLock { get; } = new Object();
 
         internal void SetBinaryNegotiation(BinaryNegotiation negotiation)
         {
@@ -457,7 +438,7 @@ namespace CoreWCF.Security
 
         internal BinaryNegotiation GetBinaryNegotiation()
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 return standardsManager.TrustDriver.GetBinaryNegotiation(this);
             }
@@ -475,7 +456,7 @@ namespace CoreWCF.Security
 
         internal SecurityToken GetRequestorEntropy(SecurityTokenResolver resolver)
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 return standardsManager.TrustDriver.GetEntropy(this, resolver);
             }
@@ -520,7 +501,7 @@ namespace CoreWCF.Security
 
         public void GetAppliesToQName(out string localName, out string namespaceUri)
         {
-            if (!isReceiver)
+            if (!IsReceiver)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTOnly, "MatchesAppliesTo")));
             }
@@ -535,7 +516,7 @@ namespace CoreWCF.Security
 
         public T GetAppliesTo<T>(XmlObjectSerializer serializer)
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 if (serializer == null)
                 {
@@ -551,7 +532,7 @@ namespace CoreWCF.Security
 
         private void OnWriteTo(XmlWriter writer)
         {
-            if (isReceiver)
+            if (IsReceiver)
             {
                 rstXml.WriteTo(writer);
             }

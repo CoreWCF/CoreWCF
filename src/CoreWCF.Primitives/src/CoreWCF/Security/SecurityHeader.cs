@@ -11,15 +11,12 @@ namespace CoreWCF.Security
     internal abstract class SecurityHeader : MessageHeader
     {
         private readonly string actor;
-        private readonly SecurityAlgorithmSuite algorithmSuite;
         private bool encryptedKeyContainsReferenceList = true;
-        private Message message;
         private readonly bool mustUnderstand;
         private readonly bool relay;
         private bool requireMessageProtection = true;
         private bool processingStarted;
         private bool maintainSignatureConfirmationState;
-        private readonly SecurityStandardsManager standardsManager;
         private readonly MessageDirection transferDirection;
         private SecurityHeaderLayout layout = SecurityHeaderLayout.Strict;
 
@@ -46,18 +43,18 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithmSuite));
             }
 
-            this.message = message;
+            Message = message;
             this.actor = actor;
             this.mustUnderstand = mustUnderstand;
             this.relay = relay;
-            this.standardsManager = standardsManager;
-            this.algorithmSuite = algorithmSuite;
+            StandardsManager = standardsManager;
+            AlgorithmSuite = algorithmSuite;
             this.transferDirection = transferDirection;
         }
 
         public override string Actor => actor;
 
-        public SecurityAlgorithmSuite AlgorithmSuite => algorithmSuite;
+        public SecurityAlgorithmSuite AlgorithmSuite { get; }
 
         public bool EncryptedKeyContainsReferenceList
         {
@@ -89,11 +86,7 @@ namespace CoreWCF.Security
             }
         }
 
-        protected Message Message
-        {
-            get { return message; }
-            set { message = value; }
-        }
+        protected Message Message { get; set; }
 
         public override bool MustUnderstand => mustUnderstand;
 
@@ -112,11 +105,11 @@ namespace CoreWCF.Security
             }
         }
 
-        public SecurityStandardsManager StandardsManager => standardsManager;
+        public SecurityStandardsManager StandardsManager { get; }
 
         public MessageDirection MessageDirection => transferDirection;
 
-        protected MessageVersion Version => message.Version;
+        protected MessageVersion Version => Message.Version;
 
         protected void SetProcessingStarted()
         {

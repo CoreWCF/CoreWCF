@@ -8,8 +8,6 @@ namespace CoreWCF.Security
 {
     public class SupportingTokenAuthenticatorSpecification
     {
-        private bool isTokenOptional;
-
         public SupportingTokenAuthenticatorSpecification(SecurityTokenAuthenticator tokenAuthenticator, SecurityTokenResolver securityTokenResolver, SecurityTokenAttachmentMode attachmentMode, SecurityTokenParameters tokenParameters)
             : this(tokenAuthenticator, securityTokenResolver, attachmentMode, tokenParameters, false)
         {
@@ -32,7 +30,7 @@ namespace CoreWCF.Security
             TokenResolver = securityTokenResolver;
             SecurityTokenAttachmentMode = attachmentMode;
             TokenParameters = tokenParameters;
-            this.isTokenOptional = isTokenOptional;
+            IsTokenOptional = isTokenOptional;
         }
 
         public SecurityTokenAuthenticator TokenAuthenticator { get; }
@@ -43,10 +41,6 @@ namespace CoreWCF.Security
 
         public SecurityTokenParameters TokenParameters { get; }
 
-        internal bool IsTokenOptional
-        {
-            get { return isTokenOptional; }
-            set { isTokenOptional = value; }
-        }
+        internal bool IsTokenOptional { get; set; }
     }
 }

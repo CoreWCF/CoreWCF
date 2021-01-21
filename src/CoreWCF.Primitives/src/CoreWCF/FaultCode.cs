@@ -8,8 +8,6 @@ namespace CoreWCF
 {
     public class FaultCode
     {
-        private readonly FaultCode subCode;
-        private readonly string name;
         private readonly string ns;
         private readonly EnvelopeVersion version;
 
@@ -45,9 +43,9 @@ namespace CoreWCF
                 NamingHelper.CheckUriParameter(ns, "ns");
             }
 
-            this.name = name;
+            Name = name;
             this.ns = ns;
-            this.subCode = subCode;
+            SubCode = subCode;
 
             if (ns == Message12Strings.Namespace)
             {
@@ -81,7 +79,7 @@ namespace CoreWCF
             {
                 if (IsPredefinedFault)
                 {
-                    return name == (version ?? EnvelopeVersion.Soap12).SenderFaultName;
+                    return Name == (version ?? EnvelopeVersion.Soap12).SenderFaultName;
                 }
 
                 return false;
@@ -94,7 +92,7 @@ namespace CoreWCF
             {
                 if (IsPredefinedFault)
                 {
-                    return name == (version ?? EnvelopeVersion.Soap12).ReceiverFaultName;
+                    return Name == (version ?? EnvelopeVersion.Soap12).ReceiverFaultName;
                 }
 
                 return false;
@@ -109,21 +107,9 @@ namespace CoreWCF
             }
         }
 
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
+        public string Name { get; }
 
-        public FaultCode SubCode
-        {
-            get
-            {
-                return subCode;
-            }
-        }
+        public FaultCode SubCode { get; }
 
         public static FaultCode CreateSenderFaultCode(FaultCode subCode)
         {

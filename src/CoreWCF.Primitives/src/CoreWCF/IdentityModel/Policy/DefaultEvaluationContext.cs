@@ -13,7 +13,6 @@ namespace CoreWCF.IdentityModel.Policy
     {
         private List<ClaimSet> claimSets;
         private readonly Dictionary<string, object> properties;
-        private DateTime expirationTime = SecurityUtils.MaxUtcDateTime;
         private int generation;
         private ReadOnlyCollection<ClaimSet> readOnlyClaimSets;
 
@@ -51,10 +50,7 @@ namespace CoreWCF.IdentityModel.Policy
             get { return properties; }
         }
 
-        public DateTime ExpirationTime
-        {
-            get { return expirationTime; }
-        }
+        public DateTime ExpirationTime { get; private set; } = SecurityUtils.MaxUtcDateTime;
 
         public override void AddClaimSet(IAuthorizationPolicy policy, ClaimSet claimSet)
         {
@@ -74,9 +70,9 @@ namespace CoreWCF.IdentityModel.Policy
 
         public override void RecordExpirationTime(DateTime expirationTime)
         {
-            if (this.expirationTime > expirationTime)
+            if (ExpirationTime > expirationTime)
             {
-                this.expirationTime = expirationTime;
+                ExpirationTime = expirationTime;
             }
         }
     }

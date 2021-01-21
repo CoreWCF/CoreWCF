@@ -9,39 +9,39 @@ namespace CoreWCF.IdentityModel
 {
     internal class SecurityUniqueId
     {
-        private static long nextId = 0;
-        private static readonly string commonPrefix = "uuid-" + Guid.NewGuid().ToString() + "-";
-        private readonly long id;
-        private readonly string prefix;
-        private string val;
+        private static long s_nextId = 0;
+        private static readonly string s_commonPrefix = "uuid-" + Guid.NewGuid().ToString() + "-";
+        private readonly long _id;
+        private readonly string _prefix;
+        private string _val;
 
         private SecurityUniqueId(string prefix, long id)
         {
-            this.id = id;
-            this.prefix = prefix;
-            val = null;
+            _id = id;
+            _prefix = prefix;
+            _val = null;
         }
 
         public static SecurityUniqueId Create()
         {
-            return SecurityUniqueId.Create(commonPrefix);
+            return SecurityUniqueId.Create(s_commonPrefix);
         }
 
         public static SecurityUniqueId Create(string prefix)
         {
-            return new SecurityUniqueId(prefix, Interlocked.Increment(ref nextId));
+            return new SecurityUniqueId(prefix, Interlocked.Increment(ref s_nextId));
         }
 
         public string Value
         {
             get
             {
-                if (val == null)
+                if (_val == null)
                 {
-                    val = prefix + id.ToString(CultureInfo.InvariantCulture);
+                    _val = _prefix + _id.ToString(CultureInfo.InvariantCulture);
                 }
 
-                return val;
+                return _val;
             }
         }
     }

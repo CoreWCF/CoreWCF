@@ -14,7 +14,6 @@ namespace CoreWCF.Channels
         internal const string defaultServerIssuedTokenLifetimeString = "10:00:00";
         internal const string defaultServerIssuedTransitionTokenLifetimeString = "00:15:00";
         internal const int defaultServerMaxActiveNegotiations = 128;
-        private bool detectReplays;
         private int replayCacheSize;
         private TimeSpan replayWindow;
         private TimeSpan maxClockSkew;
@@ -26,13 +25,11 @@ namespace CoreWCF.Channels
         private TimeSpan inactivityTimeout;
         private TimeSpan sessionKeyRenewalInterval;
         private TimeSpan sessionKeyRolloverInterval;
-        private bool reconnectTransportOnFailure;
         private TimeSpan timestampValidityDuration;
-        private NonceCache nonceCache = null;
 
         private LocalServiceSecuritySettings(LocalServiceSecuritySettings other)
         {
-            detectReplays = other.detectReplays;
+            DetectReplays = other.DetectReplays;
             replayCacheSize = other.replayCacheSize;
             replayWindow = other.replayWindow;
             maxClockSkew = other.maxClockSkew;
@@ -43,23 +40,13 @@ namespace CoreWCF.Channels
             inactivityTimeout = other.inactivityTimeout;
             sessionKeyRenewalInterval = other.sessionKeyRenewalInterval;
             sessionKeyRolloverInterval = other.sessionKeyRolloverInterval;
-            reconnectTransportOnFailure = other.reconnectTransportOnFailure;
+            ReconnectTransportOnFailure = other.ReconnectTransportOnFailure;
             timestampValidityDuration = other.timestampValidityDuration;
             maxCachedCookies = other.maxCachedCookies;
-            nonceCache = other.nonceCache;
+            NonceCache = other.NonceCache;
         }
 
-        public bool DetectReplays
-        {
-            get
-            {
-                return detectReplays;
-            }
-            set
-            {
-                detectReplays = value;
-            }
-        }
+        public bool DetectReplays { get; set; }
 
         public int ReplayCacheSize
         {
@@ -126,17 +113,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public NonceCache NonceCache
-        {
-            get
-            {
-                return nonceCache;
-            }
-            set
-            {
-                nonceCache = value;
-            }
-        }
+        public NonceCache NonceCache { get; set; } = null;
 
         public TimeSpan IssuedCookieLifetime
         {
@@ -292,17 +269,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public bool ReconnectTransportOnFailure
-        {
-            get
-            {
-                return reconnectTransportOnFailure;
-            }
-            set
-            {
-                reconnectTransportOnFailure = value;
-            }
-        }
+        public bool ReconnectTransportOnFailure { get; set; }
 
         public TimeSpan TimestampValidityDuration
         {
@@ -359,10 +326,10 @@ namespace CoreWCF.Channels
             inactivityTimeout = SecuritySessionServerSettings.defaultInactivityTimeout;
             sessionKeyRenewalInterval = SecuritySessionServerSettings.defaultKeyRenewalInterval;
             sessionKeyRolloverInterval = SecuritySessionServerSettings.defaultKeyRolloverInterval;
-            reconnectTransportOnFailure = SecuritySessionServerSettings.defaultTolerateTransportFailures;
+            ReconnectTransportOnFailure = SecuritySessionServerSettings.defaultTolerateTransportFailures;
             TimestampValidityDuration = SecurityProtocolFactory.defaultTimestampValidityDuration;
             maxCachedCookies = 1000; // NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxCachedTokens;
-            nonceCache = null;
+            NonceCache = null;
         }
 
         public LocalServiceSecuritySettings Clone()

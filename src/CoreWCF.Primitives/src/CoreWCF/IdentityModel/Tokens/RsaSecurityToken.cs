@@ -12,7 +12,6 @@ namespace CoreWCF.IdentityModel.Tokens
     {
         private readonly string id;
         private readonly DateTime effectiveTime;
-        private readonly RSA rsa;
 
         public RsaSecurityToken(RSA rsa)
             : this(rsa, SecurityUniqueId.Create().Value)
@@ -31,7 +30,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             }
 
-            this.rsa = rsa;
+            Rsa = rsa;
             this.id = id;
             effectiveTime = DateTime.UtcNow;
         }
@@ -60,9 +59,6 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        public RSA Rsa
-        {
-            get { return rsa; }
-        }
+        public RSA Rsa { get; }
     }
 }

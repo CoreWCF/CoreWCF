@@ -6,7 +6,6 @@ namespace CoreWCF.Security.Tokens
     public class ClaimTypeRequirement
     {
         internal const bool DefaultIsOptional = false;
-        private readonly string claimType;
         private readonly bool isOptional;
 
         public ClaimTypeRequirement(string claimType)
@@ -25,14 +24,11 @@ namespace CoreWCF.Security.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("claimType", SR.ClaimTypeCannotBeEmpty);
             }
 
-            this.claimType = claimType;
+            ClaimType = claimType;
             this.isOptional = isOptional;
         }
 
-        public string ClaimType
-        {
-            get { return claimType; }
-        }
+        public string ClaimType { get; }
 
         public bool IsOptional
         {

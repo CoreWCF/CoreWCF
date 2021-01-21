@@ -30,7 +30,6 @@ namespace CoreWCF.Channels
         private readonly MessageEncoder messageEncoder;
         private readonly IHttpTransportFactorySettings settings;
         private readonly bool streamed;
-        private WebException webException;
         private Stream inputStream;
         private readonly bool enableChannelBinding;
         private bool errorGettingInputStream;
@@ -40,7 +39,7 @@ namespace CoreWCF.Channels
             this.settings = settings;
             bufferManager = settings.BufferManager;
             messageEncoder = settings.MessageEncoderFactory.Encoder;
-            webException = null;
+            WebException = null;
             this.isRequest = isRequest;
             inputStream = null;
             this.enableChannelBinding = enableChannelBinding;
@@ -55,11 +54,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal WebException WebException
-        {
-            get { return webException; }
-            set { webException = value; }
-        }
+        internal WebException WebException { get; set; }
 
         // Note: This method will return null in the case where throwOnError is false, and a non-fatal error occurs.
         // Please exercise caution when passing in throwOnError = false.  This should basically only be done in error
@@ -446,7 +441,7 @@ namespace CoreWCF.Channels
 
         private void ThrowHttpProtocolException(string message, HttpStatusCode statusCode, string statusDescription)
         {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateHttpProtocolException(message, statusCode, statusDescription, webException));
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateHttpProtocolException(message, statusCode, statusDescription, WebException));
         }
 
         internal static ProtocolException CreateHttpProtocolException(string message, HttpStatusCode statusCode, string statusDescription, Exception innerException)
@@ -498,7 +493,6 @@ namespace CoreWCF.Channels
         private readonly string mtomBoundary;
         private Stream outputStream;
         private readonly bool supportsConcurrentIO;
-        private readonly bool canSendCompressedResponses;
 
         protected HttpOutput(IHttpTransportFactorySettings settings, Message message, bool isRequest, bool supportsConcurrentIO)
         {
@@ -508,7 +502,7 @@ namespace CoreWCF.Channels
             bufferManager = settings.BufferManager;
             messageEncoder = settings.MessageEncoderFactory.Encoder;
             ICompressedMessageEncoder compressedMessageEncoder = messageEncoder as ICompressedMessageEncoder;
-            canSendCompressedResponses = compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled;
+            CanSendCompressedResponses = compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled;
             if (isRequest)
             {
                 streamed = TransferModeHelper.IsRequestStreamed(settings.TransferMode);
@@ -606,10 +600,7 @@ namespace CoreWCF.Channels
             get { return true; }
         }
 
-        protected bool CanSendCompressedResponses
-        {
-            get { return canSendCompressedResponses; }
-        }
+        protected bool CanSendCompressedResponses { get; }
 
         protected virtual bool PrepareHttpSend(Message message)
         {

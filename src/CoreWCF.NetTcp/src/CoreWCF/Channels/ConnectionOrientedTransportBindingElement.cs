@@ -13,7 +13,6 @@ namespace CoreWCF.Channels
         private int connectionBufferSize;
         private readonly bool exposeConnectionProperty;
         private HostNameComparisonMode hostNameComparisonMode;
-        private bool inheritBaseAddressSettings;
         private TimeSpan channelInitializationTimeout;
         private int maxBufferSize;
         private bool maxBufferSizeInitialized;
@@ -21,7 +20,6 @@ namespace CoreWCF.Channels
         private TimeSpan maxOutputDelay;
         private int maxPendingAccepts;
         private TransferMode transferMode;
-        private bool isMaxPendingConnectionsSet;
         private bool isMaxPendingAcceptsSet;
 
         internal ConnectionOrientedTransportBindingElement()
@@ -43,7 +41,7 @@ namespace CoreWCF.Channels
             connectionBufferSize = elementToBeCloned.connectionBufferSize;
             exposeConnectionProperty = elementToBeCloned.exposeConnectionProperty;
             hostNameComparisonMode = elementToBeCloned.hostNameComparisonMode;
-            inheritBaseAddressSettings = elementToBeCloned.InheritBaseAddressSettings;
+            InheritBaseAddressSettings = elementToBeCloned.InheritBaseAddressSettings;
             channelInitializationTimeout = elementToBeCloned.ChannelInitializationTimeout;
             maxBufferSize = elementToBeCloned.maxBufferSize;
             maxBufferSizeInitialized = elementToBeCloned.maxBufferSizeInitialized;
@@ -51,7 +49,7 @@ namespace CoreWCF.Channels
             maxOutputDelay = elementToBeCloned.maxOutputDelay;
             maxPendingAccepts = elementToBeCloned.maxPendingAccepts;
             transferMode = elementToBeCloned.transferMode;
-            isMaxPendingConnectionsSet = elementToBeCloned.isMaxPendingConnectionsSet;
+            IsMaxPendingConnectionsSet = elementToBeCloned.IsMaxPendingConnectionsSet;
             isMaxPendingAcceptsSet = elementToBeCloned.isMaxPendingAcceptsSet;
         }
 
@@ -137,27 +135,14 @@ namespace CoreWCF.Channels
                 }
 
                 maxPendingConnections = value;
-                isMaxPendingConnectionsSet = true;
+                IsMaxPendingConnectionsSet = true;
             }
         }
 
-        internal bool IsMaxPendingConnectionsSet
-        {
-            get { return isMaxPendingConnectionsSet; }
-        }
+        internal bool IsMaxPendingConnectionsSet { get; private set; }
 
         // used by MEX to ensure that we don't conflict on base-address scoped settings
-        internal bool InheritBaseAddressSettings
-        {
-            get
-            {
-                return inheritBaseAddressSettings;
-            }
-            set
-            {
-                inheritBaseAddressSettings = value;
-            }
-        }
+        internal bool InheritBaseAddressSettings { get; set; }
 
         public TimeSpan ChannelInitializationTimeout
         {
@@ -288,7 +273,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            if (inheritBaseAddressSettings != connection.inheritBaseAddressSettings)
+            if (InheritBaseAddressSettings != connection.InheritBaseAddressSettings)
             {
                 return false;
             }

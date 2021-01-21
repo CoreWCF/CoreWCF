@@ -13,12 +13,12 @@ namespace CoreWCF.Channels
         public readonly static string Name = "ReceiveContext";
         private readonly SemaphoreSlim stateLock; // protects state that may be reverted
         private bool contextFaulted;
-        private readonly object thisLock;
+
         //EventTraceActivity eventTraceActivity;
 
         protected ReceiveContext()
         {
-            thisLock = new object();
+            ThisLock = new object();
             State = ReceiveContextState.Received;
             stateLock = new SemaphoreSlim(1);
         }
@@ -29,10 +29,7 @@ namespace CoreWCF.Channels
             protected set;
         }
 
-        protected object ThisLock
-        {
-            get { return thisLock; }
-        }
+        protected object ThisLock { get; }
 
         public event EventHandler Faulted;
 

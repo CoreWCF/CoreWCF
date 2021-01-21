@@ -14,19 +14,14 @@ namespace CoreWCF
     public sealed class OperationContext : IExtensibleObject<OperationContext>
     {
         private static readonly AsyncLocal<Holder> currentContext = new AsyncLocal<Holder>();
-        private ServiceChannel channel;
         private Message clientReply;
         private bool closeClientReply;
         private ExtensionCollection<OperationContext> extensions;
-        private readonly ServiceHostBase host;
-        private RequestContext requestContext;
         private Message request;
-        private InstanceContext instanceContext;
         private bool isServiceReentrant = false;
         internal IPrincipal threadPrincipal;
         private MessageProperties outgoingMessageProperties;
         private MessageHeaders outgoingMessageHeaders;
-        private readonly MessageVersion outgoingMessageVersion;
         private EndpointDispatcher endpointDispatcher;
 
         public event EventHandler OperationCompleted;
@@ -48,8 +43,8 @@ namespace CoreWCF
 
             if (serviceChannel != null)
             {
-                outgoingMessageVersion = serviceChannel.MessageVersion;
-                this.channel = serviceChannel;
+                OutgoingMessageVersion = serviceChannel.MessageVersion;
+                InternalServiceChannel = serviceChannel;
             }
             else
             {
@@ -69,17 +64,17 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(outgoingMessageVersion));
             }
 
-            this.host = host;
-            this.outgoingMessageVersion = outgoingMessageVersion;
+            Host = host;
+            OutgoingMessageVersion = outgoingMessageVersion;
         }
 
         internal OperationContext(RequestContext requestContext, Message request, ServiceChannel channel, ServiceHostBase host)
         {
-            this.channel = channel;
-            this.host = host;
-            this.requestContext = requestContext;
+            InternalServiceChannel = channel;
+            Host = host;
+            RequestContext = requestContext;
             this.request = request;
-            outgoingMessageVersion = channel.MessageVersion;
+            OutgoingMessageVersion = channel.MessageVersion;
         }
 
         // TODO: Probably want to revert this to public
@@ -115,10 +110,7 @@ namespace CoreWCF
             }
         }
 
-        public ServiceHostBase Host
-        {
-            get { return host; }
-        }
+        public ServiceHostBase Host { get; }
 
         public EndpointDispatcher EndpointDispatcher
         {
@@ -162,11 +154,7 @@ namespace CoreWCF
             get { return clientReply ?? request; }
         }
 
-        internal ServiceChannel InternalServiceChannel
-        {
-            get { return channel; }
-            set { channel = value; }
-        }
+        internal ServiceChannel InternalServiceChannel { get; set; }
 
         internal bool HasOutgoingMessageHeaders
         {
@@ -204,10 +192,7 @@ namespace CoreWCF
             }
         }
 
-        internal MessageVersion OutgoingMessageVersion
-        {
-            get { return outgoingMessageVersion; }
-        }
+        internal MessageVersion OutgoingMessageVersion { get; }
 
         public MessageHeaders IncomingMessageHeaders
         {
@@ -257,16 +242,9 @@ namespace CoreWCF
             }
         }
 
-        public InstanceContext InstanceContext
-        {
-            get { return instanceContext; }
-        }
+        public InstanceContext InstanceContext { get; private set; }
 
-        public RequestContext RequestContext
-        {
-            get { return requestContext; }
-            set { requestContext = value; }
-        }
+        public RequestContext RequestContext { get; set; }
 
         public ServiceSecurityContext ServiceSecurityContext
         {
@@ -322,29 +300,29 @@ namespace CoreWCF
 
         public T GetCallbackChannel<T>()
         {
-            if (channel == null || IsUserContext)
+            if (InternalServiceChannel == null || IsUserContext)
             {
                 return default(T);
             }
 
             // yes, we might throw InvalidCastException here.  Is it really
             // better to check and throw something else instead?
-            return (T)channel.Proxy;
+            return (T)InternalServiceChannel.Proxy;
         }
 
         internal void ReInit(RequestContext requestContext, Message request, ServiceChannel channel)
         {
-            this.requestContext = requestContext;
+            RequestContext = requestContext;
             this.request = request;
-            this.channel = channel;
+            InternalServiceChannel = channel;
         }
 
         internal void Recycle()
         {
-            requestContext = null;
+            RequestContext = null;
             request = null;
             extensions = null;
-            instanceContext = null;
+            InstanceContext = null;
             threadPrincipal = null;
             SetClientReply(null, false);
         }
@@ -373,25 +351,12 @@ namespace CoreWCF
 
         internal void SetInstanceContext(InstanceContext instanceContext)
         {
-            this.instanceContext = instanceContext;
+            InstanceContext = instanceContext;
         }
 
         internal class Holder
         {
-            private OperationContext context;
-
-            public OperationContext Context
-            {
-                get
-                {
-                    return context;
-                }
-
-                set
-                {
-                    context = value;
-                }
-            }
+            public OperationContext Context { get; set; }
         }
     }
 }

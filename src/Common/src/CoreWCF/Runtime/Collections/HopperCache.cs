@@ -217,22 +217,15 @@ namespace CoreWCF.Runtime.Collections
 
         private class LastHolder
         {
-            private readonly object key;
             private readonly object value;
 
             internal LastHolder(object key, object value)
             {
-                this.key = key;
+                Key = key;
                 this.value = value;
             }
 
-            internal object Key
-            {
-                get
-                {
-                    return key;
-                }
-            }
+            internal object Key { get; private set; }
 
             internal object Value
             {

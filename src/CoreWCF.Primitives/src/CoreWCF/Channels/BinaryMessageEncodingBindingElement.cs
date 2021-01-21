@@ -17,7 +17,6 @@ namespace CoreWCF.Channels
         private int maxSessionSize;
         private BinaryVersion binaryVersion;
         private MessageVersion messageVersion;
-        private CompressionFormat compressionFormat;
         private long maxReceivedMessageSize;
 
         public BinaryMessageEncodingBindingElement()
@@ -29,7 +28,7 @@ namespace CoreWCF.Channels
             maxSessionSize = BinaryEncoderDefaults.MaxSessionSize;
             binaryVersion = BinaryEncoderDefaults.BinaryVersion;
             messageVersion = MessageVersion.CreateVersion(BinaryEncoderDefaults.EnvelopeVersion);
-            compressionFormat = EncoderDefaults.DefaultCompressionFormat;
+            CompressionFormat = EncoderDefaults.DefaultCompressionFormat;
         }
 
         private BinaryMessageEncodingBindingElement(BinaryMessageEncodingBindingElement elementToBeCloned)
@@ -47,17 +46,7 @@ namespace CoreWCF.Channels
         }
 
         [DefaultValue(EncoderDefaults.DefaultCompressionFormat)]
-        public CompressionFormat CompressionFormat
-        {
-            get
-            {
-                return compressionFormat;
-            }
-            set
-            {
-                compressionFormat = value;
-            }
-        }
+        public CompressionFormat CompressionFormat { get; set; }
 
         /* public */
         private BinaryVersion BinaryVersion
@@ -169,13 +158,13 @@ namespace CoreWCF.Channels
 
         private void VerifyCompression(BindingContext context)
         {
-            if (compressionFormat != CompressionFormat.None)
+            if (CompressionFormat != CompressionFormat.None)
             {
                 ITransportCompressionSupport compressionSupport = context.GetInnerProperty<ITransportCompressionSupport>();
-                if (compressionSupport == null || !compressionSupport.IsCompressionFormatSupported(compressionFormat))
+                if (compressionSupport == null || !compressionSupport.IsCompressionFormatSupported(CompressionFormat))
                 {
                     throw Fx.Exception.AsError(new NotSupportedException(SR.Format(
-                        SR.TransportDoesNotSupportCompression, compressionFormat.ToString(),
+                        SR.TransportDoesNotSupportCompression, CompressionFormat.ToString(),
                         GetType().Name,
                         CompressionFormat.None.ToString())));
                 }

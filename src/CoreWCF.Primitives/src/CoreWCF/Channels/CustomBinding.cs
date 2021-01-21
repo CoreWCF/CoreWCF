@@ -7,8 +7,6 @@ namespace CoreWCF.Channels
 {
     public class CustomBinding : Binding
     {
-        private readonly BindingElementCollection _bindingElements = new BindingElementCollection();
-
         public CustomBinding()
         {
         }
@@ -22,7 +20,7 @@ namespace CoreWCF.Channels
 
             foreach (BindingElement element in bindingElementsInTopDownChannelStackOrder)
             {
-                _bindingElements.Add(element);
+                Elements.Add(element);
             }
         }
 
@@ -36,7 +34,7 @@ namespace CoreWCF.Channels
 
             foreach (BindingElement element in bindingElementsInTopDownChannelStackOrder)
             {
-                _bindingElements.Add(element);
+                Elements.Add(element);
             }
         }
 
@@ -49,7 +47,7 @@ namespace CoreWCF.Channels
 
             foreach (BindingElement element in bindingElementsInTopDownChannelStackOrder)
             {
-                _bindingElements.Add(element);
+                Elements.Add(element);
             }
         }
 
@@ -87,28 +85,22 @@ namespace CoreWCF.Channels
 
             for (int i = 0; i < elements.Count; i++)
             {
-                _bindingElements.Add(elements[i]);
+                Elements.Add(elements[i]);
             }
         }
 
-        public BindingElementCollection Elements
-        {
-            get
-            {
-                return _bindingElements;
-            }
-        }
+        public BindingElementCollection Elements { get; } = new BindingElementCollection();
 
         public override BindingElementCollection CreateBindingElements()
         {
-            return _bindingElements.Clone();
+            return Elements.Clone();
         }
 
         public override string Scheme
         {
             get
             {
-                TransportBindingElement transport = _bindingElements.Find<TransportBindingElement>();
+                TransportBindingElement transport = Elements.Find<TransportBindingElement>();
                 if (transport == null)
                 {
                     return string.Empty;

@@ -13,13 +13,12 @@ namespace CoreWCF
         internal const HttpClientCredentialType DefaultClientCredentialType = HttpClientCredentialType.None;
         internal const string DefaultRealm = CoreWCF.Channels.HttpTransportDefaults.Realm;
         private HttpClientCredentialType clientCredentialType;
-        private string realm;
         private ExtendedProtectionPolicy extendedProtectionPolicy;
 
         public HttpTransportSecurity()
         {
             clientCredentialType = DefaultClientCredentialType;
-            realm = DefaultRealm;
+            Realm = DefaultRealm;
             extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
 
@@ -36,11 +35,7 @@ namespace CoreWCF
             }
         }
 
-        public string Realm
-        {
-            get { return realm; }
-            set { realm = value; }
-        }
+        public string Realm { get; set; }
 
         public ExtendedProtectionPolicy ExtendedProtectionPolicy
         {
@@ -82,7 +77,7 @@ namespace CoreWCF
         private static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
         {
             transportSecurity.clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
-            transportSecurity.realm = http.Realm;
+            transportSecurity.Realm = http.Realm;
             transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
         }
 

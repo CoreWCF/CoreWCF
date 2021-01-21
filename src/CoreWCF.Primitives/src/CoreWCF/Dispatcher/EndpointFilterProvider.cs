@@ -8,35 +8,31 @@ namespace CoreWCF.Dispatcher
 {
     internal class EndpointFilterProvider
     {
-        private readonly SynchronizedCollection<string> initiatingActions;
         private readonly object mutex;
 
         public EndpointFilterProvider(params string[] initiatingActions)
         {
             mutex = new object();
-            this.initiatingActions = new SynchronizedCollection<string>(mutex, initiatingActions);
+            InitiatingActions = new SynchronizedCollection<string>(mutex, initiatingActions);
         }
 
-        public SynchronizedCollection<string> InitiatingActions
-        {
-            get { return initiatingActions; }
-        }
+        public SynchronizedCollection<string> InitiatingActions { get; }
 
         public MessageFilter CreateFilter(out int priority)
         {
             lock (mutex)
             {
                 priority = 1;
-                if (initiatingActions.Count == 0)
+                if (InitiatingActions.Count == 0)
                 {
                     return new MatchNoneMessageFilter();
                 }
 
-                string[] actions = new string[initiatingActions.Count];
+                string[] actions = new string[InitiatingActions.Count];
                 int index = 0;
-                for (int i = 0; i < initiatingActions.Count; i++)
+                for (int i = 0; i < InitiatingActions.Count; i++)
                 {
-                    string currentAction = initiatingActions[i];
+                    string currentAction = InitiatingActions[i];
                     if (currentAction == MessageHeaders.WildcardAction)
                     {
                         priority = 0;

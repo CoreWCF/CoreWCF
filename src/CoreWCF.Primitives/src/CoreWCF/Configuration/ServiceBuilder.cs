@@ -12,13 +12,12 @@ namespace CoreWCF.Configuration
 {
     internal class ServiceBuilder : CommunicationObject, IServiceBuilder
     {
-        private readonly IServiceProvider _serviceProvider;
         private readonly IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
         private readonly TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public ServiceBuilder(IServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider;
+            ServiceProvider = serviceProvider;
         }
 
         public ICollection<IServiceConfiguration> ServiceConfigurations => _services.Values;
@@ -27,7 +26,7 @@ namespace CoreWCF.Configuration
 
         ICollection<Type> IServiceBuilder.Services => _services.Keys;
 
-        public IServiceProvider ServiceProvider => _serviceProvider;
+        public IServiceProvider ServiceProvider { get; }
 
         protected override TimeSpan DefaultCloseTimeout => TimeSpan.FromMinutes(1);
 
@@ -44,7 +43,7 @@ namespace CoreWCF.Configuration
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(service)));
             }
-            var serviceConfig = (IServiceConfiguration)_serviceProvider.GetRequiredService(
+            var serviceConfig = (IServiceConfiguration)ServiceProvider.GetRequiredService(
                 typeof(IServiceConfiguration<>).MakeGenericType(service));
             _services[serviceConfig.ServiceType] = serviceConfig;
             return this;

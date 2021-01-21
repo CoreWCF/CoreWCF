@@ -26,23 +26,19 @@ namespace CoreWCF.Channels
         private SecurityTokenAuthenticator clientCertificateAuthenticator;
         private SecurityTokenProvider serverTokenProvider;
         private EndpointIdentity identity;
-        private readonly IdentityVerifier identityVerifier;
-        private X509Certificate2 serverCertificate;
-        private readonly bool requireClientCertificate;
         private readonly string scheme;
         private bool enableChannelBinding;
-        private readonly SslProtocols sslProtocols;
         private readonly SecurityTokenManager clientSecurityTokenManager;
 
         private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenProvider serverTokenProvider, bool requireClientCertificate, SecurityTokenAuthenticator clientCertificateAuthenticator, string scheme, IdentityVerifier identityVerifier, SslProtocols sslProtocols)
             : base(timeouts)
         {
             this.serverTokenProvider = serverTokenProvider;
-            this.requireClientCertificate = requireClientCertificate;
+            RequireClientCertificate = requireClientCertificate;
             this.clientCertificateAuthenticator = clientCertificateAuthenticator;
-            this.identityVerifier = identityVerifier;
+            IdentityVerifier = identityVerifier;
             this.scheme = scheme;
-            this.sslProtocols = sslProtocols;
+            SslProtocols = sslProtocols;
             clientSecurityTokenManager = null; // Used for client but there's public api which need this and the compiler complains it's never assigned
         }
 
@@ -84,37 +80,19 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if ((identity == null) && (serverCertificate != null))
+                if ((identity == null) && (ServerCertificate != null))
                 {
-                    identity = SecurityUtils.GetServiceCertificateIdentity(serverCertificate);
+                    identity = SecurityUtils.GetServiceCertificateIdentity(ServerCertificate);
                 }
                 return identity;
             }
         }
 
-        public IdentityVerifier IdentityVerifier
-        {
-            get
-            {
-                return identityVerifier;
-            }
-        }
+        public IdentityVerifier IdentityVerifier { get; }
 
-        public bool RequireClientCertificate
-        {
-            get
-            {
-                return requireClientCertificate;
-            }
-        }
+        public bool RequireClientCertificate { get; }
 
-        public X509Certificate2 ServerCertificate
-        {
-            get
-            {
-                return serverCertificate;
-            }
-        }
+        public X509Certificate2 ServerCertificate { get; private set; }
 
         public SecurityTokenAuthenticator ClientCertificateAuthenticator
         {
@@ -142,10 +120,7 @@ namespace CoreWCF.Channels
             get { return scheme; }
         }
 
-        public SslProtocols SslProtocols
-        {
-            get { return sslProtocols; }
-        }
+        public SslProtocols SslProtocols { get; }
 
         public override T GetProperty<T>()
         {
@@ -227,15 +202,15 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
                     SR.InvalidTokenProvided, serverTokenProvider.GetType(), typeof(X509SecurityToken))));
             }
-            serverCertificate = new X509Certificate2(x509Token.Certificate);
+            ServerCertificate = new X509Certificate2(x509Token.Certificate);
         }
 
         private void CleanupServerCertificate()
         {
-            if (serverCertificate != null)
+            if (ServerCertificate != null)
             {
-                SecurityUtils.ResetCertificate(serverCertificate);
-                serverCertificate = null;
+                SecurityUtils.ResetCertificate(ServerCertificate);
+                ServerCertificate = null;
             }
         }
 
