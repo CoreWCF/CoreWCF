@@ -12,15 +12,14 @@ namespace CoreWCF.Description
 {
     public class DataContractSerializerOperationBehavior : IOperationBehavior //, IWsdlExportExtension
     {
-        readonly bool builtInOperationBehavior;
-
-        OperationDescription operation;
-        DataContractFormatAttribute dataContractFormatAttribute;
+        private readonly bool builtInOperationBehavior;
+        private OperationDescription operation;
+        private DataContractFormatAttribute dataContractFormatAttribute;
         internal bool ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
-        bool ignoreExtensionDataObjectSetExplicit;
+        private bool ignoreExtensionDataObjectSetExplicit;
         internal int maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
-        bool maxItemsInObjectGraphSetExplicit;
-        DataContractResolver dataContractResolver;
+        private bool maxItemsInObjectGraphSetExplicit;
+        private DataContractResolver dataContractResolver;
 
         public DataContractFormatAttribute DataContractFormatAttribute
         {

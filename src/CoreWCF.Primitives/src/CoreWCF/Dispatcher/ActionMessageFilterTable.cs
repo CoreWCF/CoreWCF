@@ -13,16 +13,16 @@ namespace CoreWCF.Dispatcher
     [DataContract]
     internal class ActionMessageFilterTable<TFilterData> : IMessageFilterTable<TFilterData>
     {
-        Dictionary<MessageFilter, TFilterData> filters;
-        Dictionary<string, List<MessageFilter>> actions;
-        List<MessageFilter> always;
+        private Dictionary<MessageFilter, TFilterData> filters;
+        private Dictionary<string, List<MessageFilter>> actions;
+        private List<MessageFilter> always;
 
         public ActionMessageFilterTable()
         {
             Init();
         }
 
-        void Init()
+        private void Init()
         {
             filters = new Dictionary<MessageFilter, TFilterData>();
             actions = new Dictionary<string, List<MessageFilter>>();
@@ -57,7 +57,7 @@ namespace CoreWCF.Dispatcher
         }
 
         [DataMember(IsRequired = true)]
-        Entry[] Entries
+        private Entry[] Entries
         {
             get
             {
@@ -175,7 +175,7 @@ namespace CoreWCF.Dispatcher
             return ((ICollection<KeyValuePair<MessageFilter, TFilterData>>)filters).GetEnumerator();
         }
 
-        MessageFilter InnerMatch(Message message)
+        private MessageFilter InnerMatch(Message message)
         {
             string act = message.Headers.Action;
             if (act == null)
@@ -209,7 +209,7 @@ namespace CoreWCF.Dispatcher
             return null;
         }
 
-        void InnerMatch(Message message, ICollection<MessageFilter> results)
+        private void InnerMatch(Message message, ICollection<MessageFilter> results)
         {
             for (int i = 0; i < always.Count; ++i)
             {
@@ -232,7 +232,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InnerMatchData(Message message, ICollection<TFilterData> results)
+        private void InnerMatchData(Message message, ICollection<TFilterData> results)
         {
             for (int i = 0; i < always.Count; ++i)
             {
@@ -479,7 +479,7 @@ namespace CoreWCF.Dispatcher
         }
 
         [DataContract]
-        class Entry
+        private class Entry
         {
             [DataMember(IsRequired = true)]
             internal MessageFilter filter;

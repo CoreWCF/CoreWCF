@@ -8,9 +8,9 @@ namespace CoreWCF.Channels
 {
     public partial class TcpTransportBindingElement : ConnectionOrientedTransportBindingElement
     {
-        int _listenBacklog;
-        ExtendedProtectionPolicy _extendedProtectionPolicy;
-        TcpConnectionPoolSettings _connectionPoolSettings;
+        private int _listenBacklog;
+        private ExtendedProtectionPolicy _extendedProtectionPolicy;
+        private TcpConnectionPoolSettings _connectionPoolSettings;
 
         public TcpTransportBindingElement() : base()
         {

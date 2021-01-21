@@ -9,13 +9,13 @@ namespace CoreWCF.Channels
 {
     internal abstract class BufferedMessageData : IBufferedMessageData
     {
-        ArraySegment<byte> buffer;
-        BufferManager bufferManager;
-        int refCount;
-        int outstandingReaders;
-        bool multipleUsers;
-        RecycledMessageState messageState;
-        SynchronizedPool<RecycledMessageState> messageStatePool;
+        private ArraySegment<byte> buffer;
+        private BufferManager bufferManager;
+        private int refCount;
+        private int outstandingReaders;
+        private bool multipleUsers;
+        private RecycledMessageState messageState;
+        private SynchronizedPool<RecycledMessageState> messageStatePool;
 
         public BufferedMessageData(SynchronizedPool<RecycledMessageState> messageStatePool)
         {
@@ -39,7 +39,7 @@ namespace CoreWCF.Channels
 
         public abstract MessageEncoder MessageEncoder { get; }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return this; }
         }
@@ -67,7 +67,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void DoClose()
+        private void DoClose()
         {
             bufferManager.ReturnBuffer(buffer.Array);
             if (outstandingReaders == 0)
@@ -90,7 +90,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void DoReturnXmlReader(XmlDictionaryReader reader)
+        private void DoReturnXmlReader(XmlDictionaryReader reader)
         {
             ReturnXmlReader(reader);
             outstandingReaders--;
@@ -110,7 +110,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        XmlDictionaryReader DoTakeXmlReader()
+        private XmlDictionaryReader DoTakeXmlReader()
         {
             XmlDictionaryReader reader = TakeXmlReader();
             outstandingReaders++;

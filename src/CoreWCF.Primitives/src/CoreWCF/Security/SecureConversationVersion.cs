@@ -7,8 +7,8 @@ namespace CoreWCF.Security
 {
     public abstract class SecureConversationVersion
     {
-        readonly XmlDictionaryString scNamespace;
-        readonly XmlDictionaryString prefix;
+        private readonly XmlDictionaryString scNamespace;
+        private readonly XmlDictionaryString prefix;
 
         internal SecureConversationVersion(XmlDictionaryString ns, XmlDictionaryString prefix)
         {
@@ -47,9 +47,9 @@ namespace CoreWCF.Security
             get { return WSSecureConversationVersion13.Instance; }
         }
 
-        class WSSecureConversationVersionFeb2005 : SecureConversationVersion
+        private class WSSecureConversationVersionFeb2005 : SecureConversationVersion
         {
-            static readonly WSSecureConversationVersionFeb2005 instance = new WSSecureConversationVersionFeb2005();
+            private static readonly WSSecureConversationVersionFeb2005 instance = new WSSecureConversationVersionFeb2005();
 
             protected WSSecureConversationVersionFeb2005()
                 : base(XD.SecureConversationFeb2005Dictionary.Namespace, XD.SecureConversationFeb2005Dictionary.Prefix)
@@ -65,9 +65,9 @@ namespace CoreWCF.Security
             }
         }
 
-        class WSSecureConversationVersion13 : SecureConversationVersion
+        private class WSSecureConversationVersion13 : SecureConversationVersion
         {
-            static readonly WSSecureConversationVersion13 instance = new WSSecureConversationVersion13();
+            private static readonly WSSecureConversationVersion13 instance = new WSSecureConversationVersion13();
 
             protected WSSecureConversationVersion13()
                 : base(DXD.SecureConversationDec2005Dictionary.Namespace, DXD.SecureConversationDec2005Dictionary.Prefix)

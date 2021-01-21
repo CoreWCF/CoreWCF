@@ -7,13 +7,13 @@ using System.Security.Cryptography;
 
 namespace CoreWCF.IdentityModel
 {
-    sealed class HashStream : Stream
+    internal sealed class HashStream : Stream
     {
-        HashAlgorithm hash;
-        long length;
-        bool disposed;
-        bool hashNeedsReset;
-        MemoryStream logStream;
+        private HashAlgorithm hash;
+        private long length;
+        private bool disposed;
+        private bool hashNeedsReset;
+        private MemoryStream logStream;
 
         /// <summary>
         /// Constructor for HashStream. The HashAlgorithm instance is owned by the caller.

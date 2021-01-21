@@ -12,7 +12,7 @@ namespace CoreWCF.Security
         Custom
     }
 
-    static class UserNamePasswordValidationModeHelper
+    internal static class UserNamePasswordValidationModeHelper
     {
         public static bool IsDefined(UserNamePasswordValidationMode validationMode)
         {

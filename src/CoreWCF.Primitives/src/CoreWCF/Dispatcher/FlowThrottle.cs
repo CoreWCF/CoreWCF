@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CoreWCF.Dispatcher
 {
-    sealed class FlowThrottle
+    internal sealed class FlowThrottle
     {
         private int _capacity;
         private int _count;

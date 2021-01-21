@@ -7,9 +7,9 @@ namespace CoreWCF.Security
 {
     public sealed class WindowsServiceCredential
     {
-        bool allowAnonymousLogons = SspiSecurityTokenProvider.DefaultAllowUnauthenticatedCallers;
-        bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
-        bool isReadOnly;
+        private bool allowAnonymousLogons = SspiSecurityTokenProvider.DefaultAllowUnauthenticatedCallers;
+        private bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
+        private bool isReadOnly;
 
         internal WindowsServiceCredential()
         {
@@ -54,7 +54,7 @@ namespace CoreWCF.Security
             isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
             if (isReadOnly)
             {

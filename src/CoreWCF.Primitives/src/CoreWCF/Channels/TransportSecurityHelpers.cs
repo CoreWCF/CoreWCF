@@ -15,7 +15,7 @@ namespace CoreWCF.Channels
 {
     internal static class TransportSecurityHelpers
     {
-        static async Task<T> GetTokenAsync<T>(SecurityTokenProvider tokenProvider, CancellationToken token)
+        private static async Task<T> GetTokenAsync<T>(SecurityTokenProvider tokenProvider, CancellationToken token)
             where T : SecurityToken
         {
             SecurityToken result = await tokenProvider.GetTokenAsync(token);
@@ -64,7 +64,7 @@ namespace CoreWCF.Channels
         }
 
         // core Cred lookup code
-        static async Task<(NetworkCredential, bool, TokenImpersonationLevel, bool)> GetSspiCredentialAsync(SspiSecurityTokenProvider tokenProvider, CancellationToken cancellationToken)
+        private static async Task<(NetworkCredential, bool, TokenImpersonationLevel, bool)> GetSspiCredentialAsync(SspiSecurityTokenProvider tokenProvider, CancellationToken cancellationToken)
         {
             NetworkCredential credential = null;
             bool extractGroupsForWindowsAccounts = TransportDefaults.ExtractGroupsForWindowsAccounts;

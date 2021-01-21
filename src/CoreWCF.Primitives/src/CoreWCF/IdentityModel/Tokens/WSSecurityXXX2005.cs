@@ -39,12 +39,12 @@ namespace CoreWCF.IdentityModel.Tokens
             clauseEntries.Add(strClause);
         }
 
-        new class WrappedKeyTokenEntry : WSSecurityJan2004.WrappedKeyTokenEntry
+        private new class WrappedKeyTokenEntry : WSSecurityJan2004.WrappedKeyTokenEntry
         {
             public override string TokenTypeUri { get { return SecurityXXX2005Strings.EncryptedKeyTokenType; } }
         }
 
-        class SecurityTokenReferenceXXX2005ClauseEntry : SecurityTokenReferenceJan2004ClauseEntry
+        private class SecurityTokenReferenceXXX2005ClauseEntry : SecurityTokenReferenceJan2004ClauseEntry
         {
             public SecurityTokenReferenceXXX2005ClauseEntry(bool emitBspRequiredAttributes, IList<StrEntry> strEntries)
                 : base(emitBspRequiredAttributes, strEntries)
@@ -140,7 +140,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        class EncryptedKeyHashStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
+        private class EncryptedKeyHashStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
         {
             protected override Type ClauseType { get { return typeof(EncryptedKeyHashIdentifierClause); } }
             public override Type TokenType { get { return typeof(WrappedKeySecurityToken); } }
@@ -172,7 +172,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        class X509ThumbprintStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
+        private class X509ThumbprintStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
         {
             protected override Type ClauseType { get { return typeof(X509ThumbprintKeyIdentifierClause); } }
             public override Type TokenType { get { return typeof(X509SecurityToken); } }

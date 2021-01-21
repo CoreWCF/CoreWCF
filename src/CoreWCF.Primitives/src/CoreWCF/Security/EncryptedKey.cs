@@ -139,17 +139,16 @@ namespace CoreWCF.Security
         internal static readonly XmlDictionaryString TypeAttribute = XD.XmlEncryptionDictionary.Type;
         internal static readonly XmlDictionaryString CipherDataElementName = XD.XmlEncryptionDictionary.CipherData;
         internal static readonly XmlDictionaryString CipherValueElementName = XD.XmlEncryptionDictionary.CipherValue;
-
-        string encoding;
-        EncryptionMethodElement encryptionMethod;
-        string id;
-        string wsuId;
-        SecurityKeyIdentifier keyIdentifier;
-        string mimeType;
-        EncryptionState state;
-        string type;
-        SecurityTokenSerializer tokenSerializer;
-        bool shouldReadXmlReferenceKeyInfoClause;
+        private string encoding;
+        private EncryptionMethodElement encryptionMethod;
+        private string id;
+        private string wsuId;
+        private SecurityKeyIdentifier keyIdentifier;
+        private string mimeType;
+        private EncryptionState state;
+        private string type;
+        private SecurityTokenSerializer tokenSerializer;
+        private bool shouldReadXmlReferenceKeyInfoClause;
 
         protected EncryptedType()
         {
@@ -484,7 +483,7 @@ namespace CoreWCF.Security
             writer.WriteEndElement(); // OpeningElementName
         }
 
-        void ValidateReadState()
+        private void ValidateReadState()
         {
             if (this.State != EncryptionState.New)
             {
@@ -492,7 +491,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void ValidateWriteState()
+        private void ValidateWriteState()
         {
             if (this.State == EncryptionState.EncryptionSetup)
             {
@@ -514,7 +513,7 @@ namespace CoreWCF.Security
             Encrypted
         }
 
-        struct EncryptionMethodElement
+        private struct EncryptionMethodElement
         {
             internal string algorithm;
             internal XmlDictionaryString algorithmDictionaryString;

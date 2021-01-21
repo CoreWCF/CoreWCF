@@ -13,7 +13,7 @@ using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security
 {
-    abstract class TrustDriver
+    internal abstract class TrustDriver
     {
         // issued tokens control        
         public virtual bool IsIssuedTokensSupported => false;

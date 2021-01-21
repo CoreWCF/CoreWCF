@@ -14,7 +14,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
-    class TransportSecurityProtocol : SecurityProtocol
+    internal class TransportSecurityProtocol : SecurityProtocol
     {
         public TransportSecurityProtocol(TransportSecurityProtocolFactory factory, EndpointAddress target, Uri via) : base(factory, target, via)
         {

@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
 {
     public abstract class Message : System.IDisposable
     {
-        MessageState state;
+        private MessageState state;
         //SeekableMessageNavigator messageNavigator;
         internal const int InitialBufferSize = 1024;
 
@@ -263,7 +263,7 @@ namespace CoreWCF.Channels
             return GetBodyCore<T>(GetReaderAtBodyContents(), serializer);
         }
 
-        T GetBodyCore<T>(XmlDictionaryReader reader, XmlObjectSerializer serializer)
+        private T GetBodyCore<T>(XmlDictionaryReader reader, XmlObjectSerializer serializer)
         {
             T value;
             using (reader)
@@ -570,7 +570,7 @@ namespace CoreWCF.Channels
             Message.ReadFromBodyContentsToEnd(reader, Version.Envelope);
         }
 
-        static void ReadFromBodyContentsToEnd(XmlDictionaryReader reader, EnvelopeVersion envelopeVersion)
+        private static void ReadFromBodyContentsToEnd(XmlDictionaryReader reader, EnvelopeVersion envelopeVersion)
         {
             if (envelopeVersion != EnvelopeVersion.None)
             {
@@ -679,7 +679,7 @@ namespace CoreWCF.Channels
             WriteMessagePostamble(writer);
         }
 
-        void EnsureWriteMessageState(XmlDictionaryWriter writer)
+        private void EnsureWriteMessageState(XmlDictionaryWriter writer)
         {
             if (writer == null)
                 throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(writer)), this);
@@ -795,11 +795,11 @@ namespace CoreWCF.Channels
         }
     }
 
-    class EmptyBodyWriter : BodyWriter
+    internal class EmptyBodyWriter : BodyWriter
     {
-        static EmptyBodyWriter value;
+        private static EmptyBodyWriter value;
 
-        EmptyBodyWriter()
+        private EmptyBodyWriter()
             : base(true)
         {
         }
@@ -824,10 +824,10 @@ namespace CoreWCF.Channels
         }
     }
 
-    class FaultBodyWriter : BodyWriter
+    internal class FaultBodyWriter : BodyWriter
     {
-        MessageFault fault;
-        EnvelopeVersion version;
+        private MessageFault fault;
+        private EnvelopeVersion version;
 
         public FaultBodyWriter(MessageFault fault, EnvelopeVersion version)
             : base(true)
@@ -847,10 +847,10 @@ namespace CoreWCF.Channels
         }
     }
 
-    class XmlObjectSerializerBodyWriter : BodyWriter
+    internal class XmlObjectSerializerBodyWriter : BodyWriter
     {
-        object body;
-        XmlObjectSerializer serializer;
+        private object body;
+        private XmlObjectSerializer serializer;
 
         public XmlObjectSerializerBodyWriter(object body, XmlObjectSerializer serializer)
             : base(true)
@@ -859,7 +859,7 @@ namespace CoreWCF.Channels
             this.serializer = serializer;
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return this; }
         }
@@ -873,10 +873,10 @@ namespace CoreWCF.Channels
         }
     }
 
-    class XmlReaderBodyWriter : BodyWriter
+    internal class XmlReaderBodyWriter : BodyWriter
     {
-        XmlDictionaryReader reader;
-        bool isFault;
+        private XmlDictionaryReader reader;
+        private bool isFault;
 
         public XmlReaderBodyWriter(XmlDictionaryReader reader, EnvelopeVersion version)
             : base(false)
@@ -918,13 +918,13 @@ namespace CoreWCF.Channels
         }
     }
 
-    class BodyWriterMessage : Message
+    internal class BodyWriterMessage : Message
     {
-        MessageProperties properties;
-        MessageHeaders headers;
-        BodyWriter bodyWriter;
+        private MessageProperties properties;
+        private MessageHeaders headers;
+        private BodyWriter bodyWriter;
 
-        BodyWriterMessage(BodyWriter bodyWriter)
+        private BodyWriterMessage(BodyWriter bodyWriter)
         {
             this.bodyWriter = bodyWriter;
         }
@@ -1089,10 +1089,10 @@ namespace CoreWCF.Channels
         }
     }
 
-    abstract class ReceivedMessage : Message
+    internal abstract class ReceivedMessage : Message
     {
-        bool isFault;
-        bool isEmpty;
+        private bool isFault;
+        private bool isEmpty;
 
         public override bool IsEmpty
         {
@@ -1156,18 +1156,18 @@ namespace CoreWCF.Channels
         }
     }
 
-    sealed class StreamedMessage : ReceivedMessage
+    internal sealed class StreamedMessage : ReceivedMessage
     {
-        MessageHeaders headers;
-        XmlAttributeHolder[] envelopeAttributes;
-        XmlAttributeHolder[] headerAttributes;
-        XmlAttributeHolder[] bodyAttributes;
-        string envelopePrefix;
-        string headerPrefix;
-        string bodyPrefix;
-        MessageProperties properties;
-        XmlDictionaryReader reader;
-        XmlDictionaryReaderQuotas quotas;
+        private MessageHeaders headers;
+        private XmlAttributeHolder[] envelopeAttributes;
+        private XmlAttributeHolder[] headerAttributes;
+        private XmlAttributeHolder[] bodyAttributes;
+        private string envelopePrefix;
+        private string headerPrefix;
+        private string bodyPrefix;
+        private MessageProperties properties;
+        private XmlDictionaryReader reader;
+        private XmlDictionaryReaderQuotas quotas;
 
         public StreamedMessage(XmlDictionaryReader reader, int maxSizeOfHeaders, MessageVersion desiredVersion)
         {
@@ -1340,7 +1340,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    interface IBufferedMessageData
+    internal interface IBufferedMessageData
     {
         MessageEncoder MessageEncoder { get; }
         ArraySegment<byte> Buffer { get; }
@@ -1353,14 +1353,14 @@ namespace CoreWCF.Channels
         RecycledMessageState TakeMessageState();
     }
 
-    sealed class BufferedMessage : ReceivedMessage
+    internal sealed class BufferedMessage : ReceivedMessage
     {
-        MessageHeaders headers;
-        MessageProperties properties;
-        IBufferedMessageData messageData;
-        RecycledMessageState recycledMessageState;
-        XmlDictionaryReader reader;
-        XmlAttributeHolder[] bodyAttributes;
+        private MessageHeaders headers;
+        private MessageProperties properties;
+        private IBufferedMessageData messageData;
+        private RecycledMessageState recycledMessageState;
+        private XmlDictionaryReader reader;
+        private XmlAttributeHolder[] bodyAttributes;
 
         public BufferedMessage(IBufferedMessageData messageData, RecycledMessageState recycledMessageState)
             : this(messageData, recycledMessageState, null, false)
@@ -1679,12 +1679,12 @@ namespace CoreWCF.Channels
         }
     }
 
-    struct XmlAttributeHolder
+    internal struct XmlAttributeHolder
     {
-        string prefix;
-        string ns;
-        string localName;
-        string value;
+        private string prefix;
+        private string ns;
+        private string localName;
+        private string value;
 
         public static XmlAttributeHolder[] emptyArray = new XmlAttributeHolder[0];
 
@@ -1765,7 +1765,7 @@ namespace CoreWCF.Channels
             return attributes;
         }
 
-        static void Deduct(string s, ref int maxSizeOfHeaders)
+        private static void Deduct(string s, ref int maxSizeOfHeaders)
         {
             int byteCount = s.Length * sizeof(char);
             if (byteCount > maxSizeOfHeaders)
@@ -1786,12 +1786,12 @@ namespace CoreWCF.Channels
         }
     }
 
-    class RecycledMessageState
+    internal class RecycledMessageState
     {
-        MessageHeaders recycledHeaders;
-        MessageProperties recycledProperties;
-        UriCache uriCache;
-        HeaderInfoCache headerInfoCache;
+        private MessageHeaders recycledHeaders;
+        private MessageProperties recycledProperties;
+        private UriCache uriCache;
+        private HeaderInfoCache headerInfoCache;
 
         public HeaderInfoCache HeaderInfoCache
         {
@@ -1848,11 +1848,11 @@ namespace CoreWCF.Channels
         }
     }
 
-    class HeaderInfoCache
+    internal class HeaderInfoCache
     {
-        const int maxHeaderInfos = 4;
-        HeaderInfo[] headerInfos;
-        int index;
+        private const int maxHeaderInfos = 4;
+        private HeaderInfo[] headerInfos;
+        private int index;
 
         public MessageHeaderInfo TakeHeaderInfo(XmlDictionaryReader reader, string actor, bool mustUnderstand, bool relay, bool isRefParam)
         {
@@ -1911,12 +1911,12 @@ namespace CoreWCF.Channels
 
         public class HeaderInfo : MessageHeaderInfo
         {
-            string name;
-            string ns;
-            string actor;
-            bool isReferenceParameter;
-            bool mustUnderstand;
-            bool relay;
+            private string name;
+            private string ns;
+            private string actor;
+            private bool isReferenceParameter;
+            private bool mustUnderstand;
+            private bool relay;
 
             public HeaderInfo(XmlDictionaryReader reader, string actor, bool mustUnderstand, bool relay, bool isReferenceParameter)
             {
@@ -1966,12 +1966,12 @@ namespace CoreWCF.Channels
         }
     }
 
-    class UriCache
+    internal class UriCache
     {
-        const int MaxKeyLength = 128;
-        const int MaxEntries = 8;
-        Entry[] entries;
-        int count;
+        private const int MaxKeyLength = 128;
+        private const int MaxEntries = 8;
+        private Entry[] entries;
+        private int count;
 
         public UriCache()
         {
@@ -1989,7 +1989,7 @@ namespace CoreWCF.Channels
             return uri;
         }
 
-        Uri Get(string key)
+        private Uri Get(string key)
         {
             if (key.Length > MaxKeyLength)
                 return null;
@@ -1999,7 +1999,7 @@ namespace CoreWCF.Channels
             return null;
         }
 
-        void Set(string key, Uri value)
+        private void Set(string key, Uri value)
         {
             if (key.Length > MaxKeyLength)
                 return;
@@ -2014,10 +2014,10 @@ namespace CoreWCF.Channels
             }
         }
 
-        struct Entry
+        private struct Entry
         {
-            string key;
-            Uri value;
+            private string key;
+            private Uri value;
 
             public Entry(string key, Uri value)
             {

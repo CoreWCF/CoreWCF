@@ -6,7 +6,7 @@ using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    sealed class NonceToken : BinarySecretSecurityToken
+    internal sealed class NonceToken : BinarySecretSecurityToken
     {
         public NonceToken(byte[] key)
             : this(SecurityUniqueId.Create().Value, key)

@@ -151,7 +151,7 @@ namespace CoreWCF.Collections.Generic
             }
         }
 
-        int InternalIndexOf(T item)
+        private int InternalIndexOf(T item)
         {
             int count = _items.Count;
 
@@ -296,7 +296,7 @@ namespace CoreWCF.Collections.Generic
             Remove((T)value);
         }
 
-        static void VerifyValueType(object value)
+        private static void VerifyValueType(object value)
         {
             if (value == null)
             {

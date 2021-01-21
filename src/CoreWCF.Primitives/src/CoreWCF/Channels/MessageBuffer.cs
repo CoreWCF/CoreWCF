@@ -169,14 +169,14 @@ namespace CoreWCF.Channels
         }
     }
 
-    class BufferedMessageBuffer : MessageBuffer
+    internal class BufferedMessageBuffer : MessageBuffer
     {
-        IBufferedMessageData messageData;
-        KeyValuePair<string, object>[] properties;
-        bool closed;
-        object thisLock = new object();
-        bool[] understoodHeaders;
-        bool understoodHeadersModified;
+        private IBufferedMessageData messageData;
+        private KeyValuePair<string, object>[] properties;
+        private bool closed;
+        private object thisLock = new object();
+        private bool[] understoodHeaders;
+        private bool understoodHeadersModified;
 
         public BufferedMessageBuffer(IBufferedMessageData messageData,
             KeyValuePair<string, object>[] properties, bool[] understoodHeaders, bool understoodHeadersModified)
@@ -227,7 +227,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return thisLock; }
         }
@@ -262,13 +262,13 @@ namespace CoreWCF.Channels
         }
     }
 
-    class BodyWriterMessageBuffer : MessageBuffer
+    internal class BodyWriterMessageBuffer : MessageBuffer
     {
-        BodyWriter bodyWriter;
-        KeyValuePair<string, object>[] properties;
-        MessageHeaders headers;
-        bool closed;
-        object thisLock = new object();
+        private BodyWriter bodyWriter;
+        private KeyValuePair<string, object>[] properties;
+        private MessageHeaders headers;
+        private bool closed;
+        private object thisLock = new object();
 
         public BodyWriterMessageBuffer(MessageHeaders headers,
             KeyValuePair<string, object>[] properties, BodyWriter bodyWriter)

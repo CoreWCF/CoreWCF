@@ -8,21 +8,21 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchOperation
     {
-        string action;
-        SynchronizedCollection<FaultContractInfo> faultContractInfos;
-        IDispatchMessageFormatter formatter;
-        IDispatchFaultFormatter faultFormatter;
-        ImpersonationOption impersonation;
-        IOperationInvoker invoker;
-        bool isTerminating;
-        bool isSessionOpenNotificationEnabled;
-        string name;
-        bool releaseInstanceAfterCall;
-        bool releaseInstanceBeforeCall;
-        string replyAction;
-        bool deserializeRequest = true;
-        bool serializeReply = true;
-        bool autoDisposeParameters = true;
+        private string action;
+        private SynchronizedCollection<FaultContractInfo> faultContractInfos;
+        private IDispatchMessageFormatter formatter;
+        private IDispatchFaultFormatter faultFormatter;
+        private ImpersonationOption impersonation;
+        private IOperationInvoker invoker;
+        private bool isTerminating;
+        private bool isSessionOpenNotificationEnabled;
+        private string name;
+        private bool releaseInstanceAfterCall;
+        private bool releaseInstanceBeforeCall;
+        private string replyAction;
+        private bool deserializeRequest = true;
+        private bool serializeReply = true;
+        private bool autoDisposeParameters = true;
 
         public DispatchOperation(DispatchRuntime parent, string name, string action)
         {

@@ -24,7 +24,7 @@ namespace CoreWCF.Security
     {
         private HashStream _hashStream;
         private SignedXml _signedXml;
-        ReferenceList referenceList;
+        private ReferenceList referenceList;
         private KeyedHashAlgorithm _signingKey;
         private MessagePartSpecification _effectiveSignatureParts;
 

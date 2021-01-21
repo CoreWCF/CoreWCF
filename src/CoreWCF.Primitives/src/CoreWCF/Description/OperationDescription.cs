@@ -14,7 +14,7 @@ namespace CoreWCF.Description
         private XmlName _name;
         private bool _isInitiating;
         private bool _isTerminating;
-        bool _isSessionOpenNotificationEnabled;
+        private bool _isSessionOpenNotificationEnabled;
         private ContractDescription _declaringContract;
         private FaultDescriptionCollection _faults;
         private MessageDescriptionCollection _messages;

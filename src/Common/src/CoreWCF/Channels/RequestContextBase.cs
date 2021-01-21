@@ -12,15 +12,15 @@ namespace CoreWCF.Channels
 {
     internal abstract class RequestContextBase : RequestContext
     {
-        TimeSpan defaultSendTimeout;
-        TimeSpan defaultCloseTimeout;
-        CommunicationState state = CommunicationState.Opened;
-        Message requestMessage;
-        Exception requestMessageException;
-        bool replySent;
-        bool replyInitiated;
-        bool aborted;
-        object thisLock = new object();
+        private TimeSpan defaultSendTimeout;
+        private TimeSpan defaultCloseTimeout;
+        private CommunicationState state = CommunicationState.Opened;
+        private Message requestMessage;
+        private Exception requestMessageException;
+        private bool replySent;
+        private bool replyInitiated;
+        private bool aborted;
+        private object thisLock = new object();
 
         protected RequestContextBase(Message requestMessage, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
         {
@@ -256,10 +256,10 @@ namespace CoreWCF.Channels
         }
     }
 
-    class RequestContextMessageProperty : IDisposable
+    internal class RequestContextMessageProperty : IDisposable
     {
-        RequestContext context;
-        object thisLock = new object();
+        private RequestContext context;
+        private object thisLock = new object();
 
         public RequestContextMessageProperty(RequestContext context)
         {

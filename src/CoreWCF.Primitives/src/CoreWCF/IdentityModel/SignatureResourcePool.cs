@@ -9,14 +9,14 @@ using System.Xml;
 namespace CoreWCF.IdentityModel
 {
     // for sequential use by one thread
-    sealed class SignatureResourcePool
+    internal sealed class SignatureResourcePool
     {
-        const int BufferSize = 64;
-        HashStream hashStream;
-        HashAlgorithm hashAlgorithm;
-        XmlDictionaryWriter utf8Writer;
-        byte[] encodingBuffer;
-        char[] base64Buffer;
+        private const int BufferSize = 64;
+        private HashStream hashStream;
+        private HashAlgorithm hashAlgorithm;
+        private XmlDictionaryWriter utf8Writer;
+        private byte[] encodingBuffer;
+        private char[] base64Buffer;
 
         public char[] TakeBase64Buffer()
         {

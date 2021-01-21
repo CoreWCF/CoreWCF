@@ -10,10 +10,10 @@ namespace CoreWCF.IdentityModel.Policy
 {
     internal class DefaultAuthorizationContext : AuthorizationContext
     {
-        SecurityUniqueId id;
-        ReadOnlyCollection<ClaimSet> claimSets;
-        DateTime expirationTime;
-        IDictionary<string, object> properties;
+        private SecurityUniqueId id;
+        private ReadOnlyCollection<ClaimSet> claimSets;
+        private DateTime expirationTime;
+        private IDictionary<string, object> properties;
 
         public DefaultAuthorizationContext(DefaultEvaluationContext evaluationContext)
         {

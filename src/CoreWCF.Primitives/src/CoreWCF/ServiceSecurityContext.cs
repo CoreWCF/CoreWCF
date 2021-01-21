@@ -13,12 +13,12 @@ namespace CoreWCF
 {
     public class ServiceSecurityContext
     {
-        static ServiceSecurityContext anonymous;
-        ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
-        AuthorizationContext authorizationContext;
-        IIdentity primaryIdentity;
-        Claim identityClaim;
-        WindowsIdentity windowsIdentity;
+        private static ServiceSecurityContext anonymous;
+        private ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+        private AuthorizationContext authorizationContext;
+        private IIdentity primaryIdentity;
+        private Claim identityClaim;
+        private WindowsIdentity windowsIdentity;
 
         // Perf: delay created authorizationContext using forward chain.
         public ServiceSecurityContext(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
@@ -183,7 +183,7 @@ namespace CoreWCF
             }
         }
 
-        IList<IIdentity> GetIdentities()
+        private IList<IIdentity> GetIdentities()
         {
             object identities;
             AuthorizationContext authContext = AuthorizationContext;

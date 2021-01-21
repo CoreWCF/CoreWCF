@@ -9,22 +9,20 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     public class SecurityTokenRequirement
     {
-        const string Namespace = "http://schemas.microsoft.com/ws/2006/05/identitymodel/securitytokenrequirement";
-        const string tokenTypeProperty = Namespace + "/TokenType";
-        const string keyUsageProperty = Namespace + "/KeyUsage";
-        const string keyTypeProperty = Namespace + "/KeyType";
-        const string keySizeProperty = Namespace + "/KeySize";
-        const string requireCryptographicTokenProperty = Namespace + "/RequireCryptographicToken";
-        const string peerAuthenticationMode = Namespace + "/PeerAuthenticationMode";
-        const string isOptionalTokenProperty = Namespace + "/IsOptionalTokenProperty";
-
-        const bool defaultRequireCryptographicToken = false;
-        const SecurityKeyUsage defaultKeyUsage = SecurityKeyUsage.Signature;
-        const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
-        const int defaultKeySize = 0;
-        const bool defaultIsOptionalToken = false;
-
-        Dictionary<string, object> properties;
+        private const string Namespace = "http://schemas.microsoft.com/ws/2006/05/identitymodel/securitytokenrequirement";
+        private const string tokenTypeProperty = Namespace + "/TokenType";
+        private const string keyUsageProperty = Namespace + "/KeyUsage";
+        private const string keyTypeProperty = Namespace + "/KeyType";
+        private const string keySizeProperty = Namespace + "/KeySize";
+        private const string requireCryptographicTokenProperty = Namespace + "/RequireCryptographicToken";
+        private const string peerAuthenticationMode = Namespace + "/PeerAuthenticationMode";
+        private const string isOptionalTokenProperty = Namespace + "/IsOptionalTokenProperty";
+        private const bool defaultRequireCryptographicToken = false;
+        private const SecurityKeyUsage defaultKeyUsage = SecurityKeyUsage.Signature;
+        private const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
+        private const int defaultKeySize = 0;
+        private const bool defaultIsOptionalToken = false;
+        private Dictionary<string, object> properties;
 
         public SecurityTokenRequirement()
         {
@@ -132,7 +130,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        void Initialize()
+        private void Initialize()
         {
             KeyType = defaultKeyType;
             KeyUsage = defaultKeyUsage;

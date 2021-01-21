@@ -8,7 +8,7 @@ namespace CoreWCF.Security
 {
     public class SupportingTokenAuthenticatorSpecification
     {
-        bool isTokenOptional;
+        private bool isTokenOptional;
 
         public SupportingTokenAuthenticatorSpecification(SecurityTokenAuthenticator tokenAuthenticator, SecurityTokenResolver securityTokenResolver, SecurityTokenAttachmentMode attachmentMode, SecurityTokenParameters tokenParameters)
             : this(tokenAuthenticator, securityTokenResolver, attachmentMode, tokenParameters, false)

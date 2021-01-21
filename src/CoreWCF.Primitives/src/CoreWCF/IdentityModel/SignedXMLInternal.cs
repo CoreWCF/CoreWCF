@@ -10,7 +10,7 @@ namespace CoreWCF.IdentityModel
     /// <summary>
     /// Internal class to override GetIdElement
     /// </summary>
-    class SignedXMLInternal : SignedXml
+    internal class SignedXMLInternal : SignedXml
     {
         public SignedXMLInternal() { }
 

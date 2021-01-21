@@ -11,7 +11,7 @@ namespace CoreWCF
         BeforeAndAfterCall = 3,
     }
 
-    static class ReleaseInstanceModeHelper
+    internal static class ReleaseInstanceModeHelper
     {
         static public bool IsDefined(ReleaseInstanceMode x)
         {

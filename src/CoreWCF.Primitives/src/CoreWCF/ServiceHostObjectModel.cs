@@ -185,10 +185,10 @@ namespace CoreWCF
             }
         }
 
-        class ReflectedAndBehaviorContractCollection
+        private class ReflectedAndBehaviorContractCollection
         {
-            ReflectedContractCollection reflectedContracts;
-            KeyedByTypeCollection<IServiceBehavior> behaviors;
+            private ReflectedContractCollection reflectedContracts;
+            private KeyedByTypeCollection<IServiceBehavior> behaviors;
             public ReflectedAndBehaviorContractCollection(ReflectedContractCollection reflectedContracts, KeyedByTypeCollection<IServiceBehavior> behaviors)
             {
                 this.reflectedContracts = reflectedContracts;

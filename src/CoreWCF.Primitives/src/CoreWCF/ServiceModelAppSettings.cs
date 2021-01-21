@@ -16,24 +16,22 @@ namespace CoreWCF
         internal const string DisableOperationContextAsyncFlowString = "wcf:disableOperationContextAsyncFlow";
         internal const string UseLegacyCertificateUsagePolicyString = "wcf:useLegacyCertificateUsagePolicy";
         internal const string DeferSslStreamServerCertificateCleanupString = "wcf:deferSslStreamServerCertificateCleanup";
-
-        const bool DefaultHttpTransportPerFactoryConnectionPool = false;
-        const bool DefaultEnsureUniquePerformanceCounterInstanceNames = false;
-        const bool DefaultUseConfiguredTransportSecurityHeaderLayout = false;
-        const bool DefaultUseBestMatchNamedPipeUri = false;
-        const bool DefaultUseLegacyCertificateUsagePolicy = false;
-        const bool DefaultDisableOperationContextAsyncFlow = true;
-        const bool DefaultDeferSslStreamServerCertificateCleanup = false;
-
-        static bool useLegacyCertificateUsagePolicy;
-        static bool httpTransportPerFactoryConnectionPool;
-        static bool ensureUniquePerformanceCounterInstanceNames;
-        static bool useConfiguredTransportSecurityHeaderLayout;
-        static bool useBestMatchNamedPipeUri;
-        static bool disableOperationContextAsyncFlow;
-        static bool deferSslStreamServerCertificateCleanup;
-        static volatile bool settingsInitalized = false;
-        static object appSettingsLock = new object();
+        private const bool DefaultHttpTransportPerFactoryConnectionPool = false;
+        private const bool DefaultEnsureUniquePerformanceCounterInstanceNames = false;
+        private const bool DefaultUseConfiguredTransportSecurityHeaderLayout = false;
+        private const bool DefaultUseBestMatchNamedPipeUri = false;
+        private const bool DefaultUseLegacyCertificateUsagePolicy = false;
+        private const bool DefaultDisableOperationContextAsyncFlow = true;
+        private const bool DefaultDeferSslStreamServerCertificateCleanup = false;
+        private static bool useLegacyCertificateUsagePolicy;
+        private static bool httpTransportPerFactoryConnectionPool;
+        private static bool ensureUniquePerformanceCounterInstanceNames;
+        private static bool useConfiguredTransportSecurityHeaderLayout;
+        private static bool useBestMatchNamedPipeUri;
+        private static bool disableOperationContextAsyncFlow;
+        private static bool deferSslStreamServerCertificateCleanup;
+        private static volatile bool settingsInitalized = false;
+        private static object appSettingsLock = new object();
 
         internal static bool UseLegacyCertificateUsagePolicy
         {
@@ -104,7 +102,7 @@ namespace CoreWCF
             }
         }
 
-        static void EnsureSettingsLoaded()
+        private static void EnsureSettingsLoaded()
         {
             if (!settingsInitalized)
             {

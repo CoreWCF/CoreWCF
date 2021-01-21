@@ -9,9 +9,9 @@ namespace CoreWCF.Channels
 {
     public abstract class BodyWriter
     {
-        bool isBuffered;
-        bool canWrite;
-        object thisLock;
+        private bool isBuffered;
+        private bool canWrite;
+        private object thisLock;
 
         protected BodyWriter(bool isBuffered)
         {
@@ -89,7 +89,7 @@ namespace CoreWCF.Channels
             return Task.CompletedTask;
         }
 
-        void EnsureWriteBodyContentsState(XmlDictionaryWriter writer)
+        private void EnsureWriteBodyContentsState(XmlDictionaryWriter writer)
         {
             if (writer == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
@@ -116,9 +116,9 @@ namespace CoreWCF.Channels
             return OnWriteBodyContentsAsync(writer);
         }
 
-        class BufferedBodyWriter : BodyWriter
+        private class BufferedBodyWriter : BodyWriter
         {
-            XmlBuffer buffer;
+            private XmlBuffer buffer;
 
             public BufferedBodyWriter(XmlBuffer buffer)
                 : base(true)

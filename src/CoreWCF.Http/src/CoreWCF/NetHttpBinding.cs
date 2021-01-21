@@ -10,8 +10,8 @@ namespace CoreWCF
 {
     public class NetHttpBinding : HttpBindingBase
     {
-        BinaryMessageEncodingBindingElement _binaryMessageEncodingBindingElement;
-        BasicHttpSecurity _basicHttpSecurity;
+        private BinaryMessageEncodingBindingElement _binaryMessageEncodingBindingElement;
+        private BasicHttpSecurity _basicHttpSecurity;
 
         public NetHttpBinding()
             : this(BasicHttpSecurityMode.None)
@@ -83,7 +83,7 @@ namespace CoreWCF
             base.CheckSettings();
         }
 
-        void Initialize()
+        private void Initialize()
         {
             MessageEncoding = NetHttpBindingDefaults.MessageEncoding;
             _binaryMessageEncodingBindingElement = new BinaryMessageEncodingBindingElement() { MessageVersion = MessageVersion.Soap12WSAddressing10 };

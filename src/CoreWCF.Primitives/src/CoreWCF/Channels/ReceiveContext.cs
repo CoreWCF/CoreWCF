@@ -11,9 +11,9 @@ namespace CoreWCF.Channels
     internal abstract class ReceiveContext
     {
         public readonly static string Name = "ReceiveContext";
-        SemaphoreSlim stateLock; // protects state that may be reverted
-        bool contextFaulted;
-        object thisLock;
+        private SemaphoreSlim stateLock; // protects state that may be reverted
+        private bool contextFaulted;
+        private object thisLock;
         //EventTraceActivity eventTraceActivity;
 
         protected ReceiveContext()
@@ -282,7 +282,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void EnsureValidTimeout(TimeSpan timeout)
+        private void EnsureValidTimeout(TimeSpan timeout)
         {
             if (timeout < TimeSpan.Zero)
             {
@@ -383,7 +383,7 @@ namespace CoreWCF.Channels
         //    }
         //}
 
-        bool PreAbandon()
+        private bool PreAbandon()
         {
             bool alreadyAbandoned = false;
             lock (ThisLock)
@@ -402,7 +402,7 @@ namespace CoreWCF.Channels
             return alreadyAbandoned;
         }
 
-        void PreComplete()
+        private void PreComplete()
         {
             lock (ThisLock)
             {
@@ -416,12 +416,12 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ReleaseStateLock()
+        private void ReleaseStateLock()
         {
             stateLock.Release();
         }
 
-        void ThrowIfFaulted()
+        private void ThrowIfFaulted()
         {
 
             if (State == ReceiveContextState.Faulted)
@@ -431,7 +431,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowIfNotAbandoning()
+        private void ThrowIfNotAbandoning()
         {
             if (State != ReceiveContextState.Abandoning)
             {
@@ -440,7 +440,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowIfNotCompleting()
+        private void ThrowIfNotCompleting()
         {
             if (State != ReceiveContextState.Completing)
             {
@@ -449,7 +449,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowIfNotReceived()
+        private void ThrowIfNotReceived()
         {
             if (State != ReceiveContextState.Received)
             {
@@ -458,7 +458,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        async Task WaitForStateLockAsync(CancellationToken token)
+        private async Task WaitForStateLockAsync(CancellationToken token)
         {
             try
             {
@@ -470,7 +470,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void WaitForStateLock(TimeSpan timeout)
+        private void WaitForStateLock(TimeSpan timeout)
         {
             try
             {
@@ -482,7 +482,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        Exception WrapStateException(Exception exception)
+        private Exception WrapStateException(Exception exception)
         {
             return new InvalidOperationException(SR.Format(SR.ReceiveContextInInvalidState, GetType().ToString(), State.ToString()), exception);
         }

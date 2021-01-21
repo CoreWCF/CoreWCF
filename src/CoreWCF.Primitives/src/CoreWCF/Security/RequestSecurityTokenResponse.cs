@@ -535,7 +535,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void OnWriteTo(XmlWriter w)
+        private void OnWriteTo(XmlWriter w)
         {
             if (this.isReceiver)
             {

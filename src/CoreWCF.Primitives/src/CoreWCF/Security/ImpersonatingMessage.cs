@@ -8,9 +8,9 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Security
 {
-    sealed class ImpersonatingMessage : Message
+    internal sealed class ImpersonatingMessage : Message
     {
-        Message innerMessage;
+        private Message innerMessage;
 
         public ImpersonatingMessage(Message innerMessage)
         {

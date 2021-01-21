@@ -31,7 +31,7 @@ namespace ServiceContract
     [ServiceContract]
     [ServiceKnownType(typeof(MyCollection))]
     [ServiceKnownType(typeof(List<string>))]
-    interface ITypedContract_Collection
+    internal interface ITypedContract_Collection
     {
         [OperationContract]
         ArrayList ArrayListMethod(ArrayList collection);

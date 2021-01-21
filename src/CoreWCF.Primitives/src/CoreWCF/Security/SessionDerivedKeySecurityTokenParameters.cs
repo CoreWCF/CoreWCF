@@ -11,7 +11,7 @@ namespace CoreWCF.Security
 {
     internal class SessionDerivedKeySecurityTokenParameters : SecurityTokenParameters
     {
-        bool actAsInitiator;
+        private bool actAsInitiator;
         protected SessionDerivedKeySecurityTokenParameters(SessionDerivedKeySecurityTokenParameters other) : base(other)
         {
             this.actAsInitiator = other.actAsInitiator;

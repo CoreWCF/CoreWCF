@@ -7,17 +7,16 @@ using CoreWCF.IdentityModel.Selectors;
 
 namespace CoreWCF.Security
 {
-    sealed class MessageSecurityTokenVersion : SecurityTokenVersion
+    internal sealed class MessageSecurityTokenVersion : SecurityTokenVersion
     {
-        SecurityVersion securityVersion;
-        TrustVersion trustVersion;
-        SecureConversationVersion secureConversationVersion;
-        bool emitBspRequiredAttributes;
-        string toString;
-        ReadOnlyCollection<string> supportedSpecs;
-
-        const string bsp10ns = @"http://ws-i.org/profiles/basic-security/core/1.0";
-        static MessageSecurityTokenVersion wss11 = new MessageSecurityTokenVersion(
+        private SecurityVersion securityVersion;
+        private TrustVersion trustVersion;
+        private SecureConversationVersion secureConversationVersion;
+        private bool emitBspRequiredAttributes;
+        private string toString;
+        private ReadOnlyCollection<string> supportedSpecs;
+        private const string bsp10ns = @"http://ws-i.org/profiles/basic-security/core/1.0";
+        private static MessageSecurityTokenVersion wss11 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrustFeb2005,
             SecureConversationVersion.WSSecureConversationFeb2005,
@@ -26,7 +25,7 @@ namespace CoreWCF.Security
             XD.SecurityXXX2005Dictionary.Namespace.Value,
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value);
-        static MessageSecurityTokenVersion wss10bsp10 = new MessageSecurityTokenVersion(
+        private static MessageSecurityTokenVersion wss10bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity10,
             TrustVersion.WSTrustFeb2005,
             SecureConversationVersion.WSSecureConversationFeb2005,
@@ -36,7 +35,7 @@ namespace CoreWCF.Security
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value,
             bsp10ns);
-        static MessageSecurityTokenVersion wss11bsp10 = new MessageSecurityTokenVersion(
+        private static MessageSecurityTokenVersion wss11bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrustFeb2005,
             SecureConversationVersion.WSSecureConversationFeb2005,
@@ -46,7 +45,7 @@ namespace CoreWCF.Security
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value,
             bsp10ns);
-        static MessageSecurityTokenVersion wss10oasisdec2005bsp10 = new MessageSecurityTokenVersion(
+        private static MessageSecurityTokenVersion wss10oasisdec2005bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity10,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -56,7 +55,7 @@ namespace CoreWCF.Security
             DXD.TrustDec2005Dictionary.Namespace.Value,
             DXD.SecureConversationDec2005Dictionary.Namespace.Value
             );
-        static MessageSecurityTokenVersion wss11oasisdec2005 = new MessageSecurityTokenVersion(
+        private static MessageSecurityTokenVersion wss11oasisdec2005 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -66,7 +65,7 @@ namespace CoreWCF.Security
             DXD.TrustDec2005Dictionary.Namespace.Value,
             DXD.SecureConversationDec2005Dictionary.Namespace.Value
             );
-        static MessageSecurityTokenVersion wss11oasisdec2005bsp10 = new MessageSecurityTokenVersion(
+        private static MessageSecurityTokenVersion wss11oasisdec2005bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -147,7 +146,7 @@ namespace CoreWCF.Security
             }
         }
 
-        MessageSecurityTokenVersion(SecurityVersion securityVersion, TrustVersion trustVersion, SecureConversationVersion secureConversationVersion, string toString, bool emitBspRequiredAttributes, params string[] supportedSpecs)
+        private MessageSecurityTokenVersion(SecurityVersion securityVersion, TrustVersion trustVersion, SecureConversationVersion secureConversationVersion, string toString, bool emitBspRequiredAttributes, params string[] supportedSpecs)
             : base()
         {
             this.emitBspRequiredAttributes = emitBspRequiredAttributes;

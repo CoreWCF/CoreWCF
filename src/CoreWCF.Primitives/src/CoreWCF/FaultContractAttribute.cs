@@ -9,10 +9,10 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.OperationContract, AllowMultiple = true, Inherited = false)]
     public sealed class FaultContractAttribute : Attribute
     {
-        string action;
-        string name;
-        string ns;
-        Type type;
+        private string action;
+        private string name;
+        private string ns;
+        private Type type;
 
         public FaultContractAttribute(Type detailType)
         {

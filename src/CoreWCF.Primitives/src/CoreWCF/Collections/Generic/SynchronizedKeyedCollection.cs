@@ -9,12 +9,11 @@ namespace CoreWCF.Collections.Generic
 {
     public abstract class SynchronizedKeyedCollection<K, T> : SynchronizedCollection<T>
     {
-        const int DefaultThreshold = 0;
-
-        IEqualityComparer<K> _comparer;
-        Dictionary<K, T> _dictionary;
-        int _keyCount;
-        int _threshold;
+        private const int DefaultThreshold = 0;
+        private IEqualityComparer<K> _comparer;
+        private Dictionary<K, T> _dictionary;
+        private int _keyCount;
+        private int _threshold;
 
         protected SynchronizedKeyedCollection()
         {
@@ -85,7 +84,7 @@ namespace CoreWCF.Collections.Generic
             get { return _dictionary; }
         }
 
-        void AddKey(K key, T item)
+        private void AddKey(K key, T item)
         {
             if (_dictionary != null)
                 _dictionary.Add(key, item);
@@ -153,7 +152,7 @@ namespace CoreWCF.Collections.Generic
             }
         }
 
-        bool ContainsItem(T item)
+        private bool ContainsItem(T item)
         {
             K key = default(K);
             if ((_dictionary == null) || ((key = GetKeyForItem(item)) == null))
@@ -167,7 +166,7 @@ namespace CoreWCF.Collections.Generic
             return false;
         }
 
-        void CreateDictionary()
+        private void CreateDictionary()
         {
             _dictionary = new Dictionary<K, T>(_comparer);
 
@@ -230,7 +229,7 @@ namespace CoreWCF.Collections.Generic
             base.RemoveItem(index);
         }
 
-        void RemoveKey(K key)
+        private void RemoveKey(K key)
         {
             if (!(key != null))
             {

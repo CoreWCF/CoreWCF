@@ -7,7 +7,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    struct ProxyRpc
+    internal struct ProxyRpc
     {
         internal readonly string Action;
         //internal ServiceModelActivity Activity;

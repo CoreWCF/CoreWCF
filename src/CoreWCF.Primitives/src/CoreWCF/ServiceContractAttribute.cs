@@ -9,11 +9,11 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract, Inherited = false, AllowMultiple = false)]
     public sealed class ServiceContractAttribute : Attribute
     {
-        Type _callbackContract;
-        string _configurationName;
-        string _name;
-        string _ns;
-        SessionMode _sessionMode;
+        private Type _callbackContract;
+        private string _configurationName;
+        private string _name;
+        private string _ns;
+        private SessionMode _sessionMode;
 
         public string ConfigurationName
         {

@@ -8,7 +8,7 @@ using System.Reflection;
 namespace CoreWCF.Description
 {
     // goal of this class to move logic from TypeLoader to build message contract
-    static class MessageContractHelper
+    internal static class MessageContractHelper
     {
         internal static bool IsMessageContract(Type type)
         {

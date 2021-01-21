@@ -31,7 +31,7 @@ namespace CoreWCF.Dispatcher
 
         internal class MethodInfoOperationSelector : IClientOperationSelector
         {
-            Dictionary<object, string> operationMap;
+            private Dictionary<object, string> operationMap;
 
             internal MethodInfoOperationSelector(ContractDescription description, MessageDirection directionThatRequiresClientOpSelection)
             {

@@ -13,15 +13,15 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class GenericXmlSecurityToken : SecurityToken
     {
-        const int SupportedPersistanceVersion = 1;
-        string id;
-        SecurityToken proofToken;
-        SecurityKeyIdentifierClause internalTokenReference;
-        SecurityKeyIdentifierClause externalTokenReference;
-        XmlElement tokenXml;
-        ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
-        DateTime effectiveTime;
-        DateTime expirationTime;
+        private const int SupportedPersistanceVersion = 1;
+        private string id;
+        private SecurityToken proofToken;
+        private SecurityKeyIdentifierClause internalTokenReference;
+        private SecurityKeyIdentifierClause externalTokenReference;
+        private XmlElement tokenXml;
+        private ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+        private DateTime effectiveTime;
+        private DateTime expirationTime;
 
         public GenericXmlSecurityToken(
             XmlElement tokenXml,
@@ -90,7 +90,7 @@ namespace CoreWCF.IdentityModel.Tokens
             return writer.ToString();
         }
 
-        static string GetId(XmlElement tokenXml)
+        private static string GetId(XmlElement tokenXml)
         {
             if (tokenXml != null)
             {

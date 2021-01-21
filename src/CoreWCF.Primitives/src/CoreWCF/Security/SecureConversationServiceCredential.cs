@@ -8,10 +8,10 @@ namespace CoreWCF.Security
 {
     public sealed class SecureConversationServiceCredential
     {
-        static readonly SecurityStateEncoder defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
-        SecurityStateEncoder securityStateEncoder;
-        Collection<Type> securityContextClaimTypes;
-        bool isReadOnly;
+        private static readonly SecurityStateEncoder defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
+        private SecurityStateEncoder securityStateEncoder;
+        private Collection<Type> securityContextClaimTypes;
+        private bool isReadOnly;
 
         internal SecureConversationServiceCredential()
         {
@@ -54,7 +54,7 @@ namespace CoreWCF.Security
             this.isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
             if (this.isReadOnly)
             {

@@ -174,17 +174,17 @@ namespace CoreWCF.Description
             return XmlConvert.DecodeName(name);
         }
 
-        static bool IsAlpha(char ch)
+        private static bool IsAlpha(char ch)
         {
             return (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z');
         }
 
-        static bool IsDigit(char ch)
+        private static bool IsDigit(char ch)
         {
             return (ch >= '0' && ch <= '9');
         }
 
-        static bool IsAsciiLocalName(string localName)
+        private static bool IsAsciiLocalName(string localName)
         {
             Fx.Assert(null != localName, "");
             if (!IsAlpha(localName[0]))
@@ -215,8 +215,8 @@ namespace CoreWCF.Description
     [DebuggerDisplay("{_encoded ?? _decoded}")]
     internal class XmlName
     {
-        string _decoded;
-        string _encoded;
+        private string _decoded;
+        private string _encoded;
 
         internal XmlName(string name)
             : this(name, false)
@@ -256,7 +256,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static void ValidateEncodedName(string name, bool allowNull)
+        private static void ValidateEncodedName(string name, bool allowNull)
         {
             if (allowNull && name == null)
                 return;
@@ -271,7 +271,7 @@ namespace CoreWCF.Description
             }
         }
 
-        bool IsEmpty { get { return string.IsNullOrEmpty(_encoded) && string.IsNullOrEmpty(_decoded); } }
+        private bool IsEmpty { get { return string.IsNullOrEmpty(_encoded) && string.IsNullOrEmpty(_decoded); } }
 
         internal static bool IsNullOrEmpty(XmlName xmlName)
         {
@@ -347,10 +347,10 @@ namespace CoreWCF.Description
         internal static readonly Type taskTResultType = typeof(Task<>);
         internal static readonly Type CancellationTokenType = typeof(CancellationToken);
         internal static readonly Type IProgressType = typeof(IProgress<>);
-        static readonly Type asyncCallbackType = typeof(AsyncCallback);
-        static readonly Type asyncResultType = typeof(IAsyncResult);
-        static readonly Type objectType = typeof(object);
-        static readonly Type OperationContractAttributeType = typeof(OperationContractAttribute);
+        private static readonly Type asyncCallbackType = typeof(AsyncCallback);
+        private static readonly Type asyncResultType = typeof(IAsyncResult);
+        private static readonly Type objectType = typeof(object);
+        private static readonly Type OperationContractAttributeType = typeof(OperationContractAttribute);
         internal const string SMServiceContractAttributeFullName = "System.ServiceModel.ServiceContractAttribute";
         internal const string SMOperationContractAttributeFullName = "System.ServiceModel.OperationContractAttribute";
         internal const string SMMessageContractAttributeFullName = "System.ServiceModel.MessageContractAttribute";
@@ -444,7 +444,7 @@ namespace CoreWCF.Description
             return types;
         }
 
-        static Type GetAncestorImplicitContractClass<TService>() where TService : class
+        private static Type GetAncestorImplicitContractClass<TService>() where TService : class
         {
             for (var service = typeof(TService).BaseType; service != null; service = service.BaseType)
             {
@@ -693,7 +693,7 @@ namespace CoreWCF.Description
                 SR.Format(SR.SFxNoMostDerivedContract, interfaceType.Name)));
         }
 
-        static List<MethodInfo> GetMethodsInternal<TService>() where TService : class
+        private static List<MethodInfo> GetMethodsInternal<TService>() where TService : class
         {
             List<MethodInfo> methods = new List<MethodInfo>();
             foreach (MethodInfo mi in typeof(TService).GetMethods(ServiceModelBindingFlags))
@@ -852,7 +852,7 @@ namespace CoreWCF.Description
             return false;
         }
 
-        static MethodInfo GetEndMethodInternal(MethodInfo beginMethod)
+        private static MethodInfo GetEndMethodInternal(MethodInfo beginMethod)
         {
             string logicalName = GetLogicalName(beginMethod);
             string endMethodName = EndMethodNamePrefix + logicalName;

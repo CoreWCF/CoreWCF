@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace CoreWCF.Channels
 {
-    static class WebSocketTransportUsageHelper
+    internal static class WebSocketTransportUsageHelper
     {
         internal static bool IsDefined(WebSocketTransportUsage value)
         {

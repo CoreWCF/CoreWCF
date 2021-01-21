@@ -9,11 +9,11 @@ namespace CoreWCF.Channels
 {
     public sealed class TextMessageEncodingBindingElement : MessageEncodingBindingElement
     {
-        int _maxReadPoolSize;
-        int _maxWritePoolSize;
-        XmlDictionaryReaderQuotas _readerQuotas;
-        MessageVersion _messageVersion;
-        Encoding _writeEncoding;
+        private int _maxReadPoolSize;
+        private int _maxWritePoolSize;
+        private XmlDictionaryReaderQuotas _readerQuotas;
+        private MessageVersion _messageVersion;
+        private Encoding _writeEncoding;
 
         public TextMessageEncodingBindingElement()
             : this(MessageVersion.Default, TextEncoderDefaults.Encoding)
@@ -38,7 +38,7 @@ namespace CoreWCF.Channels
             _writeEncoding = writeEncoding;
         }
 
-        TextMessageEncodingBindingElement(TextMessageEncodingBindingElement elementToBeCloned)
+        private TextMessageEncodingBindingElement(TextMessageEncodingBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
             _maxReadPoolSize = elementToBeCloned._maxReadPoolSize;

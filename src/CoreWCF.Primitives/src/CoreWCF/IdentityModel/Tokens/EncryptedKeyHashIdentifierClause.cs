@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    sealed class EncryptedKeyHashIdentifierClause : BinaryKeyIdentifierClause
+    internal sealed class EncryptedKeyHashIdentifierClause : BinaryKeyIdentifierClause
     {
         public EncryptedKeyHashIdentifierClause(byte[] encryptedKeyHash)
             : this(encryptedKeyHash, true)

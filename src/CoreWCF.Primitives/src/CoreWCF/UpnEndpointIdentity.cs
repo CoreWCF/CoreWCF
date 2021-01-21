@@ -11,11 +11,10 @@ namespace CoreWCF
 {
     public class UpnEndpointIdentity : EndpointIdentity
     {
-        SecurityIdentifier _upnSid;
-        bool _hasUpnSidBeenComputed;
-        WindowsIdentity _windowsIdentity;
-
-        object _thisLock = new object();
+        private SecurityIdentifier _upnSid;
+        private bool _hasUpnSidBeenComputed;
+        private WindowsIdentity _windowsIdentity;
+        private object _thisLock = new object();
 
         public UpnEndpointIdentity(string upnName)
         {
@@ -60,7 +59,7 @@ namespace CoreWCF
             }
         }
 
-        string GetUpnFromWindowsIdentity(WindowsIdentity windowsIdentity)
+        private string GetUpnFromWindowsIdentity(WindowsIdentity windowsIdentity)
         {
             string downlevelName = null;
             string upnName = null;
@@ -87,12 +86,12 @@ namespace CoreWCF
             return upnName ?? downlevelName;
         }
 
-        bool IsMachineJoinedToDomain()
+        private bool IsMachineJoinedToDomain()
         {
             throw new PlatformNotSupportedException();
         }
 
-        string GetUpnFromDownlevelName(string downlevelName)
+        private string GetUpnFromDownlevelName(string downlevelName)
         {
             throw new PlatformNotSupportedException();
         }

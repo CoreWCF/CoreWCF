@@ -7,7 +7,7 @@ using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security
 {
-    interface IAcceptorSecuritySessionProtocol
+    internal interface IAcceptorSecuritySessionProtocol
     {
         bool ReturnCorrelationState { get; set; }
         SecurityToken GetOutgoingSessionToken();

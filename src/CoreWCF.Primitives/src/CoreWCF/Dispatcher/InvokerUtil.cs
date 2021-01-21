@@ -8,10 +8,13 @@ using System.Runtime.ExceptionServices;
 
 namespace CoreWCF.Dispatcher
 {
-    delegate object InvokeDelegate(object target, object[] inputs, object[] outputs);
-    delegate IAsyncResult InvokeBeginDelegate(object target, object[] inputs, AsyncCallback asyncCallback, object state);
-    delegate object InvokeEndDelegate(object target, object[] outputs, IAsyncResult result);
-    delegate object CreateInstanceDelegate();
+    internal delegate object InvokeDelegate(object target, object[] inputs, object[] outputs);
+
+    internal delegate IAsyncResult InvokeBeginDelegate(object target, object[] inputs, AsyncCallback asyncCallback, object state);
+
+    internal delegate object InvokeEndDelegate(object target, object[] outputs, IAsyncResult result);
+
+    internal delegate object CreateInstanceDelegate();
 
     internal sealed class InvokerUtil
     {

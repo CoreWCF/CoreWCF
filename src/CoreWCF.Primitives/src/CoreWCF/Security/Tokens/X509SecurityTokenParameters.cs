@@ -13,8 +13,7 @@ namespace CoreWCF.Security.Tokens
     public class X509SecurityTokenParameters : SecurityTokenParameters
     {
         internal const X509KeyIdentifierClauseType defaultX509ReferenceStyle = X509KeyIdentifierClauseType.Any;
-
-        X509KeyIdentifierClauseType x509ReferenceStyle;
+        private X509KeyIdentifierClauseType x509ReferenceStyle;
 
         protected X509SecurityTokenParameters(X509SecurityTokenParameters other)
             : base(other)

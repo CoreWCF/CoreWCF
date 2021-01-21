@@ -24,7 +24,7 @@ namespace CoreWCF
         private ConcurrencyInstanceContextFacet _concurrency;
         private ExtensionCollection<InstanceContext> _extensions;
         private readonly ServiceHostBase _host;
-        ServiceThrottle serviceThrottle;
+        private ServiceThrottle serviceThrottle;
         private int _instanceContextManagerIndex;
         private object _serviceInstanceLock = new object();
         private SynchronizationContext _synchronizationContext;
@@ -176,7 +176,7 @@ namespace CoreWCF
             }
         }
 
-        bool IsSingleton
+        private bool IsSingleton
         {
             get
             {
@@ -328,7 +328,7 @@ namespace CoreWCF
             }
         }
 
-        QuotaThrottle EnsureQuotaThrottle()
+        private QuotaThrottle EnsureQuotaThrottle()
         {
             lock (ThisLock)
             {
@@ -486,7 +486,7 @@ namespace CoreWCF
             }
         }
 
-        void Unload()
+        private void Unload()
         {
             SetUserObject(null);
 

@@ -13,27 +13,28 @@ namespace CoreWCF.Dispatcher
 {
     internal class DispatchOperationRuntime
     {
-        readonly string action;
-        readonly ICallContextInitializer[] callContextInitializers;
-        readonly IDispatchFaultFormatter faultFormatter;
-        readonly IDispatchMessageFormatter formatter;
-        readonly ImpersonationOption impersonation;
-        readonly IParameterInspector[] inspectors;
-        readonly IOperationInvoker invoker;
-        readonly bool isTerminating;
-        readonly bool isSessionOpenNotificationEnabled;
-        readonly string name;
-        readonly ImmutableDispatchRuntime parent;
-        readonly bool releaseInstanceAfterCall;
-        readonly bool releaseInstanceBeforeCall;
-        readonly string replyAction;
+        private readonly string action;
+        private readonly ICallContextInitializer[] callContextInitializers;
+        private readonly IDispatchFaultFormatter faultFormatter;
+        private readonly IDispatchMessageFormatter formatter;
+        private readonly ImpersonationOption impersonation;
+        private readonly IParameterInspector[] inspectors;
+        private readonly IOperationInvoker invoker;
+        private readonly bool isTerminating;
+        private readonly bool isSessionOpenNotificationEnabled;
+        private readonly string name;
+        private readonly ImmutableDispatchRuntime parent;
+        private readonly bool releaseInstanceAfterCall;
+        private readonly bool releaseInstanceBeforeCall;
+        private readonly string replyAction;
+
         //readonly bool transactionAutoComplete;
         //readonly bool transactionRequired;
-        readonly bool deserializeRequest;
-        readonly bool serializeReply;
-        readonly bool isOneWay;
-        readonly bool disposeParameters;
-        readonly ReceiveContextAcknowledgementMode receiveContextAcknowledgementMode;
+        private readonly bool deserializeRequest;
+        private readonly bool serializeReply;
+        private readonly bool isOneWay;
+        private readonly bool disposeParameters;
+        private readonly ReceiveContextAcknowledgementMode receiveContextAcknowledgementMode;
         //readonly bool isInsideTransactedReceiveScope;
 
         internal DispatchOperationRuntime(DispatchOperation operation, ImmutableDispatchRuntime parent)
@@ -204,7 +205,7 @@ namespace CoreWCF.Dispatcher
         //    get { return this.isInsideTransactedReceiveScope; }
         //}
 
-        void DeserializeInputs(MessageRpc rpc)
+        private void DeserializeInputs(MessageRpc rpc)
         {
             //bool success = false;
             try
@@ -278,7 +279,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InitializeCallContext(MessageRpc rpc)
+        private void InitializeCallContext(MessageRpc rpc)
         {
             if (CallContextInitializers.Length > 0)
             {
@@ -286,7 +287,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InitializeCallContextCore(MessageRpc rpc)
+        private void InitializeCallContextCore(MessageRpc rpc)
         {
             IClientChannel channel = rpc.Channel.Proxy as IClientChannel;
             int offset = Parent.CallContextCorrelationOffset;
@@ -313,7 +314,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void UninitializeCallContext(MessageRpc rpc)
+        private void UninitializeCallContext(MessageRpc rpc)
         {
             if (CallContextInitializers.Length > 0)
             {
@@ -321,7 +322,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void UninitializeCallContextCore(MessageRpc rpc)
+        private void UninitializeCallContextCore(MessageRpc rpc)
         {
             IClientChannel channel = rpc.Channel.Proxy as IClientChannel;
             int offset = Parent.CallContextCorrelationOffset;
@@ -341,7 +342,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectInputs(MessageRpc rpc)
+        private void InspectInputs(MessageRpc rpc)
         {
             if (ParameterInspectors.Length > 0)
             {
@@ -349,7 +350,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectInputsCore(MessageRpc rpc)
+        private void InspectInputsCore(MessageRpc rpc)
         {
             int offset = Parent.ParameterInspectorCorrelationOffset;
 
@@ -364,7 +365,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectOutputs(MessageRpc rpc)
+        private void InspectOutputs(MessageRpc rpc)
         {
             if (ParameterInspectors.Length > 0)
             {
@@ -372,7 +373,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectOutputsCore(MessageRpc rpc)
+        private void InspectOutputsCore(MessageRpc rpc)
         {
             int offset = Parent.ParameterInspectorCorrelationOffset;
 
@@ -432,7 +433,7 @@ namespace CoreWCF.Dispatcher
             return rpc;
         }
 
-        void SetClaimsPrincipalToOperationContext(MessageRpc rpc)
+        private void SetClaimsPrincipalToOperationContext(MessageRpc rpc)
         {
             // TODO: Reenable this code
 
@@ -467,7 +468,7 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        void SerializeOutputs(MessageRpc rpc)
+        private void SerializeOutputs(MessageRpc rpc)
         {
             if (!IsOneWay && parent.EnableFaults)
             {
@@ -576,7 +577,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void ValidateInstanceType(Type type, MethodInfo method)
+        private void ValidateInstanceType(Type type, MethodInfo method)
         {
             if (!method.DeclaringType.IsAssignableFrom(type))
             {
@@ -587,7 +588,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void ValidateMustUnderstand(MessageRpc rpc)
+        private void ValidateMustUnderstand(MessageRpc rpc)
         {
             if (parent.ValidateMustUnderstand)
             {

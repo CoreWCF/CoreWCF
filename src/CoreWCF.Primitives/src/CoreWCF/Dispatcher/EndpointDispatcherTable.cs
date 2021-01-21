@@ -9,10 +9,10 @@ namespace CoreWCF.Dispatcher
 {
     internal class EndpointDispatcherTable
     {
-        MessageFilterTable<EndpointDispatcher> filters;
-        object thisLock;
-        const int optimizationThreshold = 2;
-        List<EndpointDispatcher> cachedEndpoints;
+        private MessageFilterTable<EndpointDispatcher> filters;
+        private object thisLock;
+        private const int optimizationThreshold = 2;
+        private List<EndpointDispatcher> cachedEndpoints;
 
         public EndpointDispatcherTable(object thisLock)
         {
@@ -28,7 +28,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return thisLock; }
         }
@@ -90,7 +90,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        EndpointDispatcher LookupInCache(Message message, out bool addressMatched)
+        private EndpointDispatcher LookupInCache(Message message, out bool addressMatched)
         {
             EndpointDispatcher result = null;
             int priority = int.MinValue;

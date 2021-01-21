@@ -9,22 +9,23 @@ namespace CoreWCF.Dispatcher
 {
     public class EndpointDispatcher
     {
-        MessageFilter addressFilter;
-        bool addressFilterSetExplicit;
-        ChannelDispatcher channelDispatcher;
-        MessageFilter contractFilter;
-        string contractName;
-        string contractNamespace;
-        ServiceChannel datagramChannel;
-        DispatchRuntime dispatchRuntime;
-        MessageFilter endpointFilter;
-        int filterPriority;
-        Uri listenUri;
-        EndpointAddress originalAddress;
+        private MessageFilter addressFilter;
+        private bool addressFilterSetExplicit;
+        private ChannelDispatcher channelDispatcher;
+        private MessageFilter contractFilter;
+        private string contractName;
+        private string contractNamespace;
+        private ServiceChannel datagramChannel;
+        private DispatchRuntime dispatchRuntime;
+        private MessageFilter endpointFilter;
+        private int filterPriority;
+        private Uri listenUri;
+        private EndpointAddress originalAddress;
+
         //string perfCounterId;
         //string perfCounterBaseId;
-        string id; // for ServiceMetadataBehavior, to help get EndpointIdentity of ServiceEndpoint from EndpointDispatcher
-        bool isSystemEndpoint;
+        private string id; // for ServiceMetadataBehavior, to help get EndpointIdentity of ServiceEndpoint from EndpointDispatcher
+        private bool isSystemEndpoint;
 
         internal EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, string id, bool isSystemEndpoint)
             : this(address, contractName, contractNamespace)
@@ -59,7 +60,7 @@ namespace CoreWCF.Dispatcher
             this.isSystemEndpoint = isSystemEndpoint;
         }
 
-        EndpointDispatcher(EndpointDispatcher baseEndpoint, IEnumerable<AddressHeader> headers)
+        private EndpointDispatcher(EndpointDispatcher baseEndpoint, IEnumerable<AddressHeader> headers)
         {
             EndpointAddressBuilder builder = new EndpointAddressBuilder(baseEndpoint.EndpointAddress);
             foreach (AddressHeader h in headers)
@@ -321,7 +322,7 @@ namespace CoreWCF.Dispatcher
         //    }
         //}
 
-        void ThrowIfDisposedOrImmutable()
+        private void ThrowIfDisposedOrImmutable()
         {
             ChannelDispatcher channelDispatcher = this.channelDispatcher;
             if (channelDispatcher != null)

@@ -203,12 +203,12 @@ namespace CoreWCF.Channels
             }
         }
 
-        void WriteToNone(XmlDictionaryWriter writer)
+        private void WriteToNone(XmlDictionaryWriter writer)
         {
             WriteTo12Driver(writer, EnvelopeVersion.None);
         }
 
-        void WriteTo12Driver(XmlDictionaryWriter writer, EnvelopeVersion version)
+        private void WriteTo12Driver(XmlDictionaryWriter writer, EnvelopeVersion version)
         {
             writer.WriteStartElement(XD.MessageDictionary.Fault, version.DictionaryNamespace);
             writer.WriteStartElement(XD.Message12Dictionary.FaultCode, version.DictionaryNamespace);
@@ -236,7 +236,7 @@ namespace CoreWCF.Channels
             writer.WriteEndElement();
         }
 
-        void WriteFaultCode12Driver(XmlDictionaryWriter writer, FaultCode faultCode, EnvelopeVersion version)
+        private void WriteFaultCode12Driver(XmlDictionaryWriter writer, FaultCode faultCode, EnvelopeVersion version)
         {
             writer.WriteStartElement(XD.Message12Dictionary.FaultValue, version.DictionaryNamespace);
             string name;
@@ -265,12 +265,12 @@ namespace CoreWCF.Channels
             }
         }
 
-        void WriteTo12(XmlDictionaryWriter writer)
+        private void WriteTo12(XmlDictionaryWriter writer)
         {
             WriteTo12Driver(writer, EnvelopeVersion.Soap12);
         }
 
-        void WriteTo11(XmlDictionaryWriter writer)
+        private void WriteTo11(XmlDictionaryWriter writer)
         {
             writer.WriteStartElement(XD.MessageDictionary.Fault, XD.Message11Dictionary.Namespace);
             writer.WriteStartElement(XD.Message11Dictionary.FaultCode, XD.Message11Dictionary.FaultNamespace);
@@ -313,14 +313,14 @@ namespace CoreWCF.Channels
 
     }
 
-    class XmlObjectSerializerFault : MessageFault
+    internal class XmlObjectSerializerFault : MessageFault
     {
-        FaultCode code;
-        FaultReason reason;
-        string actor;
-        string node;
-        object detail;
-        XmlObjectSerializer serializer;
+        private FaultCode code;
+        private FaultReason reason;
+        private string actor;
+        private string node;
+        private object detail;
+        private XmlObjectSerializer serializer;
 
         public XmlObjectSerializerFault(FaultCode code, FaultReason reason, object detail, XmlObjectSerializer serializer, string actor, string node)
         {
@@ -372,7 +372,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get
             {
@@ -392,17 +392,17 @@ namespace CoreWCF.Channels
         }
     }
 
-    class ReceivedFault : MessageFault
+    internal class ReceivedFault : MessageFault
     {
-        FaultCode code;
-        FaultReason reason;
-        string actor;
-        string node;
-        XmlBuffer detail;
-        bool hasDetail;
-        EnvelopeVersion receivedVersion;
+        private FaultCode code;
+        private FaultReason reason;
+        private string actor;
+        private string node;
+        private XmlBuffer detail;
+        private bool hasDetail;
+        private EnvelopeVersion receivedVersion;
 
-        ReceivedFault(FaultCode code, FaultReason reason, string actor, string node, XmlBuffer detail, EnvelopeVersion version)
+        private ReceivedFault(FaultCode code, FaultReason reason, string actor, string node, XmlBuffer detail, EnvelopeVersion version)
         {
             this.code = code;
             this.reason = reason;
@@ -453,7 +453,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        bool InferHasDetail(XmlBuffer detail)
+        private bool InferHasDetail(XmlBuffer detail)
         {
             bool hasDetail = false;
             if (detail != null)
@@ -529,7 +529,7 @@ namespace CoreWCF.Channels
             return reader;
         }
 
-        bool ShouldWriteDetailAttribute(EnvelopeVersion targetVersion, string prefix, string localName, string attributeValue)
+        private bool ShouldWriteDetailAttribute(EnvelopeVersion targetVersion, string prefix, string localName, string attributeValue)
         {
             // Handle fault detail version conversion from Soap12 to Soap11 -- scope tightly to only conversion from Soap12 -> Soap11
             // SOAP 1.1 specifications allow an arbitrary element within <fault>, hence: 
@@ -549,7 +549,7 @@ namespace CoreWCF.Channels
             return CreateFault12Driver(reader, maxBufferSize, EnvelopeVersion.None);
         }
 
-        static ReceivedFault CreateFault12Driver(XmlDictionaryReader reader, int maxBufferSize, EnvelopeVersion version)
+        private static ReceivedFault CreateFault12Driver(XmlDictionaryReader reader, int maxBufferSize, EnvelopeVersion version)
         {
             reader.ReadStartElement(XD.MessageDictionary.Fault, version.DictionaryNamespace);
             reader.ReadStartElement(XD.Message12Dictionary.FaultCode, version.DictionaryNamespace);
@@ -588,7 +588,7 @@ namespace CoreWCF.Channels
             return new ReceivedFault(code, reason, actor, node, detail, version);
         }
 
-        static FaultCode ReadFaultCode12Driver(XmlDictionaryReader reader, EnvelopeVersion version)
+        private static FaultCode ReadFaultCode12Driver(XmlDictionaryReader reader, EnvelopeVersion version)
         {
             string localName;
             string ns;
@@ -611,7 +611,7 @@ namespace CoreWCF.Channels
             return CreateFault12Driver(reader, maxBufferSize, EnvelopeVersion.Soap12);
         }
 
-        static FaultReasonText ReadTranslation12(XmlDictionaryReader reader)
+        private static FaultReasonText ReadTranslation12(XmlDictionaryReader reader)
         {
             string xmlLang = XmlUtil.GetXmlLangAttribute(reader);
             string text = reader.ReadElementContentAsString();

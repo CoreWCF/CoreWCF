@@ -209,7 +209,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         internal abstract class TokenEntry
         {
-            Type[] tokenTypes = null;
+            private Type[] tokenTypes = null;
 
             protected abstract XmlDictionaryString LocalName { get; }
             protected abstract XmlDictionaryString NamespaceUri { get; }

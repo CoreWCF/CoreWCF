@@ -9,8 +9,8 @@ namespace CoreWCF.Dispatcher
 {
     internal class PrefixEndpointAddressMessageFilterTable<TFilterData> : EndpointAddressMessageFilterTable<TFilterData>
     {
-        UriPrefixTable<CandidateSet> toHostTable;
-        UriPrefixTable<CandidateSet> toNoHostTable;
+        private UriPrefixTable<CandidateSet> toHostTable;
+        private UriPrefixTable<CandidateSet> toNoHostTable;
 
         public PrefixEndpointAddressMessageFilterTable()
             : base()
@@ -71,12 +71,12 @@ namespace CoreWCF.Dispatcher
             IncrementQNameCount(cset, filter.Address);
         }
 
-        HostNameComparisonMode GetComparisonMode(bool includeHostNameInComparison)
+        private HostNameComparisonMode GetComparisonMode(bool includeHostNameInComparison)
         {
             return includeHostNameInComparison ? HostNameComparisonMode.Exact : HostNameComparisonMode.StrongWildcard;
         }
 
-        UriPrefixTable<CandidateSet> GetAddressTable(bool includeHostNameInComparison)
+        private UriPrefixTable<CandidateSet> GetAddressTable(bool includeHostNameInComparison)
         {
             return includeHostNameInComparison ? toHostTable : toNoHostTable;
         }

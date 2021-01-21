@@ -13,7 +13,7 @@ namespace CoreWCF.Channels
         LaxTimestampLast = 3
     }
 
-    static class SecurityHeaderLayoutHelper
+    internal static class SecurityHeaderLayoutHelper
     {
         public static bool IsDefined(SecurityHeaderLayout value)
         {

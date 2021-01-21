@@ -12,14 +12,13 @@ namespace CoreWCF.Dispatcher
 {
     internal class InstanceBehavior
     {
-        const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
-
-        IInstanceContextInitializer[] initializers;
-        IInstanceContextProvider instanceContextProvider;
-        IInstanceProvider provider;
-        InstanceContext singleton;
-        bool isSynchronized;
-        ImmutableDispatchRuntime immutableRuntime;
+        private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
+        private IInstanceContextInitializer[] initializers;
+        private IInstanceContextProvider instanceContextProvider;
+        private IInstanceProvider provider;
+        private InstanceContext singleton;
+        private bool isSynchronized;
+        private ImmutableDispatchRuntime immutableRuntime;
 
         internal InstanceBehavior(DispatchRuntime dispatch, ImmutableDispatchRuntime immutableRuntime)
         {
@@ -167,7 +166,7 @@ namespace CoreWCF.Dispatcher
             rpc.InstanceContext.BindRpc(rpc);
         }
 
-        static ConstructorInfo GetConstructor(Type type)
+        private static ConstructorInfo GetConstructor(Type type)
         {
             foreach (var constructor in type.GetConstructors(DefaultBindingFlags))
             {
@@ -252,9 +251,9 @@ namespace CoreWCF.Dispatcher
         }
     }
 
-    class InstanceProvider : IInstanceProvider
+    internal class InstanceProvider : IInstanceProvider
     {
-        CreateInstanceDelegate creator;
+        private CreateInstanceDelegate creator;
 
         internal InstanceProvider(CreateInstanceDelegate creator)
         {

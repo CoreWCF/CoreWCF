@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace CoreWCF.Diagnostics
 {
-    class EncodingFallbackAwareXmlTextWriter : XmlTextWriter
+    internal class EncodingFallbackAwareXmlTextWriter : XmlTextWriter
     {
         private readonly Encoding _encoding;
 
@@ -28,7 +28,7 @@ namespace CoreWCF.Diagnostics
             base.WriteString(value);
         }
 
-        bool ContainsInvalidXmlChar(string value)
+        private bool ContainsInvalidXmlChar(string value)
         {
             if (string.IsNullOrEmpty(value))
             {

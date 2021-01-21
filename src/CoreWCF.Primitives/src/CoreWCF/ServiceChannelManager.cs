@@ -10,18 +10,18 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
-    delegate void InstanceContextEmptyCallback(InstanceContext instanceContext);
+    internal delegate void InstanceContextEmptyCallback(InstanceContext instanceContext);
 
     internal class ServiceChannelManager : LifetimeManager
     {
-        int activityCount;
-        ICommunicationWaiter activityWaiter;
-        int activityWaiterCount;
-        Action<InstanceContext> emptyCallback;
-        IChannel firstIncomingChannel;
-        ChannelCollection incomingChannels;
-        ChannelCollection outgoingChannels;
-        InstanceContext instanceContext;
+        private int activityCount;
+        private ICommunicationWaiter activityWaiter;
+        private int activityWaiterCount;
+        private Action<InstanceContext> emptyCallback;
+        private IChannel firstIncomingChannel;
+        private ChannelCollection incomingChannels;
+        private ChannelCollection outgoingChannels;
+        private InstanceContext instanceContext;
 
         public ServiceChannelManager(InstanceContext instanceContext)
             : this(instanceContext, null)
@@ -123,13 +123,13 @@ namespace CoreWCF
             }
         }
 
-        void ChannelAdded(IChannel channel)
+        private void ChannelAdded(IChannel channel)
         {
             base.IncrementBusyCount();
             channel.Closed += OnChannelClosed;
         }
 
-        void ChannelRemoved(IChannel channel)
+        private void ChannelRemoved(IChannel channel)
         {
             channel.Closed -= OnChannelClosed;
             base.DecrementBusyCount();
@@ -209,7 +209,7 @@ namespace CoreWCF
                 OnEmpty();
         }
 
-        void EnsureIncomingChannelCollection()
+        private void EnsureIncomingChannelCollection()
         {
             lock (ThisLock)
             {
@@ -283,7 +283,7 @@ namespace CoreWCF
                 emptyCallback(instanceContext);
         }
 
-        void OnChannelClosed(object sender, EventArgs args)
+        private void OnChannelClosed(object sender, EventArgs args)
         {
             RemoveChannel((IChannel)sender);
         }
@@ -347,11 +347,11 @@ namespace CoreWCF
             return EmptyArray<IChannel>.Allocate(0);
         }
 
-        class ChannelCollection : ICollection<IChannel>
+        private class ChannelCollection : ICollection<IChannel>
         {
-            ServiceChannelManager channelManager;
-            object syncRoot;
-            HashSet<IChannel> hashSet = new HashSet<IChannel>();
+            private ServiceChannelManager channelManager;
+            private object syncRoot;
+            private HashSet<IChannel> hashSet = new HashSet<IChannel>();
 
             public bool IsReadOnly
             {

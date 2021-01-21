@@ -7,7 +7,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Security
 {
-    abstract class SecurityHeaderElementInferenceEngine
+    internal abstract class SecurityHeaderElementInferenceEngine
     {
         public abstract void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader);
 

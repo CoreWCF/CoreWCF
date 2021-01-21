@@ -180,7 +180,7 @@ namespace CoreWCF.Dispatcher
             Array.Copy(buffer, dest, count);
         }
 
-        void Grow(int capacity)
+        private void Grow(int capacity)
         {
             int newCapacity = buffer.Length * 2;
             Array.Resize<T>(ref buffer, capacity > newCapacity ? capacity : newCapacity);
@@ -307,9 +307,9 @@ namespace CoreWCF.Dispatcher
     internal struct SortedBuffer<T, C>
             where C : IComparer<T>
     {
-        int size;
-        T[] buffer;
-        static DefaultComparer Comparer;
+        private int size;
+        private T[] buffer;
+        private static DefaultComparer Comparer;
 
         internal SortedBuffer(C comparerInstance)
         {
@@ -438,7 +438,7 @@ namespace CoreWCF.Dispatcher
             return ~i;
         }
 
-        void InsertAt(int index, T item)
+        private void InsertAt(int index, T item)
         {
             Fx.Assert(index >= 0 && index <= size, "");
 
@@ -501,14 +501,14 @@ namespace CoreWCF.Dispatcher
             buffer[--size] = default(T);
         }
 
-        int Search(T item)
+        private int Search(T item)
         {
             if (size == 0)
                 return ~0;
             return Search(item, Comparer);
         }
 
-        int Search<K>(K key, IItemComparer<K, T> comparer)
+        private int Search<K>(K key, IItemComparer<K, T> comparer)
         {
             if (size <= 8)
             {
@@ -520,7 +520,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        int BinarySearch<K>(K key, IItemComparer<K, T> comparer)
+        private int BinarySearch<K>(K key, IItemComparer<K, T> comparer)
         {
             // [low, high)
             int low = 0;
@@ -551,7 +551,7 @@ namespace CoreWCF.Dispatcher
         }
 
         // [start, bound)
-        int LinearSearch<K>(K key, IItemComparer<K, T> comparer, int start, int bound)
+        private int LinearSearch<K>(K key, IItemComparer<K, T> comparer, int start, int bound)
         {
             int result;
 

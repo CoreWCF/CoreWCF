@@ -56,7 +56,7 @@ namespace Services
         #endregion
 
         #region TwoWayAsync Method
-        delegate string TwoWayMethodAsync(string s);
+        private delegate string TwoWayMethodAsync(string s);
 
         public async System.Threading.Tasks.Task<string> TwoWayAsync_MethodAsync(string s)
         {

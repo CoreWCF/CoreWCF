@@ -15,13 +15,11 @@ namespace CoreWCF.Dispatcher
 {
     internal class XmlSerializerOperationFormatter : OperationFormatter
     {
-        const string soap11Encoding = "http://schemas.xmlsoap.org/soap/encoding/";
-        const string soap12Encoding = "http://www.w3.org/2003/05/soap-encoding";
-
-        bool isEncoded;
-
-        MessageInfo requestMessageInfo;
-        MessageInfo replyMessageInfo;
+        private const string soap11Encoding = "http://schemas.xmlsoap.org/soap/encoding/";
+        private const string soap12Encoding = "http://www.w3.org/2003/05/soap-encoding";
+        private bool isEncoded;
+        private MessageInfo requestMessageInfo;
+        private MessageInfo replyMessageInfo;
 
         public XmlSerializerOperationFormatter(OperationDescription description, XmlSerializerFormatAttribute xmlSerializerFormatAttribute,
             MessageInfo requestMessageInfo, MessageInfo replyMessageInfo) :
@@ -313,7 +311,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void SerializeBody(XmlDictionaryWriter writer, MessageVersion version, XmlSerializer serializer, MessagePartDescription returnPart, MessagePartDescriptionCollection bodyParts, object returnValue, object[] parameters)
+        private void SerializeBody(XmlDictionaryWriter writer, MessageVersion version, XmlSerializer serializer, MessagePartDescription returnPart, MessagePartDescriptionCollection bodyParts, object returnValue, object[] parameters)
         {
             if (serializer == null)
             {
@@ -367,7 +365,7 @@ namespace CoreWCF.Dispatcher
             return null;
         }
 
-        object DeserializeBody(XmlDictionaryReader reader, MessageVersion version, XmlSerializer serializer, MessagePartDescription returnPart, MessagePartDescriptionCollection bodyParts, object[] parameters, bool isRequest)
+        private object DeserializeBody(XmlDictionaryReader reader, MessageVersion version, XmlSerializer serializer, MessagePartDescription returnPart, MessagePartDescriptionCollection bodyParts, object[] parameters, bool isRequest)
         {
             try
             {
@@ -429,9 +427,9 @@ namespace CoreWCF.Dispatcher
             internal abstract MessagePartDescriptionCollection RpcEncodedTypedMessageBodyParts { get; }
         }
 
-        class MessageHeaderOfTHelper
+        private class MessageHeaderOfTHelper
         {
-            object[] attributes;
+            private object[] attributes;
             internal MessageHeaderOfTHelper(int parameterCount)
             {
                 attributes = new object[parameterCount];

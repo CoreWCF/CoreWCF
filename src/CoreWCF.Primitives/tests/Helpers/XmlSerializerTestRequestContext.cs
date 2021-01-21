@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Helpers
 {
-    class XmlSerializerTestRequestContext : RequestContext
+    internal class XmlSerializerTestRequestContext : RequestContext
     {
         private Message _requestMessage;
         private string _replyMessageString;

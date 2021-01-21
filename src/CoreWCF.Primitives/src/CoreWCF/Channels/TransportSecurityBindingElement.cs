@@ -17,7 +17,7 @@ namespace CoreWCF.Channels
         {
         }
 
-        TransportSecurityBindingElement(TransportSecurityBindingElement elementToBeCloned) : base(elementToBeCloned)
+        private TransportSecurityBindingElement(TransportSecurityBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
             // empty
         }

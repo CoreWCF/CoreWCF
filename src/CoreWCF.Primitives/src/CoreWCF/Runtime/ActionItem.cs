@@ -13,9 +13,8 @@ namespace CoreWCF.Runtime
     public abstract class ActionItem
     {
         //SecurityContext context;
-        bool isScheduled;
-
-        bool lowPriority;
+        private bool isScheduled;
+        private bool lowPriority;
 
         protected ActionItem()
         {
@@ -101,7 +100,7 @@ namespace CoreWCF.Runtime
             ScheduleCallback(CallbackHelper.InvokeWithoutContextCallback);
         }
 
-        static void ScheduleCallback(Action<object> callback, object state, bool lowPriority)
+        private static void ScheduleCallback(Action<object> callback, object state, bool lowPriority)
         {
             Fx.Assert(callback != null, "Cannot schedule a null callback");
             if (lowPriority)
@@ -123,16 +122,16 @@ namespace CoreWCF.Runtime
         //    return result;
         //}
 
-        void ScheduleCallback(Action<object> callback)
+        private void ScheduleCallback(Action<object> callback)
         {
             ScheduleCallback(callback, this, lowPriority);
         }
 
-        static class CallbackHelper
+        private static class CallbackHelper
         {
-            static Action<object> invokeWithContextCallback;
-            static Action<object> invokeWithoutContextCallback;
-            static ContextCallback onContextAppliedCallback;
+            private static Action<object> invokeWithContextCallback;
+            private static Action<object> invokeWithoutContextCallback;
+            private static ContextCallback onContextAppliedCallback;
 
             public static Action<object> InvokeWithContextCallback
             {
@@ -170,31 +169,30 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            static void InvokeWithContext(object state)
+            private static void InvokeWithContext(object state)
             {
                 throw new PlatformNotSupportedException();
                 //SecurityContext context = ((ActionItem)state).ExtractContext();
                 //SecurityContext.Run(context, OnContextAppliedCallback, state);
             }
 
-            static void InvokeWithoutContext(object state)
+            private static void InvokeWithoutContext(object state)
             {
                 ((ActionItem)state).Invoke();
                 ((ActionItem)state).isScheduled = false;
             }
 
-            static void OnContextApplied(object o)
+            private static void OnContextApplied(object o)
             {
                 ((ActionItem)o).Invoke();
                 ((ActionItem)o).isScheduled = false;
             }
         }
 
-        class DefaultActionItem : ActionItem
+        private class DefaultActionItem : ActionItem
         {
-
-            Action<object> callback;
-            object state;
+            private Action<object> callback;
+            private object state;
 
             //bool flowLegacyActivityId;
             //Guid activityId;
@@ -234,7 +232,7 @@ namespace CoreWCF.Runtime
                 //}
             }
 
-            void TraceAndInvoke()
+            private void TraceAndInvoke()
             {
                 //TODO:  Consider merging these since they go through the same codepath.
                 //if (this.flowLegacyActivityId)

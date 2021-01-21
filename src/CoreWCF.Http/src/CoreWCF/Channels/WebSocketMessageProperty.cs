@@ -12,7 +12,7 @@ namespace CoreWCF.Channels
     public sealed class WebSocketMessageProperty
     {
         public const string Name = "WebSocketMessageProperty";
-        ReadOnlyDictionary<string, object> properties;
+        private ReadOnlyDictionary<string, object> properties;
 
         public WebSocketMessageProperty()
         {

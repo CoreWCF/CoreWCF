@@ -7,8 +7,8 @@ namespace CoreWCF.Channels
 {
     public abstract class StreamUpgradeProvider : CommunicationObject
     {
-        TimeSpan closeTimeout;
-        TimeSpan openTimeout;
+        private TimeSpan closeTimeout;
+        private TimeSpan openTimeout;
 
         protected StreamUpgradeProvider()
             : this(null)

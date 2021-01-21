@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
     // TODO: This needed to be made public for NetTcp, investigate making it internal again
     public abstract class AddressingHeader : DictionaryHeader, IMessageHeaderWithSharedNamespace
     {
-        AddressingVersion version;
+        private AddressingVersion version;
 
         protected AddressingHeader(AddressingVersion version)
         {
@@ -38,12 +38,12 @@ namespace CoreWCF.Channels
         }
     }
 
-    class ActionHeader : AddressingHeader
+    internal class ActionHeader : AddressingHeader
     {
-        string action;
-        const bool mustUnderstandValue = true;
+        private string action;
+        private const bool mustUnderstandValue = true;
 
-        ActionHeader(string action, AddressingVersion version)
+        private ActionHeader(string action, AddressingVersion version)
             : base(version)
         {
             this.action = action;
@@ -113,9 +113,9 @@ namespace CoreWCF.Channels
             }
         }
 
-        class DictionaryActionHeader : ActionHeader
+        private class DictionaryActionHeader : ActionHeader
         {
-            XmlDictionaryString dictionaryAction;
+            private XmlDictionaryString dictionaryAction;
 
             public DictionaryActionHeader(XmlDictionaryString dictionaryAction, AddressingVersion version)
                 : base(dictionaryAction.Value, version)
@@ -129,11 +129,11 @@ namespace CoreWCF.Channels
             }
         }
 
-        class FullActionHeader : ActionHeader
+        private class FullActionHeader : ActionHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private string actor;
+            private bool mustUnderstand;
+            private bool relay;
 
             public FullActionHeader(string action, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(action, version)
@@ -160,12 +160,12 @@ namespace CoreWCF.Channels
         }
     }
 
-    class FromHeader : AddressingHeader
+    internal class FromHeader : AddressingHeader
     {
-        EndpointAddress from;
-        const bool mustUnderstandValue = false;
+        private EndpointAddress from;
+        private const bool mustUnderstandValue = false;
 
-        FromHeader(EndpointAddress from, AddressingVersion version)
+        private FromHeader(EndpointAddress from, AddressingVersion version)
             : base(version)
         {
             this.from = from;
@@ -221,11 +221,11 @@ namespace CoreWCF.Channels
             return EndpointAddress.ReadFrom(addressingVersion, reader);
         }
 
-        class FullFromHeader : FromHeader
+        private class FullFromHeader : FromHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private string actor;
+            private bool mustUnderstand;
+            private bool relay;
 
             public FullFromHeader(EndpointAddress from, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(from, version)
@@ -252,12 +252,12 @@ namespace CoreWCF.Channels
         }
     }
 
-    class FaultToHeader : AddressingHeader
+    internal class FaultToHeader : AddressingHeader
     {
-        EndpointAddress faultTo;
-        const bool mustUnderstandValue = false;
+        private EndpointAddress faultTo;
+        private const bool mustUnderstandValue = false;
 
-        FaultToHeader(EndpointAddress faultTo, AddressingVersion version)
+        private FaultToHeader(EndpointAddress faultTo, AddressingVersion version)
             : base(version)
         {
             this.faultTo = faultTo;
@@ -313,11 +313,11 @@ namespace CoreWCF.Channels
             return EndpointAddress.ReadFrom(version, reader);
         }
 
-        class FullFaultToHeader : FaultToHeader
+        private class FullFaultToHeader : FaultToHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private string actor;
+            private bool mustUnderstand;
+            private bool relay;
 
             public FullFaultToHeader(EndpointAddress faultTo, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(faultTo, version)
@@ -347,10 +347,9 @@ namespace CoreWCF.Channels
     // TODO: This needed to be made public for NetTcp, investigate making it internal again
     public class ToHeader : AddressingHeader
     {
-        Uri to;
-        const bool mustUnderstandValue = true;
-
-        static ToHeader anonymousToHeader10;
+        private Uri to;
+        private const bool mustUnderstandValue = true;
+        private static ToHeader anonymousToHeader10;
         //static ToHeader anonymousToHeader200408;
 
         protected ToHeader(Uri to, AddressingVersion version)
@@ -359,7 +358,7 @@ namespace CoreWCF.Channels
             this.to = to;
         }
 
-        static ToHeader AnonymousTo10
+        private static ToHeader AnonymousTo10
         {
             get
             {
@@ -488,7 +487,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        class AnonymousToHeader : ToHeader
+        private class AnonymousToHeader : ToHeader
         {
             public AnonymousToHeader(AddressingVersion version)
                 : base(version.AnonymousUri, version)
@@ -501,9 +500,9 @@ namespace CoreWCF.Channels
             }
         }
 
-        class DictionaryToHeader : ToHeader
+        private class DictionaryToHeader : ToHeader
         {
-            XmlDictionaryString dictionaryTo;
+            private XmlDictionaryString dictionaryTo;
 
             public DictionaryToHeader(Uri to, XmlDictionaryString dictionaryTo, AddressingVersion version)
                 : base(to, version)
@@ -517,11 +516,11 @@ namespace CoreWCF.Channels
             }
         }
 
-        class FullToHeader : ToHeader
+        private class FullToHeader : ToHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private string actor;
+            private bool mustUnderstand;
+            private bool relay;
 
             public FullToHeader(Uri to, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(to, version)
@@ -548,13 +547,13 @@ namespace CoreWCF.Channels
         }
     }
 
-    class ReplyToHeader : AddressingHeader
+    internal class ReplyToHeader : AddressingHeader
     {
-        EndpointAddress replyTo;
-        const bool mustUnderstandValue = false;
-        static ReplyToHeader anonymousReplyToHeader10;
+        private EndpointAddress replyTo;
+        private const bool mustUnderstandValue = false;
+        private static ReplyToHeader anonymousReplyToHeader10;
 
-        ReplyToHeader(EndpointAddress replyTo, AddressingVersion version)
+        private ReplyToHeader(EndpointAddress replyTo, AddressingVersion version)
             : base(version)
         {
             this.replyTo = replyTo;
@@ -638,11 +637,11 @@ namespace CoreWCF.Channels
             return EndpointAddress.ReadFrom(version, reader);
         }
 
-        class FullReplyToHeader : ReplyToHeader
+        private class FullReplyToHeader : ReplyToHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private string actor;
+            private bool mustUnderstand;
+            private bool relay;
 
             public FullReplyToHeader(EndpointAddress replyTo, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(replyTo, version)
@@ -669,12 +668,12 @@ namespace CoreWCF.Channels
         }
     }
 
-    class MessageIDHeader : AddressingHeader
+    internal class MessageIDHeader : AddressingHeader
     {
-        UniqueId messageId;
-        const bool mustUnderstandValue = false;
+        private UniqueId messageId;
+        private const bool mustUnderstandValue = false;
 
-        MessageIDHeader(UniqueId messageId, AddressingVersion version)
+        private MessageIDHeader(UniqueId messageId, AddressingVersion version)
             : base(version)
         {
             this.messageId = messageId;
@@ -730,11 +729,11 @@ namespace CoreWCF.Channels
             }
         }
 
-        class FullMessageIDHeader : MessageIDHeader
+        private class FullMessageIDHeader : MessageIDHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private string actor;
+            private bool mustUnderstand;
+            private bool relay;
 
             public FullMessageIDHeader(UniqueId messageId, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(messageId, version)
@@ -761,13 +760,13 @@ namespace CoreWCF.Channels
         }
     }
 
-    class RelatesToHeader : AddressingHeader
+    internal class RelatesToHeader : AddressingHeader
     {
-        UniqueId messageId;
-        const bool mustUnderstandValue = false;
+        private UniqueId messageId;
+        private const bool mustUnderstandValue = false;
         internal static readonly Uri ReplyRelationshipType = new Uri(Addressing10Strings.ReplyRelationship);
 
-        RelatesToHeader(UniqueId messageId, AddressingVersion version)
+        private RelatesToHeader(UniqueId messageId, AddressingVersion version)
             : base(version)
         {
             this.messageId = messageId;
@@ -863,11 +862,11 @@ namespace CoreWCF.Channels
             }
         }
 
-        class FullRelatesToHeader : RelatesToHeader
+        private class FullRelatesToHeader : RelatesToHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private string actor;
+            private bool mustUnderstand;
+            private bool relay;
             //Uri relationship;
 
             public FullRelatesToHeader(UniqueId messageId, string actor, bool mustUnderstand, bool relay, AddressingVersion version)

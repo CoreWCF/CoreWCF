@@ -16,41 +16,44 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchRuntime
     {
-        ServiceAuthenticationManager serviceAuthenticationManager;
-        ServiceAuthorizationManager serviceAuthorizationManager;
-        ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
+        private ServiceAuthenticationManager serviceAuthenticationManager;
+        private ServiceAuthorizationManager serviceAuthorizationManager;
+        private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
+
         //AuditLogLocation securityAuditLogLocation;
-        ConcurrencyMode concurrencyMode;
-        bool ensureOrderedDispatch;
+        private ConcurrencyMode concurrencyMode;
+        private bool ensureOrderedDispatch;
+
         //bool suppressAuditFailure;
         //AuditLevel serviceAuthorizationAuditLevel;
         //AuditLevel messageAuthenticationAuditLevel;
-        bool automaticInputSessionShutdown;
-        ChannelDispatcher channelDispatcher;
-        SynchronizedCollection<IInputSessionShutdown> inputSessionShutdownHandlers;
-        EndpointDispatcher endpointDispatcher;
-        IInstanceProvider instanceProvider;
-        IInstanceContextProvider instanceContextProvider;
-        InstanceContext singleton;
-        bool ignoreTransactionMessageProperty;
-        OperationCollection operations;
-        IDispatchOperationSelector operationSelector;
-        ClientRuntime proxyRuntime;
-        ImmutableDispatchRuntime runtime;
-        SynchronizedCollection<IInstanceContextInitializer> instanceContextInitializers;
-        bool isExternalPoliciesSet;
-        bool isAuthenticationManagerSet;
-        bool isAuthorizationManagerSet;
-        SynchronizationContext synchronizationContext;
-        PrincipalPermissionMode principalPermissionMode;
+        private bool automaticInputSessionShutdown;
+        private ChannelDispatcher channelDispatcher;
+        private SynchronizedCollection<IInputSessionShutdown> inputSessionShutdownHandlers;
+        private EndpointDispatcher endpointDispatcher;
+        private IInstanceProvider instanceProvider;
+        private IInstanceContextProvider instanceContextProvider;
+        private InstanceContext singleton;
+        private bool ignoreTransactionMessageProperty;
+        private OperationCollection operations;
+        private IDispatchOperationSelector operationSelector;
+        private ClientRuntime proxyRuntime;
+        private ImmutableDispatchRuntime runtime;
+        private SynchronizedCollection<IInstanceContextInitializer> instanceContextInitializers;
+        private bool isExternalPoliciesSet;
+        private bool isAuthenticationManagerSet;
+        private bool isAuthorizationManagerSet;
+        private SynchronizationContext synchronizationContext;
+        private PrincipalPermissionMode principalPermissionMode;
+
         //object roleProvider;
-        Type type;
-        DispatchOperation unhandled;
-        bool impersonateCallerForAllOperations;
-        bool impersonateOnSerializingReply;
-        SharedRuntimeState shared;
-        bool preserveMessage;
-        bool requireClaimsPrincipalOnOperationContext;
+        private Type type;
+        private DispatchOperation unhandled;
+        private bool impersonateCallerForAllOperations;
+        private bool impersonateOnSerializingReply;
+        private SharedRuntimeState shared;
+        private bool preserveMessage;
+        private bool requireClaimsPrincipalOnOperationContext;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
@@ -70,7 +73,7 @@ namespace CoreWCF.Dispatcher
             Fx.Assert(!shared.IsOnServer, "Client constructor called on server?");
         }
 
-        DispatchRuntime(SharedRuntimeState shared)
+        private DispatchRuntime(SharedRuntimeState shared)
         {
             this.shared = shared;
 
@@ -610,7 +613,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        ImmutableDispatchRuntime GetRuntimeCore()
+        private ImmutableDispatchRuntime GetRuntimeCore()
         {
             lock (ThisLock)
             {
@@ -648,7 +651,7 @@ namespace CoreWCF.Dispatcher
 
         internal class UnhandledActionInvoker : IOperationInvoker
         {
-            DispatchRuntime dispatchRuntime;
+            private DispatchRuntime dispatchRuntime;
 
             public UnhandledActionInvoker(DispatchRuntime dispatchRuntime)
             {
@@ -739,9 +742,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class DispatchBehaviorCollection<T> : SynchronizedCollection<T>
+        private class DispatchBehaviorCollection<T> : SynchronizedCollection<T>
         {
-            DispatchRuntime outer;
+            private DispatchRuntime outer;
 
             internal DispatchBehaviorCollection(DispatchRuntime outer)
                 : base(outer.ThisLock)
@@ -784,9 +787,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class OperationCollection : SynchronizedKeyedCollection<string, DispatchOperation>
+        private class OperationCollection : SynchronizedKeyedCollection<string, DispatchOperation>
         {
-            DispatchRuntime outer;
+            private DispatchRuntime outer;
 
             internal OperationCollection(DispatchRuntime outer)
                 : base(outer.ThisLock)
@@ -842,7 +845,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class CallbackInstanceProvider : IInstanceProvider
+        private class CallbackInstanceProvider : IInstanceProvider
         {
             object IInstanceProvider.GetInstance(InstanceContext instanceContext)
             {

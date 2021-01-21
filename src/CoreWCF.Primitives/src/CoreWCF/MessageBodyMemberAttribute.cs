@@ -8,7 +8,7 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.MessageMember, Inherited = false)]
     public class MessageBodyMemberAttribute : MessageContractMemberAttribute
     {
-        int _order = -1;
+        private int _order = -1;
         internal const string OrderPropertyName = "Order";
         public int Order
         {

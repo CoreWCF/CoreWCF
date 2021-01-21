@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
 {
     public sealed class AddressHeaderCollection : System.Collections.ObjectModel.ReadOnlyCollection<AddressHeader>
     {
-        static AddressHeaderCollection emptyHeaderCollection = new AddressHeaderCollection();
+        private static AddressHeaderCollection emptyHeaderCollection = new AddressHeaderCollection();
 
         public AddressHeaderCollection()
             : base(new List<AddressHeader>())
@@ -42,7 +42,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        int InternalCount
+        private int InternalCount
         {
             get
             {

@@ -10,10 +10,9 @@ namespace CoreWCF
     public sealed class WSHTTPSecurity
     {
         internal const SecurityMode DefaultMode = SecurityMode.Message;
-
-        SecurityMode mode;
-        HttpTransportSecurity transportSecurity;
-        NonDualMessageSecurityOverHttp messageSecurity;
+        private SecurityMode mode;
+        private HttpTransportSecurity transportSecurity;
+        private NonDualMessageSecurityOverHttp messageSecurity;
 
         public WSHTTPSecurity()
             : this(DefaultMode, GetDefaultHttpTransportSecurity(), new NonDualMessageSecurityOverHttp())

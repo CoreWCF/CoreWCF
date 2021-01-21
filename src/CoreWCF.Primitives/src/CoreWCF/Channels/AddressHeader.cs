@@ -12,7 +12,7 @@ namespace CoreWCF.Channels
 {
     public abstract class AddressHeader
     {
-        ParameterHeader header;
+        private ParameterHeader header;
 
         protected AddressHeader()
         {
@@ -60,7 +60,7 @@ namespace CoreWCF.Channels
             return new XmlObjectSerializerAddressHeader(name, ns, value, serializer);
         }
 
-        static Type GetObjectType(object value)
+        private static Type GetObjectType(object value)
         {
             return (value == null) ? typeof(object) : value.GetType();
         }
@@ -129,7 +129,7 @@ namespace CoreWCF.Channels
             return buffer.GetReader(0);
         }
 
-        XmlDictionaryReader GetComparableReader()
+        private XmlDictionaryReader GetComparableReader()
         {
             XmlBuffer buffer = new XmlBuffer(int.MaxValue);
             XmlDictionaryWriter writer = buffer.OpenSection(XmlDictionaryReaderQuotas.Max);
@@ -186,9 +186,9 @@ namespace CoreWCF.Channels
             OnWriteAddressHeaderContents(writer);
         }
 
-        class ParameterHeader : MessageHeader
+        private class ParameterHeader : MessageHeader
         {
-            AddressHeader parameter;
+            private AddressHeader parameter;
 
             public override bool IsReferenceParameter
             {
@@ -238,12 +238,12 @@ namespace CoreWCF.Channels
             }
         }
 
-        class XmlObjectSerializerAddressHeader : AddressHeader
+        private class XmlObjectSerializerAddressHeader : AddressHeader
         {
-            XmlObjectSerializer serializer;
-            object objectToSerialize;
-            string name;
-            string ns;
+            private XmlObjectSerializer serializer;
+            private object objectToSerialize;
+            private string name;
+            private string ns;
 
             public XmlObjectSerializerAddressHeader(object objectToSerialize, XmlObjectSerializer serializer)
             {
@@ -281,7 +281,7 @@ namespace CoreWCF.Channels
                 get { return ns; }
             }
 
-            object ThisLock
+            private object ThisLock
             {
                 get { return this; }
             }
@@ -296,10 +296,10 @@ namespace CoreWCF.Channels
         }
 
         // astern, This will be kept internal for now.  If the optimization needs to be public, we'll re-evaluate it.
-        class DictionaryAddressHeader : XmlObjectSerializerAddressHeader
+        private class DictionaryAddressHeader : XmlObjectSerializerAddressHeader
         {
-            XmlDictionaryString name;
-            XmlDictionaryString ns;
+            private XmlDictionaryString name;
+            private XmlDictionaryString ns;
 
             public DictionaryAddressHeader(XmlDictionaryString name, XmlDictionaryString ns, object value)
                 : base(name.Value, ns.Value, value, DataContractSerializerDefaults.CreateSerializer(GetObjectType(value), name, ns, int.MaxValue/*maxItems*/))
@@ -315,12 +315,12 @@ namespace CoreWCF.Channels
         }
     }
 
-    class BufferedAddressHeader : AddressHeader
+    internal class BufferedAddressHeader : AddressHeader
     {
-        string name;
-        string ns;
-        XmlBuffer buffer;
-        bool isReferenceProperty;
+        private string name;
+        private string ns;
+        private XmlBuffer buffer;
+        private bool isReferenceProperty;
 
         public BufferedAddressHeader(XmlDictionaryReader reader)
         {

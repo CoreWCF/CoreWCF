@@ -17,7 +17,7 @@ namespace CoreWCF.Runtime
             return UrlDecodeStringFromStringInternal(str, e);
         }
 
-        static string UrlDecodeStringFromStringInternal(string s, Encoding e)
+        private static string UrlDecodeStringFromStringInternal(string s, Encoding e)
         {
             int count = s.Length;
             UrlDecoder helper = new UrlDecoder(count, e);
@@ -84,7 +84,7 @@ namespace CoreWCF.Runtime
         }
 
         // Private helpers for URL encoding/decoding
-        static int HexToInt(char h)
+        private static int HexToInt(char h)
         {
             return (h >= '0' && h <= '9') ? h - '0' :
             (h >= 'a' && h <= 'f') ? h - 'a' + 10 :
@@ -93,22 +93,22 @@ namespace CoreWCF.Runtime
         }
 
         // Internal class to facilitate URL decoding -- keeps char buffer and byte buffer, allows appending of either chars or bytes
-        class UrlDecoder
+        private class UrlDecoder
         {
-            int _bufferSize;
+            private int _bufferSize;
 
             // Accumulate characters in a special array
-            int _numChars;
-            char[] _charBuffer;
+            private int _numChars;
+            private char[] _charBuffer;
 
             // Accumulate bytes for decoding into characters in a special array
-            int _numBytes;
-            byte[] _byteBuffer;
+            private int _numBytes;
+            private byte[] _byteBuffer;
 
             // Encoding to convert chars to bytes
-            Encoding _encoding;
+            private Encoding _encoding;
 
-            void FlushBytes()
+            private void FlushBytes()
             {
                 if (_numBytes > 0)
                 {

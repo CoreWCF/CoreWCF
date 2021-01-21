@@ -9,14 +9,13 @@ namespace CoreWCF.IdentityModel
 {
     internal class SecurityUniqueId
     {
-        static long nextId = 0;
-        static string commonPrefix = "uuid-" + Guid.NewGuid().ToString() + "-";
+        private static long nextId = 0;
+        private static string commonPrefix = "uuid-" + Guid.NewGuid().ToString() + "-";
+        private long id;
+        private string prefix;
+        private string val;
 
-        long id;
-        string prefix;
-        string val;
-
-        SecurityUniqueId(string prefix, long id)
+        private SecurityUniqueId(string prefix, long id)
         {
             this.id = id;
             this.prefix = prefix;

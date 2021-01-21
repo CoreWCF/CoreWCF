@@ -10,17 +10,18 @@ using CoreWCF.Runtime;
 namespace CoreWCF.Security
 {
     // NOTE: this class does minimum argument checking as it is all internal 
-    class TimeBoundedCache
+    internal class TimeBoundedCache
     {
-        static Action<object> purgeCallback;
-        Hashtable entries;
+        private static Action<object> purgeCallback;
+        private Hashtable entries;
+
         // if there are less than lowWaterMark entries, no purging is done
-        int lowWaterMark;
-        DateTime nextPurgeTimeUtc;
-        TimeSpan purgeInterval;
-        PurgingMode purgingMode;
-        IOThreadTimer purgingTimer;
-        bool doRemoveNotification;
+        private int lowWaterMark;
+        private DateTime nextPurgeTimeUtc;
+        private TimeSpan purgeInterval;
+        private PurgingMode purgingMode;
+        private IOThreadTimer purgingTimer;
+        private bool doRemoveNotification;
 
         protected TimeBoundedCache(int lowWaterMark, int maxCacheItems, IEqualityComparer keyComparer, PurgingMode purgingMode, TimeSpan purgeInterval, bool doRemoveNotification)
         {
@@ -36,7 +37,7 @@ namespace CoreWCF.Security
 
         public int Count => this.entries.Count;
 
-        static Action<object> PurgeCallback
+        private static Action<object> PurgeCallback
         {
             get
             {
@@ -59,7 +60,7 @@ namespace CoreWCF.Security
             return this.TryAddItem(key, new ExpirableItem(item, expirationTime), replaceExistingEntry);
         }
 
-        void CancelTimerIfNeeded()
+        private void CancelTimerIfNeeded()
         {
             if (this.Count == 0 && this.purgingTimer != null)
             {
@@ -68,7 +69,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void StartTimerIfNeeded()
+        private void StartTimerIfNeeded()
         {
             if (this.purgingMode != PurgingMode.TimerBasedPurge)
             {
@@ -272,7 +273,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void EnforceQuota()
+        private void EnforceQuota()
         {
             if (!(this.CacheLock.IsWriterLockHeld == true))
             {
@@ -313,13 +314,13 @@ namespace CoreWCF.Security
             }
         }
 
-        bool IsExpired(IExpirableItem item)
+        private bool IsExpired(IExpirableItem item)
         {
             Fx.Assert(item.ExpirationTime == DateTime.MaxValue || item.ExpirationTime.Kind == DateTimeKind.Utc, "");
             return (item.ExpirationTime <= DateTime.UtcNow);
         }
 
-        bool ShouldPurge()
+        private bool ShouldPurge()
         {
             if (this.Count >= this.Capacity)
             {
@@ -335,7 +336,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void PurgeIfNeeded()
+        private void PurgeIfNeeded()
         {
             if (!(this.CacheLock.IsWriterLockHeld == true))
             {
@@ -352,7 +353,7 @@ namespace CoreWCF.Security
         /// <summary>
         /// This method must be called from within a writer lock
         /// </summary>
-        void PurgeStaleItems()
+        private void PurgeStaleItems()
         {
             if (!(this.CacheLock.IsWriterLockHeld == true))
             {
@@ -379,14 +380,14 @@ namespace CoreWCF.Security
             this.nextPurgeTimeUtc = DateTime.UtcNow.Add(this.purgeInterval);
         }
 
-        void ThrowQuotaReachedException()
+        private void ThrowQuotaReachedException()
         {
             string message = SR.Format(SR.CacheQuotaReached, this.Capacity);
             Exception inner = new QuotaExceededException(message);
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(message, inner));
         }
 
-        static void PurgeCallbackStatic(object state)
+        private static void PurgeCallbackStatic(object state)
         {
             TimeBoundedCache self = (TimeBoundedCache)state;
 
@@ -426,7 +427,7 @@ namespace CoreWCF.Security
 
         internal class ExpirableItemComparer : IComparer<IExpirableItem>
         {
-            static ExpirableItemComparer instance;
+            private static ExpirableItemComparer instance;
 
             public static ExpirableItemComparer Default
             {
@@ -465,7 +466,7 @@ namespace CoreWCF.Security
 
         internal sealed class ExpirableItem : IExpirableItem
         {
-            object item;
+            private object item;
 
             public ExpirableItem(object item, DateTime expirationTime)
             {
@@ -479,7 +480,7 @@ namespace CoreWCF.Security
         }
     }
 
-    enum PurgingMode
+    internal enum PurgingMode
     {
         TimerBasedPurge,
         AccessBasedPurge

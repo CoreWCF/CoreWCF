@@ -7,8 +7,8 @@ namespace CoreWCF
 {
     public class FaultReasonText
     {
-        readonly string _xmlLang;
-        readonly string _text;
+        private readonly string _xmlLang;
+        private readonly string _text;
 
         public FaultReasonText(string text)
         {

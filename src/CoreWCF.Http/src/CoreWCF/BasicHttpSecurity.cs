@@ -10,15 +10,15 @@ namespace CoreWCF
     public sealed class BasicHttpSecurity
     {
         internal const BasicHttpSecurityMode DefaultMode = BasicHttpSecurityMode.None;
-        BasicHttpSecurityMode _mode;
-        HttpTransportSecurity _transportSecurity;
+        private BasicHttpSecurityMode _mode;
+        private HttpTransportSecurity _transportSecurity;
 
         public BasicHttpSecurity()
             : this(DefaultMode, new HttpTransportSecurity())
         {
         }
 
-        BasicHttpSecurity(BasicHttpSecurityMode mode, HttpTransportSecurity transportSecurity)
+        private BasicHttpSecurity(BasicHttpSecurityMode mode, HttpTransportSecurity transportSecurity)
         {
             Fx.Assert(BasicHttpSecurityModeHelper.IsDefined(mode), string.Format("Invalid BasicHttpSecurityMode value: {0}.", mode.ToString()));
             if (mode == BasicHttpSecurityMode.Message || mode == BasicHttpSecurityMode.TransportWithMessageCredential)

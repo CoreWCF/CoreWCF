@@ -11,26 +11,26 @@ namespace CoreWCF
 {
     internal class XmlBuffer
     {
-        List<Section> _sections;
-        byte[] _buffer;
-        int _offset;
-        BufferedOutputStream _stream;
-        BufferState _bufferState;
-        XmlDictionaryWriter _writer;
-        XmlDictionaryReaderQuotas _quotas;
+        private List<Section> _sections;
+        private byte[] _buffer;
+        private int _offset;
+        private BufferedOutputStream _stream;
+        private BufferState _bufferState;
+        private XmlDictionaryWriter _writer;
+        private XmlDictionaryReaderQuotas _quotas;
 
-        enum BufferState
+        private enum BufferState
         {
             Created,
             Writing,
             Reading,
         }
 
-        struct Section
+        private struct Section
         {
-            int _offset;
-            int _size;
-            XmlDictionaryReaderQuotas _quotas;
+            private int _offset;
+            private int _size;
+            private XmlDictionaryReaderQuotas _quotas;
 
             public Section(int offset, int size, XmlDictionaryReaderQuotas quotas)
             {
@@ -130,7 +130,7 @@ namespace CoreWCF
             _stream = null;
         }
 
-        Exception CreateInvalidStateException()
+        private Exception CreateInvalidStateException()
         {
             return new InvalidOperationException(SR.XmlBufferInInvalidState);
         }

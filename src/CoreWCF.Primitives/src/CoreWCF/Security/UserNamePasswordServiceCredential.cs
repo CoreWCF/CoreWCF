@@ -15,15 +15,14 @@ namespace CoreWCF.Security
         internal const int DefaultMaxCachedLogonTokens = 128;
         internal const string DefaultCachedLogonTokenLifetimeString = "00:15:00";
         internal static readonly TimeSpan DefaultCachedLogonTokenLifetime = TimeSpan.Parse(DefaultCachedLogonTokenLifetimeString, CultureInfo.InvariantCulture);
-
-        UserNamePasswordValidationMode validationMode = DefaultUserNamePasswordValidationMode;
-        UserNamePasswordValidator validator;
-        object membershipProvider;
-        bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
-        bool cacheLogonTokens = DefaultCacheLogonTokens;
-        int maxCachedLogonTokens = DefaultMaxCachedLogonTokens;
-        TimeSpan cachedLogonTokenLifetime = DefaultCachedLogonTokenLifetime;
-        bool isReadOnly;
+        private UserNamePasswordValidationMode validationMode = DefaultUserNamePasswordValidationMode;
+        private UserNamePasswordValidator validator;
+        private object membershipProvider;
+        private bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
+        private bool cacheLogonTokens = DefaultCacheLogonTokens;
+        private int maxCachedLogonTokens = DefaultMaxCachedLogonTokens;
+        private TimeSpan cachedLogonTokenLifetime = DefaultCachedLogonTokenLifetime;
+        private bool isReadOnly;
 
         internal UserNamePasswordServiceCredential()
         {
@@ -163,7 +162,7 @@ namespace CoreWCF.Security
             isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
             if (isReadOnly)
             {

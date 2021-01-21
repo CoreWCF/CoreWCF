@@ -14,9 +14,9 @@ namespace CoreWCF.Channels
 {
     public abstract class MessageHeader : MessageHeaderInfo
     {
-        const bool DefaultRelayValue = false;
-        const bool DefaultMustUnderstandValue = false;
-        const string DefaultActorValue = "";
+        private const bool DefaultRelayValue = false;
+        private const bool DefaultMustUnderstandValue = false;
+        private const string DefaultActorValue = "";
 
         public override string Actor
         {
@@ -244,7 +244,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        static bool ToBoolean(string value)
+        private static bool ToBoolean(string value)
         {
             if (value.Length == 1)
             {
@@ -303,21 +303,21 @@ namespace CoreWCF.Channels
         }
     }
 
-    class XmlObjectSerializerHeader : MessageHeader
+    internal class XmlObjectSerializerHeader : MessageHeader
     {
-        XmlObjectSerializer serializer;
-        bool mustUnderstand;
-        bool relay;
-        bool isOneTwoSupported;
-        bool isOneOneSupported;
-        bool isNoneSupported;
-        object objectToSerialize;
-        string name;
-        string ns;
-        string actor;
-        object syncRoot = new object();
+        private XmlObjectSerializer serializer;
+        private bool mustUnderstand;
+        private bool relay;
+        private bool isOneTwoSupported;
+        private bool isOneOneSupported;
+        private bool isNoneSupported;
+        private object objectToSerialize;
+        private string name;
+        private string ns;
+        private string actor;
+        private object syncRoot = new object();
 
-        XmlObjectSerializerHeader(XmlObjectSerializer serializer, bool mustUnderstand, string actor, bool relay)
+        private XmlObjectSerializerHeader(XmlObjectSerializer serializer, bool mustUnderstand, string actor, bool relay)
         {
             if (actor == null)
             {
@@ -442,7 +442,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    abstract class ReadableMessageHeader : MessageHeader
+    internal abstract class ReadableMessageHeader : MessageHeader
     {
         public abstract XmlDictionaryReader GetHeaderReader();
 
@@ -473,18 +473,18 @@ namespace CoreWCF.Channels
         XmlDictionaryString SharedPrefix { get; }
     }
 
-    class BufferedHeader : ReadableMessageHeader
+    internal class BufferedHeader : ReadableMessageHeader
     {
-        MessageVersion version;
-        XmlBuffer buffer;
-        int bufferIndex;
-        string actor;
-        bool relay;
-        bool mustUnderstand;
-        string name;
-        string ns;
-        bool streamed;
-        bool isRefParam;
+        private MessageVersion version;
+        private XmlBuffer buffer;
+        private int bufferIndex;
+        private string actor;
+        private bool relay;
+        private bool mustUnderstand;
+        private string name;
+        private string ns;
+        private bool streamed;
+        private bool isRefParam;
 
         public BufferedHeader(MessageVersion version, XmlBuffer buffer, int bufferIndex, string name, string ns, bool mustUnderstand, string actor, bool relay, bool isRefParam)
         {

@@ -11,14 +11,13 @@ using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
 {
-    sealed class AuthorizationBehavior
+    internal sealed class AuthorizationBehavior
     {
-        static ServiceAuthorizationManager DefaultServiceAuthorizationManager = new ServiceAuthorizationManager();
+        private static ServiceAuthorizationManager DefaultServiceAuthorizationManager = new ServiceAuthorizationManager();
+        private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
+        private ServiceAuthorizationManager serviceAuthorizationManager;
 
-        ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
-        ServiceAuthorizationManager serviceAuthorizationManager;
-
-        AuthorizationBehavior() { }
+        private AuthorizationBehavior() { }
 
         public void Authorize(ref MessageRpc rpc)
         {
@@ -49,7 +48,7 @@ namespace CoreWCF.Dispatcher
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
+        private static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
         {
             AuthorizationBehavior behavior = new AuthorizationBehavior();
             behavior.externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies;

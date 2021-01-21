@@ -10,11 +10,11 @@ using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
 {
-    sealed class AuthenticationBehavior
+    internal sealed class AuthenticationBehavior
     {
-        ServiceAuthenticationManager _serviceAuthenticationManager;
+        private ServiceAuthenticationManager _serviceAuthenticationManager;
 
-        AuthenticationBehavior(ServiceAuthenticationManager authenticationManager)
+        private AuthenticationBehavior(ServiceAuthenticationManager authenticationManager)
         {
             _serviceAuthenticationManager = authenticationManager;
         }
@@ -47,7 +47,7 @@ namespace CoreWCF.Dispatcher
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static AuthenticationBehavior CreateAuthenticationBehavior(DispatchRuntime dispatch)
+        private static AuthenticationBehavior CreateAuthenticationBehavior(DispatchRuntime dispatch)
         {
             AuthenticationBehavior authenticationBehavior = new AuthenticationBehavior(dispatch.ServiceAuthenticationManager);
             return authenticationBehavior;

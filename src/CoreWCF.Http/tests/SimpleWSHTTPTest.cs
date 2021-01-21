@@ -130,8 +130,7 @@ namespace WSHttp
             }
         }
 
-
-        static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
+        private static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
         {
             return true;
         }
@@ -212,8 +211,8 @@ namespace WSHttp
 
         internal abstract class StartupWSHttpBase
         {
-            CoreWCF.SecurityMode wsHttpSecurityMode;
-            MessageCredentialType credentialType;
+            private CoreWCF.SecurityMode wsHttpSecurityMode;
+            private MessageCredentialType credentialType;
             public StartupWSHttpBase(CoreWCF.SecurityMode securityMode, MessageCredentialType credentialType)
             {
                 this.wsHttpSecurityMode = securityMode;

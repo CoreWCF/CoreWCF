@@ -12,9 +12,9 @@ namespace CoreWCF.Security.Tokens
 {
     public class SspiSecurityToken : SecurityToken
     {
-        string _id;
-        DateTime _effectiveTime;
-        DateTime _expirationTime;
+        private string _id;
+        private DateTime _effectiveTime;
+        private DateTime _expirationTime;
 
         public SspiSecurityToken(TokenImpersonationLevel impersonationLevel, bool allowNtlm, NetworkCredential networkCredential)
         {

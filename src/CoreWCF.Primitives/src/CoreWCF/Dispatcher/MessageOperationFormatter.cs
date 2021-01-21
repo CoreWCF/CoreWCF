@@ -9,7 +9,7 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class MessageOperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
-        static MessageOperationFormatter instance;
+        private static MessageOperationFormatter instance;
 
         internal static MessageOperationFormatter Instance
         {

@@ -10,7 +10,7 @@ namespace CoreWCF
         Single,
     }
 
-    static class InstanceContextModeHelper
+    internal static class InstanceContextModeHelper
     {
         static public bool IsDefined(InstanceContextMode x)
         {

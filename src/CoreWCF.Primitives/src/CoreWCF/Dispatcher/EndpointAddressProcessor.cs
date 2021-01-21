@@ -11,7 +11,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
-    class EndpointAddressProcessor
+    internal class EndpointAddressProcessor
     {
         internal static readonly QNameKeyComparer QNameComparer = new QNameKeyComparer();
 
@@ -25,9 +25,8 @@ namespace CoreWCF.Dispatcher
 
         // Pooling
         internal EndpointAddressProcessor next;
-
-        StringBuilder builder;
-        byte[] resultData;
+        private StringBuilder builder;
+        private byte[] resultData;
 
         internal EndpointAddressProcessor(int length)
         {
@@ -155,14 +154,14 @@ namespace CoreWCF.Dispatcher
             return builder.ToString();
         }
 
-        static void AppendString(StringBuilder builder, string s)
+        private static void AppendString(StringBuilder builder, string s)
         {
             builder.Append(s);
             builder.Append("^");
             builder.Append(s.Length.ToString(CultureInfo.InvariantCulture));
         }
 
-        static void CompleteValue(StringBuilder builder, int startLength)
+        private static void CompleteValue(StringBuilder builder, int startLength)
         {
             if (startLength < 0)
                 return;
@@ -331,12 +330,12 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class Attr : IComparable<Attr>
+        private class Attr : IComparable<Attr>
         {
             internal string local;
             internal string ns;
             internal string val;
-            string key;
+            private string key;
 
             internal Attr(string l, string ns, string v)
             {

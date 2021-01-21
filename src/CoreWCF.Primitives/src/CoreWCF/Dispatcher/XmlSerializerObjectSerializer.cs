@@ -10,11 +10,11 @@ namespace CoreWCF.Dispatcher
 {
     internal class XmlSerializerObjectSerializer : XmlObjectSerializer
     {
-        XmlSerializer serializer;
-        Type rootType;
-        string rootName;
-        string rootNamespace;
-        bool isSerializerSetExplicit = false;
+        private XmlSerializer serializer;
+        private Type rootType;
+        private string rootName;
+        private string rootNamespace;
+        private bool isSerializerSetExplicit = false;
 
         internal XmlSerializerObjectSerializer(Type type)
         {
@@ -30,7 +30,7 @@ namespace CoreWCF.Dispatcher
             Initialize(type, qualifiedName.Name, qualifiedName.Namespace, xmlSerializer);
         }
 
-        void Initialize(Type type, string rootName, string rootNamespace, XmlSerializer xmlSerializer)
+        private void Initialize(Type type, string rootName, string rootNamespace, XmlSerializer xmlSerializer)
         {
             if (type == null)
             {

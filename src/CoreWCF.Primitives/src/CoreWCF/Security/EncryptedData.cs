@@ -7,23 +7,23 @@ using System.Xml;
 
 namespace CoreWCF.Security
 {
-    class EncryptedData : EncryptedType
+    internal class EncryptedData : EncryptedType
     {
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.EncryptedData;
         internal static readonly string ElementType = XmlEncryptionStrings.ElementType;
         internal static readonly string ContentType = XmlEncryptionStrings.ContentType;
-        SymmetricAlgorithm algorithm;
-        byte[] decryptedBuffer;
-        ArraySegment<byte> buffer;
-        byte[] iv;
-        byte[] cipherText;
+        private SymmetricAlgorithm algorithm;
+        private byte[] decryptedBuffer;
+        private ArraySegment<byte> buffer;
+        private byte[] iv;
+        private byte[] cipherText;
 
         protected override XmlDictionaryString OpeningElementName
         {
             get { return ElementName; }
         }
 
-        void EnsureDecryptionSet()
+        private void EnsureDecryptionSet()
         {
             if (this.State == EncryptionState.DecryptionSetup)
             {
@@ -58,7 +58,7 @@ namespace CoreWCF.Security
             this.cipherText = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
         }
 
-        void SetPlainText()
+        private void SetPlainText()
         {
             this.decryptedBuffer = CryptoHelper.ExtractIVAndDecrypt(this.algorithm, this.cipherText, 0, this.cipherText.Length);
             this.State = EncryptionState.Decrypted;

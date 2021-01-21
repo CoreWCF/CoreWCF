@@ -37,7 +37,7 @@ namespace CoreWCF.Channels
         internal const int ConnectionBufferSize = 8192;
     }
 
-    static class WebSocketDefaults
+    internal static class WebSocketDefaults
     {
         internal const WebSocketTransportUsage TransportUsage = WebSocketTransportUsage.Never;
         internal const bool CreateNotificationOnConnection = false;
@@ -61,7 +61,7 @@ namespace CoreWCF.Channels
         internal const string WebSocketUpgradeHeaderValue = "websocket";
     }
 
-    static class NetHttpBindingDefaults
+    internal static class NetHttpBindingDefaults
     {
         internal const NetHttpMessageEncoding MessageEncoding = NetHttpMessageEncoding.Binary;
         internal const WebSocketTransportUsage TransportUsage = WebSocketTransportUsage.WhenDuplex;

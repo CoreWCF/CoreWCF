@@ -14,7 +14,7 @@ namespace CoreWCF.Channels.Framing
         private FramingConnection _connection;
         private Message _requestMessage;
         private Stream _inputStream;
-        bool isClosed;
+        private bool isClosed;
         private TaskCompletionSource<object> _tcs;
 
         public StreamedFramingRequestContext(FramingConnection connection, Message requestMessage, Stream inputStream)
@@ -109,7 +109,7 @@ namespace CoreWCF.Channels.Framing
         public Task ReplySent => _tcs.Task;
     }
 
-    static class StreamingConnectionHelper
+    internal static class StreamingConnectionHelper
     {
         public static async Task WriteMessageAsync(Message message, FramingConnection connection, bool isRequest,
             IDefaultCommunicationTimeouts settings, CancellationToken token)
@@ -168,9 +168,9 @@ namespace CoreWCF.Channels.Framing
     }
 
     // overrides Stream to add a Framing int at the beginning of each record
-    class StreamingOutputConnectionStream : Stream
+    internal class StreamingOutputConnectionStream : Stream
     {
-        byte[] _encodedSize;
+        private byte[] _encodedSize;
         private FramingConnection _connection;
         private IDefaultCommunicationTimeouts _timeouts;
 

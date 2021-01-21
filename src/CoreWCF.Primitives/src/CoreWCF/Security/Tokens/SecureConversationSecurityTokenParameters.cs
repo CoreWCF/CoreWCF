@@ -15,12 +15,11 @@ namespace CoreWCF.Security.Tokens
     {
         internal const bool defaultRequireCancellation = true;
         internal const bool defaultCanRenewSession = true;
-
-        SecurityBindingElement bootstrapSecurityBindingElement;
-        ChannelProtectionRequirements bootstrapProtectionRequirements;
-        bool requireCancellation;
-        bool canRenewSession = defaultCanRenewSession;
-        BindingContext issuerBindingContext;
+        private SecurityBindingElement bootstrapSecurityBindingElement;
+        private ChannelProtectionRequirements bootstrapProtectionRequirements;
+        private bool requireCancellation;
+        private bool canRenewSession = defaultCanRenewSession;
+        private BindingContext issuerBindingContext;
 
         protected SecureConversationSecurityTokenParameters(SecureConversationSecurityTokenParameters other)
             : base(other)
@@ -115,7 +114,7 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        ISecurityCapabilities BootstrapSecurityCapabilities => this.bootstrapSecurityBindingElement.GetIndividualProperty<ISecurityCapabilities>();
+        private ISecurityCapabilities BootstrapSecurityCapabilities => this.bootstrapSecurityBindingElement.GetIndividualProperty<ISecurityCapabilities>();
 
         public bool RequireCancellation
         {

@@ -13,10 +13,10 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     public class X509SecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
-        X509CertificateValidator validator;
-        bool mapToWindows;
-        bool includeWindowsGroups;
-        bool cloneHandle;
+        private X509CertificateValidator validator;
+        private bool mapToWindows;
+        private bool includeWindowsGroups;
+        private bool cloneHandle;
 
         public X509SecurityTokenAuthenticator()
             : this(X509CertificateValidator.ChainTrust)

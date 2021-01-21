@@ -112,7 +112,7 @@ namespace CoreWCF
 
         internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion();
+            private static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion();
 
             public static MessageSecurityVersion Instance
             {
@@ -142,7 +142,7 @@ namespace CoreWCF
 
         internal class WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
+            private static MessageSecurityVersion instance = new WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
 
             public static MessageSecurityVersion Instance
             {
@@ -172,7 +172,7 @@ namespace CoreWCF
 
         internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
+            private static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
 
             public static MessageSecurityVersion Instance
             {
@@ -202,7 +202,7 @@ namespace CoreWCF
 
         internal class WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
+            private static MessageSecurityVersion instance = new WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
 
             public static MessageSecurityVersion Instance
             {
@@ -232,7 +232,7 @@ namespace CoreWCF
 
         internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion();
+            private static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion();
 
             public static MessageSecurityVersion Instance
             {
@@ -262,7 +262,7 @@ namespace CoreWCF
 
         internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
+            private static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
 
             public static MessageSecurityVersion Instance
             {

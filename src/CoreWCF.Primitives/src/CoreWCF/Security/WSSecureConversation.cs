@@ -13,10 +13,10 @@ using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
 {
-    abstract class WSSecureConversation : WSSecurityTokenSerializer.SerializerEntries
+    internal abstract class WSSecureConversation : WSSecurityTokenSerializer.SerializerEntries
     {
-        WSSecurityTokenSerializer tokenSerializer;
-        DerivedKeyTokenEntry derivedKeyEntry;
+        private WSSecurityTokenSerializer tokenSerializer;
+        private DerivedKeyTokenEntry derivedKeyEntry;
 
         protected WSSecureConversation(WSSecurityTokenSerializer tokenSerializer, int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
         {
@@ -66,11 +66,10 @@ namespace CoreWCF.Security
         protected class DerivedKeyTokenEntry : WSSecurityTokenSerializer.TokenEntry
         {
             public const string DefaultLabel = "WS-SecureConversation";
-
-            WSSecureConversation parent;
-            int maxKeyDerivationOffset;
-            int maxKeyDerivationLabelLength;
-            int maxKeyDerivationNonceLength;
+            private WSSecureConversation parent;
+            private int maxKeyDerivationOffset;
+            private int maxKeyDerivationLabelLength;
+            private int maxKeyDerivationNonceLength;
 
             public DerivedKeyTokenEntry(WSSecureConversation parent, int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
             {
@@ -305,8 +304,8 @@ namespace CoreWCF.Security
 
         protected abstract class SecurityContextTokenEntry : WSSecurityTokenSerializer.TokenEntry
         {
-            WSSecureConversation parent;
-            SecurityContextCookieSerializer cookieSerializer;
+            private WSSecureConversation parent;
+            private SecurityContextCookieSerializer cookieSerializer;
 
             public SecurityContextTokenEntry(WSSecureConversation parent, SecurityStateEncoder securityStateEncoder, IList<Type> knownClaimTypes)
             {
@@ -361,7 +360,7 @@ namespace CoreWCF.Security
             protected abstract UniqueId ReadGeneration(XmlDictionaryReader reader);
             protected abstract UniqueId ReadGeneration(XmlElement element);
 
-            SecurityContextSecurityToken TryResolveSecurityContextToken(UniqueId contextId, UniqueId generation, string id, SecurityTokenResolver tokenResolver, out ISecurityContextSecurityTokenCache sctCache)
+            private SecurityContextSecurityToken TryResolveSecurityContextToken(UniqueId contextId, UniqueId generation, string id, SecurityTokenResolver tokenResolver, out ISecurityContextSecurityTokenCache sctCache)
             {
                 SecurityContextSecurityToken cachedSct = null;
                 sctCache = null;

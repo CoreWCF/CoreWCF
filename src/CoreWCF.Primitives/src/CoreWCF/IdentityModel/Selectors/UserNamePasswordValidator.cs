@@ -6,7 +6,7 @@ namespace CoreWCF.IdentityModel.Selectors
     // TODO: Either consider moving this back to System.IdentityModel.Selectors and/or move to ServiceModel and make async
     public abstract class UserNamePasswordValidator
     {
-        static UserNamePasswordValidator none;
+        private static UserNamePasswordValidator none;
 
         public static UserNamePasswordValidator None
         {
@@ -20,7 +20,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public abstract void Validate(string userName, string password);
 
-        class NoneUserNamePasswordValidator : UserNamePasswordValidator
+        private class NoneUserNamePasswordValidator : UserNamePasswordValidator
         {
             public override void Validate(string userName, string password)
             {

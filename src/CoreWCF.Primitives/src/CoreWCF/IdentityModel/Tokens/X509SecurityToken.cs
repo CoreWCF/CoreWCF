@@ -11,13 +11,13 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509SecurityToken : SecurityToken, IDisposable
     {
-        string id;
-        X509Certificate2 certificate;
-        ReadOnlyCollection<SecurityKey> securityKeys;
-        DateTime effectiveTime = SecurityUtils.MaxUtcDateTime;
-        DateTime expirationTime = SecurityUtils.MinUtcDateTime;
-        bool disposed = false;
-        bool disposable;
+        private string id;
+        private X509Certificate2 certificate;
+        private ReadOnlyCollection<SecurityKey> securityKeys;
+        private DateTime effectiveTime = SecurityUtils.MaxUtcDateTime;
+        private DateTime expirationTime = SecurityUtils.MinUtcDateTime;
+        private bool disposed = false;
+        private bool disposable;
 
         public X509SecurityToken(X509Certificate2 certificate)
             : this(certificate, SecurityUniqueId.Create().Value)

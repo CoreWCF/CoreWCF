@@ -16,9 +16,9 @@ namespace CoreWCF.Channels
 {
     internal abstract class TransportDuplexSessionChannel : TransportOutputChannel, IDuplexSessionChannel
     {
-        bool _isInputSessionClosed;
-        bool _isOutputSessionClosed;
-        ChannelBinding _channelBindingToken;
+        private bool _isInputSessionClosed;
+        private bool _isOutputSessionClosed;
+        private ChannelBinding _channelBindingToken;
         private IServiceChannelDispatcher _channelDispatcher;
 
         protected TransportDuplexSessionChannel(
@@ -341,7 +341,7 @@ namespace CoreWCF.Channels
         // cleanup after the framing handshake has completed
         protected abstract Task CompleteCloseAsync(CancellationToken token);
 
-        void ThrowIfOutputSessionClosed()
+        private void ThrowIfOutputSessionClosed()
         {
             if (_isOutputSessionClosed)
             {
@@ -349,7 +349,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void OnInputSessionClosed()
+        private void OnInputSessionClosed()
         {
             lock (ThisLock)
             {
@@ -362,7 +362,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void OnOutputSessionClosed(CancellationToken token)
+        private void OnOutputSessionClosed(CancellationToken token)
         {
             bool releaseConnection = false;
             lock (ThisLock)
@@ -417,8 +417,8 @@ namespace CoreWCF.Channels
 
         internal class ConnectionDuplexSession : IDuplexSession
         {
-            static UriGenerator _uriGenerator;
-            string _id;
+            private static UriGenerator _uriGenerator;
+            private string _id;
 
             public ConnectionDuplexSession(TransportDuplexSessionChannel channel)
                 : base()
@@ -447,7 +447,7 @@ namespace CoreWCF.Channels
 
             public TransportDuplexSessionChannel Channel { get; }
 
-            static UriGenerator UriGenerator
+            private static UriGenerator UriGenerator
             {
                 get
                 {

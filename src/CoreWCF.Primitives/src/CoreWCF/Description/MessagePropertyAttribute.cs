@@ -9,8 +9,8 @@ namespace CoreWCF.Description
     [AttributeUsage(CoreWCFAttributeTargets.MessageMember, Inherited = false)]
     internal sealed class MessagePropertyAttribute : Attribute
     {
-        string _name;
-        bool _isNameSetExplicit;
+        private string _name;
+        private bool _isNameSetExplicit;
 
         public MessagePropertyAttribute()
         {

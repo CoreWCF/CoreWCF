@@ -3,11 +3,11 @@
 
 namespace CoreWCF.Security
 {
-    sealed class LaxTimestampFirstModeSecurityHeaderElementInferenceEngine : LaxModeSecurityHeaderElementInferenceEngine
+    internal sealed class LaxTimestampFirstModeSecurityHeaderElementInferenceEngine : LaxModeSecurityHeaderElementInferenceEngine
     {
-        static LaxTimestampFirstModeSecurityHeaderElementInferenceEngine instance = new LaxTimestampFirstModeSecurityHeaderElementInferenceEngine();
+        private static LaxTimestampFirstModeSecurityHeaderElementInferenceEngine instance = new LaxTimestampFirstModeSecurityHeaderElementInferenceEngine();
 
-        LaxTimestampFirstModeSecurityHeaderElementInferenceEngine() { }
+        private LaxTimestampFirstModeSecurityHeaderElementInferenceEngine() { }
 
         internal new static LaxTimestampFirstModeSecurityHeaderElementInferenceEngine Instance
         {

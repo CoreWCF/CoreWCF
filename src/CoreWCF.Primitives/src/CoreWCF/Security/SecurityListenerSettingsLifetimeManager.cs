@@ -106,7 +106,7 @@ namespace CoreWCF.Security
             return Task.CompletedTask;
         }
 
-        void AbortCore()
+        private void AbortCore()
         {
             if (this.securityProtocolFactory != null)
             {

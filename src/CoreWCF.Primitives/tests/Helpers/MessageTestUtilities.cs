@@ -413,27 +413,23 @@ namespace Helpers
             }
         }
 
-        MessageVersion[] versions = { /* MessageVersion.Soap11WSAddressing10,*/ MessageVersion.Soap12WSAddressing10 };
-        string[] actions = { MessageTestUtilities.SampleAction };
-        string[] bodies = null;
-        MessageType[] types = null;
+        private MessageVersion[] versions = { /* MessageVersion.Soap11WSAddressing10,*/ MessageVersion.Soap12WSAddressing10 };
+        private string[] actions = { MessageTestUtilities.SampleAction };
+        private string[] bodies = null;
+        private MessageType[] types = null;
 
         // Note: I pulled these default numbers out of thin air.
-        long[] bodySizes = { 0, 1, 100, 10000 };
-        int maxBodyComplexity = 2;
-
-        int[] headers = { 0, 1, 10, 100 };
-        int maxHeaderComplexity = 2;
-
-        bool addComments = true;
-
-        MessageParameters mp = null;
-        bool disposed = false;
-        bool atEnd = false;
-        MessageType[] legalTypesForCustomBodies = { MessageType.Streamed, MessageType.Custom, MessageType.DefaultBuffered, MessageType.BufferedBuffered };
-        int typeIndex = 0;
-
-        int versionIndex, actionIndex, bodyIndex, bodySizeIndex, headersIndex;
+        private long[] bodySizes = { 0, 1, 100, 10000 };
+        private int maxBodyComplexity = 2;
+        private int[] headers = { 0, 1, 10, 100 };
+        private int maxHeaderComplexity = 2;
+        private bool addComments = true;
+        private MessageParameters mp = null;
+        private bool disposed = false;
+        private bool atEnd = false;
+        private MessageType[] legalTypesForCustomBodies = { MessageType.Streamed, MessageType.Custom, MessageType.DefaultBuffered, MessageType.BufferedBuffered };
+        private int typeIndex = 0;
+        private int versionIndex, actionIndex, bodyIndex, bodySizeIndex, headersIndex;
     }
 
     public enum MessageType { Empty, Fault, XmlFormatterObject, BodyWriter, Streamed, /* Buffered, */ Custom, DefaultBuffered, BufferedBuffered, BufferedBodyBuffered }
@@ -727,10 +723,10 @@ namespace Helpers
 
     public class CustomGeneratedHeader : MessageHeader
     {
-        int id;
-        int complexity;
-        string name;
-        string namespaceString = MessageTestUtilities.SampleNamespace;
+        private int id;
+        private int complexity;
+        private string name;
+        private string namespaceString = MessageTestUtilities.SampleNamespace;
 
         // Complexity is an abstract measure that corresponds to general
         // fuzziness of a message:  attributes per element, children per
@@ -783,12 +779,12 @@ namespace Helpers
 
     public class CustomGeneratedMessage : Message
     {
-        MessageVersion version;
-        MessageHeaders headers;
-        MessageProperties properties;
-        int complexity;
-        long size;
-        bool addComments = false;
+        private MessageVersion version;
+        private MessageHeaders headers;
+        private MessageProperties properties;
+        private int complexity;
+        private long size;
+        private bool addComments = false;
 
         public CustomGeneratedMessage(MessageParameters howToCreate)
             :
@@ -882,11 +878,11 @@ namespace Helpers
 
     public class CustomStringMessage : Message
     {
-        MessageVersion version;
-        MessageHeaders headers;
-        MessageProperties properties;
-        XmlReader bodyReader;
-        bool addComments = false;
+        private MessageVersion version;
+        private MessageHeaders headers;
+        private MessageProperties properties;
+        private XmlReader bodyReader;
+        private bool addComments = false;
 
         public CustomStringMessage(MessageParameters howToCreate)
             : this(howToCreate.version, howToCreate.action, howToCreate.body)
@@ -965,9 +961,9 @@ namespace Helpers
 
     public class CustomGeneratedBodyWriter : BodyWriter
     {
-        int complexity;
-        long size;
-        bool addComments = false;
+        private int complexity;
+        private long size;
+        private bool addComments = false;
 
         public CustomGeneratedBodyWriter(MessageParameters howToCreate)
             :

@@ -3,7 +3,7 @@
 
 namespace CoreWCF
 {
-    class ServiceModelStringsVersion1 : ServiceModelStrings
+    internal class ServiceModelStringsVersion1 : ServiceModelStrings
     {
         public const string String0 = "mustUnderstand";
         public const string String1 = "Envelope";

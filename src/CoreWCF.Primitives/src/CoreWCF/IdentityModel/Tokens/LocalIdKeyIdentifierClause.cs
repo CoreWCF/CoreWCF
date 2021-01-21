@@ -8,8 +8,8 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class LocalIdKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        readonly string localId;
-        readonly Type[] ownerTypes;
+        private readonly string localId;
+        private readonly Type[] ownerTypes;
 
         public LocalIdKeyIdentifierClause(string localId)
             : this(localId, (Type[])null)

@@ -12,7 +12,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class UniqueContractNameValidationBehavior : IServiceBehavior
     {
-        Dictionary<XmlQualifiedName, ContractDescription> contracts = new Dictionary<XmlQualifiedName, ContractDescription>();
+        private Dictionary<XmlQualifiedName, ContractDescription> contracts = new Dictionary<XmlQualifiedName, ContractDescription>();
 
         public UniqueContractNameValidationBehavior() { }
 

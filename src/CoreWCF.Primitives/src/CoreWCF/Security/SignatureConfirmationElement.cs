@@ -7,11 +7,11 @@ using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecu
 
 namespace CoreWCF.Security
 {
-    class SignatureConfirmationElement : ISignatureValueSecurityElement
+    internal class SignatureConfirmationElement : ISignatureValueSecurityElement
     {
-        SecurityVersion version;
-        string id;
-        byte[] signatureValue;
+        private SecurityVersion version;
+        private string id;
+        private byte[] signatureValue;
 
         public SignatureConfirmationElement(string id, byte[] signatureValue, SecurityVersion version)
         {

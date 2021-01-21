@@ -37,7 +37,7 @@ namespace CoreWCF.Collections.Generic
             return Find<T>(true);
         }
 
-        T Find<T>(bool remove)
+        private T Find<T>(bool remove)
         {
             for (int i = 0; i < Count; i++)
             {
@@ -64,7 +64,7 @@ namespace CoreWCF.Collections.Generic
             return FindAll<T>(true);
         }
 
-        Collection<T> FindAll<T>(bool remove)
+        private Collection<T> FindAll<T>(bool remove)
         {
             Collection<T> result = new Collection<T>();
             foreach (TItem settings in this)

@@ -13,15 +13,14 @@ namespace CoreWCF.Security
         internal const X509RevocationMode DefaultRevocationMode = X509RevocationMode.Online;
         internal const StoreLocation DefaultTrustedStoreLocation = StoreLocation.LocalMachine;
         internal const bool DefaultMapCertificateToWindowsAccount = false;
-        static X509CertificateValidator defaultCertificateValidator;
-
-        X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
-        X509RevocationMode revocationMode = DefaultRevocationMode;
-        StoreLocation trustedStoreLocation = DefaultTrustedStoreLocation;
-        X509CertificateValidator customCertificateValidator = null;
-        bool mapClientCertificateToWindowsAccount = DefaultMapCertificateToWindowsAccount;
-        bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
-        bool isReadOnly;
+        private static X509CertificateValidator defaultCertificateValidator;
+        private X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
+        private X509RevocationMode revocationMode = DefaultRevocationMode;
+        private StoreLocation trustedStoreLocation = DefaultTrustedStoreLocation;
+        private X509CertificateValidator customCertificateValidator = null;
+        private bool mapClientCertificateToWindowsAccount = DefaultMapCertificateToWindowsAccount;
+        private bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
+        private bool isReadOnly;
 
         internal X509ClientCertificateAuthentication()
         {
@@ -171,7 +170,7 @@ namespace CoreWCF.Security
             isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
             if (isReadOnly)
             {

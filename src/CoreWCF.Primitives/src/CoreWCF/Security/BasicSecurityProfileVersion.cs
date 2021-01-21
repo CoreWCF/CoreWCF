@@ -12,9 +12,9 @@ namespace CoreWCF.Security
             get { return BasicSecurityProfile10BasicSecurityProfileVersion.Instance; }
         }
 
-        class BasicSecurityProfile10BasicSecurityProfileVersion : BasicSecurityProfileVersion
+        private class BasicSecurityProfile10BasicSecurityProfileVersion : BasicSecurityProfileVersion
         {
-            static BasicSecurityProfile10BasicSecurityProfileVersion instance = new BasicSecurityProfile10BasicSecurityProfileVersion();
+            private static BasicSecurityProfile10BasicSecurityProfileVersion instance = new BasicSecurityProfile10BasicSecurityProfileVersion();
 
             public static BasicSecurityProfile10BasicSecurityProfileVersion Instance { get { return instance; } }
 

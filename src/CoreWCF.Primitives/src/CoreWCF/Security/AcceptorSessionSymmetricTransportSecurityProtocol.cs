@@ -14,15 +14,15 @@ using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    sealed class AcceptorSessionSymmetricTransportSecurityProtocol : TransportSecurityProtocol, IAcceptorSecuritySessionProtocol
+    internal sealed class AcceptorSessionSymmetricTransportSecurityProtocol : TransportSecurityProtocol, IAcceptorSecuritySessionProtocol
     {
-        SecurityToken outgoingSessionToken;
-        SecurityTokenAuthenticator sessionTokenAuthenticator;
-        SecurityTokenResolver sessionTokenResolver;
-        ReadOnlyCollection<SecurityTokenResolver> sessionTokenResolverList;
-        UniqueId sessionId;
-        Collection<SupportingTokenAuthenticatorSpecification> sessionTokenAuthenticatorSpecificationList;
-        bool requireDerivedKeys;
+        private SecurityToken outgoingSessionToken;
+        private SecurityTokenAuthenticator sessionTokenAuthenticator;
+        private SecurityTokenResolver sessionTokenResolver;
+        private ReadOnlyCollection<SecurityTokenResolver> sessionTokenResolverList;
+        private UniqueId sessionId;
+        private Collection<SupportingTokenAuthenticatorSpecification> sessionTokenAuthenticatorSpecificationList;
+        private bool requireDerivedKeys;
 
         public AcceptorSessionSymmetricTransportSecurityProtocol(SessionSymmetricTransportSecurityProtocolFactory factory) : base(factory, null, null)
         {
@@ -34,7 +34,7 @@ namespace CoreWCF.Security
             this.requireDerivedKeys = factory.SecurityTokenParameters.RequireDerivedKeys;
         }
 
-        SessionSymmetricTransportSecurityProtocolFactory Factory
+        private SessionSymmetricTransportSecurityProtocolFactory Factory
         {
             get { return (SessionSymmetricTransportSecurityProtocolFactory)this.SecurityProtocolFactory; }
         }

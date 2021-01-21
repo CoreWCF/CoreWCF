@@ -9,11 +9,11 @@ namespace CoreWCF.Channels
 {
     public sealed class MessageVersion
     {
-        EnvelopeVersion envelope;
-        AddressingVersion addressing;
-        static MessageVersion none;
-        static MessageVersion soap11;
-        static MessageVersion soap12Addressing10;
+        private EnvelopeVersion envelope;
+        private AddressingVersion addressing;
+        private static MessageVersion none;
+        private static MessageVersion soap11;
+        private static MessageVersion soap12Addressing10;
 
         static MessageVersion()
         {

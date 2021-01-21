@@ -11,10 +11,10 @@ namespace CoreWCF.Security
 {
     internal class MessagePartSpecification
     {
-        List<XmlQualifiedName> _headerTypes;
-        bool _isBodyIncluded;
-        bool _isReadOnly;
-        static MessagePartSpecification _noParts;
+        private List<XmlQualifiedName> _headerTypes;
+        private bool _isBodyIncluded;
+        private bool _isReadOnly;
+        private static MessagePartSpecification _noParts;
 
         public ICollection<XmlQualifiedName> HeaderTypes
         {

@@ -9,7 +9,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class ConnectionReuseHandler : IConnectionReuseHandler
+    internal class ConnectionReuseHandler : IConnectionReuseHandler
     {
         private TcpTransportBindingElement _bindingElement;
         private int _maxPooledConnections;

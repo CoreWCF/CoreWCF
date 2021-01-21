@@ -7,7 +7,7 @@ using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    class GenericSecurityToken : SecurityToken
+    internal class GenericSecurityToken : SecurityToken
     {
         private string _id;
         private DateTime _effectiveTime;

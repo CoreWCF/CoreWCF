@@ -8,10 +8,10 @@ namespace CoreWCF
 {
     public class FaultCode
     {
-        FaultCode subCode;
-        string name;
-        string ns;
-        EnvelopeVersion version;
+        private FaultCode subCode;
+        private string name;
+        private string ns;
+        private EnvelopeVersion version;
 
         public FaultCode(string name)
             : this(name, "", null)

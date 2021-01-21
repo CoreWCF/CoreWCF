@@ -15,36 +15,36 @@ using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    static class SctClaimSerializer
+    internal static class SctClaimSerializer
     {
-        static void SerializeSid(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
+        private static void SerializeSid(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
         {
             byte[] sidBytes = new byte[sid.BinaryLength];
             sid.GetBinaryForm(sidBytes, 0);
             writer.WriteBase64(sidBytes, 0, sidBytes.Length);
         }
 
-        static void WriteRightAttribute(Claim claim, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
+        private static void WriteRightAttribute(Claim claim, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
         {
             if (Rights.PossessProperty.Equals(claim.Right))
                 return;
             writer.WriteAttributeString(dictionary.Right, dictionary.EmptyString, claim.Right);
         }
 
-        static string ReadRightAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
+        private static string ReadRightAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
         {
             string right = reader.GetAttribute(dictionary.Right, dictionary.EmptyString);
             return String.IsNullOrEmpty(right) ? Rights.PossessProperty : right;
         }
 
-        static void WriteSidAttribute(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
+        private static void WriteSidAttribute(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
         {
             byte[] sidBytes = new byte[sid.BinaryLength];
             sid.GetBinaryForm(sidBytes, 0);
             writer.WriteAttributeString(dictionary.Sid, dictionary.EmptyString, Convert.ToBase64String(sidBytes));
         }
 
-        static SecurityIdentifier ReadSidAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
+        private static SecurityIdentifier ReadSidAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
         {
             byte[] sidBytes = Convert.FromBase64String(reader.GetAttribute(dictionary.Sid, dictionary.EmptyString));
             return new SecurityIdentifier(sidBytes, 0);
@@ -413,7 +413,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static void SerializePrimaryIdentity(IIdentity identity, SctClaimDictionary dictionary, XmlDictionaryWriter writer, XmlObjectSerializer serializer)
+        private static void SerializePrimaryIdentity(IIdentity identity, SctClaimDictionary dictionary, XmlDictionaryWriter writer, XmlObjectSerializer serializer)
         {
             if (identity != null && identity != SecurityUtils.AnonymousIdentity)
             {
@@ -488,7 +488,7 @@ namespace CoreWCF.Security
             return identities;
         }
 
-        static IIdentity DeserializePrimaryIdentity(XmlDictionaryReader reader, SctClaimDictionary dictionary, XmlObjectSerializer serializer)
+        private static IIdentity DeserializePrimaryIdentity(XmlDictionaryReader reader, SctClaimDictionary dictionary, XmlObjectSerializer serializer)
         {
             IIdentity identity = null;
             if (reader.IsStartElement(dictionary.PrimaryIdentity, dictionary.EmptyString))

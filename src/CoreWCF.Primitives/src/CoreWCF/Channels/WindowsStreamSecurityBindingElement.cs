@@ -8,7 +8,7 @@ namespace CoreWCF.Channels
 {
     public class WindowsStreamSecurityBindingElement : StreamUpgradeBindingElement
     {
-        ProtectionLevel _protectionLevel;
+        private ProtectionLevel _protectionLevel;
 
         public WindowsStreamSecurityBindingElement()
             : base()

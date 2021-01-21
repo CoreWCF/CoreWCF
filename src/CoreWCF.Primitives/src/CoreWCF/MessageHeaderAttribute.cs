@@ -8,11 +8,11 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.MessageMember, AllowMultiple = false, Inherited = false)]
     public class MessageHeaderAttribute : MessageContractMemberAttribute
     {
-        bool _mustUnderstand;
-        bool _isMustUnderstandSet;
-        bool _relay;
-        bool _isRelaySet;
-        string _actor;
+        private bool _mustUnderstand;
+        private bool _isMustUnderstandSet;
+        private bool _relay;
+        private bool _isRelaySet;
+        private string _actor;
 
         public bool MustUnderstand
         {

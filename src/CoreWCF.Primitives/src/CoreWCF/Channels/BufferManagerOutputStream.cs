@@ -6,9 +6,9 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class BufferManagerOutputStream : BufferedOutputStream
+    internal class BufferManagerOutputStream : BufferedOutputStream
     {
-        string quotaExceededString;
+        private string quotaExceededString;
 
         public BufferManagerOutputStream(string quotaExceededString)
             : base()

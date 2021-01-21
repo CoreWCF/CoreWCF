@@ -6,7 +6,7 @@ using System.Net.Security;
 
 namespace CoreWCF.Channels
 {
-    class HttpsTransportBindingElement : HttpTransportBindingElement
+    internal class HttpsTransportBindingElement : HttpTransportBindingElement
     {
         public HttpsTransportBindingElement() : base()
         {
@@ -19,7 +19,7 @@ namespace CoreWCF.Channels
             RequireClientCertificate = elementToBeCloned.RequireClientCertificate;
         }
 
-        HttpsTransportBindingElement(HttpTransportBindingElement elementToBeCloned)
+        private HttpsTransportBindingElement(HttpTransportBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
         }

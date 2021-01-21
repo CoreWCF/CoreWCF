@@ -5,7 +5,7 @@ using System.Net.Security;
 
 namespace CoreWCF.Channels
 {
-    class SecurityCapabilities : ISecurityCapabilities
+    internal class SecurityCapabilities : ISecurityCapabilities
     {
         public SecurityCapabilities(bool supportsClientAuth, bool supportsServerAuth, bool supportsClientWindowsIdentity,
             ProtectionLevel requestProtectionLevel, ProtectionLevel responseProtectionLevel)
@@ -23,7 +23,7 @@ namespace CoreWCF.Channels
         public bool SupportsClientWindowsIdentity { get; }
         public bool SupportsServerAuthentication { get; }
 
-        static SecurityCapabilities None => new SecurityCapabilities(false, false, false, ProtectionLevel.None, ProtectionLevel.None);
+        private static SecurityCapabilities None => new SecurityCapabilities(false, false, false, ProtectionLevel.None, ProtectionLevel.None);
 
         internal static bool IsEqual(ISecurityCapabilities capabilities1, ISecurityCapabilities capabilities2)
         {

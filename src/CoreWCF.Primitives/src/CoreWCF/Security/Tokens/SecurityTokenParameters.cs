@@ -17,10 +17,9 @@ namespace CoreWCF.Security.Tokens
         internal const SecurityTokenInclusionMode defaultInclusionMode = SecurityTokenInclusionMode.AlwaysToRecipient;
         internal const SecurityTokenReferenceStyle defaultReferenceStyle = SecurityTokenReferenceStyle.Internal;
         internal const bool defaultRequireDerivedKeys = true;
-
-        SecurityTokenInclusionMode inclusionMode = defaultInclusionMode;
-        SecurityTokenReferenceStyle referenceStyle = defaultReferenceStyle;
-        bool requireDerivedKeys = defaultRequireDerivedKeys;
+        private SecurityTokenInclusionMode inclusionMode = defaultInclusionMode;
+        private SecurityTokenReferenceStyle referenceStyle = defaultReferenceStyle;
+        private bool requireDerivedKeys = defaultRequireDerivedKeys;
 
         protected SecurityTokenParameters(SecurityTokenParameters other)
         {

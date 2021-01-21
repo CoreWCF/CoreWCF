@@ -9,14 +9,14 @@ namespace CoreWCF.Channels
 {
     internal class CorrelationDataMessageProperty : IMessageProperty
     {
-        const string PropertyName = "CorrelationDataMessageProperty";
-        Dictionary<string, DataProviderEntry> dataProviders;
+        private const string PropertyName = "CorrelationDataMessageProperty";
+        private Dictionary<string, DataProviderEntry> dataProviders;
 
         public CorrelationDataMessageProperty()
         {
         }
 
-        CorrelationDataMessageProperty(IDictionary<string, DataProviderEntry> dataProviders)
+        private CorrelationDataMessageProperty(IDictionary<string, DataProviderEntry> dataProviders)
         {
             if (dataProviders != null && dataProviders.Count > 0)
             {
@@ -137,10 +137,10 @@ namespace CoreWCF.Channels
             return new CorrelationDataMessageProperty(dataProviders);
         }
 
-        class DataProviderEntry
+        private class DataProviderEntry
         {
-            string resolvedData;
-            Func<string> dataProvider;
+            private string resolvedData;
+            private Func<string> dataProvider;
 
             public DataProviderEntry(Func<string> dataProvider)
             {

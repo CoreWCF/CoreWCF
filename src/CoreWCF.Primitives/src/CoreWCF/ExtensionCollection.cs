@@ -11,7 +11,7 @@ namespace CoreWCF
     public sealed class ExtensionCollection<T> : SynchronizedCollection<IExtension<T>>, IExtensionCollection<T>
         where T : IExtensibleObject<T>
     {
-        readonly T _owner;
+        private readonly T _owner;
 
         public ExtensionCollection(T owner)
         {

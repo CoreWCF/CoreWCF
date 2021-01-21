@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
-    class InputChannel : ServiceChannelBase, IInputChannel
+    internal class InputChannel : ServiceChannelBase, IInputChannel
     {
         private IServiceProvider _serviceProvider;
 

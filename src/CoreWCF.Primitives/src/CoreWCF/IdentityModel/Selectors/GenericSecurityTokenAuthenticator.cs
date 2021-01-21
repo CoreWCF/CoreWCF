@@ -7,7 +7,7 @@ using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
-    class GenericSecurityTokenAuthenticator : SecurityTokenAuthenticator
+    internal class GenericSecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
         public GenericSecurityTokenAuthenticator()
         {

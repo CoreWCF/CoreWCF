@@ -6,9 +6,9 @@ using System.Xml;
 
 namespace CoreWCF.Security
 {
-    class LaxModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
+    internal class LaxModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
     {
-        static LaxModeSecurityHeaderElementInferenceEngine instance = new LaxModeSecurityHeaderElementInferenceEngine();
+        private static LaxModeSecurityHeaderElementInferenceEngine instance = new LaxModeSecurityHeaderElementInferenceEngine();
 
         protected LaxModeSecurityHeaderElementInferenceEngine() { }
 

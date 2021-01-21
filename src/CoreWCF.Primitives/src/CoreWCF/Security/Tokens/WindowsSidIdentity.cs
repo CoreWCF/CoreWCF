@@ -5,9 +5,9 @@ using System.Security.Principal;
 
 namespace CoreWCF.Security.Tokens
 {
-    class WindowsSidIdentity : IIdentity
+    internal class WindowsSidIdentity : IIdentity
     {
-        string _name;
+        private string _name;
 
         public WindowsSidIdentity(SecurityIdentifier sid)
         {

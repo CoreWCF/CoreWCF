@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace CoreWCF.Runtime
 {
-    abstract class InternalBufferManager
+    internal abstract class InternalBufferManager
     {
         protected InternalBufferManager()
         {
@@ -29,19 +29,18 @@ namespace CoreWCF.Runtime
             }
         }
 
-        class PooledBufferManager : InternalBufferManager
+        private class PooledBufferManager : InternalBufferManager
         {
-            const int minBufferSize = 128;
-            const int maxMissesBeforeTuning = 8;
-            const int initialBufferCount = 1;
-            readonly object tuningLock;
-
-            int[] bufferSizes;
-            BufferPool[] bufferPools;
-            long memoryLimit;
-            long remainingMemory;
-            bool areQuotasBeingTuned;
-            int totalMisses;
+            private const int minBufferSize = 128;
+            private const int maxMissesBeforeTuning = 8;
+            private const int initialBufferCount = 1;
+            private readonly object tuningLock;
+            private int[] bufferSizes;
+            private BufferPool[] bufferPools;
+            private long memoryLimit;
+            private long remainingMemory;
+            private bool areQuotasBeingTuned;
+            private int totalMisses;
 
             public PooledBufferManager(long maxMemoryToPool, int maxBufferSize)
             {
@@ -100,7 +99,7 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            void ChangeQuota(ref BufferPool bufferPool, int delta)
+            private void ChangeQuota(ref BufferPool bufferPool, int delta)
             {
 
                 //if (TraceCore.BufferPoolChangeQuotaIsEnabled(Fx.Trace))
@@ -125,12 +124,12 @@ namespace CoreWCF.Runtime
                 bufferPool = newBufferPool;
             }
 
-            void DecreaseQuota(ref BufferPool bufferPool)
+            private void DecreaseQuota(ref BufferPool bufferPool)
             {
                 ChangeQuota(ref bufferPool, -1);
             }
 
-            int FindMostExcessivePool()
+            private int FindMostExcessivePool()
             {
                 long maxBytesInExcess = 0;
                 int index = -1;
@@ -154,7 +153,7 @@ namespace CoreWCF.Runtime
                 return index;
             }
 
-            int FindMostStarvedPool()
+            private int FindMostStarvedPool()
             {
                 long maxBytesMissed = 0;
                 int index = -1;
@@ -178,7 +177,7 @@ namespace CoreWCF.Runtime
                 return index;
             }
 
-            BufferPool FindPool(int desiredBufferSize)
+            private BufferPool FindPool(int desiredBufferSize)
             {
                 for (int i = 0; i < bufferSizes.Length; i++)
                 {
@@ -191,7 +190,7 @@ namespace CoreWCF.Runtime
                 return null;
             }
 
-            void IncreaseQuota(ref BufferPool bufferPool)
+            private void IncreaseQuota(ref BufferPool bufferPool)
             {
                 ChangeQuota(ref bufferPool, 1);
             }
@@ -260,7 +259,7 @@ namespace CoreWCF.Runtime
                 return returnValue;
             }
 
-            void TuneQuotas()
+            private void TuneQuotas()
             {
                 if (areQuotasBeingTuned)
                 {
@@ -323,13 +322,13 @@ namespace CoreWCF.Runtime
                 areQuotasBeingTuned = false;
             }
 
-            abstract class BufferPool
+            private abstract class BufferPool
             {
-                int bufferSize;
-                int count;
-                int limit;
-                int misses;
-                int peak;
+                private int bufferSize;
+                private int count;
+                private int limit;
+                private int misses;
+                private int peak;
 
                 public BufferPool(int bufferSize, int limit)
                 {
@@ -407,9 +406,9 @@ namespace CoreWCF.Runtime
                     }
                 }
 
-                class SynchronizedBufferPool : BufferPool
+                private class SynchronizedBufferPool : BufferPool
                 {
-                    SynchronizedPool<byte[]> innerPool;
+                    private SynchronizedPool<byte[]> innerPool;
 
                     internal SynchronizedBufferPool(int bufferSize, int limit)
                         : base(bufferSize, limit)
@@ -433,9 +432,9 @@ namespace CoreWCF.Runtime
                     }
                 }
 
-                class LargeBufferPool : BufferPool
+                private class LargeBufferPool : BufferPool
                 {
-                    Stack<byte[]> items;
+                    private Stack<byte[]> items;
 
                     internal LargeBufferPool(int bufferSize, int limit)
                         : base(bufferSize, limit)
@@ -443,7 +442,7 @@ namespace CoreWCF.Runtime
                         items = new Stack<byte[]>(limit);
                     }
 
-                    object ThisLock
+                    private object ThisLock
                     {
                         get
                         {
@@ -489,11 +488,11 @@ namespace CoreWCF.Runtime
             }
         }
 
-        class GCBufferManager : InternalBufferManager
+        private class GCBufferManager : InternalBufferManager
         {
-            static GCBufferManager value = new GCBufferManager();
+            private static GCBufferManager value = new GCBufferManager();
 
-            GCBufferManager()
+            private GCBufferManager()
             {
             }
 

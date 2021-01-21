@@ -15,10 +15,9 @@ namespace CoreWCF.Security.Tokens
     {
         internal const bool defaultRequireClientCertificate = false;
         internal const bool defaultRequireCancellation = false;
-
-        bool requireCancellation = defaultRequireCancellation;
-        bool requireClientCertificate;
-        BindingContext issuerBindingContext;
+        private bool requireCancellation = defaultRequireCancellation;
+        private bool requireClientCertificate;
+        private BindingContext issuerBindingContext;
 
         protected SslSecurityTokenParameters(SslSecurityTokenParameters other)
             : base(other)

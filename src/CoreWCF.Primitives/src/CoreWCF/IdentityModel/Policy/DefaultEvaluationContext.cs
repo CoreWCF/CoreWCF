@@ -11,12 +11,11 @@ namespace CoreWCF.IdentityModel.Policy
 {
     internal class DefaultEvaluationContext : EvaluationContext
     {
-        List<ClaimSet> claimSets;
-        Dictionary<string, object> properties;
-        DateTime expirationTime = SecurityUtils.MaxUtcDateTime;
-        int generation;
-
-        ReadOnlyCollection<ClaimSet> readOnlyClaimSets;
+        private List<ClaimSet> claimSets;
+        private Dictionary<string, object> properties;
+        private DateTime expirationTime = SecurityUtils.MaxUtcDateTime;
+        private int generation;
+        private ReadOnlyCollection<ClaimSet> readOnlyClaimSets;
 
         public DefaultEvaluationContext()
         {

@@ -9,9 +9,9 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.MessageContract, AllowMultiple = false)]
     public sealed class MessageContractAttribute : Attribute
     {
-        bool isWrapped = true;
-        string wrappedName;
-        string wrappedNs;
+        private bool isWrapped = true;
+        private string wrappedName;
+        private string wrappedNs;
         //ProtectionLevel protectionLevel = ProtectionLevel.None;
         //bool hasProtectionLevel = false;
 

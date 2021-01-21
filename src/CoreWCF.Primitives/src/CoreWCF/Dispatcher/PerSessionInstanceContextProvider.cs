@@ -7,7 +7,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
-    class PerSessionInstanceContextProvider : InstanceContextProviderBase
+    internal class PerSessionInstanceContextProvider : InstanceContextProviderBase
     {
 
         internal PerSessionInstanceContextProvider(DispatchRuntime dispatchRuntime)

@@ -52,7 +52,7 @@ namespace CoreWCF.Security
 
         public abstract bool TryGetIdentity(EndpointAddress reference, out EndpointIdentity identity);
 
-        static void AdjustAddress(ref EndpointAddress reference, Uri via)
+        private static void AdjustAddress(ref EndpointAddress reference, Uri via)
         {
             // if we don't have an identity and we have differing Uris, we should use the Via
             if (reference.Identity == null && reference.Uri != via)
@@ -88,7 +88,7 @@ namespace CoreWCF.Security
             EnsureIdentity(serviceReference, ac, SR.IdentityCheckFailedForOutgoingMessage);
         }
 
-        void EnsureIdentity(EndpointAddress serviceReference, AuthorizationContext authorizationContext, string errorString)
+        private void EnsureIdentity(EndpointAddress serviceReference, AuthorizationContext authorizationContext, string errorString)
         {
             if (authorizationContext == null)
             {
@@ -111,7 +111,7 @@ namespace CoreWCF.Security
             }
         }
 
-        Exception CreateIdentityCheckException(EndpointIdentity identity, AuthorizationContext authorizationContext, string errorString, EndpointAddress serviceReference)
+        private Exception CreateIdentityCheckException(EndpointIdentity identity, AuthorizationContext authorizationContext, string errorString, EndpointAddress serviceReference)
         {
             Exception result;
 
@@ -173,7 +173,7 @@ namespace CoreWCF.Security
             return result;
         }
 
-        class DefaultIdentityVerifier : IdentityVerifier
+        private class DefaultIdentityVerifier : IdentityVerifier
         {
             public static DefaultIdentityVerifier Instance { get; } = new DefaultIdentityVerifier();
 
@@ -201,7 +201,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            EndpointIdentity TryCreateDnsIdentity(EndpointAddress reference)
+            private EndpointIdentity TryCreateDnsIdentity(EndpointAddress reference)
             {
                 Uri toAddress = reference.Uri;
 
@@ -211,7 +211,7 @@ namespace CoreWCF.Security
                 return EndpointIdentity.CreateDnsIdentity(toAddress.DnsSafeHost);
             }
 
-            SecurityIdentifier GetSecurityIdentifier(Claim claim)
+            private SecurityIdentifier GetSecurityIdentifier(Claim claim)
             {
                 // if the incoming claim is a SID and the EndpointIdentity is UPN/SPN/DNS, try to find the SID corresponding to
                 // the UPN/SPN/DNS (transactions case)
@@ -222,7 +222,7 @@ namespace CoreWCF.Security
                 return claim.Resource as SecurityIdentifier;
             }
 
-            Claim CheckDnsEquivalence(ClaimSet claimSet, string expectedSpn)
+            private Claim CheckDnsEquivalence(ClaimSet claimSet, string expectedSpn)
             {
                 // host/<machine-name> satisfies the DNS identity claim
                 IEnumerable<Claim> claims = claimSet.FindClaims(ClaimTypes.Spn, Rights.PossessProperty);
@@ -236,7 +236,7 @@ namespace CoreWCF.Security
                 return null;
             }
 
-            Claim CheckSidEquivalence(SecurityIdentifier identitySid, ClaimSet claimSet)
+            private Claim CheckSidEquivalence(SecurityIdentifier identitySid, ClaimSet claimSet)
             {
                 foreach (Claim claim in claimSet)
                 {

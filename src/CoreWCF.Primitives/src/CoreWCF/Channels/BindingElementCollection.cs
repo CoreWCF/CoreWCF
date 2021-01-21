@@ -80,7 +80,7 @@ namespace CoreWCF.Channels
             return Find<T>(true);
         }
 
-        T Find<T>(bool remove)
+        private T Find<T>(bool remove)
         {
             for (int index = 0; index < Count; index++)
             {
@@ -107,7 +107,7 @@ namespace CoreWCF.Channels
             return FindAll<T>(true);
         }
 
-        Collection<T> FindAll<T>(bool remove)
+        private Collection<T> FindAll<T>(bool remove)
         {
             Collection<T> collection = new Collection<T>();
 

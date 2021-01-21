@@ -18,7 +18,7 @@ namespace CoreWCF.Security
         private static SecurityStandardsManager s_instance;
         private readonly SecurityTokenSerializer _tokenSerializer;
         private WSSecurityTokenSerializer _wsSecurityTokenSerializer;
-        readonly TrustDriver trustDriver;
+        private readonly TrustDriver trustDriver;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public SecurityStandardsManager()

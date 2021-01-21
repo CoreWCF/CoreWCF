@@ -11,7 +11,7 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     public class WindowsSecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
-        bool includeWindowsGroups;
+        private bool includeWindowsGroups;
 
         public WindowsSecurityTokenAuthenticator() : this(WindowsClaimSet.DefaultIncludeWindowsGroups)
         {

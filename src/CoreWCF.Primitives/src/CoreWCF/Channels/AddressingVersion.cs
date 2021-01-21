@@ -9,9 +9,9 @@ namespace CoreWCF.Channels
     public sealed class AddressingVersion
     {
         /*MessagePartSpecification signedMessageParts;*/
-        string toStringFormat;
+        private string toStringFormat;
 
-        AddressingVersion(string ns, XmlDictionaryString dictionaryNs, string toStringFormat,
+        private AddressingVersion(string ns, XmlDictionaryString dictionaryNs, string toStringFormat,
             /*MessagePartSpecification signedMessageParts,*/ string anonymous, XmlDictionaryString dictionaryAnonymous, string none, string faultAction, string defaultFaultAction)
         {
             Namespace = ns;

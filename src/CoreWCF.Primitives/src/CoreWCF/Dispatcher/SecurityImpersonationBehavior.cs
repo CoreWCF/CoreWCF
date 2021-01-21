@@ -21,22 +21,22 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class SecurityImpersonationBehavior
     {
-        PrincipalPermissionMode principalPermissionMode;
-        object roleProvider;
-        bool impersonateCallerForAllOperations;
-        Dictionary<string, string> ncNameMap;
-        //Dictionary<string, string> domainNameMap;
-        Random random;
-        const int maxDomainNameMapSize = 5;
+        private PrincipalPermissionMode principalPermissionMode;
+        private object roleProvider;
+        private bool impersonateCallerForAllOperations;
+        private Dictionary<string, string> ncNameMap;
 
-        static WindowsPrincipal anonymousWindowsPrincipal;
-        static string s_directoryServerName = null;
+        //Dictionary<string, string> domainNameMap;
+        private Random random;
+        private const int maxDomainNameMapSize = 5;
+        private static WindowsPrincipal anonymousWindowsPrincipal;
+        private static string s_directoryServerName = null;
 
         //AuditLevel auditLevel = ServiceSecurityAuditBehavior.defaultMessageAuthenticationAuditLevel;
         //AuditLogLocation auditLogLocation = ServiceSecurityAuditBehavior.defaultAuditLogLocation;
         //bool suppressAuditFailure = ServiceSecurityAuditBehavior.defaultSuppressAuditFailure;
 
-        SecurityImpersonationBehavior(DispatchRuntime dispatch)
+        private SecurityImpersonationBehavior(DispatchRuntime dispatch)
         {
             principalPermissionMode = dispatch.PrincipalPermissionMode;
             impersonateCallerForAllOperations = dispatch.ImpersonateCallerForAllOperations;
@@ -58,7 +58,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        static WindowsPrincipal AnonymousWindowsPrincipal
+        private static WindowsPrincipal AnonymousWindowsPrincipal
         {
             get
             {
@@ -69,7 +69,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        static bool IsSecurityBehaviorNeeded(DispatchRuntime dispatch)
+        private static bool IsSecurityBehaviorNeeded(DispatchRuntime dispatch)
         {
             if (dispatch.PrincipalPermissionMode != PrincipalPermissionMode.None)
             {
@@ -99,7 +99,7 @@ namespace CoreWCF.Dispatcher
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        IPrincipal SetCurrentThreadPrincipal(ServiceSecurityContext securityContext, out bool isThreadPrincipalSet)
+        private IPrincipal SetCurrentThreadPrincipal(ServiceSecurityContext securityContext, out bool isThreadPrincipalSet)
         {
             IPrincipal result = null;
             IPrincipal principal = null;
@@ -143,7 +143,7 @@ namespace CoreWCF.Dispatcher
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static IPrincipal GetCustomPrincipal(ServiceSecurityContext securityContext)
+        private static IPrincipal GetCustomPrincipal(ServiceSecurityContext securityContext)
         {
             object customPrincipal;
             if (securityContext.AuthorizationContext.Properties.TryGetValue(SecurityUtils.Principal, out customPrincipal) && customPrincipal is IPrincipal)
@@ -288,7 +288,7 @@ namespace CoreWCF.Dispatcher
             return returnValue;
         }
 
-        IPrincipal GetWindowsPrincipal(ServiceSecurityContext securityContext)
+        private IPrincipal GetWindowsPrincipal(ServiceSecurityContext securityContext)
         {
             WindowsIdentity wid = securityContext.WindowsIdentity;
             if (!wid.IsAnonymous)
@@ -301,7 +301,7 @@ namespace CoreWCF.Dispatcher
             return AnonymousWindowsPrincipal;
         }
 
-        ServiceSecurityContext GetAndCacheSecurityContext(MessageRpc rpc)
+        private ServiceSecurityContext GetAndCacheSecurityContext(MessageRpc rpc)
         {
             ServiceSecurityContext securityContext = rpc.SecurityContext;
 
@@ -324,7 +324,7 @@ namespace CoreWCF.Dispatcher
             return securityContext;
         }
 
-        string GetUpnFromDownlevelName(string downlevelName)
+        private string GetUpnFromDownlevelName(string downlevelName)
         {
             // On Desktop this code calls SECUR32.DLL!TranslateName to translate just the domain part of the downlevel name (DOMAIN\username) to a canonical name.
             // It then removes the trailing slash and joines username, '@' and the canonical name to create the Upn name. It then caches the DOMAIN -> canonical mapping
@@ -439,10 +439,10 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class WindowsSidPrincipal : IPrincipal
+        private class WindowsSidPrincipal : IPrincipal
         {
-            WindowsSidIdentity identity;
-            ServiceSecurityContext securityContext;
+            private WindowsSidIdentity identity;
+            private ServiceSecurityContext securityContext;
 
             public WindowsSidPrincipal(WindowsSidIdentity identity, ServiceSecurityContext securityContext)
             {

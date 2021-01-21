@@ -7,8 +7,8 @@ namespace CoreWCF.Security
 {
     public abstract class SecurityPolicyVersion
     {
-        readonly String spNamespace;
-        readonly String prefix;
+        private readonly String spNamespace;
+        private readonly String prefix;
 
         internal SecurityPolicyVersion(String ns, String prefix)
         {
@@ -42,9 +42,9 @@ namespace CoreWCF.Security
             get { return WSSecurityPolicyVersion12.Instance; }
         }
 
-        class WSSecurityPolicyVersion11 : SecurityPolicyVersion
+        private class WSSecurityPolicyVersion11 : SecurityPolicyVersion
         {
-            static readonly WSSecurityPolicyVersion11 instance = new WSSecurityPolicyVersion11();
+            private static readonly WSSecurityPolicyVersion11 instance = new WSSecurityPolicyVersion11();
 
             protected WSSecurityPolicyVersion11()
                 : base(CoreWCF.Security.WSSecurityPolicy11.WsspNamespace, WSSecurityPolicy.WsspPrefix)
@@ -60,9 +60,9 @@ namespace CoreWCF.Security
             }
         }
 
-        class WSSecurityPolicyVersion12 : SecurityPolicyVersion
+        private class WSSecurityPolicyVersion12 : SecurityPolicyVersion
         {
-            static readonly WSSecurityPolicyVersion12 instance = new WSSecurityPolicyVersion12();
+            private static readonly WSSecurityPolicyVersion12 instance = new WSSecurityPolicyVersion12();
 
             protected WSSecurityPolicyVersion12()
                 : base(CoreWCF.Security.WSSecurityPolicy12.WsspNamespace, WSSecurityPolicy.WsspPrefix)

@@ -11,14 +11,14 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class ChannelDemuxer
+    internal class ChannelDemuxer
     {
         public readonly static TimeSpan UseDefaultReceiveTimeout = TimeSpan.MinValue;
-        TypedChannelDemuxer inputDemuxer;
-        TypedChannelDemuxer replyDemuxer;
-        Dictionary<Type, TypedChannelDemuxer> typeDemuxers;
-        TimeSpan peekTimeout;
-        int maxPendingSessions;
+        private TypedChannelDemuxer inputDemuxer;
+        private TypedChannelDemuxer replyDemuxer;
+        private Dictionary<Type, TypedChannelDemuxer> typeDemuxers;
+        private TimeSpan peekTimeout;
+        private int maxPendingSessions;
 
         public ChannelDemuxer()
         {
@@ -108,7 +108,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    abstract class TypedChannelDemuxer : IServiceDispatcher
+    internal abstract class TypedChannelDemuxer : IServiceDispatcher
     {
         public abstract Uri BaseAddress { get; }
         public abstract Binding Binding { get; }
@@ -165,14 +165,14 @@ namespace CoreWCF.Channels
     // Datagram demuxers
     //
 
-    abstract class DatagramChannelDemuxer<TInnerChannel, TInnerItem> : TypedChannelDemuxer
+    internal abstract class DatagramChannelDemuxer<TInnerChannel, TInnerItem> : TypedChannelDemuxer
         where TInnerChannel : class, IChannel
         where TInnerItem : class, IDisposable
     {
-        MessageFilterTable<IServiceDispatcher> filterTable;
-        TInnerChannel innerChannel;
-        IServiceDispatcher innerDispatcher;
-        IChannelDemuxFailureHandler demuxFailureHandler;
+        private MessageFilterTable<IServiceDispatcher> filterTable;
+        private TInnerChannel innerChannel;
+        private IServiceDispatcher innerDispatcher;
+        private IChannelDemuxFailureHandler demuxFailureHandler;
         // since the OnOuterListenerOpen method will be called for every outer listener and we will open
         // the inner listener only once, we need to ensure that all the outer listeners wait till the 
         // inner listener is opened.
@@ -443,7 +443,7 @@ namespace CoreWCF.Channels
     //    }
     //}
 
-    class ReplyChannelDemuxer : DatagramChannelDemuxer<IReplyChannel, RequestContext>
+    internal class ReplyChannelDemuxer : DatagramChannelDemuxer<IReplyChannel, RequestContext>
     {
         private static IList<Type> s_supportedChannelTypes = new List<Type> { typeof(IReplyChannel) };
 
@@ -557,15 +557,15 @@ namespace CoreWCF.Channels
         }
     }
 
-    interface IChannelDemuxerFilter
+    internal interface IChannelDemuxerFilter
     {
         ChannelDemuxerFilter Filter { get; }
     }
 
-    class ChannelDemuxerFilter
+    internal class ChannelDemuxerFilter
     {
-        MessageFilter filter;
-        int priority;
+        private MessageFilter filter;
+        private int priority;
 
         public ChannelDemuxerFilter(MessageFilter filter, int priority)
         {
@@ -584,8 +584,7 @@ namespace CoreWCF.Channels
         }
     }
 
-
-    interface IChannelDemuxFailureHandler
+    internal interface IChannelDemuxFailureHandler
     {
         Task HandleDemuxFailureAsync(Message message);
         Task HandleDemuxFailureAsync(Message message, RequestContext faultContext);

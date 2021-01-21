@@ -9,9 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace CoreWCF.Channels
 {
     // tracks StreamUpgradeProvider so that the channel can outlive the Listener
-    class ConnectionOrientedTransportReplyChannel : ReplyChannel
+    internal class ConnectionOrientedTransportReplyChannel : ReplyChannel
     {
-        StreamUpgradeProvider _upgrade;
+        private StreamUpgradeProvider _upgrade;
         private IServiceProvider _serviceProvider;
 
         public ConnectionOrientedTransportReplyChannel(ITransportFactorySettings settings, EndpointAddress localAddress, IServiceProvider serviceProvider)

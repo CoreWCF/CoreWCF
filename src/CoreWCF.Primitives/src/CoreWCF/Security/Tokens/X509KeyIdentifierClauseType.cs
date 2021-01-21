@@ -14,7 +14,7 @@ namespace CoreWCF.Security.Tokens
         RawDataKeyIdentifier = 4
     }
 
-    static class X509SecurityTokenReferenceStyleHelper
+    internal static class X509SecurityTokenReferenceStyleHelper
     {
         public static bool IsDefined(X509KeyIdentifierClauseType value)
         {

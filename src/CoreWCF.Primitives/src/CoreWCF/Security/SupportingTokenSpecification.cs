@@ -10,7 +10,7 @@ namespace CoreWCF.Security
 {
     public class SupportingTokenSpecification : SecurityTokenSpecification
     {
-        SecurityTokenParameters tokenParameters;
+        private SecurityTokenParameters tokenParameters;
 
         public SupportingTokenSpecification(SecurityToken token, ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies, SecurityTokenAttachmentMode attachmentMode)
             : this(token, tokenPolicies, attachmentMode, null)

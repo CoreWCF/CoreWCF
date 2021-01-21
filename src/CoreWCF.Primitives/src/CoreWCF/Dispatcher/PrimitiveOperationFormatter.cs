@@ -15,25 +15,24 @@ namespace CoreWCF.Dispatcher
     internal class PrimitiveOperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
         internal static readonly string NsXsi = "http://www.w3.org/2001/XMLSchema-instance";
-
-        OperationDescription operation;
-        MessageDescription responseMessage;
-        MessageDescription requestMessage;
-        XmlDictionaryString action;
-        XmlDictionaryString replyAction;
-        ActionHeader actionHeaderNone;
-        ActionHeader actionHeader10;
-        ActionHeader replyActionHeaderNone;
-        ActionHeader replyActionHeader10;
-        XmlDictionaryString requestWrapperName;
-        XmlDictionaryString requestWrapperNamespace;
-        XmlDictionaryString responseWrapperName;
-        XmlDictionaryString responseWrapperNamespace;
-        PartInfo[] requestParts;
-        PartInfo[] responseParts;
-        PartInfo returnPart;
-        XmlDictionaryString xsiNilLocalName;
-        XmlDictionaryString xsiNilNamespace;
+        private OperationDescription operation;
+        private MessageDescription responseMessage;
+        private MessageDescription requestMessage;
+        private XmlDictionaryString action;
+        private XmlDictionaryString replyAction;
+        private ActionHeader actionHeaderNone;
+        private ActionHeader actionHeader10;
+        private ActionHeader replyActionHeaderNone;
+        private ActionHeader replyActionHeader10;
+        private XmlDictionaryString requestWrapperName;
+        private XmlDictionaryString requestWrapperNamespace;
+        private XmlDictionaryString responseWrapperName;
+        private XmlDictionaryString responseWrapperNamespace;
+        private PartInfo[] requestParts;
+        private PartInfo[] responseParts;
+        private PartInfo returnPart;
+        private XmlDictionaryString xsiNilLocalName;
+        private XmlDictionaryString xsiNilNamespace;
 
         public PrimitiveOperationFormatter(OperationDescription description, bool isRpc)
         {
@@ -83,7 +82,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        ActionHeader ActionHeaderNone
+        private ActionHeader ActionHeaderNone
         {
             get
             {
@@ -97,7 +96,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        ActionHeader ActionHeader10
+        private ActionHeader ActionHeader10
         {
             get
             {
@@ -125,7 +124,7 @@ namespace CoreWCF.Dispatcher
         //    }
         //}
 
-        ActionHeader ReplyActionHeaderNone
+        private ActionHeader ReplyActionHeaderNone
         {
             get
             {
@@ -139,7 +138,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        ActionHeader ReplyActionHeader10
+        private ActionHeader ReplyActionHeader10
         {
             get
             {
@@ -167,7 +166,7 @@ namespace CoreWCF.Dispatcher
         //    }
         //}
 
-        static XmlDictionaryString AddToDictionary(XmlDictionary dictionary, string s)
+        private static XmlDictionaryString AddToDictionary(XmlDictionary dictionary, string s)
         {
             XmlDictionaryString dictionaryString;
             if (!dictionary.TryLookup(s, out dictionaryString))
@@ -177,7 +176,7 @@ namespace CoreWCF.Dispatcher
             return dictionaryString;
         }
 
-        static PartInfo[] AddToDictionary(XmlDictionary dictionary, MessagePartDescriptionCollection parts, bool isRpc)
+        private static PartInfo[] AddToDictionary(XmlDictionary dictionary, MessagePartDescriptionCollection parts, bool isRpc)
         {
             PartInfo[] partInfos = new PartInfo[parts.Count];
             for (int i = 0; i < parts.Count; i++)
@@ -187,7 +186,7 @@ namespace CoreWCF.Dispatcher
             return partInfos;
         }
 
-        ActionHeader GetActionHeader(AddressingVersion addressing)
+        private ActionHeader GetActionHeader(AddressingVersion addressing)
         {
             if (action == null)
             {
@@ -214,7 +213,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        ActionHeader GetReplyActionHeader(AddressingVersion addressing)
+        private ActionHeader GetReplyActionHeader(AddressingVersion addressing)
         {
             if (replyAction == null)
             {
@@ -241,7 +240,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        static string GetArrayItemName(Type type)
+        private static string GetArrayItemName(Type type)
         {
             switch (type.GetTypeCode())
             {
@@ -264,7 +263,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        static PartInfo AddToDictionary(XmlDictionary dictionary, MessagePartDescription part, bool isRpc)
+        private static PartInfo AddToDictionary(XmlDictionary dictionary, MessagePartDescription part, bool isRpc)
         {
             Type type = part.Type;
             XmlDictionaryString itemName = null;
@@ -320,7 +319,7 @@ namespace CoreWCF.Dispatcher
             return true;
         }
 
-        static bool AreTypesSupported(MessagePartDescriptionCollection bodyDescriptions)
+        private static bool AreTypesSupported(MessagePartDescriptionCollection bodyDescriptions)
         {
             for (int i = 0; i < bodyDescriptions.Count; i++)
                 if (!IsTypeSupported(bodyDescriptions[i]))
@@ -328,7 +327,7 @@ namespace CoreWCF.Dispatcher
             return true;
         }
 
-        static bool IsTypeSupported(MessagePartDescription bodyDescription)
+        private static bool IsTypeSupported(MessagePartDescription bodyDescription)
         {
             Fx.Assert(bodyDescription != null, "");
             Type type = bodyDescription.Type;
@@ -363,7 +362,7 @@ namespace CoreWCF.Dispatcher
             return false;
         }
 
-        static bool IsArrayTypeSupported(Type type)
+        private static bool IsArrayTypeSupported(Type type)
         {
             if (type.GetTypeInfo().IsEnum)
                 return false;
@@ -489,7 +488,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void DeserializeRequest(XmlDictionaryReader reader, object[] parameters)
+        private void DeserializeRequest(XmlDictionaryReader reader, object[] parameters)
         {
             if (requestWrapperName != null)
             {
@@ -511,7 +510,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        object DeserializeResponse(XmlDictionaryReader reader, object[] parameters)
+        private object DeserializeResponse(XmlDictionaryReader reader, object[] parameters)
         {
             if (responseWrapperName != null)
             {
@@ -552,8 +551,7 @@ namespace CoreWCF.Dispatcher
             return returnValue;
         }
 
-
-        void DeserializeParameters(XmlDictionaryReader reader, PartInfo[] parts, object[] parameters)
+        private void DeserializeParameters(XmlDictionaryReader reader, PartInfo[] parts, object[] parameters)
         {
             if (parts.Length != parameters.Length)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
@@ -587,12 +585,12 @@ namespace CoreWCF.Dispatcher
             return false;
         }
 
-        bool IsPartElement(XmlDictionaryReader reader, PartInfo part)
+        private bool IsPartElement(XmlDictionaryReader reader, PartInfo part)
         {
             return reader.IsStartElement(part.DictionaryName, part.DictionaryNamespace);
         }
 
-        object DeserializeParameter(XmlDictionaryReader reader, PartInfo part)
+        private object DeserializeParameter(XmlDictionaryReader reader, PartInfo part)
         {
             if (reader.AttributeCount > 0 &&
                 reader.MoveToAttribute(xsiNilLocalName.Value, xsiNilNamespace.Value) &&
@@ -604,7 +602,7 @@ namespace CoreWCF.Dispatcher
             return part.ReadValue(reader);
         }
 
-        void SerializeParameter(XmlDictionaryWriter writer, PartInfo part, object graph)
+        private void SerializeParameter(XmlDictionaryWriter writer, PartInfo part, object graph)
         {
 
             writer.WriteStartElement(part.DictionaryName, part.DictionaryNamespace);
@@ -619,7 +617,7 @@ namespace CoreWCF.Dispatcher
             writer.WriteEndElement();
         }
 
-        void SerializeParameters(XmlDictionaryWriter writer, PartInfo[] parts, object[] parameters)
+        private void SerializeParameters(XmlDictionaryWriter writer, PartInfo[] parts, object[] parameters)
         {
             if (parts.Length != parameters.Length)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
@@ -633,7 +631,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void SerializeRequest(XmlDictionaryWriter writer, object[] parameters)
+        private void SerializeRequest(XmlDictionaryWriter writer, object[] parameters)
         {
             if (requestWrapperName != null)
                 writer.WriteStartElement(requestWrapperName, requestWrapperNamespace);
@@ -644,7 +642,7 @@ namespace CoreWCF.Dispatcher
                 writer.WriteEndElement();
         }
 
-        void SerializeResponse(XmlDictionaryWriter writer, object returnValue, object[] parameters)
+        private void SerializeResponse(XmlDictionaryWriter writer, object returnValue, object[] parameters)
         {
             if (responseWrapperName != null)
                 writer.WriteStartElement(responseWrapperName, responseWrapperNamespace);
@@ -658,15 +656,15 @@ namespace CoreWCF.Dispatcher
                 writer.WriteEndElement();
         }
 
-        class PartInfo
+        private class PartInfo
         {
-            XmlDictionaryString dictionaryName;
-            XmlDictionaryString dictionaryNamespace;
-            XmlDictionaryString itemName;
-            XmlDictionaryString itemNamespace;
-            MessagePartDescription description;
-            TypeCode typeCode;
-            bool isArray;
+            private XmlDictionaryString dictionaryName;
+            private XmlDictionaryString dictionaryNamespace;
+            private XmlDictionaryString itemName;
+            private XmlDictionaryString itemNamespace;
+            private MessagePartDescription description;
+            private TypeCode typeCode;
+            private bool isArray;
 
             public PartInfo(MessagePartDescription description, XmlDictionaryString dictionaryName, XmlDictionaryString dictionaryNamespace, XmlDictionaryString itemName, XmlDictionaryString itemNamespace)
             {
@@ -934,10 +932,10 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class PrimitiveRequestBodyWriter : BodyWriter
+        private class PrimitiveRequestBodyWriter : BodyWriter
         {
-            object[] parameters;
-            PrimitiveOperationFormatter primitiveOperationFormatter;
+            private object[] parameters;
+            private PrimitiveOperationFormatter primitiveOperationFormatter;
 
             public PrimitiveRequestBodyWriter(object[] parameters, PrimitiveOperationFormatter primitiveOperationFormatter)
                 : base(true)
@@ -952,11 +950,11 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class PrimitiveResponseBodyWriter : BodyWriter
+        private class PrimitiveResponseBodyWriter : BodyWriter
         {
-            object[] parameters;
-            object returnValue;
-            PrimitiveOperationFormatter primitiveOperationFormatter;
+            private object[] parameters;
+            private object returnValue;
+            private PrimitiveOperationFormatter primitiveOperationFormatter;
 
             public PrimitiveResponseBodyWriter(object[] parameters, object returnValue,
                 PrimitiveOperationFormatter primitiveOperationFormatter)

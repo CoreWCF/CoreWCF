@@ -7,7 +7,7 @@ namespace CoreWCF.Security
 {
     public abstract class TrustVersion
     {
-        readonly XmlDictionaryString prefix;
+        private readonly XmlDictionaryString prefix;
 
         internal TrustVersion(XmlDictionaryString ns, XmlDictionaryString prefix)
         {
@@ -25,9 +25,9 @@ namespace CoreWCF.Security
 
         public static TrustVersion WSTrust13 => WSTrustVersion13.Instance;
 
-        class WSTrustVersionFeb2005 : TrustVersion
+        private class WSTrustVersionFeb2005 : TrustVersion
         {
-            static readonly WSTrustVersionFeb2005 instance = new WSTrustVersionFeb2005();
+            private static readonly WSTrustVersionFeb2005 instance = new WSTrustVersionFeb2005();
 
             protected WSTrustVersionFeb2005()
                 : base(XD.TrustFeb2005Dictionary.Namespace, XD.TrustFeb2005Dictionary.Prefix)
@@ -37,9 +37,9 @@ namespace CoreWCF.Security
             public static TrustVersion Instance => instance;
         }
 
-        class WSTrustVersion13 : TrustVersion
+        private class WSTrustVersion13 : TrustVersion
         {
-            static readonly WSTrustVersion13 instance = new WSTrustVersion13();
+            private static readonly WSTrustVersion13 instance = new WSTrustVersion13();
 
             protected WSTrustVersion13()
                 : base(DXD.TrustDec2005Dictionary.Namespace, DXD.TrustDec2005Dictionary.Prefix)

@@ -16,15 +16,14 @@ namespace CoreWCF.Description
         internal const bool DefaultImpersonateCallerForAllOperations = false;
         internal const bool DefaultImpersonateOnSerializingReply = false;
         internal const PrincipalPermissionMode DefaultPrincipalPermissionMode = PrincipalPermissionMode.UseWindowsGroups;
-
-        bool impersonateCallerForAllOperations;
-        bool impersonateOnSerializingReply;
-        ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
-        ServiceAuthorizationManager serviceAuthorizationManager;
-        PrincipalPermissionMode principalPermissionMode;
-        bool isExternalPoliciesSet;
-        bool isAuthorizationManagerSet;
-        bool isReadOnly;
+        private bool impersonateCallerForAllOperations;
+        private bool impersonateOnSerializingReply;
+        private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
+        private ServiceAuthorizationManager serviceAuthorizationManager;
+        private PrincipalPermissionMode principalPermissionMode;
+        private bool isExternalPoliciesSet;
+        private bool isAuthorizationManagerSet;
+        private bool isReadOnly;
 
         public ServiceAuthorizationBehavior()
         {
@@ -33,7 +32,7 @@ namespace CoreWCF.Description
             principalPermissionMode = DefaultPrincipalPermissionMode;
         }
 
-        ServiceAuthorizationBehavior(ServiceAuthorizationBehavior other)
+        private ServiceAuthorizationBehavior(ServiceAuthorizationBehavior other)
         {
             impersonateCallerForAllOperations = other.impersonateCallerForAllOperations;
             impersonateOnSerializingReply = other.impersonateOnSerializingReply;
@@ -136,7 +135,7 @@ namespace CoreWCF.Description
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        void ApplyAuthorizationPoliciesAndManager(DispatchRuntime behavior)
+        private void ApplyAuthorizationPoliciesAndManager(DispatchRuntime behavior)
         {
             if (externalAuthorizationPolicies != null)
             {
@@ -149,7 +148,7 @@ namespace CoreWCF.Description
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        void CopyAuthorizationPoliciesAndManager(ServiceAuthorizationBehavior other)
+        private void CopyAuthorizationPoliciesAndManager(ServiceAuthorizationBehavior other)
         {
             externalAuthorizationPolicies = other.externalAuthorizationPolicies;
             serviceAuthorizationManager = other.serviceAuthorizationManager;
@@ -208,7 +207,7 @@ namespace CoreWCF.Description
             isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
             if (isReadOnly)
             {

@@ -10,12 +10,12 @@ namespace CoreWCF.Channels
 {
     public abstract class Binding : IDefaultCommunicationTimeouts
     {
-        TimeSpan closeTimeout = ServiceDefaults.CloseTimeout;
-        string name;
-        string namespaceIdentifier;
-        TimeSpan openTimeout = ServiceDefaults.OpenTimeout;
-        TimeSpan receiveTimeout = ServiceDefaults.ReceiveTimeout;
-        TimeSpan sendTimeout = ServiceDefaults.SendTimeout;
+        private TimeSpan closeTimeout = ServiceDefaults.CloseTimeout;
+        private string name;
+        private string namespaceIdentifier;
+        private TimeSpan openTimeout = ServiceDefaults.OpenTimeout;
+        private TimeSpan receiveTimeout = ServiceDefaults.ReceiveTimeout;
+        private TimeSpan sendTimeout = ServiceDefaults.SendTimeout;
         internal const string DefaultNamespace = NamingHelper.DefaultNamespace;
 
         protected Binding()
@@ -162,7 +162,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ValidateSecurityCapabilities(ISecurityCapabilities runtimeSecurityCapabilities, BindingParameterCollection parameters)
+        private void ValidateSecurityCapabilities(ISecurityCapabilities runtimeSecurityCapabilities, BindingParameterCollection parameters)
         {
             ISecurityCapabilities bindingSecurityCapabilities = GetProperty<ISecurityCapabilities>(parameters);
 
@@ -216,7 +216,7 @@ where TChannel : class, IChannel
             return context.GetInnerProperty<T>();
         }
 
-        void EnsureInvariants()
+        private void EnsureInvariants()
         {
             EnsureInvariants(null);
         }

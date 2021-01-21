@@ -16,7 +16,7 @@ namespace DispatcherClient
 
         IOutputSession ISessionChannel<IOutputSession>.Session { get; } = new OutputSession();
 
-        class OutputSession : IOutputSession
+        private class OutputSession : IOutputSession
         {
             public string Id { get; } = "uuid://dispatcher-session/" + Guid.NewGuid().ToString();
         }

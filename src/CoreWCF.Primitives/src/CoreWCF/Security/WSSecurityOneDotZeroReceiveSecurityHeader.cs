@@ -268,7 +268,7 @@ namespace CoreWCF.Security
             }
         }
 
-        SecurityToken ResolveSignatureToken(SecurityKeyIdentifier keyIdentifier, SecurityTokenResolver resolver, bool isPrimarySignature)
+        private SecurityToken ResolveSignatureToken(SecurityKeyIdentifier keyIdentifier, SecurityTokenResolver resolver, bool isPrimarySignature)
         {
             SecurityToken token = null;
             TryResolveKeyIdentifier(keyIdentifier, resolver, true, out token);

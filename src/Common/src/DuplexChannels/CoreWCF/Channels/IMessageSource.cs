@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
-    interface IMessageSource
+    internal interface IMessageSource
     {
         Task<Message> ReceiveAsync(CancellationToken token);
         Task<bool> WaitForMessageAsync(CancellationToken token);

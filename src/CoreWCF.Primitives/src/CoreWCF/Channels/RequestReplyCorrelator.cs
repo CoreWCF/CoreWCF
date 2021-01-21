@@ -11,7 +11,7 @@ namespace CoreWCF.Channels
 {
     internal class RequestReplyCorrelator : IRequestReplyCorrelator
     {
-        IDictionary<Key, object> states;
+        private IDictionary<Key, object> states;
 
         internal RequestReplyCorrelator()
         {
@@ -71,7 +71,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        UniqueId GetRelatesTo(Message reply)
+        private UniqueId GetRelatesTo(Message reply)
         {
             UniqueId relatesTo = reply.Headers.RelatesTo;
             if (relatesTo == null)
@@ -205,7 +205,7 @@ namespace CoreWCF.Channels
 
             internal EndpointAddress ReplyTo { get; }
 
-            bool IsTrivial(EndpointAddress address)
+            private bool IsTrivial(EndpointAddress address)
             {
                 // Note: even if address.IsAnonymous, it may have identity, reference parameters, etc.
                 return (address == null) || (address == EndpointAddress.AnonymousAddress);

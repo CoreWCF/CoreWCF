@@ -6,11 +6,11 @@ using System.Collections.Generic;
 
 namespace CoreWCF.IdentityModel
 {
-    struct MostlySingletonList<T> where T : class
+    internal struct MostlySingletonList<T> where T : class
     {
-        int count;
-        T singleton;
-        List<T> list;
+        private int count;
+        private T singleton;
+        private List<T> list;
 
         public T this[int index]
         {
@@ -51,7 +51,7 @@ namespace CoreWCF.IdentityModel
             this.count++;
         }
 
-        static bool Compare(T x, T y)
+        private static bool Compare(T x, T y)
         {
             return x == null ? y == null : x.Equals(y);
         }
@@ -61,7 +61,7 @@ namespace CoreWCF.IdentityModel
             return IndexOf(item) >= 0;
         }
 
-        void EnsureValidSingletonIndex(int index)
+        private void EnsureValidSingletonIndex(int index)
         {
             if (this.count != 1)
             {
@@ -75,7 +75,7 @@ namespace CoreWCF.IdentityModel
 
         }
 
-        bool MatchesSingleton(T item)
+        private bool MatchesSingleton(T item)
         {
             return this.count == 1 && Compare(this.singleton, item);
         }

@@ -31,7 +31,7 @@ using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    static class ProtectionLevelHelper
+    internal static class ProtectionLevelHelper
     {
         internal static bool IsDefined(ProtectionLevel value)
         {
@@ -87,7 +87,7 @@ namespace CoreWCF.Security
         }
     }
 
-    static class SslProtocolsHelper
+    internal static class SslProtocolsHelper
     {
         internal static bool IsDefined(SslProtocols value)
         {
@@ -111,7 +111,7 @@ namespace CoreWCF.Security
 
     internal class ServiceModelDictionaryManager
     {
-        static DictionaryManager dictionaryManager;
+        private static DictionaryManager dictionaryManager;
 
         public static DictionaryManager Instance
         {
@@ -129,22 +129,22 @@ namespace CoreWCF.Security
     {
         public const string Principal = "Principal";
         public const string Identities = "Identities";
-        static SecurityIdentifier administratorsSid;
+        private static SecurityIdentifier administratorsSid;
         internal static byte[] ReadContentAsBase64(XmlDictionaryReader reader, long maxBufferSize)
         {
             throw new PlatformNotSupportedException();
         }
 
-        static bool computedDomain;
+        private static bool computedDomain;
 
         internal static byte[] EncryptKey(SecurityToken wrappingToken, string wrappingAlgorithm, byte[] keyToWrap)
         {
             throw new PlatformNotSupportedException();
         }
 
-        static string currentDomain;
-        static IIdentity anonymousIdentity;
-        static X509SecurityTokenAuthenticator nonValidatingX509Authenticator;
+        private static string currentDomain;
+        private static IIdentity anonymousIdentity;
+        private static X509SecurityTokenAuthenticator nonValidatingX509Authenticator;
 
         internal static IIdentity AnonymousIdentity
         {
@@ -274,12 +274,12 @@ namespace CoreWCF.Security
             return wid;
         }
 
-        static IntPtr UnsafeGetWindowsIdentityToken(WindowsIdentity wid)
+        private static IntPtr UnsafeGetWindowsIdentityToken(WindowsIdentity wid)
         {
             return wid.Token;
         }
 
-        static WindowsIdentity UnsafeCreateWindowsIdentityFromToken(IntPtr token, string authType)
+        private static WindowsIdentity UnsafeCreateWindowsIdentityFromToken(IntPtr token, string authType)
         {
             if (authType != null)
                 return new WindowsIdentity(token, authType);
@@ -390,7 +390,7 @@ namespace CoreWCF.Security
                     );
         }
 
-        static bool CanKeyDoKeyExchange(X509Certificate2 certificate)
+        private static bool CanKeyDoKeyExchange(X509Certificate2 certificate)
         {
             bool canDoKeyExchange = false;
 
@@ -719,7 +719,7 @@ namespace CoreWCF.Security
             return result;
         }
 
-        static class NetworkCredentialHelper
+        private static class NetworkCredentialHelper
         {
             static internal bool IsNullOrEmpty(NetworkCredential credential)
             {
@@ -751,7 +751,7 @@ namespace CoreWCF.Security
                 return credential.Domain;
             }
 
-            static NetworkCredential UnsafeGetDefaultNetworkCredentials()
+            private static NetworkCredential UnsafeGetDefaultNetworkCredentials()
             {
                 return CredentialCache.DefaultNetworkCredentials;
             }
@@ -767,7 +767,7 @@ namespace CoreWCF.Security
             return certificate;
         }
 
-        static X509Certificate2 GetCertificateFromStoreCore(StoreName storeName, StoreLocation storeLocation,
+        private static X509Certificate2 GetCertificateFromStoreCore(StoreName storeName, StoreLocation storeLocation,
             X509FindType findType, object findValue, EndpointAddress target, bool throwIfMultipleOrNoMatch)
         {
             if (findValue == null)
@@ -801,7 +801,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static Exception CreateCertificateLoadException(StoreName storeName, StoreLocation storeLocation,
+        private static Exception CreateCertificateLoadException(StoreName storeName, StoreLocation storeLocation,
             X509FindType findType, object findValue, EndpointAddress target, int certCount)
         {
             if (certCount == 0)
@@ -856,7 +856,7 @@ namespace CoreWCF.Security
             certificate.Reset();
         }
 
-        static bool TryCreateIdentity(ClaimSet claimSet, string claimType, out EndpointIdentity identity)
+        private static bool TryCreateIdentity(ClaimSet claimSet, string claimType, out EndpointIdentity identity)
         {
             identity = null;
             foreach (Claim claim in claimSet.FindClaims(claimType, null))
@@ -933,7 +933,7 @@ namespace CoreWCF.Security
             return CloseCommunicationObjectAsync(tokenAuthenticator, aborted, token);
         }
 
-        static Task OpenCommunicationObjectAsync(ICommunicationObject obj, CancellationToken token)
+        private static Task OpenCommunicationObjectAsync(ICommunicationObject obj, CancellationToken token)
         {
             if (obj != null)
                 return obj.OpenAsync(token);
@@ -941,7 +941,7 @@ namespace CoreWCF.Security
             return Task.CompletedTask;
         }
 
-        static Task CloseCommunicationObjectAsync(object obj, bool aborted, CancellationToken token)
+        private static Task CloseCommunicationObjectAsync(object obj, bool aborted, CancellationToken token)
         {
             if (obj != null)
             {
@@ -1288,11 +1288,11 @@ namespace CoreWCF.Security
             }
         }
 
-        class SimpleAuthorizationContext : AuthorizationContext
+        private class SimpleAuthorizationContext : AuthorizationContext
         {
-            SecurityUniqueId id;
-            UnconditionalPolicy policy;
-            IDictionary<string, object> properties;
+            private SecurityUniqueId id;
+            private UnconditionalPolicy policy;
+            private IDictionary<string, object> properties;
 
             public SimpleAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
             {
@@ -1396,7 +1396,7 @@ namespace CoreWCF.Security
 
     }
 
-    static class EmptyReadOnlyCollection<T>
+    internal static class EmptyReadOnlyCollection<T>
     {
         public static ReadOnlyCollection<T> Instance = new ReadOnlyCollection<T>(new List<T>());
     }

@@ -14,12 +14,12 @@ namespace CoreWCF.Channels
 {
     internal class ServerWebSocketTransportDuplexSessionChannel : WebSocketTransportDuplexSessionChannel
     {
-        WebSocketContext _webSocketContext;
-        HttpContext _httpContext;
+        private WebSocketContext _webSocketContext;
+        private HttpContext _httpContext;
         private IHttpTransportFactorySettings _transportSettings;
         private IServiceProvider _serviceProvider;
-        WebSocketMessageSource webSocketMessageSource;
-        SessionOpenNotification sessionOpenNotification;
+        private WebSocketMessageSource webSocketMessageSource;
+        private SessionOpenNotification sessionOpenNotification;
 
         public ServerWebSocketTransportDuplexSessionChannel(HttpContext httpContext, WebSocketContext webSocketContext, HttpTransportSettings settings, Uri localVia, IServiceProvider serviceProvider)
             : base(settings, new EndpointAddress(localVia), localVia)
@@ -116,16 +116,16 @@ namespace CoreWCF.Channels
             }
         }
 
-        bool ShouldProcessAuthentication()
+        private bool ShouldProcessAuthentication()
         {
             Fx.Assert(_transportSettings != null, "IsAuthenticated should only be called if _transportSettings != null");
             Fx.Assert(_httpContext != null, "IsAuthenticated should only be called if _httpContext != null");
             return _transportSettings.IsAuthenticationRequired || (_transportSettings.IsAuthenticationSupported && _httpContext.User.Identity.IsAuthenticated);
         }
 
-        class SessionOpenNotificationHelper : SessionOpenNotification
+        private class SessionOpenNotificationHelper : SessionOpenNotification
         {
-            readonly ServerWebSocketTransportDuplexSessionChannel channel;
+            private readonly ServerWebSocketTransportDuplexSessionChannel channel;
 
             public SessionOpenNotificationHelper(ServerWebSocketTransportDuplexSessionChannel channel)
             {

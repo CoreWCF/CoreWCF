@@ -11,7 +11,7 @@ namespace CoreWCF.Security.Tokens
         External = 1,
     }
 
-    static class TokenReferenceStyleHelper
+    internal static class TokenReferenceStyleHelper
     {
         public static bool IsDefined(SecurityTokenReferenceStyle value)
         {

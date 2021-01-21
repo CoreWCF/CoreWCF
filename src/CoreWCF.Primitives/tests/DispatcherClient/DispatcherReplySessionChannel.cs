@@ -16,7 +16,7 @@ namespace DispatcherClient
 
         public IInputSession Session { get; } = new InputSession();
 
-        class InputSession : IInputSession
+        private class InputSession : IInputSession
         {
             public string Id { get; } = "uuid://dispatcher-session/" + Guid.NewGuid().ToString();
         }

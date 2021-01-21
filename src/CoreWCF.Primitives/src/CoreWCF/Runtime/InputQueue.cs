@@ -8,19 +8,17 @@ using System.Threading.Tasks;
 
 namespace CoreWCF.Runtime
 {
-    sealed class InputQueue<T> : IDisposable where T : class
+    internal sealed class InputQueue<T> : IDisposable where T : class
     {
-        static Action<object> completeOutstandingReadersCallback;
-        static Action<object> completeWaitersFalseCallback;
-        static Action<object> completeWaitersTrueCallback;
-        static Action<object> onDispatchCallback;
-        static Action<object> onInvokeDequeuedCallback;
-
-        QueueState queueState;
-
-        ItemQueue itemQueue;
-        Queue<IQueueReader> readerQueue;
-        List<IQueueWaiter> waiterList;
+        private static Action<object> completeOutstandingReadersCallback;
+        private static Action<object> completeWaitersFalseCallback;
+        private static Action<object> completeWaitersTrueCallback;
+        private static Action<object> onDispatchCallback;
+        private static Action<object> onInvokeDequeuedCallback;
+        private QueueState queueState;
+        private ItemQueue itemQueue;
+        private Queue<IQueueReader> readerQueue;
+        private List<IQueueWaiter> waiterList;
 
         public InputQueue()
         {
@@ -56,13 +54,13 @@ namespace CoreWCF.Runtime
         }
 
         // Users like ServiceModel can hook this to wrap the AsyncQueueReader callback functionality for tracing, etc
-        Func<Action<AsyncCallback, IAsyncResult>> AsyncCallbackGenerator
+        private Func<Action<AsyncCallback, IAsyncResult>> AsyncCallbackGenerator
         {
             get;
             set;
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return itemQueue; }
         }
@@ -358,7 +356,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        void DisposeItem(Item item)
+        private void DisposeItem(Item item)
         {
             T value = item.Value;
             if (value != null)
@@ -378,7 +376,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void CompleteOutstandingReadersCallback(object state)
+        private static void CompleteOutstandingReadersCallback(object state)
         {
             IQueueReader[] outstandingReaders = (IQueueReader[])state;
 
@@ -388,7 +386,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void CompleteWaiters(bool itemAvailable, IQueueWaiter[] waiters)
+        private static void CompleteWaiters(bool itemAvailable, IQueueWaiter[] waiters)
         {
             for (int i = 0; i < waiters.Length; i++)
             {
@@ -396,12 +394,12 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void CompleteWaitersFalseCallback(object state)
+        private static void CompleteWaitersFalseCallback(object state)
         {
             CompleteWaiters(false, (IQueueWaiter[])state);
         }
 
-        static void CompleteWaitersLater(bool itemAvailable, IQueueWaiter[] waiters)
+        private static void CompleteWaitersLater(bool itemAvailable, IQueueWaiter[] waiters)
         {
             if (itemAvailable)
             {
@@ -423,12 +421,12 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void CompleteWaitersTrueCallback(object state)
+        private static void CompleteWaitersTrueCallback(object state)
         {
             CompleteWaiters(true, (IQueueWaiter[])state);
         }
 
-        static void InvokeDequeuedCallback(Action dequeuedCallback)
+        private static void InvokeDequeuedCallback(Action dequeuedCallback)
         {
             if (dequeuedCallback != null)
             {
@@ -436,7 +434,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void InvokeDequeuedCallbackLater(Action dequeuedCallback)
+        private static void InvokeDequeuedCallbackLater(Action dequeuedCallback)
         {
             if (dequeuedCallback != null)
             {
@@ -449,12 +447,12 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void OnDispatchCallback(object state)
+        private static void OnDispatchCallback(object state)
         {
             ((InputQueue<T>)state).Dispatch();
         }
 
-        static void OnInvokeDequeuedCallback(object state)
+        private static void OnInvokeDequeuedCallback(object state)
         {
             Fx.Assert(state != null, "InputQueue.OnInvokeDequeuedCallback: (state != null)");
 
@@ -462,7 +460,7 @@ namespace CoreWCF.Runtime
             dequeuedCallback();
         }
 
-        void EnqueueAndDispatch(Item item, bool canDispatchOnThisThread)
+        private void EnqueueAndDispatch(Item item, bool canDispatchOnThisThread)
         {
             bool disposeItem = false;
             IQueueReader reader = null;
@@ -543,7 +541,7 @@ namespace CoreWCF.Runtime
 
         // This will not block, however, Dispatch() must be called later if this function
         // returns true.
-        bool EnqueueWithoutDispatch(Item item)
+        private bool EnqueueWithoutDispatch(Item item)
         {
             lock (ThisLock)
             {
@@ -568,7 +566,7 @@ namespace CoreWCF.Runtime
             return false;
         }
 
-        void GetWaiters(out IQueueWaiter[] waiters)
+        private void GetWaiters(out IQueueWaiter[] waiters)
         {
             if (waiterList.Count > 0)
             {
@@ -583,7 +581,7 @@ namespace CoreWCF.Runtime
 
         // Used for timeouts. The InputQueue must remove readers from its reader queue to prevent
         // dispatching items to timed out readers.
-        bool RemoveReader(IQueueReader reader)
+        private bool RemoveReader(IQueueReader reader)
         {
             Fx.Assert(reader != null, "InputQueue.RemoveReader: (reader != null)");
 
@@ -613,28 +611,28 @@ namespace CoreWCF.Runtime
             return false;
         }
 
-        enum QueueState
+        private enum QueueState
         {
             Open,
             Shutdown,
             Closed
         }
 
-        interface IQueueReader
+        private interface IQueueReader
         {
             void Set(Item item);
         }
 
-        interface IQueueWaiter
+        private interface IQueueWaiter
         {
             void Set(bool itemAvailable);
         }
 
-        struct Item
+        private struct Item
         {
-            Action dequeuedCallback;
-            Exception exception;
-            T value;
+            private Action dequeuedCallback;
+            private Exception exception;
+            private T value;
 
             public Item(T value, Action dequeuedCallback)
                 : this(value, null, dequeuedCallback)
@@ -646,7 +644,7 @@ namespace CoreWCF.Runtime
             {
             }
 
-            Item(T value, Exception exception, Action dequeuedCallback)
+            private Item(T value, Exception exception, Action dequeuedCallback)
             {
                 this.value = value;
                 this.exception = exception;
@@ -679,12 +677,12 @@ namespace CoreWCF.Runtime
             }
         }
 
-        class ItemQueue
+        private class ItemQueue
         {
-            int head;
-            Item[] items;
-            int pendingCount;
-            int totalCount;
+            private int head;
+            private Item[] items;
+            private int pendingCount;
+            private int totalCount;
 
             public ItemQueue()
             {
@@ -738,7 +736,7 @@ namespace CoreWCF.Runtime
                 pendingCount--;
             }
 
-            Item DequeueItemCore()
+            private Item DequeueItemCore()
             {
                 Fx.AssertAndThrow(totalCount != 0, "ItemQueue does not contain any items");
                 Item item = items[head];
@@ -748,7 +746,7 @@ namespace CoreWCF.Runtime
                 return item;
             }
 
-            void EnqueueItemCore(Item item)
+            private void EnqueueItemCore(Item item)
             {
                 if (totalCount == items.Length)
                 {
@@ -766,13 +764,12 @@ namespace CoreWCF.Runtime
             }
         }
 
-        class WaitQueueReader : IQueueReader
+        private class WaitQueueReader : IQueueReader
         {
-            Exception exception;
-            InputQueue<T> inputQueue;
-            T item;
-
-            AsyncManualResetEvent waitEvent;
+            private Exception exception;
+            private InputQueue<T> inputQueue;
+            private T item;
+            private AsyncManualResetEvent waitEvent;
 
             public WaitQueueReader(InputQueue<T> inputQueue)
             {
@@ -830,11 +827,10 @@ namespace CoreWCF.Runtime
             }
         }
 
-        class WaitQueueWaiter : IQueueWaiter
+        private class WaitQueueWaiter : IQueueWaiter
         {
-            bool itemAvailable;
-
-            AsyncManualResetEvent waitEvent;
+            private bool itemAvailable;
+            private AsyncManualResetEvent waitEvent;
 
             public WaitQueueWaiter()
             {

@@ -13,7 +13,7 @@ namespace CoreWCF.Description
         Always
     }
 
-    static class PrincipalPermissionModeHelper
+    internal static class PrincipalPermissionModeHelper
     {
         public static bool IsDefined(PrincipalPermissionMode principalPermissionMode)
         {

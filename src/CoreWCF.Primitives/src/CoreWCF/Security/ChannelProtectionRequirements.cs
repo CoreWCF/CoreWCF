@@ -14,7 +14,7 @@ namespace CoreWCF.Security
     // to allow minimal changes to ported code.
     public class ChannelProtectionRequirements
     {
-        bool _isReadOnly;
+        private bool _isReadOnly;
 
         public ChannelProtectionRequirements()
         {
@@ -85,7 +85,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static void AddActionParts(ScopedMessagePartSpecification to, ScopedMessagePartSpecification from)
+        private static void AddActionParts(ScopedMessagePartSpecification to, ScopedMessagePartSpecification from)
         {
             foreach (var action in from.Actions)
             {
@@ -112,7 +112,7 @@ namespace CoreWCF.Security
             return CreateFromContract(contract, bindingElement.SupportedRequestProtectionLevel, bindingElement.SupportedResponseProtectionLevel);
         }
 
-        static MessagePartSpecification UnionMessagePartSpecifications(ScopedMessagePartSpecification actionParts)
+        private static MessagePartSpecification UnionMessagePartSpecifications(ScopedMessagePartSpecification actionParts)
         {
             var result = new MessagePartSpecification(false);
             foreach (var action in actionParts.Actions)
@@ -278,7 +278,7 @@ namespace CoreWCF.Security
             return requirements;
         }
 
-        static void AddHeaderProtectionRequirements(MessageHeaderDescription header, MessagePartSpecification signedParts,
+        private static void AddHeaderProtectionRequirements(MessageHeaderDescription header, MessagePartSpecification signedParts,
             MessagePartSpecification encryptedParts, ProtectionLevel defaultProtectionLevel)
         {
             var p = defaultProtectionLevel; //header.HasProtectionLevel currently is always false;
@@ -293,7 +293,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static void AddFaultProtectionRequirements(FaultDescriptionCollection faults, ChannelProtectionRequirements requirements, ProtectionLevel defaultProtectionLevel, bool addToIncoming)
+        private static void AddFaultProtectionRequirements(FaultDescriptionCollection faults, ChannelProtectionRequirements requirements, ProtectionLevel defaultProtectionLevel, bool addToIncoming)
         {
             if (faults == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faults));

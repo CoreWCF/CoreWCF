@@ -6,8 +6,7 @@ namespace CoreWCF
     public sealed class NonDualMessageSecurityOverHttp : MessageSecurityOverHttp
     {
         internal const bool DefaultEstablishSecurityContext = true;
-
-        bool establishSecurityContext;
+        private bool establishSecurityContext;
 
         public NonDualMessageSecurityOverHttp()
             : base()

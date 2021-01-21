@@ -8,10 +8,10 @@ namespace CoreWCF
 {
     public abstract class MessageContractMemberAttribute : Attribute
     {
-        string _name;
-        string _ns;
-        bool _isNameSetExplicit;
-        bool _isNamespaceSetExplicit;
+        private string _name;
+        private string _ns;
+        private bool _isNameSetExplicit;
+        private bool _isNamespaceSetExplicit;
         //ProtectionLevel protectionLevel = ProtectionLevel.None;
         //bool hasProtectionLevel = false;
 

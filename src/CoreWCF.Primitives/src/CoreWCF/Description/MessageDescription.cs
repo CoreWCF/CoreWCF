@@ -8,12 +8,12 @@ namespace CoreWCF.Description
 {
     public class MessageDescription
     {
-        static Type typeOfUntypedMessage;
-        string action;
-        MessageDirection direction;
-        MessageDescriptionItems items;
-        XmlName messageName;
-        Type messageType;
+        private static Type typeOfUntypedMessage;
+        private string action;
+        private MessageDirection direction;
+        private MessageDescriptionItems items;
+        private XmlName messageName;
+        private Type messageType;
         //XmlQualifiedName xsdType;
 
         public MessageDescription(string action, MessageDirection direction) : this(action, direction, null) { }
@@ -118,9 +118,9 @@ namespace CoreWCF.Description
 
     internal class MessageDescriptionItems
     {
-        MessageHeaderDescriptionCollection headers;
-        MessageBodyDescription body;
-        MessagePropertyDescriptionCollection properties;
+        private MessageHeaderDescriptionCollection headers;
+        private MessageBodyDescription body;
+        private MessagePropertyDescriptionCollection properties;
 
         internal MessageBodyDescription Body
         {

@@ -15,8 +15,8 @@ namespace CoreWCF.IdentityModel.Security
 
     internal class WSTrust : SecurityTokenSerializer.SerializerEntries
     {
-        KeyInfoSerializer securityTokenSerializer;
-        TrustDictionary serializerDictionary;
+        private KeyInfoSerializer securityTokenSerializer;
+        private TrustDictionary serializerDictionary;
 
         public WSTrust(KeyInfoSerializer securityTokenSerializer, TrustDictionary serializerDictionary)
         {
@@ -43,9 +43,9 @@ namespace CoreWCF.IdentityModel.Security
             keyIdentifierClauseEntries.Add(new GenericXmlSecurityKeyIdentifierClauseEntry(this));
         }
 
-        class BinarySecretTokenEntry : SecurityTokenSerializer.TokenEntry
+        private class BinarySecretTokenEntry : SecurityTokenSerializer.TokenEntry
         {
-            WSTrust parent;
+            private WSTrust parent;
 
             public BinarySecretTokenEntry(WSTrust parent)
             {
@@ -62,8 +62,8 @@ namespace CoreWCF.IdentityModel.Security
 
         internal class BinarySecretClauseEntry : KeyIdentifierClauseEntry
         {
-            WSTrust parent;
-            TrustDictionary otherDictionary = null;
+            private WSTrust parent;
+            private TrustDictionary otherDictionary = null;
 
             public BinarySecretClauseEntry(WSTrust parent)
             {

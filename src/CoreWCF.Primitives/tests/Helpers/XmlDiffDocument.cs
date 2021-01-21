@@ -70,7 +70,7 @@ namespace System.Xml.XmlDiff
 
     public class XmlDiffDocument : XmlDiffNode, IXPathNavigable
     {
-        bool _bLoaded;
+        private bool _bLoaded;
         public XmlNameTable NameTable;
 
         public XmlDiffDocument()
@@ -651,7 +651,7 @@ namespace System.Xml.XmlDiff
             }
         }
 
-        void SortChildren(XmlDiffElement elem)
+        private void SortChildren(XmlDiffElement elem)
         {
             if (elem.FirstChild != null)
             {
@@ -1161,7 +1161,7 @@ namespace System.Xml.XmlDiff
         internal XmlDiffNode _parent;
         internal int _lineNumber, _linePosition;
         internal bool _bIgnoreValue;
-        PropertyCollection _extendedProperties;
+        private PropertyCollection _extendedProperties;
 
         public XmlDiffNode()
         {
@@ -1322,7 +1322,7 @@ namespace System.Xml.XmlDiff
 
     public class XmlDiffElement : XmlDiffNode
     {
-        int _attrC;
+        private int _attrC;
 
         public XmlDiffElement(string localName, string prefix, string ns)
             : base()
@@ -1540,7 +1540,7 @@ namespace System.Xml.XmlDiff
     public class XmlDiffAttribute : XmlDiffNode
     {
         internal XmlDiffElement _ownerElement;
-        string _value;
+        private string _value;
 
         public XmlDiffAttribute(string localName, string prefix, string ns, string value)
             : base()
@@ -1654,8 +1654,8 @@ namespace System.Xml.XmlDiff
 
     public class XmlDiffCharacterData : XmlDiffNode
     {
-        string _value;
-        XmlDiffNodeType _nodetype;
+        private string _value;
+        private XmlDiffNodeType _nodetype;
         public XmlDiffCharacterData(string value, XmlDiffNodeType nt, bool NormalizeNewline)
             : base()
         {

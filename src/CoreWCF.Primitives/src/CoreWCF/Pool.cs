@@ -3,10 +3,10 @@
 
 namespace CoreWCF
 {
-    class Pool<T> where T : class
+    internal class Pool<T> where T : class
     {
-        T[] items;
-        int count;
+        private T[] items;
+        private int count;
 
         public Pool(int maxCount)
         {

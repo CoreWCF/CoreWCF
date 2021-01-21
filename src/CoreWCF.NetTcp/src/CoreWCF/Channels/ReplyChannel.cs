@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
-    class ReplyChannel : ServiceChannelBase, IReplyChannel
+    internal class ReplyChannel : ServiceChannelBase, IReplyChannel
     {
-        EndpointAddress localAddress;
+        private EndpointAddress localAddress;
 
         public ReplyChannel(IDefaultCommunicationTimeouts timeouts, EndpointAddress localAddress) : base(timeouts)
         {

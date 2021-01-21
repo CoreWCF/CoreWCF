@@ -13,7 +13,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class XmlSerializerFaultFormatter : FaultFormatter
     {
-        SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos;
+        private SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos;
 
         internal XmlSerializerFaultFormatter(Type[] detailTypes,
             SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos)
@@ -29,7 +29,7 @@ namespace CoreWCF.Dispatcher
             Initialize(xmlSerializerFaultContractInfos);
         }
 
-        void Initialize(SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos)
+        private void Initialize(SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos)
         {
             if (xmlSerializerFaultContractInfos == null)
             {

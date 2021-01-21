@@ -14,10 +14,10 @@ namespace CoreWCF.IdentityModel
 
     public abstract class SecurityKeyIdentifierClause
     {
-        readonly string clauseType;
-        byte[] derivationNonce;
-        int derivationLength;
-        string id = null;
+        private readonly string clauseType;
+        private byte[] derivationNonce;
+        private int derivationLength;
+        private string id = null;
 
         protected SecurityKeyIdentifierClause(string clauseType)
             : this(clauseType, null, 0)

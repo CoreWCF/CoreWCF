@@ -7,11 +7,11 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class DuplexRequestContext : RequestContextBase
+    internal class DuplexRequestContext : RequestContextBase
     {
-        IDuplexChannel channel;
-        TaskCompletionSource<object> dispatchInvokedTcs;
-        Task dispatchInvokedTask;
+        private IDuplexChannel channel;
+        private TaskCompletionSource<object> dispatchInvokedTcs;
+        private Task dispatchInvokedTask;
 
         internal DuplexRequestContext(IDuplexChannel channel, Message request, IDefaultCommunicationTimeouts timeouts)
             : base(request, timeouts.CloseTimeout, timeouts.SendTimeout)

@@ -10,9 +10,9 @@ namespace CoreWCF.Channels
 {
     public class SslStreamSecurityBindingElement : StreamUpgradeBindingElement
     {
-        IdentityVerifier identityVerifier;
-        bool requireClientCertificate;
-        SslProtocols sslProtocols;
+        private IdentityVerifier identityVerifier;
+        private bool requireClientCertificate;
+        private SslProtocols sslProtocols;
 
         public SslStreamSecurityBindingElement()
         {

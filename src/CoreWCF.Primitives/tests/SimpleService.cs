@@ -3,7 +3,7 @@
 
 using CoreWCF;
 
-class SimpleService : ISimpleService
+internal class SimpleService : ISimpleService
 {
     public string Echo(string echo)
     {
@@ -12,7 +12,7 @@ class SimpleService : ISimpleService
 }
 
 [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
-class SimpleSingletonService : ISimpleService
+internal class SimpleSingletonService : ISimpleService
 {
     public string Echo(string echo)
     {

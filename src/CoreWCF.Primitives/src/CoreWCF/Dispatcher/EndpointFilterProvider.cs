@@ -6,10 +6,10 @@ using CoreWCF.Collections.Generic;
 
 namespace CoreWCF.Dispatcher
 {
-    class EndpointFilterProvider
+    internal class EndpointFilterProvider
     {
-        SynchronizedCollection<string> initiatingActions;
-        object mutex;
+        private SynchronizedCollection<string> initiatingActions;
+        private object mutex;
 
         public EndpointFilterProvider(params string[] initiatingActions)
         {

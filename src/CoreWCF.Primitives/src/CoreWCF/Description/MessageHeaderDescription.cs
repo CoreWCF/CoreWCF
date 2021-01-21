@@ -7,11 +7,11 @@ namespace CoreWCF.Description
 {
     public class MessageHeaderDescription : MessagePartDescription
     {
-        bool mustUnderstand;
-        bool relay;
-        string actor;
-        bool typedHeader;
-        bool isUnknownHeader;
+        private bool mustUnderstand;
+        private bool relay;
+        private string actor;
+        private bool typedHeader;
+        private bool isUnknownHeader;
 
         public MessageHeaderDescription(string name, string ns)
             : base(name, ns)

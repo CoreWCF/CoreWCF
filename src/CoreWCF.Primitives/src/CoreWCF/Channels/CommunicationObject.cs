@@ -13,20 +13,21 @@ namespace CoreWCF.Channels
     // TODO: Go through and verify all the internal methods to see if they are needed/used
     public abstract class CommunicationObject : ICommunicationObject
     {
-        bool _aborted;
-        bool _closeCalled;
-        ExceptionQueue _exceptionQueue;
-        object _mutex;
-        bool _onClosingCalled;
-        bool _onClosedCalled;
-        bool _onOpeningCalled;
-        bool _onOpenedCalled;
-        bool _raisedClosed;
-        bool _raisedClosing;
-        bool _raisedFaulted;
+        private bool _aborted;
+        private bool _closeCalled;
+        private ExceptionQueue _exceptionQueue;
+        private object _mutex;
+        private bool _onClosingCalled;
+        private bool _onClosedCalled;
+        private bool _onOpeningCalled;
+        private bool _onOpenedCalled;
+        private bool _raisedClosed;
+        private bool _raisedClosing;
+        private bool _raisedFaulted;
+
         //bool traceOpenAndClose;
-        object _eventSender;
-        CommunicationState _state;
+        private object _eventSender;
+        private CommunicationState _state;
 
         protected CommunicationObject() : this(new object()) { }
 
@@ -549,17 +550,17 @@ namespace CoreWCF.Channels
             }
         }
 
-        Exception CreateNotOpenException()
+        private Exception CreateNotOpenException()
         {
             return new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeUsed, GetCommunicationObjectType().ToString(), _state.ToString()));
         }
 
-        Exception CreateBaseClassMethodNotCalledException(string method)
+        private Exception CreateBaseClassMethodNotCalledException(string method)
         {
             return new InvalidOperationException(SR.Format(SR.CommunicationObjectBaseClassMethodNotCalled, GetCommunicationObjectType().ToString(), method));
         }
 
-        Exception CreateImmutableException()
+        private Exception CreateImmutableException()
         {
             return new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeModifiedInState, GetCommunicationObjectType().ToString(), _state.ToString()));
         }
@@ -754,17 +755,17 @@ namespace CoreWCF.Channels
             }
         }
 
-        class ExceptionQueue
+        private class ExceptionQueue
         {
-            Queue<Exception> _exceptions = new Queue<Exception>();
-            object _thisLock;
+            private Queue<Exception> _exceptions = new Queue<Exception>();
+            private object _thisLock;
 
             internal ExceptionQueue(object thisLock)
             {
                 _thisLock = thisLock;
             }
 
-            object ThisLock
+            private object ThisLock
             {
                 get { return _thisLock; }
             }

@@ -24,7 +24,7 @@ namespace CoreWCF.Dispatcher
         // TODO: Performance counters
         //ServicePerformanceCountersBase servicePerformanceCounters;
         private bool _isActive;
-        readonly object _thisLock = new object();
+        private readonly object _thisLock = new object();
 
         internal ServiceThrottle(ServiceHostBase host)
         {
@@ -40,7 +40,7 @@ namespace CoreWCF.Dispatcher
             _isActive = true;
         }
 
-        FlowThrottle Calls
+        private FlowThrottle Calls
         {
             get
             {
@@ -64,7 +64,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        FlowThrottle Sessions
+        private FlowThrottle Sessions
         {
             get
             {
@@ -88,7 +88,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        QuotaThrottle Dynamic
+        private QuotaThrottle Dynamic
         {
             get
             {
@@ -117,8 +117,8 @@ namespace CoreWCF.Dispatcher
             set { Dynamic.SetLimit(value); }
         }
 
-        const string MaxConcurrentCallsPropertyName = "MaxConcurrentCalls";
-        const string MaxConcurrentCallsConfigName = "maxConcurrentCalls";
+        private const string MaxConcurrentCallsPropertyName = "MaxConcurrentCalls";
+        private const string MaxConcurrentCallsConfigName = "maxConcurrentCalls";
         public int MaxConcurrentCalls
         {
             get { return Calls.Capacity; }
@@ -134,8 +134,8 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        const string MaxConcurrentSessionsPropertyName = "MaxConcurrentSessions";
-        const string MaxConcurrentSessionsConfigName = "maxConcurrentSessions";
+        private const string MaxConcurrentSessionsPropertyName = "MaxConcurrentSessions";
+        private const string MaxConcurrentSessionsConfigName = "maxConcurrentSessions";
         public int MaxConcurrentSessions
         {
             get { return Sessions.Capacity; }
@@ -151,8 +151,8 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        const string MaxConcurrentInstancesPropertyName = "MaxConcurrentInstances";
-        const string MaxConcurrentInstancesConfigName = "maxConcurrentInstances";
+        private const string MaxConcurrentInstancesPropertyName = "MaxConcurrentInstances";
+        private const string MaxConcurrentInstancesConfigName = "maxConcurrentInstances";
         public int MaxConcurrentInstances
         {
             get { return InstanceContexts.Capacity; }
@@ -168,7 +168,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        FlowThrottle InstanceContexts
+        private FlowThrottle InstanceContexts
         {
             get
             {
@@ -351,7 +351,7 @@ namespace CoreWCF.Dispatcher
             return Dynamic.IncrementLimit(incrementBy);
         }
 
-        void ThrowIfClosedOrOpened(string memberName)
+        private void ThrowIfClosedOrOpened(string memberName)
         {
             if (_host.State == CommunicationState.Opened)
             {
@@ -363,7 +363,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void UpdateIsActive()
+        private void UpdateIsActive()
         {
             _isActive = ((_dynamic != null) ||
                              ((_calls != null) && (_calls.Capacity != Int32.MaxValue)) ||

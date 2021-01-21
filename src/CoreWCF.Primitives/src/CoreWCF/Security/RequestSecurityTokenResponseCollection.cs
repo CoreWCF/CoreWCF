@@ -9,10 +9,10 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Security
 {
-    sealed class RequestSecurityTokenResponseCollection : BodyWriter
+    internal sealed class RequestSecurityTokenResponseCollection : BodyWriter
     {
-        IEnumerable<RequestSecurityTokenResponse> rstrCollection;
-        SecurityStandardsManager standardsManager;
+        private IEnumerable<RequestSecurityTokenResponse> rstrCollection;
+        private SecurityStandardsManager standardsManager;
 
         public RequestSecurityTokenResponseCollection(IEnumerable<RequestSecurityTokenResponse> rstrCollection)
             : this(rstrCollection, SecurityStandardsManager.DefaultInstance)

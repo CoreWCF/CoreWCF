@@ -5,10 +5,10 @@ using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security
 {
-    class SecurityProtocolCorrelationState
+    internal class SecurityProtocolCorrelationState
     {
-        SecurityToken token;
-        SignatureConfirmations signatureConfirmations;
+        private SecurityToken token;
+        private SignatureConfirmations signatureConfirmations;
         // ServiceModelActivity activity;
 
         public SecurityProtocolCorrelationState(SecurityToken token)

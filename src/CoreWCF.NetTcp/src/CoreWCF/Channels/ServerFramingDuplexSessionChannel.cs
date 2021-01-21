@@ -17,9 +17,9 @@ namespace CoreWCF.Channels
 {
     internal class ServerFramingDuplexSessionChannel : FramingDuplexSessionChannel
     {
-        StreamUpgradeAcceptor upgradeAcceptor;
+        private StreamUpgradeAcceptor upgradeAcceptor;
         private IServiceProvider _serviceProvider;
-        IStreamUpgradeChannelBindingProvider channelBindingProvider;
+        private IStreamUpgradeChannelBindingProvider channelBindingProvider;
         private CancellationTokenRegistration _applicationStoppingRegistration;
 
         public ServerFramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings,
@@ -285,7 +285,7 @@ namespace CoreWCF.Channels
 
     internal abstract class FramingDuplexSessionChannel : TransportDuplexSessionChannel
     {
-        bool exposeConnectionProperty;
+        private bool exposeConnectionProperty;
 
         private FramingDuplexSessionChannel(ITransportFactorySettings settings,
             EndpointAddress localAddress, Uri localVia, EndpointAddress remoteAddress, Uri via, bool exposeConnectionProperty)
@@ -360,10 +360,9 @@ namespace CoreWCF.Channels
             return messageData;
         }
 
-        class FramingConnectionDuplexSession : ConnectionDuplexSession
+        private class FramingConnectionDuplexSession : ConnectionDuplexSession
         {
-
-            FramingConnectionDuplexSession(FramingDuplexSessionChannel channel)
+            private FramingConnectionDuplexSession(FramingDuplexSessionChannel channel)
                 : base(channel)
             {
             }
@@ -382,9 +381,9 @@ namespace CoreWCF.Channels
                 }
             }
 
-            class SecureConnectionDuplexSession : FramingConnectionDuplexSession, ISecuritySession
+            private class SecureConnectionDuplexSession : FramingConnectionDuplexSession, ISecuritySession
             {
-                EndpointIdentity remoteIdentity;
+                private EndpointIdentity remoteIdentity;
 
                 public SecureConnectionDuplexSession(FramingDuplexSessionChannel channel)
                     : base(channel)

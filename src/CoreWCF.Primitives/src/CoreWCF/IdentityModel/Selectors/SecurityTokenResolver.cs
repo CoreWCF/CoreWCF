@@ -177,7 +177,7 @@ namespace CoreWCF.IdentityModel.Selectors
                 return (token != null);
             }
 
-            SecurityToken ResolveSecurityToken(SecurityKeyIdentifierClause keyIdentifierClause)
+            private SecurityToken ResolveSecurityToken(SecurityKeyIdentifierClause keyIdentifierClause)
             {
                 if (keyIdentifierClause == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));

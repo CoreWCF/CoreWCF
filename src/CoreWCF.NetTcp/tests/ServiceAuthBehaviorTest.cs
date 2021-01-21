@@ -174,8 +174,8 @@ namespace CoreWCF.NetTcp.Tests
 
     public class StartUpPermissionBase
     {
-        PrincipalPermissionMode principalMode;
-        bool isImpersonate = false;
+        private PrincipalPermissionMode principalMode;
+        private bool isImpersonate = false;
 
         public StartUpPermissionBase(PrincipalPermissionMode modeToTest, bool isImmpersonation = false)
         {

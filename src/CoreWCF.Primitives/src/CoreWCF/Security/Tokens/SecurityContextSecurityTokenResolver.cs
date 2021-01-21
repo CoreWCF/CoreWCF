@@ -12,10 +12,10 @@ namespace CoreWCF.Security.Tokens
 {
     public class SecurityContextSecurityTokenResolver : SecurityTokenResolver, ISecurityContextSecurityTokenCache
     {
-        SecurityContextTokenCache tokenCache;
-        bool removeOldestTokensOnCacheFull;
-        int capacity;
-        TimeSpan clockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
+        private SecurityContextTokenCache tokenCache;
+        private bool removeOldestTokensOnCacheFull;
+        private int capacity;
+        private TimeSpan clockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
 
         public SecurityContextSecurityTokenResolver(int securityContextCacheCapacity, bool removeOldestTokensOnCacheFull)
             : this(securityContextCacheCapacity, removeOldestTokensOnCacheFull, SecurityProtocolFactory.defaultMaxClockSkew)

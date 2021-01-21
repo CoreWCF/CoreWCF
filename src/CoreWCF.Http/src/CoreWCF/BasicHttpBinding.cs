@@ -39,7 +39,7 @@ namespace CoreWCF
             return bindingElements.Clone();
         }
 
-        void Initialize()
+        private void Initialize()
         {
             _basicHttpSecurity = new BasicHttpSecurity();
         }

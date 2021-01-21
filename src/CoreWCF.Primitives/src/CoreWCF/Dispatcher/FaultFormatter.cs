@@ -14,7 +14,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class FaultFormatter : IClientFaultFormatter, IDispatchFaultFormatter
     {
-        FaultContractInfo[] faultContractInfos;
+        private FaultContractInfo[] faultContractInfos;
 
         internal FaultFormatter(Type[] detailTypes)
         {
@@ -165,7 +165,7 @@ namespace CoreWCF.Dispatcher
             return null;
         }
 
-        static FaultContractInfo[] GetSortedArray(List<FaultContractInfo> faultContractInfoList)
+        private static FaultContractInfo[] GetSortedArray(List<FaultContractInfo> faultContractInfoList)
         {
             FaultContractInfo[] temp = faultContractInfoList.ToArray();
             Array.Sort<FaultContractInfo>(temp,
@@ -175,12 +175,12 @@ namespace CoreWCF.Dispatcher
             return temp;
         }
 
-        static void AddInfrastructureFaults(List<FaultContractInfo> faultContractInfos)
+        private static void AddInfrastructureFaults(List<FaultContractInfo> faultContractInfos)
         {
             faultContractInfos.Add(new FaultContractInfo(FaultCodeConstants.Actions.NetDispatcher, typeof(ExceptionDetail)));
         }
 
-        static MessageFault CreateMessageFault(XmlObjectSerializer serializer, FaultException faultException, Type detailType)
+        private static MessageFault CreateMessageFault(XmlObjectSerializer serializer, FaultException faultException, Type detailType)
         {
             if (detailType == null)
             {

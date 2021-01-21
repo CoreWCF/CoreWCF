@@ -15,7 +15,7 @@ namespace CoreWCF.Security
         internal const bool DefaultAllowNtlm = true;
         internal const bool DefaultExtractWindowsGroupClaims = true;
         internal const bool DefaultAllowUnauthenticatedCallers = false;
-        SspiSecurityToken token;
+        private SspiSecurityToken token;
 
         // client side ctor
         public SspiSecurityTokenProvider(NetworkCredential credential, bool allowNtlm, TokenImpersonationLevel impersonationLevel)

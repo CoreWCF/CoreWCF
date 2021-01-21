@@ -21,8 +21,8 @@ namespace Helpers
         // sending a continuous stream will easily blow the MaxReceivedMessageSize buffer.
         public TimeSpan StreamDuration { get; set; }
 
-        DateTime readStartedTime;
-        long totalBytesRead = 0;
+        private DateTime readStartedTime;
+        private long totalBytesRead = 0;
 
         public override bool CanRead
         {

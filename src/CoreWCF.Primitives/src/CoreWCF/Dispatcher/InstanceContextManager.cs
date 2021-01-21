@@ -21,8 +21,8 @@ namespace CoreWCF.Dispatcher
 
     internal class InstanceContextManager : LifetimeManager, IInstanceContextManager
     {
-        int firstFreeIndex;
-        Item[] items;
+        private int firstFreeIndex;
+        private Item[] items;
 
         public InstanceContextManager(object mutex)
             : base(mutex)
@@ -54,7 +54,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void AddItem(InstanceContext instanceContext)
+        private void AddItem(InstanceContext instanceContext)
         {
             int index = firstFreeIndex;
             firstFreeIndex = items[index].nextFreeIndex;
@@ -144,7 +144,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void GrowItems()
+        private void GrowItems()
         {
             Item[] existingItems = items;
             if (existingItems != null)
@@ -159,7 +159,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InitItems(int count)
+        private void InitItems(int count)
         {
             items = new Item[count];
             for (int i = count - 2; i > 0; i--)
@@ -238,7 +238,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        struct Item
+        private struct Item
         {
             public int nextFreeIndex;
             public InstanceContext instanceContext;

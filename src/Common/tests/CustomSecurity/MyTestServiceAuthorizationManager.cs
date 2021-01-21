@@ -8,7 +8,7 @@ using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
-    class MyTestServiceAuthorizationManager : ServiceAuthorizationManager
+    internal class MyTestServiceAuthorizationManager : ServiceAuthorizationManager
     {
         protected override bool CheckAccessCore(OperationContext operationContext)
         {

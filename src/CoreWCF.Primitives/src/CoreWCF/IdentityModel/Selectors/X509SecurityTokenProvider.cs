@@ -10,7 +10,7 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     internal class X509SecurityTokenProvider : SecurityTokenProvider, IDisposable
     {
-        X509Certificate2 certificate;
+        private X509Certificate2 certificate;
 
         public X509SecurityTokenProvider(X509Certificate2 certificate)
         {

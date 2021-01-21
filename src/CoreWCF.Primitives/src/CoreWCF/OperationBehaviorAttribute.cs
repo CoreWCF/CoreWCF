@@ -12,8 +12,8 @@ namespace CoreWCF
     public sealed class OperationBehaviorAttribute : Attribute, IOperationBehavior
     {
         internal const ImpersonationOption DefaultImpersonationOption = ImpersonationOption.NotAllowed;
-        ImpersonationOption _impersonation = ImpersonationOption.NotAllowed;
-        ReleaseInstanceMode _releaseInstance = ReleaseInstanceMode.None;
+        private ImpersonationOption _impersonation = ImpersonationOption.NotAllowed;
+        private ReleaseInstanceMode _releaseInstance = ReleaseInstanceMode.None;
 
         public bool AutoDisposeParameters { get; set; }
 

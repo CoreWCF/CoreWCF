@@ -17,7 +17,7 @@ namespace CoreWCF.IdentityModel
         private const string SHA1String = "SHA1";
         private const string SHA256String = "SHA256";
         private const string SystemSecurityCryptographySha1String = "System.Security.Cryptography.SHA1";
-        static byte[] emptyBuffer;
+        private static byte[] emptyBuffer;
 
         private static Dictionary<string, Func<object>> s_algorithmDelegateDictionary = new Dictionary<string, Func<object>>();
         private static object s_algorithmDictionaryLock = new object();

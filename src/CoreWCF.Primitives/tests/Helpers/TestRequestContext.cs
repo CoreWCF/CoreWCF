@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Helpers
 {
-    class TestRequestContext : RequestContext
+    internal class TestRequestContext : RequestContext
     {
         private Message _requestMessage;
         private string _replyMessageString;

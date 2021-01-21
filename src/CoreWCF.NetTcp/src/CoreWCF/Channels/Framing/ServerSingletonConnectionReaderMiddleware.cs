@@ -198,14 +198,14 @@ namespace CoreWCF.Channels.Framing
         }
 
         // ensures that the reader is notified at end-of-stream, and takes care of the framing chunk headers
-        class SingletonInputConnectionStream : Stream
+        private class SingletonInputConnectionStream : Stream
         {
             private FramingConnection _connection;
             private IDefaultCommunicationTimeouts _timeouts;
-            SingletonMessageDecoder decoder;
-            ReadOnlySequence<byte> _buffer = ReadOnlySequence<byte>.Empty;
-            bool atEof;
-            int chunkBytesRemaining;
+            private SingletonMessageDecoder decoder;
+            private ReadOnlySequence<byte> _buffer = ReadOnlySequence<byte>.Empty;
+            private bool atEof;
+            private int chunkBytesRemaining;
             private TimeoutHelper _timeoutHelper;
 
             public SingletonInputConnectionStream(FramingConnection connection,
@@ -238,7 +238,7 @@ namespace CoreWCF.Channels.Framing
                 }
             }
 
-            void AbortReader()
+            private void AbortReader()
             {
                 _connection.Abort();
             }
@@ -249,7 +249,7 @@ namespace CoreWCF.Channels.Framing
             }
 
             // run chunk data through the decoder
-            void DecodeData(ReadOnlySequence<byte> buffer)
+            private void DecodeData(ReadOnlySequence<byte> buffer)
             {
                 while (buffer.Length > 0)
                 {
@@ -260,7 +260,7 @@ namespace CoreWCF.Channels.Framing
             }
 
             // run the current data through the decoder to get valid message bytes
-            void DecodeSize(ref ReadOnlySequence<byte> buffer)
+            private void DecodeSize(ref ReadOnlySequence<byte> buffer)
             {
                 while (buffer.Length > 0)
                 {
@@ -462,7 +462,7 @@ namespace CoreWCF.Channels.Framing
 
             public override void SetLength(long value) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
 
-            void ProcessEof()
+            private void ProcessEof()
             {
                 if (!atEof)
                 {

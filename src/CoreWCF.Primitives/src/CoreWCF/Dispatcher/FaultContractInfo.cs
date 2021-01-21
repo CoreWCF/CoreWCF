@@ -10,12 +10,12 @@ namespace CoreWCF.Dispatcher
 {
     internal class FaultContractInfo
     {
-        readonly string _action;
-        readonly Type _detail;
-        readonly string _elementName;
-        readonly string _ns;
-        readonly IList<Type> _knownTypes;
-        DataContractSerializer _serializer;
+        private readonly string _action;
+        private readonly Type _detail;
+        private readonly string _elementName;
+        private readonly string _ns;
+        private readonly IList<Type> _knownTypes;
+        private DataContractSerializer _serializer;
 
         public FaultContractInfo(string action, Type detail)
             : this(action, detail, null, null, null)

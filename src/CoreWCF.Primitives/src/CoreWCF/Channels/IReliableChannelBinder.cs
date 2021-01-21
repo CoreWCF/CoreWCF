@@ -39,7 +39,7 @@ namespace CoreWCF.Channels
         RequestContext WrapRequestContext(RequestContext context);
     }
 
-    interface IServerReliableChannelBinder : IReliableChannelBinder
+    internal interface IServerReliableChannelBinder : IReliableChannelBinder
     {
         bool AddressResponse(Message request, Message response);
         bool UseNewChannel(IChannel channel);

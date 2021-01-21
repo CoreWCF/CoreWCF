@@ -79,7 +79,7 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        T GetProxy<T>()
+        private T GetProxy<T>()
         {
             var httpBinding = ClientHelper.GetBufferedModeBinding();
             ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/StreamingInputOutputService.svc")));

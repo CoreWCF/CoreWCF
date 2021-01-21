@@ -7,11 +7,11 @@ using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
-    abstract class StreamSecurityUpgradeAcceptorBase : StreamSecurityUpgradeAcceptor
+    internal abstract class StreamSecurityUpgradeAcceptorBase : StreamSecurityUpgradeAcceptor
     {
-        SecurityMessageProperty remoteSecurity;
-        bool securityUpgraded;
-        string upgradeString;
+        private SecurityMessageProperty remoteSecurity;
+        private bool securityUpgraded;
+        private string upgradeString;
 
         protected StreamSecurityUpgradeAcceptorBase(string upgradeString)
         {

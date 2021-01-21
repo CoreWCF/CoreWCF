@@ -8,8 +8,8 @@ namespace CoreWCF.Channels
 {
     internal class CommunicationObjectManager<TItemType> : LifetimeManager where TItemType : class, ICommunicationObject
     {
-        bool _inputClosed;
-        readonly ISet<TItemType> _itemsSet;
+        private bool _inputClosed;
+        private readonly ISet<TItemType> _itemsSet;
 
         public CommunicationObjectManager(object mutex)
             : base(mutex)
@@ -60,7 +60,7 @@ namespace CoreWCF.Channels
             IncrementBusyCount();
         }
 
-        void OnItemClosed(object sender, EventArgs args)
+        private void OnItemClosed(object sender, EventArgs args)
         {
             Remove((TItemType)sender);
         }

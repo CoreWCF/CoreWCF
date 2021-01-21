@@ -10,7 +10,7 @@ namespace CoreWCF
 {
     public class X509CertificateEndpointIdentity : EndpointIdentity
     {
-        X509Certificate2Collection certificateCollection = new X509Certificate2Collection();
+        private X509Certificate2Collection certificateCollection = new X509Certificate2Collection();
 
         public X509CertificateEndpointIdentity(X509Certificate2 certificate)
         {

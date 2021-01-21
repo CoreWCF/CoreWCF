@@ -14,17 +14,16 @@ namespace CoreWCF
     [XmlRoot(AddressingStrings.EndpointReference, Namespace = Addressing200408Strings.Namespace)]
     public class EndpointAddressAugust2004 : IXmlSerializable
     {
-        static XmlQualifiedName eprType;
-
-        EndpointAddress address;
+        private static XmlQualifiedName eprType;
+        private EndpointAddress address;
 
         // for IXmlSerializable
-        EndpointAddressAugust2004()
+        private EndpointAddressAugust2004()
         {
             this.address = null;
         }
 
-        EndpointAddressAugust2004(EndpointAddress address)
+        private EndpointAddressAugust2004(EndpointAddress address)
         {
             this.address = address;
         }
@@ -53,7 +52,7 @@ namespace CoreWCF
             this.address.WriteContentsTo(AddressingVersion.WSAddressingAugust2004, XmlDictionaryWriter.CreateDictionaryWriter(writer));
         }
 
-        static XmlQualifiedName EprType
+        private static XmlQualifiedName EprType
         {
             get
             {
@@ -63,7 +62,7 @@ namespace CoreWCF
             }
         }
 
-        static XmlSchema GetEprSchema()
+        private static XmlSchema GetEprSchema()
         {
             using (XmlTextReader reader = new XmlTextReader(new StringReader(Schema)) { DtdProcessing = DtdProcessing.Prohibit })
             {
@@ -110,7 +109,7 @@ namespace CoreWCF
             return null;
         }
 
-        const string Schema =
+        private const string Schema =
 @"<xs:schema targetNamespace=""http://schemas.xmlsoap.org/ws/2004/08/addressing"" xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:wsa=""http://schemas.xmlsoap.org/ws/2004/08/addressing"" elementFormDefault=""qualified"" blockDefault=""#all"">
   <!-- //////////////////// WS-Addressing //////////////////// -->
   <!-- Endpoint reference -->

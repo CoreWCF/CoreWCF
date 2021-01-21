@@ -5,7 +5,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    abstract class HeaderFilter : MessageFilter
+    internal abstract class HeaderFilter : MessageFilter
     {
         protected HeaderFilter()
             : base()

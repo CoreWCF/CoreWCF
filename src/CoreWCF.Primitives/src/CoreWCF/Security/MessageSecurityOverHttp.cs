@@ -12,11 +12,10 @@ namespace CoreWCF
     {
         internal const MessageCredentialType DefaultClientCredentialType = MessageCredentialType.Windows;
         internal const bool DefaultNegotiateServiceCredential = true;
-
-        MessageCredentialType clientCredentialType;
-        bool negotiateServiceCredential;
-        SecurityAlgorithmSuite algorithmSuite;
-        bool wasAlgorithmSuiteSet;
+        private MessageCredentialType clientCredentialType;
+        private bool negotiateServiceCredential;
+        private SecurityAlgorithmSuite algorithmSuite;
+        private bool wasAlgorithmSuiteSet;
         private static readonly TimeSpan defaultServerIssuedTransitionTokenLifetime = TimeSpan.FromMinutes(15);
         public MessageSecurityOverHttp()
         {

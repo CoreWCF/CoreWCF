@@ -7,7 +7,7 @@ using System.Diagnostics.Contracts;
 namespace CoreWCF.Runtime
 {
     // TODO: This is in internals so probably needs to go away
-    class FatalException : Exception //SystemException
+    internal class FatalException : Exception //SystemException
     {
         public FatalException()
         {

@@ -16,29 +16,33 @@ namespace CoreWCF.Dispatcher
     // This class has been kept to enable using existing behaviors.
     public class ChannelDispatcher : ChannelDispatcherBase
     {
-        ThreadSafeMessageFilterTable<EndpointAddress> addressTable;
-        CommunicationObjectManager<IChannel> channels;
-        EndpointDispatcherCollection endpointDispatchers;
-        EndpointDispatcherTable filterTable;
-        ServiceHostBase host;
+        private ThreadSafeMessageFilterTable<EndpointAddress> addressTable;
+        private CommunicationObjectManager<IChannel> channels;
+        private EndpointDispatcherCollection endpointDispatchers;
+        private EndpointDispatcherTable filterTable;
+        private ServiceHostBase host;
+
         //bool isTransactedReceive;
         //bool asynchronousTransactedAcceptEnabled;
         //int maxTransactedBatchSize;
-        MessageVersion messageVersion;
-        bool receiveSynchronously;
-        bool sendAsynchronously;
-        int maxPendingReceives;
-        bool includeExceptionDetailInFaults;
+        private MessageVersion messageVersion;
+        private bool receiveSynchronously;
+        private bool sendAsynchronously;
+        private int maxPendingReceives;
+        private bool includeExceptionDetailInFaults;
+
         //ServiceThrottle serviceThrottle;
-        bool session;
-        SharedRuntimeState shared;
-        IDefaultCommunicationTimeouts timeouts;
+        private bool session;
+        private SharedRuntimeState shared;
+        private IDefaultCommunicationTimeouts timeouts;
+
         //IsolationLevel transactionIsolationLevel = ServiceBehaviorAttribute.DefaultIsolationLevel;
         //bool transactionIsolationLevelSet;
-        TimeSpan transactionTimeout;
-        bool performDefaultCloseInput;
+        private TimeSpan transactionTimeout;
+        private bool performDefaultCloseInput;
+
         //EventTraceActivity eventTraceActivity;
-        ErrorBehavior errorBehavior;
+        private ErrorBehavior errorBehavior;
 
         internal ChannelDispatcher(SharedRuntimeState shared)
         {
@@ -55,7 +59,7 @@ namespace CoreWCF.Dispatcher
             Initialize(new SharedRuntimeState(true));
         }
 
-        void Initialize(SharedRuntimeState shared)
+        private void Initialize(SharedRuntimeState shared)
         {
             this.shared = shared;
             endpointDispatchers = new EndpointDispatcherCollection(this);
@@ -344,7 +348,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void OnAddEndpoint(EndpointDispatcher endpoint)
+        private void OnAddEndpoint(EndpointDispatcher endpoint)
         {
             lock (ThisLock)
             {
@@ -362,7 +366,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void OnRemoveEndpoint(EndpointDispatcher endpoint)
+        private void OnRemoveEndpoint(EndpointDispatcher endpoint)
         {
             lock (ThisLock)
             {
@@ -453,9 +457,9 @@ namespace CoreWCF.Dispatcher
             this.host = null;
         }
 
-        class EndpointDispatcherCollection : SynchronizedCollection<EndpointDispatcher>
+        private class EndpointDispatcherCollection : SynchronizedCollection<EndpointDispatcher>
         {
-            ChannelDispatcher owner;
+            private ChannelDispatcher owner;
 
             internal EndpointDispatcherCollection(ChannelDispatcher owner)
                 : base(owner.ThisLock)
@@ -495,9 +499,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class ChannelDispatcherBehaviorCollection<T> : SynchronizedCollection<T>
+        private class ChannelDispatcherBehaviorCollection<T> : SynchronizedCollection<T>
         {
-            ChannelDispatcher outer;
+            private ChannelDispatcher outer;
 
             internal ChannelDispatcherBehaviorCollection(ChannelDispatcher outer)
                 : base(outer.ThisLock)

@@ -8,8 +8,8 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509SubjectKeyIdentifierClause : BinaryKeyIdentifierClause
     {
-        const string SubjectKeyIdentifierOid = "2.5.29.14";
-        const int SkiDataOffset = 2;
+        private const string SubjectKeyIdentifierOid = "2.5.29.14";
+        private const int SkiDataOffset = 2;
 
         public X509SubjectKeyIdentifierClause(byte[] ski)
             : this(ski, true)
@@ -21,7 +21,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
         }
 
-        static byte[] GetSkiRawData(X509Certificate2 certificate)
+        private static byte[] GetSkiRawData(X509Certificate2 certificate)
         {
             if (certificate == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));

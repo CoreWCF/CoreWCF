@@ -9,8 +9,8 @@ namespace CoreWCF.Dispatcher
 {
     internal class ThreadSafeMessageFilterTable<FilterData> : IMessageFilterTable<FilterData>
     {
-        MessageFilterTable<FilterData> table;
-        object syncRoot;
+        private MessageFilterTable<FilterData> table;
+        private object syncRoot;
 
         internal ThreadSafeMessageFilterTable()
         {

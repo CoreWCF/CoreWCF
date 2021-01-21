@@ -12,18 +12,16 @@ namespace CoreWCF.Description
 {
     public class ServiceCredentials : SecurityCredentialsManager, IServiceBehavior
     {
-        UserNamePasswordServiceCredential userName;
-        X509CertificateInitiatorServiceCredential clientCertificate;
-        X509CertificateRecipientServiceCredential serviceCertificate;
-        WindowsServiceCredential windows;
-        IssuedTokenServiceCredential issuedToken;
-        SecureConversationServiceCredential secureConversation;
-        bool useIdentityConfiguration = false;
-
-        bool isReadOnly = false;
-        bool saveBootstrapTokenInSession = true;
-
-        ExceptionMapper exceptionMapper;
+        private UserNamePasswordServiceCredential userName;
+        private X509CertificateInitiatorServiceCredential clientCertificate;
+        private X509CertificateRecipientServiceCredential serviceCertificate;
+        private WindowsServiceCredential windows;
+        private IssuedTokenServiceCredential issuedToken;
+        private SecureConversationServiceCredential secureConversation;
+        private bool useIdentityConfiguration = false;
+        private bool isReadOnly = false;
+        private bool saveBootstrapTokenInSession = true;
+        private ExceptionMapper exceptionMapper;
 
         public ServiceCredentials()
         {
@@ -192,7 +190,7 @@ namespace CoreWCF.Description
             WindowsAuthentication.MakeReadOnly();
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
             if (isReadOnly)
             {

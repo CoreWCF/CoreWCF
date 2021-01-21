@@ -14,14 +14,14 @@ namespace CoreWCF.Dispatcher
 {
     internal class StreamFormatter
     {
-        string wrapperName;
-        string wrapperNS;
-        string partName;
-        string partNS;
-        int streamIndex;
-        bool isRequest;
-        string operationName;
-        const int returnValueIndex = -1;
+        private string wrapperName;
+        private string wrapperNS;
+        private string partName;
+        private string partNS;
+        private int streamIndex;
+        private bool isRequest;
+        private string operationName;
+        private const int returnValueIndex = -1;
 
         internal static StreamFormatter Create(MessageDescription messageDescription, string operationName, bool isRequest)
         {
@@ -31,7 +31,7 @@ namespace CoreWCF.Dispatcher
             return new StreamFormatter(messageDescription, streamPart, operationName, isRequest);
         }
 
-        StreamFormatter(MessageDescription messageDescription, MessagePartDescription streamPart, string operationName, bool isRequest)
+        private StreamFormatter(MessageDescription messageDescription, MessagePartDescription streamPart, string operationName, bool isRequest)
         {
             if ((object)streamPart == (object)messageDescription.Body.ReturnValue)
                 streamIndex = returnValueIndex;
@@ -76,7 +76,7 @@ namespace CoreWCF.Dispatcher
             return streamValue;
         }
 
-        void WriteEndWrapperIfNecessary(XmlDictionaryWriter writer)
+        private void WriteEndWrapperIfNecessary(XmlDictionaryWriter writer)
         {
             writer.WriteEndElement();
             if (wrapperName != null)
@@ -118,15 +118,14 @@ namespace CoreWCF.Dispatcher
             get { return partNS; }
         }
 
-
-        Stream GetStreamValue(object[] parameters, object returnValue)
+        private Stream GetStreamValue(object[] parameters, object returnValue)
         {
             if (streamIndex == returnValueIndex)
                 return (Stream)returnValue;
             return (Stream)parameters[streamIndex];
         }
 
-        void SetStreamValue(object[] parameters, ref object returnValue, Stream streamValue)
+        private void SetStreamValue(object[] parameters, ref object returnValue, Stream streamValue)
         {
             if (streamIndex == returnValueIndex)
                 returnValue = streamValue;
@@ -134,7 +133,7 @@ namespace CoreWCF.Dispatcher
                 parameters[streamIndex] = streamValue;
         }
 
-        static MessagePartDescription ValidateAndGetStreamPart(MessageDescription messageDescription, bool isRequest, string operationName)
+        private static MessagePartDescription ValidateAndGetStreamPart(MessageDescription messageDescription, bool isRequest, string operationName)
         {
             MessagePartDescription part = GetStreamPart(messageDescription);
             if (part != null)
@@ -163,7 +162,7 @@ namespace CoreWCF.Dispatcher
             return false;
         }
 
-        static MessagePartDescription GetStreamPart(MessageDescription messageDescription)
+        private static MessagePartDescription GetStreamPart(MessageDescription messageDescription)
         {
             if (OperationFormatter.IsValidReturnValue(messageDescription.Body.ReturnValue))
             {
@@ -187,12 +186,12 @@ namespace CoreWCF.Dispatcher
 
         internal class MessageBodyStream : Stream
         {
-            Message message;
-            XmlDictionaryReader reader;
-            long position;
-            string wrapperName, wrapperNs;
-            string elementName, elementNs;
-            bool isRequest;
+            private Message message;
+            private XmlDictionaryReader reader;
+            private long position;
+            private string wrapperName, wrapperNs;
+            private string elementName, elementNs;
+            private bool isRequest;
             internal MessageBodyStream(Message message, string wrapperName, string wrapperNs, string elementName, string elementNs, bool isRequest)
             {
                 this.message = message;
@@ -265,7 +264,7 @@ namespace CoreWCF.Dispatcher
                         isRequest ? SR.SFxStreamRequestMessageClosed : SR.SFxStreamResponseMessageClosed));
             }
 
-            static void Exhaust(XmlDictionaryReader reader)
+            private static void Exhaust(XmlDictionaryReader reader)
             {
                 if (reader != null)
                 {
@@ -315,7 +314,7 @@ namespace CoreWCF.Dispatcher
 
         internal class OperationStreamProvider //: IStreamProvider
         {
-            Stream stream;
+            private Stream stream;
 
             internal OperationStreamProvider(Stream stream)
             {

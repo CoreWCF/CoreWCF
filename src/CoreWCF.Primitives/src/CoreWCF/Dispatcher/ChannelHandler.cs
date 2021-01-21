@@ -160,12 +160,12 @@ namespace CoreWCF.Dispatcher
 
         internal ServiceThrottle InstanceContextServiceThrottle { get; set; }
 
-        bool IsOpen
+        private bool IsOpen
         {
             get { return _binder.Channel.State == CommunicationState.Opened; }
         }
 
-        EndpointAddress LocalAddress
+        private EndpointAddress LocalAddress
         {
             get
             {
@@ -188,7 +188,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return this; }
         }
@@ -239,7 +239,7 @@ namespace CoreWCF.Dispatcher
             HandleRequestAsync(requestContext);
         }
 
-        RequestContext GetSessionOpenNotificationRequestContext()
+        private RequestContext GetSessionOpenNotificationRequestContext()
         {
             Fx.Assert(_sessionOpenNotification != null, "this.sessionOpenNotification should not be null.");
             Message message = Message.CreateMessage(_binder.Channel.GetProperty<MessageVersion>(), OperationDescription.SessionOpenedAction);
@@ -523,7 +523,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        ServiceChannel GetDatagramChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
+        private ServiceChannel GetDatagramChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
         {
             addressMatched = false;
             endpoint = GetEndpointDispatcher(message, out addressMatched);
@@ -549,7 +549,7 @@ namespace CoreWCF.Dispatcher
             return endpoint.DatagramChannel;
         }
 
-        ServiceChannel GetSessionChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
+        private ServiceChannel GetSessionChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
         {
             addressMatched = false;
 
@@ -581,7 +581,7 @@ namespace CoreWCF.Dispatcher
             return _channel;
         }
 
-        Task InitializeServiceChannel(ServiceChannel channel)
+        private Task InitializeServiceChannel(ServiceChannel channel)
         {
             if (_wasChannelThrottled)
             {
@@ -628,8 +628,7 @@ namespace CoreWCF.Dispatcher
             return ((IChannel)channel).OpenAsync();
         }
 
-
-        void ProvideFault(Exception e, RequestInfo requestInfo, ref ErrorHandlerFaultInfo faultInfo)
+        private void ProvideFault(Exception e, RequestInfo requestInfo, ref ErrorHandlerFaultInfo faultInfo)
         {
             if (_serviceDispatcher != null)
             {
@@ -649,7 +648,7 @@ namespace CoreWCF.Dispatcher
             return HandleError(e, ref dummy);
         }
 
-        bool HandleError(Exception e, ref ErrorHandlerFaultInfo faultInfo)
+        private bool HandleError(Exception e, ref ErrorHandlerFaultInfo faultInfo)
         {
             if (e == null)
             {
@@ -677,7 +676,7 @@ namespace CoreWCF.Dispatcher
             return ProvideFaultAndReplyFailureAsync(request, requestInfo, e, faultInfo);
         }
 
-        Task ReplyAddressFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
+        private Task ReplyAddressFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
         {
             FaultCode code = FaultCode.CreateSenderFaultCode(AddressingStrings.DestinationUnreachable,
                 _messageVersion.Addressing.Namespace);
@@ -686,7 +685,7 @@ namespace CoreWCF.Dispatcher
             return ReplyFailureAsync(request, requestInfo, code, reason);
         }
 
-        Task ReplyContractFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
+        private Task ReplyContractFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
         {
             // By default, the contract filter is just a filter over the set of initiating actions in 
             // the contract, so we do error messages accordingly
@@ -718,13 +717,13 @@ namespace CoreWCF.Dispatcher
             return ReplyFailureAsync(request, requestInfo, fault, action, reason, code);
         }
 
-        Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason)
+        private Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason)
         {
             string action = _messageVersion.Addressing.DefaultFaultAction;
             return ReplyFailureAsync(request, requestInfo, code, reason, action);
         }
 
-        Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason, string action)
+        private Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason, string action)
         {
             Message fault = Message.CreateMessage(_messageVersion, code, reason, action);
             return ReplyFailureAsync(request, requestInfo, fault, action, reason, code);
@@ -807,7 +806,7 @@ namespace CoreWCF.Dispatcher
         /// <param name="request">The request context to prepare</param>
         /// <param name="reply">The reply to prepare</param>
         /// <returns>True if channel is open and prepared reply should be sent; otherwise false.</returns>
-        bool PrepareReply(RequestContext request, Message reply)
+        private bool PrepareReply(RequestContext request, Message reply)
         {
             // Ensure we only reply once (we may hit the same error multiple times)
             if (_replied == request)
@@ -867,12 +866,12 @@ namespace CoreWCF.Dispatcher
             return IsOpen && canSendReply;
         }
 
-        EndpointDispatcher GetEndpointDispatcher(Message message, out bool addressMatched)
+        private EndpointDispatcher GetEndpointDispatcher(Message message, out bool addressMatched)
         {
             return _serviceDispatcher.Endpoints.Lookup(message, out addressMatched);
         }
 
-        Task TryAcquireThrottleAsync(RequestContext request, bool acquireInstanceContextThrottle)
+        private Task TryAcquireThrottleAsync(RequestContext request, bool acquireInstanceContextThrottle)
         {
             ServiceThrottle throttle = _throttle;
             if ((throttle != null) && (throttle.IsActive))
@@ -883,7 +882,7 @@ namespace CoreWCF.Dispatcher
             return Task.CompletedTask;
         }
 
-        Task TryAcquireCallThrottleAsync(RequestContext request)
+        private Task TryAcquireCallThrottleAsync(RequestContext request)
         {
             ServiceThrottle throttle = _throttle;
             if ((throttle != null) && (throttle.IsActive))

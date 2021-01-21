@@ -7,15 +7,15 @@ using System.Xml;
 
 namespace CoreWCF
 {
-    class ServiceModelDictionary : IXmlDictionary
+    internal class ServiceModelDictionary : IXmlDictionary
     {
         static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
-        ServiceModelStrings strings;
-        int count;
-        XmlDictionaryString[] dictionaryStrings1;
-        XmlDictionaryString[] dictionaryStrings2;
-        Dictionary<string, int> dictionary;
-        XmlDictionaryString[] versionedDictionaryStrings;
+        private ServiceModelStrings strings;
+        private int count;
+        private XmlDictionaryString[] dictionaryStrings1;
+        private XmlDictionaryString[] dictionaryStrings2;
+        private Dictionary<string, int> dictionary;
+        private XmlDictionaryString[] versionedDictionaryStrings;
 
         public ServiceModelDictionary(ServiceModelStrings strings)
         {

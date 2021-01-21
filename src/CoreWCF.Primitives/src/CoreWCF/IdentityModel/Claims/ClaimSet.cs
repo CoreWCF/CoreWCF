@@ -11,9 +11,9 @@ namespace CoreWCF.IdentityModel.Claims
     [DataContract(Namespace = XsiConstants.Namespace)]
     public abstract class ClaimSet : IEnumerable<Claim>
     {
-        static ClaimSet system;
-        static ClaimSet windows;
-        static ClaimSet anonymous;
+        private static ClaimSet system;
+        private static ClaimSet windows;
+        private static ClaimSet anonymous;
 
         public static ClaimSet System
         {

@@ -10,16 +10,17 @@ namespace CoreWCF.Dispatcher
 {
     internal class ImmutableClientRuntime
     {
-        int correlationCount;
+        private int correlationCount;
+
         //bool addTransactionFlowProperties;
         //IInteractiveChannelInitializer[] interactiveChannelInitializers;
-        IClientOperationSelector operationSelector;
-        IChannelInitializer[] channelInitializers;
-        IClientMessageInspector[] messageInspectors;
-        Dictionary<string, ProxyOperationRuntime> operations;
-        ProxyOperationRuntime unhandled;
-        bool useSynchronizationContext;
-        bool validateMustUnderstand;
+        private IClientOperationSelector operationSelector;
+        private IChannelInitializer[] channelInitializers;
+        private IClientMessageInspector[] messageInspectors;
+        private Dictionary<string, ProxyOperationRuntime> operations;
+        private ProxyOperationRuntime unhandled;
+        private bool useSynchronizationContext;
+        private bool validateMustUnderstand;
 
         internal ImmutableClientRuntime(ClientRuntime behavior)
         {

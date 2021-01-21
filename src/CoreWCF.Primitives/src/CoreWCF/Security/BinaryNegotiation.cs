@@ -8,8 +8,8 @@ namespace CoreWCF.Security
     internal sealed class BinaryNegotiation
     {
         private byte[] negotiationData;
-        XmlDictionaryString valueTypeUriDictionaryString;
-        string valueTypeUri;
+        private XmlDictionaryString valueTypeUriDictionaryString;
+        private string valueTypeUri;
 
         public BinaryNegotiation(
             string valueTypeUri,

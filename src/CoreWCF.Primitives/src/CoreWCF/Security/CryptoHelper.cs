@@ -9,12 +9,12 @@ using CryptoAlgorithms = CoreWCF.IdentityModel.CryptoHelper;
 
 namespace CoreWCF.Security
 {
-    static class CryptoHelper
+    internal static class CryptoHelper
     {
-        static byte[] emptyBuffer;
-        static readonly RandomNumberGenerator random = new RNGCryptoServiceProvider();
+        private static byte[] emptyBuffer;
+        private static readonly RandomNumberGenerator random = new RNGCryptoServiceProvider();
 
-        enum CryptoAlgorithmType
+        private enum CryptoAlgorithmType
         {
             Unknown,
             Symmetric,
@@ -140,7 +140,7 @@ namespace CoreWCF.Security
             random.GetBytes(buffer);
         }
 
-        static CryptoAlgorithmType GetAlgorithmType(string algorithm)
+        private static CryptoAlgorithmType GetAlgorithmType(string algorithm)
         {
             object algorithmObject = null;
 

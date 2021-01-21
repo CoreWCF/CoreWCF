@@ -11,8 +11,8 @@ namespace CoreWCF.Security
 
     public class DataProtectionSecurityStateEncoder : SecurityStateEncoder
     {
-        byte[] entropy;
-        bool useCurrentUserProtectionScope;
+        private byte[] entropy;
+        private bool useCurrentUserProtectionScope;
 
         public DataProtectionSecurityStateEncoder() : this(true)
         {

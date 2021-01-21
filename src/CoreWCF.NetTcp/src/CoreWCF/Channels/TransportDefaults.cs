@@ -56,7 +56,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    static class TcpTransportDefaults
+    internal static class TcpTransportDefaults
     {
         internal const int ListenBacklogConst = 0;
         internal static TimeSpan ConnectionLeaseTimeout { get { return TimeSpan.FromMinutes(5); } }

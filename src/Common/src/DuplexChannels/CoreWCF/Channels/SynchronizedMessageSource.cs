@@ -9,10 +9,10 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class SynchronizedMessageSource
+    internal class SynchronizedMessageSource
     {
-        IMessageSource source;
-        SemaphoreSlim sourceLock;
+        private IMessageSource source;
+        private SemaphoreSlim sourceLock;
 
         public SynchronizedMessageSource(IMessageSource source)
         {

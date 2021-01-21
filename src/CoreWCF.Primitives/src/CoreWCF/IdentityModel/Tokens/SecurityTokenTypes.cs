@@ -5,12 +5,12 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal static class SecurityTokenTypes
     {
-        const string Namespace = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens";
-        const string userName = Namespace + "/UserName";
-        const string x509Certificate = Namespace + "/X509Certificate";
-        const string kerberos = Namespace + "/Kerberos";
-        const string saml = Namespace + "/Saml";
-        const string rsa = Namespace + "/Rsa";
+        private const string Namespace = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens";
+        private const string userName = Namespace + "/UserName";
+        private const string x509Certificate = Namespace + "/X509Certificate";
+        private const string kerberos = Namespace + "/Kerberos";
+        private const string saml = Namespace + "/Saml";
+        private const string rsa = Namespace + "/Rsa";
 
         internal const string SamlTokenProfile11 = "urn:oasis:names:tc:SAML:1.0:assertion";
         internal const string Saml2TokenProfile11 = "urn:oasis:names:tc:SAML:2.0:assertion";

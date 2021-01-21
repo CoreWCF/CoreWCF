@@ -6,16 +6,16 @@ using System.Xml;
 
 namespace CoreWCF.Security
 {
-    sealed class SctClaimDictionary : XmlDictionary
+    internal sealed class SctClaimDictionary : XmlDictionary
     {
-        XmlDictionaryString x509CertificateClaimSet;
-        XmlDictionaryString binaryClaim;
-        XmlDictionaryString x509ThumbprintClaim;
-        XmlDictionaryString windowsSidIdentity;
-        XmlDictionaryString contextId;
-        XmlDictionaryString name;
-        XmlDictionaryString genericXmlToken;
-        XmlDictionaryString emptyString;
+        private XmlDictionaryString x509CertificateClaimSet;
+        private XmlDictionaryString binaryClaim;
+        private XmlDictionaryString x509ThumbprintClaim;
+        private XmlDictionaryString windowsSidIdentity;
+        private XmlDictionaryString contextId;
+        private XmlDictionaryString name;
+        private XmlDictionaryString genericXmlToken;
+        private XmlDictionaryString emptyString;
 
         private SctClaimDictionary()
         {

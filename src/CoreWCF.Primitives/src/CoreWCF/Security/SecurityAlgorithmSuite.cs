@@ -11,22 +11,22 @@ namespace CoreWCF.Security
 {
     public abstract class SecurityAlgorithmSuite
     {
-        static SecurityAlgorithmSuite basic256;
-        static SecurityAlgorithmSuite basic192;
-        static SecurityAlgorithmSuite basic128;
-        static SecurityAlgorithmSuite tripleDes;
-        static SecurityAlgorithmSuite basic256Rsa15;
-        static SecurityAlgorithmSuite basic192Rsa15;
-        static SecurityAlgorithmSuite basic128Rsa15;
-        static SecurityAlgorithmSuite tripleDesRsa15;
-        static SecurityAlgorithmSuite basic256Sha256;
-        static SecurityAlgorithmSuite basic192Sha256;
-        static SecurityAlgorithmSuite basic128Sha256;
-        static SecurityAlgorithmSuite tripleDesSha256;
-        static SecurityAlgorithmSuite basic256Sha256Rsa15;
-        static SecurityAlgorithmSuite basic192Sha256Rsa15;
-        static SecurityAlgorithmSuite basic128Sha256Rsa15;
-        static SecurityAlgorithmSuite tripleDesSha256Rsa15;
+        private static SecurityAlgorithmSuite basic256;
+        private static SecurityAlgorithmSuite basic192;
+        private static SecurityAlgorithmSuite basic128;
+        private static SecurityAlgorithmSuite tripleDes;
+        private static SecurityAlgorithmSuite basic256Rsa15;
+        private static SecurityAlgorithmSuite basic192Rsa15;
+        private static SecurityAlgorithmSuite basic128Rsa15;
+        private static SecurityAlgorithmSuite tripleDesRsa15;
+        private static SecurityAlgorithmSuite basic256Sha256;
+        private static SecurityAlgorithmSuite basic192Sha256;
+        private static SecurityAlgorithmSuite basic128Sha256;
+        private static SecurityAlgorithmSuite tripleDesSha256;
+        private static SecurityAlgorithmSuite basic256Sha256Rsa15;
+        private static SecurityAlgorithmSuite basic192Sha256Rsa15;
+        private static SecurityAlgorithmSuite basic128Sha256Rsa15;
+        private static SecurityAlgorithmSuite tripleDesSha256Rsa15;
 
         static internal SecurityAlgorithmSuite KerberosDefault
         {
@@ -644,7 +644,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic128Rsa15SecurityAlgorithmSuite : Basic128SecurityAlgorithmSuite
+    internal class Basic128Rsa15SecurityAlgorithmSuite : Basic128SecurityAlgorithmSuite
     {
         public Basic128Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -656,7 +656,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic192Rsa15SecurityAlgorithmSuite : Basic192SecurityAlgorithmSuite
+    internal class Basic192Rsa15SecurityAlgorithmSuite : Basic192SecurityAlgorithmSuite
     {
         public Basic192Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -668,7 +668,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic256Rsa15SecurityAlgorithmSuite : Basic256SecurityAlgorithmSuite
+    internal class Basic256Rsa15SecurityAlgorithmSuite : Basic256SecurityAlgorithmSuite
     {
         public Basic256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -680,7 +680,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class TripleDesRsa15SecurityAlgorithmSuite : TripleDesSecurityAlgorithmSuite
+    internal class TripleDesRsa15SecurityAlgorithmSuite : TripleDesSecurityAlgorithmSuite
     {
         public TripleDesRsa15SecurityAlgorithmSuite() : base() { }
 
@@ -692,7 +692,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic256Sha256SecurityAlgorithmSuite : Basic256SecurityAlgorithmSuite
+    internal class Basic256Sha256SecurityAlgorithmSuite : Basic256SecurityAlgorithmSuite
     {
         public Basic256Sha256SecurityAlgorithmSuite() : base() { }
 
@@ -706,7 +706,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic192Sha256SecurityAlgorithmSuite : Basic192SecurityAlgorithmSuite
+    internal class Basic192Sha256SecurityAlgorithmSuite : Basic192SecurityAlgorithmSuite
     {
         public Basic192Sha256SecurityAlgorithmSuite() : base() { }
 
@@ -720,7 +720,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic128Sha256SecurityAlgorithmSuite : Basic128SecurityAlgorithmSuite
+    internal class Basic128Sha256SecurityAlgorithmSuite : Basic128SecurityAlgorithmSuite
     {
         public Basic128Sha256SecurityAlgorithmSuite() : base() { }
 
@@ -734,7 +734,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class TripleDesSha256SecurityAlgorithmSuite : TripleDesSecurityAlgorithmSuite
+    internal class TripleDesSha256SecurityAlgorithmSuite : TripleDesSecurityAlgorithmSuite
     {
         public TripleDesSha256SecurityAlgorithmSuite() : base() { }
 
@@ -748,7 +748,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic256Sha256Rsa15SecurityAlgorithmSuite : Basic256Rsa15SecurityAlgorithmSuite
+    internal class Basic256Sha256Rsa15SecurityAlgorithmSuite : Basic256Rsa15SecurityAlgorithmSuite
     {
         public Basic256Sha256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -762,7 +762,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic192Sha256Rsa15SecurityAlgorithmSuite : Basic192Rsa15SecurityAlgorithmSuite
+    internal class Basic192Sha256Rsa15SecurityAlgorithmSuite : Basic192Rsa15SecurityAlgorithmSuite
     {
         public Basic192Sha256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -776,7 +776,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic128Sha256Rsa15SecurityAlgorithmSuite : Basic128Rsa15SecurityAlgorithmSuite
+    internal class Basic128Sha256Rsa15SecurityAlgorithmSuite : Basic128Rsa15SecurityAlgorithmSuite
     {
         public Basic128Sha256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -790,7 +790,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class TripleDesSha256Rsa15SecurityAlgorithmSuite : TripleDesRsa15SecurityAlgorithmSuite
+    internal class TripleDesSha256Rsa15SecurityAlgorithmSuite : TripleDesRsa15SecurityAlgorithmSuite
     {
         public TripleDesSha256Rsa15SecurityAlgorithmSuite() : base() { }
 

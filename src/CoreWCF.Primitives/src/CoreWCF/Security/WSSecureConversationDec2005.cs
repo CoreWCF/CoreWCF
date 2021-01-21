@@ -10,10 +10,10 @@ using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
 {
-    class WSSecureConversationDec2005 : WSSecureConversation
+    internal class WSSecureConversationDec2005 : WSSecureConversation
     {
-        SecurityStateEncoder securityStateEncoder;
-        IList<Type> knownClaimTypes;
+        private SecurityStateEncoder securityStateEncoder;
+        private IList<Type> knownClaimTypes;
 
         public WSSecureConversationDec2005(WSSecurityTokenSerializer tokenSerializer, SecurityStateEncoder securityStateEncoder, IEnumerable<Type> knownTypes,
             int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
@@ -58,7 +58,7 @@ namespace CoreWCF.Security
             }
         }
 
-        class SecurityContextTokenEntryDec2005 : SecurityContextTokenEntry
+        private class SecurityContextTokenEntryDec2005 : SecurityContextTokenEntry
         {
             public SecurityContextTokenEntryDec2005(WSSecureConversationDec2005 parent, SecurityStateEncoder securityStateEncoder, IList<Type> knownClaimTypes)
                 : base(parent, securityStateEncoder, knownClaimTypes)

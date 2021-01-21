@@ -5,7 +5,7 @@ using CoreWCF;
 
 [XmlSerializerFormat]
 [ServiceContract]
-interface ISimpleXmlSerializerService
+internal interface ISimpleXmlSerializerService
 {
     [OperationContract]
     string Echo(string echo);

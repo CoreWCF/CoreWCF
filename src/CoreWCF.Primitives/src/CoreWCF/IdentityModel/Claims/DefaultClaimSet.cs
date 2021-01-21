@@ -11,9 +11,9 @@ namespace CoreWCF.IdentityModel.Claims
     public class DefaultClaimSet : ClaimSet
     {
         [DataMember(Name = "Issuer")]
-        ClaimSet issuer;
+        private ClaimSet issuer;
         [DataMember(Name = "Claims")]
-        IList<Claim> claims;
+        private IList<Claim> claims;
 
         public DefaultClaimSet(params Claim[] claims)
         {

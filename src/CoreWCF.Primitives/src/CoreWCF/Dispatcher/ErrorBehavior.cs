@@ -8,12 +8,12 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
-    class ErrorBehavior
+    internal class ErrorBehavior
     {
-        IErrorHandler[] handlers;
-        bool debug;
-        bool isOnServer;
-        MessageVersion messageVersion;
+        private IErrorHandler[] handlers;
+        private bool debug;
+        private bool isOnServer;
+        private MessageVersion messageVersion;
 
         internal ErrorBehavior(ChannelDispatcher channelDispatcher)
         {
@@ -31,7 +31,7 @@ namespace CoreWCF.Dispatcher
             messageVersion = channelDispatcher.MessageVersion;
         }
 
-        void InitializeFault(MessageRpc rpc)
+        private void InitializeFault(MessageRpc rpc)
         {
             Exception error = rpc.Error;
             FaultException fault = error as FaultException;
@@ -62,7 +62,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void ProvideMessageFaultCore(MessageRpc rpc)
+        private void ProvideMessageFaultCore(MessageRpc rpc)
         {
             if (messageVersion != rpc.RequestVersion)
             {
@@ -76,7 +76,7 @@ namespace CoreWCF.Dispatcher
             ProvideMessageFaultCoreCoda(rpc);
         }
 
-        void ProvideFaultOfLastResort(Exception error, ref ErrorHandlerFaultInfo faultInfo)
+        private void ProvideFaultOfLastResort(Exception error, ref ErrorHandlerFaultInfo faultInfo)
         {
             if (faultInfo.Fault == null)
             {
@@ -110,7 +110,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void ProvideMessageFaultCoreCoda(MessageRpc rpc)
+        private void ProvideMessageFaultCoreCoda(MessageRpc rpc)
         {
             if (rpc.FaultInfo.Fault.Headers.Action == null)
             {
@@ -142,7 +142,7 @@ namespace CoreWCF.Dispatcher
             ProvideFaultOfLastResort(e, ref faultInfo);
         }
 
-        void ProvideWellKnownFault(Exception e, FaultConverter faultConverter, ref ErrorHandlerFaultInfo faultInfo)
+        private void ProvideWellKnownFault(Exception e, FaultConverter faultConverter, ref ErrorHandlerFaultInfo faultInfo)
         {
             Message faultMessage;
             if (faultConverter != null && faultConverter.TryCreateFaultMessage(e, out faultMessage))
@@ -173,7 +173,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void HandleErrorCore(MessageRpc rpc)
+        private void HandleErrorCore(MessageRpc rpc)
         {
             bool handled = HandleErrorCommon(rpc.Error, ref rpc.FaultInfo);
             if (handled)
@@ -182,7 +182,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        bool HandleErrorCommon(Exception error, ref ErrorHandlerFaultInfo faultInfo)
+        private bool HandleErrorCommon(Exception error, ref ErrorHandlerFaultInfo faultInfo)
         {
             bool handled;
             if (faultInfo.Fault != null   // there is a message

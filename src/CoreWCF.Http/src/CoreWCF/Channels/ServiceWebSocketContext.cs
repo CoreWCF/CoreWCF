@@ -13,8 +13,8 @@ namespace CoreWCF.Channels
 {
     internal class ServiceWebSocketContext : WebSocketContext
     {
-        WebSocketContext _context;
-        IPrincipal _user;
+        private WebSocketContext _context;
+        private IPrincipal _user;
 
         public ServiceWebSocketContext(WebSocketContext context, IPrincipal user)
         {

@@ -9,10 +9,10 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal class USerNameSecurityToken : SecurityToken
     {
-        string id;
-        string password;
-        string userName;
-        DateTime effectiveTime;
+        private string id;
+        private string password;
+        private string userName;
+        private DateTime effectiveTime;
 
         public USerNameSecurityToken(string userName, string password)
             : this(userName, password, SecurityUniqueId.Create().Value)

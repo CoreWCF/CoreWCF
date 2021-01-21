@@ -16,9 +16,9 @@ namespace CoreWCF.Security.Tokens
 {
     public class IssuedSecurityTokenParameters : SecurityTokenParameters
     {
-        const string wsidPrefix = "wsid";
-        const string wsidNamespace = "http://schemas.xmlsoap.org/ws/2005/05/identity";
-        static readonly string wsidPPIClaim = String.Format(CultureInfo.InvariantCulture, "{0}/claims/privatepersonalidentifier", wsidNamespace);
+        private const string wsidPrefix = "wsid";
+        private const string wsidNamespace = "http://schemas.xmlsoap.org/ws/2005/05/identity";
+        private static readonly string wsidPPIClaim = String.Format(CultureInfo.InvariantCulture, "{0}/claims/privatepersonalidentifier", wsidNamespace);
         internal const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
         internal const bool defaultUseStrTransform = false;
 
@@ -29,17 +29,17 @@ namespace CoreWCF.Security.Tokens
             public Binding IssuerBinding;
         }
 
-        Collection<XmlElement> additionalRequestParameters = new Collection<XmlElement>();
-        Collection<AlternativeIssuerEndpoint> alternativeIssuerEndpoints = new Collection<AlternativeIssuerEndpoint>();
-        MessageSecurityVersion defaultMessageSecurityVersion;
-        EndpointAddress issuerAddress;
-        EndpointAddress issuerMetadataAddress;
-        Binding issuerBinding;
-        int keySize;
-        SecurityKeyType keyType = defaultKeyType;
-        Collection<ClaimTypeRequirement> claimTypeRequirements = new Collection<ClaimTypeRequirement>();
-        bool useStrTransform = defaultUseStrTransform;
-        string tokenType;
+        private Collection<XmlElement> additionalRequestParameters = new Collection<XmlElement>();
+        private Collection<AlternativeIssuerEndpoint> alternativeIssuerEndpoints = new Collection<AlternativeIssuerEndpoint>();
+        private MessageSecurityVersion defaultMessageSecurityVersion;
+        private EndpointAddress issuerAddress;
+        private EndpointAddress issuerMetadataAddress;
+        private Binding issuerBinding;
+        private int keySize;
+        private SecurityKeyType keyType = defaultKeyType;
+        private Collection<ClaimTypeRequirement> claimTypeRequirements = new Collection<ClaimTypeRequirement>();
+        private bool useStrTransform = defaultUseStrTransform;
+        private string tokenType;
 
         protected IssuedSecurityTokenParameters(IssuedSecurityTokenParameters other)
             : base(other)

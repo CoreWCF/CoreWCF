@@ -11,7 +11,7 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
     public class MyTestAuthorizationPolicy : IAuthorizationPolicy
     {
-        string id;
+        private string id;
         public MyTestAuthorizationPolicy()
         {
             id = Guid.NewGuid().ToString();
@@ -67,9 +67,9 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
         }
 
         // Internal class for keeping track of state.
-        class CustomAuthState
+        private class CustomAuthState
         {
-            bool bClaimsAdded;
+            private bool bClaimsAdded;
 
             public CustomAuthState()
             {

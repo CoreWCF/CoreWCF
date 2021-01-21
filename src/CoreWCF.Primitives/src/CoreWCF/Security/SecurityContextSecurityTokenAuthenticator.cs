@@ -31,12 +31,12 @@ namespace CoreWCF.Security.Tokens
             return sct.AuthorizationPolicies;
         }
 
-        void ThrowExpiredContextFaultException(UniqueId contextId, SecurityContextSecurityToken sct)
+        private void ThrowExpiredContextFaultException(UniqueId contextId, SecurityContextSecurityToken sct)
         {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new Exception(SR.Format(SR.SecurityContextExpired, contextId, sct.KeyGeneration == null ? "none" : sct.KeyGeneration.ToString())));
         }
 
-        bool IsTimeValid(SecurityContextSecurityToken sct)
+        private bool IsTimeValid(SecurityContextSecurityToken sct)
         {
             DateTime utcNow = DateTime.UtcNow;
             return (sct.ValidFrom <= utcNow && sct.ValidTo >= utcNow && sct.KeyEffectiveTime <= utcNow);

@@ -7,9 +7,9 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    class TerminatingOperationBehavior
+    internal class TerminatingOperationBehavior
     {
-        static void AbortChannel(object state)
+        private static void AbortChannel(object state)
         {
             ((IChannel)state).Abort();
         }
@@ -26,7 +26,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        static bool IsTerminatingOperationBehaviorNeeded(DispatchRuntime dispatch)
+        private static bool IsTerminatingOperationBehaviorNeeded(DispatchRuntime dispatch)
         {
             for (int i = 0; i < dispatch.Operations.Count; i++)
             {

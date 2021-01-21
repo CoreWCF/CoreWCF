@@ -15,11 +15,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Channels
 {
-    abstract class HttpRequestContext : RequestContextBase
+    internal abstract class HttpRequestContext : RequestContextBase
     {
-        HttpOutput httpOutput;
-        bool errorGettingHttpInput;
-        SecurityMessageProperty securityProperty;
+        private HttpOutput httpOutput;
+        private bool errorGettingHttpInput;
+        private SecurityMessageProperty securityProperty;
         private TaskCompletionSource<object> _replySentTcs;
         //EventTraceActivity eventTraceActivity;
         //ServerWebSocketTransportDuplexSessionChannel webSocketChannel;
@@ -170,13 +170,13 @@ namespace CoreWCF.Channels
             }
         }
 
-        void TraceHttpMessageReceived(Message message)
+        private void TraceHttpMessageReceived(Message message)
         {
         }
 
         protected abstract HttpStatusCode ValidateAuthentication();
 
-        bool PrepareReply(ref Message message)
+        private bool PrepareReply(ref Message message)
         {
             bool closeOnReceivedEof = false;
 
@@ -317,7 +317,7 @@ namespace CoreWCF.Channels
             await CloseAsync();
         }
 
-        Message CreateAckMessage(HttpStatusCode statusCode, string statusDescription)
+        private Message CreateAckMessage(HttpStatusCode statusCode, string statusDescription)
         {
             Message ackMessage = new NullMessage();
             HttpResponseMessageProperty httpResponseProperty = new HttpResponseMessageProperty();
@@ -333,9 +333,9 @@ namespace CoreWCF.Channels
             return ackMessage;
         }
 
-        class AspNetCoreHttpContext : HttpRequestContext
+        private class AspNetCoreHttpContext : HttpRequestContext
         {
-            HttpContext _aspNetContext;
+            private HttpContext _aspNetContext;
             // byte[] webSocketInternalBuffer;
 
             public AspNetCoreHttpContext(IHttpTransportFactorySettings settings, HttpContext aspNetContext)
@@ -407,11 +407,11 @@ namespace CoreWCF.Channels
                 //}
             }
 
-            class AspNetCoreHttpInput : HttpInput
+            private class AspNetCoreHttpInput : HttpInput
             {
-                AspNetCoreHttpContext _aspNetCoreHttpContext;
-                string cachedContentType; // accessing the header in System.Net involves a native transition
-                byte[] preReadBuffer;
+                private AspNetCoreHttpContext _aspNetCoreHttpContext;
+                private string cachedContentType; // accessing the header in System.Net involves a native transition
+                private byte[] preReadBuffer;
 
                 // TODO: ChannelBindingSupport
                 public AspNetCoreHttpInput(AspNetCoreHttpContext aspNetCoreHttpContext)
@@ -489,7 +489,7 @@ namespace CoreWCF.Channels
                     }
                 }
 
-                class AspNetCoreInputStream : DetectEofStream
+                private class AspNetCoreInputStream : DetectEofStream
                 {
                     public AspNetCoreInputStream(AspNetCoreHttpContext aspNetCoreHttpContext)
                         : base(aspNetCoreHttpContext._aspNetContext.Request.Body)

@@ -7,13 +7,13 @@ using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-    class WSAddressing10ProblemHeaderQNameFault : MessageFault
+    internal class WSAddressing10ProblemHeaderQNameFault : MessageFault
     {
-        FaultCode code;
-        FaultReason reason;
-        string actor;
-        string node;
-        string invalidHeaderName;
+        private FaultCode code;
+        private FaultReason reason;
+        private string actor;
+        private string node;
+        private string invalidHeaderName;
 
         public WSAddressing10ProblemHeaderQNameFault(MessageHeaderException e)
         {
@@ -114,9 +114,9 @@ namespace CoreWCF
             }
         }
 
-        class WSAddressing10ProblemHeaderQNameHeader : MessageHeader
+        private class WSAddressing10ProblemHeaderQNameHeader : MessageHeader
         {
-            string invalidHeaderName;
+            private string invalidHeaderName;
 
             public WSAddressing10ProblemHeaderQNameHeader(string invalidHeaderName)
             {

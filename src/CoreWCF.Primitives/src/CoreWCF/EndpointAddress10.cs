@@ -15,17 +15,16 @@ namespace CoreWCF
     [XmlRoot(AddressingStrings.EndpointReference, Namespace = Addressing10Strings.Namespace)]
     public class EndpointAddress10 : IXmlSerializable
     {
-        static XmlQualifiedName eprType;
-
-        EndpointAddress address;
+        private static XmlQualifiedName eprType;
+        private EndpointAddress address;
 
         // for IXmlSerializable
-        EndpointAddress10()
+        private EndpointAddress10()
         {
             this.address = null;
         }
 
-        EndpointAddress10(EndpointAddress address)
+        private EndpointAddress10(EndpointAddress address)
         {
             this.address = address;
         }
@@ -54,7 +53,7 @@ namespace CoreWCF
             this.address.WriteContentsTo(AddressingVersion.WSAddressing10, XmlDictionaryWriter.CreateDictionaryWriter(writer));
         }
 
-        static XmlQualifiedName EprType
+        private static XmlQualifiedName EprType
         {
             get
             {
@@ -64,7 +63,7 @@ namespace CoreWCF
             }
         }
 
-        static XmlSchema GetEprSchema()
+        private static XmlSchema GetEprSchema()
         {
             using (XmlTextReader reader = new XmlTextReader(new StringReader(Schema)) { DtdProcessing = DtdProcessing.Prohibit })
             {
@@ -112,7 +111,7 @@ namespace CoreWCF
             return null;
         }
 
-        const string Schema =
+        private const string Schema =
 @"<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns:wsa='http://www.w3.org/2005/08/addressing' targetNamespace='http://www.w3.org/2005/08/addressing' blockDefault='#all' elementFormDefault='qualified' finalDefault='' attributeFormDefault='unqualified'>
     
     <!-- Constructs from the WS-Addressing Core -->

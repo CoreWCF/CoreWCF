@@ -12,12 +12,11 @@ namespace CoreWCF.IdentityModel.Selectors
     public abstract class X509CertificateValidator
     {
         internal const uint CAPI_CERT_CHAIN_POLICY_NT_AUTH = 6;
-
-        static X509CertificateValidator peerTrust;
-        static X509CertificateValidator chainTrust;
-        static X509CertificateValidator ntAuthChainTrust;
-        static X509CertificateValidator peerOrChainTrust;
-        static X509CertificateValidator none;
+        private static X509CertificateValidator peerTrust;
+        private static X509CertificateValidator chainTrust;
+        private static X509CertificateValidator ntAuthChainTrust;
+        private static X509CertificateValidator peerOrChainTrust;
+        private static X509CertificateValidator none;
 
         public static X509CertificateValidator None
         {
@@ -86,7 +85,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public abstract void Validate(X509Certificate2 certificate);
 
-        class NoneX509CertificateValidator : X509CertificateValidator
+        private class NoneX509CertificateValidator : X509CertificateValidator
         {
             public override void Validate(X509Certificate2 certificate)
             {
@@ -95,7 +94,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        class PeerTrustValidator : X509CertificateValidator
+        private class PeerTrustValidator : X509CertificateValidator
         {
             public override void Validate(X509Certificate2 certificate)
             {
@@ -107,7 +106,7 @@ namespace CoreWCF.IdentityModel.Selectors
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(exception);
             }
 
-            static bool StoreContainsCertificate(StoreName storeName, X509Certificate2 certificate)
+            private static bool StoreContainsCertificate(StoreName storeName, X509Certificate2 certificate)
             {
                 X509Store store = new X509Store(storeName, StoreLocation.CurrentUser);
                 X509Certificate2Collection certificates = null;
@@ -166,11 +165,11 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        class ChainTrustValidator : X509CertificateValidator
+        private class ChainTrustValidator : X509CertificateValidator
         {
-            bool useMachineContext;
-            X509ChainPolicy chainPolicy;
-            uint chainPolicyOID = X509CertificateChain.DefaultChainPolicyOID;
+            private bool useMachineContext;
+            private X509ChainPolicy chainPolicy;
+            private uint chainPolicyOID = X509CertificateChain.DefaultChainPolicyOID;
 
             public ChainTrustValidator()
             {
@@ -202,7 +201,7 @@ namespace CoreWCF.IdentityModel.Selectors
                 }
             }
 
-            static string GetChainStatusInformation(X509ChainStatus[] chainStatus)
+            private static string GetChainStatusInformation(X509ChainStatus[] chainStatus)
             {
                 if (chainStatus != null)
                 {
@@ -218,10 +217,10 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        class PeerOrChainTrustValidator : X509CertificateValidator
+        private class PeerOrChainTrustValidator : X509CertificateValidator
         {
-            X509CertificateValidator chain;
-            PeerTrustValidator peer;
+            private X509CertificateValidator chain;
+            private PeerTrustValidator peer;
 
             public PeerOrChainTrustValidator()
             {

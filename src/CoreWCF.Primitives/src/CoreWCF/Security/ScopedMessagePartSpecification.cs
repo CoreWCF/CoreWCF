@@ -10,10 +10,10 @@ namespace CoreWCF.Security
 {
     internal class ScopedMessagePartSpecification
     {
-        MessagePartSpecification channelParts;
-        Dictionary<string, MessagePartSpecification> actionParts;
-        Dictionary<string, MessagePartSpecification> readOnlyNormalizedActionParts;
-        bool isReadOnly;
+        private MessagePartSpecification channelParts;
+        private Dictionary<string, MessagePartSpecification> actionParts;
+        private Dictionary<string, MessagePartSpecification> readOnlyNormalizedActionParts;
+        private bool isReadOnly;
 
         public ScopedMessagePartSpecification()
         {
@@ -197,7 +197,7 @@ namespace CoreWCF.Security
             }
         }
 
-        void ThrowIfReadOnly()
+        private void ThrowIfReadOnly()
         {
             if (isReadOnly)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));

@@ -11,26 +11,26 @@ namespace CoreWCF.Channels
 {
     public sealed class MessageProperties : IDictionary<string, object>, IDisposable
     {
-        Property[] properties;
-        int propertyCount;
-        MessageEncoder encoder;
-        Uri via;
-        object allowOutputBatching;
-        SecurityMessageProperty security;
-        bool disposed;
-        const int InitialPropertyCount = 2;
-        const int MaxRecycledArrayLength = 8;
-        const string ViaKey = "Via";
-        const string AllowOutputBatchingKey = "AllowOutputBatching";
-        const string SecurityKey = "Security";
-        const string EncoderKey = "Encoder";
-        const int NotFoundIndex = -1;
-        const int ViaIndex = -2;
-        const int AllowOutputBatchingIndex = -3;
-        const int SecurityIndex = -4;
-        const int EncoderIndex = -5;
-        static object trueBool = true;
-        static object falseBool = false;
+        private Property[] properties;
+        private int propertyCount;
+        private MessageEncoder encoder;
+        private Uri via;
+        private object allowOutputBatching;
+        private SecurityMessageProperty security;
+        private bool disposed;
+        private const int InitialPropertyCount = 2;
+        private const int MaxRecycledArrayLength = 8;
+        private const string ViaKey = "Via";
+        private const string AllowOutputBatchingKey = "AllowOutputBatching";
+        private const string SecurityKey = "Security";
+        private const string EncoderKey = "Encoder";
+        private const int NotFoundIndex = -1;
+        private const int ViaIndex = -2;
+        private const int AllowOutputBatchingIndex = -3;
+        private const int SecurityIndex = -4;
+        private const int EncoderIndex = -5;
+        private static object trueBool = true;
+        private static object falseBool = false;
 
         public MessageProperties()
         {
@@ -48,7 +48,7 @@ namespace CoreWCF.Channels
             CopyProperties(array);
         }
 
-        void ThrowDisposed()
+        private void ThrowDisposed()
         {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(string.Empty, SR.Format(SR.ObjectDisposed, GetType().ToString())));
         }
@@ -292,7 +292,7 @@ namespace CoreWCF.Channels
             UpdateProperty(name, property, true);
         }
 
-        void AdjustPropertyCount(bool oldValueIsNull, bool newValueIsNull)
+        private void AdjustPropertyCount(bool oldValueIsNull, bool newValueIsNull)
         {
             if (newValueIsNull)
             {
@@ -459,7 +459,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        object CreateCopyOfPropertyValue(object propertyValue)
+        private object CreateCopyOfPropertyValue(object propertyValue)
         {
             IMessageProperty messageProperty = propertyValue as IMessageProperty;
             if (messageProperty == null)
@@ -496,7 +496,7 @@ namespace CoreWCF.Channels
             //}
         }
 
-        int FindProperty(string name)
+        private int FindProperty(string name)
         {
             if (name == ViaKey)
                 return ViaIndex;
@@ -609,7 +609,7 @@ namespace CoreWCF.Channels
             return ensureTypeMatch ? (TProperty)obj : obj as TProperty;
         }
 
-        void UpdateProperty(string name, object value, bool mustNotExist)
+        private void UpdateProperty(string name, object value, bool mustNotExist)
         {
             if (name == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
@@ -859,10 +859,10 @@ namespace CoreWCF.Channels
             return true;
         }
 
-        struct Property : IDisposable
+        private struct Property : IDisposable
         {
-            string name;
-            object value;
+            private string name;
+            private object value;
 
             public Property(string name, object value)
             {

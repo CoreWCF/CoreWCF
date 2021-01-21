@@ -11,15 +11,15 @@ namespace CoreWCF.Description
 {
     public class ServiceEndpoint
     {
-        EndpointAddress _address;
-        Binding _binding;
-        ContractDescription _contract;
-        Uri _listenUri;
-        ListenUriMode _listenUriMode = ListenUriMode.Explicit;
-        KeyedByTypeCollection<IEndpointBehavior> _behaviors;
-        string _id;
-        XmlName _name;
-        bool _isEndpointFullyConfigured = false;
+        private EndpointAddress _address;
+        private Binding _binding;
+        private ContractDescription _contract;
+        private Uri _listenUri;
+        private ListenUriMode _listenUriMode = ListenUriMode.Explicit;
+        private KeyedByTypeCollection<IEndpointBehavior> _behaviors;
+        private string _id;
+        private XmlName _name;
+        private bool _isEndpointFullyConfigured = false;
 
         public ServiceEndpoint(ContractDescription contract)
         {
@@ -219,7 +219,7 @@ namespace CoreWCF.Description
 
         // This method runs validators (both builtin and ones in description).  
         // Precondition: EnsureInvariants() should already have been called.
-        void Validate(bool runOperationValidators, bool isForService)
+        private void Validate(bool runOperationValidators, bool isForService)
         {
             // contract behaviors
             ContractDescription contract = Contract;

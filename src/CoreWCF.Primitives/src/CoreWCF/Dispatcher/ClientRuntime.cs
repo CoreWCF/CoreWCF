@@ -18,22 +18,21 @@ namespace CoreWCF.Dispatcher
         //bool addTransactionFlowProperties = true;
         internal SynchronizedCollection<IClientMessageInspector> messageInspectors;
         internal SynchronizedKeyedCollection<string, ClientOperation> operations;
-        Type callbackProxyType;
-        ProxyBehaviorCollection<IChannelInitializer> channelInitializers;
-        string contractName;
-        string contractNamespace;
-        Type contractProxyType;
-        DispatchRuntime dispatchRuntime;
-        IdentityVerifier identityVerifier;
-
-        IClientOperationSelector operationSelector;
-        ImmutableClientRuntime runtime;
-        ClientOperation unhandled;
-        bool useSynchronizationContext = true;
-        Uri via;
-        SharedRuntimeState shared;
-        int maxFaultSize;
-        bool messageVersionNoneFaultsEnabled;
+        private Type callbackProxyType;
+        private ProxyBehaviorCollection<IChannelInitializer> channelInitializers;
+        private string contractName;
+        private string contractNamespace;
+        private Type contractProxyType;
+        private DispatchRuntime dispatchRuntime;
+        private IdentityVerifier identityVerifier;
+        private IClientOperationSelector operationSelector;
+        private ImmutableClientRuntime runtime;
+        private ClientOperation unhandled;
+        private bool useSynchronizationContext = true;
+        private Uri via;
+        private SharedRuntimeState shared;
+        private int maxFaultSize;
+        private bool messageVersionNoneFaultsEnabled;
 
         internal ClientRuntime(DispatchRuntime dispatchRuntime, SharedRuntimeState shared)
             : this(dispatchRuntime.EndpointDispatcher.ContractName,
@@ -55,7 +54,7 @@ namespace CoreWCF.Dispatcher
             Fx.Assert(!shared.IsOnServer, "Client constructor called on server?");
         }
 
-        ClientRuntime(string contractName, string contractNamespace, SharedRuntimeState shared)
+        private ClientRuntime(string contractName, string contractNamespace, SharedRuntimeState shared)
         {
             this.contractName = contractName;
             this.contractNamespace = contractNamespace;
@@ -446,9 +445,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class ProxyBehaviorCollection<T> : SynchronizedCollection<T>
+        private class ProxyBehaviorCollection<T> : SynchronizedCollection<T>
         {
-            ClientRuntime outer;
+            private ClientRuntime outer;
 
             internal ProxyBehaviorCollection(ClientRuntime outer)
                 : base(outer.ThisLock)
@@ -491,9 +490,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class OperationCollection : SynchronizedKeyedCollection<string, ClientOperation>
+        private class OperationCollection : SynchronizedKeyedCollection<string, ClientOperation>
         {
-            ClientRuntime outer;
+            private ClientRuntime outer;
 
             internal OperationCollection(ClientRuntime outer)
                 : base(outer.ThisLock)
@@ -547,10 +546,9 @@ namespace CoreWCF.Dispatcher
             internal void InternalSetItem(int index, ClientOperation item) { SetItem(index, item); }
         }
 
-
-        class OperationCollectionWrapper : KeyedCollection<string, ClientOperation>
+        private class OperationCollectionWrapper : KeyedCollection<string, ClientOperation>
         {
-            OperationCollection inner;
+            private OperationCollection inner;
             internal OperationCollectionWrapper(OperationCollection inner) { this.inner = inner; }
             protected override void ClearItems() { inner.InternalClearItems(); }
             protected override string GetKeyForItem(ClientOperation item) { return inner.InternalGetKeyForItem(item); }

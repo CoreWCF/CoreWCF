@@ -3,7 +3,7 @@
 
 namespace CoreWCF.Security
 {
-    enum SecuritySessionOperation
+    internal enum SecuritySessionOperation
     {
         None,
         Issue,

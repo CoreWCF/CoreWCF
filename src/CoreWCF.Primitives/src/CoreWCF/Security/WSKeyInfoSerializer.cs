@@ -11,9 +11,9 @@ using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    class WSKeyInfoSerializer : KeyInfoSerializer
+    internal class WSKeyInfoSerializer : KeyInfoSerializer
     {
-        static Func<KeyInfoSerializer, IEnumerable<SecurityTokenSerializer.SerializerEntries>> CreateAdditionalEntries(SecurityVersion securityVersion, SecureConversationVersion secureConversationVersion)
+        private static Func<KeyInfoSerializer, IEnumerable<SecurityTokenSerializer.SerializerEntries>> CreateAdditionalEntries(SecurityVersion securityVersion, SecureConversationVersion secureConversationVersion)
         {
             return (KeyInfoSerializer keyInfoSerializer) =>
             {
@@ -58,7 +58,7 @@ namespace CoreWCF.Security
 
         public abstract class WSSecureConversation : SecurityTokenSerializer.SerializerEntries
         {
-            KeyInfoSerializer securityTokenSerializer;
+            private KeyInfoSerializer securityTokenSerializer;
 
             protected WSSecureConversation(KeyInfoSerializer securityTokenSerializer)
             {
@@ -83,7 +83,7 @@ namespace CoreWCF.Security
 
             protected abstract class SctStrEntry : StrEntry
             {
-                WSSecureConversation parent;
+                private WSSecureConversation parent;
 
                 public SctStrEntry(WSSecureConversation parent)
                 {
@@ -173,8 +173,8 @@ namespace CoreWCF.Security
 
             protected class SecurityContextTokenEntry : SecurityTokenSerializer.TokenEntry
             {
-                WSSecureConversation parent;
-                Type[] tokenTypes;
+                private WSSecureConversation parent;
+                private Type[] tokenTypes;
 
                 public SecurityContextTokenEntry(WSSecureConversation parent)
                 {
@@ -200,9 +200,8 @@ namespace CoreWCF.Security
             protected class DerivedKeyTokenEntry : SecurityTokenSerializer.TokenEntry
             {
                 public const string DefaultLabel = "WS-SecureConversation";
-
-                WSSecureConversation parent;
-                Type[] tokenTypes;
+                private WSSecureConversation parent;
+                private Type[] tokenTypes;
 
                 public DerivedKeyTokenEntry(WSSecureConversation parent)
                 {
@@ -228,7 +227,7 @@ namespace CoreWCF.Security
             }
         }
 
-        class WSSecureConversationFeb2005 : WSSecureConversation
+        private class WSSecureConversationFeb2005 : WSSecureConversation
         {
             public WSSecureConversationFeb2005(KeyInfoSerializer securityTokenSerializer)
                 : base(securityTokenSerializer)
@@ -242,7 +241,7 @@ namespace CoreWCF.Security
                 strEntries.Add(new SctStrEntryFeb2005(this));
             }
 
-            class SctStrEntryFeb2005 : SctStrEntry
+            private class SctStrEntryFeb2005 : SctStrEntry
             {
                 public SctStrEntryFeb2005(WSSecureConversationFeb2005 parent)
                     : base(parent)
@@ -273,7 +272,7 @@ namespace CoreWCF.Security
             }
         }
 
-        class WSSecureConversationDec2005 : WSSecureConversation
+        private class WSSecureConversationDec2005 : WSSecureConversation
         {
             public WSSecureConversationDec2005(KeyInfoSerializer securityTokenSerializer) : base(securityTokenSerializer)
             {
@@ -288,7 +287,7 @@ namespace CoreWCF.Security
 
             public override string DerivationAlgorithm => SecurityAlgorithms.Psha1KeyDerivationDec2005;
 
-            class SctStrEntryDec2005 : SctStrEntry
+            private class SctStrEntryDec2005 : SctStrEntry
             {
                 public SctStrEntryDec2005(WSSecureConversationDec2005 parent)
                     : base(parent)

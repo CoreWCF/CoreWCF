@@ -12,7 +12,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {
-    static class DecoderHelper
+    internal static class DecoderHelper
     {
         public static void ValidateSize(long size)
         {
@@ -23,12 +23,12 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    struct IntDecoder
+    internal struct IntDecoder
     {
-        int value;
-        short index;
-        bool isValueDecoded;
-        const int LastIndex = 4;
+        private int value;
+        private short index;
+        private bool isValueDecoded;
+        private const int LastIndex = 4;
 
         public int Value
         {
@@ -83,16 +83,16 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    abstract class StringDecoder
+    internal abstract class StringDecoder
     {
-        int encodedSize;
-        byte[] encodedBytes;
-        int bytesNeeded;
-        string value;
-        State currentState;
-        IntDecoder sizeDecoder;
-        int sizeQuota;
-        int valueLengthInBytes;
+        private int encodedSize;
+        private byte[] encodedBytes;
+        private int bytesNeeded;
+        private string value;
+        private State currentState;
+        private IntDecoder sizeDecoder;
+        private int sizeQuota;
+        private int valueLengthInBytes;
 
         public StringDecoder(int sizeQuota)
         {
@@ -180,7 +180,7 @@ namespace CoreWCF.Channels.Framing
             currentState = State.Done;
         }
 
-        static bool CompareBuffers(byte[] buffer1, ReadOnlySequence<byte> buffer2)
+        private static bool CompareBuffers(byte[] buffer1, ReadOnlySequence<byte> buffer2)
         {
             var buff = buffer2.ToArray();
             for (int i = 0; i < buffer1.Length; i++)
@@ -201,7 +201,7 @@ namespace CoreWCF.Channels.Framing
             sizeDecoder.Reset();
         }
 
-        enum State
+        private enum State
         {
             ReadingSize,
             ReadingBytes,
@@ -209,9 +209,9 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    class ViaStringDecoder : StringDecoder
+    internal class ViaStringDecoder : StringDecoder
     {
-        Uri via;
+        private Uri via;
 
         public ViaStringDecoder(int sizeQuota)
             : base(sizeQuota)
@@ -249,7 +249,7 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    class FaultStringDecoder : StringDecoder
+    internal class FaultStringDecoder : StringDecoder
     {
         internal const int FaultSizeQuota = 256;
 
@@ -323,7 +323,7 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    class ContentTypeStringDecoder : StringDecoder
+    internal class ContentTypeStringDecoder : StringDecoder
     {
         public ContentTypeStringDecoder(int sizeQuota)
             : base(sizeQuota)
@@ -365,7 +365,7 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    abstract class FramingDecoder
+    internal abstract class FramingDecoder
     {
         protected FramingDecoder()
         {
@@ -424,7 +424,7 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        Exception CreateInvalidRecordTypeException(FramingRecordType expectedType, FramingRecordType foundType)
+        private Exception CreateInvalidRecordTypeException(FramingRecordType expectedType, FramingRecordType foundType)
         {
             return new InvalidDataException(SR.Format(SR.FramingRecordTypeMismatch, expectedType.ToString(), foundType.ToString()));
         }
@@ -461,12 +461,12 @@ namespace CoreWCF.Channels.Framing
 
     // Pattern: 
     //   Done
-    class ServerModeDecoder : FramingDecoder
+    internal class ServerModeDecoder : FramingDecoder
     {
-        State currentState;
-        int majorVersion;
-        int minorVersion;
-        FramingMode mode;
+        private State currentState;
+        private int majorVersion;
+        private int minorVersion;
+        private FramingMode mode;
 
         public ServerModeDecoder()
         {
@@ -637,16 +637,16 @@ namespace CoreWCF.Channels.Framing
     //   (UpgradeRequest, upgrade-content-type)*, 
     //   (EnvelopeStart, ReadingEnvelopeBytes*, EnvelopeEnd)*, 
     //   End
-    class ServerSessionDecoder : FramingDecoder
+    internal class ServerSessionDecoder : FramingDecoder
     {
-        ViaStringDecoder viaDecoder;
-        StringDecoder contentTypeDecoder;
-        IntDecoder sizeDecoder;
-        State currentState;
-        string contentType;
-        int envelopeBytesNeeded;
-        int envelopeSize;
-        string upgrade;
+        private ViaStringDecoder viaDecoder;
+        private StringDecoder contentTypeDecoder;
+        private IntDecoder sizeDecoder;
+        private State currentState;
+        private string contentType;
+        private int envelopeBytesNeeded;
+        private int envelopeSize;
+        private string upgrade;
 
         public ServerSessionDecoder(int maxViaLength, int maxContentTypeLength)
         {
@@ -886,12 +886,12 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    class SingletonMessageDecoder : FramingDecoder
+    internal class SingletonMessageDecoder : FramingDecoder
     {
-        IntDecoder sizeDecoder;
-        int chunkBytesNeeded;
-        int chunkSize;
-        State currentState;
+        private IntDecoder sizeDecoder;
+        private int chunkBytesNeeded;
+        private int chunkSize;
+        private State currentState;
 
         public SingletonMessageDecoder()
         {
@@ -1011,13 +1011,13 @@ namespace CoreWCF.Channels.Framing
     //   Start, 
     //   (UpgradeRequest, upgrade-bytes)*, 
     //   EnvelopeStart,
-    class ServerSingletonDecoder : FramingDecoder
+    internal class ServerSingletonDecoder : FramingDecoder
     {
-        ViaStringDecoder viaDecoder;
-        ContentTypeStringDecoder contentTypeDecoder;
-        State currentState;
-        string contentType;
-        string upgrade;
+        private ViaStringDecoder viaDecoder;
+        private ContentTypeStringDecoder contentTypeDecoder;
+        private State currentState;
+        private string contentType;
+        private string upgrade;
 
         public ServerSingletonDecoder(int maxViaLength, int maxContentTypeLength)
         {
@@ -1210,12 +1210,12 @@ namespace CoreWCF.Channels.Framing
     // Pattern: 
     //   Start, 
     //   EnvelopeStart,
-    class ServerSingletonSizedDecoder : FramingDecoder
+    internal class ServerSingletonSizedDecoder : FramingDecoder
     {
-        ViaStringDecoder viaDecoder;
-        ContentTypeStringDecoder contentTypeDecoder;
-        State currentState;
-        string contentType;
+        private ViaStringDecoder viaDecoder;
+        private ContentTypeStringDecoder contentTypeDecoder;
+        private State currentState;
+        private string contentType;
 
         public ServerSingletonSizedDecoder(int maxViaLength, int maxContentTypeLength)
         {
@@ -1337,7 +1337,7 @@ namespace CoreWCF.Channels.Framing
     }
 
     // common set of states used on the client-side.
-    enum ClientFramingDecoderState
+    internal enum ClientFramingDecoderState
     {
         ReadingUpgradeRecord,
         ReadingUpgradeMode,

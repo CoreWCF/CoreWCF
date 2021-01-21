@@ -23,7 +23,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
         }
 
-        static byte[] GetHash(X509Certificate2 certificate)
+        private static byte[] GetHash(X509Certificate2 certificate)
         {
             if (certificate == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));

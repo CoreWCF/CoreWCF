@@ -7,8 +7,8 @@ namespace CoreWCF.Dispatcher
 {
     internal class AndMessageFilter : MessageFilter
     {
-        MessageFilter filter1;
-        MessageFilter filter2;
+        private MessageFilter filter1;
+        private MessageFilter filter2;
 
         public AndMessageFilter(MessageFilter filter1, MessageFilter filter2)
         {

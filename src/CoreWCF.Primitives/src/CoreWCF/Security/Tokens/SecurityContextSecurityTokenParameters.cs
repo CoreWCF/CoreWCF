@@ -8,7 +8,7 @@ namespace CoreWCF.Security.Tokens
     using CoreWCF.IdentityModel.Tokens;
     using CoreWCF.Security;
 
-    class SecurityContextSecurityTokenParameters : SecurityTokenParameters
+    internal class SecurityContextSecurityTokenParameters : SecurityTokenParameters
     {
         protected SecurityContextSecurityTokenParameters(SecurityContextSecurityTokenParameters other)
             : base(other)

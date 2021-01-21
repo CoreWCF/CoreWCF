@@ -3,7 +3,7 @@
 
 namespace CoreWCF.Security.Tokens
 {
-    interface ISecurityContextSecurityTokenCacheProvider
+    internal interface ISecurityContextSecurityTokenCacheProvider
     {
         ISecurityContextSecurityTokenCache TokenCache { get; }
     }

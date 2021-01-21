@@ -6,9 +6,9 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class HttpAnonymousUriPrefixMatcher : IAnonymousUriPrefixMatcher
+    internal class HttpAnonymousUriPrefixMatcher : IAnonymousUriPrefixMatcher
     {
-        UriPrefixTable<Uri> anonymousUriPrefixes;
+        private UriPrefixTable<Uri> anonymousUriPrefixes;
 
         internal HttpAnonymousUriPrefixMatcher()
         {

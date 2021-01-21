@@ -106,7 +106,7 @@ namespace CoreWCF.Security
 
         }
 
-        SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
+        private SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
         {
             throw new PlatformNotSupportedException("SpnegoSecurityTokenAuthenticator");
             //SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
@@ -153,7 +153,7 @@ namespace CoreWCF.Security
             //return authenticator;
         }
 
-        SecurityTokenAuthenticator CreateTlsnegoClientX509TokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
+        private SecurityTokenAuthenticator CreateTlsnegoClientX509TokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
             throw new PlatformNotSupportedException("TlsnegoClientX509Token");
             //RecipientServiceModelSecurityTokenRequirement clientX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
@@ -166,7 +166,7 @@ namespace CoreWCF.Security
             //return this.CreateSecurityTokenAuthenticator(clientX509Requirement, out dummy);
         }
 
-        SecurityTokenProvider CreateTlsnegoServerX509TokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
+        private SecurityTokenProvider CreateTlsnegoServerX509TokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
             throw new PlatformNotSupportedException("TlsnegoServerX509Token");
             //RecipientServiceModelSecurityTokenRequirement serverX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
@@ -178,7 +178,7 @@ namespace CoreWCF.Security
             //return this.CreateSecurityTokenProvider(serverX509Requirement);
         }
 
-        SecurityTokenAuthenticator CreateTlsnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool requireClientCertificate, out SecurityTokenResolver sctResolver)
+        private SecurityTokenAuthenticator CreateTlsnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool requireClientCertificate, out SecurityTokenResolver sctResolver)
         {
             throw new PlatformNotSupportedException("TlsnegoSecurityToken");
             //SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
@@ -224,7 +224,7 @@ namespace CoreWCF.Security
             //return authenticator;
         }
 
-        X509SecurityTokenAuthenticator CreateClientX509TokenAuthenticator()
+        private X509SecurityTokenAuthenticator CreateClientX509TokenAuthenticator()
         {
             X509ClientCertificateAuthentication authentication = ServiceCredentials.ClientCertificate.Authentication;
             return new X509SecurityTokenAuthenticator(authentication.GetCertificateValidator(), authentication.MapClientCertificateToWindowsAccount, authentication.IncludeWindowsGroups);
@@ -287,7 +287,7 @@ namespace CoreWCF.Security
         //    return ssta;
         //}
 
-        X509SecurityTokenProvider CreateServerX509TokenProvider()
+        private X509SecurityTokenProvider CreateServerX509TokenProvider()
         {
             if (ServiceCredentials.ServiceCertificate.Certificate == null)
             {
@@ -393,7 +393,7 @@ namespace CoreWCF.Security
             return result;
         }
 
-        SecurityTokenProvider CreateLocalSecurityTokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
+        private SecurityTokenProvider CreateLocalSecurityTokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
             string tokenType = recipientRequirement.TokenType;
             SecurityTokenProvider result = null;
@@ -432,7 +432,7 @@ namespace CoreWCF.Security
             return result;
         }
 
-        SecurityTokenProvider CreateUncorrelatedDuplexSecurityTokenProvider(InitiatorServiceModelSecurityTokenRequirement initiatorRequirement)
+        private SecurityTokenProvider CreateUncorrelatedDuplexSecurityTokenProvider(InitiatorServiceModelSecurityTokenRequirement initiatorRequirement)
         {
             string tokenType = initiatorRequirement.TokenType;
             SecurityTokenProvider result = null;

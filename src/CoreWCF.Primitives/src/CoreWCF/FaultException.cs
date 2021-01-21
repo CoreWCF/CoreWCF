@@ -18,11 +18,10 @@ namespace CoreWCF
     public class FaultException : CommunicationException
     {
         internal const string Namespace = "http://schemas.xmlsoap.org/Microsoft/WindowsCommunicationFoundation/2005/08/Faults/";
-
-        string _action;
-        FaultCode _code;
-        FaultReason _reason;
-        MessageFault _fault;
+        private string _action;
+        private FaultCode _code;
+        private FaultReason _reason;
+        private MessageFault _fault;
 
         public FaultException()
             : base(SR.SFxFaultReason)
@@ -133,12 +132,12 @@ namespace CoreWCF
             get { return _code; }
         }
 
-        static FaultReason DefaultReason
+        private static FaultReason DefaultReason
         {
             get { return new FaultReason(SR.SFxFaultReason); }
         }
 
-        static FaultCode DefaultCode
+        private static FaultCode DefaultCode
         {
             get { return new FaultCode("Sender"); }
         }
@@ -168,7 +167,7 @@ namespace CoreWCF
             info.AddValue(key, FaultReasonData.GetObjectData(reason));
         }
 
-        static FaultCode CreateCode(string code)
+        private static FaultCode CreateCode(string code)
         {
             return (code != null) ? new FaultCode(code) : DefaultCode;
         }
@@ -205,7 +204,7 @@ namespace CoreWCF
             }
         }
 
-        static FaultReason CreateReason(string reason)
+        private static FaultReason CreateReason(string reason)
         {
             return (reason != null) ? new FaultReason(reason) : DefaultReason;
         }
@@ -219,7 +218,7 @@ namespace CoreWCF
             info.AddValue("action", _action);
         }
 
-        static FaultReason GetReason(MessageFault fault)
+        private static FaultReason GetReason(MessageFault fault)
         {
             if (fault == null)
             {
@@ -258,12 +257,12 @@ namespace CoreWCF
             }
         }
 
-        static FaultCode EnsureCode(FaultCode code)
+        private static FaultCode EnsureCode(FaultCode code)
         {
             return (code != null) ? code : DefaultCode;
         }
 
-        static FaultReason EnsureReason(FaultReason reason)
+        private static FaultReason EnsureReason(FaultReason reason)
         {
             return (reason != null) ? reason : DefaultReason;
         }
@@ -284,8 +283,8 @@ namespace CoreWCF
         internal class FaultCodeData
         {
 #pragma warning disable IDE1006 // Naming Styles - class is Serializable so can't change field names
-            string name;
-            string ns;
+            private string name;
+            private string ns;
 #pragma warning restore IDE1006 // Naming Styles
 
             internal static FaultCode Construct(FaultCodeData[] nodes)
@@ -319,7 +318,7 @@ namespace CoreWCF
                 return array;
             }
 
-            static int GetDepth(FaultCode code)
+            private static int GetDepth(FaultCode code)
             {
                 int depth = 0;
 
@@ -337,8 +336,8 @@ namespace CoreWCF
         internal class FaultReasonData
         {
 #pragma warning disable IDE1006 // Naming Styles - class is Serializable so can't change field names
-            string xmlLang;
-            string text;
+            private string xmlLang;
+            private string text;
 #pragma warning restore IDE1006 // Naming Styles
 
             internal static FaultReason Construct(FaultReasonData[] nodes)

@@ -3,7 +3,7 @@
 
 namespace CoreWCF.Security
 {
-    enum ReceiveSecurityHeaderElementCategory
+    internal enum ReceiveSecurityHeaderElementCategory
     {
         Signature,
         EncryptedData,

@@ -10,14 +10,14 @@ namespace CoreWCF.Description
 {
     public class ServiceDescription
     {
-        KeyedByTypeCollection<IServiceBehavior> _behaviors = new KeyedByTypeCollection<IServiceBehavior>();
+        private KeyedByTypeCollection<IServiceBehavior> _behaviors = new KeyedByTypeCollection<IServiceBehavior>();
         private string _configurationName;
-        ServiceEndpointCollection _endpoints = new ServiceEndpointCollection();
-        Type _serviceType;
-        XmlName _serviceName;
-        string _serviceNamespace = NamingHelper.DefaultNamespace;
-        IDictionary<string, ContractDescription> _implementedContracts;
-        ReflectedContractCollection _reflectedContracts;
+        private ServiceEndpointCollection _endpoints = new ServiceEndpointCollection();
+        private Type _serviceType;
+        private XmlName _serviceName;
+        private string _serviceNamespace = NamingHelper.DefaultNamespace;
+        private IDictionary<string, ContractDescription> _implementedContracts;
+        private ReflectedContractCollection _reflectedContracts;
 
         public ServiceDescription() { }
 
@@ -198,7 +198,7 @@ namespace CoreWCF.Description
         //    return constructor.Invoke(null, null);
         //}
 
-        static ServiceBehaviorAttribute EnsureBehaviorAttribute(ServiceDescription description)
+        private static ServiceBehaviorAttribute EnsureBehaviorAttribute(ServiceDescription description)
         {
             ServiceBehaviorAttribute attr = ((KeyedByTypeCollection<IServiceBehavior>)description.Behaviors).Find<ServiceBehaviorAttribute>();
 
@@ -226,7 +226,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static void GetIServiceBehaviorAttributes(Type currentServiceType, KeyedByTypeCollection<IServiceBehavior> behaviors)
+        private static void GetIServiceBehaviorAttributes(Type currentServiceType, KeyedByTypeCollection<IServiceBehavior> behaviors)
         {
             foreach (IServiceBehavior behaviorAttribute in ServiceReflector.GetCustomAttributes(currentServiceType, typeof(IServiceBehavior)))
             {
@@ -234,7 +234,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation) where TService : class
+        private static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation) where TService : class
         {
             ServiceBehaviorAttribute serviceBehavior = EnsureBehaviorAttribute(serviceDescription);
             Type type = serviceDescription.ServiceType;
@@ -253,7 +253,7 @@ namespace CoreWCF.Description
             }
         }
 
-        class ReflectedContractCollection : KeyedCollection<Type, ContractDescription>
+        private class ReflectedContractCollection : KeyedCollection<Type, ContractDescription>
         {
             public ReflectedContractCollection()
                 : base(null, 4)

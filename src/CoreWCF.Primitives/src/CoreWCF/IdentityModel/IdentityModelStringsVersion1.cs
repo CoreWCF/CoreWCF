@@ -3,7 +3,7 @@
 
 namespace CoreWCF.IdentityModel
 {
-    class IdentityModelStringsVersion1 : IdentityModelStrings
+    internal class IdentityModelStringsVersion1 : IdentityModelStrings
     {
         public const string String0 = "Algorithm";
         public const string String1 = "URI";

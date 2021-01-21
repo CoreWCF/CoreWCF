@@ -12,7 +12,7 @@ namespace CoreWCF.Channels
         TransportCredentialOnly
     }
 
-    static class BasicHttpSecurityModeHelper
+    internal static class BasicHttpSecurityModeHelper
     {
         internal static bool IsDefined(BasicHttpSecurityMode value)
         {

@@ -22,25 +22,25 @@ namespace CoreWCF.Channels
         internal const bool defaultRequireSignatureConfirmation = false;
         internal const bool defaultEnableUnsecuredResponse = false;
         internal const bool defaultProtectTokens = false;
+        private SecurityAlgorithmSuite defaultAlgorithmSuite;
+        private SupportingTokenParameters endpointSupportingTokenParameters;
+        private SupportingTokenParameters optionalEndpointSupportingTokenParameters;
+        private bool includeTimestamp;
+        private SecurityKeyEntropyMode keyEntropyMode;
+        private Dictionary<string, SupportingTokenParameters> operationSupportingTokenParameters;
+        private Dictionary<string, SupportingTokenParameters> optionalOperationSupportingTokenParameters;
+        private LocalServiceSecuritySettings localServiceSettings;
+        private MessageSecurityVersion messageSecurityVersion;
+        private SecurityHeaderLayout securityHeaderLayout;
 
-        SecurityAlgorithmSuite defaultAlgorithmSuite;
-        SupportingTokenParameters endpointSupportingTokenParameters;
-        SupportingTokenParameters optionalEndpointSupportingTokenParameters;
-        bool includeTimestamp;
-        SecurityKeyEntropyMode keyEntropyMode;
-        Dictionary<string, SupportingTokenParameters> operationSupportingTokenParameters;
-        Dictionary<string, SupportingTokenParameters> optionalOperationSupportingTokenParameters;
-        LocalServiceSecuritySettings localServiceSettings;
-        MessageSecurityVersion messageSecurityVersion;
-        SecurityHeaderLayout securityHeaderLayout;
         // InternalDuplexBindingElement internalDuplexBindingElement;
-        long maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
-        XmlDictionaryReaderQuotas readerQuotas;
-        bool doNotEmitTrust = false; // true if user create a basic http standard binding, the custombinding equivalent will not set this flag 
-        bool supportsExtendedProtectionPolicy;
-        bool allowInsecureTransport;
-        bool enableUnsecuredResponse;
-        bool protectTokens = defaultProtectTokens;
+        private long maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
+        private XmlDictionaryReaderQuotas readerQuotas;
+        private bool doNotEmitTrust = false; // true if user create a basic http standard binding, the custombinding equivalent will not set this flag 
+        private bool supportsExtendedProtectionPolicy;
+        private bool allowInsecureTransport;
+        private bool enableUnsecuredResponse;
+        private bool protectTokens = defaultProtectTokens;
 
         internal SecurityBindingElement()
             : base()
@@ -280,7 +280,7 @@ namespace CoreWCF.Channels
             set { this.readerQuotas = value; }
         }
 
-        void GetSupportingTokensCapabilities(ICollection<SecurityTokenParameters> parameters, out bool supportsClientAuth, out bool supportsWindowsIdentity)
+        private void GetSupportingTokensCapabilities(ICollection<SecurityTokenParameters> parameters, out bool supportsClientAuth, out bool supportsWindowsIdentity)
         {
             supportsClientAuth = false;
             supportsWindowsIdentity = false;
@@ -293,7 +293,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void GetSupportingTokensCapabilities(SupportingTokenParameters requirements, out bool supportsClientAuth, out bool supportsWindowsIdentity)
+        private void GetSupportingTokensCapabilities(SupportingTokenParameters requirements, out bool supportsClientAuth, out bool supportsWindowsIdentity)
         {
             supportsClientAuth = false;
             supportsWindowsIdentity = false;
@@ -647,7 +647,7 @@ namespace CoreWCF.Channels
 
         internal abstract ISecurityCapabilities GetIndividualISecurityCapabilities();
 
-        ISecurityCapabilities GetSecurityCapabilities(BindingContext context)
+        private ISecurityCapabilities GetSecurityCapabilities(BindingContext context)
         {
             ISecurityCapabilities thisSecurityCapability = this.GetIndividualISecurityCapabilities();
             ISecurityCapabilities lowerSecurityCapability = context.GetInnerProperty<ISecurityCapabilities>();
@@ -665,7 +665,8 @@ namespace CoreWCF.Channels
                 return new SecurityCapabilities(supportsClientAuth, supportsServerAuth, supportsClientWindowsIdentity, requestProtectionLevel, responseProtectionLevel);
             }
         }
-        void SetIssuerBindingContextIfRequired(BindingContext issuerBindingContext)
+
+        private void SetIssuerBindingContextIfRequired(BindingContext issuerBindingContext)
         {
             SetIssuerBindingContextIfRequired(this.EndpointSupportingTokenParameters, issuerBindingContext);
             SetIssuerBindingContextIfRequired(this.OptionalEndpointSupportingTokenParameters, issuerBindingContext);
@@ -694,7 +695,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        static void SetIssuerBindingContextIfRequired(SupportingTokenParameters supportingParameters, BindingContext issuerBindingContext)
+        private static void SetIssuerBindingContextIfRequired(SupportingTokenParameters supportingParameters, BindingContext issuerBindingContext)
         {
             for (int i = 0; i < supportingParameters.Endorsing.Count; ++i)
             {

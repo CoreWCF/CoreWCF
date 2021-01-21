@@ -11,14 +11,14 @@ namespace CoreWCF.Channels
 {
     public sealed class BinaryMessageEncodingBindingElement : MessageEncodingBindingElement
     {
-        int maxReadPoolSize;
-        int maxWritePoolSize;
-        XmlDictionaryReaderQuotas readerQuotas;
-        int maxSessionSize;
-        BinaryVersion binaryVersion;
-        MessageVersion messageVersion;
-        CompressionFormat compressionFormat;
-        long maxReceivedMessageSize;
+        private int maxReadPoolSize;
+        private int maxWritePoolSize;
+        private XmlDictionaryReaderQuotas readerQuotas;
+        private int maxSessionSize;
+        private BinaryVersion binaryVersion;
+        private MessageVersion messageVersion;
+        private CompressionFormat compressionFormat;
+        private long maxReceivedMessageSize;
 
         public BinaryMessageEncodingBindingElement()
         {
@@ -32,7 +32,7 @@ namespace CoreWCF.Channels
             compressionFormat = EncoderDefaults.DefaultCompressionFormat;
         }
 
-        BinaryMessageEncodingBindingElement(BinaryMessageEncodingBindingElement elementToBeCloned)
+        private BinaryMessageEncodingBindingElement(BinaryMessageEncodingBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
             maxReadPoolSize = elementToBeCloned.maxReadPoolSize;
@@ -60,7 +60,7 @@ namespace CoreWCF.Channels
         }
 
         /* public */
-        BinaryVersion BinaryVersion
+        private BinaryVersion BinaryVersion
         {
             get
             {
@@ -179,7 +179,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void SetMaxReceivedMessageSizeFromTransport(BindingContext context)
+        private void SetMaxReceivedMessageSizeFromTransport(BindingContext context)
         {
             TransportBindingElement transport = context.Binding.Elements.Find<TransportBindingElement>();
             if (transport != null)

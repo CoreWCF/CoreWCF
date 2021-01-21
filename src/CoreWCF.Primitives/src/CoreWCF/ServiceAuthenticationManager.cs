@@ -56,8 +56,8 @@ namespace CoreWCF
 
     internal class ServiceAuthenticationManagerWrapper : ServiceAuthenticationManager
     {
-        ServiceAuthenticationManager wrappedAuthenticationManager;
-        string[] filteredActionUriCollection;
+        private ServiceAuthenticationManager wrappedAuthenticationManager;
+        private string[] filteredActionUriCollection;
 
         internal ServiceAuthenticationManagerWrapper(ServiceAuthenticationManager wrappedServiceAuthManager, string[] actionUriFilter)
         {
@@ -108,7 +108,7 @@ namespace CoreWCF
         // Authentication again. If TransportToken was present then we would call ServiceAutenticationManager as 
         // TransportTokens are not authenticated during SCT issuance.
         //
-        bool CanSkipAuthentication(Message message)
+        private bool CanSkipAuthentication(Message message)
         {
             if ((message != null) && (message.Properties != null) && (message.Properties.Security != null) && (message.Properties.Security.TransportToken == null))
             {

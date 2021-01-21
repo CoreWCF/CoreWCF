@@ -16,7 +16,7 @@ namespace ServiceContract
     }
 
     [ServiceContract(Name = "IContractService")]
-    interface IServiceContract_Overloads
+    internal interface IServiceContract_Overloads
     {
         [OperationContract(Name = "TwoWayInt")]
         string TwoWayMethod(int n);
@@ -32,7 +32,7 @@ namespace ServiceContract
     }
 
     [ServiceContract(Name = "IContractService")]
-    interface IServiceContract_Params
+    internal interface IServiceContract_Params
     {
         // Two Way w/ Parameter Array
         [OperationContract]

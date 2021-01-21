@@ -30,14 +30,13 @@ namespace System.Xml.XmlDiff
 
     public class XmlDiff
     {
-        XmlDiffDocument _SourceDoc;
-        XmlDiffDocument _TargetDoc;
-
-        XmlTextWriter _Writer;     // Writer to write out the result
-        StringBuilder _Output;
+        private XmlDiffDocument _SourceDoc;
+        private XmlDiffDocument _TargetDoc;
+        private XmlTextWriter _Writer;     // Writer to write out the result
+        private StringBuilder _Output;
 
         // Option Flags
-        XmlDiffOption _XmlDiffOption = XmlDiffOption.None;
+        private XmlDiffOption _XmlDiffOption = XmlDiffOption.None;
 
         public XmlDiff()
         {

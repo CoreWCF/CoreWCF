@@ -12,18 +12,18 @@ namespace CoreWCF.Security.Tokens
 {
     public class WrappedKeySecurityToken : SecurityToken
     {
-        string id;
-        DateTime effectiveTime;
-        EncryptedKey encryptedKey;
-        ReadOnlyCollection<SecurityKey> securityKey;
-        byte[] wrappedKey;
-        string wrappingAlgorithm;
-        SecurityToken wrappingToken;
-        SecurityKey wrappingSecurityKey;
-        SecurityKeyIdentifier wrappingTokenReference;
-        bool serializeCarriedKeyName;
-        byte[] wrappedKeyHash;
-        XmlDictionaryString wrappingAlgorithmDictionaryString;
+        private string id;
+        private DateTime effectiveTime;
+        private EncryptedKey encryptedKey;
+        private ReadOnlyCollection<SecurityKey> securityKey;
+        private byte[] wrappedKey;
+        private string wrappingAlgorithm;
+        private SecurityToken wrappingToken;
+        private SecurityKey wrappingSecurityKey;
+        private SecurityKeyIdentifier wrappingTokenReference;
+        private bool serializeCarriedKeyName;
+        private byte[] wrappedKeyHash;
+        private XmlDictionaryString wrappingAlgorithmDictionaryString;
 
         internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference)
             : this(id, keyToWrap, wrappingAlgorithm, wrappingAlgorithmDictionaryString, wrappingToken, wrappingTokenReference, null, null)
@@ -51,7 +51,7 @@ namespace CoreWCF.Security.Tokens
             this.serializeCarriedKeyName = true;
         }
 
-        WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString)
+        private WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString)
         {
             if (id == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));

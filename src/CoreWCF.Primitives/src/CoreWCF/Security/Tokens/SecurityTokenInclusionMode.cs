@@ -14,7 +14,7 @@ namespace CoreWCF.Security.Tokens
         AlwaysToInitiator = 3
     }
 
-    static class SecurityTokenInclusionModeHelper
+    internal static class SecurityTokenInclusionModeHelper
     {
         public static bool IsDefined(SecurityTokenInclusionMode value)
         {

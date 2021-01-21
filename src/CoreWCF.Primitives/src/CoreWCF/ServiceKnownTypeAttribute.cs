@@ -10,7 +10,7 @@ namespace CoreWCF
     {
         //Type _declaringType;
         //string _methodName;
-        readonly Type _type;
+        private readonly Type _type;
 
         private ServiceKnownTypeAttribute()
         {

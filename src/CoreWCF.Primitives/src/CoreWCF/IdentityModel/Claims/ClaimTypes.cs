@@ -5,40 +5,38 @@ namespace CoreWCF.IdentityModel.Claims
 {
     public static class ClaimTypes
     {
-        const string claimTypeNamespace = XsiConstants.Namespace + "/claims";
-
-        const string anonymous = claimTypeNamespace + "/anonymous";
-        const string dns = claimTypeNamespace + "/dns";
-        const string email = claimTypeNamespace + "/emailaddress";
-        const string hash = claimTypeNamespace + "/hash";
-        const string name = claimTypeNamespace + "/name";
-        const string rsa = claimTypeNamespace + "/rsa";
-        const string sid = claimTypeNamespace + "/sid";
-        const string denyOnlySid = claimTypeNamespace + "/denyonlysid";
-        const string spn = claimTypeNamespace + "/spn";
-        const string system = claimTypeNamespace + "/system";
-        const string thumbprint = claimTypeNamespace + "/thumbprint";
-        const string upn = claimTypeNamespace + "/upn";
-        const string uri = claimTypeNamespace + "/uri";
-        const string x500DistinguishedName = claimTypeNamespace + "/x500distinguishedname";
-
-        const string givenname = claimTypeNamespace + "/givenname";
-        const string surname = claimTypeNamespace + "/surname";
-        const string streetaddress = claimTypeNamespace + "/streetaddress";
-        const string locality = claimTypeNamespace + "/locality";
-        const string stateorprovince = claimTypeNamespace + "/stateorprovince";
-        const string postalcode = claimTypeNamespace + "/postalcode";
-        const string country = claimTypeNamespace + "/country";
-        const string homephone = claimTypeNamespace + "/homephone";
-        const string otherphone = claimTypeNamespace + "/otherphone";
-        const string mobilephone = claimTypeNamespace + "/mobilephone";
-        const string dateofbirth = claimTypeNamespace + "/dateofbirth";
-        const string gender = claimTypeNamespace + "/gender";
-        const string ppid = claimTypeNamespace + "/privatepersonalidentifier";
-        const string webpage = claimTypeNamespace + "/webpage";
-        const string nameidentifier = claimTypeNamespace + "/nameidentifier";
-        const string authentication = claimTypeNamespace + "/authentication";
-        const string authorizationdecision = claimTypeNamespace + "/authorizationdecision";
+        private const string claimTypeNamespace = XsiConstants.Namespace + "/claims";
+        private const string anonymous = claimTypeNamespace + "/anonymous";
+        private const string dns = claimTypeNamespace + "/dns";
+        private const string email = claimTypeNamespace + "/emailaddress";
+        private const string hash = claimTypeNamespace + "/hash";
+        private const string name = claimTypeNamespace + "/name";
+        private const string rsa = claimTypeNamespace + "/rsa";
+        private const string sid = claimTypeNamespace + "/sid";
+        private const string denyOnlySid = claimTypeNamespace + "/denyonlysid";
+        private const string spn = claimTypeNamespace + "/spn";
+        private const string system = claimTypeNamespace + "/system";
+        private const string thumbprint = claimTypeNamespace + "/thumbprint";
+        private const string upn = claimTypeNamespace + "/upn";
+        private const string uri = claimTypeNamespace + "/uri";
+        private const string x500DistinguishedName = claimTypeNamespace + "/x500distinguishedname";
+        private const string givenname = claimTypeNamespace + "/givenname";
+        private const string surname = claimTypeNamespace + "/surname";
+        private const string streetaddress = claimTypeNamespace + "/streetaddress";
+        private const string locality = claimTypeNamespace + "/locality";
+        private const string stateorprovince = claimTypeNamespace + "/stateorprovince";
+        private const string postalcode = claimTypeNamespace + "/postalcode";
+        private const string country = claimTypeNamespace + "/country";
+        private const string homephone = claimTypeNamespace + "/homephone";
+        private const string otherphone = claimTypeNamespace + "/otherphone";
+        private const string mobilephone = claimTypeNamespace + "/mobilephone";
+        private const string dateofbirth = claimTypeNamespace + "/dateofbirth";
+        private const string gender = claimTypeNamespace + "/gender";
+        private const string ppid = claimTypeNamespace + "/privatepersonalidentifier";
+        private const string webpage = claimTypeNamespace + "/webpage";
+        private const string nameidentifier = claimTypeNamespace + "/nameidentifier";
+        private const string authentication = claimTypeNamespace + "/authentication";
+        private const string authorizationdecision = claimTypeNamespace + "/authorizationdecision";
 
         static public string Anonymous { get { return anonymous; } }
         static public string DenyOnlySid { get { return denyOnlySid; } }

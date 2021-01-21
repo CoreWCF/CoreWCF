@@ -9,39 +9,40 @@ namespace CoreWCF
     internal static class XD
     {
         static public ServiceModelDictionary Dictionary { get { return ServiceModelDictionary.CurrentVersion; } }
-        static ActivityIdFlowDictionary activityIdFlowDictionary;
-        static AddressingDictionary addressingDictionary;
-        static Addressing10Dictionary addressing10Dictionary;
-        static Addressing200408Dictionary addressing200408Dictionary;
-        static AddressingNoneDictionary addressingNoneDictionary;
-        static AtomicTransactionExternalDictionary atomicTransactionExternalDictionary;
-        static AtomicTransactionExternal10Dictionary atomicTransactionExternal10Dictionary;
-        static CoordinationExternalDictionary coordinationExternalDictionary;
-        static CoordinationExternal10Dictionary coordinationExternal10Dictionary;
-        static DotNetAddressingDictionary dotNetAddressingDictionary;
-        static DotNetAtomicTransactionExternalDictionary dotNetAtomicTransactionExternalDictionary;
-        static DotNetOneWayDictionary dotNetOneWayDictionary;
-        static DotNetSecurityDictionary dotNetSecurityDictionary;
-        static ExclusiveC14NDictionary exclusiveC14NDictionary;
-        static MessageDictionary messageDictionary;
-        static Message11Dictionary message11Dictionary;
-        static Message12Dictionary message12Dictionary;
-        static OleTxTransactionExternalDictionary oleTxTransactionExternalDictionary;
-        static PeerWireStringsDictionary peerWireStringsDictionary;
-        static PolicyDictionary policyDictionary;
-        static SamlDictionary samlDictionary;
-        static SecureConversationApr2004Dictionary secureConversationApr2004Dictionary;
-        static SecureConversationFeb2005Dictionary secureConversationFeb2005Dictionary;
-        static SecurityAlgorithmDictionary securityAlgorithmDictionary;
-        static SecurityJan2004Dictionary securityJan2004Dictionary;
-        static SecurityXXX2005Dictionary securityXXX2005Dictionary;
-        static SerializationDictionary serializationDictionary;
-        static TrustApr2004Dictionary trustApr2004Dictionary;
-        static TrustFeb2005Dictionary trustFeb2005Dictionary;
-        static UtilityDictionary utilityDictionary;
-        static WsrmFeb2005Dictionary wsrmFeb2005Dictionary;
-        static XmlEncryptionDictionary xmlEncryptionDictionary;
-        static XmlSignatureDictionary xmlSignatureDictionary;
+
+        private static ActivityIdFlowDictionary activityIdFlowDictionary;
+        private static AddressingDictionary addressingDictionary;
+        private static Addressing10Dictionary addressing10Dictionary;
+        private static Addressing200408Dictionary addressing200408Dictionary;
+        private static AddressingNoneDictionary addressingNoneDictionary;
+        private static AtomicTransactionExternalDictionary atomicTransactionExternalDictionary;
+        private static AtomicTransactionExternal10Dictionary atomicTransactionExternal10Dictionary;
+        private static CoordinationExternalDictionary coordinationExternalDictionary;
+        private static CoordinationExternal10Dictionary coordinationExternal10Dictionary;
+        private static DotNetAddressingDictionary dotNetAddressingDictionary;
+        private static DotNetAtomicTransactionExternalDictionary dotNetAtomicTransactionExternalDictionary;
+        private static DotNetOneWayDictionary dotNetOneWayDictionary;
+        private static DotNetSecurityDictionary dotNetSecurityDictionary;
+        private static ExclusiveC14NDictionary exclusiveC14NDictionary;
+        private static MessageDictionary messageDictionary;
+        private static Message11Dictionary message11Dictionary;
+        private static Message12Dictionary message12Dictionary;
+        private static OleTxTransactionExternalDictionary oleTxTransactionExternalDictionary;
+        private static PeerWireStringsDictionary peerWireStringsDictionary;
+        private static PolicyDictionary policyDictionary;
+        private static SamlDictionary samlDictionary;
+        private static SecureConversationApr2004Dictionary secureConversationApr2004Dictionary;
+        private static SecureConversationFeb2005Dictionary secureConversationFeb2005Dictionary;
+        private static SecurityAlgorithmDictionary securityAlgorithmDictionary;
+        private static SecurityJan2004Dictionary securityJan2004Dictionary;
+        private static SecurityXXX2005Dictionary securityXXX2005Dictionary;
+        private static SerializationDictionary serializationDictionary;
+        private static TrustApr2004Dictionary trustApr2004Dictionary;
+        private static TrustFeb2005Dictionary trustFeb2005Dictionary;
+        private static UtilityDictionary utilityDictionary;
+        private static WsrmFeb2005Dictionary wsrmFeb2005Dictionary;
+        private static XmlEncryptionDictionary xmlEncryptionDictionary;
+        private static XmlSignatureDictionary xmlSignatureDictionary;
 
         static public ActivityIdFlowDictionary ActivityIdFlowDictionary
         {
@@ -447,7 +448,7 @@ namespace CoreWCF
         }
     }
 
-    class Addressing10Dictionary
+    internal class Addressing10Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString Anonymous;
@@ -467,7 +468,7 @@ namespace CoreWCF
         }
     }
 
-    class Addressing200408Dictionary
+    internal class Addressing200408Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString Anonymous;
@@ -481,7 +482,7 @@ namespace CoreWCF
         }
     }
 
-    class AddressingNoneDictionary
+    internal class AddressingNoneDictionary
     {
         public XmlDictionaryString Namespace;
 
@@ -491,7 +492,7 @@ namespace CoreWCF
         }
     }
 
-    class AtomicTransactionExternalDictionary
+    internal class AtomicTransactionExternalDictionary
     {
         public XmlDictionaryString Prefix;
         public XmlDictionaryString Prepare;
@@ -527,7 +528,7 @@ namespace CoreWCF
         }
     }
 
-    class AtomicTransactionExternal10Dictionary
+    internal class AtomicTransactionExternal10Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString CompletionUri;
@@ -561,7 +562,7 @@ namespace CoreWCF
         }
     }
 
-    class CoordinationExternalDictionary
+    internal class CoordinationExternalDictionary
     {
         public XmlDictionaryString Prefix;
         public XmlDictionaryString CreateCoordinationContext;
@@ -613,7 +614,7 @@ namespace CoreWCF
         }
     }
 
-    class CoordinationExternal10Dictionary
+    internal class CoordinationExternal10Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString CreateCoordinationContextAction;
@@ -633,7 +634,7 @@ namespace CoreWCF
         }
     }
 
-    class DotNetAddressingDictionary
+    internal class DotNetAddressingDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString RedirectTo;
@@ -647,7 +648,7 @@ namespace CoreWCF
         }
     }
 
-    class DotNetAtomicTransactionExternalDictionary
+    internal class DotNetAtomicTransactionExternalDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString Prefix;
@@ -689,7 +690,7 @@ namespace CoreWCF
         }
     }
 
-    class DotNetOneWayDictionary
+    internal class DotNetOneWayDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString HeaderName;
@@ -701,7 +702,7 @@ namespace CoreWCF
         }
     }
 
-    class DotNetSecurityDictionary
+    internal class DotNetSecurityDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString Prefix;
@@ -713,7 +714,7 @@ namespace CoreWCF
         }
     }
 
-    class ExclusiveC14NDictionary
+    internal class ExclusiveC14NDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString PrefixList;
@@ -729,7 +730,7 @@ namespace CoreWCF
         }
     }
 
-    class MessageDictionary
+    internal class MessageDictionary
     {
         public XmlDictionaryString MustUnderstand;
         public XmlDictionaryString Envelope;
@@ -753,7 +754,7 @@ namespace CoreWCF
         }
     }
 
-    class Message12Dictionary
+    internal class Message12Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString Role;
@@ -787,7 +788,7 @@ namespace CoreWCF
         }
     }
 
-    class OleTxTransactionExternalDictionary
+    internal class OleTxTransactionExternalDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString Prefix;
@@ -803,7 +804,7 @@ namespace CoreWCF
         }
     }
 
-    class PeerWireStringsDictionary
+    internal class PeerWireStringsDictionary
     {
         public XmlDictionaryString FloodAction;
         public XmlDictionaryString LinkUtilityAction;
@@ -827,7 +828,7 @@ namespace CoreWCF
         }
     }
 
-    class PolicyDictionary
+    internal class PolicyDictionary
     {
         public XmlDictionaryString Namespace;
 
@@ -837,7 +838,7 @@ namespace CoreWCF
         }
     }
 
-    class SamlDictionary
+    internal class SamlDictionary
     {
         public XmlDictionaryString Access;
         public XmlDictionaryString AccessDecision;
@@ -990,7 +991,7 @@ namespace CoreWCF
         }
     }
 
-    class SecureConversationApr2004Dictionary : SecureConversationDictionary
+    internal class SecureConversationApr2004Dictionary : SecureConversationDictionary
     {
 
         public SecureConversationApr2004Dictionary(ServiceModelDictionary dictionary)
@@ -1020,7 +1021,7 @@ namespace CoreWCF
 
     }
 
-    class SecureConversationFeb2005Dictionary : SecureConversationDictionary
+    internal class SecureConversationFeb2005Dictionary : SecureConversationDictionary
     {
         public XmlDictionaryString RequestSecurityContextRenew;
         public XmlDictionaryString RequestSecurityContextRenewResponse;
@@ -1057,7 +1058,7 @@ namespace CoreWCF
         }
     }
 
-    class SecurityAlgorithmDictionary
+    internal class SecurityAlgorithmDictionary
     {
         public XmlDictionaryString Aes128Encryption;
         public XmlDictionaryString Aes128KeyWrap;
@@ -1115,7 +1116,7 @@ namespace CoreWCF
         }
     }
 
-    class SecurityJan2004Dictionary
+    internal class SecurityJan2004Dictionary
     {
         public XmlDictionaryString SecurityTokenReference;
         public XmlDictionaryString Namespace;
@@ -1183,7 +1184,7 @@ namespace CoreWCF
         }
     }
 
-    class SecurityXXX2005Dictionary
+    internal class SecurityXXX2005Dictionary
     {
         public XmlDictionaryString EncryptedHeader;
         public XmlDictionaryString Namespace;
@@ -1215,7 +1216,7 @@ namespace CoreWCF
         }
     }
 
-    class SerializationDictionary
+    internal class SerializationDictionary
     {
         public XmlDictionaryString XmlSchemaInstanceNamespace;
         public XmlDictionaryString XmlSchemaNamespace;
@@ -1365,7 +1366,7 @@ namespace CoreWCF
         }
     }
 
-    class TrustApr2004Dictionary : TrustDictionary
+    internal class TrustApr2004Dictionary : TrustDictionary
     {
 
         public TrustApr2004Dictionary(ServiceModelDictionary dictionary)
@@ -1417,7 +1418,7 @@ namespace CoreWCF
         }
     }
 
-    class TrustFeb2005Dictionary : TrustDictionary
+    internal class TrustFeb2005Dictionary : TrustDictionary
     {
 
         public TrustFeb2005Dictionary(ServiceModelDictionary dictionary)
@@ -1477,7 +1478,7 @@ namespace CoreWCF
         }
     }
 
-    class UtilityDictionary
+    internal class UtilityDictionary
     {
         public XmlDictionaryString IdAttribute;
         public XmlDictionaryString Namespace;
@@ -1501,7 +1502,7 @@ namespace CoreWCF
         }
     }
 
-    class WsrmFeb2005Dictionary
+    internal class WsrmFeb2005Dictionary
     {
         public XmlDictionaryString Identifier;
         public XmlDictionaryString Namespace;
@@ -1583,7 +1584,7 @@ namespace CoreWCF
         }
     }
 
-    class XmlEncryptionDictionary
+    internal class XmlEncryptionDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString DataReference;
@@ -1631,7 +1632,7 @@ namespace CoreWCF
         }
     }
 
-    class XmlSignatureDictionary
+    internal class XmlSignatureDictionary
     {
         public XmlDictionaryString Algorithm;
         public XmlDictionaryString URI;
@@ -1695,7 +1696,7 @@ namespace CoreWCF
         }
     }
 
-    class Message11Dictionary
+    internal class Message11Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString Actor;
@@ -1717,14 +1718,14 @@ namespace CoreWCF
         }
     }
 
-    static class ActivityIdFlowStrings
+    internal static class ActivityIdFlowStrings
     {
         // Main dictionary strings
         public const string ActivityId = ServiceModelStringsVersion1.String425;
         public const string ActivityIdNamespace = ServiceModelStringsVersion1.String426;
     }
 
-    static class AddressingStrings
+    internal static class AddressingStrings
     {
         // Main dictionary strings
         public const string Action = ServiceModelStringsVersion1.String5;
@@ -1765,7 +1766,7 @@ namespace CoreWCF
         public const string ChannelTerminated = "ChannelTerminated";
     }
 
-    static class Addressing10Strings
+    internal static class Addressing10Strings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String3;
@@ -1784,7 +1785,7 @@ namespace CoreWCF
         public const string DefaultFaultAction = "http://www.w3.org/2005/08/addressing/soap/fault";
     }
 
-    static class Addressing200408Strings
+    internal static class Addressing200408Strings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String105;
@@ -1796,13 +1797,13 @@ namespace CoreWCF
         public const string DefaultFaultAction = "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault";
     }
 
-    static class AddressingNoneStrings
+    internal static class AddressingNoneStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String439;
     }
 
-    static class AtomicTransactionExternalStrings
+    internal static class AtomicTransactionExternalStrings
     {
         // Main dictionary strings
         public const string Prefix = ServiceModelStringsVersion1.String383;
@@ -1821,7 +1822,7 @@ namespace CoreWCF
         public const string InconsistentInternalState = ServiceModelStringsVersion1.String408;
     }
 
-    static class AtomicTransactionExternal10Strings
+    internal static class AtomicTransactionExternal10Strings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String382;
@@ -1839,7 +1840,7 @@ namespace CoreWCF
         public const string FaultAction = ServiceModelStringsVersion1.String403;
     }
 
-    static class CoordinationExternalStrings
+    internal static class CoordinationExternalStrings
     {
         // Main dictionary strings
         public const string Prefix = ServiceModelStringsVersion1.String357;
@@ -1866,7 +1867,7 @@ namespace CoreWCF
         public const string AlreadyRegistered = ServiceModelStringsVersion1.String381;
     }
 
-    static class CoordinationExternal10Strings
+    internal static class CoordinationExternal10Strings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String356;
@@ -1877,7 +1878,7 @@ namespace CoreWCF
         public const string FaultAction = ServiceModelStringsVersion1.String373;
     }
 
-    static class DotNetAddressingStrings
+    internal static class DotNetAddressingStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String108;
@@ -1885,7 +1886,7 @@ namespace CoreWCF
         public const string Via = ServiceModelStringsVersion1.String110;
     }
 
-    static class DotNetAtomicTransactionExternalStrings
+    internal static class DotNetAtomicTransactionExternalStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String65;
@@ -1907,14 +1908,14 @@ namespace CoreWCF
         public const string Disabled = ServiceModelStringsVersion1.String424;
     }
 
-    static class DotNetOneWayStrings
+    internal static class DotNetOneWayStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String437;
         public const string HeaderName = ServiceModelStringsVersion1.String438;
     }
 
-    static class DotNetSecurityStrings
+    internal static class DotNetSecurityStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String162;
@@ -1927,7 +1928,7 @@ namespace CoreWCF
         public const string SecureConversationCancelNotAllowedFault = "SecureConversationCancellationNotAllowed";
     }
 
-    static class ExclusiveC14NStrings
+    internal static class ExclusiveC14NStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String111;
@@ -1936,7 +1937,7 @@ namespace CoreWCF
         public const string Prefix = ServiceModelStringsVersion1.String114;
     }
 
-    static class MessageStrings
+    internal static class MessageStrings
     {
         // Main dictionary strings
         public const string MustUnderstand = ServiceModelStringsVersion1.String0;
@@ -1949,7 +1950,7 @@ namespace CoreWCF
         public const string Namespace = ServiceModelStringsVersion1.String440;
     }
 
-    static class Message11Strings
+    internal static class Message11Strings
     {
         // Text dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String481;
@@ -1961,7 +1962,7 @@ namespace CoreWCF
         public const string FaultNamespace = ServiceModelStringsVersion1.String81;
     }
 
-    static class Message12Strings
+    internal static class Message12Strings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String2;
@@ -1979,7 +1980,7 @@ namespace CoreWCF
         public const string QName = ServiceModelStringsVersion1.String80;
     }
 
-    static class OleTxTransactionExternalStrings
+    internal static class OleTxTransactionExternalStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String352;
@@ -1988,7 +1989,7 @@ namespace CoreWCF
         public const string PropagationToken = ServiceModelStringsVersion1.String355;
     }
 
-    static class PeerWireStringsStrings
+    internal static class PeerWireStringsStrings
     {
         // Main dictionary strings
         public const string FloodAction = ServiceModelStringsVersion1.String429;
@@ -2001,13 +2002,13 @@ namespace CoreWCF
         public const string PeerTo = ServiceModelStringsVersion1.String436;
     }
 
-    static class PolicyStrings
+    internal static class PolicyStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String428;
     }
 
-    static class SamlStrings
+    internal static class SamlStrings
     {
         // Main dictionary strings
         public const string Access = ServiceModelStringsVersion1.String251;
@@ -2069,11 +2070,11 @@ namespace CoreWCF
         public const string EmailNamespace = ServiceModelStringsVersion1.String304;
     }
 
-    static class SecureConversationStrings
+    internal static class SecureConversationStrings
     {
     }
 
-    static class SecureConversationApr2004Strings
+    internal static class SecureConversationApr2004Strings
     {
         // Main dictionary strings
         public const string SecurityContextToken = ServiceModelStringsVersion1.String115;
@@ -2098,7 +2099,7 @@ namespace CoreWCF
         public const string BadContextTokenFaultCode = ServiceModelStringsVersion1.String128;
     }
 
-    static class SecureConversationFeb2005Strings
+    internal static class SecureConversationFeb2005Strings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String38;
@@ -2127,7 +2128,7 @@ namespace CoreWCF
         public const string RequestSecurityContextCloseResponse = ServiceModelStringsVersion1.String137;
     }
 
-    static class SecurityAlgorithmStrings
+    internal static class SecurityAlgorithmStrings
     {
         // Main dictionary strings
         public const string Aes128Encryption = ServiceModelStringsVersion1.String138;
@@ -2159,7 +2160,7 @@ namespace CoreWCF
         public const string StrTransform = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#STR-Transform";
     }
 
-    static class SecurityJan2004Strings
+    internal static class SecurityJan2004Strings
     {
         // Main dictionary strings
         public const string SecurityTokenReference = ServiceModelStringsVersion1.String30;
@@ -2203,7 +2204,7 @@ namespace CoreWCF
         public const string UPTokenPasswordTextValue = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText";
     }
 
-    static class SecurityXXX2005Strings
+    internal static class SecurityXXX2005Strings
     {
         // Main dictionary strings
         public const string EncryptedHeader = ServiceModelStringsVersion1.String60;
@@ -2224,7 +2225,7 @@ namespace CoreWCF
         public const string X509TokenProfileNamespace = "http://docs.oasis-open.org/wss/2004/xx/oasis-2004xx-wss-x509-token-profile-1.1";
     }
 
-    static class SerializationStrings
+    internal static class SerializationStrings
     {
         // Main dictionary strings
         public const string XmlSchemaInstanceNamespace = ServiceModelStringsVersion1.String441;
@@ -2268,11 +2269,11 @@ namespace CoreWCF
         public const string NormalizedString = ServiceModelStringsVersion1.String479;
     }
 
-    static class TrustStrings
+    internal static class TrustStrings
     {
     }
 
-    static class TrustApr2004Strings
+    internal static class TrustApr2004Strings
     {
         // Main dictionary strings
         public const string CombinedHashLabel = ServiceModelStringsVersion1.String194;
@@ -2320,7 +2321,7 @@ namespace CoreWCF
         public const string UseKey = ServiceModelStringsVersion1.String232;
     }
 
-    static class TrustFeb2005Strings
+    internal static class TrustFeb2005Strings
     {
         // Main dictionary strings
         public const string RequestSecurityTokenResponseCollection = ServiceModelStringsVersion1.String62;
@@ -2376,7 +2377,7 @@ namespace CoreWCF
         public const string ComputedKeyAlgorithm = ServiceModelStringsVersion1.String231;
     }
 
-    static class UtilityStrings
+    internal static class UtilityStrings
     {
         // Main dictionary strings
         public const string IdAttribute = ServiceModelStringsVersion1.String14;
@@ -2389,7 +2390,7 @@ namespace CoreWCF
         public const string UniqueEndpointHeaderNamespace = ServiceModelStringsVersion1.String307;
     }
 
-    static class WsrmFeb2005Strings
+    internal static class WsrmFeb2005Strings
     {
         // Main dictionary strings
         public const string Identifier = ServiceModelStringsVersion1.String15;
@@ -2431,7 +2432,7 @@ namespace CoreWCF
         public const string ConnectionLimitReached = ServiceModelStringsVersion1.String480;
     }
 
-    static class XmlEncryptionStrings
+    internal static class XmlEncryptionStrings
     {
         // Main dictionary strings
         public const string Namespace = ServiceModelStringsVersion1.String37;
@@ -2456,7 +2457,7 @@ namespace CoreWCF
         public const string AlgorithmAttribute = ServiceModelStringsVersion1.String8;
     }
 
-    static class XmlSignatureStrings
+    internal static class XmlSignatureStrings
     {
         // Main dictionary strings
         public const string Algorithm = ServiceModelStringsVersion1.String8;

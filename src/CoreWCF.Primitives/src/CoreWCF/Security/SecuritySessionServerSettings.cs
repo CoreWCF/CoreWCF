@@ -786,7 +786,7 @@ namespace CoreWCF.Security
             private volatile IServiceChannelDispatcher sessionChannelDispatcher;
             private MessageFilter messageFilter;
             private EndpointAddress remoteAddress;
-            AsyncLock _asyncLock = new AsyncLock();
+            private AsyncLock _asyncLock = new AsyncLock();
 
             public SessionInitiationMessageServiceDispatcher(/*IServerReliableChannelBinder channelBinder,*/ SecuritySessionServerSettings settings, SecurityContextSecurityToken sessionToken, MessageFilter filter, EndpointAddress address)
             {

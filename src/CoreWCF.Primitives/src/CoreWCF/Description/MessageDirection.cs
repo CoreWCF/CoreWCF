@@ -9,7 +9,7 @@ namespace CoreWCF.Description
         Output = 1,
     }
 
-    static class MessageDirectionHelper
+    internal static class MessageDirectionHelper
     {
         internal static bool IsDefined(MessageDirection value)
         {

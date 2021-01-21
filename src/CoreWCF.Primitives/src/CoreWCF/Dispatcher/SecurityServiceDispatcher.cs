@@ -29,7 +29,7 @@ namespace CoreWCF.Dispatcher
         private bool sendUnsecuredFaults;
         //ServiceChannelDispatcher to call SCT (just keep one instance)
         private volatile IServiceChannelDispatcher securityAuthServiceChannelDispatcher;
-        Task<IServiceChannelDispatcher> channelTask;
+        private Task<IServiceChannelDispatcher> channelTask;
         //ServiceChannelDispatcher to call real service (just keep one instance)
         private IServiceChannelDispatcher innerServiceChanelDispatcher;
         private IChannel outerChannel;

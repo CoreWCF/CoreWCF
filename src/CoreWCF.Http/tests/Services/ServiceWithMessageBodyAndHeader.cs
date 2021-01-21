@@ -8,7 +8,7 @@ using CoreWCF;
 
 namespace Services
 {
-    class ServiceWithMessageBodyAndHeader : IServiceWithMessageBodyAndHeader
+    internal class ServiceWithMessageBodyAndHeader : IServiceWithMessageBodyAndHeader
     {
         public string Echo(string echo)
         {

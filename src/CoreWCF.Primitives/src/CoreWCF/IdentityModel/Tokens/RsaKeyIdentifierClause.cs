@@ -11,10 +11,10 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class RsaKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        static string clauseType = XmlSignatureStrings.Namespace + XmlSignatureStrings.RsaKeyValue;
-        readonly RSA rsa;
-        readonly RSAParameters rsaParameters;
-        RsaSecurityKey rsaSecurityKey;
+        private static string clauseType = XmlSignatureStrings.Namespace + XmlSignatureStrings.RsaKeyValue;
+        private readonly RSA rsa;
+        private readonly RSAParameters rsaParameters;
+        private RsaSecurityKey rsaSecurityKey;
 
         public RsaKeyIdentifierClause(RSA rsa)
             : base(clauseType)

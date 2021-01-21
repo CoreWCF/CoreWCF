@@ -7,10 +7,10 @@ namespace CoreWCF.Channels
 {
     internal class ImmutableCommunicationTimeouts : IDefaultCommunicationTimeouts
     {
-        TimeSpan _close;
-        TimeSpan _open;
-        TimeSpan _receive;
-        TimeSpan _send;
+        private TimeSpan _close;
+        private TimeSpan _open;
+        private TimeSpan _receive;
+        private TimeSpan _send;
 
         internal ImmutableCommunicationTimeouts()
             : this(null)

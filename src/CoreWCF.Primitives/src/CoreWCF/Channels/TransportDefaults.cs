@@ -129,7 +129,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    static class BinaryEncoderDefaults
+    internal static class BinaryEncoderDefaults
     {
         internal static EnvelopeVersion EnvelopeVersion { get { return EnvelopeVersion.Soap12; } }
         internal static BinaryVersion BinaryVersion { get { return BinaryVersion.Version1; } }

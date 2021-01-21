@@ -10,26 +10,25 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class ClientOperation
     {
-        string action;
-        SynchronizedCollection<FaultContractInfo> faultContractInfos;
-        bool serializeRequest;
-        bool deserializeReply;
-        IClientMessageFormatter formatter;
-        IClientFaultFormatter faultFormatter;
-        bool isInitiating = true;
-        bool isOneWay;
-        bool isTerminating;
-        bool isSessionOpenNotificationEnabled;
-        string name;
-
-        ClientRuntime parent;
-        string replyAction;
-        MethodInfo beginMethod;
-        MethodInfo endMethod;
-        MethodInfo syncMethod;
-        MethodInfo taskMethod;
-        Type taskTResult;
-        bool isFaultFormatterSetExplicit = false;
+        private string action;
+        private SynchronizedCollection<FaultContractInfo> faultContractInfos;
+        private bool serializeRequest;
+        private bool deserializeReply;
+        private IClientMessageFormatter formatter;
+        private IClientFaultFormatter faultFormatter;
+        private bool isInitiating = true;
+        private bool isOneWay;
+        private bool isTerminating;
+        private bool isSessionOpenNotificationEnabled;
+        private string name;
+        private ClientRuntime parent;
+        private string replyAction;
+        private MethodInfo beginMethod;
+        private MethodInfo endMethod;
+        private MethodInfo syncMethod;
+        private MethodInfo taskMethod;
+        private Type taskTResult;
+        private bool isFaultFormatterSetExplicit = false;
         private SynchronizedCollection<IParameterInspector> parameterInspectors;
 
         public ClientOperation(ClientRuntime parent, string name, string action)

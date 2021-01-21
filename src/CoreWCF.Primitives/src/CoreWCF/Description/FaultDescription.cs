@@ -7,11 +7,11 @@ namespace CoreWCF.Description
 {
     public class FaultDescription
     {
-        string _action;
-        Type _detailType;
-        XmlName _elementName;
-        XmlName _name;
-        string _ns;
+        private string _action;
+        private Type _detailType;
+        private XmlName _elementName;
+        private XmlName _name;
+        private string _ns;
 
         public FaultDescription(string action)
         {

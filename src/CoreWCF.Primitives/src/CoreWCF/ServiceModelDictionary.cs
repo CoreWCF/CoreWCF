@@ -9,12 +9,12 @@ namespace CoreWCF
     internal class ServiceModelDictionary : IXmlDictionary
     {
         static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
-        readonly ServiceModelStrings _strings;
-        readonly int _count;
-        XmlDictionaryString[] _dictionaryStrings1;
-        XmlDictionaryString[] _dictionaryStrings2;
-        Dictionary<string, int> _dictionary;
-        XmlDictionaryString[] _versionedDictionaryStrings;
+        private readonly ServiceModelStrings _strings;
+        private readonly int _count;
+        private XmlDictionaryString[] _dictionaryStrings1;
+        private XmlDictionaryString[] _dictionaryStrings2;
+        private Dictionary<string, int> _dictionary;
+        private XmlDictionaryString[] _versionedDictionaryStrings;
 
         public ServiceModelDictionary(ServiceModelStrings strings)
         {

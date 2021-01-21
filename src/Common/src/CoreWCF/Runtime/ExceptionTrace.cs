@@ -109,13 +109,13 @@ namespace CoreWCF.Runtime
             return TraceException(new ArgumentNullException(paramName));
         }
 
-        TException TraceException<TException>(TException exception)
+        private TException TraceException<TException>(TException exception)
             where TException : Exception
         {
             return TraceException<TException>(exception, _eventSourceName);
         }
 
-        TException TraceException<TException>(TException exception, string eventSource)
+        private TException TraceException<TException>(TException exception, string eventSource)
     where TException : Exception
         {
             //if (TraceCore.ThrowingExceptionIsEnabled(this.diagnosticTrace))

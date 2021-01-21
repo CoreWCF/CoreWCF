@@ -13,7 +13,7 @@ using CoreWCF.Description;
 
 namespace CoreWCF.Dispatcher
 {
-    static class DataContractSerializerDefaults
+    internal static class DataContractSerializerDefaults
     {
         internal const bool IgnoreExtensionDataObject = false;
         internal const int MaxItemsInObjectGraph = int.MaxValue;
@@ -60,18 +60,19 @@ namespace CoreWCF.Dispatcher
         }
     }
 
-    class DataContractSerializerOperationFormatter : OperationFormatter
+    internal class DataContractSerializerOperationFormatter : OperationFormatter
     {
-        static Type typeOfIQueryable = typeof(IQueryable);
-        static Type typeOfIQueryableGeneric = typeof(IQueryable<>);
-        static Type typeOfIEnumerable = typeof(IEnumerable);
-        static Type typeOfIEnumerableGeneric = typeof(IEnumerable<>);
+        private static Type typeOfIQueryable = typeof(IQueryable);
+        private static Type typeOfIQueryableGeneric = typeof(IQueryable<>);
+        private static Type typeOfIEnumerable = typeof(IEnumerable);
+        private static Type typeOfIEnumerableGeneric = typeof(IEnumerable<>);
 
         protected MessageInfo requestMessageInfo;
         protected MessageInfo replyMessageInfo;
-        IList<Type> knownTypes;
+        private IList<Type> knownTypes;
+
         //XsdDataContractExporter dataContractExporter;
-        DataContractSerializerOperationBehavior serializerFactory;
+        private DataContractSerializerOperationBehavior serializerFactory;
 
         public DataContractSerializerOperationFormatter(OperationDescription description, DataContractFormatAttribute dataContractFormatAttribute,
             DataContractSerializerOperationBehavior serializerFactory)
@@ -95,7 +96,7 @@ namespace CoreWCF.Dispatcher
                 replyMessageInfo = CreateMessageInfo(dataContractFormatAttribute, ReplyDescription, this.serializerFactory);
         }
 
-        MessageInfo CreateMessageInfo(DataContractFormatAttribute dataContractFormatAttribute,
+        private MessageInfo CreateMessageInfo(DataContractFormatAttribute dataContractFormatAttribute,
             MessageDescription messageDescription, DataContractSerializerOperationBehavior serializerFactory)
         {
             if (messageDescription.IsUntypedMessage)
@@ -147,7 +148,7 @@ namespace CoreWCF.Dispatcher
             //dataContractExporter.GetSchemaTypeName(type); //Throws if the type is not a valid data contract
         }
 
-        PartInfo CreatePartInfo(MessagePartDescription part, OperationFormatStyle style, DataContractSerializerOperationBehavior serializerFactory)
+        private PartInfo CreatePartInfo(MessagePartDescription part, OperationFormatStyle style, DataContractSerializerOperationBehavior serializerFactory)
         {
             string ns = (style == OperationFormatStyle.Rpc || part.Namespace == null) ? string.Empty : part.Namespace;
             PartInfo partInfo = new PartInfo(part, AddToDictionary(part.Name), AddToDictionary(ns), knownTypes, serializerFactory);
@@ -182,7 +183,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void AddMessageHeaderForParameter(MessageHeaders headers, PartInfo headerPart, MessageVersion messageVersion, object parameterValue, bool isXmlElement)
+        private void AddMessageHeaderForParameter(MessageHeaders headers, PartInfo headerPart, MessageVersion messageVersion, object parameterValue, bool isXmlElement)
         {
             string actor;
             bool mustUnderstand;
@@ -220,7 +221,7 @@ namespace CoreWCF.Dispatcher
                 writer.WriteEndElement();
         }
 
-        void SerializeParameters(XmlDictionaryWriter writer, PartInfo[] parts, object[] parameters)
+        private void SerializeParameters(XmlDictionaryWriter writer, PartInfo[] parts, object[] parameters)
         {
             for (int i = 0; i < parts.Length; i++)
             {
@@ -230,7 +231,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void SerializeParameter(XmlDictionaryWriter writer, PartInfo part, object graph)
+        private void SerializeParameter(XmlDictionaryWriter writer, PartInfo part, object graph)
         {
             if (part.Description.Multiple)
             {
@@ -244,7 +245,7 @@ namespace CoreWCF.Dispatcher
                 SerializeParameterPart(writer, part, graph);
         }
 
-        void SerializeParameterPart(XmlDictionaryWriter writer, PartInfo part, object graph)
+        private void SerializeParameterPart(XmlDictionaryWriter writer, PartInfo part, object graph)
         {
             try
             {
@@ -335,7 +336,7 @@ namespace CoreWCF.Dispatcher
                 parameters[messageInfo.UnknownHeaderDescription.Index] = elementList.ToArray(messageInfo.UnknownHeaderDescription.TypedHeader ? typeof(MessageHeader<XmlElement>) : typeof(XmlElement));
         }
 
-        object DeserializeHeaderContents(XmlDictionaryReader reader, MessageDescription messageDescription, MessageHeaderDescription headerDescription)
+        private object DeserializeHeaderContents(XmlDictionaryReader reader, MessageDescription messageDescription, MessageHeaderDescription headerDescription)
         {
             bool isQueryable;
             Type dataContractType = DataContractSerializerOperationFormatter.GetSubstituteDataContractType(headerDescription.Type, out isQueryable);
@@ -390,7 +391,7 @@ namespace CoreWCF.Dispatcher
             return returnValue;
         }
 
-        void DeserializeParameters(XmlDictionaryReader reader, PartInfo[] parts, object[] parameters, bool isRequest)
+        private void DeserializeParameters(XmlDictionaryReader reader, PartInfo[] parts, object[] parameters, bool isRequest)
         {
             int nextPartIndex = 0;
             while (reader.IsStartElement())
@@ -413,7 +414,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        object DeserializeParameter(XmlDictionaryReader reader, PartInfo part, bool isRequest)
+        private object DeserializeParameter(XmlDictionaryReader reader, PartInfo part, bool isRequest)
         {
             if (part.Description.Multiple)
             {
@@ -425,7 +426,7 @@ namespace CoreWCF.Dispatcher
             return DeserializeParameterPart(reader, part, isRequest);
         }
 
-        object DeserializeParameterPart(XmlDictionaryReader reader, PartInfo part, bool isRequest)
+        private object DeserializeParameterPart(XmlDictionaryReader reader, PartInfo part, bool isRequest)
         {
             object val;
             try
@@ -479,10 +480,9 @@ namespace CoreWCF.Dispatcher
             return type;
         }
 
-
-        class DataContractSerializerMessageHeader : XmlObjectSerializerHeader
+        private class DataContractSerializerMessageHeader : XmlObjectSerializerHeader
         {
-            PartInfo headerPart;
+            private PartInfo headerPart;
 
             public DataContractSerializerMessageHeader(PartInfo headerPart, object headerValue, bool mustUnderstand, string actor, bool relay)
                 : base(headerPart.DictionaryName.Value, headerPart.DictionaryNamespace.Value, headerValue, headerPart.Serializer, mustUnderstand, actor ?? string.Empty, relay)
@@ -514,14 +514,14 @@ namespace CoreWCF.Dispatcher
 
         protected class PartInfo
         {
-            XmlDictionaryString dictionaryName;
-            XmlDictionaryString dictionaryNamespace;
-            MessagePartDescription description;
-            XmlObjectSerializer serializer;
-            IList<Type> knownTypes;
-            DataContractSerializerOperationBehavior serializerFactory;
-            Type contractType;
-            bool isQueryable;
+            private XmlDictionaryString dictionaryName;
+            private XmlDictionaryString dictionaryNamespace;
+            private MessagePartDescription description;
+            private XmlObjectSerializer serializer;
+            private IList<Type> knownTypes;
+            private DataContractSerializerOperationBehavior serializerFactory;
+            private Type contractType;
+            private bool isQueryable;
 
             public PartInfo(MessagePartDescription description, XmlDictionaryString dictionaryName, XmlDictionaryString dictionaryNamespace,
                 IList<Type> knownTypes, DataContractSerializerOperationBehavior behavior)

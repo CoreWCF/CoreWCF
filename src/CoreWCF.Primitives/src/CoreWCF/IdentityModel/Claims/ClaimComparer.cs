@@ -217,7 +217,7 @@ namespace CoreWCF.IdentityModel.Claims
             }
         }
 
-        class RsaObjectComparer : IEqualityComparer
+        private class RsaObjectComparer : IEqualityComparer
         {
             bool IEqualityComparer.Equals(object obj1, object obj2)
             {

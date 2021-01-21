@@ -15,17 +15,16 @@ namespace CoreWCF.Security
         internal const X509CertificateValidationMode DefaultCertificateValidationMode = X509CertificateValidationMode.ChainTrust;
         internal const X509RevocationMode DefaultRevocationMode = X509RevocationMode.Online;
         internal const StoreLocation DefaultTrustedStoreLocation = StoreLocation.LocalMachine;
-
-        List<string> allowedAudienceUris;
-        AudienceUriMode audienceUriMode = DefaultAudienceUriMode;
-        List<X509Certificate2> knownCertificates;
-        SamlSerializer samlSerializer;
-        X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
-        X509RevocationMode revocationMode = DefaultRevocationMode;
-        StoreLocation trustedStoreLocation = DefaultTrustedStoreLocation;
-        X509CertificateValidator customCertificateValidator = null;
-        bool allowUntrustedRsaIssuers = DefaultAllowUntrustedRsaIssuers;
-        bool isReadOnly;
+        private List<string> allowedAudienceUris;
+        private AudienceUriMode audienceUriMode = DefaultAudienceUriMode;
+        private List<X509Certificate2> knownCertificates;
+        private SamlSerializer samlSerializer;
+        private X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
+        private X509RevocationMode revocationMode = DefaultRevocationMode;
+        private StoreLocation trustedStoreLocation = DefaultTrustedStoreLocation;
+        private X509CertificateValidator customCertificateValidator = null;
+        private bool allowUntrustedRsaIssuers = DefaultAllowUntrustedRsaIssuers;
+        private bool isReadOnly;
 
         internal IssuedTokenServiceCredential()
         {
@@ -202,7 +201,7 @@ namespace CoreWCF.Security
             this.isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
             if (this.isReadOnly)
             {

@@ -10,7 +10,7 @@ namespace CoreWCF
         Required,
     }
 
-    static class ImpersonationOptionHelper
+    internal static class ImpersonationOptionHelper
     {
         public static bool IsDefined(ImpersonationOption option)
         {

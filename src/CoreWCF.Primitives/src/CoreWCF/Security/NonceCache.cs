@@ -8,8 +8,8 @@ namespace CoreWCF.Security
 {
     public abstract class NonceCache
     {
-        TimeSpan cachingTime;
-        int maxCachedNonces;
+        private TimeSpan cachingTime;
+        private int maxCachedNonces;
 
         /// <summary>
         /// TThe max timespan after which a Nonce is deleted from the NonceCache. This value should be atleast twice the maxclock Skew added to the replayWindow size.

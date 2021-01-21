@@ -10,11 +10,11 @@ namespace CoreWCF.Security.Tokens
 {
     public class SupportingTokenParameters
     {
-        Collection<SecurityTokenParameters> signedEncrypted = new Collection<SecurityTokenParameters>();
-        Collection<SecurityTokenParameters> endorsing = new Collection<SecurityTokenParameters>();
-        Collection<SecurityTokenParameters> signedEndorsing = new Collection<SecurityTokenParameters>();
+        private Collection<SecurityTokenParameters> signedEncrypted = new Collection<SecurityTokenParameters>();
+        private Collection<SecurityTokenParameters> endorsing = new Collection<SecurityTokenParameters>();
+        private Collection<SecurityTokenParameters> signedEndorsing = new Collection<SecurityTokenParameters>();
 
-        SupportingTokenParameters(SupportingTokenParameters other)
+        private SupportingTokenParameters(SupportingTokenParameters other)
         {
             if (other == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("other");

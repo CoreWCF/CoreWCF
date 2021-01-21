@@ -9,8 +9,8 @@ namespace CoreWCF.Security
 {
     public class SecurityTokenSpecification
     {
-        SecurityToken token;
-        ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies;
+        private SecurityToken token;
+        private ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies;
 
         public SecurityTokenSpecification(SecurityToken token, ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies)
         {

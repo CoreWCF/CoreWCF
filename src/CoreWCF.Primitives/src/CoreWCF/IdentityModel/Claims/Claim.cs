@@ -15,18 +15,17 @@ namespace CoreWCF.IdentityModel.Claims
 {
     public class Claim
     {
-        static Claim system;
+        private static Claim system;
 
         [DataMember(Name = "ClaimType")]
-        string claimType;
+        private string claimType;
         [DataMember(Name = "Resource")]
-        object resource;
+        private object resource;
         [DataMember(Name = "Right")]
-        string right;
+        private string right;
+        private IEqualityComparer<Claim> comparer;
 
-        IEqualityComparer<Claim> comparer;
-
-        Claim(string claimType, object resource, string right, IEqualityComparer<Claim> comparer)
+        private Claim(string claimType, object resource, string right, IEqualityComparer<Claim> comparer)
         {
             if (claimType == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claimType));

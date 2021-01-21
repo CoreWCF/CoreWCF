@@ -9,8 +9,8 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public sealed class RsaSecurityKey : AsymmetricSecurityKey
     {
-        PrivateKeyStatus privateKeyStatus = PrivateKeyStatus.AvailabilityNotDetermined;
-        readonly RSA rsa;
+        private PrivateKeyStatus privateKeyStatus = PrivateKeyStatus.AvailabilityNotDetermined;
+        private readonly RSA rsa;
 
         public RsaSecurityKey(RSA rsa)
         {
@@ -256,7 +256,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        enum PrivateKeyStatus
+        private enum PrivateKeyStatus
         {
             AvailabilityNotDetermined,
             HasPrivateKey,

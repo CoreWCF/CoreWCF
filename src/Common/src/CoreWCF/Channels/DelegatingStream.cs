@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
-    abstract class DelegatingStream : Stream
+    internal abstract class DelegatingStream : Stream
     {
-        Stream _stream;
+        private Stream _stream;
         private bool _disposed;
 
         protected DelegatingStream(Stream stream)

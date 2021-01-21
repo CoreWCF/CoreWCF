@@ -10,12 +10,12 @@ namespace CoreWCF
     // When adding or removing memebers please keep the capacity of the XmlDictionary field current.
     internal static class DXD
     {
-        static AtomicTransactionExternal11Dictionary atomicTransactionExternal11Dictionary;
-        static CoordinationExternal11Dictionary coordinationExternal11Dictionary;
-        static SecureConversationDec2005Dictionary secureConversationDec2005Dictionary;
-        static SecurityAlgorithmDec2005Dictionary securityAlgorithmDec2005Dictionary;
-        static TrustDec2005Dictionary trustDec2005Dictionary;
-        static Wsrm11Dictionary wsrm11Dictionary;
+        private static AtomicTransactionExternal11Dictionary atomicTransactionExternal11Dictionary;
+        private static CoordinationExternal11Dictionary coordinationExternal11Dictionary;
+        private static SecureConversationDec2005Dictionary secureConversationDec2005Dictionary;
+        private static SecurityAlgorithmDec2005Dictionary securityAlgorithmDec2005Dictionary;
+        private static TrustDec2005Dictionary trustDec2005Dictionary;
+        private static Wsrm11Dictionary wsrm11Dictionary;
 
         static DXD()
         {
@@ -213,7 +213,7 @@ namespace CoreWCF
         }
     }
 
-    class TrustDec2005Dictionary : TrustDictionary
+    internal class TrustDec2005Dictionary : TrustDictionary
     {
         public XmlDictionaryString AsymmetricKeyBinarySecret;
         public XmlDictionaryString RequestSecurityTokenCollectionIssuanceFinalResponse;
@@ -424,7 +424,7 @@ namespace CoreWCF
         }
     }
 
-    class Wsrm11Dictionary
+    internal class Wsrm11Dictionary
     {
         public XmlDictionaryString AckRequestedAction;
         public XmlDictionaryString CloseSequence;

@@ -18,8 +18,8 @@ namespace CoreWCF.Description
 {
     internal class XmlSerializerOperationBehavior : IOperationBehavior
     {
-        readonly Reflector.OperationReflector reflector;
-        readonly bool builtInOperationBehavior;
+        private readonly Reflector.OperationReflector reflector;
+        private readonly bool builtInOperationBehavior;
 
         public XmlSerializerOperationBehavior(OperationDescription operation)
             : this(operation, null)
@@ -41,7 +41,7 @@ namespace CoreWCF.Description
             reflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
 
-        XmlSerializerOperationBehavior(Reflector.OperationReflector reflector, bool builtInOperationBehavior)
+        private XmlSerializerOperationBehavior(Reflector.OperationReflector reflector, bool builtInOperationBehavior)
         {
             Fx.Assert(reflector != null, "");
             this.reflector = reflector;
@@ -86,7 +86,7 @@ namespace CoreWCF.Description
             AddBehaviors(contract, true);
         }
 
-        static void AddBehaviors(ContractDescription contract, bool builtInOperationBehavior)
+        private static void AddBehaviors(ContractDescription contract, bool builtInOperationBehavior)
         {
             Reflector reflector = new Reflector(contract.Namespace, contract.ContractType);
 
@@ -111,7 +111,7 @@ namespace CoreWCF.Description
             return new XmlSerializerOperationFormatter(reflector.Operation, reflector.Attribute, reflector.Request, reflector.Reply);
         }
 
-        XmlSerializerFaultFormatter CreateFaultFormatter(SynchronizedCollection<FaultContractInfo> faultContractInfos)
+        private XmlSerializerFaultFormatter CreateFaultFormatter(SynchronizedCollection<FaultContractInfo> faultContractInfos)
         {
             return new XmlSerializerFaultFormatter(faultContractInfos, reflector.XmlSerializerFaultContractInfos);
         }
@@ -192,10 +192,10 @@ namespace CoreWCF.Description
         // helper for reflecting operations
         internal class Reflector
         {
-            readonly XmlSerializerImporter importer;
-            readonly SerializerGenerationContext generation;
-            Collection<OperationReflector> operationReflectors = new Collection<OperationReflector>();
-            object thisLock = new object();
+            private readonly XmlSerializerImporter importer;
+            private readonly SerializerGenerationContext generation;
+            private Collection<OperationReflector> operationReflectors = new Collection<OperationReflector>();
+            private object thisLock = new object();
 
             internal Reflector(string defaultNs, Type type)
             {
@@ -214,8 +214,7 @@ namespace CoreWCF.Description
                 }
             }
 
-
-            static XmlSerializerFormatAttribute FindAttribute(OperationDescription operation)
+            private static XmlSerializerFormatAttribute FindAttribute(OperationDescription operation)
             {
                 Type contractType = operation.DeclaringContract != null ? operation.DeclaringContract.ContractType : null;
                 XmlSerializerFormatAttribute contractFormatAttribute = contractType != null ? TypeLoader.GetFormattingAttribute(contractType.GetTypeInfo(), null) as XmlSerializerFormatAttribute : null;
@@ -243,7 +242,7 @@ namespace CoreWCF.Description
 
             internal class OperationReflector
             {
-                readonly Reflector parent;
+                private readonly Reflector parent;
 
                 internal readonly OperationDescription Operation;
                 internal readonly XmlSerializerFormatAttribute Attribute;
@@ -253,12 +252,10 @@ namespace CoreWCF.Description
                 internal readonly bool IsOneWay;
                 internal readonly bool RequestRequiresSerialization;
                 internal readonly bool ReplyRequiresSerialization;
-
-                readonly string keyBase;
-
-                MessageInfo request;
-                MessageInfo reply;
-                SynchronizedCollection<XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos;
+                private readonly string keyBase;
+                private MessageInfo request;
+                private MessageInfo reply;
+                private SynchronizedCollection<XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos;
 
                 internal OperationReflector(Reflector parent, OperationDescription operation, XmlSerializerFormatAttribute attr, bool reflectOnDemand)
                 {
@@ -335,12 +332,12 @@ namespace CoreWCF.Description
                     }
                 }
 
-                string ContractName
+                private string ContractName
                 {
                     get { return Operation.DeclaringContract.Name; }
                 }
 
-                string ContractNamespace
+                private string ContractNamespace
                 {
                     get { return Operation.DeclaringContract.Namespace; }
                 }
@@ -399,7 +396,7 @@ namespace CoreWCF.Description
                     }
                 }
 
-                void GenerateXmlSerializerFaultContractInfos()
+                private void GenerateXmlSerializerFaultContractInfos()
                 {
                     SynchronizedCollection<XmlSerializerFaultContractInfo> faultInfos = new SynchronizedCollection<XmlSerializerFaultContractInfo>();
                     for (int i = 0; i < Operation.Faults.Count; i++)
@@ -416,7 +413,7 @@ namespace CoreWCF.Description
                     xmlSerializerFaultContractInfos = faultInfos;
                 }
 
-                MessageInfo CreateMessageInfo(MessageDescription message, string key)
+                private MessageInfo CreateMessageInfo(MessageDescription message, string key)
                 {
                     if (message.IsUntypedMessage)
                         return null;
@@ -474,7 +471,7 @@ namespace CoreWCF.Description
                     }
                 }
 
-                XmlMembersMapping LoadBodyMapping(MessageDescription message, string mappingKey, out MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts)
+                private XmlMembersMapping LoadBodyMapping(MessageDescription message, string mappingKey, out MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts)
                 {
                     MessagePartDescription returnPart;
                     string wrapperName, wrapperNs;
@@ -552,7 +549,7 @@ namespace CoreWCF.Description
                     return partList;
                 }
 
-                XmlMembersMapping LoadHeadersMapping(MessageDescription message, string mappingKey)
+                private XmlMembersMapping LoadHeadersMapping(MessageDescription message, string mappingKey)
                 {
                     int headerCount = message.Headers.Count;
 
@@ -623,13 +620,14 @@ namespace CoreWCF.Description
                 }
             }
 
-            class XmlSerializerImporter
+            private class XmlSerializerImporter
             {
-                readonly string defaultNs;
-                XmlReflectionImporter xmlImporter;
+                private readonly string defaultNs;
+                private XmlReflectionImporter xmlImporter;
+
                 // TODO: Available in 1.7
                 //SoapReflectionImporter soapImporter;
-                Dictionary<string, XmlMembersMapping> xmlMappings;
+                private Dictionary<string, XmlMembersMapping> xmlMappings;
 
                 internal XmlSerializerImporter(string defaultNs)
                 {
@@ -650,7 +648,7 @@ namespace CoreWCF.Description
                 //    }
                 //}
 
-                XmlReflectionImporter XmlImporter
+                private XmlReflectionImporter XmlImporter
                 {
                     get
                     {
@@ -662,7 +660,7 @@ namespace CoreWCF.Description
                     }
                 }
 
-                Dictionary<string, XmlMembersMapping> XmlMappings
+                private Dictionary<string, XmlMembersMapping> XmlMappings
                 {
                     get
                     {
@@ -715,10 +713,10 @@ namespace CoreWCF.Description
 
             internal class SerializerGenerationContext
             {
-                List<XmlMembersMapping> Mappings = new List<XmlMembersMapping>();
-                XmlSerializer[] serializers = null;
-                Type type;
-                object thisLock = new object();
+                private List<XmlMembersMapping> Mappings = new List<XmlMembersMapping>();
+                private XmlSerializer[] serializers = null;
+                private Type type;
+                private object thisLock = new object();
 
                 internal SerializerGenerationContext(Type type)
                 {
@@ -757,7 +755,7 @@ namespace CoreWCF.Description
                     return serializers[handle];
                 }
 
-                XmlSerializer[] GenerateSerializers()
+                private XmlSerializer[] GenerateSerializers()
                 {
                     //this.Mappings may have duplicate mappings (for e.g. same message contract is used by more than one operation)
                     //XmlSerializer.FromMappings require unique mappings. The following code uniquifies, calls FromMappings and deuniquifies
@@ -785,7 +783,7 @@ namespace CoreWCF.Description
                     return serializers;
                 }
 
-                XmlSerializer[] CreateSerializersFromMappings(XmlMapping[] mappings, Type type)
+                private XmlSerializer[] CreateSerializersFromMappings(XmlMapping[] mappings, Type type)
                 {
                     return XmlSerializer.FromMappings(mappings, type);
                 }
@@ -793,7 +791,7 @@ namespace CoreWCF.Description
 
             internal struct SerializerStub
             {
-                readonly SerializerGenerationContext context;
+                private readonly SerializerGenerationContext context;
 
                 internal readonly XmlMembersMapping Mapping;
                 internal readonly int Handle;
@@ -813,10 +811,10 @@ namespace CoreWCF.Description
 
             internal class XmlSerializerFaultContractInfo
             {
-                FaultContractInfo faultContractInfo;
-                SerializerStub serializerStub;
-                XmlQualifiedName faultContractElementName;
-                XmlSerializerObjectSerializer serializer;
+                private FaultContractInfo faultContractInfo;
+                private SerializerStub serializerStub;
+                private XmlQualifiedName faultContractElementName;
+                private XmlSerializerObjectSerializer serializer;
 
                 internal XmlSerializerFaultContractInfo(FaultContractInfo faultContractInfo, SerializerStub serializerStub,
                     XmlQualifiedName faultContractElementName)
@@ -857,11 +855,11 @@ namespace CoreWCF.Description
 
             internal class MessageInfo : XmlSerializerOperationFormatter.MessageInfo
             {
-                SerializerStub headers;
-                SerializerStub body;
-                OperationFormatter.MessageHeaderDescriptionTable headerDescriptionTable;
-                MessageHeaderDescription unknownHeaderDescription;
-                MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts;
+                private SerializerStub headers;
+                private SerializerStub body;
+                private OperationFormatter.MessageHeaderDescriptionTable headerDescriptionTable;
+                private MessageHeaderDescription unknownHeaderDescription;
+                private MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts;
 
                 internal XmlMembersMapping BodyMapping
                 {
@@ -923,7 +921,7 @@ namespace CoreWCF.Description
         }
     }
 
-    static class XmlSerializerHelper
+    internal static class XmlSerializerHelper
     {
         static internal XmlReflectionMember GetXmlReflectionMember(MessagePartDescription part, bool isRpc, bool isEncoded, bool isWrapped)
         {
@@ -1034,7 +1032,7 @@ namespace CoreWCF.Description
             return member;
         }
 
-        static bool HasNoXmlParameterAttributes(XmlAttributes xmlAttributes)
+        private static bool HasNoXmlParameterAttributes(XmlAttributes xmlAttributes)
         {
             return xmlAttributes.XmlAnyAttribute == null &&
                 (xmlAttributes.XmlAnyElements == null || xmlAttributes.XmlAnyElements.Count == 0) &&

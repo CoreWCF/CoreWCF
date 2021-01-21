@@ -6,12 +6,12 @@ using System.Xml;
 
 namespace CoreWCF.IdentityModel
 {
-    struct XmlAttributeHolder
+    internal struct XmlAttributeHolder
     {
-        string prefix;
-        string ns;
-        string localName;
-        string value;
+        private string prefix;
+        private string ns;
+        private string localName;
+        private string value;
 
         public static XmlAttributeHolder[] emptyArray = new XmlAttributeHolder[0];
 
@@ -92,7 +92,7 @@ namespace CoreWCF.IdentityModel
             return attributes;
         }
 
-        static void Deduct(string s, ref int maxSizeOfHeaders)
+        private static void Deduct(string s, ref int maxSizeOfHeaders)
         {
             int byteCount = s.Length * sizeof(char);
             if (byteCount > maxSizeOfHeaders)

@@ -15,43 +15,43 @@ using CoreWCF.Runtime;
 namespace CoreWCF.Channels
 {
     // This class is sealed because the constructor could call Abort, which is virtual
-    sealed class ServiceChannel : CommunicationObject, IChannel, IClientChannel, IDuplexContextChannel, IOutputChannel, IRequestChannel, IServiceChannel
+    internal sealed class ServiceChannel : CommunicationObject, IChannel, IClientChannel, IDuplexContextChannel, IOutputChannel, IRequestChannel, IServiceChannel
     {
+        private int activityCount = 0;
+        private readonly bool allowOutputBatching = false;
+        private bool autoClose = true;
 
-        int activityCount = 0;
-        readonly bool allowOutputBatching = false;
-        bool autoClose = true;
         //CallOnceManager autoDisplayUIManager;
-        CallOnceManager autoOpenManager;
-        readonly IChannelBinder binder;
-        readonly ChannelDispatcher channelDispatcher;
-        ClientRuntime clientRuntime;
-        readonly bool closeBinder = true;
-        bool closeFactory;
-        bool doneReceiving;
-        EndpointDispatcher endpointDispatcher;
-        bool explicitlyOpened;
-        ExtensionCollection<IContextChannel> extensions;
-        readonly bool hasSession;
-        readonly SessionIdleManager idleManager;
-        InstanceContext instanceContext;
-        ServiceThrottle instanceContextServiceThrottle;
-        bool isPending;
-        readonly bool isReplyChannel;
-        EndpointAddress localAddress;
-        readonly MessageVersion messageVersion;
-        readonly bool openBinder = false;
-        TimeSpan operationTimeout;
-        object proxy;
-        ServiceThrottle serviceThrottle;
-        string terminatingOperationName;
-        bool hasCleanedUpChannelCollections;
+        private CallOnceManager autoOpenManager;
+        private readonly IChannelBinder binder;
+        private readonly ChannelDispatcher channelDispatcher;
+        private ClientRuntime clientRuntime;
+        private readonly bool closeBinder = true;
+        private bool closeFactory;
+        private bool doneReceiving;
+        private EndpointDispatcher endpointDispatcher;
+        private bool explicitlyOpened;
+        private ExtensionCollection<IContextChannel> extensions;
+        private readonly bool hasSession;
+        private readonly SessionIdleManager idleManager;
+        private InstanceContext instanceContext;
+        private ServiceThrottle instanceContextServiceThrottle;
+        private bool isPending;
+        private readonly bool isReplyChannel;
+        private EndpointAddress localAddress;
+        private readonly MessageVersion messageVersion;
+        private readonly bool openBinder = false;
+        private TimeSpan operationTimeout;
+        private object proxy;
+        private ServiceThrottle serviceThrottle;
+        private string terminatingOperationName;
+        private bool hasCleanedUpChannelCollections;
+
         //EventTraceActivity eventActivity;
-        IDefaultCommunicationTimeouts timeouts;
+        private IDefaultCommunicationTimeouts timeouts;
+        private EventHandler<UnknownMessageReceivedEventArgs> unknownMessageReceived;
 
-        EventHandler<UnknownMessageReceivedEventArgs> unknownMessageReceived;
-
-        ServiceChannel(IChannelBinder binder, Binding binding)
+        private ServiceChannel(IChannelBinder binder, Binding binding)
         {
             if (binder == null)
             {
@@ -128,7 +128,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        CallOnceManager AutoOpenManager
+        private CallOnceManager AutoOpenManager
         {
             get
             {
@@ -367,7 +367,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        ProxyOperationRuntime UnhandledProxyOperation
+        private ProxyOperationRuntime UnhandledProxyOperation
         {
             get { return ClientRuntime.GetRuntime().UnhandledProxyOperation; }
         }
@@ -410,7 +410,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void SetupInnerChannelFaultHandler()
+        private void SetupInnerChannelFaultHandler()
         {
             // need to call this method after this.binder and this.clientRuntime are set to prevent a potential 
             // NullReferenceException in this method or in the OnInnerChannelFaulted method; 
@@ -450,7 +450,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void EnsureAutoOpenManagers()
+        private void EnsureAutoOpenManagers()
         {
             lock (ThisLock)
             {
@@ -464,7 +464,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        async Task EnsureOpenedAsync(CancellationToken token)
+        private async Task EnsureOpenedAsync(CancellationToken token)
         {
             ///// TASKS ******
             CallOnceManager manager = AutoOpenManager;
@@ -485,7 +485,7 @@ namespace CoreWCF.Channels
             return null;
         }
 
-        void PrepareCall(ProxyOperationRuntime operation, bool oneway, ref ProxyRpc rpc)
+        private void PrepareCall(ProxyOperationRuntime operation, bool oneway, ref ProxyRpc rpc)
         {
             OperationContext context = OperationContext.Current;
             // Doing a request reply callback when dispatching in-order deadlocks.
@@ -786,7 +786,7 @@ namespace CoreWCF.Channels
                 handler(proxy, new UnknownMessageReceivedEventArgs(message));
         }
 
-        TimeoutException GetOpenTimeoutException(TimeSpan timeout)
+        private TimeoutException GetOpenTimeoutException(TimeSpan timeout)
         {
             EndpointAddress address = RemoteAddress ?? LocalAddress;
             if (address != null)
@@ -821,7 +821,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void HandleReply(ProxyOperationRuntime operation, ref ProxyRpc rpc)
+        private void HandleReply(ProxyOperationRuntime operation, ref ProxyRpc rpc)
         {
             try
             {
@@ -914,7 +914,7 @@ namespace CoreWCF.Channels
 
         }
 
-        void TerminateIfNecessary(ref ProxyRpc rpc)
+        private void TerminateIfNecessary(ref ProxyRpc rpc)
         {
             if (rpc.Operation.IsTerminating)
             {
@@ -923,7 +923,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowIfFaultUnderstood(Message reply, MessageFault fault, string action, MessageVersion version, FaultConverter faultConverter)
+        private void ThrowIfFaultUnderstood(Message reply, MessageFault fault, string action, MessageVersion version, FaultConverter faultConverter)
         {
             Exception exception;
             if (faultConverter != null && faultConverter.TryCreateException(reply, fault, out exception))
@@ -1010,7 +1010,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowIfIdleAborted(ProxyOperationRuntime operation)
+        private void ThrowIfIdleAborted(ProxyOperationRuntime operation)
         {
             if (idleManager != null && idleManager.DidIdleAbort)
             {
@@ -1020,7 +1020,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowIfIsConnectionOpened(ProxyOperationRuntime operation)
+        private void ThrowIfIsConnectionOpened(ProxyOperationRuntime operation)
         {
             if (operation.IsSessionOpenNotificationEnabled)
             {
@@ -1029,7 +1029,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void ThrowIfOpening()
+        private void ThrowIfOpening()
         {
             if (State == CommunicationState.Opening)
             {
@@ -1042,7 +1042,7 @@ namespace CoreWCF.Channels
             Interlocked.Increment(ref activityCount);
         }
 
-        void OnInnerChannelFaulted(object sender, EventArgs e)
+        private void OnInnerChannelFaulted(object sender, EventArgs e)
         {
             Fault();
 
@@ -1061,7 +1061,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void AddMessageProperties(Message message, OperationContext context)
+        private void AddMessageProperties(Message message, OperationContext context)
         {
             if (allowOutputBatching)
             {
@@ -1182,7 +1182,7 @@ namespace CoreWCF.Channels
             //this.TraceChannelOpenCompleted();
         }
 
-        void CleanupChannelCollections()
+        private void CleanupChannelCollections()
         {
             if (!hasCleanedUpChannelCollections)
             {
@@ -1221,7 +1221,7 @@ namespace CoreWCF.Channels
             return GetDuplexSessionOrThrow().CloseOutputSessionAsync(token);
         }
 
-        IDuplexSession GetDuplexSessionOrThrow()
+        private IDuplexSession GetDuplexSessionOrThrow()
         {
             if (InnerChannel == null)
             {
@@ -1440,14 +1440,14 @@ namespace CoreWCF.Channels
         // 3) Once Call or EndCall returns successfully, it guarantees
         //    that SignalNext will be called once the // next stage
         //    has sufficiently completed.
-        interface ICallOnce
+        private interface ICallOnce
         {
             Task CallAsync(ServiceChannel channel, CancellationToken token);
         }
 
-        class CallOpenOnce : ICallOnce
+        private class CallOpenOnce : ICallOnce
         {
-            static CallOpenOnce instance;
+            private static CallOpenOnce instance;
 
             internal static CallOpenOnce Instance
             {
@@ -1467,14 +1467,13 @@ namespace CoreWCF.Channels
             }
         }
 
-        class CallOnceManager
+        private class CallOnceManager
         {
-            readonly ICallOnce callOnce;
-            readonly ServiceChannel channel;
-            bool isFirst = true;
-            Queue<IWaiter> queue;
-
-            static readonly Action<object> signalWaiter = CallOnceManager.SignalWaiter;
+            private readonly ICallOnce callOnce;
+            private readonly ServiceChannel channel;
+            private bool isFirst = true;
+            private Queue<IWaiter> queue;
+            private static readonly Action<object> signalWaiter = CallOnceManager.SignalWaiter;
 
             internal CallOnceManager(ServiceChannel channel, ICallOnce callOnce)
             {
@@ -1483,7 +1482,7 @@ namespace CoreWCF.Channels
                 queue = new Queue<IWaiter>();
             }
 
-            object ThisLock
+            private object ThisLock
             {
                 get { return this; }
             }
@@ -1573,30 +1572,30 @@ namespace CoreWCF.Channels
                 }
             }
 
-            static void SignalWaiter(object state)
+            private static void SignalWaiter(object state)
             {
                 ((IWaiter)state).Signal();
             }
 
-            interface IWaiter
+            private interface IWaiter
             {
                 void Signal();
             }
 
-            class AsyncWaiter : IWaiter
+            private class AsyncWaiter : IWaiter
             {
-                readonly AsyncManualResetEvent wait = new AsyncManualResetEvent();
-                readonly CallOnceManager manager;
-                bool isTimedOut = false;
-                bool isSignaled = false;
-                int waitCount = 0;
+                private readonly AsyncManualResetEvent wait = new AsyncManualResetEvent();
+                private readonly CallOnceManager manager;
+                private bool isTimedOut = false;
+                private bool isSignaled = false;
+                private int waitCount = 0;
 
                 internal AsyncWaiter(CallOnceManager manager)
                 {
                     this.manager = manager;
                 }
 
-                bool ShouldSignalNext
+                private bool ShouldSignalNext
                 {
                     get { return isTimedOut && isSignaled; }
                 }
@@ -1644,7 +1643,7 @@ namespace CoreWCF.Channels
                     return !isTimedOut;
                 }
 
-                void CloseWaitHandle()
+                private void CloseWaitHandle()
                 {
                     if (Interlocked.Increment(ref waitCount) == 2)
                     {
@@ -1656,16 +1655,16 @@ namespace CoreWCF.Channels
 
         internal class SessionIdleManager
         {
-            IChannelBinder binder;
-            ServiceChannel channel;
-            long idleTicks;
-            long lastActivity;
-            IOThreadTimer timer;
-            static Action<object> timerCallback;
-            bool didIdleAbort;
-            bool isTimerCancelled;
-            object thisLock;
-            bool? isNeeded = null;
+            private IChannelBinder binder;
+            private ServiceChannel channel;
+            private long idleTicks;
+            private long lastActivity;
+            private IOThreadTimer timer;
+            private static Action<object> timerCallback;
+            private bool didIdleAbort;
+            private bool isTimerCancelled;
+            private object thisLock;
+            private bool? isNeeded = null;
 
             public SessionIdleManager() { }
 
@@ -1727,7 +1726,7 @@ namespace CoreWCF.Channels
                 }
             }
 
-            static Action<object> GetTimerCallback()
+            private static Action<object> GetTimerCallback()
             {
                 if (SessionIdleManager.timerCallback == null)
                 {
@@ -1736,12 +1735,12 @@ namespace CoreWCF.Channels
                 return SessionIdleManager.timerCallback;
             }
 
-            static void TimerCallback(object state)
+            private static void TimerCallback(object state)
             {
                 ((SessionIdleManager)state).TimerCallback();
             }
 
-            void TimerCallback()
+            private void TimerCallback()
             {
                 // This reads lastActivity atomically without changing its value.
                 // (it only sets if it is zero, and then it sets it to zero).

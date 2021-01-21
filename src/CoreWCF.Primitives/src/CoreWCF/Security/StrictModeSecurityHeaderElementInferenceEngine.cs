@@ -5,11 +5,11 @@ using System.Xml;
 
 namespace CoreWCF.Security
 {
-    sealed class StrictModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
+    internal sealed class StrictModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
     {
-        static StrictModeSecurityHeaderElementInferenceEngine instance = new StrictModeSecurityHeaderElementInferenceEngine();
+        private static StrictModeSecurityHeaderElementInferenceEngine instance = new StrictModeSecurityHeaderElementInferenceEngine();
 
-        StrictModeSecurityHeaderElementInferenceEngine() { }
+        private StrictModeSecurityHeaderElementInferenceEngine() { }
 
         internal static StrictModeSecurityHeaderElementInferenceEngine Instance
         {

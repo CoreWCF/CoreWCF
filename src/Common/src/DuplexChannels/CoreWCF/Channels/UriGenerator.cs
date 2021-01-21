@@ -9,8 +9,8 @@ namespace CoreWCF.Channels
 {
     internal class UriGenerator
     {
-        long id;
-        string prefix;
+        private long id;
+        private string prefix;
 
         public UriGenerator()
             : this("uuid")

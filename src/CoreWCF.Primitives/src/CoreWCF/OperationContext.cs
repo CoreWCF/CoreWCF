@@ -14,21 +14,20 @@ namespace CoreWCF
     public sealed class OperationContext : IExtensibleObject<OperationContext>
     {
         private static AsyncLocal<Holder> currentContext = new AsyncLocal<Holder>();
-
-        ServiceChannel channel;
-        Message clientReply;
-        bool closeClientReply;
-        ExtensionCollection<OperationContext> extensions;
-        ServiceHostBase host;
-        RequestContext requestContext;
-        Message request;
-        InstanceContext instanceContext;
-        bool isServiceReentrant = false;
+        private ServiceChannel channel;
+        private Message clientReply;
+        private bool closeClientReply;
+        private ExtensionCollection<OperationContext> extensions;
+        private ServiceHostBase host;
+        private RequestContext requestContext;
+        private Message request;
+        private InstanceContext instanceContext;
+        private bool isServiceReentrant = false;
         internal IPrincipal threadPrincipal;
-        MessageProperties outgoingMessageProperties;
-        MessageHeaders outgoingMessageHeaders;
-        MessageVersion outgoingMessageVersion;
-        EndpointDispatcher endpointDispatcher;
+        private MessageProperties outgoingMessageProperties;
+        private MessageHeaders outgoingMessageHeaders;
+        private MessageVersion outgoingMessageVersion;
+        private EndpointDispatcher endpointDispatcher;
 
         public event EventHandler OperationCompleted;
 
@@ -355,7 +354,7 @@ namespace CoreWCF
 
         internal class Holder
         {
-            OperationContext context;
+            private OperationContext context;
 
             public OperationContext Context
             {

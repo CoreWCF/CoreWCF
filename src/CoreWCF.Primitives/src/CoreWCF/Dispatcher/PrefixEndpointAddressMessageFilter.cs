@@ -9,10 +9,10 @@ namespace CoreWCF.Dispatcher
 {
     internal class PrefixEndpointAddressMessageFilter : MessageFilter
     {
-        EndpointAddress _address;
-        EndpointAddressMessageFilterHelper _helper;
-        UriPrefixTable<object> _addressTable;
-        HostNameComparisonMode _hostNameComparisonMode;
+        private EndpointAddress _address;
+        private EndpointAddressMessageFilterHelper _helper;
+        private UriPrefixTable<object> _addressTable;
+        private HostNameComparisonMode _hostNameComparisonMode;
 
         public PrefixEndpointAddressMessageFilter(EndpointAddress address)
             : this(address, false)

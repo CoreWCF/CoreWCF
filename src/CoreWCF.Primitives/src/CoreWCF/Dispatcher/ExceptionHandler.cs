@@ -8,9 +8,8 @@ namespace CoreWCF.Dispatcher
 {
     public abstract class ExceptionHandler
     {
-        static readonly ExceptionHandler alwaysHandle = new AlwaysHandleExceptionHandler();
-
-        static ExceptionHandler transportExceptionHandler = alwaysHandle;
+        private static readonly ExceptionHandler alwaysHandle = new AlwaysHandleExceptionHandler();
+        private static ExceptionHandler transportExceptionHandler = alwaysHandle;
 
         public static ExceptionHandler AlwaysHandle
         {
@@ -51,8 +50,7 @@ namespace CoreWCF.Dispatcher
         // throws a different exception, the original exception will be rethrown.
         public abstract bool HandleException(Exception exception);
 
-
-        class AlwaysHandleExceptionHandler : ExceptionHandler
+        private class AlwaysHandleExceptionHandler : ExceptionHandler
         {
             public override bool HandleException(Exception exception)
             {
@@ -60,7 +58,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class HandlerWrapper : Fx.ExceptionHandler
+        private class HandlerWrapper : Fx.ExceptionHandler
         {
             public HandlerWrapper(ExceptionHandler handler)
             {

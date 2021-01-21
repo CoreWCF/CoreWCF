@@ -12,10 +12,9 @@ namespace CoreWCF
     {
         internal const HttpClientCredentialType DefaultClientCredentialType = HttpClientCredentialType.None;
         internal const string DefaultRealm = CoreWCF.Channels.HttpTransportDefaults.Realm;
-
-        HttpClientCredentialType clientCredentialType;
-        string realm;
-        ExtendedProtectionPolicy extendedProtectionPolicy;
+        private HttpClientCredentialType clientCredentialType;
+        private string realm;
+        private ExtendedProtectionPolicy extendedProtectionPolicy;
 
         public HttpTransportSecurity()
         {
@@ -73,21 +72,21 @@ namespace CoreWCF
             https.RequireClientCertificate = false;
         }
 
-        void ConfigureAuthentication(HttpTransportBindingElement http)
+        private void ConfigureAuthentication(HttpTransportBindingElement http)
         {
             http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(clientCredentialType);
             http.Realm = Realm;
             http.ExtendedProtectionPolicy = extendedProtectionPolicy;
         }
 
-        static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
+        private static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
         {
             transportSecurity.clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
             transportSecurity.realm = http.Realm;
             transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
         }
 
-        void DisableAuthentication(HttpTransportBindingElement http)
+        private void DisableAuthentication(HttpTransportBindingElement http)
         {
             http.AuthenticationScheme = AuthenticationSchemes.Anonymous;
             http.Realm = DefaultRealm;

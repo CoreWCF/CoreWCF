@@ -7,7 +7,7 @@ using System.Text;
 using CoreWCF;
 
 [ServiceContract]
-interface ISimpleService
+internal interface ISimpleService
 {
     [OperationContract]
     string Echo(string echo);

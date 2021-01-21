@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 namespace CoreWCF.IdentityModel.Tokens
 {
     [Serializable]
-    class SecurityContextTokenValidationException : SecurityTokenValidationException
+    internal class SecurityContextTokenValidationException : SecurityTokenValidationException
     {
         public SecurityContextTokenValidationException()
             : base()

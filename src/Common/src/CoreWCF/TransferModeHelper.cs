@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace CoreWCF
 {
-    static class TransferModeHelper
+    internal static class TransferModeHelper
     {
         public static bool IsDefined(TransferMode v)
         {

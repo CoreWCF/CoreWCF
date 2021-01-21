@@ -10,9 +10,9 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal class RsaSecurityToken : SecurityToken
     {
-        string id;
-        DateTime effectiveTime;
-        RSA rsa;
+        private string id;
+        private DateTime effectiveTime;
+        private RSA rsa;
 
         public RsaSecurityToken(RSA rsa)
             : this(rsa, SecurityUniqueId.Create().Value)

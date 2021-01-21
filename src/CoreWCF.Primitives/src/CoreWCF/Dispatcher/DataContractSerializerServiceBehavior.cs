@@ -9,8 +9,8 @@ namespace CoreWCF.Dispatcher
 {
     internal class DataContractSerializerServiceBehavior : IServiceBehavior, IEndpointBehavior
     {
-        bool _ignoreExtensionDataObject;
-        int _maxItemsInObjectGraph;
+        private bool _ignoreExtensionDataObject;
+        private int _maxItemsInObjectGraph;
 
         internal DataContractSerializerServiceBehavior(bool ignoreExtensionDataObject, int maxItemsInObjectGraph)
         {

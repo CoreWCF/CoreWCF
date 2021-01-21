@@ -11,9 +11,9 @@ namespace CoreWCF.Dispatcher
 {
     internal class AndMessageFilterTable<FilterData> : IMessageFilterTable<FilterData>
     {
-        Dictionary<MessageFilter, FilterData> filters;
-        Dictionary<MessageFilter, FilterDataPair> filterData;
-        MessageFilterTable<FilterDataPair> table;
+        private Dictionary<MessageFilter, FilterData> filters;
+        private Dictionary<MessageFilter, FilterDataPair> filterData;
+        private MessageFilterTable<FilterDataPair> table;
 
         public AndMessageFilterTable()
         {
@@ -140,7 +140,7 @@ namespace CoreWCF.Dispatcher
             return filters.GetEnumerator();
         }
 
-        FilterDataPair InnerMatch(Message message)
+        private FilterDataPair InnerMatch(Message message)
         {
             List<FilterDataPair> pairs = new List<FilterDataPair>();
             table.GetMatchingValues(message, pairs);
@@ -164,7 +164,7 @@ namespace CoreWCF.Dispatcher
             return pair;
         }
 
-        FilterDataPair InnerMatch(MessageBuffer messageBuffer)
+        private FilterDataPair InnerMatch(MessageBuffer messageBuffer)
         {
             List<FilterDataPair> pairs = new List<FilterDataPair>();
             table.GetMatchingValues(messageBuffer, pairs);
@@ -188,7 +188,7 @@ namespace CoreWCF.Dispatcher
             return pair;
         }
 
-        void InnerMatch(Message message, ICollection<MessageFilter> results)
+        private void InnerMatch(Message message, ICollection<MessageFilter> results)
         {
             List<FilterDataPair> pairs = new List<FilterDataPair>();
             table.GetMatchingValues(message, pairs);
@@ -202,7 +202,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InnerMatchData(Message message, ICollection<FilterData> results)
+        private void InnerMatchData(Message message, ICollection<FilterData> results)
         {
             List<FilterDataPair> pairs = new List<FilterDataPair>();
             table.GetMatchingValues(message, pairs);
@@ -216,7 +216,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InnerMatch(MessageBuffer messageBuffer, ICollection<MessageFilter> results)
+        private void InnerMatch(MessageBuffer messageBuffer, ICollection<MessageFilter> results)
         {
             List<FilterDataPair> pairs = new List<FilterDataPair>();
             table.GetMatchingValues(messageBuffer, pairs);
@@ -230,7 +230,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InnerMatchData(MessageBuffer messageBuffer, ICollection<FilterData> results)
+        private void InnerMatchData(MessageBuffer messageBuffer, ICollection<FilterData> results)
         {
             List<FilterDataPair> pairs = new List<FilterDataPair>();
             table.GetMatchingValues(messageBuffer, pairs);

@@ -9,13 +9,13 @@ using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 
 namespace CoreWCF.Security
 {
-    sealed class ReferenceList : ISecurityElement
+    internal sealed class ReferenceList : ISecurityElement
     {
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.ReferenceList;
-        const string NamespacePrefix = XmlEncryptionStrings.Prefix;
+        private const string NamespacePrefix = XmlEncryptionStrings.Prefix;
         internal static readonly XmlDictionaryString NamespaceUri = XD.XmlEncryptionDictionary.Namespace;// EncryptedType.NamespaceUri;
         internal static readonly XmlDictionaryString UriAttribute = XD.XmlEncryptionDictionary.URI;
-        List<string> referredIds = new List<string>();
+        private List<string> referredIds = new List<string>();
 
         public ReferenceList()
         {
@@ -93,7 +93,7 @@ namespace CoreWCF.Security
             writer.WriteEndElement(); // ReferenceList
         }
 
-        static class DataReference
+        private static class DataReference
         {
             internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.DataReference;
             internal static readonly XmlDictionaryString NamespaceUri = XD.XmlEncryptionDictionary.Namespace;

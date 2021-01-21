@@ -11,10 +11,9 @@ namespace CoreWCF.Security
         internal const StoreLocation DefaultStoreLocation = StoreLocation.LocalMachine;
         internal const StoreName DefaultStoreName = StoreName.My;
         internal const X509FindType DefaultFindType = X509FindType.FindBySubjectDistinguishedName;
-
-        X509Certificate2 certificate;
-        X509ClientCertificateAuthentication authentication;
-        bool isReadOnly;
+        private X509Certificate2 certificate;
+        private X509ClientCertificateAuthentication authentication;
+        private bool isReadOnly;
 
         internal X509CertificateInitiatorServiceCredential()
         {
@@ -74,7 +73,7 @@ namespace CoreWCF.Security
             Authentication.MakeReadOnly();
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
             if (isReadOnly)
             {

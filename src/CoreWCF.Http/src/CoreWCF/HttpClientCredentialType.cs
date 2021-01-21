@@ -18,7 +18,7 @@ namespace CoreWCF
         InheritedFromHost
     }
 
-    static class HttpClientCredentialTypeHelper
+    internal static class HttpClientCredentialTypeHelper
     {
         internal static bool IsDefined(HttpClientCredentialType value)
         {

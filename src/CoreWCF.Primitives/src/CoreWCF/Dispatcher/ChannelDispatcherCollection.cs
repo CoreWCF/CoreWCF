@@ -8,7 +8,7 @@ namespace CoreWCF.Dispatcher
 {
     public class ChannelDispatcherCollection : SynchronizedCollection<ChannelDispatcherBase>
     {
-        ServiceHostBase service;
+        private ServiceHostBase service;
 
         internal ChannelDispatcherCollection(ServiceHostBase service, object syncRoot)
             : base(syncRoot)
