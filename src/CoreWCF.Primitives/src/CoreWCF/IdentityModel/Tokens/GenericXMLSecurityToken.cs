@@ -1,10 +1,13 @@
-﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Xml;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {

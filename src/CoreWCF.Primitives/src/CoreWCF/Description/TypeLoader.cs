@@ -1,17 +1,17 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 //using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using System.Runtime;
-using CoreWCF;
-using CoreWCF.Channels;
-using CoreWCF.Dispatcher;
 using System.Xml;
+using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
+using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Description

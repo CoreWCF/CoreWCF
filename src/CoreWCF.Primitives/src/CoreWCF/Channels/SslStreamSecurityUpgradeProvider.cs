@@ -1,12 +1,7 @@
-﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
-using CoreWCF.Description;
-using CoreWCF.Security;
-using CoreWCF.Security.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -14,9 +9,15 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Description;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Channels
 {
@@ -286,7 +287,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        protected override async Task<(Stream,SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
+        protected override async Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
         {
             var sslStream = new SslStream(stream, false, ValidateRemoteCertificate);
 

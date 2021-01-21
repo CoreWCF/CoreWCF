@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF;
 
 namespace CoreWCF.Runtime
 {
@@ -191,7 +193,7 @@ namespace CoreWCF.Runtime
                 reader.Set(item);
             }
         }
-       
+
         public void EnqueueAndDispatch(T item)
         {
             EnqueueAndDispatch(item, null);
@@ -274,7 +276,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        
+
         public Task<bool> WaitForItemAsync(CancellationToken token)
         {
             WaitQueueWaiter waiter = null;
@@ -847,7 +849,7 @@ namespace CoreWCF.Runtime
                     waitEvent.Set();
                 }
             }
-            
+
             public async Task<bool> WaitAsync(CancellationToken token)
             {
                 if (!await waitEvent.WaitAsync(token))

@@ -1,7 +1,10 @@
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -11,7 +14,7 @@ namespace CoreWCF.Security
         byte[] entropy;
         bool useCurrentUserProtectionScope;
 
-        public DataProtectionSecurityStateEncoder(): this(true)
+        public DataProtectionSecurityStateEncoder() : this(true)
         {
             // empty
         }
@@ -61,7 +64,7 @@ namespace CoreWCF.Security
             return result.ToString();
         }
 
-        protected internal override byte[] DecodeSecurityState( byte[] data )
+        protected internal override byte[] DecodeSecurityState(byte[] data)
         {
             try
             {
@@ -74,7 +77,7 @@ namespace CoreWCF.Security
 
         }
 
-        protected internal override byte[] EncodeSecurityState( byte[] data )
+        protected internal override byte[] EncodeSecurityState(byte[] data)
         {
             try
             {

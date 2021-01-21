@@ -1,7 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
@@ -168,7 +169,7 @@ namespace CoreWCF.Dispatcher
 
         IList<Type> IServiceDispatcher.SupportedChannelTypes => throw new NotImplementedException();
 
-        public ServiceHostBase Host =>  InnerServiceDispatcher.Host;
+        public ServiceHostBase Host => InnerServiceDispatcher.Host;
 
         internal void InitializeSecurityDispatcher(ChannelBuilder channelBuilder, Type type)
         {
@@ -186,9 +187,9 @@ namespace CoreWCF.Dispatcher
             {
                 throw new PlatformNotSupportedException();
                 //TODO later
-               // this.InnerChannelListener = this.ChannelBuilder.BuildChannelListener<TChannel>();
-               // this.Acceptor = (IChannelAcceptor<TChannel>)new SecurityChannelAcceptor(this,
-               //     (IChannelListener<TChannel>)InnerChannelListener, this.securityProtocolFactory.CreateListenerSecurityState());
+                // this.InnerChannelListener = this.ChannelBuilder.BuildChannelListener<TChannel>();
+                // this.Acceptor = (IChannelAcceptor<TChannel>)new SecurityChannelAcceptor(this,
+                //     (IChannelListener<TChannel>)InnerChannelListener, this.securityProtocolFactory.CreateListenerSecurityState());
             }
             //Called below method in the initialization path, in WCF it's called in Open of ServiceHost.
             InitializeServiceDispatcherSecurityState();
@@ -198,13 +199,13 @@ namespace CoreWCF.Dispatcher
         {
             if (this.SessionMode)
             {
-               // this.SessionServerSettings.SessionProtocolFactory.ListenUri = this.Uri;
+                // this.SessionServerSettings.SessionProtocolFactory.ListenUri = this.Uri;
                 this.SessionServerSettings.SecurityServiceDispatcher = this;
             }
             else
             {
                 ThrowIfProtocolFactoryNotSet();
-              //  this.securityProtocolFactory.ListenUri = this.Uri;
+                //  this.securityProtocolFactory.ListenUri = this.Uri;
             }
             this.settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(this.securityProtocolFactory, this.sessionServerSettings, this.sessionMode);//, this.InnerChannelListener);
             if (this.sessionServerSettings != null)
@@ -249,7 +250,7 @@ namespace CoreWCF.Dispatcher
         }
 
         public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel outerChannel)
-        { 
+        {
             //TODO should have better logic
             //Initialization path start
             if (outerChannel.ChannelDispatcher == null)
@@ -291,7 +292,7 @@ namespace CoreWCF.Dispatcher
         /// </summary>
         /// <param name="outerChannel"></param>
         /// <returns></returns>
-        internal  Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IReplyChannel outerChannel)
+        internal Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IReplyChannel outerChannel)
         {
             return InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
         }
@@ -346,7 +347,7 @@ namespace CoreWCF.Dispatcher
         }
     }
 
-    internal abstract class ServerSecurityChannelDispatcher<UChannel> : IServiceChannelDispatcher  where UChannel : class 
+    internal abstract class ServerSecurityChannelDispatcher<UChannel> : IServiceChannelDispatcher where UChannel : class
     {
         private static MessageFault secureConversationCloseNotSupportedFault;
         private string secureConversationCloseAction;
@@ -393,7 +394,7 @@ namespace CoreWCF.Dispatcher
             {
                 return null;
             }
-            Fx.Assert(SecurityProtocol !=null, "SecurityProtocol can't be null");
+            Fx.Assert(SecurityProtocol != null, "SecurityProtocol can't be null");
             ThrowIfSecureConversationCloseMessage(message);
             return this.SecurityProtocol.VerifyIncomingMessage(ref message, timeout, correlationState);
         }
@@ -454,7 +455,7 @@ namespace CoreWCF.Dispatcher
             try
             {
                 SecurityProtocolCorrelationState correlationState = this.VerifyIncomingMessage(ref message, timeoutHelper.RemainingTime(), null);
-                if(message.Headers.RelatesTo == null && message.Headers.MessageId !=null)
+                if (message.Headers.RelatesTo == null && message.Headers.MessageId != null)
                 {
                     message.Headers.RelatesTo = message.Headers.MessageId;
                 }
@@ -545,14 +546,15 @@ namespace CoreWCF.Dispatcher
         {
             if (message != null)
             {
-                Message appLiedMessage =  this.securityProtocol.SecureOutgoingMessage(message, token);
+                Message appLiedMessage = this.securityProtocol.SecureOutgoingMessage(message, token);
                 return this.innerContext.ReplyAsync(appLiedMessage, token);
-            }else
+            }
+            else
             {
-              return  Task.CompletedTask;
+                return Task.CompletedTask;
             }
         }
 
-        
+
     }
 }

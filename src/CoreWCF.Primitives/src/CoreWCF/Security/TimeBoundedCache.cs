@@ -1,13 +1,16 @@
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
     // NOTE: this class does minimum argument checking as it is all internal 
-    class TimeBoundedCache 
+    class TimeBoundedCache
     {
         static Action<object> purgeCallback;
         Hashtable entries;
@@ -287,7 +290,7 @@ namespace CoreWCF.Security
                     {
                         this.entries.Remove(keysToBeRemoved[i]);
                     }
-                    
+
                 }
                 CancelTimerIfNeeded();
                 if (this.Count >= this.Capacity)
@@ -326,7 +329,7 @@ namespace CoreWCF.Security
             {
                 return true;
             }
-            else 
+            else
             {
                 return false;
             }
@@ -467,7 +470,7 @@ namespace CoreWCF.Security
             public ExpirableItem(object item, DateTime expirationTime)
             {
                 this.item = item;
-                Fx.Assert( expirationTime == DateTime.MaxValue || expirationTime.Kind == DateTimeKind.Utc, "");
+                Fx.Assert(expirationTime == DateTime.MaxValue || expirationTime.Kind == DateTimeKind.Utc, "");
                 this.ExpirationTime = expirationTime;
             }
 

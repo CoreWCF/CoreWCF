@@ -1,8 +1,10 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Xml;
+using CoreWCF.Security.Tokens;
 using static CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer;
 
 namespace CoreWCF.IdentityModel.Tokens
@@ -17,7 +19,7 @@ namespace CoreWCF.IdentityModel.Tokens
         public override void PopulateStrEntries(IList<StrEntry> strEntries)
         {
             PopulateJan2004StrEntries(strEntries);
-         //  strEntries.Add(new SamlDirectStrEntry());
+            //  strEntries.Add(new SamlDirectStrEntry());
             strEntries.Add(new X509ThumbprintStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
             strEntries.Add(new EncryptedKeyHashStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
         }
@@ -26,7 +28,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             PopulateJan2004TokenEntries(tokenEntryList);
             tokenEntryList.Add(new WSSecurityXXX2005.WrappedKeyTokenEntry());
-           // tokenEntryList.Add(new WSSecurityXXX2005.SamlTokenEntry());
+            // tokenEntryList.Add(new WSSecurityXXX2005.SamlTokenEntry());
         }
 
         public override void PopulateKeyIdentifierClauseEntries(IList<KeyIdentifierClauseEntry> clauseEntries)
@@ -116,7 +118,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 bool emitTokenType = false;
                 // we emit tokentype always for SAML and Encrypted Key Tokens 
                 if (
-                    //(str is SamlJan2004KeyIdentifierStrEntry)
+                        //(str is SamlJan2004KeyIdentifierStrEntry)
                         //||
                         (str is EncryptedKeyHashStrEntry)
                        // || (str is SamlDirectStrEntry)

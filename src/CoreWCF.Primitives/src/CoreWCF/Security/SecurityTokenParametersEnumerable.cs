@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using CoreWCF.Channels;
@@ -30,14 +33,14 @@ namespace CoreWCF.Security
                     yield return ssbe.ProtectionTokenParameters;
             }
             // TODO
-           /* else if (this.sbe is AsymmetricSecurityBindingElement)
-            {
-                AsymmetricSecurityBindingElement asbe = (AsymmetricSecurityBindingElement)sbe;
-                if (asbe.InitiatorTokenParameters != null)
-                    yield return asbe.InitiatorTokenParameters;
-                if (asbe.RecipientTokenParameters != null && !this.clientTokensOnly)
-                    yield return asbe.RecipientTokenParameters;
-            }*/
+            /* else if (this.sbe is AsymmetricSecurityBindingElement)
+             {
+                 AsymmetricSecurityBindingElement asbe = (AsymmetricSecurityBindingElement)sbe;
+                 if (asbe.InitiatorTokenParameters != null)
+                     yield return asbe.InitiatorTokenParameters;
+                 if (asbe.RecipientTokenParameters != null && !this.clientTokensOnly)
+                     yield return asbe.RecipientTokenParameters;
+             }*/
             foreach (SecurityTokenParameters stp in this.sbe.EndpointSupportingTokenParameters.Endorsing)
                 if (stp != null)
                     yield return stp;

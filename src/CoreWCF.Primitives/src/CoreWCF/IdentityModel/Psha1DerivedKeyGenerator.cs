@@ -1,6 +1,9 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Security.Cryptography;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.IdentityModel
 {
@@ -54,7 +57,7 @@ namespace CoreWCF.IdentityModel
                 _position = 0;
                 _hmac = CryptoHelper.NewHmacSha1KeyedHashAlgorithm(secret);
 
-                _buffer =  Fx.AllocateByteArray(checked(_hmac.HashSize / 8 + _seed.Length));
+                _buffer = Fx.AllocateByteArray(checked(_hmac.HashSize / 8 + _seed.Length));
             }
 
             public byte[] GetDerivedKey(int derivedKeySize, int position)

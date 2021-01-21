@@ -1,9 +1,10 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using CoreWCF;
-using CoreWCF.Channels;
 
 namespace CoreWCF.Channels
 {
@@ -88,7 +89,7 @@ namespace CoreWCF.Channels
             isNullMessage = message is NullMessage;
 
             properties = new KeyValuePair<string, object>[message.Properties.Count];
-            ((ICollection<KeyValuePair<string, object>>) message.Properties).CopyTo(properties, 0);
+            ((ICollection<KeyValuePair<string, object>>)message.Properties).CopyTo(properties, 0);
             understoodHeaders = new bool[message.Headers.Count];
             for (int i = 0; i < understoodHeaders.Length; ++i)
                 understoodHeaders[i] = message.Headers.IsUnderstood(i);

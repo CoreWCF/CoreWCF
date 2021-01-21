@@ -1,12 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    using QName = CoreWCF.Dispatcher.EndpointAddressProcessor.QName;
     using HeaderBit = CoreWCF.Dispatcher.EndpointAddressProcessor.HeaderBit;
+    using QName = CoreWCF.Dispatcher.EndpointAddressProcessor.QName;
 
     internal class EndpointAddressMessageFilter : MessageFilter
     {

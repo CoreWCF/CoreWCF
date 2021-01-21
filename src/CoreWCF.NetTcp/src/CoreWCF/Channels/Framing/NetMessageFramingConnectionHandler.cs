@@ -1,12 +1,15 @@
-﻿using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -70,7 +73,7 @@ namespace CoreWCF.Channels.Framing
 
         internal static UriPrefixTable<HandshakeDelegate> BuildAddressTable(IServiceProvider services)
         {
-            var logger = services.GetRequiredService <ILogger<NetMessageFramingConnectionHandler>>();
+            var logger = services.GetRequiredService<ILogger<NetMessageFramingConnectionHandler>>();
             var serviceBuilder = services.GetRequiredService<IServiceBuilder>();
             var dispatcherBuilder = services.GetRequiredService<IDispatcherBuilder>();
             var addressTable = new UriPrefixTable<HandshakeDelegate>();
@@ -144,7 +147,7 @@ namespace CoreWCF.Channels.Framing
             };
         }
 
-        internal static HandshakeDelegate GetServiceHandshakeDelegate(UriPrefixTable<HandshakeDelegate>  addressTable, Uri via)
+        internal static HandshakeDelegate GetServiceHandshakeDelegate(UriPrefixTable<HandshakeDelegate> addressTable, Uri via)
         {
             HandshakeDelegate handshake = null;
             if (addressTable.TryLookupUri(via, HostNameComparisonMode.StrongWildcard, out handshake))

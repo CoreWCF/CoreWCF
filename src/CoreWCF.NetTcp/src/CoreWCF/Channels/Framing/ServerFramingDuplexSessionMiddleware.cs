@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Runtime;
-using CoreWCF.Configuration;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Buffers;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -111,7 +111,7 @@ namespace CoreWCF.Channels.Framing
             var messageEncoderFactory = connection.MessageEncoderFactory;
             MessageEncoder messageEncoder = messageEncoderFactory.CreateSessionEncoder();
             connection.MessageEncoder = messageEncoder;
-            
+
             if (!messageEncoder.IsContentTypeSupported(decoder.ContentType))
             {
                 // TODO: Send fault response

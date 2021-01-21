@@ -1,11 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Globalization;
 using System.Reflection;
-using System.Security;
 using System.Threading.Tasks;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
@@ -418,8 +419,9 @@ namespace CoreWCF.Dispatcher
                     InspectOutputs(rpc);
                     SerializeOutputs(rpc);
                 }
-                catch(Exception ex) {
-                    throw ex; 
+                catch (Exception ex)
+                {
+                    throw ex;
                 } // Make sure user Exception filters are not impersonated.
                 finally
                 {
@@ -578,7 +580,7 @@ namespace CoreWCF.Dispatcher
         {
             if (!method.DeclaringType.IsAssignableFrom(type))
             {
-                string message = SR.Format(SR.SFxMethodNotSupportedByType2,type.FullName,
+                string message = SR.Format(SR.SFxMethodNotSupportedByType2, type.FullName,
                                               method.DeclaringType.FullName);
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(message));

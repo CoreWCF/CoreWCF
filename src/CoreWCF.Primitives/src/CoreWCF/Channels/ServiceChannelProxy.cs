@@ -1,14 +1,17 @@
-﻿using System;
-using System.Globalization;
-using System.Reflection;
-using System.Threading.Tasks;
-using CoreWCF.Runtime;
-using CoreWCF.Description;
-using CoreWCF.Dispatcher;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.Contracts;
+using System.Globalization;
+using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -300,7 +303,7 @@ namespace CoreWCF.Channels
             //    {
             //        ServiceModelActivity.Start(activity, activityName, activityType);
             //    }
-                return ExecuteMessage(_serviceChannel, methodCall);
+            return ExecuteMessage(_serviceChannel, methodCall);
             //}
         }
 
@@ -335,7 +338,7 @@ namespace CoreWCF.Channels
             object ret;
             using (TaskHelpers.RunTaskContinuationsOnOurThreads())
             {
-              ret = _serviceChannel.CallAsync(operation.Action, operation.IsOneWay, operation, ins, outs).GetAwaiter().GetResult();
+                ret = _serviceChannel.CallAsync(operation.Action, operation.IsOneWay, operation, ins, outs).GetAwaiter().GetResult();
             }
             operation.MapSyncOutputs(methodCall, outs, ref ret);
             return ret;

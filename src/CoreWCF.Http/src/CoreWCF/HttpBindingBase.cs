@@ -1,6 +1,8 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.ComponentModel;
-using System.Diagnostics.Contracts;
 using System.Text;
 using System.Xml;
 using CoreWCF.Channels;
@@ -23,7 +25,7 @@ namespace CoreWCF
         }
         // [System.ComponentModel.DefaultValueAttribute(false)]
         // public bool AllowCookies { get { return default(bool); } set { } }
-        
+
         // [System.ComponentModel.DefaultValueAttribute((long)524288)]
         // public long MaxBufferPoolSize { get { return default(long); } set { } }
         // [System.ComponentModel.DefaultValueAttribute(65536)]
@@ -94,7 +96,7 @@ namespace CoreWCF
         public TransferMode TransferMode
         {
             get
-            {   
+            {
                 return _httpTransport.TransferMode;
             }
 

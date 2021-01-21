@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
@@ -17,7 +20,7 @@ namespace ClientContract
         void TwoWayVoid_Method(string s);
 
         [OperationContract]
-        [FaultContract(typeof(string))]        
+        [FaultContract(typeof(string))]
         Stream TwoWayStream_Method(Stream s);
 
         [OperationContract(AsyncPattern = true)]

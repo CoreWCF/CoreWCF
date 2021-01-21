@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -5,9 +8,9 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -1369,63 +1372,63 @@ namespace CoreWCF.Channels
             //bool throwing = true;
             //try
             //{
-                this.recycledMessageState = recycledMessageState;
-                this.messageData = messageData;
-                properties = recycledMessageState.TakeProperties();
-                if (properties == null)
-                    properties = new MessageProperties();
-                XmlDictionaryReader reader = messageData.GetMessageReader();
-                MessageVersion desiredVersion = messageData.MessageEncoder.MessageVersion;
+            this.recycledMessageState = recycledMessageState;
+            this.messageData = messageData;
+            properties = recycledMessageState.TakeProperties();
+            if (properties == null)
+                properties = new MessageProperties();
+            XmlDictionaryReader reader = messageData.GetMessageReader();
+            MessageVersion desiredVersion = messageData.MessageEncoder.MessageVersion;
 
-                if (desiredVersion.Envelope == EnvelopeVersion.None)
+            if (desiredVersion.Envelope == EnvelopeVersion.None)
+            {
+                this.reader = reader;
+                headers = new MessageHeaders(desiredVersion);
+            }
+            else
+            {
+                EnvelopeVersion envelopeVersion = ReadStartEnvelope(reader);
+                if (desiredVersion.Envelope != envelopeVersion)
                 {
-                    this.reader = reader;
-                    headers = new MessageHeaders(desiredVersion);
+                    Exception versionMismatchException = new ArgumentException(SR.Format(SR.EncoderEnvelopeVersionMismatch, envelopeVersion, desiredVersion.Envelope), "reader");
+                    throw TraceUtility.ThrowHelperError(
+                        new CommunicationException(versionMismatchException.Message, versionMismatchException),
+                        this);
+                }
+
+                if (HasHeaderElement(reader, envelopeVersion))
+                {
+                    headers = recycledMessageState.TakeHeaders();
+                    if (headers == null)
+                    {
+                        headers = new MessageHeaders(desiredVersion, reader, messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
+                    }
+                    else
+                    {
+                        headers.Init(desiredVersion, reader, messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
+                    }
                 }
                 else
                 {
-                    EnvelopeVersion envelopeVersion = ReadStartEnvelope(reader);
-                    if (desiredVersion.Envelope != envelopeVersion)
-                    {
-                        Exception versionMismatchException = new ArgumentException(SR.Format(SR.EncoderEnvelopeVersionMismatch, envelopeVersion, desiredVersion.Envelope), "reader");
-                        throw TraceUtility.ThrowHelperError(
-                            new CommunicationException(versionMismatchException.Message, versionMismatchException),
-                            this);
-                    }
-
-                    if (HasHeaderElement(reader, envelopeVersion))
-                    {
-                        headers = recycledMessageState.TakeHeaders();
-                        if (headers == null)
-                        {
-                            headers = new MessageHeaders(desiredVersion, reader, messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
-                        }
-                        else
-                        {
-                            headers.Init(desiredVersion, reader, messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
-                        }
-                    }
-                    else
-                    {
-                        headers = new MessageHeaders(desiredVersion);
-                    }
-
-                    VerifyStartBody(reader, envelopeVersion);
-
-                    int maxSizeOfAttributes = int.MaxValue;
-                    bodyAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfAttributes);
-                    if (maxSizeOfAttributes < int.MaxValue - 4096)
-                        bodyAttributes = null;
-                    if (ReadStartBody(reader))
-                    {
-                        this.reader = reader;
-                    }
-                    else
-                    {
-                        reader.Dispose();
-                    }
+                    headers = new MessageHeaders(desiredVersion);
                 }
-                //throwing = false;
+
+                VerifyStartBody(reader, envelopeVersion);
+
+                int maxSizeOfAttributes = int.MaxValue;
+                bodyAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfAttributes);
+                if (maxSizeOfAttributes < int.MaxValue - 4096)
+                    bodyAttributes = null;
+                if (ReadStartBody(reader))
+                {
+                    this.reader = reader;
+                }
+                else
+                {
+                    reader.Dispose();
+                }
+            }
+            //throwing = false;
             //}
             //finally
             //{
@@ -1856,7 +1859,7 @@ namespace CoreWCF.Channels
             if (headerInfos != null)
             {
                 int i = index;
-                for (;;)
+                for (; ; )
                 {
                     HeaderInfo headerInfo = headerInfos[i];
                     if (headerInfo != null)
@@ -1889,7 +1892,7 @@ namespace CoreWCF.Channels
                     headerInfos = new HeaderInfo[maxHeaderInfos];
                 }
                 int i = index;
-                for (;;)
+                for (; ; )
                 {
                     if (headerInfos[i] == null)
                     {
@@ -1905,7 +1908,7 @@ namespace CoreWCF.Channels
                 index = (i + 1) % maxHeaderInfos;
             }
         }
-        
+
         public class HeaderInfo : MessageHeaderInfo
         {
             string name;

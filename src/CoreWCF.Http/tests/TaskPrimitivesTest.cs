@@ -1,12 +1,15 @@
-﻿using ClientContract;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
+using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Globalization;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -82,8 +85,8 @@ namespace BasicHttp
                 Assert.Equal(100, ((Task<int?>)tasks[18]).Result);
                 Assert.Equal("00:00:05", ((Task<TimeSpan>)tasks[19]).Result.ToString());
                 Assert.Equal("7a1c7e9a-f4ce-4861-852c-c05ec59fad4d", ((Task<Guid>)tasks[20]).Result.ToString());
-                Assert.Equal(Color.Blue, ((Task<Color>)tasks[21]).Result);               
-            }            
+                Assert.Equal(Color.Blue, ((Task<Color>)tasks[21]).Result);
+            }
         }
 #endif
 

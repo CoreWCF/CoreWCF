@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Net;
@@ -32,8 +35,11 @@ namespace CoreWCF.Channels.Framing
         public Uri Via => FramingDecoder?.Via;
         internal FramingMode FramingMode { get; set; }
         public MessageEncoder MessageEncoder { get; internal set; }
-        public SecurityMessageProperty SecurityMessageProperty { get; 
-            internal set; }
+        public SecurityMessageProperty SecurityMessageProperty
+        {
+            get;
+            internal set;
+        }
         public bool EOF { get; internal set; }
         public Memory<byte> EnvelopeBuffer { get; internal set; }
         public int EnvelopeOffset { get; internal set; }

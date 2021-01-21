@@ -1,8 +1,11 @@
-﻿using System;
-using CoreWCF.Runtime;
-using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -35,7 +38,7 @@ namespace CoreWCF.Channels
             }
             finally
             {
-                if(lockAcquired)
+                if (lockAcquired)
                     sourceLock.Release();
             }
         }
@@ -58,7 +61,7 @@ namespace CoreWCF.Channels
             }
             finally
             {
-                if(lockAcquired)
+                if (lockAcquired)
                     sourceLock.Release();
             }
         }

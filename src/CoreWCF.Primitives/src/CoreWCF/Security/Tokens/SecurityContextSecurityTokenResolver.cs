@@ -1,9 +1,12 @@
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Xml;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security.Tokens
 {
@@ -14,8 +17,8 @@ namespace CoreWCF.Security.Tokens
         int capacity;
         TimeSpan clockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
 
-        public SecurityContextSecurityTokenResolver( int securityContextCacheCapacity, bool removeOldestTokensOnCacheFull )
-            : this( securityContextCacheCapacity, removeOldestTokensOnCacheFull, SecurityProtocolFactory.defaultMaxClockSkew )
+        public SecurityContextSecurityTokenResolver(int securityContextCacheCapacity, bool removeOldestTokensOnCacheFull)
+            : this(securityContextCacheCapacity, removeOldestTokensOnCacheFull, SecurityProtocolFactory.defaultMaxClockSkew)
         {
         }
 
@@ -26,9 +29,9 @@ namespace CoreWCF.Security.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(securityContextCacheCapacity), SR.ValueMustBeGreaterThanZero));
             }
 
-            if ( clockSkew < TimeSpan.Zero )
+            if (clockSkew < TimeSpan.Zero)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError( new ArgumentOutOfRangeException( nameof(clockSkew), SR.TimeSpanCannotBeLessThanTimeSpanZero) );
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(clockSkew), SR.TimeSpanCannotBeLessThanTimeSpanZero));
             }
 
             this.capacity = securityContextCacheCapacity;
@@ -65,7 +68,7 @@ namespace CoreWCF.Security.Tokens
         {
             this.tokenCache.AddContext(token);
         }
-        
+
         public bool TryAddContext(SecurityContextSecurityToken token)
         {
             return this.tokenCache.TryAddContext(token);

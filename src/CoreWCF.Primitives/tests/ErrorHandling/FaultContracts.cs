@@ -1,9 +1,12 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Runtime.Serialization;
+using CoreWCF;
 using DispatcherClient;
 using Helpers;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Runtime.Serialization;
 using Xunit;
 
 namespace ErrorHandling
@@ -29,7 +32,7 @@ namespace ErrorHandling
                 channel.FaultingOperation();
             }
             catch (Exception e)
-            {   
+            {
                 exceptionThrown = e;
             }
 

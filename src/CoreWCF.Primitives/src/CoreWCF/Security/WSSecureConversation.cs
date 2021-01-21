@@ -1,11 +1,14 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Xml;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Xml;
 using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
@@ -303,7 +306,7 @@ namespace CoreWCF.Security
         protected abstract class SecurityContextTokenEntry : WSSecurityTokenSerializer.TokenEntry
         {
             WSSecureConversation parent;
-          SecurityContextCookieSerializer cookieSerializer;
+            SecurityContextCookieSerializer cookieSerializer;
 
             public SecurityContextTokenEntry(WSSecureConversation parent, SecurityStateEncoder securityStateEncoder, IList<Type> knownClaimTypes)
             {
@@ -437,7 +440,7 @@ namespace CoreWCF.Security
                         encodedCookie = reader.ReadElementContentAsBase64();
                         if (encodedCookie != null)
                         {
-                           sct = cookieSerializer.CreateSecurityContextFromCookie(encodedCookie, contextId, generation, id, reader.Quotas);
+                            sct = cookieSerializer.CreateSecurityContextFromCookie(encodedCookie, contextId, generation, id, reader.Quotas);
                             if (sctCache != null)
                             {
                                 sctCache.AddContext(sct);

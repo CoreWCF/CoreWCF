@@ -1,10 +1,10 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Text;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -52,7 +52,7 @@ namespace CoreWCF.Security
             {
                 UserNamePasswordValidationModeHelper.Validate(value);
                 ThrowIfImmutable();
-                if(value == UserNamePasswordValidationMode.MembershipProvider)
+                if (value == UserNamePasswordValidationMode.MembershipProvider)
                 {
                     throw new PlatformNotSupportedException("MembershipProvider not supported");
                 }

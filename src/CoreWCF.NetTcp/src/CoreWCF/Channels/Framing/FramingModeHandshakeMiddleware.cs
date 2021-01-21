@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Configuration;
-using System.Threading.Tasks;
-using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Threading;
-using CoreWCF.Runtime;
-using System.Diagnostics;
-using System.IO.Pipelines;
+using System.Threading.Tasks;
+using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Hosting;
 
 namespace CoreWCF.Channels.Framing

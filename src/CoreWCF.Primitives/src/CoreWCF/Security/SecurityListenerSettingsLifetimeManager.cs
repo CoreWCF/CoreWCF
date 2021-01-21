@@ -1,7 +1,10 @@
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -41,37 +44,37 @@ namespace CoreWCF.Security
                 this.sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
             }
 
-           /* if (this.securityProtocolFactory != null)
-            {
-                this.securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
-            }*/
+            /* if (this.securityProtocolFactory != null)
+             {
+                 this.securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
+             }*/
 
-           // this.SetBufferManager();
+            // this.SetBufferManager();
             return Task.CompletedTask;
         }
 
         private void SetBufferManager()
         {
-           
-        /* TODO
-            ITransportFactorySettings transportSettings = this.innerListener.GetProperty<ITransportFactorySettings>();
-            if (transportSettings == null)
-                return;
 
-            BufferManager bufferManager = transportSettings.BufferManager;
-            if (bufferManager == null)
-                return;
+            /* TODO
+                ITransportFactorySettings transportSettings = this.innerListener.GetProperty<ITransportFactorySettings>();
+                if (transportSettings == null)
+                    return;
 
-            if (this.securityProtocolFactory != null)
-            {
-                this.securityProtocolFactory.StreamBufferManager = bufferManager;
-            }
+                BufferManager bufferManager = transportSettings.BufferManager;
+                if (bufferManager == null)
+                    return;
 
-            if (this.sessionMode && this.sessionSettings != null && this.sessionSettings.SessionProtocolFactory != null)
-            {
-                this.sessionSettings.SessionProtocolFactory.StreamBufferManager = bufferManager;
-            }
-            */
+                if (this.securityProtocolFactory != null)
+                {
+                    this.securityProtocolFactory.StreamBufferManager = bufferManager;
+                }
+
+                if (this.sessionMode && this.sessionSettings != null && this.sessionSettings.SessionProtocolFactory != null)
+                {
+                    this.sessionSettings.SessionProtocolFactory.StreamBufferManager = bufferManager;
+                }
+                */
         }
 
         public Task CloseAsync(TimeSpan timeout)
@@ -100,7 +103,7 @@ namespace CoreWCF.Security
                     }
                 }
             }
-           return Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
         void AbortCore()

@@ -1,10 +1,13 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Net.Security;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Net.Security;
 
 namespace CoreWCF.Channels
 {
@@ -75,7 +78,7 @@ namespace CoreWCF.Channels
             SecurityCredentialsManager credentialsManager = serviceDispatcher.Host.Description.Behaviors.Find<SecurityCredentialsManager>();
             if (credentialsManager == null)
                 credentialsManager = ServiceCredentials.CreateDefaultCredentials();
-            
+
             SecureConversationSecurityTokenParameters scParameters;
             if (this.EndpointSupportingTokenParameters.Endorsing.Count > 0)
                 scParameters = this.EndpointSupportingTokenParameters.Endorsing[0] as SecureConversationSecurityTokenParameters;
@@ -137,7 +140,7 @@ namespace CoreWCF.Channels
                 {
                     //TODO later 
                     TransportSecurityProtocolFactory protocolFactory = new TransportSecurityProtocolFactory();
-                   // base.ApplyAuditBehaviorSettings(context, protocolFactory);
+                    // base.ApplyAuditBehaviorSettings(context, protocolFactory);
                     this.EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
                     try
                     {

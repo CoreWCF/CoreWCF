@@ -1,3 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel;
@@ -5,15 +14,6 @@ using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
-using System.Security.Policy;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace CoreWCF.Security
 {
@@ -123,7 +123,7 @@ namespace CoreWCF.Security
             SignedXMLInternal signedXml = new SignedXMLInternal(doc);
             XmlNodeList nodeList = doc.GetElementsByTagName("Signature");
             signedXml.LoadXml((XmlElement)nodeList[0]);
-            using(XmlReader tempReader = signatureReader.ReadSubtree())
+            using (XmlReader tempReader = signatureReader.ReadSubtree())
             {
                 tempReader.Read();//move the reader to next
             }
@@ -137,7 +137,7 @@ namespace CoreWCF.Security
             using (var strReader = new StringReader(keyInfoString))
             {
                 XmlReader xmlReader = XmlReader.Create(strReader);
-                securityKeyIdentifier =  this.StandardsManager.SecurityTokenSerializer.ReadKeyIdentifier(xmlReader);
+                securityKeyIdentifier = this.StandardsManager.SecurityTokenSerializer.ReadKeyIdentifier(xmlReader);
 
             }
             if (securityKeyIdentifier == null)
@@ -154,14 +154,14 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
                     SR.Format(SR.UnableToCreateICryptoFromTokenForSignatureVerification, token)));
             }
-           // signedXml.SigningKey = securityKey;
-         
-           // signedXml.StartSignatureVerification(securityKey);
-           // StandardSignedInfo signedInfo = (StandardSignedInfo)signedXml.Signature.SignedInfo;
+            // signedXml.SigningKey = securityKey;
 
-           // ValidateDigestsOfTargetsInSecurityHeader(signedInfo, this.Timestamp, isPrimarySignature, signatureTarget, id);
+            // signedXml.StartSignatureVerification(securityKey);
+            // StandardSignedInfo signedInfo = (StandardSignedInfo)signedXml.Signature.SignedInfo;
 
-            if (!isPrimarySignature)        
+            // ValidateDigestsOfTargetsInSecurityHeader(signedInfo, this.Timestamp, isPrimarySignature, signatureTarget, id);
+
+            if (!isPrimarySignature)
             {
                 //TODO securityKey is AsymmetricSecurityKey
                 //if ((!this.RequireMessageProtection) && (securityKey is AsymmetricSecurityKey) && (this.Version.Addressing != AddressingVersion.None))
@@ -205,9 +205,9 @@ namespace CoreWCF.Security
                 XmlDictionaryString signatureAlgorithmDictionaryString;
                 SecurityKey signatureKey;
                 suite.GetSignatureAlgorithmAndKey(token, out signatureAlgorithm, out signatureKey, out signatureAlgorithmDictionaryString);
-                AsymmetricAlgorithm asymmetricAlgorithm  ;
+                AsymmetricAlgorithm asymmetricAlgorithm;
                 GetSigningAlgorithm(signatureKey, signatureAlgorithm, out _signingKey, out asymmetricAlgorithm);
-                if(_signingKey != null)
+                if (_signingKey != null)
                 {
                     if (!signedXml.CheckSignature(_signingKey))
                     {
@@ -221,10 +221,10 @@ namespace CoreWCF.Security
                         throw new Exception("Signature not valid.");
                     }
                 }
-               
-                
+
+
             }
-           // this.pendingSignature = signedXml;
+            // this.pendingSignature = signedXml;
 
             //if (TD.SignatureVerificationSuccessIsEnabled())
             //{
@@ -258,11 +258,11 @@ namespace CoreWCF.Security
                 }
 
                 //On server we validate using Public Key.... (check with Matt)
-                asymmetricAlgorithm = asymmetricKey.GetAsymmetricAlgorithm(algorithmName,false); 
+                asymmetricAlgorithm = asymmetricKey.GetAsymmetricAlgorithm(algorithmName, false);
                 if (asymmetricAlgorithm == null)
-                { 
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-                        SR.Format(SR.UnableToCreateKeyedHashAlgorithm   , algorithmName,
+                        SR.Format(SR.UnableToCreateKeyedHashAlgorithm, algorithmName,
                             asymmetricKey)));
                 }
             }

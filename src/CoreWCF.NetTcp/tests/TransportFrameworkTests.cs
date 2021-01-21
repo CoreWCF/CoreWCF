@@ -1,13 +1,16 @@
-﻿using CoreWCF.Configuration;
-using Helpers;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Diagnostics;
 using System.Net;
 using System.ServiceModel.Channels;
 using System.Threading;
+using CoreWCF.Configuration;
+using Helpers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,7 +25,7 @@ namespace CoreWCF.NetTcp.Tests
             _output = output;
         }
 
-        [Fact]        
+        [Fact]
         public void RemoteEndpointMessageProperty()
         {
             var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
@@ -151,7 +154,7 @@ namespace CoreWCF.NetTcp.Tests
                     }
                 }
             }
-            
+
             Assert.True(verifiedClientPort, "Reported port does not match client machine info. Client port: " + clientPort + ", Service port (expected): " + servicePort + ", Destination port (actual): " + destinationPort);
             Assert.False(verifiedClientPort, "Reported port did not match any ports used by client.  Reported port: " + clientPort);
         }

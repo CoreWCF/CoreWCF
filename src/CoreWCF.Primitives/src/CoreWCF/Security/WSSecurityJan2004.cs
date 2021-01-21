@@ -1,13 +1,14 @@
-﻿
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 using HexBinary = CoreWCF.Security.SoapHexBinary;
 using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
@@ -23,7 +24,7 @@ namespace CoreWCF.Security
 
         public WSSecurityTokenSerializer WSSecurityTokenSerializer { get; }
 
-        public SamlSerializer SamlSerializer     { get; }
+        public SamlSerializer SamlSerializer { get; }
 
         protected void PopulateJan2004TokenEntries(IList<TokenEntry> tokenEntryList)
         {
@@ -352,7 +353,7 @@ namespace CoreWCF.Security
                     else
                     {
                         throw new NotImplementedException();
-                      //  XmlHelper.OnUnexpectedChildNodeError(SecurityJan2004Strings.UserNameTokenElement, reader);
+                        //  XmlHelper.OnUnexpectedChildNodeError(SecurityJan2004Strings.UserNameTokenElement, reader);
                     }
                 }
                 reader.ReadEndElement();
@@ -360,7 +361,7 @@ namespace CoreWCF.Security
                 if (userName == null)
                 {
                     throw new NotImplementedException();
-                  //  XmlHelper.OnRequiredElementMissing(SecurityJan2004Strings.UserNameElement, SecurityJan2004Strings.Namespace);
+                    //  XmlHelper.OnRequiredElementMissing(SecurityJan2004Strings.UserNameElement, SecurityJan2004Strings.Namespace);
                 }
             }
         }

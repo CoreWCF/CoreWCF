@@ -1,12 +1,6 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.Dispatcher;
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
-using CoreWCF.Security.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,6 +19,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -115,7 +118,7 @@ namespace CoreWCF.Security
             get
             {
                 if (dictionaryManager == null)
-                    dictionaryManager = new DictionaryManager((ServiceModelDictionary) BinaryMessageEncoderFactory.XmlDictionary);
+                    dictionaryManager = new DictionaryManager((ServiceModelDictionary)BinaryMessageEncoderFactory.XmlDictionary);
 
                 return dictionaryManager;
             }
@@ -521,7 +524,7 @@ namespace CoreWCF.Security
             return symmetricSecurityKey.GenerateDerivedKey(derivationAlgorithm, label, nonce, keySize, offset);
         }
 
-       public static bool TryCreateKeyFromIntrinsicKeyClause(SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenResolver resolver, out SecurityKey key)
+        public static bool TryCreateKeyFromIntrinsicKeyClause(SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenResolver resolver, out SecurityKey key)
         {
             key = null;
             if (keyIdentifierClause.CanCreateKey)
@@ -896,7 +899,7 @@ namespace CoreWCF.Security
 
         internal static Task OpenTokenAuthenticatorIfRequiredAsync(SecurityTokenAuthenticator tokenAuthenticator, CancellationToken token)
         {
-           return OpenCommunicationObjectAsync(tokenAuthenticator as ICommunicationObject , token) ;
+            return OpenCommunicationObjectAsync(tokenAuthenticator as ICommunicationObject, token);
         }
 
         internal static Task OpenTokenProviderIfRequiredAsync(SecurityTokenProvider tokenProvider, CancellationToken token)
@@ -1084,7 +1087,7 @@ namespace CoreWCF.Security
             Collection<EndpointAddress> result = new Collection<EndpointAddress>();
             if (!endpointFilterTable.GetMatchingValues(request, result))
             {
-                throw new SecurityNegotiationException(SR.Format(SR.RequestSecurityTokenDoesNotMatchEndpointFilters, listenUri)); 
+                throw new SecurityNegotiationException(SR.Format(SR.RequestSecurityTokenDoesNotMatchEndpointFilters, listenUri));
             }
         }
 

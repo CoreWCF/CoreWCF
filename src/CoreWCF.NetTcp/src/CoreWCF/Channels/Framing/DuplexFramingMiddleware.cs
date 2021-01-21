@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Configuration;
-using System.Buffers;
-using System.Threading.Tasks;
-using System.Diagnostics;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using System.Buffers;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using CoreWCF.Configuration;
 using CoreWCF.Runtime;
-using CoreWCF.Dispatcher;
 
 namespace CoreWCF.Channels.Framing
 {

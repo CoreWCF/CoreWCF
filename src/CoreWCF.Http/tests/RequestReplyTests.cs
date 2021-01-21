@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
-using System.ServiceModel.Channels;
-using System.Text;
 using ClientContract;
-//using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -88,13 +87,13 @@ namespace CoreWCF.Http.Tests
                         case "Http1Binding":
                             builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp1Binding(), "/BasicWcfService1/RequestReplyTests.svc");
                             break;
-                    //case "Http2Binding":
-                    //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp2Binding(), "/BasicWcfService2/RequestReplyTests.svc");
-                    //    break;
-                    //case "Http3Binding":
-                    //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp3Binding(), "/BasicWcfService3/RequestReplyTests.svc");
-                    //    break;
-                    default:
+                        //case "Http2Binding":
+                        //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp2Binding(), "/BasicWcfService2/RequestReplyTests.svc");
+                        //    break;
+                        //case "Http3Binding":
+                        //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp3Binding(), "/BasicWcfService3/RequestReplyTests.svc");
+                        //    break;
+                        default:
                             throw new Exception("Unknown binding");
 
                     }

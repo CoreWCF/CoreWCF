@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,9 +8,8 @@ using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Xml;
-using CoreWCF.Runtime;
-using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -788,7 +790,7 @@ namespace CoreWCF.Channels
             }
 
             XmlDictionaryReader reader = GetBufferedMessageHeaderReaderAtHeaderContents(bufferedMessageData);
-            for (;;)
+            for (; ; )
             {
                 if (reader.NodeType != XmlNodeType.Element)
                     reader.MoveToContent();
@@ -1212,7 +1214,7 @@ namespace CoreWCF.Channels
             if (header == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(header));
             if (!header.IsMessageVersionSupported(version))
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.MessageHeaderVersionNotSupported,header.GetType().FullName, version.Envelope.ToString()), nameof(header)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.MessageHeaderVersionNotSupported, header.GetType().FullName, version.Envelope.ToString()), nameof(header)));
             Insert(headerIndex, header, GetHeaderKind(header));
         }
 

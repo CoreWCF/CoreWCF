@@ -1,8 +1,6 @@
-﻿using CoreWCF.Configuration;
-using CoreWCF.Dispatcher;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Buffers;
 using System.IO;
@@ -11,6 +9,10 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Configuration;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -46,7 +48,7 @@ namespace CoreWCF.Channels.Framing
         {
             if (_replyChannel == null)
             {
-                using(await _lock.TakeLockAsync())
+                using (await _lock.TakeLockAsync())
                 {
                     if (_replyChannel == null)
                     {
@@ -76,7 +78,7 @@ namespace CoreWCF.Channels.Framing
             return new StreamedFramingRequestContext(connection, requestMessage, inputStream);
         }
 
-        public async Task<(Message,Stream)> ReceiveAsync(FramingConnection connection, TimeSpan timeout)
+        public async Task<(Message, Stream)> ReceiveAsync(FramingConnection connection, TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
@@ -122,26 +124,26 @@ namespace CoreWCF.Channels.Framing
             //        ServiceModelActivity.Start(activity, SR.GetString(SR.ActivityProcessingMessage, TraceUtility.RetrieveMessageNumber()), ActivityType.ProcessMessage);
             //    }
 
-                Message message = null;
-                try
-                {
-                    message = await connection.MessageEncoderFactory.Encoder.ReadMessageAsync(
-                        inputStream, connection.MaxBufferSize, connection.FramingDecoder.ContentType);
-                }
-                catch (XmlException xmlException)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new ProtocolException(SR.MessageXmlProtocolError, xmlException));
-                }
+            Message message = null;
+            try
+            {
+                message = await connection.MessageEncoderFactory.Encoder.ReadMessageAsync(
+                    inputStream, connection.MaxBufferSize, connection.FramingDecoder.ContentType);
+            }
+            catch (XmlException xmlException)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new ProtocolException(SR.MessageXmlProtocolError, xmlException));
+            }
 
-                //if (DiagnosticUtility.ShouldUseActivity)
-                //{
-                //    TraceUtility.TransferFromTransport(message);
-                //}
+            //if (DiagnosticUtility.ShouldUseActivity)
+            //{
+            //    TraceUtility.TransferFromTransport(message);
+            //}
 
-                PrepareMessage(connection, message);
+            PrepareMessage(connection, message);
 
-                return (message, inputStream);
+            return (message, inputStream);
             //}
         }
 
@@ -324,7 +326,7 @@ namespace CoreWCF.Channels.Framing
                     {
                         EnsureBuffer(ct);
                     }
-                    catch(OperationCanceledException oce)
+                    catch (OperationCanceledException oce)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TimeoutException(SR.Format(SR.ReceiveRequestTimedOutNoLocalAddress, _timeoutHelper.OriginalTimeout), oce));
                     }

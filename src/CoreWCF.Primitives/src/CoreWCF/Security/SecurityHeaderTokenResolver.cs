@@ -1,11 +1,14 @@
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -126,7 +129,7 @@ namespace CoreWCF.Security
             if (createIntrinsicKeys)
             {
 
-               if (SecurityUtils.TryCreateKeyFromIntrinsicKeyClause(keyIdentifierClause, this, out securityKey))
+                if (SecurityUtils.TryCreateKeyFromIntrinsicKeyClause(keyIdentifierClause, this, out securityKey))
                 {
                     return securityKey;
                 }
@@ -179,7 +182,7 @@ namespace CoreWCF.Security
                 EncryptedKeyIdentifierClause keyClause = (EncryptedKeyIdentifierClause)keyIdentifierClause;
                 SecurityKeyIdentifier wrappingTokenReference = keyClause.EncryptingKeyIdentifier;
                 SecurityToken unwrappingToken;
-                if (this.expectedWrapper != null 
+                if (this.expectedWrapper != null
                     && CheckExternalWrapperMatch(wrappingTokenReference))
                     unwrappingToken = this.expectedWrapper;
                 else
@@ -189,7 +192,7 @@ namespace CoreWCF.Security
                     resolvedToken = SecurityUtils.CreateTokenFromEncryptedKeyClause(keyClause, unwrappingToken);
                 }
             }
-           if ((resolvedToken == null) && (keyIdentifierClause is X509RawDataKeyIdentifierClause) && (!matchOnlyExternal) && (resolveIntrinsicKeyClause))
+            if ((resolvedToken == null) && (keyIdentifierClause is X509RawDataKeyIdentifierClause) && (!matchOnlyExternal) && (resolveIntrinsicKeyClause))
             {
                 resolvedToken = new X509SecurityToken(new X509Certificate2(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()));
             }
@@ -214,7 +217,7 @@ namespace CoreWCF.Security
                     if (derivedKeyToken != null)
                     {
                         if ((derivedKeyToken.Length == derivationLength) &&
-                            (CryptoHelper.IsEqual(derivedKeyToken.Nonce, derivationNonce)) && 
+                            (CryptoHelper.IsEqual(derivedKeyToken.Nonce, derivationNonce)) &&
                             (derivedKeyToken.TokenToDerive.MatchesKeyIdentifierClause(keyIdentifierClause)))
                         {
                             // This is a implcit derived key for which we have already derived the
@@ -307,7 +310,7 @@ namespace CoreWCF.Security
             {
                 this.token = token;
                 this.tokenParameters = tokenParameters;
-                this.allowedReferenceStyle = allowedReferenceStyle; 
+                this.allowedReferenceStyle = allowedReferenceStyle;
             }
 
             public SecurityToken Token => this.token;

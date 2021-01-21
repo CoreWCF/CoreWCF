@@ -1,12 +1,15 @@
-﻿using Helpers;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Threading;
+using CoreWCF.Channels;
+using CoreWCF.Configuration;
+using Helpers;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Channels;
-using CoreWCF.Configuration;
-using System.Threading;
 using Xunit;
-using System;
 
 namespace DispatchBuilder
 {

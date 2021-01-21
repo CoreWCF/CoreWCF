@@ -1,8 +1,11 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Xml;
 
 namespace CoreWCF.Security
 {
-    internal sealed class BinaryNegotiation 
+    internal sealed class BinaryNegotiation
     {
         private byte[] negotiationData;
         XmlDictionaryString valueTypeUriDictionaryString;
@@ -69,8 +72,8 @@ namespace CoreWCF.Security
 
         public string ValueTypeUri
         {
-            get 
-            { 
+            get
+            {
                 return this.valueTypeUri;
             }
         }

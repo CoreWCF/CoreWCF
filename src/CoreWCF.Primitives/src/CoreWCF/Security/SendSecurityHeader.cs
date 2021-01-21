@@ -1,12 +1,15 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Xml;
 using DictionaryManager = CoreWCF.IdentityModel.DictionaryManager;
 using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
@@ -47,7 +50,7 @@ namespace CoreWCF.Security
 
         protected SendSecurityHeader(Message message, string actor, bool mustUnderstand, bool relay,
             SecurityStandardsManager standardsManager,
-            SecurityAlgorithmSuite algorithmSuite, 
+            SecurityAlgorithmSuite algorithmSuite,
             MessageDirection transferDirection)
             : base(message, actor, mustUnderstand, relay, standardsManager, algorithmSuite, transferDirection)
         {
@@ -281,7 +284,7 @@ namespace CoreWCF.Security
             ThrowIfProcessingStarted();
             this.elementContainer.AddSignedEndorsingSupportingToken(token);
             hasSignedTokens = true;
-            this.shouldSignToHeader |= (!this.RequireMessageProtection) && (SecurityUtils.GetSecurityKey<AsymmetricSecurityKey>(token) != null);            
+            this.shouldSignToHeader |= (!this.RequireMessageProtection) && (SecurityUtils.GetSecurityKey<AsymmetricSecurityKey>(token) != null);
             this.AddParameters(ref this.signedEndorsingTokenParameters, parameters);
         }
 
@@ -431,7 +434,7 @@ namespace CoreWCF.Security
             {
                 WrappedKeySecurityToken wrappedKeyToken = this.encryptingToken as WrappedKeySecurityToken;
                 wrappedKeyToken.EnsureEncryptedKeySetUp();
-                wrappedKeyToken.EncryptedKey.ReferenceList = (ReferenceList) referenceList;
+                wrappedKeyToken.EncryptedKey.ReferenceList = (ReferenceList)referenceList;
             }
             else
             {
@@ -477,8 +480,8 @@ namespace CoreWCF.Security
 
         public void RemoveSignatureEncryptionIfAppropriate()
         {
-            if (this.SignThenEncrypt && 
-                this.EncryptPrimarySignature && 
+            if (this.SignThenEncrypt &&
+                this.EncryptPrimarySignature &&
                 (this.SecurityAppliedMessage.BodyProtectionMode != MessagePartProtectionMode.SignThenEncrypt) &&
                 (this.basicSupportingTokenParameters == null || this.basicSupportingTokenParameters.Count == 0) &&
                 (this.signatureConfirmationsToSend == null || this.signatureConfirmationsToSend.Count == 0 || !this.signatureConfirmationsToSend.IsMarkedForEncryption) &&
@@ -536,7 +539,7 @@ namespace CoreWCF.Security
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            if (this.basicSupportingTokenParameters != null && this.basicSupportingTokenParameters.Count > 0 
+            if (this.basicSupportingTokenParameters != null && this.basicSupportingTokenParameters.Count > 0
                 && this.RequireMessageProtection && !basicTokenEncrypted)
             {
                 throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.BasicTokenCannotBeWrittenWithoutEncryption), this.Message);
@@ -583,7 +586,7 @@ namespace CoreWCF.Security
             }
             if (elementContainer.DerivedEncryptionToken != null)
             {
-                this.StandardsManager.SecurityTokenSerializer.WriteToken(writer, elementContainer.DerivedEncryptionToken); 
+                this.StandardsManager.SecurityTokenSerializer.WriteToken(writer, elementContainer.DerivedEncryptionToken);
             }
             if (this.SignThenEncrypt)
             {
@@ -592,7 +595,7 @@ namespace CoreWCF.Security
                     elementContainer.ReferenceList.WriteTo(writer, ServiceModelDictionaryManager.Instance);
                 }
             }
-          
+
             SecurityToken[] signedTokens = elementContainer.GetSignedSupportingTokens();
             if (signedTokens != null)
             {
@@ -762,7 +765,7 @@ namespace CoreWCF.Security
             }
 
             SecurityKeyIdentifier signingKeyIdentifier = new SecurityKeyIdentifier(signingKeyIdentifierClause);
-            
+
             if (signatureConfirmationsToSend != null && signatureConfirmationsToSend.Count > 0)
             {
                 ISecurityElement[] signatureConfirmationElements;
@@ -782,7 +785,7 @@ namespace CoreWCF.Security
         private void CompleteSignature()
         {
             ISignatureValueSecurityElement signedXml = this.CompletePrimarySignatureCore(
-                elementContainer.GetSignatureConfirmations(), elementContainer.GetSignedEndorsingSupportingTokens(), 
+                elementContainer.GetSignatureConfirmations(), elementContainer.GetSignedEndorsingSupportingTokens(),
                 elementContainer.GetSignedSupportingTokens(), elementContainer.GetBasicSupportingTokens(), true);
             if (signedXml == null)
             {
@@ -806,7 +809,7 @@ namespace CoreWCF.Security
 
         protected abstract void StartEncryptionCore(SecurityToken token, SecurityKeyIdentifier keyIdentifier);
 
-        protected abstract ISecurityElement CompleteEncryptionCore(SendSecurityHeaderElement primarySignature, 
+        protected abstract ISecurityElement CompleteEncryptionCore(SendSecurityHeaderElement primarySignature,
             SendSecurityHeaderElement[] basicTokens, SendSecurityHeaderElement[] signatureConfirmations, SendSecurityHeaderElement[] endorsingSignatures);
 
         private void SignWithSupportingToken(SecurityToken token, SecurityKeyIdentifierClause identifierClause)
@@ -875,7 +878,7 @@ namespace CoreWCF.Security
                     if (endorsingTokenParameters[i].RequireDerivedKeys && !endorsingTokenParameters[i].HasAsymmetricKey)
                     {
                         string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(this.StandardsManager.MessageSecurityVersion.SecureConversationVersion);
-                        DerivedKeySecurityToken dkt = new DerivedKeySecurityToken(-1, 0, 
+                        DerivedKeySecurityToken dkt = new DerivedKeySecurityToken(-1, 0,
                             this.AlgorithmSuite.GetSignatureKeyDerivationLength(source, this.StandardsManager.MessageSecurityVersion.SecureConversationVersion), null,
                             DerivedKeySecurityToken.DefaultNonceLength, source, sourceKeyClause, derivationAlgorithm, GenerateId());
                         signingToken = dkt;
@@ -906,7 +909,7 @@ namespace CoreWCF.Security
                     if (signedEndorsingTokenParameters[i].RequireDerivedKeys && !signedEndorsingTokenParameters[i].HasAsymmetricKey)
                     {
                         string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(this.StandardsManager.MessageSecurityVersion.SecureConversationVersion);
-                        DerivedKeySecurityToken dkt = new DerivedKeySecurityToken(-1, 0, 
+                        DerivedKeySecurityToken dkt = new DerivedKeySecurityToken(-1, 0,
                             this.AlgorithmSuite.GetSignatureKeyDerivationLength(source, this.StandardsManager.MessageSecurityVersion.SecureConversationVersion), null,
                             DerivedKeySecurityToken.DefaultNonceLength, source, sourceKeyClause, derivationAlgorithm, GenerateId());
                         signingToken = dkt;

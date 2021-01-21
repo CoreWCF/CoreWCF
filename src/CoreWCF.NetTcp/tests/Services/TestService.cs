@@ -1,7 +1,6 @@
-﻿using CoreWCF;
-using CoreWCF.Channels;
-using CoreWCF.Description;
-using ServiceContract;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
 using System.Security.Claims;
@@ -10,6 +9,10 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF;
+using CoreWCF.Channels;
+using CoreWCF.Description;
+using ServiceContract;
 
 namespace Services
 {
@@ -55,7 +58,7 @@ namespace Services
             };
         }
 
-       
+
         public string EchoForPermission(string echo)
         {
             IPrincipal principal = Thread.CurrentPrincipal;

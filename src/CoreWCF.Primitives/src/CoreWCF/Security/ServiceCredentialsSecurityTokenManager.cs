@@ -1,11 +1,14 @@
-﻿using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Net;
+using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Net;
 
 namespace CoreWCF.Security
 {
@@ -100,7 +103,7 @@ namespace CoreWCF.Security
             tokenAuthenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
             tokenAuthenticator.EndpointFilterTable = propertyOrDefault;
             return (SecurityTokenAuthenticator)tokenAuthenticator;*/
-           
+
         }
 
         SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
@@ -371,7 +374,7 @@ namespace CoreWCF.Security
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.SecureConversation)
             {
-               
+
                 result = CreateSecureConversationTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
 
             }

@@ -1,10 +1,11 @@
-﻿using System;
-using System.Security;
-using System.Threading;
-using CoreWCF.Runtime.Diagnostics;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Runtime
 {
@@ -48,7 +49,7 @@ namespace CoreWCF.Runtime
             //}
             //else
             //{
-                ScheduleCallback(callback, state, lowPriority);
+            ScheduleCallback(callback, state, lowPriority);
             //}
         }
 
@@ -69,7 +70,7 @@ namespace CoreWCF.Runtime
             //}
             //else
             //{
-                ScheduleCallback(CallbackHelper.InvokeWithoutContextCallback);
+            ScheduleCallback(CallbackHelper.InvokeWithoutContextCallback);
             //}
         }
 
@@ -191,7 +192,7 @@ namespace CoreWCF.Runtime
 
         class DefaultActionItem : ActionItem
         {
-            
+
             Action<object> callback;
             object state;
 
@@ -229,7 +230,7 @@ namespace CoreWCF.Runtime
                 //}
                 //else
                 //{
-                    callback(state);
+                callback(state);
                 //}
             }
 
@@ -251,29 +252,29 @@ namespace CoreWCF.Runtime
                 //}
                 //else
                 //{
-                    Guid previous = Guid.Empty;
-                    bool restoreActivityId = false;
-                    try
+                Guid previous = Guid.Empty;
+                bool restoreActivityId = false;
+                try
+                {
+                    //if (this.eventTraceActivity != null)
+                    //{
+                    //    previous = Trace.CorrelationManager.ActivityId;
+                    //    restoreActivityId = true;
+                    //    Trace.CorrelationManager.ActivityId = this.eventTraceActivity.ActivityId;
+                    //    if (TraceCore.ActionItemCallbackInvokedIsEnabled(Fx.Trace))
+                    //    {
+                    //        TraceCore.ActionItemCallbackInvoked(Fx.Trace, this.eventTraceActivity);
+                    //    }
+                    //}
+                    callback(state);
+                }
+                finally
+                {
+                    if (restoreActivityId)
                     {
-                        //if (this.eventTraceActivity != null)
-                        //{
-                        //    previous = Trace.CorrelationManager.ActivityId;
-                        //    restoreActivityId = true;
-                        //    Trace.CorrelationManager.ActivityId = this.eventTraceActivity.ActivityId;
-                        //    if (TraceCore.ActionItemCallbackInvokedIsEnabled(Fx.Trace))
-                        //    {
-                        //        TraceCore.ActionItemCallbackInvoked(Fx.Trace, this.eventTraceActivity);
-                        //    }
-                        //}
-                        callback(state);
+                        //Trace.CorrelationManager.ActivityId = previous;
                     }
-                    finally
-                    {
-                        if (restoreActivityId)
-                        {
-                            //Trace.CorrelationManager.ActivityId = previous;
-                        }
-                    }
+                }
                 //}
             }
         }

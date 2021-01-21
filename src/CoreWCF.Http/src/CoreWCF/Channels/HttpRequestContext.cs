@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +9,9 @@ using System.Security.Authentication.ExtendedProtection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
+using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Channels
 {
@@ -412,7 +415,7 @@ namespace CoreWCF.Channels
 
                 // TODO: ChannelBindingSupport
                 public AspNetCoreHttpInput(AspNetCoreHttpContext aspNetCoreHttpContext)
-                    : base(aspNetCoreHttpContext.HttpTransportSettings, true, false /* ChannelBindingSupportEnabled */) 
+                    : base(aspNetCoreHttpContext.HttpTransportSettings, true, false /* ChannelBindingSupportEnabled */)
                 {
                     _aspNetCoreHttpContext = aspNetCoreHttpContext;
                     if (!_aspNetCoreHttpContext._aspNetContext.Request.ContentLength.HasValue)

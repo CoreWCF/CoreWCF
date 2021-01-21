@@ -1,10 +1,13 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using CoreWCF;
 
 namespace Services
 {
     public class TestFaultContractNameService : ServiceContract.ITestFaultContractName
     {
-     
+
         #region TwoWay_Methods
         public string Method1(string s)
         {
@@ -63,14 +66,14 @@ namespace Services
 
         public string Method6(string s)
         {
-                if (s.Length == 0)
-                {
-                    string faultToThrow = "Test fault thrown from a service";
-                    throw new FaultException<string>(faultToThrow);
-                }
-
-                return s;
+            if (s.Length == 0)
+            {
+                string faultToThrow = "Test fault thrown from a service";
+                throw new FaultException<string>(faultToThrow);
             }
+
+            return s;
+        }
 
         public string Method7(string s)
         {

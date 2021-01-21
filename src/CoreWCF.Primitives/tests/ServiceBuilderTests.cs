@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +18,7 @@ namespace CoreWCF.Primitives.Tests
             services.AddServiceModelServices();
             var serviceProvider = services.BuildServiceProvider();
             var builder = serviceProvider.GetRequiredService<IServiceBuilder>();
-            
+
             Assert.Equal(builder, builder.AddService<SomeService>());
             Assert.Equal(builder, builder.AddService(typeof(SomeService)));
             Assert.Equal(builder, builder.AddServiceEndpoint<SomeService, IService>(new NoBinding(), new Uri("http://localhost:8088/SomeService.svc")));

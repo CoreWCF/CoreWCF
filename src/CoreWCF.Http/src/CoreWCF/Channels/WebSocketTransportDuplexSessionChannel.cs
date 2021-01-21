@@ -1,17 +1,18 @@
-﻿using CoreWCF.Runtime;
-using CoreWCF.Security;
-using Microsoft.AspNetCore.Http;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
 using System.Net.WebSockets;
 using System.Security.Principal;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
+using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Channels
 {
@@ -100,7 +101,7 @@ namespace CoreWCF.Channels
             {
                 await CloseInternalAsync(token);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (Fx.IsFatal(ex))
                 {
@@ -168,7 +169,7 @@ namespace CoreWCF.Channels
                 catch (Exception error)
                 {
                     Fx.Exception.TraceHandledException(error, TraceEventType.Information);
-                    throw;                
+                    throw;
                 }
             });
         }
@@ -362,7 +363,7 @@ namespace CoreWCF.Channels
                 this.remoteEndpointMessageProperty = remoteEndpointMessageProperty;
                 // Copy any string keyed items from requestContext to properties. This is an attempt to mimic HttpRequestMessage.Properties
                 var properties = new Dictionary<string, object>();
-                foreach(var kv in requestContext.Items)
+                foreach (var kv in requestContext.Items)
                 {
                     if (kv.Key is string key)
                     {
@@ -415,7 +416,7 @@ namespace CoreWCF.Channels
             {
                 if (!receiveTask.Task.IsCompleted)
                 {
-                    using(token.Register(() => AsyncReceiveCancelled()))
+                    using (token.Register(() => AsyncReceiveCancelled()))
                     {
                         await receiveTask.Task;
                     }

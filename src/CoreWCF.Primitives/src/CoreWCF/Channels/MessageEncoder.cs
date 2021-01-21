@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
 using System.Net.Http.Headers;
@@ -16,9 +19,9 @@ namespace CoreWCF.Channels
 
         public virtual T GetProperty<T>() where T : class
         {
-            if (typeof (T) == typeof (FaultConverter))
+            if (typeof(T) == typeof(FaultConverter))
             {
-                return (T) (object) FaultConverter.GetDefaultFaultConverter(MessageVersion);
+                return (T)(object)FaultConverter.GetDefaultFaultConverter(MessageVersion);
             }
 
             return null;
@@ -63,7 +66,7 @@ namespace CoreWCF.Channels
                             MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
                     }
 
-                    currentBufferSize = Math.Min(currentBufferSize*2, maxBufferSize);
+                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
                     byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
                     Buffer.BlockCopy(buffer, 0, temp, 0, offset);
                     bufferManager.ReturnBuffer(buffer);

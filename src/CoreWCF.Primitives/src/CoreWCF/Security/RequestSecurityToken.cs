@@ -1,9 +1,6 @@
-using CoreWCF.Channels;
-using CoreWCF.Dispatcher;
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,6 +9,12 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Authentication.ExtendedProtection;
 using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -49,7 +52,7 @@ namespace CoreWCF.Security
         {
         }
 
-        public RequestSecurityToken(MessageSecurityVersion messageSecurityVersion, 
+        public RequestSecurityToken(MessageSecurityVersion messageSecurityVersion,
                                     SecurityTokenSerializer securityTokenSerializer,
                                     XmlElement requestSecurityTokenXml,
                                     string context,
@@ -87,7 +90,7 @@ namespace CoreWCF.Security
         {
         }
 
-        internal RequestSecurityToken(SecurityStandardsManager standardsManager, 
+        internal RequestSecurityToken(SecurityStandardsManager standardsManager,
                                       XmlElement rstXml,
                                       string context,
                                       string tokenType,
@@ -115,13 +118,13 @@ namespace CoreWCF.Security
             this.isReadOnly = true;
         }
 
-        internal RequestSecurityToken(SecurityStandardsManager standardsManager) 
+        internal RequestSecurityToken(SecurityStandardsManager standardsManager)
             : this(standardsManager, true)
         {
             // no op
         }
 
-        internal RequestSecurityToken(SecurityStandardsManager standardsManager, bool isBuffered) 
+        internal RequestSecurityToken(SecurityStandardsManager standardsManager, bool isBuffered)
             : base(isBuffered)
         {
             if (standardsManager == null)
@@ -143,10 +146,10 @@ namespace CoreWCF.Security
             }
 
             ChannelBindingMessageProperty channelBindingMessageProperty = null;
-            ChannelBindingMessageProperty.TryGet( this.message, out channelBindingMessageProperty );
+            ChannelBindingMessageProperty.TryGet(this.message, out channelBindingMessageProperty);
             ChannelBinding channelBinding = null;
 
-            if ( channelBindingMessageProperty != null )
+            if (channelBindingMessageProperty != null)
             {
                 channelBinding = channelBindingMessageProperty.ChannelBinding;
             }
@@ -169,7 +172,7 @@ namespace CoreWCF.Security
             {
                 return this.context;
             }
-            set 
+            set
             {
                 if (this.IsReadOnly)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
@@ -179,16 +182,16 @@ namespace CoreWCF.Security
 
         public string TokenType
         {
-            get 
+            get
             {
                 return this.tokenType;
             }
-            set 
+            set
             {
                 if (this.IsReadOnly)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 this.tokenType = value;
-            }   
+            }
         }
 
         public int KeySize
@@ -215,7 +218,7 @@ namespace CoreWCF.Security
             }
         }
 
-        public delegate void OnGetBinaryNegotiationCallback( ChannelBinding channelBinding );
+        public delegate void OnGetBinaryNegotiationCallback(ChannelBinding channelBinding);
         public OnGetBinaryNegotiationCallback OnGetBinaryNegotiation
         {
             get
@@ -239,7 +242,7 @@ namespace CoreWCF.Security
                 if (this.isReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
+#pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "RequestProperties")));
                 }
                 return this.requestProperties;
@@ -319,7 +322,7 @@ namespace CoreWCF.Security
                 if (!this.isReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
+#pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTOnly, "RequestSecurityTokenXml")));
                 }
                 return this.rstXml;
@@ -359,7 +362,7 @@ namespace CoreWCF.Security
                 if (this.isReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
+#pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesTo")));
                 }
                 return this.appliesTo;
@@ -373,7 +376,7 @@ namespace CoreWCF.Security
                 if (this.isReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
+#pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesToSerializer")));
                 }
                 return this.appliesToSerializer;
@@ -387,7 +390,7 @@ namespace CoreWCF.Security
                 if (this.isReceiver)
                 {
                     // PreSharp Bug: Property get methods should not throw exceptions.
-                    #pragma warning suppress 56503
+#pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesToType")));
                 }
                 return this.appliesToType;
@@ -429,7 +432,7 @@ namespace CoreWCF.Security
             return this.GetRequestorEntropy(null);
         }
 
-        internal SecurityToken GetRequestorEntropy(SecurityTokenResolver resolver) 
+        internal SecurityToken GetRequestorEntropy(SecurityTokenResolver resolver)
         {
             if (this.isReceiver)
             {
@@ -532,7 +535,7 @@ namespace CoreWCF.Security
                 this.OnWriteTo(writer);
         }
 
-        public static RequestSecurityToken CreateFrom(XmlReader reader) 
+        public static RequestSecurityToken CreateFrom(XmlReader reader)
         {
             return CreateFrom(SecurityStandardsManager.DefaultInstance, reader);
         }
@@ -542,7 +545,7 @@ namespace CoreWCF.Security
             return CreateFrom(SecurityUtils.CreateSecurityStandardsManager(messageSecurityVersion, securityTokenSerializer), reader);
         }
 
-        internal static RequestSecurityToken CreateFrom(SecurityStandardsManager standardsManager,  XmlReader reader)
+        internal static RequestSecurityToken CreateFrom(SecurityStandardsManager standardsManager, XmlReader reader)
         {
             return standardsManager.TrustDriver.CreateRequestSecurityToken(reader);
         }

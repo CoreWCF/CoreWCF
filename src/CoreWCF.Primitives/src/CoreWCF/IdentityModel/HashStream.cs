@@ -1,7 +1,9 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.Security.Cryptography;
-using CoreWCF;
-using System;
 
 namespace CoreWCF.IdentityModel
 {
@@ -101,8 +103,8 @@ namespace CoreWCF.IdentityModel
             }
             this.length = 0;
 
-           // if (DigestTraceRecordHelper.ShouldTraceDigest)
-           //     this.logStream = new MemoryStream();
+            // if (DigestTraceRecordHelper.ShouldTraceDigest)
+            //     this.logStream = new MemoryStream();
 
         }
 
@@ -112,8 +114,8 @@ namespace CoreWCF.IdentityModel
             this.hashNeedsReset = false;
             this.length = 0;
 
-          //  if (DigestTraceRecordHelper.ShouldTraceDigest)
-           //     this.logStream = new MemoryStream();
+            //  if (DigestTraceRecordHelper.ShouldTraceDigest)
+            //     this.logStream = new MemoryStream();
         }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -122,7 +124,7 @@ namespace CoreWCF.IdentityModel
             this.length += count;
             this.hashNeedsReset = true;
 
-           // if (DigestTraceRecordHelper.ShouldTraceDigest)
+            // if (DigestTraceRecordHelper.ShouldTraceDigest)
             //    this.logStream.Write(buffer, offset, count);
         }
 

@@ -1,3 +1,13 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Security.Cryptography;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel;
@@ -6,13 +16,6 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Security.Cryptography;
-using System.Xml;
 using Psha1DerivedKeyGenerator = CoreWCF.IdentityModel.Psha1DerivedKeyGenerator;
 
 namespace CoreWCF.Security
@@ -82,8 +85,8 @@ namespace CoreWCF.Security
         {
         }
 
-        public RequestSecurityTokenResponse(MessageSecurityVersion messageSecurityVersion, 
-                                            SecurityTokenSerializer securityTokenSerializer, 
+        public RequestSecurityTokenResponse(MessageSecurityVersion messageSecurityVersion,
+                                            SecurityTokenSerializer securityTokenSerializer,
                                             XmlElement requestSecurityTokenResponseXml,
                                             string context,
                                             string tokenType,
@@ -123,7 +126,7 @@ namespace CoreWCF.Security
             this.isReceiver = false;
             this.isReadOnly = false;
         }
-        
+
         internal RequestSecurityTokenResponse(SecurityStandardsManager standardsManager,
                                               XmlElement rstrXml,
                                               string context,
@@ -155,17 +158,17 @@ namespace CoreWCF.Security
             this.expirationTime = validTo.ToUniversalTime();
             this.isLifetimeSet = true;
             this.isRequestedTokenClosed = isRequestedTokenClosed;
-           // this.issuedTokenBuffer = issuedTokenBuffer;
+            // this.issuedTokenBuffer = issuedTokenBuffer;
             this.isReceiver = true;
             this.isReadOnly = true;
         }
 
-        public RequestSecurityTokenResponse(SecurityStandardsManager standardsManager, 
-            XmlElement rstrXml, 
-            string context, 
-            string tokenType, int keySize, SecurityKeyIdentifierClause requestedAttachedReference, 
-            SecurityKeyIdentifierClause requestedUnattachedReference, bool computeKey, DateTime validFrom, DateTime validTo, 
-            bool isRequestedTokenClosed, XmlBuffer issuedTokenBuffer) : 
+        public RequestSecurityTokenResponse(SecurityStandardsManager standardsManager,
+            XmlElement rstrXml,
+            string context,
+            string tokenType, int keySize, SecurityKeyIdentifierClause requestedAttachedReference,
+            SecurityKeyIdentifierClause requestedUnattachedReference, bool computeKey, DateTime validFrom, DateTime validTo,
+            bool isRequestedTokenClosed, XmlBuffer issuedTokenBuffer) :
             this(standardsManager, rstrXml, context, tokenType, keySize, requestedAttachedReference, requestedUnattachedReference, computeKey, validFrom, validTo, isRequestedTokenClosed)
         {
             this.issuedTokenBuffer = issuedTokenBuffer;
@@ -199,18 +202,18 @@ namespace CoreWCF.Security
             }
         }
 
-        public SecurityKeyIdentifierClause RequestedAttachedReference 
+        public SecurityKeyIdentifierClause RequestedAttachedReference
         {
-            get 
-            { 
+            get
+            {
                 return this.requestedAttachedReference;
-            } 
-            set 
+            }
+            set
             {
                 if (this.IsReadOnly)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 this.requestedAttachedReference = value;
-            } 
+            }
         }
 
         public SecurityKeyIdentifierClause RequestedUnattachedReference
@@ -233,11 +236,11 @@ namespace CoreWCF.Security
 
         public bool ComputeKey
         {
-            get 
+            get
             {
                 return this.computeKey;
             }
-            set 
+            set
             {
                 if (this.IsReadOnly)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
@@ -247,7 +250,7 @@ namespace CoreWCF.Security
 
         public int KeySize
         {
-            get 
+            get
             {
                 return this.keySize;
             }
@@ -258,12 +261,12 @@ namespace CoreWCF.Security
                 if (value < 0)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeNonNegative));
                 this.keySize = value;
-            } 
+            }
         }
 
         public bool IsRequestedTokenClosed
         {
-            get 
+            get
             {
                 return this.isRequestedTokenClosed;
             }
@@ -309,7 +312,7 @@ namespace CoreWCF.Security
 
         public SecurityToken RequestedSecurityToken
         {
-            get 
+            get
             {
                 if (this.isReceiver)
                 {
@@ -523,7 +526,7 @@ namespace CoreWCF.Security
             {
                 if (this.authenticator == null)
                     return null;
-                else 
+                else
                 {
                     byte[] result = Fx.AllocateByteArray(this.authenticator.Length);
                     Buffer.BlockCopy(this.authenticator, 0, result, 0, this.authenticator.Length);
@@ -625,7 +628,7 @@ namespace CoreWCF.Security
         protected internal virtual void OnWriteCustomAttributes(XmlWriter writer)
         { }
 
-        protected internal virtual void OnWriteCustomElements(XmlWriter writer) 
+        protected internal virtual void OnWriteCustomElements(XmlWriter writer)
         { }
 
         protected virtual void OnMakeReadOnly() { }

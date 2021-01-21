@@ -1,3 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
+using System.Text;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
@@ -5,12 +14,6 @@ using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.IO;
-using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
-using System.Text;
-using System.Xml;
 using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
@@ -71,7 +74,7 @@ namespace CoreWCF.Security
         // 2. Else if strtransform is enabled it adds a reference the security token's keyIdentifier's id.
         private void AddTokenSignatureReference(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, bool strTransformEnabled)
         {
-            if(strTransformEnabled)
+            if (strTransformEnabled)
                 throw new PlatformNotSupportedException();
         }
 
@@ -273,7 +276,7 @@ namespace CoreWCF.Security
                 case MessagePartProtectionMode.SignThenEncrypt:
                 case MessagePartProtectionMode.Encrypt:
                 case MessagePartProtectionMode.EncryptThenSign:
-                    throw new PlatformNotSupportedException(); 
+                    throw new PlatformNotSupportedException();
                 default:
                     Fx.Assert("Invalid MessagePartProtectionMode");
                     return;

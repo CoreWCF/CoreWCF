@@ -1,8 +1,10 @@
-// using HexBinary = System.Runtime.Remoting.Metadata.W3cXsd2001.SoapHexBinary;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Xml;
+using CoreWCF.Security.Tokens;
 using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
@@ -50,18 +52,18 @@ namespace CoreWCF.Security
                 : base(parent, securityStateEncoder, knownClaimTypes)
             {
             }
-            
+
             protected override bool CanReadGeneration(XmlDictionaryReader reader)
             {
                 return reader.IsStartElement(DXD.SecureConversationDec2005Dictionary.Instance, XD.SecureConversationFeb2005Dictionary.Namespace);
             }
-            
+
             protected override bool CanReadGeneration(XmlElement element)
             {
                 return (element.LocalName == DXD.SecureConversationDec2005Dictionary.Instance.Value &&
                     element.NamespaceURI == XD.SecureConversationFeb2005Dictionary.Namespace.Value);
             }
-            
+
             protected override UniqueId ReadGeneration(XmlDictionaryReader reader)
             {
                 return reader.ReadElementContentAsUniqueId();
@@ -71,7 +73,7 @@ namespace CoreWCF.Security
             {
                 return XmlHelper.ReadTextElementAsUniqueId(element);
             }
-            
+
             protected override void WriteGeneration(XmlDictionaryWriter writer, SecurityContextSecurityToken sct)
             {
                 // serialize the generation

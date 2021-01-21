@@ -1,17 +1,14 @@
-using System.Runtime;
-using System.Runtime.CompilerServices;
-using CoreWCF.Channels;
-using CoreWCF.Security;
-using CoreWCF.Security.Tokens;
-using System.ComponentModel;
-using CoreWCF;
-using CoreWCF.Runtime;
-using System.Globalization;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using CoreWCF.Channels;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF
 {
-   public class MessageSecurityOverHttp
+    public class MessageSecurityOverHttp
     {
         internal const MessageCredentialType DefaultClientCredentialType = MessageCredentialType.Windows;
         internal const bool DefaultNegotiateServiceCredential = true;
@@ -203,12 +200,12 @@ namespace CoreWCF
             {
                 oneShotSecurity.LocalServiceSettings.IssuedCookieLifetime = defaultServerIssuedTransitionTokenLifetime;
                 //TODO SpNego when port, remove above and enable below.
-        // issue the transition SCT for a short duration only
-        // oneShotSecurity.LocalServiceSettings.IssuedCookieLifetime = SpnegoTokenAuthenticator.defaultServerIssuedTransitionTokenLifetime;
+                // issue the transition SCT for a short duration only
+                // oneShotSecurity.LocalServiceSettings.IssuedCookieLifetime = SpnegoTokenAuthenticator.defaultServerIssuedTransitionTokenLifetime;
             }
 
             return result;
         }
-        
+
     }
 }

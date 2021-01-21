@@ -1,13 +1,16 @@
-using CoreWCF.Channels;
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
 using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security.Tokens
 {
@@ -230,8 +233,8 @@ namespace CoreWCF.Security.Tokens
                 return base.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
             else
                 throw new NotImplementedException();
-              //TODO 
-              //  return this.CreateKeyIdentifierClause<SamlAssertionKeyIdentifierClause, SamlAssertionKeyIdentifierClause>(token, referenceStyle);
+            //TODO 
+            //  return this.CreateKeyIdentifierClause<SamlAssertionKeyIdentifierClause, SamlAssertionKeyIdentifierClause>(token, referenceStyle);
         }
 
         internal void SetRequestParameters(Collection<XmlElement> requestParameters, TrustDriver trustDriver)

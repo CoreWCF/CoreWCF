@@ -1,8 +1,11 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
 using KeyIdentifierEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.KeyIdentifierEntry;
 
 namespace CoreWCF.IdentityModel.Tokens

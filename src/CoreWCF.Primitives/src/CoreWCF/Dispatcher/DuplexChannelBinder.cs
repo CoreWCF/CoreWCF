@@ -1,14 +1,16 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
-using CoreWCF.Security;
 using CoreWCF.Configuration;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
 {
@@ -278,7 +280,7 @@ namespace CoreWCF.Dispatcher
         {
             return _channel.SendAsync(message, token);
         }
-            
+
         public async Task<Message> RequestAsync(Message message, CancellationToken token)
         {
             RequestReplyCorrelator.PrepareRequest(message);
@@ -486,7 +488,7 @@ namespace CoreWCF.Dispatcher
             {
                 try
                 {
-                    if(!await wait.WaitAsync(token))
+                    if (!await wait.WaitAsync(token))
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(parent.GetReceiveTimeoutException(TimeSpan.Zero));
                     }

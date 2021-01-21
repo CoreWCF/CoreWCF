@@ -1,7 +1,6 @@
-﻿using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -9,6 +8,10 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DispatcherClient
 {
@@ -91,7 +94,7 @@ namespace DispatcherClient
                     return dispatcher;
                 }
             }
-            
+
             var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.AddService<TService>();
             var binding = new CoreWCF.Channels.CustomBinding("BindingName", "BindingNS");

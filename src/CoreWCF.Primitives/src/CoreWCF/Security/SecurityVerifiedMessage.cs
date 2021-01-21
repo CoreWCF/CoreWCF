@@ -1,10 +1,13 @@
-using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -73,7 +76,7 @@ namespace CoreWCF.Security
                 {
                     return this.InnerMessage.IsEmpty;
                 }
-                
+
                 EnsureDecryptedBodyStatusDetermined();
 
                 return this.isDecryptedBodyEmpty;
@@ -132,7 +135,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                return ((BufferedMessage) this.InnerMessage).GetBufferedReaderAtBody();
+                return ((BufferedMessage)this.InnerMessage).GetBufferedReaderAtBody();
             }
         }
 
@@ -178,7 +181,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                return ((BufferedMessage) this.InnerMessage).GetMessageReader();
+                return ((BufferedMessage)this.InnerMessage).GetMessageReader();
             }
         }
 
@@ -284,7 +287,7 @@ namespace CoreWCF.Security
                     //
                     DiagnosticUtility.TraceHandledException(exception, TraceEventType.Warning);
                 }
-                finally 
+                finally
                 {
                     this.cachedDecryptedBodyContentReader = null;
                 }
@@ -304,7 +307,7 @@ namespace CoreWCF.Security
                     //
                     DiagnosticUtility.TraceHandledException(exception, TraceEventType.Warning);
                 }
-                finally 
+                finally
                 {
                     this.cachedReaderAtSecurityHeader = null;
                 }
@@ -313,7 +316,7 @@ namespace CoreWCF.Security
             this.messageBuffer = null;
             this.decryptedBuffer = null;
             this.state = BodyState.Disposed;
-            this.InnerMessage.Close();  
+            this.InnerMessage.Close();
         }
 
         protected override XmlDictionaryReader OnGetReaderAtBodyContents()
@@ -439,7 +442,7 @@ namespace CoreWCF.Security
             writer.WriteEndElement();
             writer.Flush();
 
-            this.decryptedBuffer = ContextImportHelper.SpliceBuffers(decryptedBodyContent, stream.GetBuffer(), (int) stream.Length, 2);
+            this.decryptedBuffer = ContextImportHelper.SpliceBuffers(decryptedBodyContent, stream.GetBuffer(), (int)stream.Length, 2);
 
             this.bodyDecrypted = true;
             this.state = BodyState.Decrypted;
@@ -485,7 +488,7 @@ namespace CoreWCF.Security
             writer.WriteEndElement();
             writer.Flush();
 
-            byte[] splicedBuffer = SpliceBuffers(decryptedBuffer, stream.GetBuffer(), (int) stream.Length, wrappingDepth);
+            byte[] splicedBuffer = SpliceBuffers(decryptedBuffer, stream.GetBuffer(), (int)stream.Length, wrappingDepth);
             XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(splicedBuffer, quotas);
             reader.ReadStartElement(wrapper1);
             reader.ReadStartElement(wrapper2);
@@ -517,7 +520,7 @@ namespace CoreWCF.Security
 
         internal static byte[] SpliceBuffers(byte[] middle, byte[] wrapper, int wrapperLength, int wrappingDepth)
         {
-            const byte openChar = (byte) '<';
+            const byte openChar = (byte)'<';
             int openCharsFound = 0;
             int openCharIndex;
             for (openCharIndex = wrapperLength - 1; openCharIndex >= 0; openCharIndex--)

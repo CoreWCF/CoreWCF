@@ -1,8 +1,6 @@
-using CoreWCF.Dispatcher;
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,6 +8,11 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Xml;
+using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security.Tokens
 {
@@ -101,7 +104,7 @@ namespace CoreWCF.Security.Tokens
                     {
                         claimSets.Add(SctClaimSerializer.DeserializeClaimSet(reader, dictionary, claimSetSerializer, claimSerializer));
                     }
-                    
+
                     reader.ReadEndElement();
                 }
                 else if (reader.IsStartElement(dictionary.IsCookieMode, dictionary.EmptyString))
@@ -238,7 +241,7 @@ namespace CoreWCF.Security.Tokens
 
             return sct;
         }
-        
+
         internal static void OnInvalidCookieFailure(string reason)
         {
             OnInvalidCookieFailure(reason, null);
@@ -249,8 +252,8 @@ namespace CoreWCF.Security.Tokens
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.InvalidSecurityContextCookie, reason), e));
         }
 
-       internal class SctUnconditionalPolicy : IAuthorizationPolicy
-       {
+        internal class SctUnconditionalPolicy : IAuthorizationPolicy
+        {
             private SecurityUniqueId id = SecurityUniqueId.Create();
             private IList<IIdentity> identities;
             private IList<ClaimSet> claimSets;
@@ -268,9 +271,9 @@ namespace CoreWCF.Security.Tokens
                 get { return this.id.Value; }
             }
 
-            public ClaimSet Issuer 
-            { 
-                get { return ClaimSet.System; } 
+            public ClaimSet Issuer
+            {
+                get { return ClaimSet.System; }
             }
 
             public bool Evaluate(EvaluationContext evaluationContext, ref object state)

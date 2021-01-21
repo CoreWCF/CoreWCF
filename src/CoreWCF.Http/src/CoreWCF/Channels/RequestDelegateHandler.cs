@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
@@ -70,7 +73,7 @@ namespace CoreWCF.Channels
             if (WebSocketOptions == null)
             {
                 _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider, _httpSettings);
-                _replyChannelDispatcherTask =  _serviceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
+                _replyChannelDispatcherTask = _serviceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
             }
         }
 
@@ -111,7 +114,7 @@ namespace CoreWCF.Channels
                     return;
                 }
 
-                var channel = new ServerWebSocketTransportDuplexSessionChannel(context, webSocketContext, _httpSettings, _serviceDispatcher.BaseAddress,_servicesScopeFactory.CreateScope().ServiceProvider);
+                var channel = new ServerWebSocketTransportDuplexSessionChannel(context, webSocketContext, _httpSettings, _serviceDispatcher.BaseAddress, _servicesScopeFactory.CreateScope().ServiceProvider);
                 channel.ChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
                 await channel.StartReceivingAsync();
             }
@@ -189,7 +192,7 @@ namespace CoreWCF.Channels
             if (context.WebSockets.IsWebSocketRequest)
             {
                 WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                
+
             }
         }
     }

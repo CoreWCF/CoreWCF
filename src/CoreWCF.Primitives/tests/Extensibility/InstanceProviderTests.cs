@@ -1,11 +1,14 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.Dispatcher;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using Xunit;
-using CoreWCF;
-using Helpers;
-using CoreWCF.Runtime;
 using System.Threading.Tasks;
+using CoreWCF;
+using CoreWCF.Channels;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
+using Helpers;
+using Xunit;
 
 namespace Extensibility
 {

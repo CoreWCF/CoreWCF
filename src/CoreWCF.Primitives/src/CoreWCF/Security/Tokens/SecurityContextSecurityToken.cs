@@ -1,15 +1,18 @@
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Xml;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security.Tokens
 {
-    public class SecurityContextSecurityToken : SecurityToken, IDisposable , TimeBoundedCache.IExpirableItem
+    public class SecurityContextSecurityToken : SecurityToken, IDisposable, TimeBoundedCache.IExpirableItem
     {
         private byte[] cookieBlob;
         private UniqueId contextId = null;
@@ -129,7 +132,7 @@ namespace CoreWCF.Security.Tokens
                 ThrowIfDisposed();
                 return this.authorizationPolicies;
             }
-            
+
             internal set
             {
                 this.authorizationPolicies = value;

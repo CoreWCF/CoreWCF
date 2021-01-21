@@ -1,12 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using CoreWCF.IdentityModel.Policy;
+using System.Security.Principal;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime.Diagnostics;
-using System.Security.Principal;
 using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security

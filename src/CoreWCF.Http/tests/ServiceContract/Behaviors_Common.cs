@@ -1,11 +1,14 @@
-using CoreWCF;
-using CoreWCF.Channels;
-using CoreWCF.Description;
-using CoreWCF.Dispatcher;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Text;
+using CoreWCF;
+using CoreWCF.Channels;
+using CoreWCF.Description;
+using CoreWCF.Dispatcher;
 
 namespace ServiceContract
 {
@@ -80,9 +83,9 @@ namespace ServiceContract
 
         public bool IsDispatcherContractBehaviorOnlyInvoked()
         {
-            if (m_BehaviorFlags.DisptacherContractBehaviorFlag&&
+            if (m_BehaviorFlags.DisptacherContractBehaviorFlag &&
                 !m_BehaviorFlags.ProxyContractBehaviorFlag &&
-                !m_BehaviorFlags.ServiceBehaviorFlag &&                
+                !m_BehaviorFlags.ServiceBehaviorFlag &&
                 !m_BehaviorFlags.ChannelBehaviorFlag &&
                 !m_BehaviorFlags.ProxyOperationBehaviorFlag &&
                 !m_BehaviorFlags.DisptacherOperationBehaviorFlag &&
@@ -98,8 +101,8 @@ namespace ServiceContract
 
         public bool IsDispatcherOperationBehaviorOnlyInvoked()
         {
-            if (m_BehaviorFlags.DisptacherOperationBehaviorFlag && 
-                !m_BehaviorFlags.ProxyOperationBehaviorFlag && 
+            if (m_BehaviorFlags.DisptacherOperationBehaviorFlag &&
+                !m_BehaviorFlags.ProxyOperationBehaviorFlag &&
                 !m_BehaviorFlags.DisptacherContractBehaviorFlag &&
                 !m_BehaviorFlags.ProxyContractBehaviorFlag &&
                 !m_BehaviorFlags.ServiceBehaviorFlag &&
@@ -174,11 +177,11 @@ namespace ServiceContract
         public void Validate(ServiceEndpoint endpoint)
         {
         }
-        
+
         public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection parameters)
         {
-        }  
-        
+        }
+
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime behavior)
         {
             m_BehaviorFlags.ChannelBehaviorFlag = true;
@@ -239,8 +242,8 @@ namespace ServiceContract
         }
     }
 
-    public enum BehaviorType 
-        { IServiceBehavior, IEndpointBehavior, IContractBehavior, IOperationBehavior }
+    public enum BehaviorType
+    { IServiceBehavior, IEndpointBehavior, IContractBehavior, IOperationBehavior }
 
     public class BehaviorInvokedVerifier
     {
@@ -250,9 +253,9 @@ namespace ServiceContract
 
             for (int i = 0; i < CustomBehaviorsList.Count; i++)
             {
-                BehaviorType key = (BehaviorType) CustomBehaviorsList.GetKey(i);
+                BehaviorType key = (BehaviorType)CustomBehaviorsList.GetKey(i);
                 Collection<CustomBehaviorAttribute> CustomBehaviorsColln = CustomBehaviorsList.GetByIndex(i) as Collection<CustomBehaviorAttribute>;
-            
+
                 foreach (CustomBehaviorAttribute cba in CustomBehaviorsColln)
                 {
                     bool behaviorInvoked = false;

@@ -1,11 +1,14 @@
-using CoreWCF.Channels;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
 using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 using XmlAttributeHolder = CoreWCF.IdentityModel.XmlAttributeHolder;
@@ -174,13 +177,13 @@ namespace CoreWCF.Security
 
             if (this.fullBodyFragment != null)
             {
-                ((IFragmentCapableXmlDictionaryWriter) writer).WriteFragment(this.fullBodyFragment, 0, this.fullBodyFragmentLength);
+                ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(this.fullBodyFragment, 0, this.fullBodyFragmentLength);
             }
             else
             {
                 if (this.startBodyFragment != null)
                 {
-                    ((IFragmentCapableXmlDictionaryWriter) writer).WriteFragment(this.startBodyFragment.GetBuffer(), 0, (int) this.startBodyFragment.Length);
+                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(this.startBodyFragment.GetBuffer(), 0, (int)this.startBodyFragment.Length);
                 }
                 else
                 {
@@ -191,7 +194,7 @@ namespace CoreWCF.Security
 
                 if (this.endBodyFragment != null)
                 {
-                    ((IFragmentCapableXmlDictionaryWriter) writer).WriteFragment(this.endBodyFragment.GetBuffer(), 0, (int) this.endBodyFragment.Length);
+                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(this.endBodyFragment.GetBuffer(), 0, (int)this.endBodyFragment.Length);
                 }
                 else
                 {
@@ -266,7 +269,7 @@ namespace CoreWCF.Security
             ((IFragmentCapableXmlDictionaryWriter)encryptingWriter).EndFragment();
             encryptingWriter.WriteEndElement();
             ms.Flush();
-            encryptedData.SetUpEncryption(algorithm, new ArraySegment<byte>(ms.GetBuffer(), 0, (int) ms.Length));
+            encryptedData.SetUpEncryption(algorithm, new ArraySegment<byte>(ms.GetBuffer(), 0, (int)ms.Length));
 
             this.fullBodyBuffer = new XmlBuffer(int.MaxValue);
             XmlDictionaryWriter canonicalWriter = this.fullBodyBuffer.OpenSection(XmlDictionaryReaderQuotas.Max);
@@ -327,7 +330,7 @@ namespace CoreWCF.Security
             Stream stream, bool includeComments, string[] inclusivePrefixes,
             EncryptedData encryptedData, SymmetricAlgorithm algorithm, XmlDictionaryWriter writer)
         {
-            IFragmentCapableXmlDictionaryWriter fragmentingWriter = (IFragmentCapableXmlDictionaryWriter) writer;
+            IFragmentCapableXmlDictionaryWriter fragmentingWriter = (IFragmentCapableXmlDictionaryWriter)writer;
 
             SetBodyId();
             encryptedData.Id = this.securityHeader.GenerateId();
@@ -363,7 +366,7 @@ namespace CoreWCF.Security
 
         public void WriteBodyToSignWithFragments(Stream stream, bool includeComments, string[] inclusivePrefixes, XmlDictionaryWriter writer)
         {
-            IFragmentCapableXmlDictionaryWriter fragmentingWriter = (IFragmentCapableXmlDictionaryWriter) writer;
+            IFragmentCapableXmlDictionaryWriter fragmentingWriter = (IFragmentCapableXmlDictionaryWriter)writer;
 
             SetBodyId();
             BufferedOutputStream fullBodyFragment = new BufferManagerOutputStream(SR.XmlBufferQuotaExceeded, 1024, int.MaxValue, this.securityHeader.StreamBufferManager);
@@ -421,7 +424,7 @@ namespace CoreWCF.Security
             public ArraySegment<byte> ExtractResult()
             {
                 this.writer.Flush();
-                return new ArraySegment<byte>(this.stream.GetBuffer(), 0, (int) this.stream.Length);
+                return new ArraySegment<byte>(this.stream.GetBuffer(), 0, (int)this.stream.Length);
             }
         }
 

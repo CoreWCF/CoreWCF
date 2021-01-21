@@ -1,3 +1,11 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel.Policy;
@@ -5,11 +13,6 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CoreWCF.Security
 {
@@ -24,7 +27,7 @@ namespace CoreWCF.Security
             SecurityProtocolFactory = factory;
             Target = target;
             Via = via;
-           CommunicationObject = new WrapperSecurityCommunicationObject(this);
+            CommunicationObject = new WrapperSecurityCommunicationObject(this);
         }
 
         protected WrapperSecurityCommunicationObject CommunicationObject { get; }
@@ -572,7 +575,7 @@ namespace CoreWCF.Security
         public abstract Message SecureOutgoingMessage(Message message, CancellationToken token);
 
         // subclasses that offer correlation should override this version
-        public virtual (SecurityProtocolCorrelationState, Message) SecureOutgoingMessage(Message message , CancellationToken token, SecurityProtocolCorrelationState correlationState)
+        public virtual (SecurityProtocolCorrelationState, Message) SecureOutgoingMessage(Message message, CancellationToken token, SecurityProtocolCorrelationState correlationState)
         {
             return (null, SecureOutgoingMessage(message, token));
         }
@@ -628,9 +631,9 @@ namespace CoreWCF.Security
             }
             else
             {
-              this.CommunicationObject.CloseAsync();
+                this.CommunicationObject.CloseAsync();
             }
-           return Task.CompletedTask;
+            return Task.CompletedTask;
         }
         public Task OnCloseAsync(TimeSpan timeout)
         {

@@ -1,12 +1,14 @@
-﻿using System;
-using System.Globalization;
-using CoreWCF;
-using System.IO;
-using System.Text;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Buffers;
+using System.Globalization;
+using System.IO;
 using System.IO.Pipelines;
+using System.Text;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -58,7 +60,7 @@ namespace CoreWCF.Channels.Framing
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
             }
             int bytesConsumed = 0;
-            
+
             while (bytesConsumed < buffer.Length)
             {
                 var data = buffer.First.Span;
@@ -152,7 +154,7 @@ namespace CoreWCF.Channels.Framing
                         bytesConsumed = bytesNeeded;
                         if (buffer.Length < bytesNeeded)
                             bytesConsumed = (int)buffer.Length;
-                        
+
                         Span<byte> span = encodedBytes;
                         Span<byte> slicedBytes = span.Slice(encodedSize - bytesNeeded, bytesConsumed);
                         var tempBuffer = buffer.Slice(0, bytesConsumed);
@@ -475,7 +477,7 @@ namespace CoreWCF.Channels.Framing
         {
             DecoderHelper.ValidateSize(buffer.Length);
             var data = buffer.First.Span;
-            
+
             try
             {
                 int bytesConsumed;
@@ -536,11 +538,11 @@ namespace CoreWCF.Channels.Framing
                 {
                     return false;
                 }
-                
+
                 buffer = readResult.Buffer;
-                
-                while(buffer.Length > 0)
-                { 
+
+                while (buffer.Length > 0)
+                {
                     int bytesDecoded;
                     try
                     {

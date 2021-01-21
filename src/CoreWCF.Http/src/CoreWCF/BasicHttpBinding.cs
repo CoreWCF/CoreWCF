@@ -1,5 +1,6 @@
-using System;
-using System.Xml;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF.Channels;
 
 namespace CoreWCF
@@ -27,7 +28,7 @@ namespace CoreWCF
 
             // return collection of BindingElements
             BindingElementCollection bindingElements = new BindingElementCollection();
-            
+
             // order of BindingElements is important
             // add encoding
             if (MessageEncoding == WSMessageEncoding.Text)

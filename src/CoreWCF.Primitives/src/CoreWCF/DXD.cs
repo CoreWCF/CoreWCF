@@ -1,11 +1,14 @@
-using System.Xml;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
+using System.Xml;
 namespace CoreWCF
 {
     // NOTE: This is a dynamic dictionary of XmlDictionaryStrings for the Binary Encoder to dynamically encode should
     // the string not exist in the static cache.
     // When adding or removing memebers please keep the capacity of the XmlDictionary field current.
-   internal static class DXD
+    internal static class DXD
     {
         static AtomicTransactionExternal11Dictionary atomicTransactionExternal11Dictionary;
         static CoordinationExternal11Dictionary coordinationExternal11Dictionary;
@@ -64,7 +67,7 @@ namespace CoreWCF
         }
     }
 
-   internal class AtomicTransactionExternal11Dictionary
+    internal class AtomicTransactionExternal11Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString CompletionUri;
@@ -100,7 +103,7 @@ namespace CoreWCF
         }
     }
 
-   internal class CoordinationExternal11Dictionary
+    internal class CoordinationExternal11Dictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString CreateCoordinationContextAction;
@@ -124,7 +127,7 @@ namespace CoreWCF
         }
     }
 
-   public class SecureConversationDec2005Dictionary : SecureConversationDictionary
+    public class SecureConversationDec2005Dictionary : SecureConversationDictionary
     {
         public XmlDictionaryString RequestSecurityContextRenew;
         public XmlDictionaryString RequestSecurityContextRenewResponse;
@@ -132,7 +135,7 @@ namespace CoreWCF
         public XmlDictionaryString RequestSecurityContextCloseResponse;
         public XmlDictionaryString Instance;
 
-        public List<XmlDictionaryString> SecureConversationDictionaryStrings = new List<XmlDictionaryString>();  
+        public List<XmlDictionaryString> SecureConversationDictionaryStrings = new List<XmlDictionaryString>();
 
         public SecureConversationDec2005Dictionary(XmlDictionary dictionary)
         {
@@ -498,7 +501,7 @@ namespace CoreWCF
         public const string UnknownTransaction = "UnknownTransaction";
     }
 
-   internal static class CoordinationExternal11Strings
+    internal static class CoordinationExternal11Strings
     {
         // dictionary strings
         public const string Namespace = "http://docs.oasis-open.org/ws-tx/wscoor/2006/06";
@@ -541,7 +544,7 @@ namespace CoreWCF
         public const string Instance = "Instance";
     }
 
-   internal static class SecurityAlgorithmDec2005Strings
+    internal static class SecurityAlgorithmDec2005Strings
     {
         // dictionary strings
         public const string Psha1KeyDerivationDec2005 = "http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512/dk/p_sha1";
@@ -616,7 +619,7 @@ namespace CoreWCF
         public const string DialectType = "http://schemas.xmlsoap.org/ws/2005/05/identity";
     }
 
-   internal static class Wsrm11Strings
+    internal static class Wsrm11Strings
     {
         // dictionary strings
         public const string AckRequestedAction = "http://docs.oasis-open.org/ws-rx/wsrm/200702/AckRequested";

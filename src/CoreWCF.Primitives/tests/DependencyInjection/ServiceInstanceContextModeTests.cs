@@ -1,14 +1,17 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Threading;
+using CoreWCF;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using DispatcherClient;
 using Extensibility;
 using Helpers;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Threading;
 using Xunit;
 
 namespace DependencyInjection
@@ -306,7 +309,7 @@ namespace DependencyInjection
         public static void WaitForDisposalCount(int expectedDisposals, TimeSpan maxWait)
         {
             DateTime maxWaitDeadline = DateTime.Now + maxWait;
-            while(DateTime.Now < maxWaitDeadline && expectedDisposals > DisposalCount)
+            while (DateTime.Now < maxWaitDeadline && expectedDisposals > DisposalCount)
             {
                 // There's a small race condition here where DisposalCount could be incremented and the MRE set
                 // before we call reset. In which case we'll wait maxWait time and then the test will pass. The

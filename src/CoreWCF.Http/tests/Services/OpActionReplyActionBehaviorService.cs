@@ -1,4 +1,7 @@
-﻿using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using CoreWCF.Channels;
 using Xunit;
 
 namespace Services
@@ -25,7 +28,7 @@ namespace Services
         }
 
         public Message TestMethodCheckUntypedReplyAction()
-        {            
+        {
             Message serviceMessage = Message.CreateMessage(MessageVersion.Soap11, "myAction");
             return serviceMessage;
         }

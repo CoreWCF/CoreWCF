@@ -1,7 +1,10 @@
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Security.Authentication.ExtendedProtection;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security.Tokens
 {
@@ -23,11 +26,11 @@ namespace CoreWCF.Security.Tokens
         /// Constructor to create an instance of this class.
         /// </summary>
         /// <param name="securityToken">SecurityToken that represents the SecurityTokenElement element.</param>
-        public ProviderBackedSecurityToken( SecurityTokenProvider tokenProvider, TimeSpan timeout )
+        public ProviderBackedSecurityToken(SecurityTokenProvider tokenProvider, TimeSpan timeout)
         {
             _lock = new object();
 
-            if ( tokenProvider == null )
+            if (tokenProvider == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(tokenProvider)));
             }
@@ -53,7 +56,7 @@ namespace CoreWCF.Security.Tokens
             //    {
             //        if ( _securityToken == null )
             //        {
-                        
+
             //            ClientCredentialsSecurityTokenManager.KerberosSecurityTokenProviderWrapper kerbTokenProvider = _tokenProvider 
             //                                            as ClientCredentialsSecurityTokenManager.KerberosSecurityTokenProviderWrapper;
             //            if (kerbTokenProvider != null)
@@ -80,7 +83,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                if ( _securityToken == null )
+                if (_securityToken == null)
                 {
                     ResolveSecurityToken();
                 }
@@ -93,7 +96,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                if ( _securityToken == null )
+                if (_securityToken == null)
                 {
                     ResolveSecurityToken();
                 }
@@ -106,20 +109,20 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                if ( _securityToken == null )
+                if (_securityToken == null)
                 {
                     ResolveSecurityToken();
                 }
 
                 return _securityToken.SecurityKeys;
-            }   
+            }
         }
 
         public override DateTime ValidFrom
         {
             get
             {
-                if ( _securityToken == null )
+                if (_securityToken == null)
                 {
                     ResolveSecurityToken();
                 }
@@ -132,13 +135,13 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                if ( _securityToken == null )
+                if (_securityToken == null)
                 {
                     ResolveSecurityToken();
                 }
 
                 return _securityToken.ValidTo;
-            }   
+            }
         }
     }
 }

@@ -1,7 +1,10 @@
-using CoreWCF.IdentityModel.Selectors;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using CoreWCF.IdentityModel.Selectors;
 
 namespace CoreWCF.Security
 {
@@ -70,28 +73,28 @@ namespace CoreWCF.Security
         }
 
 
-        public IList<X509Certificate2> KnownCertificates 
-        { 
-            get 
+        public IList<X509Certificate2> KnownCertificates
+        {
+            get
             {
                 if (this.isReadOnly)
                     return this.knownCertificates.AsReadOnly();
                 else
-                    return this.knownCertificates; 
+                    return this.knownCertificates;
             }
         }
-        
+
         public SamlSerializer SamlSerializer
-        { 
-            get 
-            { 
-                return this.samlSerializer; 
-            } 
-            set 
+        {
+            get
+            {
+                return this.samlSerializer;
+            }
+            set
             {
                 ThrowIfImmutable();
                 this.samlSerializer = value;
-            } 
+            }
         }
 
         public X509CertificateValidationMode CertificateValidationMode

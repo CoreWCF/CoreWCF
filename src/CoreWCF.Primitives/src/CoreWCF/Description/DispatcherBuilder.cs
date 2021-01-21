@@ -1,15 +1,17 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Xml;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
@@ -303,7 +305,7 @@ namespace CoreWCF.Description
                                     // so let's go ahead and throw now
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                         new InvalidOperationException(
-                                            SR.Format(SR.SFxDuplicateInitiatingActionAtSameVia,endpointInfos[i].Endpoint.ListenUri, commonAction)));
+                                            SR.Format(SR.SFxDuplicateInitiatingActionAtSameVia, endpointInfos[i].Endpoint.ListenUri, commonAction)));
                                 }
                             }
                         }

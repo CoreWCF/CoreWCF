@@ -1,15 +1,13 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.ObjectModel;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security;
-using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
-using System.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
@@ -334,7 +332,7 @@ namespace CoreWCF.Dispatcher
         {
             //using (ServiceModelActivity.BoundOperation(this.Activity))
             //{
-                this.channelHandler.EnsureReceive();
+            this.channelHandler.EnsureReceive();
             //}
         }
 

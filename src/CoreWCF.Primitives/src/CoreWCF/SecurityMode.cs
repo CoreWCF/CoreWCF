@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 
 namespace CoreWCF
@@ -21,7 +24,7 @@ namespace CoreWCF
         TransportCredentialOnly = 0x040,
     }
 
-   public static class SecurityModeHelper
+    public static class SecurityModeHelper
     {
         public static bool IsDefined(SecurityMode value)
         {

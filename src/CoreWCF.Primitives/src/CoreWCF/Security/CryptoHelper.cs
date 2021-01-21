@@ -1,7 +1,10 @@
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Security.Cryptography;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
 using CryptoAlgorithms = CoreWCF.IdentityModel.CryptoHelper;
 
 namespace CoreWCF.Security
@@ -55,9 +58,9 @@ namespace CoreWCF.Security
             switch (digestMethod)
             {
                 case SecurityAlgorithms.Sha1Digest:
-                        return SHA1.Create();
+                    return SHA1.Create();
                 case SecurityAlgorithms.Sha256Digest:
-                        return SHA256.Create();
+                    return SHA256.Create();
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.UnsupportedCryptoAlgorithm, digestMethod)));
 
@@ -90,7 +93,7 @@ namespace CoreWCF.Security
             {
                 case SecurityAlgorithms.RsaSha1Signature:
                 case SecurityAlgorithms.DsaSha1Signature:
-                        return SHA1.Create();
+                    return SHA1.Create();
                 case SecurityAlgorithms.RsaSha256Signature:
                     return SHA256.Create();
                 default:

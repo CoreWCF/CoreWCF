@@ -1,11 +1,12 @@
-﻿using System.Runtime.CompilerServices;
-using System.Collections.ObjectModel;
-using CoreWCF.Dispatcher;
-using CoreWCF.Security;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
 {

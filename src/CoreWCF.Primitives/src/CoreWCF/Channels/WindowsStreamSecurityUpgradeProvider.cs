@@ -1,9 +1,6 @@
-﻿using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Description;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -13,6 +10,12 @@ using System.Security.Authentication;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Description;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {

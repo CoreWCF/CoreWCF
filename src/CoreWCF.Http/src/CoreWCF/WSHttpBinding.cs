@@ -1,9 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-    public class WSHttpBinding: WSHttpBindingBase
+    public class WSHttpBinding : WSHttpBindingBase
     {
         private static readonly MessageSecurityVersion s_WSMessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
 

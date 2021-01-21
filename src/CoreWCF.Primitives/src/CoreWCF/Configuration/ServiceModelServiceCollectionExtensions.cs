@@ -1,13 +1,14 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using CoreWCF.Channels;
-using CoreWCF.Dispatcher;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
-using CoreWCF.Description;
 using System.Linq;
+using CoreWCF.Channels;
+using CoreWCF.Description;
+using CoreWCF.Dispatcher;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CoreWCF.Configuration
 {
@@ -20,7 +21,7 @@ namespace CoreWCF.Configuration
                 throw new ArgumentNullException(nameof(services));
             }
             services.AddSingleton<WrappingIServer>();
-            for (int i=0; i<services.Count; i++)
+            for (int i = 0; i < services.Count; i++)
             {
                 if (services[i].ServiceType == typeof(IServer))
                 {

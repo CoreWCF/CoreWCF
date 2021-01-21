@@ -1,4 +1,6 @@
-﻿using CoreWCF.IdentityModel;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Xml;
 
 namespace CoreWCF
@@ -957,7 +959,7 @@ namespace CoreWCF
         }
     }
 
-   public class SecureConversationDictionary
+    public class SecureConversationDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString DerivedKeyToken;
@@ -1299,7 +1301,7 @@ namespace CoreWCF
         }
     }
 
-   internal class TrustDictionary
+    internal class TrustDictionary
     {
         public XmlDictionaryString RequestSecurityTokenResponseCollection;
         public XmlDictionaryString Namespace;

@@ -1,12 +1,15 @@
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Xml;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -108,7 +111,7 @@ namespace CoreWCF.Security
         public abstract void WriteRequestSecurityTokenResponseCollection(RequestSecurityTokenResponseCollection rstrCollection, XmlWriter writer);
 
         // Federation proxy creation
-      //  public abstract IChannelFactory<IRequestChannel> CreateFederationProxy(EndpointAddress address, Binding binding, KeyedByTypeCollection<IEndpointBehavior> channelBehaviors);
+        //  public abstract IChannelFactory<IRequestChannel> CreateFederationProxy(EndpointAddress address, Binding binding, KeyedByTypeCollection<IEndpointBehavior> channelBehaviors);
         public abstract XmlElement CreateKeySizeElement(int keySize);
         public abstract XmlElement CreateKeyTypeElement(SecurityKeyType keyType);
         public abstract XmlElement CreateTokenTypeElement(string tokenTypeUri);

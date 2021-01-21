@@ -1,10 +1,13 @@
-﻿using CoreWCF.Configuration;
-using CoreWCF.Dispatcher;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -48,7 +51,7 @@ namespace CoreWCF.Channels
             }
         }
 
-       internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
+        internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
         {
             return GetTypedServiceDispatcher<TChannel>().AddDispatcher(innerDispatcher, filter);
         }
@@ -60,7 +63,7 @@ namespace CoreWCF.Channels
 
         internal void RemoveServiceDispatcher<TChannel>(MessageFilter filter)
         {
-             GetTypedServiceDispatcher<TChannel>().RemoveDispatcher(filter);
+            GetTypedServiceDispatcher<TChannel>().RemoveDispatcher(filter);
         }
         internal TypedChannelDemuxer GetTypedServiceDispatcher<TChannel>()
         {
@@ -169,13 +172,13 @@ namespace CoreWCF.Channels
         MessageFilterTable<IServiceDispatcher> filterTable;
         TInnerChannel innerChannel;
         IServiceDispatcher innerDispatcher;
-       IChannelDemuxFailureHandler demuxFailureHandler;
+        IChannelDemuxFailureHandler demuxFailureHandler;
         // since the OnOuterListenerOpen method will be called for every outer listener and we will open
         // the inner listener only once, we need to ensure that all the outer listeners wait till the 
         // inner listener is opened.
         public DatagramChannelDemuxer()
         {
-           filterTable = new MessageFilterTable<IServiceDispatcher>();
+            filterTable = new MessageFilterTable<IServiceDispatcher>();
         }
 
         public DatagramChannelDemuxer(IChannelDemuxFailureHandler demuxFailureHandlerPassed)

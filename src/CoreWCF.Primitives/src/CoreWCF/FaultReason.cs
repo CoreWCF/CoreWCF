@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -54,7 +57,7 @@ namespace CoreWCF
 
         private void Init(FaultReasonText translation)
         {
-            Init(new FaultReasonText[] {translation});
+            Init(new FaultReasonText[] { translation });
         }
 
         private void Init(FaultReasonText[] translations)

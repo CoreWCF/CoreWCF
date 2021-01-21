@@ -1,3 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
@@ -10,12 +19,6 @@ using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace CoreWCF.Security
 {
@@ -1903,7 +1906,7 @@ namespace CoreWCF.Security
                 }
 
                 public override Task CloseAsync(CancellationToken token)
-                {   
+                {
                     base.CloseAsync(token);
                     return Task.CompletedTask;
                 }

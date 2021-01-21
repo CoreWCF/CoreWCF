@@ -1,13 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Security;
-using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Runtime;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
-using System.Diagnostics;
-using System.Runtime.ExceptionServices;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
@@ -77,7 +79,7 @@ namespace CoreWCF.Dispatcher
                 // When doing so make sure there is enought test coverage se PR comment at link below for a good starting point
                 // https://github.com/CoreWCF/CoreWCF/pull/54/files/8db6ff9ad6940a1056363defd1f6449adee56e1a#r333826132
                 var tupleResult = await InvokeAsyncCore(instance, inputs);
-                
+
                 AggregateException ae = null;
                 Task task = null;
 
@@ -227,7 +229,7 @@ namespace CoreWCF.Dispatcher
                     }
                     //await returnValueTask;
                 }
-                
+
                 // returnValue is null
                 return new ValueTask<(Task returnValue, object[] outputs)>((returnValueTask, outputs));
             }
@@ -245,8 +247,8 @@ namespace CoreWCF.Dispatcher
                 // Any exception above means InvokeEnd will not be called, so complete it here.
                 //if (callFailed || callFaulted)
                 //{
-                    //AsyncMethodInvoker.StopOperationInvokeTrace(callFailed, callFaulted, TaskMethod.Name);
-                    //AsyncMethodInvoker.StopOperationInvokePerformanceCounters(callFailed, callFaulted, TaskMethod.Name);
+                //AsyncMethodInvoker.StopOperationInvokeTrace(callFailed, callFaulted, TaskMethod.Name);
+                //AsyncMethodInvoker.StopOperationInvokePerformanceCounters(callFailed, callFaulted, TaskMethod.Name);
                 //}
             }
         }

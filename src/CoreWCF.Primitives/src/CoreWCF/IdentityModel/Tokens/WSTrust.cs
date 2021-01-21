@@ -1,13 +1,16 @@
-﻿namespace CoreWCF.IdentityModel.Security
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+namespace CoreWCF.IdentityModel.Security
 {
     using System;
     using System.Collections.Generic;
+    using System.Xml;
     using CoreWCF.IdentityModel;
     using CoreWCF.IdentityModel.Selectors;
     using CoreWCF.IdentityModel.Tokens;
     using CoreWCF.Security;
     using CoreWCF.Security.Tokens;
-    using System.Xml;
     using KeyIdentifierClauseEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.KeyIdentifierClauseEntry;
 
     internal class WSTrust : SecurityTokenSerializer.SerializerEntries

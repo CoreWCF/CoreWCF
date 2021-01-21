@@ -1,13 +1,14 @@
-﻿using CoreWCF.IdentityModel.Claims;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Text;
 using System.Xml;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF
 {

@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
@@ -258,8 +261,8 @@ namespace CoreWCF.Channels
             //}
             //else
             //{
-                //build intersection between AuthenticationSchemes supported on the HttpTransportbidningELement and ServiceHost/IIS
-                return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
+            //build intersection between AuthenticationSchemes supported on the HttpTransportbidningELement and ServiceHost/IIS
+            return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
             //}
         }
 
@@ -279,13 +282,13 @@ namespace CoreWCF.Channels
                 if (value.PolicyEnforcement == PolicyEnforcement.Always &&
                     !System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy.OSSupportsExtendedProtection)
                 {
-                   throw new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported);
+                    throw new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported);
                 }
 
                 _extendedProtectionPolicy = value;
             }
         }
 
-      //  public override Type MiddlewareType => typeof(ServiceModelHttpMiddleware);
+        //  public override Type MiddlewareType => typeof(ServiceModelHttpMiddleware);
     }
 }

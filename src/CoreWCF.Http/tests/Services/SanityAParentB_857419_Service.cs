@@ -1,6 +1,9 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF;
 using ServiceContract;
-using System;
 
 namespace Services
 {
@@ -18,7 +21,7 @@ namespace Services
 
         public string StringMethod(string s)
         {
-            Console.WriteLine(s);           
+            Console.WriteLine(s);
             return s;
         }
 
@@ -28,7 +31,7 @@ namespace Services
             {
                 throw new Exception("Wrong value received = <" + input + ">");
             }
-           
+
             return input;
         }
 

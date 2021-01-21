@@ -1,9 +1,7 @@
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF;
-using CoreWCF.IdentityModel.Policy;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
-using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Security
 {
@@ -11,12 +9,12 @@ namespace CoreWCF.Security
     {
         SecurityToken token;
         SignatureConfirmations signatureConfirmations;
-       // ServiceModelActivity activity;
+        // ServiceModelActivity activity;
 
         public SecurityProtocolCorrelationState(SecurityToken token)
         {
             this.token = token;
-          //  this.activity = DiagnosticUtility.ShouldUseActivity ? ServiceModelActivity.Current : null;
+            //  this.activity = DiagnosticUtility.ShouldUseActivity ? ServiceModelActivity.Current : null;
         }
 
         public SecurityToken Token

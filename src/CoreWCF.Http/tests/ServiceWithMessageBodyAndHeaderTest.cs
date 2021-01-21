@@ -1,20 +1,23 @@
-﻿using CoreWCF.Configuration;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.ServiceModel.Channels;
+using System.Text;
 using ClientContract;
+using CoreWCF;
+using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
-using CoreWCF;
-using System.ServiceModel.Channels;
 
 namespace BasicHttp
 {
-   public class ServiceWithMessageBodyAndHeaderTest
+    public class ServiceWithMessageBodyAndHeaderTest
     {
         private ITestOutputHelper _output;
 
@@ -35,8 +38,8 @@ namespace BasicHttp
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
                 var channel = factory.CreateChannel();
 
-             
-                CoreEchoMessageResponse result = channel.EchoWithMessageContract (new CoreEchoMessageRequest() { Text = "Message Hello", APIKey = "DEVKEYTOTEST" });
+
+                CoreEchoMessageResponse result = channel.EchoWithMessageContract(new CoreEchoMessageRequest() { Text = "Message Hello", APIKey = "DEVKEYTOTEST" });
                 Assert.NotNull(result);
                 ((IChannel)channel).Close();
             }

@@ -1,23 +1,20 @@
-﻿//------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-//------------------------------------------------------------
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Security.Authentication.ExtendedProtection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Primitives;
 
 namespace CoreWCF.Channels
@@ -928,7 +925,7 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
-                    if(httpResponse.Headers.ContainsKey(name))
+                    if (httpResponse.Headers.ContainsKey(name))
                     {
                         var previousValues = httpResponse.Headers[name];
                         httpResponse.Headers[name] = StringValues.Concat(previousValues, value);
@@ -1012,8 +1009,8 @@ namespace CoreWCF.Channels
     {
         internal static class StatusDescriptionStrings
         {
-                    internal const string HttpContentTypeMissing = "Missing Content Type";
-                    internal const string HttpContentTypeMismatch = "Cannot process the message because the content type '{0}' was not the expected type '{1}'.";
+            internal const string HttpContentTypeMissing = "Missing Content Type";
+            internal const string HttpContentTypeMismatch = "Cannot process the message because the content type '{0}' was not the expected type '{1}'.";
         }
 
         internal const string HttpStatusCodeKey = "HttpStatusCode";

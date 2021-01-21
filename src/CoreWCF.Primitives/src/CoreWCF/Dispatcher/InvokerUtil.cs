@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Security;
 
 namespace CoreWCF.Dispatcher
 {
@@ -45,7 +47,7 @@ namespace CoreWCF.Dispatcher
         {
             internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
             {
-                
+
                 if (type.GetTypeInfo().IsValueType)
                 {
                     MethodInfo method = typeof(CriticalHelper).GetMethod(nameof(CreateInstanceOfStruct),
@@ -116,7 +118,7 @@ namespace CoreWCF.Dispatcher
                             method.Invoke(target, inputsLocal);
                         }
                     }
-                    catch(TargetInvocationException tie)
+                    catch (TargetInvocationException tie)
                     {
                         ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
                     }
@@ -157,11 +159,11 @@ namespace CoreWCF.Dispatcher
 
             //public InvokeEndDelegate GenerateInvokeEndDelegate(MethodInfo method, out int outParameterCount)
             //{
-                
+
             //    InvokeEndDelegate lambda =
             //        delegate(object target, object[] outputs, IAsyncResult result)
             //        {
-                        
+
             //        }
             //}
         }

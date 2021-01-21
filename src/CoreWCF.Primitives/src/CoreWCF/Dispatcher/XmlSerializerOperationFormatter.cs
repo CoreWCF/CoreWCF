@@ -1,10 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using System.Xml.Schema;
 using System.Xml.Serialization;
 using CoreWCF.Channels;
 using CoreWCF.Description;
@@ -219,7 +221,7 @@ namespace CoreWCF.Dispatcher
                 {
                     bufferReader.ReadStartElement();
                     // TODO: Use overload with encoding once available
-                    object[] headerValues = (object[]) serializer.Deserialize(bufferReader); //, isEncoded ? GetEncoding(message.Version.Envelope) : null);
+                    object[] headerValues = (object[])serializer.Deserialize(bufferReader); //, isEncoded ? GetEncoding(message.Version.Envelope) : null);
                     int headerIndex = 0;
                     foreach (MessageHeaderDescription headerDescription in messageDescription.Headers)
                     {

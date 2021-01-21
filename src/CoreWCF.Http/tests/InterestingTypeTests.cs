@@ -1,12 +1,15 @@
-﻿using ClientContract;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections;
+using System.Collections.ObjectModel;
+using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections;
-using System.Collections.ObjectModel;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -32,8 +35,8 @@ namespace CoreWCF.Http.Tests
                 var factory = new System.ServiceModel.ChannelFactory<ITypedContract_Collection>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TypedContract_CollectionService.svc")));
                 var channel = factory.CreateChannel();
-                
-                foreach (int numItems in  new int[] {1, 5, 15, 50 })
+
+                foreach (int numItems in new int[] { 1, 5, 15, 50 })
                 {
                     //arraylist
                     var outgoingAL = new ArrayList();

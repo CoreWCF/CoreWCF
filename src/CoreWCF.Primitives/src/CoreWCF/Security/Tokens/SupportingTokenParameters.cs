@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -124,13 +127,13 @@ namespace CoreWCF.Security.Tokens
         public SupportingTokenParameters Clone()
         {
             SupportingTokenParameters parameters = this.CloneCore();
-           /* if (parameters == null || parameters.GetType() != this.GetType())
-            {
-                TraceUtility.TraceEvent(
-                    TraceEventType.Error, 
-                    TraceCode.Security, 
-                    SR.GetString(SR.CloneNotImplementedCorrectly, new object[] { this.GetType(), (parameters != null) ? parameters.ToString() : "null" }));
-            }*/
+            /* if (parameters == null || parameters.GetType() != this.GetType())
+             {
+                 TraceUtility.TraceEvent(
+                     TraceEventType.Error, 
+                     TraceCode.Security, 
+                     SR.GetString(SR.CloneNotImplementedCorrectly, new object[] { this.GetType(), (parameters != null) ? parameters.ToString() : "null" }));
+             }*/
 
             return parameters;
         }

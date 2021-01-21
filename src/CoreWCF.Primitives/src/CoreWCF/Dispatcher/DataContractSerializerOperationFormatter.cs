@@ -1,14 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime;
-using System.Runtime.Serialization;
-using CoreWCF;
-using CoreWCF.Channels;
-using CoreWCF.Description;
-using System.Xml;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.Description;
 
 namespace CoreWCF.Dispatcher
 {
@@ -445,14 +446,14 @@ namespace CoreWCF.Dispatcher
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     OperationFormatter.CreateDeserializationFailedFault(
-                        SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameterMore,part.Description.Namespace, part.Description.Name, e.Message),
+                        SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameterMore, part.Description.Namespace, part.Description.Name, e.Message),
                                      e));
             }
             catch (System.Runtime.Serialization.SerializationException e)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     OperationFormatter.CreateDeserializationFailedFault(
-                        SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameterMore,part.Description.Namespace, part.Description.Name, e.Message),
+                        SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameterMore, part.Description.Namespace, part.Description.Name, e.Message),
                                      e));
             }
 

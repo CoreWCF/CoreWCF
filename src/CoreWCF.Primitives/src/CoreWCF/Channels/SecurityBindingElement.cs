@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using System.Xml;
@@ -487,7 +490,7 @@ namespace CoreWCF.Channels
             }
             return false;
         }
-        
+
         internal bool IsUnderlyingDispatcherDuplex<TChannel>(BindingContext context)
         {
             return ((typeof(TChannel) == typeof(IDuplexSessionChannel)) && context.CanBuildNextServiceDispatcher<IDuplexChannel>()
@@ -675,7 +678,7 @@ namespace CoreWCF.Channels
                 SetIssuerBindingContextIfRequired(parameters, issuerBindingContext);
             }
         }
-       
+
 
         protected static void SetIssuerBindingContextIfRequired(SecurityTokenParameters parameters, BindingContext issuerBindingContext)
         {
@@ -686,7 +689,7 @@ namespace CoreWCF.Channels
             }
             else if (parameters is SspiSecurityTokenParameters)
             {
-                 throw new NotImplementedException();
+                throw new NotImplementedException();
                 // ((SspiSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
             }
         }
@@ -771,7 +774,7 @@ namespace CoreWCF.Channels
                 x509Parameters
                 );
             result.IncludeTimestamp = true;
-           // result.LocalClientSettings.DetectReplays = false;
+            // result.LocalClientSettings.DetectReplays = false;
             result.LocalServiceSettings.DetectReplays = false;
             result.MessageSecurityVersion = version;
 
@@ -823,7 +826,7 @@ namespace CoreWCF.Channels
                 scParameters.RequireDerivedKeys = false;
                 primary.EndpointSupportingTokenParameters.Endorsing.Add(
                     scParameters);
-               // primary.LocalClientSettings.DetectReplays = false;
+                // primary.LocalClientSettings.DetectReplays = false;
                 primary.LocalServiceSettings.DetectReplays = false;
                 primary.IncludeTimestamp = true;
                 result = primary;

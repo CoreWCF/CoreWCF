@@ -1,15 +1,17 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
+using CoreWCF.Configuration;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 using SessionIdleManager = CoreWCF.Channels.ServiceChannel.SessionIdleManager;
-using System.Diagnostics;
-using CoreWCF.Configuration;
 
 namespace CoreWCF.Dispatcher
 {
@@ -537,7 +539,7 @@ namespace CoreWCF.Dispatcher
                 {
                     if (endpoint.DatagramChannel == null)
                     {
-                        endpoint.DatagramChannel = new ServiceChannel(_binder, endpoint, _serviceDispatcher, 
+                        endpoint.DatagramChannel = new ServiceChannel(_binder, endpoint, _serviceDispatcher,
                             _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
                         InitializeServiceChannel(endpoint.DatagramChannel);
                     }
@@ -560,7 +562,7 @@ namespace CoreWCF.Dispatcher
                         endpoint = GetEndpointDispatcher(message, out addressMatched);
                         if (endpoint != null)
                         {
-                            _channel = new ServiceChannel(_binder, endpoint, _serviceDispatcher, 
+                            _channel = new ServiceChannel(_binder, endpoint, _serviceDispatcher,
                                 _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
                             InitializeServiceChannel(_channel);
                         }

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Security;
@@ -27,7 +30,7 @@ namespace WSHttp
             _output = output;
         }
 
-        [Fact , Description("no-security-with-an-anonymous-client")]
+        [Fact, Description("no-security-with-an-anonymous-client")]
         public void WSHttpRequestReplyEchoString()
         {
             string testString = new string('a', 3000);
@@ -76,12 +79,12 @@ namespace WSHttp
             var host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).Build();
             using (host)
             {
-                host.Start(); 
+                host.Start();
                 var wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
-                ClientCredentials clientCredentials = (ClientCredentials) factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
                 clientCredentials.UserName.UserName = "testuser@corewcf";
                 clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
                 factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication();
@@ -97,8 +100,8 @@ namespace WSHttp
             }
         }
 
-       // [Fact, Description("transport-security-with-certificate-authentication")]
-       //TODO set up in container, tested locally and this works
+        // [Fact, Description("transport-security-with-certificate-authentication")]
+        //TODO set up in container, tested locally and this works
         public void WSHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
@@ -106,7 +109,7 @@ namespace WSHttp
             var host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificate>(_output).Build();
             using (host)
             {
-                 host.Start();
+                host.Start();
                 var wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.Certificate;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
@@ -145,7 +148,7 @@ namespace WSHttp
 
         internal class WSHttpTransportWithMessageCredentialWithCertificate : StartupWSHttpBase
         {
-            public WSHttpTransportWithMessageCredentialWithCertificate() : 
+            public WSHttpTransportWithMessageCredentialWithCertificate() :
                 base(CoreWCF.SecurityMode.TransportWithMessageCredential, MessageCredentialType.Certificate)
             {
             }
@@ -167,7 +170,7 @@ namespace WSHttp
 
         internal class WSHttpTransportWithMessageCredentialWithUserName : StartupWSHttpBase
         {
-            public WSHttpTransportWithMessageCredentialWithUserName() : 
+            public WSHttpTransportWithMessageCredentialWithUserName() :
                 base(CoreWCF.SecurityMode.TransportWithMessageCredential, MessageCredentialType.UserName)
             {
             }
@@ -197,7 +200,7 @@ namespace WSHttp
 
         internal class WSHttpNoSecurity : StartupWSHttpBase
         {
-            public WSHttpNoSecurity() : base(CoreWCF.SecurityMode.None,MessageCredentialType.None)
+            public WSHttpNoSecurity() : base(CoreWCF.SecurityMode.None, MessageCredentialType.None)
             {
             }
 
@@ -211,7 +214,7 @@ namespace WSHttp
         {
             CoreWCF.SecurityMode wsHttpSecurityMode;
             MessageCredentialType credentialType;
-            public StartupWSHttpBase(CoreWCF.SecurityMode securityMode,MessageCredentialType credentialType)
+            public StartupWSHttpBase(CoreWCF.SecurityMode securityMode, MessageCredentialType credentialType)
             {
                 this.wsHttpSecurityMode = securityMode;
                 this.credentialType = credentialType;

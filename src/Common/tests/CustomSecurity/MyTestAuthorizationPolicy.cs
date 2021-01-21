@@ -1,8 +1,11 @@
-﻿using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Text;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
 
 namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
@@ -16,7 +19,7 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
 
         public bool Evaluate(EvaluationContext evaluationContext, ref object state)
         {
-                bool bRet = false;
+            bool bRet = false;
             CustomAuthState customstate = null;
 
             // If the state is null, then this has not been called before so 
@@ -33,8 +36,8 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
 
             // If claims have not been added yet...
             if (!customstate.ClaimsAdded)
-            { 
-                    // Create an empty list of claims.
+            {
+                // Create an empty list of claims.
                 IList<Claim> claims = new List<Claim>();
                 claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/EchoString", Rights.PossessProperty));
                 claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/ComplexEcho", Rights.PossessProperty));

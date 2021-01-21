@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -160,7 +163,7 @@ namespace System.Xml.XmlDiff
             if (!string.IsNullOrEmpty(advOptions.IgnoreChildOrderExpr))
             {
                 XPathExpression expr = GenerateXPathExpression(
-                    advOptions.IgnoreChildOrderExpr, 
+                    advOptions.IgnoreChildOrderExpr,
                     advOptions,
                     nav);
 
@@ -183,7 +186,7 @@ namespace System.Xml.XmlDiff
             {
                 XPathExpression expr = GenerateXPathExpression(
                     advOptions.IgnoreValuesExpr,
-                    advOptions, 
+                    advOptions,
                     nav);
 
                 _SourceDoc.IgnoreValues(expr);

@@ -1,17 +1,18 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using System.Security;
 using System.Xml;
 using System.Xml.Serialization;
-using CoreWCF.Collections.Generic;
-using CoreWCF.Runtime;
-using CoreWCF.Runtime.Serialization;
 using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Description
 {
@@ -684,7 +685,7 @@ namespace CoreWCF.Description
 
                     if (isEncoded)
                         throw new PlatformNotSupportedException();
-                        //mapping = this.SoapImporter.ImportMembersMapping(mappingName, ns, members, hasWrapperElement, rpc);
+                    //mapping = this.SoapImporter.ImportMembersMapping(mappingName, ns, members, hasWrapperElement, rpc);
                     else
                         mapping = XmlImporter.ImportMembersMapping(mappingName, ns, members, hasWrapperElement, rpc);
 
@@ -697,7 +698,7 @@ namespace CoreWCF.Description
                 {
                     if (isEncoded)
                         throw new PlatformNotSupportedException();
-                        //return this.SoapImporter.ImportTypeMapping(type);
+                    //return this.SoapImporter.ImportTypeMapping(type);
                     else
                         return XmlImporter.ImportTypeMapping(type);
                 }
@@ -706,7 +707,7 @@ namespace CoreWCF.Description
                 {
                     if (isEncoded)
                         throw new PlatformNotSupportedException();
-                        //this.SoapImporter.IncludeType(knownType);
+                    //this.SoapImporter.IncludeType(knownType);
                     else
                         XmlImporter.IncludeType(knownType);
                 }
@@ -951,7 +952,7 @@ namespace CoreWCF.Description
             {
                 if (isEncoded)
                     throw new PlatformNotSupportedException();
-                    //member.SoapAttributes = new SoapAttributes(additionalAttributesProvider);
+                //member.SoapAttributes = new SoapAttributes(additionalAttributesProvider);
                 else
                     member.XmlAttributes = new XmlAttributes(additionalAttributesProvider);
             }

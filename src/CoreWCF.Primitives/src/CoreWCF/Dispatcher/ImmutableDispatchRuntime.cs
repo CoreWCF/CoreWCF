@@ -1,10 +1,13 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
-using CoreWCF.Runtime;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
-using System.Collections.Generic;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
@@ -617,7 +620,7 @@ namespace CoreWCF.Dispatcher
             if (_concurrency.IsConcurrent(rpc))
             {
                 rpc.EnsureReceive();
-                if(!rpc._processCallReturned)
+                if (!rpc._processCallReturned)
                 {
                     // To allow transport receive loop to get next request, the call to dispatch the current message needs to return.
                     // If all previous await's have completed synchronously, execution needs to be forced to continue on another thread.

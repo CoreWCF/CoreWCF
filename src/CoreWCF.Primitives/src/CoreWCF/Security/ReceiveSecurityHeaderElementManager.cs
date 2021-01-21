@@ -1,10 +1,13 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Security.Cryptography.Xml;
+using System.Xml;
 using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
-using System;
-using System.Security.Cryptography.Xml;
-using System.Xml;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
 
 namespace CoreWCF.Security
@@ -128,7 +131,7 @@ namespace CoreWCF.Security
                             break;
                     }
                 }
-                
+
                 if (!entry.encrypted)
                 {
                     if (entry.elementCategory == ReceiveSecurityHeaderElementCategory.Token &&
@@ -160,7 +163,7 @@ namespace CoreWCF.Security
         public T GetElement<T>(int index) where T : class
         {
             Fx.Assert(0 <= index && index < this.count, "");
-            return (T) this.elements[index].element;
+            return (T)this.elements[index].element;
         }
 
         public void GetElementEntry(int index, out ReceiveSecurityHeaderEntry element)
@@ -230,7 +233,7 @@ namespace CoreWCF.Security
                         this.IsPrimaryTokenSigned = entry.bindingMode == ReceiveSecurityHeaderBindingModes.Primary && entry.elementCategory == ReceiveSecurityHeaderElementCategory.Token;
                     }
                     return GetReader(i, encryptedForm);
-                }                
+                }
                 else if (entry.MatchesId(id, isSignedToken))
                 {
                     SetSigned(i);

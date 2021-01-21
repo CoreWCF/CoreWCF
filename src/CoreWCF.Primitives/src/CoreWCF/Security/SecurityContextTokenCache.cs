@@ -1,10 +1,13 @@
-using CoreWCF.Runtime;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Xml;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -22,8 +25,8 @@ namespace CoreWCF.Security
         private static SctEffectiveTimeComparer sctEffectiveTimeComparer = new SctEffectiveTimeComparer();
         private TimeSpan clockSkew;
 
-        public SecurityContextTokenCache( int capacity, bool replaceOldestEntries )
-            : this( capacity, replaceOldestEntries, SecurityProtocolFactory.defaultMaxClockSkew )
+        public SecurityContextTokenCache(int capacity, bool replaceOldestEntries)
+            : this(capacity, replaceOldestEntries, SecurityProtocolFactory.defaultMaxClockSkew)
         {
         }
 
@@ -39,7 +42,7 @@ namespace CoreWCF.Security
         {
             TryAddContext(token, true);
         }
-        
+
         public bool TryAddContext(SecurityContextSecurityToken token)
         {
             return TryAddContext(token, false);
@@ -52,7 +55,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
 
-            if ( !SecurityUtils.IsCurrentlyTimeEffective( token.ValidFrom, token.ValidTo, this.clockSkew ) )
+            if (!SecurityUtils.IsCurrentlyTimeEffective(token.ValidFrom, token.ValidTo, this.clockSkew))
             {
                 if (token.KeyGeneration == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SecurityContextExpiredNoKeyGeneration, token.ContextId));
@@ -60,7 +63,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SecurityContextExpired, token.ContextId, token.KeyGeneration.ToString()));
             }
 
-            if ( !SecurityUtils.IsCurrentlyTimeEffective( token.KeyEffectiveTime, token.KeyExpirationTime, this.clockSkew ) )
+            if (!SecurityUtils.IsCurrentlyTimeEffective(token.KeyEffectiveTime, token.KeyExpirationTime, this.clockSkew))
             {
                 if (token.KeyGeneration == null)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SecurityContextKeyExpiredNoKeyGeneration, token.ContextId));
@@ -230,7 +233,7 @@ namespace CoreWCF.Security
                     keys.Add(GetHashKey(tokens[i].ContextId, tokens[i].KeyGeneration));
                     OnRemove(tokens[i]);
                 }
-              //  SecurityTraceRecordHelper.TraceSecurityContextTokenCacheFull(this.Capacity, pruningAmount);
+                //  SecurityTraceRecordHelper.TraceSecurityContextTokenCacheFull(this.Capacity, pruningAmount);
                 return keys;
             }
         }

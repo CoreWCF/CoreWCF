@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels.Framing;
@@ -46,7 +46,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            if(!_connectionPoolSemaphore.Wait(0))
+            if (!_connectionPoolSemaphore.Wait(0))
             {
                 //if (DiagnosticUtility.ShouldTraceWarning)
                 //{
@@ -69,7 +69,7 @@ namespace CoreWCF.Channels
             try
             {
                 connection.Reset();
-                
+
                 var ct = new TimeoutHelper(_idleTimeout).GetCancellationToken();
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                     new TimeoutHelper(_idleTimeout).GetCancellationToken(),

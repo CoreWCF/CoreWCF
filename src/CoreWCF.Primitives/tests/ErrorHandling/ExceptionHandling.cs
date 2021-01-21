@@ -1,9 +1,12 @@
-﻿using DispatcherClient;
-using Helpers;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using DispatcherClient;
+using Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ErrorHandling
@@ -14,7 +17,7 @@ namespace ErrorHandling
         public static void ServiceThrowsTimeoutException()
         {
             var factory = DispatcherHelper.CreateChannelFactory<ThrowingService, ISimpleService>(
-                (services) => 
+                (services) =>
                 {
                     services.AddSingleton(new ThrowingService(new TimeoutException()));
                 });
@@ -25,7 +28,7 @@ namespace ErrorHandling
             {
                 var echo = channel.Echo("hello");
             }
-            catch(System.ServiceModel.FaultException e)
+            catch (System.ServiceModel.FaultException e)
             {
                 exceptionThrown = e;
             }

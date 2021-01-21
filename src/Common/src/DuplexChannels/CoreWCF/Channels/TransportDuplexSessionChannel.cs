@@ -1,13 +1,16 @@
-using CoreWCF.Configuration;
-using CoreWCF.Diagnostics;
-using CoreWCF.Dispatcher;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Diagnostics;
 using System.Security.Authentication.ExtendedProtection;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Diagnostics;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {

@@ -1,3 +1,14 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
@@ -8,21 +19,13 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
-using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace CoreWCF.Security
 {
-    internal class SecuritySessionSecurityTokenAuthenticator  : CommunicationObjectSecurityTokenAuthenticator, IIssuanceSecurityTokenAuthenticator //, ILogonTokenCacheManager
+    internal class SecuritySessionSecurityTokenAuthenticator : CommunicationObjectSecurityTokenAuthenticator, IIssuanceSecurityTokenAuthenticator //, ILogonTokenCacheManager
     {
         internal static readonly TimeSpan defaultSessionTokenLifetime = TimeSpan.MaxValue;
-        internal const int defaultMaxCachedSessionTokens = Int32.MaxValue;  
+        internal const int defaultMaxCachedSessionTokens = Int32.MaxValue;
         internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
         private bool isClientAnonymous;
         private TimeSpan sessionTokenLifetime;
@@ -51,7 +54,7 @@ namespace CoreWCF.Security
             this.standardsManager = defaultStandardsManager;
             this.keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy;// AcceleratedTokenProvider.defaultKeyEntropyMode;
             this.maximumConcurrentNegotiations = 128;// AcceleratedTokenAuthenticator.defaultServerMaxActiveNegotiations;
-            this.negotiationTimeout =  TimeSpan.Parse("00:01:00", CultureInfo.InvariantCulture); // AcceleratedTokenAuthenticator.defaultServerMaxNegotiationLifetime;
+            this.negotiationTimeout = TimeSpan.Parse("00:01:00", CultureInfo.InvariantCulture); // AcceleratedTokenAuthenticator.defaultServerMaxNegotiationLifetime;
         }
 
         public IssuedSecurityTokenHandler IssuedSecurityTokenHandler
@@ -401,7 +404,7 @@ namespace CoreWCF.Security
 
         private Message HandleOperationException(SecuritySessionOperation operation, Message request, Exception e)
         {
-           // SecurityTraceRecordHelper.TraceServerSessionOperationException(operation, e, this.ListenUri);
+            // SecurityTraceRecordHelper.TraceServerSessionOperationException(operation, e, this.ListenUri);
             return CreateFault(request, e);
         }
 
@@ -477,14 +480,14 @@ namespace CoreWCF.Security
 
         public override Task CloseAsync(CancellationToken token)
         {
-           /* TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            if (this.rstListener != null)
-            {
-                this.rstListener.Close(timeoutHelper.RemainingTime());
-                this.rstListener = null;
-            }*/
-           
-           return base.CloseAsync(token);
+            /* TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+             if (this.rstListener != null)
+             {
+                 this.rstListener.Close(timeoutHelper.RemainingTime());
+                 this.rstListener = null;
+             }*/
+
+            return base.CloseAsync(token);
         }
 
         public override Task OpenAsync(CancellationToken token)
@@ -515,7 +518,7 @@ namespace CoreWCF.Security
             this.SecurityServiceDispatcher.SecurityAuthServiceDispatcher = new ServiceDispatcher(channelDispatcher);
             this.sctUri = this.StandardsManager.SecureConversationDriver.TokenTypeUri;
             return base.OpenAsync();
-           // base.OnOpen(timeoutHelper.RemainingTime());
+            // base.OnOpen(timeoutHelper.RemainingTime());
         }
 
         protected override bool CanValidateTokenCore(SecurityToken token)
@@ -718,7 +721,7 @@ namespace CoreWCF.Security
             return null;
         }
 
-        
+
         protected virtual Message ProcessRenewRequest(Message request)
         {
             this.CommunicationObject.ThrowIfClosedOrNotOpen();
@@ -858,20 +861,20 @@ namespace CoreWCF.Security
                 if (appliesToName == AddressingStrings.EndpointReference && appliesToNamespace == request.Version.Addressing.Namespace)
                 {
                     if (request.Version.Addressing == AddressingVersion.WSAddressing10)
-                     {
-                         appliesToSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(EndpointAddress10), DataContractSerializerDefaults.MaxItemsInObjectGraph);
-                         appliesTo = rst.GetAppliesTo<EndpointAddress10>(appliesToSerializer).ToEndpointAddress();
-                     }
-                     else if (request.Version.Addressing == AddressingVersion.WSAddressingAugust2004)
-                     {
-                         appliesToSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(EndpointAddressAugust2004), DataContractSerializerDefaults.MaxItemsInObjectGraph);
-                         appliesTo = rst.GetAppliesTo<EndpointAddressAugust2004>(appliesToSerializer).ToEndpointAddress();
-                     }
-                     else
-                     {
-                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                             new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, request.Version.Addressing)));
-                     }
+                    {
+                        appliesToSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(EndpointAddress10), DataContractSerializerDefaults.MaxItemsInObjectGraph);
+                        appliesTo = rst.GetAppliesTo<EndpointAddress10>(appliesToSerializer).ToEndpointAddress();
+                    }
+                    else if (request.Version.Addressing == AddressingVersion.WSAddressingAugust2004)
+                    {
+                        appliesToSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(EndpointAddressAugust2004), DataContractSerializerDefaults.MaxItemsInObjectGraph);
+                        appliesTo = rst.GetAppliesTo<EndpointAddressAugust2004>(appliesToSerializer).ToEndpointAddress();
+                    }
+                    else
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                            new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, request.Version.Addressing)));
+                    }
                 }
                 else
                 {
@@ -1011,10 +1014,10 @@ namespace CoreWCF.Security
             //channelBuilder.Binding.Elements.Insert(0, new ReplyAdapterBindingElement());
             //channelBuilder.Binding.Elements.Insert(0, new SecuritySessionAuthenticatorBindingElement(this));
 
-           List<string> supportedMessageActions = new List<string>();
-           supportedMessageActions.Add(this.IssueAction.Value);
-           supportedMessageActions.Add(this.RenewAction.Value);
-           SecurityBindingElement securityBindingElement = this.IssuerBindingContext.Binding.Elements.Find<SecurityBindingElement>();
+            List<string> supportedMessageActions = new List<string>();
+            supportedMessageActions.Add(this.IssueAction.Value);
+            supportedMessageActions.Add(this.RenewAction.Value);
+            SecurityBindingElement securityBindingElement = this.IssuerBindingContext.Binding.Elements.Find<SecurityBindingElement>();
             foreach (SecurityTokenParameters stp in new SecurityTokenParametersEnumerable(securityBindingElement))
             {
                 if (stp is SecureConversationSecurityTokenParameters)
@@ -1032,7 +1035,7 @@ namespace CoreWCF.Security
             this.RequestSecurityTokenListener = sessionListener;
         }
 
-        
+
         internal void BuildResponderChannelListener<TChannel>(BindingContext context, SecurityServiceDispatcher securityServiceDispatcher)
             where TChannel : class, IChannel
         {
@@ -1080,9 +1083,9 @@ namespace CoreWCF.Security
             bootstrapSecurityProtocolFactory.SecurityBindingElement.OperationSupportingTokenParameters.Add(this.RenewAction.Value, renewSupportingTokenParameters);
             bootstrapSecurityProtocolFactory.SecurityTokenManager = new SessionRenewSecurityTokenManager(bootstrapSecurityProtocolFactory.SecurityTokenManager, this.SessionTokenAuthenticator, (SecurityTokenResolver)this.IssuedTokenCache);
 
-           //We are passing as arguments to use existing dispatcher instead of creating another forwarding dispatcher
-           // SecurityChannelListener<TChannel> securityChannelListener = new SecurityChannelListener<TChannel>(
-           //     this.bootstrapSecurityBindingElement, this.IssuerBindingContext);
+            //We are passing as arguments to use existing dispatcher instead of creating another forwarding dispatcher
+            // SecurityChannelListener<TChannel> securityChannelListener = new SecurityChannelListener<TChannel>(
+            //     this.bootstrapSecurityBindingElement, this.IssuerBindingContext);
             securityServiceDispatcher.SecurityProtocolFactory = bootstrapSecurityProtocolFactory;
             securityServiceDispatcher.SendUnsecuredFaults = true;
             bootstrapSecurityProtocolFactory.OpenAsync(ServiceDefaults.OpenTimeout);
@@ -1095,8 +1098,8 @@ namespace CoreWCF.Security
             //return securityChannelListener;
         }
 
-       internal class SecuritySessionHost //: ServiceHostBase
-       {
+        internal class SecuritySessionHost //: ServiceHostBase
+        {
             //ChannelBuilder channelBuilder;
             private MessageFilter filter;
             private Uri listenUri;
@@ -1144,8 +1147,8 @@ namespace CoreWCF.Security
                 channelDispatcher.MessageVersion = binding.MessageVersion;
                 channelDispatcher.ManualAddressing = true;
                 //  channelDispatcher.ServiceThrottle = new ServiceThrottle(this);
-               //  channelDispatcher.ServiceThrottle.MaxConcurrentCalls = this.authenticator.MaximumConcurrentNegotiations;
-              //  channelDispatcher.ServiceThrottle.MaxConcurrentSessions = this.authenticator.MaximumConcurrentNegotiations;
+                //  channelDispatcher.ServiceThrottle.MaxConcurrentCalls = this.authenticator.MaximumConcurrentNegotiations;
+                //  channelDispatcher.ServiceThrottle.MaxConcurrentSessions = this.authenticator.MaximumConcurrentNegotiations;
 
                 EndpointDispatcher endpointDispatcher = new EndpointDispatcher(new EndpointAddress(this.listenUri), "IssueAndRenewSession", NamingHelper.DefaultNamespace, true);
                 endpointDispatcher.DispatchRuntime.SingletonInstanceContext = new InstanceContext(null, this.authenticator, false);
@@ -1197,13 +1200,13 @@ namespace CoreWCF.Security
 
                 public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
                 {
-                   object[] outputs = EmptyArray<object>.Allocate(0);
+                    object[] outputs = EmptyArray<object>.Allocate(0);
                     Message message = inputs[0] as Message;
                     if (message == null)
                     {
                         return new ValueTask<(object returnValue, object[] outputs)>(((object)null, outputs));
                     }
-                    object returnVal =  parent.ProcessRequest(message);
+                    object returnVal = parent.ProcessRequest(message);
                     return new ValueTask<(object returnValue, object[] outputs)>((returnVal, outputs));
                 }
             }

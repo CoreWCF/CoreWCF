@@ -1,10 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Threading;
-using CoreWCF.Runtime;
-using CoreWCF.Diagnostics;
 using System.Threading.Tasks;
+using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -99,17 +101,17 @@ namespace CoreWCF.Channels
 
             //try
             //{
-                OnClosing();
-                if (!_onClosingCalled)
-                    throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnClosing"), Guid.Empty, this);
+            OnClosing();
+            if (!_onClosingCalled)
+                throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnClosing"), Guid.Empty, this);
 
-                OnAbort();
+            OnAbort();
 
-                OnClosed();
-                if (!_onClosedCalled)
-                    throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnClosed"), Guid.Empty, this);
+            OnClosed();
+            if (!_onClosedCalled)
+                throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnClosed"), Guid.Empty, this);
 
-                //throwing = false;
+            //throwing = false;
             //}
             //finally
             //{
@@ -134,69 +136,69 @@ namespace CoreWCF.Channels
             //using (DiagnosticUtility.ShouldUseActivity && this.TraceOpenAndClose ? this.CreateCloseActivity() : null)
             //{
 
-                CommunicationState originalState;
-                lock (ThisLock)
-                {
-                    originalState = _state;
-                    if (originalState != CommunicationState.Closed)
-                        _state = CommunicationState.Closing;
+            CommunicationState originalState;
+            lock (ThisLock)
+            {
+                originalState = _state;
+                if (originalState != CommunicationState.Closed)
+                    _state = CommunicationState.Closing;
 
-                    _closeCalled = true;
-                }
+                _closeCalled = true;
+            }
 
-                switch (originalState)
-                {
-                    case CommunicationState.Created:
-                    case CommunicationState.Opening:
-                    case CommunicationState.Faulted:
-                        Abort();
-                        if (originalState == CommunicationState.Faulted)
+            switch (originalState)
+            {
+                case CommunicationState.Created:
+                case CommunicationState.Opening:
+                case CommunicationState.Faulted:
+                    Abort();
+                    if (originalState == CommunicationState.Faulted)
+                    {
+                        throw TraceUtility.ThrowHelperError(CreateFaultedException(), Guid.Empty, this);
+                    }
+                    break;
+
+                case CommunicationState.Opened:
+                    {
+                        bool throwing = true;
+                        try
                         {
-                            throw TraceUtility.ThrowHelperError(CreateFaultedException(), Guid.Empty, this);
+                            //TimeoutHelper actualTimeout = new TimeoutHelper(timeout);
+
+                            OnClosing();
+                            if (!_onClosingCalled)
+                                throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnClosing"), Guid.Empty, this);
+
+                            await OnCloseAsync(token);
+
+                            OnClosed();
+                            if (!_onClosedCalled)
+                                throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnClosed"), Guid.Empty, this);
+
+                            throwing = false;
+                        }
+                        finally
+                        {
+                            if (throwing)
+                            {
+                                //if (DiagnosticUtility.ShouldTraceWarning)
+                                //{
+                                //    TraceUtility.TraceEvent(TraceEventType.Warning, TraceCode.CommunicationObjectCloseFailed, SR.Format(SR.TraceCodeCommunicationObjectCloseFailed, this.GetCommunicationObjectType().ToString()), this);
+                                //}
+
+                                Abort();
+                            }
                         }
                         break;
+                    }
 
-                    case CommunicationState.Opened:
-                        {
-                            bool throwing = true;
-                            try
-                            {
-                                //TimeoutHelper actualTimeout = new TimeoutHelper(timeout);
+                case CommunicationState.Closing:
+                case CommunicationState.Closed:
+                    break;
 
-                                OnClosing();
-                                if (!_onClosingCalled)
-                                    throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnClosing"), Guid.Empty, this);
-
-                                await OnCloseAsync(token);
-
-                                OnClosed();
-                                if (!_onClosedCalled)
-                                    throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnClosed"), Guid.Empty, this);
-
-                                throwing = false;
-                            }
-                            finally
-                            {
-                                if (throwing)
-                                {
-                                    //if (DiagnosticUtility.ShouldTraceWarning)
-                                    //{
-                                    //    TraceUtility.TraceEvent(TraceEventType.Warning, TraceCode.CommunicationObjectCloseFailed, SR.Format(SR.TraceCodeCommunicationObjectCloseFailed, this.GetCommunicationObjectType().ToString()), this);
-                                    //}
-
-                                    Abort();
-                                }
-                            }
-                            break;
-                        }
-
-                    case CommunicationState.Closing:
-                    case CommunicationState.Closed:
-                        break;
-
-                    default:
-                        throw Fx.AssertAndThrow("CommunicationObject.BeginClose: Unknown CommunicationState");
-                }
+                default:
+                    throw Fx.AssertAndThrow("CommunicationObject.BeginClose: Unknown CommunicationState");
+            }
             //}
 
         }
@@ -213,43 +215,43 @@ namespace CoreWCF.Channels
 
             //using (ServiceModelActivity activity = DiagnosticUtility.ShouldUseActivity && this.TraceOpenAndClose ? ServiceModelActivity.CreateBoundedActivity() : null)
             //{
-                //if (DiagnosticUtility.ShouldUseActivity)
-                //{
-                //    ServiceModelActivity.Start(activity, this.OpenActivityName, this.OpenActivityType);
-                //}
-                lock (ThisLock)
+            //if (DiagnosticUtility.ShouldUseActivity)
+            //{
+            //    ServiceModelActivity.Start(activity, this.OpenActivityName, this.OpenActivityType);
+            //}
+            lock (ThisLock)
+            {
+                ThrowIfDisposedOrImmutable();
+                _state = CommunicationState.Opening;
+            }
+
+            bool throwing = true;
+            try
+            {
+                OnOpening();
+                if (!_onOpeningCalled)
+                    throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnOpening"), Guid.Empty, this);
+
+                await OnOpenAsync(token);
+
+                OnOpened();
+                if (!_onOpenedCalled)
+                    throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnOpened"), Guid.Empty, this);
+
+                throwing = false;
+            }
+            finally
+            {
+                if (throwing)
                 {
-                    ThrowIfDisposedOrImmutable();
-                    _state = CommunicationState.Opening;
+                    //if (DiagnosticUtility.ShouldTraceWarning)
+                    //{
+                    //    TraceUtility.TraceEvent(TraceEventType.Warning, TraceCode.CommunicationObjectOpenFailed, SR.Format(SR.TraceCodeCommunicationObjectOpenFailed, this.GetCommunicationObjectType().ToString()), this);
+                    //}
+
+                    Fault();
                 }
-
-                bool throwing = true;
-                try
-                {
-                    OnOpening();
-                    if (!_onOpeningCalled)
-                        throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnOpening"), Guid.Empty, this);
-
-                    await OnOpenAsync(token);
-
-                    OnOpened();
-                    if (!_onOpenedCalled)
-                        throw TraceUtility.ThrowHelperError(CreateBaseClassMethodNotCalledException("OnOpened"), Guid.Empty, this);
-
-                    throwing = false;
-                }
-                finally
-                {
-                    if (throwing)
-                    {
-                        //if (DiagnosticUtility.ShouldTraceWarning)
-                        //{
-                        //    TraceUtility.TraceEvent(TraceEventType.Warning, TraceCode.CommunicationObjectOpenFailed, SR.Format(SR.TraceCodeCommunicationObjectOpenFailed, this.GetCommunicationObjectType().ToString()), this);
-                        //}
-
-                        Fault();
-                    }
-                }
+            }
             //}
         }
 

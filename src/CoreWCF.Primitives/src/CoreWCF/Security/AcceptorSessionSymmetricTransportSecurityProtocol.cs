@@ -1,13 +1,16 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Xml;
 
 namespace CoreWCF.Security
 {
@@ -97,7 +100,7 @@ namespace CoreWCF.Security
             securityHeader.ConfigureOutOfBandTokenResolver(mergedTokenResolvers);
             securityHeader.ExpectEndorsingTokens = true;
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            
+
             securityHeader.ReplayDetectionEnabled = this.Factory.DetectReplays;
             securityHeader.SetTimeParameters(this.Factory.NonceCache, this.Factory.ReplayWindow, this.Factory.MaxClockSkew);
             // do not enforce key derivation requirement for Cancel messages due to WSE interop

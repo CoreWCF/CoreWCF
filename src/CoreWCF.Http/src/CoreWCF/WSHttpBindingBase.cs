@@ -1,11 +1,14 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.ComponentModel;
 using System.Xml;
 using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-    public abstract class  WSHttpBindingBase : Binding //, IBindingRuntimePreferences
+    public abstract class WSHttpBindingBase : Binding //, IBindingRuntimePreferences
     {
         private TextMessageEncodingBindingElement _textEncoding;
 
@@ -36,7 +39,7 @@ namespace CoreWCF
             }
         }
 
-       // [DefaultValue(TransportDefaults.MaxBufferPoolSize)]
+        // [DefaultValue(TransportDefaults.MaxBufferPoolSize)]
         public long MaxBufferPoolSize
         {
             get { return HttpTransport.MaxBufferPoolSize; }
@@ -118,7 +121,7 @@ namespace CoreWCF
             {
                 bindingElements.Add(wsSecurity);
             }
-            
+
             // add encoding
             bindingElements.Add(_textEncoding);
 

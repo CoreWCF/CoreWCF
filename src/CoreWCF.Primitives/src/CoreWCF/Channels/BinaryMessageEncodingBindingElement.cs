@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.ComponentModel;
 using System.Xml;
 using CoreWCF.Configuration;
@@ -169,7 +172,7 @@ namespace CoreWCF.Channels
                 if (compressionSupport == null || !compressionSupport.IsCompressionFormatSupported(this.compressionFormat))
                 {
                     throw Fx.Exception.AsError(new NotSupportedException(SR.Format(
-                        SR.TransportDoesNotSupportCompression,compressionFormat.ToString(),
+                        SR.TransportDoesNotSupportCompression, compressionFormat.ToString(),
                         GetType().Name,
                         CompressionFormat.None.ToString())));
                 }

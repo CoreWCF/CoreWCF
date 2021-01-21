@@ -1,3 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.DirectoryServices;
+using System.Runtime.CompilerServices;
+using System.Security.Principal;
+using System.Threading;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel.Claims;
@@ -5,12 +14,6 @@ using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.DirectoryServices;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
-using System.Threading;
 using ClaimsIdentity = System.Security.Claims.ClaimsIdentity;
 using ClaimsPrincipal = System.Security.Claims.ClaimsPrincipal;
 
@@ -257,28 +260,28 @@ namespace CoreWCF.Dispatcher
                 // Update the impersonation failure audit
                 // Copy SecurityAuthorizationBehavior.Audit level to here!!!
                 //
-//                if (AuditLevel.Failure == (this.auditLevel & AuditLevel.Failure))
-//                {
-//                    try
-//                    {
-//                        string primaryIdentity;
-//                        if (securityContext != null)
-//                            primaryIdentity = SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext);
-//                        else
-//                            primaryIdentity = SecurityUtils.AnonymousIdentity.Name;
+                //                if (AuditLevel.Failure == (this.auditLevel & AuditLevel.Failure))
+                //                {
+                //                    try
+                //                    {
+                //                        string primaryIdentity;
+                //                        if (securityContext != null)
+                //                            primaryIdentity = SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext);
+                //                        else
+                //                            primaryIdentity = SecurityUtils.AnonymousIdentity.Name;
 
-//                        SecurityAuditHelper.WriteImpersonationFailureEvent(this.auditLogLocation,
-//                            this.suppressAuditFailure, rpc.Operation.Name, primaryIdentity, ex);
-//                    }
-//#pragma warning suppress 56500
-//                    catch (Exception auditException)
-//                    {
-//                        if (Fx.IsFatal(auditException))
-//                            throw;
+                //                        SecurityAuditHelper.WriteImpersonationFailureEvent(this.auditLogLocation,
+                //                            this.suppressAuditFailure, rpc.Operation.Name, primaryIdentity, ex);
+                //                    }
+                //#pragma warning suppress 56500
+                //                    catch (Exception auditException)
+                //                    {
+                //                        if (Fx.IsFatal(auditException))
+                //                            throw;
 
-//                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
-//                    }
-//                }
+                //                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
+                //                    }
+                //                }
                 throw;
             }
 

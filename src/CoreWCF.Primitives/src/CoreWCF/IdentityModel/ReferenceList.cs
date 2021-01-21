@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -7,7 +10,7 @@ using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 namespace CoreWCF.Security
 {
     sealed class ReferenceList : ISecurityElement
-   {
+    {
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.ReferenceList;
         const string NamespacePrefix = XmlEncryptionStrings.Prefix;
         internal static readonly XmlDictionaryString NamespaceUri = XD.XmlEncryptionDictionary.Namespace;// EncryptedType.NamespaceUri;

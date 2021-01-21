@@ -1,7 +1,10 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.Description;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.Description;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
 
 namespace CoreWCF.Security
@@ -187,7 +190,7 @@ namespace CoreWCF.Security
             {
                 return reader.IsStartElement(XD.SecurityXXX2005Dictionary.SignatureConfirmation, XD.SecurityXXX2005Dictionary.Namespace);
             }
-            
+
             internal override ISignatureValueSecurityElement ReadSignatureConfirmation(XmlDictionaryReader reader)
             {
                 reader.MoveToStartElement(XD.SecurityXXX2005Dictionary.SignatureConfirmation, XD.SecurityXXX2005Dictionary.Namespace);
