@@ -78,7 +78,9 @@ namespace CoreWCF.Description
         {
             var attributes = GetCustomAttributes(inherit);
             if (attributes == null || attributes.Length == 0)
+            {
                 return attributes;
+            }
 
             object[] result = attributes.Where(attribute => attributeType.IsAssignableFrom(attribute.GetType())).ToArray();
 

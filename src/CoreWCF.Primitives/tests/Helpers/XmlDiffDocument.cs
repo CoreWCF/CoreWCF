@@ -51,7 +51,7 @@ namespace System.Xml.XmlDiff
 
     internal class ReaderPositionInfo : PositionInfo
     {
-        private IXmlLineInfo mlineInfo;
+        private readonly IXmlLineInfo mlineInfo;
 
         public ReaderPositionInfo(IXmlLineInfo lineInfo)
         {
@@ -138,9 +138,14 @@ namespace System.Xml.XmlDiff
             int nt1 = (int)(node1.NodeType);
             int nt2 = (int)(node2.NodeType);
             if (nt2 > nt1)
+            {
                 return NodePosition.After;
+            }
+
             if (nt2 < nt1)
+            {
                 return NodePosition.Before;
+            }
             //now nt1 == nt2
             if (nt1 == (int)XmlDiffNodeType.Element)
             {
@@ -191,11 +196,15 @@ namespace System.Xml.XmlDiff
                 }
             }
             if (nCompare > 0)
+            {
                 //elem2 > elem1
                 return NodePosition.After;
+            }
             else
+            {
                 //elem2 < elem1
                 return NodePosition.Before;
+            }
         }
 
         private int CompareAttributes(XmlDiffElement elem1, XmlDiffElement elem2)
@@ -203,9 +212,13 @@ namespace System.Xml.XmlDiff
             int count1 = elem1.AttributeCount;
             int count2 = elem2.AttributeCount;
             if (count1 > count2)
+            {
                 return 1;
+            }
             else if (count1 < count2)
+            {
                 return -1;
+            }
             else
             {
                 XmlDiffAttribute current1 = elem1.FirstAttribute;
@@ -231,11 +244,15 @@ namespace System.Xml.XmlDiff
                     current2 = (XmlDiffAttribute)current2._next;
                 }
                 if (nCompare > 0)
+                {
                     //elem1 > attr2
                     return 1;
+                }
                 else
+                {
                     //elem1 < elem2
                     return -1;
+                }
             }
         }
 
@@ -259,11 +276,15 @@ namespace System.Xml.XmlDiff
             }
 
             if (nCompare > 0)
+            {
                 //attr2 > attr1
                 return NodePosition.After;
+            }
             else
+            {
                 //attr2 < attr1
                 return NodePosition.Before;
+            }
         }
 
         private NodePosition CompareERs(XmlDiffEntityReference er1, XmlDiffEntityReference er2)
@@ -273,9 +294,13 @@ namespace System.Xml.XmlDiff
 
             int nCompare = CompareText(er2.Name, er1.Name);
             if (nCompare >= 0)
+            {
                 return NodePosition.After;
+            }
             else
+            {
                 return NodePosition.Before;
+            }
         }
 
         private NodePosition ComparePIs(XmlDiffProcessingInstruction pi1, XmlDiffProcessingInstruction pi2)
@@ -310,9 +335,13 @@ namespace System.Xml.XmlDiff
 
             int nCompare = CompareText(t2.Value, t1.Value);
             if (nCompare >= 0)
+            {
                 return NodePosition.After;
+            }
             else
+            {
                 return NodePosition.Before;
+            }
         }
 
         //returns 0 if the same string; 1 if s1 > s1 and -1 if s1 < s2
@@ -340,7 +369,10 @@ namespace System.Xml.XmlDiff
         public virtual void Load(XmlReader reader)
         {
             if (_bLoaded)
+            {
                 throw new InvalidOperationException("The document already contains data and should not be used again.");
+            }
+
             if (reader.ReadState == ReadState.Initial)
             {
                 if (!reader.Read())
@@ -368,7 +400,10 @@ namespace System.Xml.XmlDiff
                         break;
                     case XmlNodeType.Comment:
                         if (!IgnoreComments)
+                        {
                             LoadTextNode(parent, reader, pInfo, XmlDiffNodeType.Comment);
+                        }
+
                         break;
                     case XmlNodeType.ProcessingInstruction:
                         LoadPI(parent, reader, pInfo);
@@ -438,10 +473,17 @@ namespace System.Xml.XmlDiff
 
         private bool TextNodeIsWhitespace(string p)
         {
-            if (!TreatWhitespaceTextAsWSNode) return false;
+            if (!TreatWhitespaceTextAsWSNode)
+            {
+                return false;
+            }
+
             for (int i = 0; i < p.Length; i++)
             {
-                if (!char.IsWhiteSpace(p[i])) return false;
+                if (!char.IsWhiteSpace(p[i]))
+                {
+                    return false;
+                }
             }
             return true;
         }
@@ -451,9 +493,14 @@ namespace System.Xml.XmlDiff
             XmlDiffElement elem;
             bool bEmptyElement = reader.IsEmptyElement;
             if (bEmptyElement)
+            {
                 elem = new XmlDiffEmptyElement(reader.LocalName, reader.Prefix, reader.NamespaceURI);
+            }
             else
+            {
                 elem = new XmlDiffElement(reader.LocalName, reader.Prefix, reader.NamespaceURI);
+            }
+
             elem.LineNumber = pInfo.LineNumber;
             elem.LinePosition = pInfo.LinePosition;
             ReadAttributes(elem, reader, pInfo);
@@ -543,7 +590,9 @@ namespace System.Xml.XmlDiff
                 parent.InsertChildAfter(prevChild, newChild);
             }
             else
+            {
                 parent.InsertChildAfter(parent.LastChild, newChild);
+            }
         }
 
         private void InsertTopLevelAttributeAsText(XmlDiffNode parent, XmlDiffCharacterData newChild)
@@ -575,7 +624,9 @@ namespace System.Xml.XmlDiff
                 parent.InsertAttributeAfter(prevAttr, newAttr);
             }
             else
+            {
                 parent.InsertAttributeAfter(parent.LastAttribute, newAttr);
+            }
         }
 
         public override void WriteTo(XmlWriter w)
@@ -667,11 +718,17 @@ namespace System.Xml.XmlDiff
                 do
                 {
                     if (_current is XmlDiffElement)
+                    {
                         _next = _current._next;
+                    }
+
                     _current._next = null;
                     InsertChild(elem, _current);
                     if (_current == _last)
+                    {
                         break;
+                    }
+
                     _current = _next;
                 }
                 while (true);
@@ -684,7 +741,7 @@ namespace System.Xml.XmlDiff
     //navgator over the xmldiffdocument
     public class XmlDiffNavigator : XPathNavigator
     {
-        private XmlDiffDocument m_document;
+        private readonly XmlDiffDocument m_document;
 
         public XmlDiffNavigator(XmlDiffDocument doc)
         {
@@ -695,7 +752,10 @@ namespace System.Xml.XmlDiff
         {
             XmlDiffNavigator _clone = new XmlDiffNavigator(m_document);
             if (!_clone.MoveTo(this))
+            {
                 throw new Exception("Cannot clone");
+            }
+
             return _clone;
         }
         public override XmlNodeOrder ComparePosition(XPathNavigator nav)
@@ -751,7 +811,9 @@ namespace System.Xml.XmlDiff
             if (other is XmlDiffNavigator)
             {
                 if (CurrentNode == ((XmlDiffNavigator)other).CurrentNode)
+                {
                     return true;
+                }
             }
 
             return false;
@@ -1259,7 +1321,10 @@ namespace System.Xml.XmlDiff
             get
             {
                 if (_extendedProperties == null)
+                {
                     _extendedProperties = new PropertyCollection();
+                }
+
                 return _extendedProperties;
             }
         }
@@ -1280,7 +1345,9 @@ namespace System.Xml.XmlDiff
             }
 
             if (newChild._next == null)
+            {
                 _lastChild = newChild;
+            }
         }
 
         public virtual void DeleteChild(XmlDiffNode child)
@@ -1345,9 +1412,13 @@ namespace System.Xml.XmlDiff
             get
             {
                 if (Prefix.Length > 0)
+                {
                     return Prefix + ":" + LocalName;
+                }
                 else
+                {
                     return LocalName;
+                }
             }
         }
 
@@ -1408,7 +1479,9 @@ namespace System.Xml.XmlDiff
             }
 
             if (newAttr._next == null)
+            {
                 LastAttribute = newAttr;
+            }
         }
 
         internal void DeleteAttribute(XmlDiffAttribute attr)
@@ -1445,7 +1518,10 @@ namespace System.Xml.XmlDiff
             get
             {
                 if (_attrC != -1)
+                {
                     return _attrC;
+                }
+
                 XmlDiffAttribute attr = FirstAttribute;
                 _attrC = 0;
                 while (attr != null)
@@ -1540,7 +1616,7 @@ namespace System.Xml.XmlDiff
     public class XmlDiffAttribute : XmlDiffNode
     {
         internal XmlDiffElement _ownerElement;
-        private string _value;
+        private readonly string _value;
 
         public XmlDiffAttribute(string localName, string prefix, string ns, string value)
             : base()
@@ -1604,9 +1680,13 @@ namespace System.Xml.XmlDiff
             get
             {
                 if (Prefix.Length > 0)
+                {
                     return Prefix + ":" + LocalName;
+                }
                 else
+                {
                     return LocalName;
+                }
             }
         }
 
@@ -1655,7 +1735,7 @@ namespace System.Xml.XmlDiff
     public class XmlDiffCharacterData : XmlDiffNode
     {
         private string _value;
-        private XmlDiffNodeType _nodetype;
+        private readonly XmlDiffNodeType _nodetype;
         public XmlDiffCharacterData(string value, XmlDiffNodeType nt, bool NormalizeNewline)
             : base()
         {

@@ -55,7 +55,7 @@ namespace Extensibility
 
     internal class TestOperationBehavior : IOperationBehavior
     {
-        private TestServiceBehavior _parent;
+        private readonly TestServiceBehavior _parent;
 
         public TestOperationBehavior(TestServiceBehavior testServiceBehavior)
         {
@@ -79,7 +79,7 @@ namespace Extensibility
 
     internal class MyInvoker : IOperationInvoker
     {
-        private IOperationInvoker _invoker;
+        private readonly IOperationInvoker _invoker;
 
         public MyInvoker(IOperationInvoker invoker)
         {

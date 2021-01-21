@@ -11,7 +11,7 @@ namespace CoreWCF.Security
 {
     internal class WrapperSecurityCommunicationObject : CommunicationObject
     {
-        private ISecurityCommunicationObject _innerCommunicationObject;
+        private readonly ISecurityCommunicationObject _innerCommunicationObject;
 
         public WrapperSecurityCommunicationObject(ISecurityCommunicationObject innerCommunicationObject) : base()
         {

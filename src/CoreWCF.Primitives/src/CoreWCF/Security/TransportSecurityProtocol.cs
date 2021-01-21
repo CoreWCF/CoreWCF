@@ -51,9 +51,9 @@ namespace CoreWCF.Security
 
         protected virtual Message SecureOutgoingMessageAtResponder(Message message, string actor)
         {
-            if (this.SecurityProtocolFactory.AddTimestamp && !this.SecurityProtocolFactory.SecurityBindingElement.EnableUnsecuredResponse)
+            if (SecurityProtocolFactory.AddTimestamp && !SecurityProtocolFactory.SecurityBindingElement.EnableUnsecuredResponse)
             {
-                SendSecurityHeader securityHeader = CreateSendSecurityHeaderForTransportProtocol(message, actor, this.SecurityProtocolFactory);
+                SendSecurityHeader securityHeader = CreateSendSecurityHeaderForTransportProtocol(message, actor, SecurityProtocolFactory);
                 message = securityHeader.SetupExecution();
             }
             return message;
@@ -98,16 +98,13 @@ namespace CoreWCF.Security
 
         protected virtual void VerifyIncomingMessageCore(ref Message message, TimeSpan timeout)
         {
-            TransportSecurityProtocolFactory factory = (TransportSecurityProtocolFactory)this.SecurityProtocolFactory;
+            TransportSecurityProtocolFactory factory = (TransportSecurityProtocolFactory)SecurityProtocolFactory;
             string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
 
             ReceiveSecurityHeader securityHeader = factory.StandardsManager.TryCreateReceiveSecurityHeader(message, actor,
                 factory.IncomingAlgorithmSuite, (factory.ActAsInitiator) ? MessageDirection.Output : MessageDirection.Input);
-            bool expectBasicTokens;
-            bool expectEndorsingTokens;
-            bool expectSignedTokens;
             IList<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = factory.GetSupportingTokenAuthenticators(message.Headers.Action,
-                out expectSignedTokens, out expectBasicTokens, out expectEndorsingTokens);
+                out bool expectSignedTokens, out bool expectBasicTokens, out bool expectEndorsingTokens);
             if (securityHeader == null)
             {
                 bool expectSupportingTokens = expectEndorsingTokens || expectSignedTokens || expectBasicTokens;
@@ -119,11 +116,15 @@ namespace CoreWCF.Security
                 else
                 {
                     if (String.IsNullOrEmpty(actor))
+                    {
                         throw Diagnostics.TraceUtility.ThrowHelperError(new MessageSecurityException(
                             SR.Format(SR.UnableToFindSecurityHeaderInMessageNoActor)), message);
+                    }
                     else
+                    {
                         throw Diagnostics.TraceUtility.ThrowHelperError(new MessageSecurityException(
                             SR.Format(SR.UnableToFindSecurityHeaderInMessage, actor)), message);
+                    }
                 }
             }
 

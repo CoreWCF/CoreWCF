@@ -9,7 +9,7 @@ namespace DispatcherClient
 {
     internal class DispatcherTransportBindingElement<TService, TContract> : TransportBindingElement where TService : class
     {
-        private Action<IServiceCollection> _configureServices;
+        private readonly Action<IServiceCollection> _configureServices;
 
         internal DispatcherTransportBindingElement(Action<IServiceCollection> configureServices)
         {

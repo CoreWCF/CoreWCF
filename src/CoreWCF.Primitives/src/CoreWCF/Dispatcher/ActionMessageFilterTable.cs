@@ -64,7 +64,9 @@ namespace CoreWCF.Dispatcher
                 Entry[] entries = new Entry[Count];
                 int i = 0;
                 foreach (KeyValuePair<MessageFilter, TFilterData> item in filters)
+                {
                     entries[i++] = new Entry(item.Key, item.Value);
+                }
 
                 return entries;
             }
@@ -73,7 +75,9 @@ namespace CoreWCF.Dispatcher
                 Init();
 
                 for (int i = 0; i < value.Length; ++i)
+                {
                     Add(value[i].filter, value[i].data);
+                }
             }
         }
 
@@ -109,7 +113,6 @@ namespace CoreWCF.Dispatcher
             }
 
             this.filters.Add(filter, data);
-            List<MessageFilter> filters;
             if (filter.Actions.Count == 0)
             {
                 always.Add(filter);
@@ -118,7 +121,7 @@ namespace CoreWCF.Dispatcher
             {
                 for (int i = 0; i < filter.Actions.Count; ++i)
                 {
-                    if (!actions.TryGetValue(filter.Actions[i], out filters))
+                    if (!actions.TryGetValue(filter.Actions[i], out List<MessageFilter> filters))
                     {
                         filters = new List<MessageFilter>();
                         actions.Add(filter.Actions[i], filters);
@@ -183,8 +186,7 @@ namespace CoreWCF.Dispatcher
                 act = string.Empty;
             }
 
-            List<MessageFilter> filters;
-            if (actions.TryGetValue(act, out filters))
+            if (actions.TryGetValue(act, out List<MessageFilter> filters))
             {
                 if (always.Count + filters.Count > 1)
                 {
@@ -222,8 +224,7 @@ namespace CoreWCF.Dispatcher
                 act = string.Empty;
             }
 
-            List<MessageFilter> filters;
-            if (actions.TryGetValue(act, out filters))
+            if (actions.TryGetValue(act, out List<MessageFilter> filters))
             {
                 for (int i = 0; i < filters.Count; ++i)
                 {
@@ -245,8 +246,7 @@ namespace CoreWCF.Dispatcher
                 act = string.Empty;
             }
 
-            List<MessageFilter> filters;
-            if (actions.TryGetValue(act, out filters))
+            if (actions.TryGetValue(act, out List<MessageFilter> filters))
             {
                 for (int i = 0; i < filters.Count; ++i)
                 {
@@ -422,7 +422,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            if (this.filters.Remove(filter))
+            if (filters.Remove(filter))
             {
                 if (filter.Actions.Count == 0)
                 {

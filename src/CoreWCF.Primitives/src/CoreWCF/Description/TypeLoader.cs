@@ -18,12 +18,12 @@ namespace CoreWCF.Description
 {
     internal class TypeLoader<TService> where TService : class
     {
-        private static Type[] messageContractMemberAttributes = {
+        private static readonly Type[] messageContractMemberAttributes = {
             typeof(MessageHeaderAttribute),
             typeof(MessageBodyMemberAttribute),
             typeof(MessagePropertyAttribute),
         };
-        private static Type[] formatterAttributes = {
+        private static readonly Type[] formatterAttributes = {
             typeof(XmlSerializerFormatAttribute),
             typeof(DataContractFormatAttribute)
         };
@@ -63,16 +63,14 @@ namespace CoreWCF.Description
             }
             else
             {
-                ServiceContractAttribute actualContractAttribute;
-                Type actualContractType = ServiceReflector.GetContractTypeAndAttribute(contractType, out actualContractAttribute);
+                Type actualContractType = ServiceReflector.GetContractTypeAndAttribute(contractType, out ServiceContractAttribute actualContractAttribute);
                 lock (thisLock)
                 {
                     if (!contracts.TryGetValue(actualContractType, out contractDescription))
                     {
                         EnsureNoInheritanceWithContractClasses(actualContractType);
                         EnsureNoOperationContractsOnNonServiceContractTypes(actualContractType);
-                        ContractReflectionInfo reflectionInfo;
-                        contractDescription = CreateContractDescription(actualContractAttribute, actualContractType, out reflectionInfo, serviceImplementation);
+                        contractDescription = CreateContractDescription(actualContractAttribute, actualContractType, out ContractReflectionInfo reflectionInfo, serviceImplementation);
                         // IContractBehaviors
                         if (serviceImplementation != null && serviceImplementation is IContractBehavior)
                         {
@@ -334,7 +332,9 @@ namespace CoreWCF.Description
                 foreach (OperationDescription operationDescription in contractDesc.Operations)
                 {
                     if (!operationDescription.IsServerInitiated())
+                    {
                         operationDescription.KnownTypes.Add(knownType);
+                    }
                 }
             }
 
@@ -347,7 +347,9 @@ namespace CoreWCF.Description
                     foreach (OperationDescription operationDescription in contractDesc.Operations)
                     {
                         if (operationDescription.IsServerInitiated())
+                        {
                             operationDescription.KnownTypes.Add(knownType);
+                        }
                     }
                 }
             }
@@ -385,7 +387,10 @@ namespace CoreWCF.Description
             {
                 ServiceKnownTypeAttribute knownTypeAttribute = (ServiceKnownTypeAttribute)knownTypeAttributes[i];
                 if (knownTypeAttribute.Type == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeInvalid1, provider.ToString())));
+                }
+
                 knownTypes.Add(knownTypeAttribute.Type);
             }
             return knownTypes;
@@ -861,8 +866,7 @@ namespace CoreWCF.Description
                                  methodInfo.Name, reflectionInfo.iface)));
             }
 
-            Type taskTResult;
-            bool isTask = ServiceReflector.IsTask(methodInfo, out taskTResult);
+            bool isTask = ServiceReflector.IsTask(methodInfo, out Type taskTResult);
             bool isAsync = !isTask && ServiceReflector.IsBegin(opAttr, methodInfo);
 
             XmlName operationName = NamingHelper.GetOperationName(ServiceReflector.GetLogicalName(methodInfo, isAsync, isTask), opAttr.Name);
@@ -989,7 +993,9 @@ namespace CoreWCF.Description
             methodAttributes = ServiceReflector.GetCustomAttributes(methodInfo, typeof(ServiceKnownTypeAttribute), false);
             IEnumerable<Type> knownTypes = GetKnownTypes(methodAttributes, methodInfo);
             foreach (Type knownType in knownTypes)
+            {
                 operationDescription.KnownTypes.Add(knownType);
+            }
 
             MessageDirection requestDirection = direction;
             MessageDirection responseDirection = MessageDirectionHelper.Opposite(direction);
@@ -1086,11 +1092,16 @@ namespace CoreWCF.Description
             foreach (FaultDescription existingFault in faultDescriptionCollection)
             {
                 if (XmlName.IsNullOrEmpty(existingFault.ElementName) && XmlName.IsNullOrEmpty(fault.ElementName) && existingFault.DetailType == fault.DetailType)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                         SR.Format(SR.SFxFaultContractDuplicateDetailType, operationName, fault.DetailType)));
+                }
+
                 if (!XmlName.IsNullOrEmpty(existingFault.ElementName) && !XmlName.IsNullOrEmpty(fault.ElementName) && existingFault.ElementName == fault.ElementName && existingFault.Namespace == fault.Namespace)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                         SR.Format(SR.SFxFaultContractDuplicateElement, operationName, fault.ElementName, fault.Namespace)));
+                }
             }
         }
 
@@ -1102,9 +1113,14 @@ namespace CoreWCF.Description
             XmlName faultName = new XmlName(attr.Name ?? NamingHelper.TypeName(attr.DetailType) + FaultSuffix);
             FaultDescription fault = new FaultDescription(NamingHelper.GetMessageAction(contractName, operationName.DecodedName + faultName.DecodedName, attr.Action, false/*isResponse*/));
             if (attr.Name != null)
+            {
                 fault.SetNameAndElement(faultName);
+            }
             else
+            {
                 fault.SetNameOnly(faultName);
+            }
+
             fault.Namespace = attr.Namespace ?? contractNamespace;
             fault.DetailType = attr.DetailType;
             //if (attr.HasProtectionLevel)
@@ -1230,7 +1246,10 @@ namespace CoreWCF.Description
             {
                 MessagePartDescription partDescription = CreateParameterPartDescription(new XmlName(parameters[index].Name), defaultNS, index, parameters[index], TypeLoader.GetParameterType(parameters[index]));
                 if (partDescriptionCollection.Contains(new XmlQualifiedName(partDescription.Name, partDescription.Namespace)))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidMessageContractException(SR.Format(SR.SFxDuplicateMessageParts, partDescription.Name, partDescription.Namespace)));
+                }
+
                 messageDescription.Body.Parts.Add(partDescription);
             }
 
@@ -1276,15 +1295,17 @@ namespace CoreWCF.Description
 
             MessageDescription messageDescription;
             bool messageItemsInitialized = false;
-            MessageDescriptionItems messageItems;
             MessageContractAttribute messageContractAttribute = ServiceReflector.GetSingleAttribute<MessageContractAttribute>(typedMessageType);
-            if (messages.TryGetValue(typedMessageType, out messageItems))
+            if (messages.TryGetValue(typedMessageType, out MessageDescriptionItems messageItems))
             {
                 messageDescription = new MessageDescription(action, direction, messageItems);
                 messageItemsInitialized = true;
             }
             else
+            {
                 messageDescription = new MessageDescription(action, direction, null);
+            }
+
             messageDescription.MessageType = typedMessageType;
             messageDescription.MessageName = new XmlName(NamingHelper.TypeName(typedMessageType));
             if (messageContractAttribute.IsWrapped)
@@ -1302,7 +1323,10 @@ namespace CoreWCF.Description
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxMessageContractBaseTypeNotValid, baseType, typedMessageType)));
                 }
                 if (messageItemsInitialized)
+                {
                     continue;
+                }
+
                 foreach (MemberInfo memberInfo in baseType.GetMembers(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
                     if (!(memberInfo is FieldInfo) &&
@@ -1333,7 +1357,9 @@ namespace CoreWCF.Description
             }
 
             if (messageItemsInitialized)
+            {
                 return messageDescription;
+            }
 
             List<MessagePartDescription> bodyPartDescriptionList = new List<MessagePartDescription>();
             List<MessageHeaderDescription> headerPartDescriptionList = new List<MessageHeaderDescription>();
@@ -1509,7 +1535,10 @@ namespace CoreWCF.Description
         internal static XmlName GetWrapperName(string wrapperName, XmlName defaultName)
         {
             if (string.IsNullOrEmpty(wrapperName))
+            {
                 return defaultName;
+            }
+
             return new XmlName(wrapperName);
         }
 
@@ -1545,12 +1574,12 @@ namespace CoreWCF.Description
 
         private class SyncAsyncOperationConsistencyVerifier : OperationConsistencyVerifier
         {
-            private OperationDescription syncOperation;
-            private OperationDescription asyncOperation;
-            private ParameterInfo[] syncInputs;
-            private ParameterInfo[] asyncInputs;
-            private ParameterInfo[] syncOutputs;
-            private ParameterInfo[] asyncOutputs;
+            private readonly OperationDescription syncOperation;
+            private readonly OperationDescription asyncOperation;
+            private readonly ParameterInfo[] syncInputs;
+            private readonly ParameterInfo[] asyncInputs;
+            private readonly ParameterInfo[] syncOutputs;
+            private readonly ParameterInfo[] asyncOutputs;
 
             public SyncAsyncOperationConsistencyVerifier(OperationDescription syncOperation, OperationDescription asyncOperation)
             {
@@ -1691,10 +1720,10 @@ namespace CoreWCF.Description
 
         private class SyncTaskOperationConsistencyVerifier : OperationConsistencyVerifier
         {
-            private OperationDescription syncOperation;
-            private OperationDescription taskOperation;
-            private ParameterInfo[] syncInputs;
-            private ParameterInfo[] taskInputs;
+            private readonly OperationDescription syncOperation;
+            private readonly OperationDescription taskOperation;
+            private readonly ParameterInfo[] syncInputs;
+            private readonly ParameterInfo[] taskInputs;
 
             public SyncTaskOperationConsistencyVerifier(OperationDescription syncOperation, OperationDescription taskOperation)
             {
@@ -1809,10 +1838,10 @@ namespace CoreWCF.Description
 
         private class TaskAsyncOperationConsistencyVerifier : OperationConsistencyVerifier
         {
-            private OperationDescription taskOperation;
-            private OperationDescription asyncOperation;
-            private ParameterInfo[] taskInputs;
-            private ParameterInfo[] asyncInputs;
+            private readonly OperationDescription taskOperation;
+            private readonly OperationDescription asyncOperation;
+            private readonly ParameterInfo[] taskInputs;
+            private readonly ParameterInfo[] asyncInputs;
 
             public TaskAsyncOperationConsistencyVerifier(OperationDescription taskOperation, OperationDescription asyncOperation)
             {
@@ -2008,7 +2037,7 @@ namespace CoreWCF.Description
     internal class TypeLoader
     {
         internal const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
-        private static Type[] s_formatterAttributes = {
+        private static readonly Type[] s_formatterAttributes = {
             typeof(XmlSerializerFormatAttribute),
             typeof(DataContractFormatAttribute)
         };

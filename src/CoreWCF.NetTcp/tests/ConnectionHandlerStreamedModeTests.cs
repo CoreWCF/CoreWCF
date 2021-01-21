@@ -15,7 +15,7 @@ namespace ConnectionHandler
 {
     public class ConnectionHandlerStreamedModeTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ConnectionHandlerStreamedModeTests(ITestOutputHelper output)
         {

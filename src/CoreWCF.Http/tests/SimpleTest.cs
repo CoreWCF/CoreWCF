@@ -14,7 +14,7 @@ namespace BasicHttp
 {
     public class SimpleTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public SimpleTest(ITestOutputHelper output)
         {

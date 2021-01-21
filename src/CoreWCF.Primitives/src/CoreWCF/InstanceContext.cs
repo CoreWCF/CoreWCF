@@ -20,16 +20,16 @@ namespace CoreWCF
 
         private bool _autoClose;
         private InstanceBehavior _behavior;
-        private ServiceChannelManager _channels;
+        private readonly ServiceChannelManager _channels;
         private ConcurrencyInstanceContextFacet _concurrency;
         private ExtensionCollection<InstanceContext> _extensions;
         private readonly ServiceHostBase _host;
         private ServiceThrottle serviceThrottle;
         private int _instanceContextManagerIndex;
-        private object _serviceInstanceLock = new object();
+        private readonly object _serviceInstanceLock = new object();
         private SynchronizationContext _synchronizationContext;
         private object _userObject;
-        private bool _wellKnown;
+        private readonly bool _wellKnown;
         private bool _isUserCreated;
 
         public InstanceContext(object implementation)
@@ -111,7 +111,9 @@ namespace CoreWCF
                     lock (ThisLock)
                     {
                         if (_concurrency == null)
+                        {
                             _concurrency = new ConcurrencyInstanceContextFacet();
+                        }
                     }
                 }
 
@@ -151,7 +153,10 @@ namespace CoreWCF
                 lock (ThisLock)
                 {
                     if (_extensions == null)
+                    {
                         _extensions = new ExtensionCollection<InstanceContext>(this, ThisLock);
+                    }
+
                     return _extensions;
                 }
             }
@@ -171,7 +176,10 @@ namespace CoreWCF
             get
             {
                 if (State == CommunicationState.Closed)
+                {
                     return false;
+                }
+
                 return _channels.IsBusy;
             }
         }
@@ -292,19 +300,27 @@ namespace CoreWCF
             }
 
             if (State != CommunicationState.Opened)
+            {
                 return;
+            }
 
             if (IsBusy)
+            {
                 return;
+            }
 
             if (_behavior.CanUnload(this) == false)
+            {
                 return;
+            }
 
             try
             {
                 // TODO: Make this call and it's chain async
                 if (State == CommunicationState.Opened)
+                {
                     CloseAsync().GetAwaiter().GetResult();
+                }
             }
             catch (ObjectDisposedException e)
             {

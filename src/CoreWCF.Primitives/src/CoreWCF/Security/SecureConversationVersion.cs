@@ -12,7 +12,7 @@ namespace CoreWCF.Security
 
         internal SecureConversationVersion(XmlDictionaryString ns, XmlDictionaryString prefix)
         {
-            this.scNamespace = ns;
+            scNamespace = ns;
             this.prefix = prefix;
         }
 
@@ -20,7 +20,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.scNamespace;
+                return scNamespace;
             }
         }
 
@@ -28,7 +28,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.prefix;
+                return prefix;
             }
         }
 

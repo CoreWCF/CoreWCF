@@ -25,7 +25,7 @@ namespace CoreWCF.Dispatcher
 
         // Pooling
         internal EndpointAddressProcessor next;
-        private StringBuilder builder;
+        private readonly StringBuilder builder;
         private byte[] resultData;
 
         internal EndpointAddressProcessor(int length)
@@ -85,8 +85,7 @@ namespace CoreWCF.Dispatcher
                                 if ((reader.LocalName == TypeLN && reader.NamespaceURI == XsiNs) ||
                                     (reader.NamespaceURI == SerNs && (reader.LocalName == ItemTypeLN || reader.LocalName == FactoryTypeLN)))
                                 {
-                                    string local, ns;
-                                    XmlUtil.ParseQName(reader, val, out local, out ns);
+                                    XmlUtil.ParseQName(reader, val, out string local, out string ns);
                                     val = local + "^" + local.Length.ToString(CultureInfo.InvariantCulture) + ":" + ns + "^" + ns.Length.ToString(CultureInfo.InvariantCulture);
                                 }
                                 else if (reader.LocalName == XD.UtilityDictionary.IdAttribute.Value && reader.NamespaceURI == XD.UtilityDictionary.Namespace.Value)
@@ -116,9 +115,14 @@ namespace CoreWCF.Dispatcher
                         }
 
                         if (reader.IsEmptyElement)
+                        {
                             builder.Append("></>");  // Should be the same as an empty tag.
+                        }
                         else
+                        {
                             builder.Append(">");
+                        }
+
                         break;
 
                     case XmlNodeType.EndElement:
@@ -140,7 +144,9 @@ namespace CoreWCF.Dispatcher
                     case XmlNodeType.SignificantWhitespace:
                     case XmlNodeType.Text:
                         if (valueLength < 0)
+                        {
                             valueLength = builder.Length;
+                        }
 
                         builder.Append(reader.Value);
                         break;
@@ -164,7 +170,9 @@ namespace CoreWCF.Dispatcher
         private static void CompleteValue(StringBuilder builder, int startLength)
         {
             if (startLength < 0)
+            {
                 return;
+            }
 
             int len = builder.Length - startLength;
             builder.Append("^");
@@ -186,7 +194,6 @@ namespace CoreWCF.Dispatcher
         internal void ProcessHeaders(Message msg, Dictionary<QName, int> qnameLookup, Dictionary<string, HeaderBit[]> headerLookup)
         {
             string key;
-            HeaderBit[] bits;
             QName qname;
             MessageHeaders headers = msg.Headers;
             for (int j = 0; j < headers.Count; ++j)
@@ -205,7 +212,7 @@ namespace CoreWCF.Dispatcher
                     reader.Read();  // Needed after call to ReadSubtree
                     key = GetComparableForm(builder, reader);
 
-                    if (headerLookup.TryGetValue(key, out bits))
+                    if (headerLookup.TryGetValue(key, out HeaderBit[] bits))
                     {
                         SetBit(bits);
                     }
@@ -284,7 +291,9 @@ namespace CoreWCF.Dispatcher
             {
                 int i = string.CompareOrdinal(x.name, y.name);
                 if (i != 0)
+                {
                     return i;
+                }
 
                 return string.CompareOrdinal(x.ns, y.ns);
             }
@@ -293,7 +302,9 @@ namespace CoreWCF.Dispatcher
             {
                 int i = string.CompareOrdinal(x.name, y.name);
                 if (i != 0)
+                {
                     return false;
+                }
 
                 return string.CompareOrdinal(x.ns, y.ns) == 0;
             }
@@ -335,7 +346,7 @@ namespace CoreWCF.Dispatcher
             internal string local;
             internal string ns;
             internal string val;
-            private string key;
+            private readonly string key;
 
             internal Attr(string l, string ns, string v)
             {

@@ -28,18 +28,18 @@ namespace CoreWCF.Dispatcher
         //AuditLevel serviceAuthorizationAuditLevel;
         //AuditLevel messageAuthenticationAuditLevel;
         private bool automaticInputSessionShutdown;
-        private ChannelDispatcher channelDispatcher;
-        private SynchronizedCollection<IInputSessionShutdown> inputSessionShutdownHandlers;
-        private EndpointDispatcher endpointDispatcher;
+        private readonly ChannelDispatcher channelDispatcher;
+        private readonly SynchronizedCollection<IInputSessionShutdown> inputSessionShutdownHandlers;
+        private readonly EndpointDispatcher endpointDispatcher;
         private IInstanceProvider instanceProvider;
         private IInstanceContextProvider instanceContextProvider;
         private InstanceContext singleton;
         private bool ignoreTransactionMessageProperty;
-        private OperationCollection operations;
+        private readonly OperationCollection operations;
         private IDispatchOperationSelector operationSelector;
         private ClientRuntime proxyRuntime;
         private ImmutableDispatchRuntime runtime;
-        private SynchronizedCollection<IInstanceContextInitializer> instanceContextInitializers;
+        private readonly SynchronizedCollection<IInstanceContextInitializer> instanceContextInitializers;
         private bool isExternalPoliciesSet;
         private bool isAuthenticationManagerSet;
         private bool isAuthorizationManagerSet;
@@ -51,8 +51,8 @@ namespace CoreWCF.Dispatcher
         private DispatchOperation unhandled;
         private bool impersonateCallerForAllOperations;
         private bool impersonateOnSerializingReply;
-        private SharedRuntimeState shared;
-        private bool preserveMessage;
+        private readonly SharedRuntimeState shared;
+        private readonly bool preserveMessage;
         private bool requireClaimsPrincipalOnOperationContext;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
@@ -291,14 +291,14 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return this.requireClaimsPrincipalOnOperationContext;
+                return requireClaimsPrincipalOnOperationContext;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    this.requireClaimsPrincipalOnOperationContext = value;
+                    requireClaimsPrincipalOnOperationContext = value;
                 }
             }
         }
@@ -651,7 +651,7 @@ namespace CoreWCF.Dispatcher
 
         internal class UnhandledActionInvoker : IOperationInvoker
         {
-            private DispatchRuntime dispatchRuntime;
+            private readonly DispatchRuntime dispatchRuntime;
 
             public UnhandledActionInvoker(DispatchRuntime dispatchRuntime)
             {
@@ -744,7 +744,7 @@ namespace CoreWCF.Dispatcher
 
         private class DispatchBehaviorCollection<T> : SynchronizedCollection<T>
         {
-            private DispatchRuntime outer;
+            private readonly DispatchRuntime outer;
 
             internal DispatchBehaviorCollection(DispatchRuntime outer)
                 : base(outer.ThisLock)
@@ -789,7 +789,7 @@ namespace CoreWCF.Dispatcher
 
         private class OperationCollection : SynchronizedKeyedCollection<string, DispatchOperation>
         {
-            private DispatchRuntime outer;
+            private readonly DispatchRuntime outer;
 
             internal OperationCollection(DispatchRuntime outer)
                 : base(outer.ThisLock)

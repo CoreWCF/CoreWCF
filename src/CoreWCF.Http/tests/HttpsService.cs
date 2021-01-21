@@ -14,7 +14,7 @@ namespace CoreWCF.Http.Tests
 {
     public class HttpsService
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public HttpsService(ITestOutputHelper output)
         {

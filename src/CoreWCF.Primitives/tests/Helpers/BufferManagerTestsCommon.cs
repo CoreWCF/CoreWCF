@@ -9,8 +9,8 @@ namespace CoreWCF.Primitives.Tests.Helpers
 {
     public class BufferManagerTestsCommon
     {
-        private static string SynchronizedBufferPool = "synchronizedbufferpool";
-        private static string LargeBufferPool = "largebufferpool";
+        private static readonly string SynchronizedBufferPool = "synchronizedbufferpool";
+        private static readonly string LargeBufferPool = "largebufferpool";
         public static int TrainingCount = 64;
         public static int LargeBufferLimit = 85000;
 

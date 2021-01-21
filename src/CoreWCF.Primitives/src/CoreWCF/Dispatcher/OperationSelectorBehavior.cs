@@ -21,7 +21,9 @@ namespace CoreWCF.Dispatcher
         void IContractBehavior.ApplyDispatchBehavior(ContractDescription description, ServiceEndpoint endpoint, DispatchRuntime dispatch)
         {
             if (dispatch.ClientRuntime != null)
+            {
                 dispatch.ClientRuntime.OperationSelector = new MethodInfoOperationSelector(description, MessageDirection.Output);
+            }
         }
 
         void IContractBehavior.ApplyClientBehavior(ContractDescription description, ServiceEndpoint endpoint, ClientRuntime proxy)
@@ -31,7 +33,7 @@ namespace CoreWCF.Dispatcher
 
         internal class MethodInfoOperationSelector : IClientOperationSelector
         {
-            private Dictionary<object, string> operationMap;
+            private readonly Dictionary<object, string> operationMap;
 
             internal MethodInfoOperationSelector(ContractDescription description, MessageDirection directionThatRequiresClientOpSelection)
             {
@@ -45,7 +47,9 @@ namespace CoreWCF.Dispatcher
                         if (operation.SyncMethod != null)
                         {
                             if (!operationMap.ContainsKey(operation.SyncMethod))
+                            {
                                 operationMap.Add(operation.SyncMethod, operation.Name);
+                            }
                         }
 
                         if (operation.BeginMethod != null)
@@ -76,9 +80,13 @@ namespace CoreWCF.Dispatcher
             public string SelectOperation(MethodBase method, object[] parameters)
             {
                 if (operationMap.ContainsKey(method))
+                {
                     return operationMap[method];
+                }
                 else
+                {
                     return null;
+                }
             }
         }
     }

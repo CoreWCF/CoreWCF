@@ -322,7 +322,9 @@ namespace CoreWCF.Dispatcher
             if (_isActive)
             {
                 if (_sessions != null)
+                {
                     _sessions.Release();
+                }
             }
         }
 
@@ -331,7 +333,9 @@ namespace CoreWCF.Dispatcher
             if (_isActive)
             {
                 if (_calls != null)
+                {
                     _calls.Release();
+                }
             }
         }
 

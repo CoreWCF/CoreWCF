@@ -11,10 +11,10 @@ namespace CoreWCF.Channels.Framing
 {
     internal class ServerSessionConnectionReaderMiddleware
     {
-        private HandshakeDelegate _next;
-        private IServiceScopeFactory _servicesScopeFactory;
-        private IApplicationLifetime _appLifetime;
-        private IDictionary<IServiceDispatcher, ITransportFactorySettings> _transportSettingsCache = new Dictionary<IServiceDispatcher, ITransportFactorySettings>();
+        private readonly HandshakeDelegate _next;
+        private readonly IServiceScopeFactory _servicesScopeFactory;
+        private readonly IApplicationLifetime _appLifetime;
+        private readonly IDictionary<IServiceDispatcher, ITransportFactorySettings> _transportSettingsCache = new Dictionary<IServiceDispatcher, ITransportFactorySettings>();
 
         public ServerSessionConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory, IApplicationLifetime appLifetime)
         {
@@ -25,8 +25,7 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            ITransportFactorySettings settings;
-            if (!_transportSettingsCache.TryGetValue(connection.ServiceDispatcher, out settings))
+            if (!_transportSettingsCache.TryGetValue(connection.ServiceDispatcher, out ITransportFactorySettings settings))
             {
                 var be = connection.ServiceDispatcher.Binding.CreateBindingElements();
                 var tbe = be.Find<TransportBindingElement>();

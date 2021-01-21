@@ -11,24 +11,24 @@ namespace CoreWCF
         public NonDualMessageSecurityOverHttp()
             : base()
         {
-            this.establishSecurityContext = DefaultEstablishSecurityContext;
+            establishSecurityContext = DefaultEstablishSecurityContext;
         }
 
         public bool EstablishSecurityContext
         {
             get
             {
-                return this.establishSecurityContext;
+                return establishSecurityContext;
             }
             set
             {
-                this.establishSecurityContext = value;
+                establishSecurityContext = value;
             }
         }
 
         protected override bool IsSecureConversationEnabled()
         {
-            return this.establishSecurityContext;
+            return establishSecurityContext;
         }
     }
 }

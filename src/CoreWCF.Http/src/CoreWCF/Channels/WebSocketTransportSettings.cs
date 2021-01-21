@@ -110,8 +110,7 @@ namespace CoreWCF.Channels
                         throw Fx.Exception.Argument(nameof(value), SR.Format(SR.WebSocketInvalidProtocolContainsMultipleSubProtocolString, value));
                     }
 
-                    string invalidChar;
-                    if (WebSocketHelper.IsSubProtocolInvalid(value, out invalidChar))
+                    if (WebSocketHelper.IsSubProtocolInvalid(value, out string invalidChar))
                     {
                         throw Fx.Exception.Argument(nameof(value), SR.Format(SR.WebSocketInvalidProtocolInvalidCharInProtocolString, value, invalidChar));
                     }

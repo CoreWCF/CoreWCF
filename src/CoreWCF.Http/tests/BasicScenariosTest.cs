@@ -15,7 +15,7 @@ namespace CoreWCF.Http.Tests
 {
     public class BasicScenariosTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public BasicScenariosTest(ITestOutputHelper output)
         {

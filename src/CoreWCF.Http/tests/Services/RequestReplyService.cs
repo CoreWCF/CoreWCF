@@ -16,9 +16,9 @@ namespace Services
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class RequestReplyService : IRequestReplyService
     {
-        private static List<string> log = new List<string>();
-        private static int seed = DateTime.Now.Millisecond;
-        private static Random rand = new Random(seed);
+        private static readonly List<string> log = new List<string>();
+        private static readonly int seed = DateTime.Now.Millisecond;
+        private static readonly Random rand = new Random(seed);
         private FlowControlledStream localStream;
 
         public void UploadData(string data)

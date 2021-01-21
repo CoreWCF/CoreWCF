@@ -17,7 +17,7 @@ namespace CoreWCF.Http.Tests
 {
     public class FaultContractTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public FaultContractTests(ITestOutputHelper output)
         {
@@ -79,7 +79,10 @@ namespace CoreWCF.Http.Tests
                     Stream inputStream = new MemoryStream();
                     byte[] bytes = Encoding.UTF8.GetBytes(testValue.ToCharArray());
                     foreach (byte b in bytes)
+                    {
                         inputStream.WriteByte(b);
+                    }
+
                     inputStream.Position = 0;
 
                     Stream outputStream = channel.TwoWayStream_Method(inputStream);
@@ -226,7 +229,10 @@ namespace CoreWCF.Http.Tests
                     Stream inputStream = new MemoryStream();
                     byte[] bytes = Encoding.UTF8.GetBytes(f.ToCharArray());
                     foreach (byte b in bytes)
+                    {
                         inputStream.WriteByte(b);
+                    }
+
                     inputStream.Position = 0;
                     Stream outputStream = channel.TwoWayStream_Method(inputStream);
                     StreamReader sr = new StreamReader(outputStream, Encoding.UTF8);
@@ -395,10 +401,16 @@ namespace CoreWCF.Http.Tests
             sb.Append(cf.SomeFault.message);
             sb.Append(':');
             for (int i = 0; i < cf.ErrorByteArray.Length; i++)
+            {
                 sb.Append(cf.ErrorByteArray[i]);
+            }
+
             sb.Append(':');
             for (int i = 0; i < cf.ErrorIntArray.Length; i++)
+            {
                 sb.Append(cf.ErrorIntArray[i]);
+            }
+
             sb.Append(':');
             for (int i = 0; i < cf.SomeFaultArray.Length; i++)
             {

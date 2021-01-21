@@ -9,7 +9,7 @@ namespace CoreWCF.Channels
     public sealed class AddressingVersion
     {
         /*MessagePartSpecification signedMessageParts;*/
-        private string toStringFormat;
+        private readonly string toStringFormat;
 
         private AddressingVersion(string ns, XmlDictionaryString dictionaryNs, string toStringFormat,
             /*MessagePartSpecification signedMessageParts,*/ string anonymous, XmlDictionaryString dictionaryAnonymous, string none, string faultAction, string defaultFaultAction)

@@ -9,7 +9,7 @@ namespace CoreWCF.Description
     {
         private XmlName _wrapperName;
         private string _wrapperNs;
-        private MessagePartDescriptionCollection _parts;
+        private readonly MessagePartDescriptionCollection _parts;
         private MessagePartDescription _returnValue;
 
         public MessageBodyDescription()

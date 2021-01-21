@@ -32,7 +32,9 @@ namespace CoreWCF
         {
             IDisposable dispose = instance as IDisposable;
             if (dispose != null)
+            {
                 dispose.Dispose();
+            }
         }
     }
 }

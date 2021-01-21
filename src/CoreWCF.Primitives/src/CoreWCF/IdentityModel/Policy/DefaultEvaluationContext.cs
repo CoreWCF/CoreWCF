@@ -12,62 +12,72 @@ namespace CoreWCF.IdentityModel.Policy
     internal class DefaultEvaluationContext : EvaluationContext
     {
         private List<ClaimSet> claimSets;
-        private Dictionary<string, object> properties;
+        private readonly Dictionary<string, object> properties;
         private DateTime expirationTime = SecurityUtils.MaxUtcDateTime;
         private int generation;
         private ReadOnlyCollection<ClaimSet> readOnlyClaimSets;
 
         public DefaultEvaluationContext()
         {
-            this.properties = new Dictionary<string, object>();
-            this.generation = 0;
+            properties = new Dictionary<string, object>();
+            generation = 0;
         }
 
         public override int Generation
         {
-            get { return this.generation; }
+            get { return generation; }
         }
 
         public override ReadOnlyCollection<ClaimSet> ClaimSets
         {
             get
             {
-                if (this.claimSets == null)
+                if (claimSets == null)
+                {
                     return EmptyReadOnlyCollection<ClaimSet>.Instance;
+                }
 
-                if (this.readOnlyClaimSets == null)
-                    this.readOnlyClaimSets = new ReadOnlyCollection<ClaimSet>(this.claimSets);
+                if (readOnlyClaimSets == null)
+                {
+                    readOnlyClaimSets = new ReadOnlyCollection<ClaimSet>(claimSets);
+                }
 
-                return this.readOnlyClaimSets;
+                return readOnlyClaimSets;
             }
         }
 
         public override IDictionary<string, object> Properties
         {
-            get { return this.properties; }
+            get { return properties; }
         }
 
         public DateTime ExpirationTime
         {
-            get { return this.expirationTime; }
+            get { return expirationTime; }
         }
 
         public override void AddClaimSet(IAuthorizationPolicy policy, ClaimSet claimSet)
         {
             if (claimSet == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claimSet");
+            }
 
-            if (this.claimSets == null)
-                this.claimSets = new List<ClaimSet>();
+            if (claimSets == null)
+            {
+                claimSets = new List<ClaimSet>();
+            }
 
-            this.claimSets.Add(claimSet);
-            ++this.generation;
+            claimSets.Add(claimSet);
+            ++generation;
         }
 
         public override void RecordExpirationTime(DateTime expirationTime)
         {
             if (this.expirationTime > expirationTime)
+            {
                 this.expirationTime = expirationTime;
+            }
         }
     }
 }

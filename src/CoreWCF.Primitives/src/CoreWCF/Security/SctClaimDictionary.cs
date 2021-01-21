@@ -8,70 +8,70 @@ namespace CoreWCF.Security
 {
     internal sealed class SctClaimDictionary : XmlDictionary
     {
-        private XmlDictionaryString x509CertificateClaimSet;
-        private XmlDictionaryString binaryClaim;
-        private XmlDictionaryString x509ThumbprintClaim;
-        private XmlDictionaryString windowsSidIdentity;
-        private XmlDictionaryString contextId;
-        private XmlDictionaryString name;
-        private XmlDictionaryString genericXmlToken;
-        private XmlDictionaryString emptyString;
+        private readonly XmlDictionaryString x509CertificateClaimSet;
+        private readonly XmlDictionaryString binaryClaim;
+        private readonly XmlDictionaryString x509ThumbprintClaim;
+        private readonly XmlDictionaryString windowsSidIdentity;
+        private readonly XmlDictionaryString contextId;
+        private readonly XmlDictionaryString name;
+        private readonly XmlDictionaryString genericXmlToken;
+        private readonly XmlDictionaryString emptyString;
 
         private SctClaimDictionary()
         {
-            this.SecurityContextSecurityToken = this.Add("SecurityContextSecurityToken");
-            this.Version = this.Add("Version");
-            this.contextId = this.Add("ContextId");
-            this.Id = this.Add("Id");
-            this.Key = this.Add("Key");
-            this.IsCookieMode = this.Add("IsCookieMode");
-            this.ServiceContractId = this.Add("ServiceContractId");
-            this.EffectiveTime = this.Add("EffectiveTime");
-            this.ExpiryTime = this.Add("ExpiryTime");
-            this.KeyGeneration = this.Add("KeyGeneration");
-            this.KeyEffectiveTime = this.Add("KeyEffectiveTime");
-            this.KeyExpiryTime = this.Add("KeyExpiryTime");
-            this.Claim = this.Add("Claim");
-            this.ClaimSets = this.Add("ClaimSets");
-            this.ClaimSet = this.Add("ClaimSet");
-            this.Identities = this.Add("Identities");
-            this.PrimaryIdentity = this.Add("PrimaryIdentity");
-            this.PrimaryIssuer = this.Add("PrimaryIssuer");
+            SecurityContextSecurityToken = Add("SecurityContextSecurityToken");
+            Version = Add("Version");
+            contextId = Add("ContextId");
+            Id = Add("Id");
+            Key = Add("Key");
+            IsCookieMode = Add("IsCookieMode");
+            ServiceContractId = Add("ServiceContractId");
+            EffectiveTime = Add("EffectiveTime");
+            ExpiryTime = Add("ExpiryTime");
+            KeyGeneration = Add("KeyGeneration");
+            KeyEffectiveTime = Add("KeyEffectiveTime");
+            KeyExpiryTime = Add("KeyExpiryTime");
+            Claim = Add("Claim");
+            ClaimSets = Add("ClaimSets");
+            ClaimSet = Add("ClaimSet");
+            Identities = Add("Identities");
+            PrimaryIdentity = Add("PrimaryIdentity");
+            PrimaryIssuer = Add("PrimaryIssuer");
 
-            this.x509CertificateClaimSet = this.Add("X509CertificateClaimSet");
-            this.SystemClaimSet = this.Add("SystemClaimSet");
-            this.WindowsClaimSet = this.Add("WindowsClaimSet");
-            this.AnonymousClaimSet = this.Add("AnonymousClaimSet");
+            x509CertificateClaimSet = Add("X509CertificateClaimSet");
+            SystemClaimSet = Add("SystemClaimSet");
+            WindowsClaimSet = Add("WindowsClaimSet");
+            AnonymousClaimSet = Add("AnonymousClaimSet");
 
-            this.binaryClaim = this.Add("BinaryClaim");
-            this.DnsClaim = this.Add("DnsClaim");
-            this.GenericIdentity = this.Add("GenericIdentity");
-            this.AuthenticationType = this.Add("AuthenticationType");
-            this.Right = this.Add("Right");
-            this.HashClaim = this.Add("HashClaim");
-            this.MailAddressClaim = this.Add("MailAddressClaim");
-            this.NameClaim = this.Add("NameClaim");
-            this.RsaClaim = this.Add("RsaClaim");
-            this.SpnClaim = this.Add("SpnClaim");
-            this.SystemClaim = this.Add("SystemClaim");
-            this.UpnClaim = this.Add("UpnClaim");
-            this.UrlClaim = this.Add("UrlClaim");
-            this.WindowsSidClaim = this.Add("WindowsSidClaim");
-            this.DenyOnlySidClaim = this.Add("DenyOnlySidClaim");
-            this.windowsSidIdentity = this.Add("WindowsSidIdentity");
-            this.X500DistinguishedNameClaim = this.Add("X500DistinguishedClaim");
-            this.x509ThumbprintClaim = this.Add("X509ThumbprintClaim");
+            binaryClaim = Add("BinaryClaim");
+            DnsClaim = Add("DnsClaim");
+            GenericIdentity = Add("GenericIdentity");
+            AuthenticationType = Add("AuthenticationType");
+            Right = Add("Right");
+            HashClaim = Add("HashClaim");
+            MailAddressClaim = Add("MailAddressClaim");
+            NameClaim = Add("NameClaim");
+            RsaClaim = Add("RsaClaim");
+            SpnClaim = Add("SpnClaim");
+            SystemClaim = Add("SystemClaim");
+            UpnClaim = Add("UpnClaim");
+            UrlClaim = Add("UrlClaim");
+            WindowsSidClaim = Add("WindowsSidClaim");
+            DenyOnlySidClaim = Add("DenyOnlySidClaim");
+            windowsSidIdentity = Add("WindowsSidIdentity");
+            X500DistinguishedNameClaim = Add("X500DistinguishedClaim");
+            x509ThumbprintClaim = Add("X509ThumbprintClaim");
 
-            this.name = this.Add("Name");
-            this.Sid = this.Add("Sid");
-            this.Value = this.Add("Value");
-            this.NullValue = this.Add("Null");
-            this.genericXmlToken = this.Add("GenericXmlSecurityToken");
-            this.TokenType = this.Add("TokenType");
-            this.InternalTokenReference = this.Add("InternalTokenReference");
-            this.ExternalTokenReference = this.Add("ExternalTokenReference");
-            this.TokenXml = this.Add("TokenXml");
-            this.emptyString = this.Add(String.Empty);
+            name = Add("Name");
+            Sid = Add("Sid");
+            Value = Add("Value");
+            NullValue = Add("Null");
+            genericXmlToken = Add("GenericXmlSecurityToken");
+            TokenType = Add("TokenType");
+            InternalTokenReference = Add("InternalTokenReference");
+            ExternalTokenReference = Add("ExternalTokenReference");
+            TokenXml = Add("TokenXml");
+            emptyString = Add(String.Empty);
         }
 
         public static SctClaimDictionary Instance { get; } = new SctClaimDictionary();
@@ -88,7 +88,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString PrimaryIdentity { get; }
 
-        public XmlDictionaryString X509CertificateClaimSet => this.x509CertificateClaimSet;
+        public XmlDictionaryString X509CertificateClaimSet => x509CertificateClaimSet;
 
         public XmlDictionaryString SystemClaimSet { get; }
 
@@ -96,9 +96,9 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString AnonymousClaimSet { get; }
 
-        public XmlDictionaryString ContextId => this.contextId;
+        public XmlDictionaryString ContextId => contextId;
 
-        public XmlDictionaryString BinaryClaim => this.binaryClaim;
+        public XmlDictionaryString BinaryClaim => binaryClaim;
 
         public XmlDictionaryString DnsClaim { get; }
 
@@ -128,11 +128,11 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString DenyOnlySidClaim { get; }
 
-        public XmlDictionaryString WindowsSidIdentity => this.windowsSidIdentity;
+        public XmlDictionaryString WindowsSidIdentity => windowsSidIdentity;
 
         public XmlDictionaryString X500DistinguishedNameClaim { get; }
 
-        public XmlDictionaryString X509ThumbprintClaim => this.x509ThumbprintClaim;
+        public XmlDictionaryString X509ThumbprintClaim => x509ThumbprintClaim;
 
         public XmlDictionaryString EffectiveTime { get; }
 
@@ -146,7 +146,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString Sid { get; }
 
-        public XmlDictionaryString Name => this.name;
+        public XmlDictionaryString Name => name;
 
         public XmlDictionaryString NullValue { get; }
 
@@ -158,7 +158,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString Version { get; }
 
-        public XmlDictionaryString GenericXmlSecurityToken => this.genericXmlToken;
+        public XmlDictionaryString GenericXmlSecurityToken => genericXmlToken;
 
         public XmlDictionaryString TokenType { get; }
 
@@ -168,7 +168,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString ExternalTokenReference { get; }
 
-        public XmlDictionaryString EmptyString => this.emptyString;
+        public XmlDictionaryString EmptyString => emptyString;
 
         public XmlDictionaryString KeyGeneration { get; }
 

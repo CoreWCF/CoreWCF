@@ -13,7 +13,7 @@ namespace CoreWCF.Channels
         private int sizeHistoryIndex;
         private const int sizeHistoryCount = 4;
         private const int expectedSizeVariance = 256;
-        private BufferManagerOutputStream stream;
+        private readonly BufferManagerOutputStream stream;
 
         public BufferedMessageWriter()
         {
@@ -31,15 +31,23 @@ namespace CoreWCF.Channels
             // make sure that maxSize has room for initialOffset without overflowing, since
             // the effective buffer size is message size + initialOffset
             if (maxSizeQuota <= int.MaxValue - initialOffset)
+            {
                 effectiveMaxSize = maxSizeQuota + initialOffset;
+            }
             else
+            {
                 effectiveMaxSize = int.MaxValue;
+            }
 
             int predictedMessageSize = PredictMessageSize();
             if (predictedMessageSize > effectiveMaxSize)
+            {
                 predictedMessageSize = effectiveMaxSize;
+            }
             else if (predictedMessageSize < initialOffset)
+            {
                 predictedMessageSize = initialOffset;
+            }
 
             try
             {
@@ -52,8 +60,7 @@ namespace CoreWCF.Channels
                 OnWriteEndMessage(writer);
                 writer.Flush();
                 ReturnXmlWriter(writer);
-                int size;
-                byte[] buffer = stream.ToArray(out size);
+                byte[] buffer = stream.ToArray(out int size);
                 RecordActualMessageSize(size);
                 return new ArraySegment<byte>(buffer, initialOffset, size - initialOffset);
             }
@@ -75,15 +82,22 @@ namespace CoreWCF.Channels
         {
             sizeHistory = new int[4];
             for (int i = 0; i < sizeHistoryCount; i++)
+            {
                 sizeHistory[i] = 256;
+            }
         }
 
         private int PredictMessageSize()
         {
             int max = 0;
             for (int i = 0; i < sizeHistoryCount; i++)
+            {
                 if (sizeHistory[i] > max)
+                {
                     max = sizeHistory[i];
+                }
+            }
+
             return max + expectedSizeVariance;
         }
 

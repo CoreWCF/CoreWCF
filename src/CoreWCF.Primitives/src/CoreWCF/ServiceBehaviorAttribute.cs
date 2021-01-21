@@ -14,18 +14,18 @@ namespace CoreWCF
     public sealed class ServiceBehaviorAttribute : Attribute, IServiceBehavior
     {
         private ConcurrencyMode _concurrencyMode;
-        private bool _ensureOrderedDispatch = false;
+        private readonly bool _ensureOrderedDispatch = false;
         private string _configurationName;
-        private bool _includeExceptionDetailInFaults = false;
+        private readonly bool _includeExceptionDetailInFaults = false;
         private InstanceContextMode _instanceMode;
         private object _wellKnownSingleton;  // if the user passes an object to the ServiceHost, it is stored here
         private object _hiddenSingleton;     // if the user passes a type to the ServiceHost, and instanceMode==Single, we store the instance here
-        private bool _validateMustUnderstand = true;
-        private bool _ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
-        private int _maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
-        private bool _automaticSessionShutdown = true;
+        private readonly bool _validateMustUnderstand = true;
+        private readonly bool _ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
+        private readonly int _maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
+        private readonly bool _automaticSessionShutdown = true;
         private IInstanceProvider _instanceProvider = null;
-        private bool _useSynchronizationContext = true;
+        private readonly bool _useSynchronizationContext = true;
         private AddressFilterMode _addressFilterMode = AddressFilterMode.Exact;
 
         [DefaultValue(null)]
@@ -113,7 +113,9 @@ namespace CoreWCF
         internal void SetWellKnownSingleton(object value)
         {
             if (value == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+            }
 
             _wellKnownSingleton = value;
         }
@@ -126,7 +128,9 @@ namespace CoreWCF
         internal void SetHiddenSingleton(object value)
         {
             if (value == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+            }
 
             _hiddenSingleton = value;
         }
@@ -219,10 +223,14 @@ namespace CoreWCF
                             if (_instanceProvider == null)
                             {
                                 if (serviceType == null && _wellKnownSingleton == null)
+                                {
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.InstanceSettingsMustHaveTypeOrWellKnownObject0));
+                                }
 
                                 if (_instanceMode != InstanceContextMode.Single && _wellKnownSingleton != null)
+                                {
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxWellKnownNonSingleton0));
+                                }
                             }
                             else
                             {

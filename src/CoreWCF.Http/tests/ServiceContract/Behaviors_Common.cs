@@ -281,7 +281,10 @@ namespace ServiceContract
                     resultsSB.Append(key.ToString() + ":");
                     resultsSB.Append(cba.ToString());
                     if (!behaviorInvoked)
+                    {
                         resultsSB.Append("[NotInvoked]");
+                    }
+
                     resultsSB.Append(";");
                 }
             }

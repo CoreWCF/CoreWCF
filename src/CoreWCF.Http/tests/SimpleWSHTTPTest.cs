@@ -23,7 +23,7 @@ namespace WSHttp
 {
     public class SimpleWSHTTPTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public SimpleWSHTTPTest(ITestOutputHelper output)
         {
@@ -140,8 +140,13 @@ namespace WSHttp
             public override void Validate(string userName, string password)
             {
                 if (String.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0)
+                {
                     return;
-                else throw new Exception("Permission Denied");
+                }
+                else
+                {
+                    throw new Exception("Permission Denied");
+                }
             }
         }
 
@@ -211,11 +216,11 @@ namespace WSHttp
 
         internal abstract class StartupWSHttpBase
         {
-            private CoreWCF.SecurityMode wsHttpSecurityMode;
-            private MessageCredentialType credentialType;
+            private readonly CoreWCF.SecurityMode wsHttpSecurityMode;
+            private readonly MessageCredentialType credentialType;
             public StartupWSHttpBase(CoreWCF.SecurityMode securityMode, MessageCredentialType credentialType)
             {
-                this.wsHttpSecurityMode = securityMode;
+                wsHttpSecurityMode = securityMode;
                 this.credentialType = credentialType;
             }
             public void ConfigureServices(IServiceCollection services)
@@ -227,8 +232,8 @@ namespace WSHttp
 
             public void Configure(IApplicationBuilder app, IHostingEnvironment env)
             {
-                CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(this.wsHttpSecurityMode);
-                serverBinding.Security.Message.ClientCredentialType = this.credentialType;
+                CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(wsHttpSecurityMode);
+                serverBinding.Security.Message.ClientCredentialType = credentialType;
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.EchoService>();

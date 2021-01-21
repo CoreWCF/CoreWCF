@@ -24,11 +24,13 @@ namespace CoreWCF.Security.Tokens
         protected SecurityTokenParameters(SecurityTokenParameters other)
         {
             if (other == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("other");
+            }
 
-            this.requireDerivedKeys = other.requireDerivedKeys;
-            this.inclusionMode = other.inclusionMode;
-            this.referenceStyle = other.referenceStyle;
+            requireDerivedKeys = other.requireDerivedKeys;
+            inclusionMode = other.inclusionMode;
+            referenceStyle = other.referenceStyle;
         }
 
         protected SecurityTokenParameters()
@@ -42,12 +44,12 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.inclusionMode;
+                return inclusionMode;
             }
             set
             {
                 SecurityTokenInclusionModeHelper.Validate(value);
-                this.inclusionMode = value;
+                inclusionMode = value;
             }
         }
 
@@ -55,12 +57,12 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.referenceStyle;
+                return referenceStyle;
             }
             set
             {
                 TokenReferenceStyleHelper.Validate(value);
-                this.referenceStyle = value;
+                referenceStyle = value;
             }
         }
 
@@ -68,11 +70,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.requireDerivedKeys;
+                return requireDerivedKeys;
             }
             set
             {
-                this.requireDerivedKeys = value;
+                requireDerivedKeys = value;
             }
         }
 
@@ -82,10 +84,12 @@ namespace CoreWCF.Security.Tokens
 
         public SecurityTokenParameters Clone()
         {
-            SecurityTokenParameters result = this.CloneCore();
+            SecurityTokenParameters result = CloneCore();
 
             if (result == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityTokenParametersCloneInvalidResult, this.GetType().ToString())));
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityTokenParametersCloneInvalidResult, GetType().ToString())));
+            }
 
             return result;
         }
@@ -101,7 +105,9 @@ namespace CoreWCF.Security.Tokens
             where TInternalClause : SecurityKeyIdentifierClause
         {
             if (token == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+            }
 
             SecurityKeyIdentifierClause result;
 
@@ -127,10 +133,14 @@ namespace CoreWCF.Security.Tokens
             if (xmlToken != null)
             {
                 if (referenceStyle == SecurityTokenReferenceStyle.Internal && xmlToken.InternalTokenReference != null)
+                {
                     return xmlToken.InternalTokenReference;
+                }
 
                 if (referenceStyle == SecurityTokenReferenceStyle.External && xmlToken.ExternalTokenReference != null)
+                {
                     return xmlToken.ExternalTokenReference;
+                }
             }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.UnableToCreateTokenReference)));
@@ -139,7 +149,9 @@ namespace CoreWCF.Security.Tokens
         internal protected virtual bool MatchesKeyIdentifierClause(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+            }
 
             if (token is GenericXmlSecurityToken)
             {
@@ -155,9 +167,14 @@ namespace CoreWCF.Security.Tokens
                         SR.Format(SR.TokenDoesNotSupportKeyIdentifierClauseCreation, token.GetType().Name, referenceStyle)));
                 case SecurityTokenReferenceStyle.External:
                     if (keyIdentifierClause is LocalIdKeyIdentifierClause)
+                    {
                         result = false;
+                    }
                     else
+                    {
                         result = token.MatchesKeyIdentifierClause(keyIdentifierClause);
+                    }
+
                     break;
                 case SecurityTokenReferenceStyle.Internal:
                     result = token.MatchesKeyIdentifierClause(keyIdentifierClause);
@@ -170,20 +187,30 @@ namespace CoreWCF.Security.Tokens
         internal bool MatchesGenericXmlTokenKeyIdentifierClause(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+            }
 
             bool result;
 
             GenericXmlSecurityToken xmlToken = token as GenericXmlSecurityToken;
 
             if (xmlToken == null)
+            {
                 result = false;
+            }
             else if (referenceStyle == SecurityTokenReferenceStyle.External && xmlToken.ExternalTokenReference != null)
+            {
                 result = xmlToken.ExternalTokenReference.Matches(keyIdentifierClause);
+            }
             else if (referenceStyle == SecurityTokenReferenceStyle.Internal)
+            {
                 result = xmlToken.MatchesKeyIdentifierClause(keyIdentifierClause);
+            }
             else
+            {
                 result = false;
+            }
 
             return result;
         }
@@ -192,10 +219,10 @@ namespace CoreWCF.Security.Tokens
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "{0}:", this.GetType().ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "InclusionMode: {0}", this.inclusionMode.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "ReferenceStyle: {0}", this.referenceStyle.ToString()));
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireDerivedKeys: {0}", this.requireDerivedKeys.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "{0}:", GetType().ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "InclusionMode: {0}", inclusionMode.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "ReferenceStyle: {0}", referenceStyle.ToString()));
+            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireDerivedKeys: {0}", requireDerivedKeys.ToString()));
 
             return sb.ToString();
         }

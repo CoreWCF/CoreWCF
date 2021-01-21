@@ -9,7 +9,7 @@ namespace CoreWCF.Channels
 {
     public sealed class HttpRequestMessageProperty : IMessageProperty
     {
-        private HttpContextBackedProperty _httpContextBackedProperty;
+        private readonly HttpContextBackedProperty _httpContextBackedProperty;
 
         internal HttpRequestMessageProperty(HttpContext httpContext)
         {

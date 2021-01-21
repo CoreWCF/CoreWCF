@@ -66,7 +66,7 @@ namespace CoreWCF.IdentityModel.Tokens
             internal const string EncodingTypeValueHexBinary = SecurityJan2004Strings.EncodingTypeValueHexBinary;
             internal static readonly XmlDictionaryString ValueTypeAttribute = CoreWCF.XD.SecurityJan2004Dictionary.ValueType;
 
-            private string[] _valueTypeUris = null;
+            private readonly string[] _valueTypeUris = null;
 
             protected BinaryTokenEntry(string valueTypeUri)
             {
@@ -397,8 +397,8 @@ namespace CoreWCF.IdentityModel.Tokens
 
         protected class LocalReferenceStrEntry : StrEntry
         {
-            private bool _emitBspRequiredAttributes;
-            private KeyInfoSerializer _tokenSerializer;
+            private readonly bool _emitBspRequiredAttributes;
+            private readonly KeyInfoSerializer _tokenSerializer;
 
             public LocalReferenceStrEntry(bool emitBspRequiredAttributes, KeyInfoSerializer tokenSerializer)
             {

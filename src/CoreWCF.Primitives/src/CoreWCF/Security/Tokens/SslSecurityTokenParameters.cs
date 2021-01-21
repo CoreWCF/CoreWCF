@@ -22,11 +22,11 @@ namespace CoreWCF.Security.Tokens
         protected SslSecurityTokenParameters(SslSecurityTokenParameters other)
             : base(other)
         {
-            this.requireClientCertificate = other.requireClientCertificate;
-            this.requireCancellation = other.requireCancellation;
+            requireClientCertificate = other.requireClientCertificate;
+            requireCancellation = other.requireCancellation;
             if (other.issuerBindingContext != null)
             {
-                this.issuerBindingContext = other.issuerBindingContext.Clone();
+                issuerBindingContext = other.issuerBindingContext.Clone();
             }
         }
 
@@ -55,11 +55,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.requireCancellation;
+                return requireCancellation;
             }
             set
             {
-                this.requireCancellation = value;
+                requireCancellation = value;
             }
         }
 
@@ -67,11 +67,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.requireClientCertificate;
+                return requireClientCertificate;
             }
             set
             {
-                this.requireClientCertificate = value;
+                requireClientCertificate = value;
             }
         }
 
@@ -79,7 +79,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.issuerBindingContext;
+                return issuerBindingContext;
             }
             set
             {
@@ -87,13 +87,13 @@ namespace CoreWCF.Security.Tokens
                 {
                     value = value.Clone();
                 }
-                this.issuerBindingContext = value;
+                issuerBindingContext = value;
             }
         }
 
-        internal protected override bool SupportsClientAuthentication { get { return this.requireClientCertificate; } }
+        internal protected override bool SupportsClientAuthentication { get { return requireClientCertificate; } }
         internal protected override bool SupportsServerAuthentication { get { return true; } }
-        internal protected override bool SupportsClientWindowsIdentity { get { return this.requireClientCertificate; } }
+        internal protected override bool SupportsClientWindowsIdentity { get { return requireClientCertificate; } }
 
         protected override SecurityTokenParameters CloneCore()
         {
@@ -103,22 +103,26 @@ namespace CoreWCF.Security.Tokens
         internal protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token is GenericXmlSecurityToken)
+            {
                 return base.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+            }
             else
-                return this.CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+            {
+                return CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+            }
         }
 
         protected internal override void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
         {
-            requirement.TokenType = (this.RequireClientCertificate) ? ServiceModelSecurityTokenTypes.MutualSslnego : ServiceModelSecurityTokenTypes.AnonymousSslnego;
+            requirement.TokenType = (RequireClientCertificate) ? ServiceModelSecurityTokenTypes.MutualSslnego : ServiceModelSecurityTokenTypes.AnonymousSslnego;
             requirement.RequireCryptographicToken = true;
             requirement.KeyType = SecurityKeyType.SymmetricKey;
-            requirement.Properties[ServiceModelSecurityTokenRequirement.SupportSecurityContextCancellationProperty] = this.RequireCancellation;
-            if (this.IssuerBindingContext != null)
+            requirement.Properties[ServiceModelSecurityTokenRequirement.SupportSecurityContextCancellationProperty] = RequireCancellation;
+            if (IssuerBindingContext != null)
             {
-                requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty] = this.IssuerBindingContext.Clone();
+                requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty] = IssuerBindingContext.Clone();
             }
-            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = this.Clone();
+            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = Clone();
         }
 
         public override string ToString()
@@ -126,8 +130,8 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", this.RequireCancellation.ToString()));
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireClientCertificate: {0}", this.RequireClientCertificate.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", RequireCancellation.ToString()));
+            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireClientCertificate: {0}", RequireClientCertificate.ToString()));
 
             return sb.ToString();
         }

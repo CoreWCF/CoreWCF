@@ -9,8 +9,8 @@ namespace CoreWCF.Description
 {
     internal class ConfigLoader
     {
-        private Dictionary<string, Binding> bindingTable;
-        private IContractResolver contractResolver;
+        private readonly Dictionary<string, Binding> bindingTable;
+        private readonly IContractResolver contractResolver;
 
         public ConfigLoader(IContractResolver contractResolver)
         {

@@ -9,8 +9,8 @@ namespace CoreWCF.Configuration
 {
     internal class ServiceConfiguration<TService> : IServiceConfiguration<TService> where TService : class
     {
-        private ServiceBuilder _serviceBuilder;
-        private IServiceProvider _services;
+        private readonly ServiceBuilder _serviceBuilder;
+        private readonly IServiceProvider _services;
         private List<IServiceDispatcher> _dispatchers;
 
         public ServiceConfiguration(ServiceBuilder serviceBuilder, IServiceProvider services)

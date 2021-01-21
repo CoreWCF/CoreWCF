@@ -15,7 +15,7 @@ namespace CoreWCF.Http.Tests
 {
     public class OpContractInvalidActionReplyActionTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public OpContractInvalidActionReplyActionTests(ITestOutputHelper output)
         {
             _output = output;

@@ -110,7 +110,9 @@ namespace CoreWCF
         {
             ConfigureAuthentication(https, transportSecurity);
             if (https.RequireClientCertificate)
+            {
                 transportSecurity.ClientCredentialType = HttpClientCredentialType.Certificate;
+            }
         }
 
         internal void ConfigureTransportAuthentication(HttpTransportBindingElement http)

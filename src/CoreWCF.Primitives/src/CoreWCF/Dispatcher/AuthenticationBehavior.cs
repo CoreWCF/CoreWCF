@@ -12,7 +12,7 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class AuthenticationBehavior
     {
-        private ServiceAuthenticationManager _serviceAuthenticationManager;
+        private readonly ServiceAuthenticationManager _serviceAuthenticationManager;
 
         private AuthenticationBehavior(ServiceAuthenticationManager authenticationManager)
         {
@@ -56,10 +56,14 @@ namespace CoreWCF.Dispatcher
         public static AuthenticationBehavior TryCreate(DispatchRuntime dispatch)
         {
             if (dispatch == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatch));
+            }
 
             if (!dispatch.RequiresAuthentication)
+            {
                 return null;
+            }
 
             return CreateAuthenticationBehavior(dispatch);
         }

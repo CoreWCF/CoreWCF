@@ -234,7 +234,7 @@ namespace CoreWCF.Runtime
 
         private abstract class Thunk<T> where T : class
         {
-            private T callback;
+            private readonly T callback;
 
             protected Thunk(T callback)
             {
@@ -423,7 +423,7 @@ namespace CoreWCF.Runtime
         // This can't derive from Thunk since T would be unsafe.
         private sealed unsafe class IOCompletionThunk
         {
-            private IOCompletionCallback callback;
+            private readonly IOCompletionCallback callback;
 
             public IOCompletionThunk(IOCompletionCallback callback)
             {

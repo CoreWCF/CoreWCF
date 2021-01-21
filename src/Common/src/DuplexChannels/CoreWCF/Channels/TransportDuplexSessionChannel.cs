@@ -19,7 +19,7 @@ namespace CoreWCF.Channels
         private bool _isInputSessionClosed;
         private bool _isOutputSessionClosed;
         private ChannelBinding _channelBindingToken;
-        private IServiceChannelDispatcher _channelDispatcher;
+        private readonly IServiceChannelDispatcher _channelDispatcher;
 
         protected TransportDuplexSessionChannel(
           ITransportFactorySettings settings,

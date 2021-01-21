@@ -17,9 +17,9 @@ namespace CoreWCF.Channels
 {
     internal class ServerFramingDuplexSessionChannel : FramingDuplexSessionChannel
     {
-        private StreamUpgradeAcceptor upgradeAcceptor;
-        private IServiceProvider _serviceProvider;
-        private IStreamUpgradeChannelBindingProvider channelBindingProvider;
+        private readonly StreamUpgradeAcceptor upgradeAcceptor;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IStreamUpgradeChannelBindingProvider channelBindingProvider;
         private CancellationTokenRegistration _applicationStoppingRegistration;
 
         public ServerFramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings,
@@ -98,7 +98,7 @@ namespace CoreWCF.Channels
 
         internal class ServerSessionConnectionMessageSource : IMessageSource
         {
-            private FramingConnection _connection;
+            private readonly FramingConnection _connection;
 
             public ServerSessionConnectionMessageSource(FramingConnection connection)
             {
@@ -116,7 +116,10 @@ namespace CoreWCF.Channels
                     if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                     {
                         if (!readResult.IsCompleted)
+                        {
                             _connection.Input.AdvanceTo(readResult.Buffer.Start);
+                        }
+
                         EnsureDecoderAtEof();
                         _connection.EOF = true;
                     }
@@ -258,7 +261,10 @@ namespace CoreWCF.Channels
                         srcSpan.CopyTo(destSpan);
                         bytesToCopy -= srcSpan.Length;
                         if (bytesToCopy == 0)
+                        {
                             return;
+                        }
+
                         destSpan = destSpan.Slice(srcSpan.Length);
                     }
                 }
@@ -285,7 +291,7 @@ namespace CoreWCF.Channels
 
     internal abstract class FramingDuplexSessionChannel : TransportDuplexSessionChannel
     {
-        private bool exposeConnectionProperty;
+        private readonly bool exposeConnectionProperty;
 
         private FramingDuplexSessionChannel(ITransportFactorySettings settings,
             EndpointAddress localAddress, Uri localVia, EndpointAddress remoteAddress, Uri via, bool exposeConnectionProperty)

@@ -8,7 +8,7 @@ namespace CoreWCF.Configuration
 {
     internal class ServiceConfigurationDelegateHolder<TService> where TService : class
     {
-        private List<Action<ServiceHostBase>> configDelegates = new List<Action<ServiceHostBase>>();
+        private readonly List<Action<ServiceHostBase>> configDelegates = new List<Action<ServiceHostBase>>();
 
         public void AddConfigDelegate(Action<ServiceHostBase> func)
         {

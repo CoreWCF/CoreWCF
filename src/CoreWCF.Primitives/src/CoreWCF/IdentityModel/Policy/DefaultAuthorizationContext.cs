@@ -11,15 +11,15 @@ namespace CoreWCF.IdentityModel.Policy
     internal class DefaultAuthorizationContext : AuthorizationContext
     {
         private SecurityUniqueId id;
-        private ReadOnlyCollection<ClaimSet> claimSets;
-        private DateTime expirationTime;
-        private IDictionary<string, object> properties;
+        private readonly ReadOnlyCollection<ClaimSet> claimSets;
+        private readonly DateTime expirationTime;
+        private readonly IDictionary<string, object> properties;
 
         public DefaultAuthorizationContext(DefaultEvaluationContext evaluationContext)
         {
-            this.claimSets = evaluationContext.ClaimSets;
-            this.expirationTime = evaluationContext.ExpirationTime;
-            this.properties = evaluationContext.Properties;
+            claimSets = evaluationContext.ClaimSets;
+            expirationTime = evaluationContext.ExpirationTime;
+            properties = evaluationContext.Properties;
         }
 
         public static DefaultAuthorizationContext Empty
@@ -34,26 +34,29 @@ namespace CoreWCF.IdentityModel.Policy
         {
             get
             {
-                if (this.id == null)
-                    this.id = SecurityUniqueId.Create();
-                return this.id.Value;
+                if (id == null)
+                {
+                    id = SecurityUniqueId.Create();
+                }
+
+                return id.Value;
             }
         }
 
         public override ReadOnlyCollection<ClaimSet> ClaimSets
         {
-            get { return this.claimSets; }
+            get { return claimSets; }
         }
 
 
         public override DateTime ExpirationTime
         {
-            get { return this.expirationTime; }
+            get { return expirationTime; }
         }
 
         public override IDictionary<string, object> Properties
         {
-            get { return this.properties; }
+            get { return properties; }
         }
     }
 }

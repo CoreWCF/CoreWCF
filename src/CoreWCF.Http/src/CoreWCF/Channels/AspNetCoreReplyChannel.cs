@@ -14,8 +14,8 @@ namespace CoreWCF.Channels
 {
     internal class AspNetCoreReplyChannel : IReplyChannel
     {
-        private IServiceProvider _serviceProvider;
-        private HttpTransportSettings _httpSettings;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly HttpTransportSettings _httpSettings;
 
         public AspNetCoreReplyChannel(IServiceProvider serviceProvider, HttpTransportSettings httpSettings)
         {

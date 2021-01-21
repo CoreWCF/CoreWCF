@@ -14,7 +14,7 @@ namespace CoreWCF.Http.Tests
 {
     public class TestFaultContractName1Tests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public TestFaultContractName1Tests(ITestOutputHelper output)
         {

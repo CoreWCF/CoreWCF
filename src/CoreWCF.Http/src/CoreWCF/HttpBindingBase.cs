@@ -12,9 +12,9 @@ namespace CoreWCF
 {
     public abstract class HttpBindingBase : Binding
     {
-        private HttpTransportBindingElement _httpTransport;
-        private HttpsTransportBindingElement _httpsTransport;
-        private TextMessageEncodingBindingElement _textEncoding;
+        private readonly HttpTransportBindingElement _httpTransport;
+        private readonly HttpsTransportBindingElement _httpsTransport;
+        private readonly TextMessageEncodingBindingElement _textEncoding;
 
         internal HttpBindingBase()
         {
@@ -59,7 +59,7 @@ namespace CoreWCF
         {
             get
             {
-                return this._textEncoding.ReaderQuotas;
+                return _textEncoding.ReaderQuotas;
             }
 
             set
@@ -69,10 +69,10 @@ namespace CoreWCF
                     throw Fx.Exception.ArgumentNull(nameof(value));
                 }
 
-                value.CopyTo(this._textEncoding.ReaderQuotas);
+                value.CopyTo(_textEncoding.ReaderQuotas);
                 //value.CopyTo(this.mtomEncoding.ReaderQuotas);
 
-                this.SetReaderQuotas(value);
+                SetReaderQuotas(value);
             }
         }
 
@@ -130,7 +130,7 @@ namespace CoreWCF
 
         internal TransportBindingElement GetTransport()
         {
-            Fx.Assert(this.BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
+            Fx.Assert(BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
 
             BasicHttpSecurity basicHttpSecurity = BasicHttpSecurity;
             if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential || basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)

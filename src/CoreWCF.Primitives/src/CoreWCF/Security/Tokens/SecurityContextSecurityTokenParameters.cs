@@ -19,7 +19,7 @@ namespace CoreWCF.Security.Tokens
         public SecurityContextSecurityTokenParameters()
             : base()
         {
-            this.InclusionMode = SecurityTokenInclusionMode.AlwaysToRecipient;
+            InclusionMode = SecurityTokenInclusionMode.AlwaysToRecipient;
         }
 
         internal protected override bool SupportsClientAuthentication { get { return true; } }

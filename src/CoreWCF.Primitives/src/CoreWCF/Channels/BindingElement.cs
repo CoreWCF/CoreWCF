@@ -35,10 +35,14 @@ namespace CoreWCF.Channels
         public virtual IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             if (context == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
 
             if (innerDispatcher == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerDispatcher));
+            }
 
             return context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
         }
@@ -46,7 +50,9 @@ namespace CoreWCF.Channels
         public virtual bool CanBuildServiceDispatcher<TChannel>(BindingContext context) where TChannel : class, IChannel
         {
             if (context == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+            }
 
             return context.CanBuildNextServiceDispatcher<TChannel>();
         }

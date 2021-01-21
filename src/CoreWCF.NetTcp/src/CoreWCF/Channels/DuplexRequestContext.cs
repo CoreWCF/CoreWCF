@@ -9,7 +9,7 @@ namespace CoreWCF.Channels
 {
     internal class DuplexRequestContext : RequestContextBase
     {
-        private IDuplexChannel channel;
+        private readonly IDuplexChannel channel;
         private TaskCompletionSource<object> dispatchInvokedTcs;
         private Task dispatchInvokedTask;
 

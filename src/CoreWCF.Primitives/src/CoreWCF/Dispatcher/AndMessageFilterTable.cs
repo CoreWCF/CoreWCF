@@ -11,9 +11,9 @@ namespace CoreWCF.Dispatcher
 {
     internal class AndMessageFilterTable<FilterData> : IMessageFilterTable<FilterData>
     {
-        private Dictionary<MessageFilter, FilterData> filters;
-        private Dictionary<MessageFilter, FilterDataPair> filterData;
-        private MessageFilterTable<FilterDataPair> table;
+        private readonly Dictionary<MessageFilter, FilterData> filters;
+        private readonly Dictionary<MessageFilter, FilterDataPair> filterData;
+        private readonly MessageFilterTable<FilterDataPair> table;
 
         public AndMessageFilterTable()
         {

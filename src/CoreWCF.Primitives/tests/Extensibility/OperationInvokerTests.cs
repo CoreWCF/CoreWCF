@@ -56,7 +56,7 @@ namespace Extensibility
         public static int InstanceCount = 0;
         public static int InvokeCount = 0;
 
-        private IOperationInvoker _innerInvoker;
+        private readonly IOperationInvoker _innerInvoker;
 
         public TestDispatchOperationInvoker(IOperationInvoker innerInvoker)
         {

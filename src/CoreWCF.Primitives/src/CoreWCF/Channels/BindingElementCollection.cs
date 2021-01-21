@@ -16,7 +16,9 @@ namespace CoreWCF.Channels
         public BindingElementCollection(IEnumerable<BindingElement> elements)
         {
             if (elements == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elements));
+            }
 
             foreach (BindingElement element in elements)
             {
@@ -27,7 +29,9 @@ namespace CoreWCF.Channels
         public BindingElementCollection(BindingElement[] elements)
         {
             if (elements == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elements));
+            }
 
             for (int i = 0; i < elements.Length; i++)
             {
@@ -49,7 +53,9 @@ namespace CoreWCF.Channels
         public void AddRange(params BindingElement[] elements)
         {
             if (elements == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elements));
+            }
 
             for (int i = 0; i < elements.Length; i++)
             {
@@ -60,12 +66,16 @@ namespace CoreWCF.Channels
         public bool Contains(Type bindingElementType)
         {
             if (bindingElementType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bindingElementType));
+            }
 
             for (int i = 0; i < Count; i++)
             {
                 if (bindingElementType.IsInstanceOfType(this[i]))
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -131,7 +141,9 @@ namespace CoreWCF.Channels
         protected override void InsertItem(int index, BindingElement item)
         {
             if (item == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+            }
 
             base.InsertItem(index, item);
         }
@@ -139,7 +151,9 @@ namespace CoreWCF.Channels
         protected override void SetItem(int index, BindingElement item)
         {
             if (item == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+            }
 
             base.SetItem(index, item);
         }

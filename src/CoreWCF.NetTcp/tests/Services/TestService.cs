@@ -19,7 +19,7 @@ namespace Services
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, InstanceContextMode = InstanceContextMode.Single)]
     public class TestService : ServiceContract.ITestService
     {
-        private ManualResetEvent _mre = new ManualResetEvent(false);
+        private readonly ManualResetEvent _mre = new ManualResetEvent(false);
 
         public string EchoString(string echo)
         {
@@ -65,17 +65,25 @@ namespace Services
             if (echo.Contains(PrincipalPermissionMode.UseWindowsGroups.ToString()))
             {
                 if (typeof(WindowsIdentity).IsAssignableFrom(principal.Identity?.GetType()))
+                {
                     return echo;
-                else return "false";
-
+                }
+                else
+                {
+                    return "false";
+                }
             }
             else if (echo.Contains(PrincipalPermissionMode.Always.ToString()))
             {
                 if (principal.Identity != null
                     && principal.Identity.GetType().Equals(typeof(ClaimsIdentity)))
+                {
                     return echo;
-                else return "false";
-
+                }
+                else
+                {
+                    return "false";
+                }
             }
             return echo;
         }

@@ -8,7 +8,7 @@ namespace CoreWCF.Channels
 {
     internal sealed class UnderstoodHeaders : IEnumerable<MessageHeaderInfo>
     {
-        private MessageHeaders messageHeaders;
+        private readonly MessageHeaders messageHeaders;
         private bool modified;
 
         internal UnderstoodHeaders(MessageHeaders messageHeaders, bool modified)

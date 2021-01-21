@@ -12,7 +12,7 @@ namespace CoreWCF.Security
 
         internal SecurityPolicyVersion(String ns, String prefix)
         {
-            this.spNamespace = ns;
+            spNamespace = ns;
             this.prefix = prefix;
         }
 
@@ -20,7 +20,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.spNamespace;
+                return spNamespace;
             }
         }
 
@@ -28,7 +28,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.prefix;
+                return prefix;
             }
         }
 

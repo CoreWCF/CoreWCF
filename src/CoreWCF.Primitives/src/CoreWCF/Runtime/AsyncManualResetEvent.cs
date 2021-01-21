@@ -68,7 +68,9 @@ namespace CoreWCF.Runtime
 
                 if (!tcs.Task.IsCompleted ||
                 Interlocked.CompareExchange(ref _tcs, new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously), tcs) == tcs)
+                {
                     return;
+                }
             }
         }
 

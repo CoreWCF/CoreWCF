@@ -11,7 +11,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class ServiceDispatcher : IServiceDispatcher
     {
-        private IRequestReplyCorrelator _requestReplyCorrelator;
+        private readonly IRequestReplyCorrelator _requestReplyCorrelator;
 
         public ServiceDispatcher(ChannelDispatcher channelDispatcher)
         {

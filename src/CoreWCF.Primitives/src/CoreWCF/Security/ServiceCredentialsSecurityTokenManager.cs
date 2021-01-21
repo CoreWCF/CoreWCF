@@ -20,7 +20,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             }
-            this.ServiceCredentials = parent;
+            ServiceCredentials = parent;
         }
 
         public ServiceCredentials ServiceCredentials { get; }
@@ -53,7 +53,10 @@ namespace CoreWCF.Security
         {
             SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
             if (securityBindingElement == null)
+            {
                 throw CoreWCF.DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, (object)recipientRequirement));
+            }
+
             bool flag = !recipientRequirement.SupportSecurityContextCancellation;
             LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
             IMessageFilterTable<EndpointAddress> propertyOrDefault = recipientRequirement.GetPropertyOrDefault<IMessageFilterTable<EndpointAddress>>(ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty, (IMessageFilterTable<EndpointAddress>)null);
@@ -388,7 +391,9 @@ namespace CoreWCF.Security
             }
 
             if (result == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SecurityTokenManagerCannotCreateAuthenticatorForRequirement, tokenRequirement)));
+            }
 
             return result;
         }
@@ -404,8 +409,7 @@ namespace CoreWCF.Security
             else if (tokenType == ServiceModelSecurityTokenTypes.SspiCredential)
             {
                 // if Transport Security, AuthenticationSchemes.Basic will look at parent.UserNameAuthentication settings.
-                AuthenticationSchemes authenticationScheme;
-                bool authenticationSchemeIdentified = recipientRequirement.TryGetProperty<AuthenticationSchemes>(ServiceModelSecurityTokenRequirement.HttpAuthenticationSchemeProperty, out authenticationScheme);
+                bool authenticationSchemeIdentified = recipientRequirement.TryGetProperty<AuthenticationSchemes>(ServiceModelSecurityTokenRequirement.HttpAuthenticationSchemeProperty, out AuthenticationSchemes authenticationScheme);
                 if (authenticationSchemeIdentified &&
                     authenticationScheme.IsSet(AuthenticationSchemes.Basic) &&
                     authenticationScheme.IsNotSet(AuthenticationSchemes.Digest | AuthenticationSchemes.Ntlm | AuthenticationSchemes.Negotiate))

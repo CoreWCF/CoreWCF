@@ -16,9 +16,9 @@ namespace CoreWCF.Runtime
         private static Action<object> onDispatchCallback;
         private static Action<object> onInvokeDequeuedCallback;
         private QueueState queueState;
-        private ItemQueue itemQueue;
-        private Queue<IQueueReader> readerQueue;
-        private List<IQueueWaiter> waiterList;
+        private readonly ItemQueue itemQueue;
+        private readonly Queue<IQueueReader> readerQueue;
+        private readonly List<IQueueWaiter> waiterList;
 
         public InputQueue()
         {
@@ -630,9 +630,9 @@ namespace CoreWCF.Runtime
 
         private struct Item
         {
-            private Action dequeuedCallback;
-            private Exception exception;
-            private T value;
+            private readonly Action dequeuedCallback;
+            private readonly Exception exception;
+            private readonly T value;
 
             public Item(T value, Action dequeuedCallback)
                 : this(value, null, dequeuedCallback)
@@ -767,9 +767,9 @@ namespace CoreWCF.Runtime
         private class WaitQueueReader : IQueueReader
         {
             private Exception exception;
-            private InputQueue<T> inputQueue;
+            private readonly InputQueue<T> inputQueue;
             private T item;
-            private AsyncManualResetEvent waitEvent;
+            private readonly AsyncManualResetEvent waitEvent;
 
             public WaitQueueReader(InputQueue<T> inputQueue)
             {
@@ -830,7 +830,7 @@ namespace CoreWCF.Runtime
         private class WaitQueueWaiter : IQueueWaiter
         {
             private bool itemAvailable;
-            private AsyncManualResetEvent waitEvent;
+            private readonly AsyncManualResetEvent waitEvent;
 
             public WaitQueueWaiter()
             {

@@ -17,7 +17,7 @@ namespace CoreWCF.Security
         internal static readonly TimeSpan DefaultCachedLogonTokenLifetime = TimeSpan.Parse(DefaultCachedLogonTokenLifetimeString, CultureInfo.InvariantCulture);
         private UserNamePasswordValidationMode validationMode = DefaultUserNamePasswordValidationMode;
         private UserNamePasswordValidator validator;
-        private object membershipProvider;
+        private readonly object membershipProvider;
         private bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
         private bool cacheLogonTokens = DefaultCacheLogonTokens;
         private int maxCachedLogonTokens = DefaultMaxCachedLogonTokens;

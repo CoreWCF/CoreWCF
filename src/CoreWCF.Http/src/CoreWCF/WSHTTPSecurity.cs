@@ -35,52 +35,52 @@ namespace CoreWCF
 
         public SecurityMode Mode
         {
-            get { return this.mode; }
+            get { return mode; }
             set
             {
                 if (!SecurityModeHelper.IsDefined(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
                 }
-                this.mode = value;
+                mode = value;
             }
         }
 
         public HttpTransportSecurity Transport
         {
-            get { return this.transportSecurity; }
+            get { return transportSecurity; }
             set
             {
                 if (value == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
                 }
-                this.transportSecurity = value;
+                transportSecurity = value;
             }
         }
 
         public NonDualMessageSecurityOverHttp Message
         {
-            get { return this.messageSecurity; }
+            get { return messageSecurity; }
             set
             {
                 if (value == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
                 }
-                this.messageSecurity = value;
+                messageSecurity = value;
             }
         }
 
         internal void ApplyTransportSecurity(HttpsTransportBindingElement https)
         {
-            if (this.mode == SecurityMode.TransportWithMessageCredential)
+            if (mode == SecurityMode.TransportWithMessageCredential)
             {
-                this.transportSecurity.ConfigureTransportProtectionOnly(https);
+                transportSecurity.ConfigureTransportProtectionOnly(https);
             }
             else
             {
-                this.transportSecurity.ConfigureTransportProtectionAndAuthentication(https);
+                transportSecurity.ConfigureTransportProtectionAndAuthentication(https);
             }
         }
 
@@ -91,9 +91,9 @@ namespace CoreWCF
 
         internal SecurityBindingElement CreateMessageSecurity(bool isReliableSessionEnabled, MessageSecurityVersion version)
         {
-            if (this.mode == SecurityMode.Message || this.mode == SecurityMode.TransportWithMessageCredential)
+            if (mode == SecurityMode.Message || mode == SecurityMode.TransportWithMessageCredential)
             {
-                return this.messageSecurity.CreateSecurityBindingElement(this.Mode == SecurityMode.TransportWithMessageCredential, isReliableSessionEnabled, version);
+                return messageSecurity.CreateSecurityBindingElement(Mode == SecurityMode.TransportWithMessageCredential, isReliableSessionEnabled, version);
             }
             else
             {
@@ -129,7 +129,7 @@ namespace CoreWCF
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ShouldSerializeMode()
         {
-            return this.Mode != DefaultMode;
+            return Mode != DefaultMode;
         }
 
     }

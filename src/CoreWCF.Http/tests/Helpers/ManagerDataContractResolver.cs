@@ -21,7 +21,7 @@ namespace Helpers
 
         public override Type ResolveName(string typeName, string typeNamespace, Type declaredType, DataContractResolver knownTypeResolver)
         {
-            if (typeName == this.Name && typeNamespace == this.Namespace)
+            if (typeName == Name && typeNamespace == Namespace)
             {
                 return typeof(T);
             }
@@ -36,8 +36,8 @@ namespace Helpers
             if (type == typeof(T))
             {
                 XmlDictionary dic = new XmlDictionary();
-                typeName = dic.Add(this.Name);
-                typeNamespace = dic.Add(this.Namespace);
+                typeName = dic.Add(Name);
+                typeNamespace = dic.Add(Namespace);
                 return true;
             }
             else

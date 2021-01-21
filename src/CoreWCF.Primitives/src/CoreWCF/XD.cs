@@ -49,7 +49,10 @@ namespace CoreWCF
             get
             {
                 if (activityIdFlowDictionary == null)
+                {
                     activityIdFlowDictionary = new ActivityIdFlowDictionary(Dictionary);
+                }
+
                 return activityIdFlowDictionary;
             }
         }
@@ -59,7 +62,10 @@ namespace CoreWCF
             get
             {
                 if (addressingDictionary == null)
+                {
                     addressingDictionary = new AddressingDictionary(Dictionary);
+                }
+
                 return addressingDictionary;
             }
         }
@@ -69,7 +75,10 @@ namespace CoreWCF
             get
             {
                 if (addressing10Dictionary == null)
+                {
                     addressing10Dictionary = new Addressing10Dictionary(Dictionary);
+                }
+
                 return addressing10Dictionary;
             }
         }
@@ -79,7 +88,10 @@ namespace CoreWCF
             get
             {
                 if (addressing200408Dictionary == null)
+                {
                     addressing200408Dictionary = new Addressing200408Dictionary(Dictionary);
+                }
+
                 return addressing200408Dictionary;
             }
         }
@@ -89,7 +101,10 @@ namespace CoreWCF
             get
             {
                 if (addressingNoneDictionary == null)
+                {
                     addressingNoneDictionary = new AddressingNoneDictionary(Dictionary);
+                }
+
                 return addressingNoneDictionary;
             }
         }
@@ -99,7 +114,10 @@ namespace CoreWCF
             get
             {
                 if (atomicTransactionExternalDictionary == null)
+                {
                     atomicTransactionExternalDictionary = new AtomicTransactionExternalDictionary(Dictionary);
+                }
+
                 return atomicTransactionExternalDictionary;
             }
         }
@@ -109,7 +127,10 @@ namespace CoreWCF
             get
             {
                 if (atomicTransactionExternal10Dictionary == null)
+                {
                     atomicTransactionExternal10Dictionary = new AtomicTransactionExternal10Dictionary(Dictionary);
+                }
+
                 return atomicTransactionExternal10Dictionary;
             }
         }
@@ -119,7 +140,10 @@ namespace CoreWCF
             get
             {
                 if (coordinationExternalDictionary == null)
+                {
                     coordinationExternalDictionary = new CoordinationExternalDictionary(Dictionary);
+                }
+
                 return coordinationExternalDictionary;
             }
         }
@@ -129,7 +153,10 @@ namespace CoreWCF
             get
             {
                 if (coordinationExternal10Dictionary == null)
+                {
                     coordinationExternal10Dictionary = new CoordinationExternal10Dictionary(Dictionary);
+                }
+
                 return coordinationExternal10Dictionary;
             }
         }
@@ -139,7 +166,10 @@ namespace CoreWCF
             get
             {
                 if (dotNetAddressingDictionary == null)
+                {
                     dotNetAddressingDictionary = new DotNetAddressingDictionary(Dictionary);
+                }
+
                 return dotNetAddressingDictionary;
             }
         }
@@ -149,7 +179,10 @@ namespace CoreWCF
             get
             {
                 if (dotNetAtomicTransactionExternalDictionary == null)
+                {
                     dotNetAtomicTransactionExternalDictionary = new DotNetAtomicTransactionExternalDictionary(Dictionary);
+                }
+
                 return dotNetAtomicTransactionExternalDictionary;
             }
         }
@@ -159,7 +192,10 @@ namespace CoreWCF
             get
             {
                 if (dotNetOneWayDictionary == null)
+                {
                     dotNetOneWayDictionary = new DotNetOneWayDictionary(Dictionary);
+                }
+
                 return dotNetOneWayDictionary;
             }
         }
@@ -169,7 +205,10 @@ namespace CoreWCF
             get
             {
                 if (dotNetSecurityDictionary == null)
+                {
                     dotNetSecurityDictionary = new DotNetSecurityDictionary(Dictionary);
+                }
+
                 return dotNetSecurityDictionary;
             }
         }
@@ -179,7 +218,10 @@ namespace CoreWCF
             get
             {
                 if (exclusiveC14NDictionary == null)
+                {
                     exclusiveC14NDictionary = new ExclusiveC14NDictionary(Dictionary);
+                }
+
                 return exclusiveC14NDictionary;
             }
         }
@@ -189,7 +231,10 @@ namespace CoreWCF
             get
             {
                 if (messageDictionary == null)
+                {
                     messageDictionary = new MessageDictionary(Dictionary);
+                }
+
                 return messageDictionary;
             }
         }
@@ -199,7 +244,10 @@ namespace CoreWCF
             get
             {
                 if (message11Dictionary == null)
+                {
                     message11Dictionary = new Message11Dictionary(Dictionary);
+                }
+
                 return message11Dictionary;
             }
         }
@@ -209,7 +257,10 @@ namespace CoreWCF
             get
             {
                 if (message12Dictionary == null)
+                {
                     message12Dictionary = new Message12Dictionary(Dictionary);
+                }
+
                 return message12Dictionary;
             }
         }
@@ -219,7 +270,10 @@ namespace CoreWCF
             get
             {
                 if (oleTxTransactionExternalDictionary == null)
+                {
                     oleTxTransactionExternalDictionary = new OleTxTransactionExternalDictionary(Dictionary);
+                }
+
                 return oleTxTransactionExternalDictionary;
             }
         }
@@ -229,7 +283,10 @@ namespace CoreWCF
             get
             {
                 if (peerWireStringsDictionary == null)
+                {
                     peerWireStringsDictionary = new PeerWireStringsDictionary(Dictionary);
+                }
+
                 return peerWireStringsDictionary;
             }
         }
@@ -239,7 +296,10 @@ namespace CoreWCF
             get
             {
                 if (policyDictionary == null)
+                {
                     policyDictionary = new PolicyDictionary(Dictionary);
+                }
+
                 return policyDictionary;
             }
         }
@@ -249,7 +309,10 @@ namespace CoreWCF
             get
             {
                 if (samlDictionary == null)
+                {
                     samlDictionary = new SamlDictionary(Dictionary);
+                }
+
                 return samlDictionary;
             }
         }
@@ -259,7 +322,10 @@ namespace CoreWCF
             get
             {
                 if (secureConversationApr2004Dictionary == null)
+                {
                     secureConversationApr2004Dictionary = new SecureConversationApr2004Dictionary(Dictionary);
+                }
+
                 return secureConversationApr2004Dictionary;
             }
         }
@@ -269,7 +335,10 @@ namespace CoreWCF
             get
             {
                 if (secureConversationFeb2005Dictionary == null)
+                {
                     secureConversationFeb2005Dictionary = new SecureConversationFeb2005Dictionary(Dictionary);
+                }
+
                 return secureConversationFeb2005Dictionary;
             }
         }
@@ -279,7 +348,10 @@ namespace CoreWCF
             get
             {
                 if (securityAlgorithmDictionary == null)
+                {
                     securityAlgorithmDictionary = new SecurityAlgorithmDictionary(Dictionary);
+                }
+
                 return securityAlgorithmDictionary;
             }
         }
@@ -289,7 +361,10 @@ namespace CoreWCF
             get
             {
                 if (securityJan2004Dictionary == null)
+                {
                     securityJan2004Dictionary = new SecurityJan2004Dictionary(Dictionary);
+                }
+
                 return securityJan2004Dictionary;
             }
         }
@@ -299,7 +374,10 @@ namespace CoreWCF
             get
             {
                 if (securityXXX2005Dictionary == null)
+                {
                     securityXXX2005Dictionary = new SecurityXXX2005Dictionary(Dictionary);
+                }
+
                 return securityXXX2005Dictionary;
             }
         }
@@ -309,7 +387,10 @@ namespace CoreWCF
             get
             {
                 if (serializationDictionary == null)
+                {
                     serializationDictionary = new SerializationDictionary(Dictionary);
+                }
+
                 return serializationDictionary;
             }
         }
@@ -319,7 +400,10 @@ namespace CoreWCF
             get
             {
                 if (trustApr2004Dictionary == null)
+                {
                     trustApr2004Dictionary = new TrustApr2004Dictionary(Dictionary);
+                }
+
                 return trustApr2004Dictionary;
             }
         }
@@ -329,7 +413,10 @@ namespace CoreWCF
             get
             {
                 if (trustFeb2005Dictionary == null)
+                {
                     trustFeb2005Dictionary = new TrustFeb2005Dictionary(Dictionary);
+                }
+
                 return trustFeb2005Dictionary;
             }
         }
@@ -339,7 +426,10 @@ namespace CoreWCF
             get
             {
                 if (utilityDictionary == null)
+                {
                     utilityDictionary = new UtilityDictionary(Dictionary);
+                }
+
                 return utilityDictionary;
             }
         }
@@ -349,7 +439,10 @@ namespace CoreWCF
             get
             {
                 if (wsrmFeb2005Dictionary == null)
+                {
                     wsrmFeb2005Dictionary = new WsrmFeb2005Dictionary(Dictionary);
+                }
+
                 return wsrmFeb2005Dictionary;
             }
         }
@@ -359,7 +452,10 @@ namespace CoreWCF
             get
             {
                 if (xmlEncryptionDictionary == null)
+                {
                     xmlEncryptionDictionary = new XmlEncryptionDictionary(Dictionary);
+                }
+
                 return xmlEncryptionDictionary;
             }
         }
@@ -369,7 +465,10 @@ namespace CoreWCF
             get
             {
                 if (xmlSignatureDictionary == null)
+                {
                     xmlSignatureDictionary = new XmlSignatureDictionary(Dictionary);
+                }
+
                 return xmlSignatureDictionary;
             }
         }

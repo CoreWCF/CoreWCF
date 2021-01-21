@@ -77,9 +77,9 @@ namespace CoreWCF
     // you'd still have the creation problem...).  the issue with that is you now have a new public interface
     internal abstract class TypedHeaderManager
     {
-        private static Dictionary<Type, TypedHeaderManager> cache = new Dictionary<Type, TypedHeaderManager>();
-        private static ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
-        private static Type GenericAdapterType = typeof(GenericAdapter<>);
+        private static readonly Dictionary<Type, TypedHeaderManager> cache = new Dictionary<Type, TypedHeaderManager>();
+        private static readonly ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
+        private static readonly Type GenericAdapterType = typeof(GenericAdapter<>);
 
         internal static object Create(Type t, object content, bool mustUnderstand, bool relay, string actor)
         {
@@ -98,7 +98,10 @@ namespace CoreWCF
         internal static Type GetHeaderType(Type headerParameterType)
         {
             if (headerParameterType.GetTypeInfo().IsGenericType && headerParameterType.GetGenericTypeDefinition() == typeof(MessageHeader<>))
+            {
                 return headerParameterType.GetGenericArguments()[0];
+            }
+
             return headerParameterType;
         }
 
@@ -166,11 +169,16 @@ namespace CoreWCF
                 relay = false;
                 actor = null;
                 if (typedHeaderInstance == null)
+                {
                     return null;
+                }
 
                 MessageHeader<T> header = typedHeaderInstance as MessageHeader<T>;
                 if (header == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException("typedHeaderInstance"));
+                }
+
                 mustUnderstand = header.MustUnderstand;
                 relay = header.Relay;
                 actor = header.Actor;

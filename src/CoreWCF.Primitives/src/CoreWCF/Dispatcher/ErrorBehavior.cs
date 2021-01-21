@@ -10,10 +10,10 @@ namespace CoreWCF.Dispatcher
 {
     internal class ErrorBehavior
     {
-        private IErrorHandler[] handlers;
-        private bool debug;
-        private bool isOnServer;
-        private MessageVersion messageVersion;
+        private readonly IErrorHandler[] handlers;
+        private readonly bool debug;
+        private readonly bool isOnServer;
+        private readonly MessageVersion messageVersion;
 
         internal ErrorBehavior(ChannelDispatcher channelDispatcher)
         {
@@ -37,12 +37,16 @@ namespace CoreWCF.Dispatcher
             FaultException fault = error as FaultException;
             if (fault != null)
             {
-                string action;
-                MessageFault messageFault = rpc.Operation.FaultFormatter.Serialize(fault, out action);
+                MessageFault messageFault = rpc.Operation.FaultFormatter.Serialize(fault, out string action);
                 if (action == null)
+                {
                     action = rpc.RequestVersion.Addressing.DefaultFaultAction;
+                }
+
                 if (messageFault != null)
+                {
                     rpc.FaultInfo.Fault = Message.CreateMessage(rpc.RequestVersion, messageFault, action);
+                }
             }
         }
 
@@ -144,8 +148,7 @@ namespace CoreWCF.Dispatcher
 
         private void ProvideWellKnownFault(Exception e, FaultConverter faultConverter, ref ErrorHandlerFaultInfo faultInfo)
         {
-            Message faultMessage;
-            if (faultConverter != null && faultConverter.TryCreateFaultMessage(e, out faultMessage))
+            if (faultConverter != null && faultConverter.TryCreateFaultMessage(e, out Message faultMessage))
             {
                 faultInfo.Fault = faultMessage;
                 return;

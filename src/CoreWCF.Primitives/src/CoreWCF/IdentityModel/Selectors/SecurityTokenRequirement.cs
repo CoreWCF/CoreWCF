@@ -22,7 +22,7 @@ namespace CoreWCF.IdentityModel.Selectors
         private const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
         private const int defaultKeySize = 0;
         private const bool defaultIsOptionalToken = false;
-        private Dictionary<string, object> properties;
+        private readonly Dictionary<string, object> properties;
 
         public SecurityTokenRequirement()
         {
@@ -42,8 +42,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                string result;
-                return (TryGetProperty<string>(TokenTypeProperty, out result)) ? result : null;
+                return (TryGetProperty<string>(TokenTypeProperty, out string result)) ? result : null;
             }
             set
             {
@@ -55,8 +54,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                bool result;
-                return (TryGetProperty<bool>(IsOptionalTokenProperty, out result)) ? result : defaultIsOptionalToken;
+                return (TryGetProperty<bool>(IsOptionalTokenProperty, out bool result)) ? result : defaultIsOptionalToken;
             }
             set
             {
@@ -68,8 +66,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                bool result;
-                return (TryGetProperty<bool>(RequireCryptographicTokenProperty, out result)) ? result : defaultRequireCryptographicToken;
+                return (TryGetProperty<bool>(RequireCryptographicTokenProperty, out bool result)) ? result : defaultRequireCryptographicToken;
             }
             set
             {
@@ -81,8 +78,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                SecurityKeyUsage result;
-                return (TryGetProperty<SecurityKeyUsage>(KeyUsageProperty, out result)) ? result : defaultKeyUsage;
+                return (TryGetProperty<SecurityKeyUsage>(KeyUsageProperty, out SecurityKeyUsage result)) ? result : defaultKeyUsage;
             }
             set
             {
@@ -95,8 +91,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                SecurityKeyType result;
-                return (TryGetProperty<SecurityKeyType>(KeyTypeProperty, out result)) ? result : defaultKeyType;
+                return (TryGetProperty<SecurityKeyType>(KeyTypeProperty, out SecurityKeyType result)) ? result : defaultKeyType;
             }
             set
             {
@@ -109,8 +104,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                int result;
-                return (TryGetProperty<int>(KeySizeProperty, out result)) ? result : defaultKeySize;
+                return (TryGetProperty<int>(KeySizeProperty, out int result)) ? result : defaultKeySize;
             }
             set
             {
@@ -141,8 +135,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public TValue GetProperty<TValue>(string propertyName)
         {
-            TValue result;
-            if (!TryGetProperty<TValue>(propertyName, out result))
+            if (!TryGetProperty<TValue>(propertyName, out TValue result))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.SecurityTokenRequirementDoesNotContainProperty, propertyName)));
             }
@@ -151,8 +144,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public bool TryGetProperty<TValue>(string propertyName, out TValue result)
         {
-            object dictionaryValue;
-            if (!Properties.TryGetValue(propertyName, out dictionaryValue))
+            if (!Properties.TryGetValue(propertyName, out object dictionaryValue))
             {
                 result = default(TValue);
                 return false;

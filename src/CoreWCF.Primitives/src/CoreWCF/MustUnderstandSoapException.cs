@@ -16,8 +16,8 @@ namespace CoreWCF
         //protected MustUnderstandSoapException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 
 
-        private Collection<MessageHeaderInfo> notUnderstoodHeaders;
-        private EnvelopeVersion envelopeVersion;
+        private readonly Collection<MessageHeaderInfo> notUnderstoodHeaders;
+        private readonly EnvelopeVersion envelopeVersion;
 
         public MustUnderstandSoapException(Collection<MessageHeaderInfo> notUnderstoodHeaders, EnvelopeVersion envelopeVersion)
         {
@@ -54,8 +54,8 @@ namespace CoreWCF
 
         private class NotUnderstoodHeader : MessageHeader
         {
-            private string notUnderstoodName;
-            private string notUnderstoodNs;
+            private readonly string notUnderstoodName;
+            private readonly string notUnderstoodNs;
 
             public NotUnderstoodHeader(string name, string ns)
             {

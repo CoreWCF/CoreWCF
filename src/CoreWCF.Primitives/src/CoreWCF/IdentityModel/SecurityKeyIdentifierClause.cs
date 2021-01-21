@@ -15,8 +15,8 @@ namespace CoreWCF.IdentityModel
     public abstract class SecurityKeyIdentifierClause
     {
         private readonly string clauseType;
-        private byte[] derivationNonce;
-        private int derivationLength;
+        private readonly byte[] derivationNonce;
+        private readonly int derivationLength;
         private string id = null;
 
         protected SecurityKeyIdentifierClause(string clauseType)

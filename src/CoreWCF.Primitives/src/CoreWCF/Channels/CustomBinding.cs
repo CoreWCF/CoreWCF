@@ -7,7 +7,7 @@ namespace CoreWCF.Channels
 {
     public class CustomBinding : Binding
     {
-        private BindingElementCollection _bindingElements = new BindingElementCollection();
+        private readonly BindingElementCollection _bindingElements = new BindingElementCollection();
 
         public CustomBinding()
         {

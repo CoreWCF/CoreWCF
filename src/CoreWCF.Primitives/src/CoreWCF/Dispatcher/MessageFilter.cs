@@ -42,7 +42,7 @@ namespace CoreWCF.Dispatcher
 
     internal class SequentialMessageFilterTable<FilterData> : IMessageFilterTable<FilterData>
     {
-        private Dictionary<MessageFilter, FilterData> filters;
+        private readonly Dictionary<MessageFilter, FilterData> filters;
 
         public SequentialMessageFilterTable()
         {

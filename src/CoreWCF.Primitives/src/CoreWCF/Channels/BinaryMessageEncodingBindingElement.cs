@@ -13,7 +13,7 @@ namespace CoreWCF.Channels
     {
         private int maxReadPoolSize;
         private int maxWritePoolSize;
-        private XmlDictionaryReaderQuotas readerQuotas;
+        private readonly XmlDictionaryReaderQuotas readerQuotas;
         private int maxSessionSize;
         private BinaryVersion binaryVersion;
         private MessageVersion messageVersion;
@@ -140,7 +140,10 @@ namespace CoreWCF.Channels
             set
             {
                 if (value == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
                 value.CopyTo(readerQuotas);
             }
         }
@@ -169,7 +172,7 @@ namespace CoreWCF.Channels
             if (compressionFormat != CompressionFormat.None)
             {
                 ITransportCompressionSupport compressionSupport = context.GetInnerProperty<ITransportCompressionSupport>();
-                if (compressionSupport == null || !compressionSupport.IsCompressionFormatSupported(this.compressionFormat))
+                if (compressionSupport == null || !compressionSupport.IsCompressionFormatSupported(compressionFormat))
                 {
                     throw Fx.Exception.AsError(new NotSupportedException(SR.Format(
                         SR.TransportDoesNotSupportCompression, compressionFormat.ToString(),
@@ -194,10 +197,14 @@ namespace CoreWCF.Channels
         public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
         {
             if (context == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
 
             if (innerDispatcher == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerDispatcher));
+            }
 
             VerifyCompression(context);
             SetMaxReceivedMessageSizeFromTransport(context);
@@ -249,32 +256,62 @@ namespace CoreWCF.Channels
         protected override bool IsMatch(BindingElement b)
         {
             if (!base.IsMatch(b))
+            {
                 return false;
+            }
 
             BinaryMessageEncodingBindingElement binary = b as BinaryMessageEncodingBindingElement;
             if (binary == null)
+            {
                 return false;
+            }
+
             if (maxReadPoolSize != binary.MaxReadPoolSize)
+            {
                 return false;
+            }
+
             if (maxWritePoolSize != binary.MaxWritePoolSize)
+            {
                 return false;
+            }
 
             // compare XmlDictionaryReaderQuotas
             if (readerQuotas.MaxStringContentLength != binary.ReaderQuotas.MaxStringContentLength)
+            {
                 return false;
+            }
+
             if (readerQuotas.MaxArrayLength != binary.ReaderQuotas.MaxArrayLength)
+            {
                 return false;
+            }
+
             if (readerQuotas.MaxBytesPerRead != binary.ReaderQuotas.MaxBytesPerRead)
+            {
                 return false;
+            }
+
             if (readerQuotas.MaxDepth != binary.ReaderQuotas.MaxDepth)
+            {
                 return false;
+            }
+
             if (readerQuotas.MaxNameTableCharCount != binary.ReaderQuotas.MaxNameTableCharCount)
+            {
                 return false;
+            }
 
             if (MaxSessionSize != binary.MaxSessionSize)
+            {
                 return false;
+            }
+
             if (CompressionFormat != binary.CompressionFormat)
+            {
                 return false;
+            }
+
             return true;
         }
 

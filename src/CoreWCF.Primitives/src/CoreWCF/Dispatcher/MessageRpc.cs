@@ -65,7 +65,7 @@ namespace CoreWCF.Dispatcher
         //internal EventTraceActivity EventTraceActivity;
         internal bool _processCallReturned;
         private bool paused;
-        private bool switchedThreads;
+        private readonly bool switchedThreads;
         private bool isInstanceContextSingleton;
         private SignalGate<IAsyncResult> invokeContinueGate;
 
@@ -332,7 +332,7 @@ namespace CoreWCF.Dispatcher
         {
             //using (ServiceModelActivity.BoundOperation(this.Activity))
             //{
-            this.channelHandler.EnsureReceive();
+            channelHandler.EnsureReceive();
             //}
         }
 

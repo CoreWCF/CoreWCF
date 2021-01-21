@@ -13,10 +13,10 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     public class X509SecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
-        private X509CertificateValidator validator;
-        private bool mapToWindows;
-        private bool includeWindowsGroups;
-        private bool cloneHandle;
+        private readonly X509CertificateValidator validator;
+        private readonly bool mapToWindows;
+        private readonly bool includeWindowsGroups;
+        private readonly bool cloneHandle;
 
         public X509SecurityTokenAuthenticator()
             : this(X509CertificateValidator.ChainTrust)
@@ -68,7 +68,9 @@ namespace CoreWCF.IdentityModel.Selectors
 
             X509CertificateClaimSet x509ClaimSet = new X509CertificateClaimSet(x509Token.Certificate, cloneHandle);
             if (!mapToWindows)
+            {
                 return SecurityUtils.CreateAuthorizationPolicies(x509ClaimSet, x509Token.ValidTo);
+            }
 
             WindowsClaimSet windowsClaimSet;
             if (token is X509WindowsSecurityToken)

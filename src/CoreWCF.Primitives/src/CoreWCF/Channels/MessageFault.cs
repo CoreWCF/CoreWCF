@@ -31,20 +31,35 @@ namespace CoreWCF.Channels
         public static MessageFault CreateFault(FaultCode code, FaultReason reason, object detail, XmlObjectSerializer serializer, string actor, string node)
         {
             if (code == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(code));
+            }
+
             if (reason == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reason));
+            }
+
             if (actor == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
+            }
+
             if (node == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(node));
+            }
+
             return new XmlObjectSerializerFault(code, reason, detail, serializer, actor, node);
         }
 
         public static MessageFault CreateFault(Message message, int maxBufferSize)
         {
             if (message == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
+
             XmlDictionaryReader reader = message.GetReaderAtBodyContents();
             using (reader)
             {
@@ -118,14 +133,19 @@ namespace CoreWCF.Channels
         public T GetDetail<T>(XmlObjectSerializer serializer)
         {
             if (serializer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
+            }
+
             XmlDictionaryReader reader = GetReaderAtDetailContents();
             T value = (T)serializer.ReadObject(reader);
             if (!reader.EOF)
             {
                 reader.MoveToContent();
                 if (reader.NodeType != XmlNodeType.EndElement && !reader.EOF)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new FormatException(SR.ExtraContentIsPresentInFaultDetail));
+                }
             }
             return value;
         }
@@ -133,7 +153,10 @@ namespace CoreWCF.Channels
         public XmlDictionaryReader GetReaderAtDetailContents()
         {
             if (!HasDetail)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FaultDoesNotHaveAnyDetail));
+            }
+
             return OnGetReaderAtDetailContents();
         }
 
@@ -147,11 +170,17 @@ namespace CoreWCF.Channels
         protected virtual void OnWriteStartDetail(XmlDictionaryWriter writer, EnvelopeVersion version)
         {
             if (version == EnvelopeVersion.Soap12)
+            {
                 writer.WriteStartElement(XD.Message12Dictionary.FaultDetail, XD.Message12Dictionary.Namespace);
+            }
             else if (version == EnvelopeVersion.Soap11)
+            {
                 writer.WriteStartElement(XD.Message11Dictionary.FaultDetail, XD.Message11Dictionary.FaultNamespace);
+            }
             else
+            {
                 writer.WriteStartElement(XD.Message12Dictionary.FaultDetail, XD.MessageDictionary.Namespace);
+            }
         }
 
         protected abstract void OnWriteDetailContents(XmlDictionaryWriter writer);
@@ -226,9 +255,15 @@ namespace CoreWCF.Channels
             }
             writer.WriteEndElement();
             if (Node.Length > 0)
+            {
                 writer.WriteElementString(XD.Message12Dictionary.FaultNode, version.DictionaryNamespace, Node);
+            }
+
             if (Actor.Length > 0)
+            {
                 writer.WriteElementString(XD.Message12Dictionary.FaultRole, version.DictionaryNamespace, Actor);
+            }
+
             if (HasDetail)
             {
                 OnWriteDetail(writer, version);
@@ -241,19 +276,34 @@ namespace CoreWCF.Channels
             writer.WriteStartElement(XD.Message12Dictionary.FaultValue, version.DictionaryNamespace);
             string name;
             if (faultCode.IsSenderFault)
+            {
                 name = version.SenderFaultName;
+            }
             else if (faultCode.IsReceiverFault)
+            {
                 name = version.ReceiverFaultName;
+            }
             else
+            {
                 name = faultCode.Name;
+            }
+
             string ns;
             if (faultCode.IsPredefinedFault)
+            {
                 ns = version.Namespace;
+            }
             else
+            {
                 ns = faultCode.Namespace;
+            }
+
             string prefix = writer.LookupPrefix(ns);
             if (prefix == null)
+            {
                 writer.WriteAttributeString("xmlns", "a", XmlUtil.XmlNsNs, ns);
+            }
+
             writer.WriteQualifiedName(name, ns);
             writer.WriteEndElement();
 
@@ -277,33 +327,56 @@ namespace CoreWCF.Channels
 
             FaultCode faultCode = Code;
             if (faultCode.SubCode != null)
+            {
                 faultCode = faultCode.SubCode;
+            }
 
             string name;
             if (faultCode.IsSenderFault)
+            {
                 name = "Client";
+            }
             else if (faultCode.IsReceiverFault)
+            {
                 name = "Server";
+            }
             else
+            {
                 name = faultCode.Name;
+            }
+
             string ns;
             if (faultCode.IsPredefinedFault)
+            {
                 ns = Message11Strings.Namespace;
+            }
             else
+            {
                 ns = faultCode.Namespace;
+            }
+
             string prefix = writer.LookupPrefix(ns);
             if (prefix == null)
+            {
                 writer.WriteAttributeString("xmlns", "a", XmlUtil.XmlNsNs, ns);
+            }
+
             writer.WriteQualifiedName(name, ns);
             writer.WriteEndElement();
             FaultReasonText translation = Reason.Translations[0];
             writer.WriteStartElement(XD.Message11Dictionary.FaultString, XD.Message11Dictionary.FaultNamespace);
             if (translation.XmlLang.Length > 0)
+            {
                 writer.WriteAttributeString("xml", "lang", XmlUtil.XmlNs, translation.XmlLang);
+            }
+
             writer.WriteString(translation.Text);
             writer.WriteEndElement();
             if (Actor.Length > 0)
+            {
                 writer.WriteElementString(XD.Message11Dictionary.FaultActor, XD.Message11Dictionary.FaultNamespace, Actor);
+            }
+
             if (HasDetail)
             {
                 OnWriteDetail(writer, EnvelopeVersion.Soap11);
@@ -315,12 +388,12 @@ namespace CoreWCF.Channels
 
     internal class XmlObjectSerializerFault : MessageFault
     {
-        private FaultCode code;
-        private FaultReason reason;
-        private string actor;
-        private string node;
-        private object detail;
-        private XmlObjectSerializer serializer;
+        private readonly FaultCode code;
+        private readonly FaultReason reason;
+        private readonly string actor;
+        private readonly string node;
+        private readonly object detail;
+        private readonly XmlObjectSerializer serializer;
 
         public XmlObjectSerializerFault(FaultCode code, FaultReason reason, object detail, XmlObjectSerializer serializer, string actor, string node)
         {
@@ -394,13 +467,13 @@ namespace CoreWCF.Channels
 
     internal class ReceivedFault : MessageFault
     {
-        private FaultCode code;
-        private FaultReason reason;
-        private string actor;
-        private string node;
-        private XmlBuffer detail;
-        private bool hasDetail;
-        private EnvelopeVersion receivedVersion;
+        private readonly FaultCode code;
+        private readonly FaultReason reason;
+        private readonly string actor;
+        private readonly string node;
+        private readonly XmlBuffer detail;
+        private readonly bool hasDetail;
+        private readonly EnvelopeVersion receivedVersion;
 
         private ReceivedFault(FaultCode code, FaultReason reason, string actor, string node, XmlBuffer detail, EnvelopeVersion version)
         {
@@ -460,7 +533,10 @@ namespace CoreWCF.Channels
             {
                 XmlDictionaryReader reader = detail.GetReader(0);
                 if (!reader.IsEmptyElement && reader.Read()) // check if the detail element contains data
+                {
                     hasDetail = (reader.MoveToContent() != XmlNodeType.EndElement);
+                }
+
                 reader.Dispose();
             }
             return hasDetail;
@@ -487,7 +563,9 @@ namespace CoreWCF.Channels
 
                 // Copy the contents
                 while (r.NodeType != XmlNodeType.EndElement)
+                {
                     writer.WriteNode(r, false);
+                }
 
                 // End the element
                 writer.WriteEndElement();
@@ -518,7 +596,9 @@ namespace CoreWCF.Channels
             {
                 r.Read();
                 while (r.NodeType != XmlNodeType.EndElement)
+                {
                     writer.WriteNode(r, false);
+                }
             }
         }
 
@@ -564,16 +644,25 @@ namespace CoreWCF.Channels
             {
                 reader.ReadStartElement(XD.Message12Dictionary.FaultReason, version.DictionaryNamespace);
                 while (reader.IsStartElement(XD.Message12Dictionary.FaultText, version.DictionaryNamespace))
+                {
                     translations.Add(ReadTranslation12(reader));
+                }
+
                 reader.ReadEndElement();
             }
 
             string actor = "";
             string node = "";
             if (reader.IsStartElement(XD.Message12Dictionary.FaultNode, version.DictionaryNamespace))
+            {
                 node = reader.ReadElementContentAsString();
+            }
+
             if (reader.IsStartElement(XD.Message12Dictionary.FaultRole, version.DictionaryNamespace))
+            {
                 actor = reader.ReadElementContentAsString();
+            }
+
             XmlBuffer detail = null;
             if (reader.IsStartElement(XD.Message12Dictionary.FaultDetail, version.DictionaryNamespace))
             {
@@ -590,11 +679,9 @@ namespace CoreWCF.Channels
 
         private static FaultCode ReadFaultCode12Driver(XmlDictionaryReader reader, EnvelopeVersion version)
         {
-            string localName;
-            string ns;
             FaultCode subCode = null;
             reader.ReadStartElement(XD.Message12Dictionary.FaultValue, version.DictionaryNamespace);
-            XmlUtil.ReadContentAsQName(reader, out localName, out ns);
+            XmlUtil.ReadContentAsQName(reader, out string localName, out string ns);
             reader.ReadEndElement();
             if (reader.IsStartElement(XD.Message12Dictionary.FaultSubcode, version.DictionaryNamespace))
             {
@@ -621,10 +708,8 @@ namespace CoreWCF.Channels
         public static ReceivedFault CreateFault11(XmlDictionaryReader reader, int maxBufferSize)
         {
             reader.ReadStartElement(XD.MessageDictionary.Fault, XD.Message11Dictionary.Namespace);
-            string ns;
-            string name;
             reader.ReadStartElement(XD.Message11Dictionary.FaultCode, XD.Message11Dictionary.FaultNamespace);
-            XmlUtil.ReadContentAsQName(reader, out name, out ns);
+            XmlUtil.ReadContentAsQName(reader, out string name, out string ns);
             FaultCode code = new FaultCode(name, ns);
             reader.ReadEndElement();
 
@@ -635,7 +720,10 @@ namespace CoreWCF.Channels
 
             string actor = "";
             if (reader.IsStartElement(XD.Message11Dictionary.FaultActor, XD.Message11Dictionary.FaultNamespace))
+            {
                 actor = reader.ReadElementContentAsString();
+            }
+
             XmlBuffer detail = null;
             if (reader.IsStartElement(XD.Message11Dictionary.FaultDetail, XD.Message11Dictionary.FaultNamespace))
             {

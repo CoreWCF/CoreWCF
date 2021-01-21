@@ -19,7 +19,7 @@ namespace CoreWCF.Http.Tests
 {
     public class LargeRequestTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public LargeRequestTests(ITestOutputHelper output)
         {

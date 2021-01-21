@@ -11,11 +11,11 @@ namespace CoreWCF.Channels
 {
     internal class ConnectionReuseHandler : IConnectionReuseHandler
     {
-        private TcpTransportBindingElement _bindingElement;
+        private readonly TcpTransportBindingElement _bindingElement;
         private int _maxPooledConnections;
         private TimeSpan _idleTimeout;
-        private int _pooledConnectionCount;
-        private SemaphoreSlim _connectionPoolSemaphore;
+        private readonly int _pooledConnectionCount;
+        private readonly SemaphoreSlim _connectionPoolSemaphore;
 
         public ConnectionReuseHandler(TcpTransportBindingElement bindingElement)
         {

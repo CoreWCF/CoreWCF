@@ -13,9 +13,9 @@ namespace Helpers
 {
     internal class XmlSerializerTestRequestContext : RequestContext
     {
-        private Message _requestMessage;
+        private readonly Message _requestMessage;
         private string _replyMessageString;
-        private ManualResetEvent _mre;
+        private readonly ManualResetEvent _mre;
 
         public XmlSerializerTestRequestContext(Message requestMessage)
         {
@@ -87,7 +87,7 @@ namespace Helpers
             return new XmlSerializerTestRequestContext(requestMessage);
         }
 
-        private static string s_requestMessage = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private static readonly string s_requestMessage = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"">
   <s:Body>
     <Echo xmlns=""http://tempuri.org/"">
@@ -96,6 +96,6 @@ namespace Helpers
   </s:Body>
 </s:Envelope>";
 
-        private static string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleXmlSerializerService/EchoResponse</Action></s:Header><s:Body xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
+        private static readonly string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleXmlSerializerService/EchoResponse</Action></s:Header><s:Body xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
     }
 }

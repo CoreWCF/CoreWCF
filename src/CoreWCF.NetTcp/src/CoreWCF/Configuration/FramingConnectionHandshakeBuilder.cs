@@ -39,8 +39,7 @@ namespace CoreWCF.Configuration
 
         private T GetProperty<T>(string key)
         {
-            object value;
-            return Properties.TryGetValue(key, out value) ? (T)value : default(T);
+            return Properties.TryGetValue(key, out object value) ? (T)value : default(T);
         }
 
         private void SetProperty<T>(string key, T value)

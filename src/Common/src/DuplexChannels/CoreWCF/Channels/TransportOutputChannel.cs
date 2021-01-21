@@ -8,10 +8,10 @@ namespace CoreWCF.Channels
 {
     internal abstract class TransportOutputChannel : OutputChannel
     {
-        private bool _anyHeadersToAdd;
-        private EndpointAddress _to;
-        private Uri _via;
-        private ToHeader _toHeader;
+        private readonly bool _anyHeadersToAdd;
+        private readonly EndpointAddress _to;
+        private readonly Uri _via;
+        private readonly ToHeader _toHeader;
 
         protected TransportOutputChannel(IDefaultCommunicationTimeouts timeouts, EndpointAddress to, Uri via, bool manualAddressing, MessageVersion messageVersion)
             : base(timeouts)
@@ -93,7 +93,7 @@ namespace CoreWCF.Channels
 
         private class ToDictionary : IXmlDictionary
         {
-            private XmlDictionaryString to;
+            private readonly XmlDictionaryString to;
 
             public ToDictionary(string to)
             {
@@ -111,7 +111,10 @@ namespace CoreWCF.Channels
             public bool TryLookup(string value, out XmlDictionaryString result)
             {
                 if (value == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
                 if (value == to.Value)
                 {
                     result = to;
@@ -135,7 +138,10 @@ namespace CoreWCF.Channels
             public bool TryLookup(XmlDictionaryString value, out XmlDictionaryString result)
             {
                 if (value == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
                 if (value == to)
                 {
                     result = to;

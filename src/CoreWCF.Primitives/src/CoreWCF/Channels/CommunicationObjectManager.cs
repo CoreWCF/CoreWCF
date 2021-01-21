@@ -26,7 +26,9 @@ namespace CoreWCF.Channels
                 if (State == LifetimeState.Opened && !_inputClosed)
                 {
                     if (_itemsSet.Contains(item))
+                    {
                         return;
+                    }
 
                     _itemsSet.Add(item);
                     IncrementBusyCountWithoutLock();
@@ -70,7 +72,10 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 if (!_itemsSet.Contains(item))
+                {
                     return;
+                }
+
                 _itemsSet.Remove(item);
             }
 
@@ -85,7 +90,9 @@ namespace CoreWCF.Channels
                 int index = 0;
                 TItemType[] items = new TItemType[_itemsSet.Count];
                 foreach (TItemType item in _itemsSet)
+                {
                     items[index++] = item;
+                }
 
                 return items;
             }

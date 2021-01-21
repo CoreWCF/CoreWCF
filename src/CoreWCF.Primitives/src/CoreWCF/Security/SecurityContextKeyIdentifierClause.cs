@@ -28,7 +28,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
             }
-            this.ContextId = contextId;
+            ContextId = contextId;
             this.generation = generation;
         }
 
@@ -36,24 +36,24 @@ namespace CoreWCF.Security
 
         public UniqueId Generation
         {
-            get { return this.generation; }
+            get { return generation; }
         }
 
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             SecurityContextKeyIdentifierClause that = keyIdentifierClause as SecurityContextKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(this.ContextId, this.generation));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(ContextId, generation));
         }
 
         public bool Matches(UniqueId contextId, UniqueId generation)
         {
-            return contextId == this.ContextId && generation == this.generation;
+            return contextId == ContextId && generation == this.generation;
         }
 
         public override string ToString()
         {
             return string.Format(CultureInfo.InvariantCulture, "SecurityContextKeyIdentifierClause(ContextId = '{0}', Generation = '{1}')",
-                this.ContextId, this.Generation);
+                ContextId, Generation);
         }
     }
 }

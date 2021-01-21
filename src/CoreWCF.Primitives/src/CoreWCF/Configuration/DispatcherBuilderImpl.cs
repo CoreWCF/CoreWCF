@@ -9,7 +9,7 @@ namespace CoreWCF.Configuration
 {
     internal class DispatcherBuilderImpl : IDispatcherBuilder
     {
-        private IServiceProvider _services;
+        private readonly IServiceProvider _services;
 
         public DispatcherBuilderImpl(IServiceProvider services)
         {

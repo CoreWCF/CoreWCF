@@ -18,7 +18,7 @@ namespace CoreWCF.Dispatcher
 
     internal sealed class InvokerUtil
     {
-        private CriticalHelper helper;
+        private readonly CriticalHelper helper;
 
         public InvokerUtil()
         {

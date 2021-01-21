@@ -28,10 +28,10 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenParameters");
             }
-            this.TokenAuthenticator = tokenAuthenticator;
-            this.TokenResolver = securityTokenResolver;
-            this.SecurityTokenAttachmentMode = attachmentMode;
-            this.TokenParameters = tokenParameters;
+            TokenAuthenticator = tokenAuthenticator;
+            TokenResolver = securityTokenResolver;
+            SecurityTokenAttachmentMode = attachmentMode;
+            TokenParameters = tokenParameters;
             this.isTokenOptional = isTokenOptional;
         }
 
@@ -45,8 +45,8 @@ namespace CoreWCF.Security
 
         internal bool IsTokenOptional
         {
-            get { return this.isTokenOptional; }
-            set { this.isTokenOptional = value; }
+            get { return isTokenOptional; }
+            set { isTokenOptional = value; }
         }
     }
 }

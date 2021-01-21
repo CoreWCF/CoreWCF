@@ -102,7 +102,7 @@ namespace ErrorHandling
 
     public class ThrowingService : ISimpleService
     {
-        private Exception _exception;
+        private readonly Exception _exception;
 
         public ThrowingService(Exception exception)
         {
@@ -116,8 +116,8 @@ namespace ErrorHandling
 
     public class ThrowingAsyncService : ISimpleAsyncService
     {
-        private Exception _exception;
-        private bool _beforeAwait;
+        private readonly Exception _exception;
+        private readonly bool _beforeAwait;
 
         public ThrowingAsyncService(Exception exception, bool beforeAwait)
         {

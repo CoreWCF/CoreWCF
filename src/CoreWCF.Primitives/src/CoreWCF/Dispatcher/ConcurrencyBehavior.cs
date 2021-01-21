@@ -11,8 +11,8 @@ namespace CoreWCF.Dispatcher
 {
     internal class ConcurrencyBehavior
     {
-        private ConcurrencyMode concurrencyMode;
-        private bool enforceOrderedReceive;
+        private readonly ConcurrencyMode concurrencyMode;
+        private readonly bool enforceOrderedReceive;
 
         internal ConcurrencyBehavior(DispatchRuntime runtime)
         {
@@ -187,7 +187,7 @@ namespace CoreWCF.Dispatcher
 
         private class MessageRpcWaiter : IWaiter
         {
-            private IResumeMessageRpc resume;
+            private readonly IResumeMessageRpc resume;
 
             internal MessageRpcWaiter(IResumeMessageRpc resume)
             {
@@ -198,8 +198,7 @@ namespace CoreWCF.Dispatcher
             {
                 try
                 {
-                    bool alreadyResumedNoLock;
-                    resume.Resume(out alreadyResumedNoLock);
+                    resume.Resume(out bool alreadyResumedNoLock);
 
                     if (alreadyResumedNoLock)
                     {
@@ -219,7 +218,7 @@ namespace CoreWCF.Dispatcher
 
         private class ThreadWaiter : IWaiter
         {
-            private ManualResetEvent wait = new ManualResetEvent(false);
+            private readonly ManualResetEvent wait = new ManualResetEvent(false);
 
             void IWaiter.Signal()
             {
@@ -279,7 +278,9 @@ namespace CoreWCF.Dispatcher
         internal Task EnqueueNewMessage()
         {
             if (newMessageQueue == null)
+            {
                 newMessageQueue = new Queue<TaskCompletionSource<object>>();
+            }
             // Prevent release of waiter from running the waiter on the releasing thread by using RunContinuationsAsynchronously
             var waiter = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             newMessageQueue.Enqueue(waiter);
@@ -289,7 +290,9 @@ namespace CoreWCF.Dispatcher
         internal Task EnqueueCalloutMessage()
         {
             if (calloutMessageQueue == null)
+            {
                 calloutMessageQueue = new Queue<TaskCompletionSource<object>>();
+            }
             // Prevent release of waiter from running the waiter on the releasing thread by using RunContinuationsAsynchronously
             var waiter = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             calloutMessageQueue.Enqueue(waiter);

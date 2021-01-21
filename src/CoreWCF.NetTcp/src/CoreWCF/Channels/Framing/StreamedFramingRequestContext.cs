@@ -11,11 +11,11 @@ namespace CoreWCF.Channels.Framing
 {
     internal class StreamedFramingRequestContext : RequestContextBase
     {
-        private FramingConnection _connection;
-        private Message _requestMessage;
-        private Stream _inputStream;
+        private readonly FramingConnection _connection;
+        private readonly Message _requestMessage;
+        private readonly Stream _inputStream;
         private bool isClosed;
-        private TaskCompletionSource<object> _tcs;
+        private readonly TaskCompletionSource<object> _tcs;
 
         public StreamedFramingRequestContext(FramingConnection connection, Message requestMessage, Stream inputStream)
             : base(requestMessage, connection.ServiceDispatcher.Binding.CloseTimeout, connection.ServiceDispatcher.Binding.SendTimeout)
@@ -170,9 +170,9 @@ namespace CoreWCF.Channels.Framing
     // overrides Stream to add a Framing int at the beginning of each record
     internal class StreamingOutputConnectionStream : Stream
     {
-        private byte[] _encodedSize;
-        private FramingConnection _connection;
-        private IDefaultCommunicationTimeouts _timeouts;
+        private readonly byte[] _encodedSize;
+        private readonly FramingConnection _connection;
+        private readonly IDefaultCommunicationTimeouts _timeouts;
 
         public override bool CanRead => false;
 

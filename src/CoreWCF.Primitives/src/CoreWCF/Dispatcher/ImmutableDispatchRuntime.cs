@@ -980,7 +980,7 @@ namespace CoreWCF.Dispatcher
 
         private class ActionDemuxer : IDemuxer
         {
-            private HybridDictionary map;
+            private readonly HybridDictionary map;
             private DispatchOperationRuntime unhandled;
 
             internal ActionDemuxer()
@@ -1022,8 +1022,8 @@ namespace CoreWCF.Dispatcher
 
         private class CustomDemuxer : IDemuxer
         {
-            private Dictionary<string, DispatchOperationRuntime> _map;
-            private IDispatchOperationSelector _selector;
+            private readonly Dictionary<string, DispatchOperationRuntime> _map;
+            private readonly IDispatchOperationSelector _selector;
             private DispatchOperationRuntime _unhandled;
 
             internal CustomDemuxer(IDispatchOperationSelector selector)
@@ -1045,8 +1045,7 @@ namespace CoreWCF.Dispatcher
             public DispatchOperationRuntime GetOperation(ref Message request)
             {
                 string operationName = _selector.SelectOperation(ref request);
-                DispatchOperationRuntime operation = null;
-                if (_map.TryGetValue(operationName, out operation))
+                if (_map.TryGetValue(operationName, out DispatchOperationRuntime operation))
                 {
                     return operation;
                 }

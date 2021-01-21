@@ -9,10 +9,10 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal class GenericSecurityToken : SecurityToken
     {
-        private string _id;
-        private DateTime _effectiveTime;
-        private DateTime _expirationTime;
-        private string _name;
+        private readonly string _id;
+        private readonly DateTime _effectiveTime;
+        private readonly DateTime _expirationTime;
+        private readonly string _name;
         internal GenericSecurityToken(string name, string id)
         {
             _name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));

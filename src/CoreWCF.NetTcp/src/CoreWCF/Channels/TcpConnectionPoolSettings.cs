@@ -110,13 +110,17 @@ namespace CoreWCF.Channels
             //    return false;
 
             if (_idleTimeout != tcp._idleTimeout)
+            {
                 return false;
+            }
 
             //if (_leaseTimeout != tcp._leaseTimeout)
             //    return false;
 
             if (_maxOutboundConnectionsPerEndpoint != tcp._maxOutboundConnectionsPerEndpoint)
+            {
                 return false;
+            }
 
             return true;
         }

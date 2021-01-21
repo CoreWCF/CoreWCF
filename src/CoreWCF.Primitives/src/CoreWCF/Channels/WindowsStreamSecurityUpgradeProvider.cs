@@ -22,9 +22,9 @@ namespace CoreWCF.Channels
     internal class WindowsStreamSecurityUpgradeProvider : StreamSecurityUpgradeProvider
     {
         private EndpointIdentity _identity;
-        private SecurityTokenManager securityTokenManager;
-        private bool isClient;
-        private Uri listenUri;
+        private readonly SecurityTokenManager securityTokenManager;
+        private readonly bool isClient;
+        private readonly Uri listenUri;
 
         public WindowsStreamSecurityUpgradeProvider(WindowsStreamSecurityBindingElement bindingElement,
             BindingContext context, bool isClient)
@@ -127,8 +127,8 @@ namespace CoreWCF.Channels
 
         private class WindowsStreamSecurityUpgradeAcceptor : StreamSecurityUpgradeAcceptorBase
         {
-            private WindowsStreamSecurityUpgradeProvider parent;
-            private SecurityMessageProperty clientSecurity;
+            private readonly WindowsStreamSecurityUpgradeProvider parent;
+            private readonly SecurityMessageProperty clientSecurity;
 
             public WindowsStreamSecurityUpgradeAcceptor(WindowsStreamSecurityUpgradeProvider parent)
                 : base(FramingUpgradeString.Negotiate)

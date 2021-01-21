@@ -10,10 +10,10 @@ namespace CoreWCF.Collections.Generic
         where TKey : class
         where TValue : class
     {
-        private LinkedList<TKey> _mruList;
-        private Dictionary<TKey, CacheEntry> _items;
-        private int _lowWatermark;
-        private int _highWatermark;
+        private readonly LinkedList<TKey> _mruList;
+        private readonly Dictionary<TKey, CacheEntry> _items;
+        private readonly int _lowWatermark;
+        private readonly int _highWatermark;
         private CacheEntry _mruEntry;
 
         public MruCache(int watermark)
@@ -109,8 +109,7 @@ namespace CoreWCF.Collections.Generic
         {
             Fx.Assert(null != key, "");
 
-            CacheEntry entry;
-            if (_items.TryGetValue(key, out entry))
+            if (_items.TryGetValue(key, out CacheEntry entry))
             {
                 _items.Remove(key);
                 OnSingleItemRemoved(entry.value);
@@ -146,9 +145,8 @@ namespace CoreWCF.Collections.Generic
                 return true;
             }
 
-            CacheEntry entry;
 
-            bool found = _items.TryGetValue(key, out entry);
+            bool found = _items.TryGetValue(key, out CacheEntry entry);
             value = entry.value;
 
             // Move the node to the head of the MRU list if it's not already there

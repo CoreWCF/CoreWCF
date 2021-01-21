@@ -8,7 +8,7 @@ namespace CoreWCF.Channels
 {
     internal class ReplyChannel : ServiceChannelBase, IReplyChannel
     {
-        private EndpointAddress localAddress;
+        private readonly EndpointAddress localAddress;
 
         public ReplyChannel(IDefaultCommunicationTimeouts timeouts, EndpointAddress localAddress) : base(timeouts)
         {

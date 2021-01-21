@@ -21,7 +21,7 @@ namespace CoreWCF
 
     internal class SCTServiceAuthenticationManagerWrapper : ServiceAuthenticationManager
     {
-        private ServiceAuthenticationManager wrappedAuthenticationManager;
+        private readonly ServiceAuthenticationManager wrappedAuthenticationManager;
 
         internal SCTServiceAuthenticationManagerWrapper(ServiceAuthenticationManager wrappedServiceAuthManager)
         {
@@ -30,7 +30,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappedServiceAuthManager");
             }
 
-            this.wrappedAuthenticationManager = wrappedServiceAuthManager;
+            wrappedAuthenticationManager = wrappedServiceAuthManager;
         }
 
         public override ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
@@ -50,14 +50,14 @@ namespace CoreWCF
                 authPolicy = authPolicies.AsReadOnly();
             }
 
-            return this.wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
+            return wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
         }
     }
 
     internal class ServiceAuthenticationManagerWrapper : ServiceAuthenticationManager
     {
-        private ServiceAuthenticationManager wrappedAuthenticationManager;
-        private string[] filteredActionUriCollection;
+        private readonly ServiceAuthenticationManager wrappedAuthenticationManager;
+        private readonly string[] filteredActionUriCollection;
 
         internal ServiceAuthenticationManagerWrapper(ServiceAuthenticationManager wrappedServiceAuthManager, string[] actionUriFilter)
         {
@@ -68,14 +68,14 @@ namespace CoreWCF
 
             if ((actionUriFilter != null) && (actionUriFilter.Length > 0))
             {
-                this.filteredActionUriCollection = new string[actionUriFilter.Length];
+                filteredActionUriCollection = new string[actionUriFilter.Length];
                 for (int i = 0; i < actionUriFilter.Length; ++i)
                 {
-                    this.filteredActionUriCollection[i] = actionUriFilter[i];
+                    filteredActionUriCollection[i] = actionUriFilter[i];
                 }
             }
 
-            this.wrappedAuthenticationManager = wrappedServiceAuthManager;
+            wrappedAuthenticationManager = wrappedServiceAuthManager;
         }
 
         public override ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
@@ -85,21 +85,21 @@ namespace CoreWCF
                 return authPolicy;
             }
 
-            if (this.filteredActionUriCollection != null)
+            if (filteredActionUriCollection != null)
             {
-                for (int i = 0; i < this.filteredActionUriCollection.Length; ++i)
+                for (int i = 0; i < filteredActionUriCollection.Length; ++i)
                 {
                     if ((message != null) &&
                         (message.Headers != null) &&
                         !String.IsNullOrEmpty(message.Headers.Action) &&
-                        (message.Headers.Action == this.filteredActionUriCollection[i]))
+                        (message.Headers.Action == filteredActionUriCollection[i]))
                     {
                         return authPolicy;
                     }
                 }
             }
 
-            return this.wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
+            return wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
         }
 
         //

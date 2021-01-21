@@ -11,20 +11,20 @@ namespace CoreWCF.Description
     public class OperationDescription
     {
         internal const string SessionOpenedAction = "http://schemas.microsoft.com/2011/02/session/onopen"; //Channels.WebSocketTransportSettings.ConnectionOpenedAction;
-        private XmlName _name;
+        private readonly XmlName _name;
         private bool _isInitiating;
         private bool _isTerminating;
         private bool _isSessionOpenNotificationEnabled;
         private ContractDescription _declaringContract;
-        private FaultDescriptionCollection _faults;
-        private MessageDescriptionCollection _messages;
-        private KeyedByTypeCollection<IOperationBehavior> _behaviors;
-        private Collection<Type> _knownTypes;
+        private readonly FaultDescriptionCollection _faults;
+        private readonly MessageDescriptionCollection _messages;
+        private readonly KeyedByTypeCollection<IOperationBehavior> _behaviors;
+        private readonly Collection<Type> _knownTypes;
         private MethodInfo _beginMethod;
         private MethodInfo _endMethod;
         private MethodInfo _syncMethod;
         private MethodInfo _taskMethod;
-        private bool _validateRpcWrapperName = true;
+        private readonly bool _validateRpcWrapperName = true;
         private bool _hasNoDisposableParameters;
 
         public OperationDescription(string name, ContractDescription declaringContract)

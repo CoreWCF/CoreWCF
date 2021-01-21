@@ -13,7 +13,7 @@ namespace CoreWCF.Channels
     {
         private TimeoutHelper _timeoutHelper;
         private bool _disposed;
-        private byte[] _oneByteArray = new byte[1];
+        private readonly byte[] _oneByteArray = new byte[1];
         private CancellationToken _cancellationToken;
 
         public TimeoutStream(Stream stream, CancellationToken token)
@@ -38,7 +38,10 @@ namespace CoreWCF.Channels
         {
             int r = Read(_oneByteArray, 0, 1);
             if (r == 0)
+            {
                 return -1;
+            }
+
             return _oneByteArray[0];
         }
 

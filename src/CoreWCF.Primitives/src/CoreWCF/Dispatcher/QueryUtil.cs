@@ -504,7 +504,10 @@ namespace CoreWCF.Dispatcher
         private int Search(T item)
         {
             if (size == 0)
+            {
                 return ~0;
+            }
+
             return Search(item, Comparer);
         }
 

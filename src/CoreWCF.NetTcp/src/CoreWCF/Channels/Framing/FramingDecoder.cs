@@ -35,7 +35,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (!isValueDecoded)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return value;
             }
         }
@@ -91,7 +94,7 @@ namespace CoreWCF.Channels.Framing
         private string value;
         private State currentState;
         private IntDecoder sizeDecoder;
-        private int sizeQuota;
+        private readonly int sizeQuota;
         private int valueLengthInBytes;
 
         public StringDecoder(int sizeQuota)
@@ -111,7 +114,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState != State.Done)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return value;
             }
         }
@@ -153,7 +159,9 @@ namespace CoreWCF.Channels.Framing
                     {
                         bytesConsumed = bytesNeeded;
                         if (buffer.Length < bytesNeeded)
+                        {
                             bytesConsumed = (int)buffer.Length;
+                        }
 
                         Span<byte> span = encodedBytes;
                         Span<byte> slicedBytes = span.Slice(encodedSize - bytesNeeded, bytesConsumed);
@@ -243,7 +251,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (!IsValueDecoded)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return via;
             }
         }
@@ -551,8 +562,7 @@ namespace CoreWCF.Channels.Framing
                     catch (CommunicationException e)
                     {
                         // see if we need to send back a framing fault
-                        string framingFault;
-                        if (FramingEncodingString.TryGetFaultString(e, out framingFault))
+                        if (FramingEncodingString.TryGetFaultString(e, out string framingFault))
                         {
                             // TODO: Drain the rest of the data and send a fault then close the connection
                             //byte[] drainBuffer = new byte[128];
@@ -595,7 +605,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState != State.Done)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return mode;
             }
         }
@@ -605,7 +618,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState != State.Done)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return majorVersion;
             }
         }
@@ -615,7 +631,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState != State.Done)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return minorVersion;
             }
         }
@@ -639,8 +658,8 @@ namespace CoreWCF.Channels.Framing
     //   End
     internal class ServerSessionDecoder : FramingDecoder
     {
-        private ViaStringDecoder viaDecoder;
-        private StringDecoder contentTypeDecoder;
+        private readonly ViaStringDecoder viaDecoder;
+        private readonly StringDecoder contentTypeDecoder;
         private IntDecoder sizeDecoder;
         private State currentState;
         private string contentType;
@@ -671,7 +690,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState < State.PreUpgradeStart)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return contentType;
             }
         }
@@ -681,7 +703,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState < State.ReadingContentTypeRecord)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return viaDecoder.ValueAsUri;
             }
         }
@@ -696,7 +721,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState != State.UpgradeRequest)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return upgrade;
             }
         }
@@ -706,7 +734,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState < State.EnvelopeStart)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return envelopeSize;
             }
         }
@@ -838,10 +869,16 @@ namespace CoreWCF.Channels.Framing
                     case State.ReadingEnvelopeBytes:
                         bytesConsumed = (int)buffer.Length;
                         if (bytesConsumed > envelopeBytesNeeded)
+                        {
                             bytesConsumed = envelopeBytesNeeded;
+                        }
+
                         envelopeBytesNeeded -= bytesConsumed;
                         if (envelopeBytesNeeded == 0)
+                        {
                             currentState = State.EnvelopeEnd;
+                        }
+
                         break;
                     case State.EnvelopeEnd:
                         bytesConsumed = 0;
@@ -1013,8 +1050,8 @@ namespace CoreWCF.Channels.Framing
     //   EnvelopeStart,
     internal class ServerSingletonDecoder : FramingDecoder
     {
-        private ViaStringDecoder viaDecoder;
-        private ContentTypeStringDecoder contentTypeDecoder;
+        private readonly ViaStringDecoder viaDecoder;
+        private readonly ContentTypeStringDecoder contentTypeDecoder;
         private State currentState;
         private string contentType;
         private string upgrade;
@@ -1046,7 +1083,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState < State.ReadingContentTypeRecord)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return viaDecoder.ValueAsUri;
             }
         }
@@ -1056,7 +1096,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState < State.PreUpgradeStart)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return contentType;
             }
         }
@@ -1066,7 +1109,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState != State.UpgradeRequest)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return upgrade;
             }
         }
@@ -1212,8 +1258,8 @@ namespace CoreWCF.Channels.Framing
     //   EnvelopeStart,
     internal class ServerSingletonSizedDecoder : FramingDecoder
     {
-        private ViaStringDecoder viaDecoder;
-        private ContentTypeStringDecoder contentTypeDecoder;
+        private readonly ViaStringDecoder viaDecoder;
+        private readonly ContentTypeStringDecoder contentTypeDecoder;
         private State currentState;
         private string contentType;
 
@@ -1244,7 +1290,10 @@ namespace CoreWCF.Channels.Framing
                     case State.ReadingViaString:
                         bytesConsumed = viaDecoder.Decode(buffer);
                         if (viaDecoder.IsValueDecoded)
+                        {
                             currentState = State.ReadingContentTypeRecord;
+                        }
+
                         break;
                     case State.ReadingContentTypeRecord:
                         recordType = (FramingRecordType)data[0];
@@ -1310,7 +1359,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState < State.ReadingContentTypeRecord)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return viaDecoder.ValueAsUri;
             }
         }
@@ -1320,7 +1372,10 @@ namespace CoreWCF.Channels.Framing
             get
             {
                 if (currentState < State.Start)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return contentType;
             }
         }

@@ -11,8 +11,8 @@ namespace CoreWCF.Security
 
         public SendSecurityHeaderElement(string id, ISecurityElement item)
         {
-            this.Id = id;
-            this.Item = item;
+            Id = id;
+            Item = item;
             markedForEncryption = false;
         }
 
@@ -22,19 +22,19 @@ namespace CoreWCF.Security
 
         public bool MarkedForEncryption
         {
-            get { return this.markedForEncryption; }
-            set { this.markedForEncryption = value; }
+            get { return markedForEncryption; }
+            set { markedForEncryption = value; }
         }
 
         public bool IsSameItem(ISecurityElement item)
         {
-            return this.Item == item || this.Item.Equals(item);
+            return Item == item || Item.Equals(item);
         }
 
         public void Replace(string id, ISecurityElement item)
         {
-            this.Item = item;
-            this.Id = id;
+            Item = item;
+            Id = id;
         }
     }
 }

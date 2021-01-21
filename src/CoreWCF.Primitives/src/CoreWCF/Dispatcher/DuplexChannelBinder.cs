@@ -137,7 +137,10 @@ namespace CoreWCF.Dispatcher
                 lock (ThisLock)
                 {
                     if (_requests == null)
+                    {
                         _requests = new List<IDuplexRequest>();
+                    }
+
                     return _requests;
                 }
             }
@@ -417,8 +420,8 @@ namespace CoreWCF.Dispatcher
 
         private class DuplexRequestContext : RequestContextBase
         {
-            private DuplexChannelBinder binder;
-            private IDuplexChannel channel;
+            private readonly DuplexChannelBinder binder;
+            private readonly IDuplexChannel channel;
 
             internal DuplexRequestContext(IDuplexChannel channel, Message request, DuplexChannelBinder binder)
                 : base(request, binder.DefaultCloseTimeout, binder.DefaultSendTimeout)
@@ -456,8 +459,8 @@ namespace CoreWCF.Dispatcher
         private class AsyncDuplexRequest : IDuplexRequest, ICorrelatorKey
         {
             private Message reply;
-            private DuplexChannelBinder parent;
-            private AsyncManualResetEvent wait = new AsyncManualResetEvent();
+            private readonly DuplexChannelBinder parent;
+            private readonly AsyncManualResetEvent wait = new AsyncManualResetEvent();
             private int waitCount = 0;
             private RequestReplyCorrelator.Key requestCorrelatorKey;
 

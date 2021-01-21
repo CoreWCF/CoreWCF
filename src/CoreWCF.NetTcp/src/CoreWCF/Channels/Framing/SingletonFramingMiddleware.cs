@@ -12,7 +12,7 @@ namespace CoreWCF.Channels.Framing
 {
     internal class SingletonFramingMiddleware
     {
-        private HandshakeDelegate _next;
+        private readonly HandshakeDelegate _next;
 
         public SingletonFramingMiddleware(HandshakeDelegate next)
         {

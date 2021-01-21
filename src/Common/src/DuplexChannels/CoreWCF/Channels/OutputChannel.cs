@@ -41,12 +41,16 @@ namespace CoreWCF.Channels
         public Task SendAsync(Message message, CancellationToken token)
         {
             if (message == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
 
             // TODO: Fix exception message as a negative timeout wasn't passed, a cancelled token was
             if (token.IsCancellationRequested)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     new ArgumentException(SR.SFxTimeoutOutOfRange0, nameof(token)));
+            }
 
             ThrowIfDisposedOrNotOpen();
 

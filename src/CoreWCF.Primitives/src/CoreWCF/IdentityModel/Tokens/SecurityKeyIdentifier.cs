@@ -90,8 +90,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public TClause Find<TClause>() where TClause : SecurityKeyIdentifierClause
         {
-            TClause clause;
-            if (!TryFind<TClause>(out clause))
+            if (!TryFind<TClause>(out TClause clause))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.NoKeyIdentifierClauseFound, typeof(TClause)), "TClause"));
             }

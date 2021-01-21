@@ -18,9 +18,9 @@ namespace CoreWCF.Channels
     internal class RequestDelegateHandler
     {
         internal const long DefaultMaxBufferPoolSize = 512 * 1024;
-        private IServiceDispatcher _serviceDispatcher;
-        private IDefaultCommunicationTimeouts _timeouts;
-        private IServiceScopeFactory _servicesScopeFactory;
+        private readonly IServiceDispatcher _serviceDispatcher;
+        private readonly IDefaultCommunicationTimeouts _timeouts;
+        private readonly IServiceScopeFactory _servicesScopeFactory;
         private HttpTransportSettings _httpSettings;
         private AspNetCoreReplyChannel _replyChannel;
         private Task<IServiceChannelDispatcher> _replyChannelDispatcherTask;

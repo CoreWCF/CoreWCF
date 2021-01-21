@@ -13,12 +13,12 @@ namespace CoreWCF.Dispatcher
     internal class InstanceBehavior
     {
         private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
-        private IInstanceContextInitializer[] initializers;
-        private IInstanceContextProvider instanceContextProvider;
-        private IInstanceProvider provider;
-        private InstanceContext singleton;
-        private bool isSynchronized;
-        private ImmutableDispatchRuntime immutableRuntime;
+        private readonly IInstanceContextInitializer[] initializers;
+        private readonly IInstanceContextProvider instanceContextProvider;
+        private readonly IInstanceProvider provider;
+        private readonly InstanceContext singleton;
+        private readonly bool isSynchronized;
+        private readonly ImmutableDispatchRuntime immutableRuntime;
 
         internal InstanceBehavior(DispatchRuntime dispatch, ImmutableDispatchRuntime immutableRuntime)
         {
@@ -118,11 +118,15 @@ namespace CoreWCF.Dispatcher
         internal bool CanUnload(InstanceContext instanceContext)
         {
             if (InstanceContextProviderBase.IsProviderSingleton(instanceContextProvider))
+            {
                 return false;
+            }
 
             if (InstanceContextProviderBase.IsProviderPerCall(instanceContextProvider) ||
                 InstanceContextProviderBase.IsProviderSessionful(instanceContextProvider))
+            {
                 return true;
+            }
 
             //User provided InstanceContextProvider. Call the provider to check for idle.
             if (!instanceContextProvider.IsIdle(instanceContext))
@@ -171,7 +175,9 @@ namespace CoreWCF.Dispatcher
             foreach (var constructor in type.GetConstructors(DefaultBindingFlags))
             {
                 if (constructor.GetParameters().Length == 0)
+                {
                     return constructor;
+                }
             }
             return null;
         }
@@ -208,7 +214,9 @@ namespace CoreWCF.Dispatcher
             }
 
             for (int i = 0; i < initializers.Length; i++)
+            {
                 initializers[i].Initialize(instanceContext, message);
+            }
         }
 
         internal void EnsureServiceInstance(MessageRpc rpc)
@@ -253,12 +261,14 @@ namespace CoreWCF.Dispatcher
 
     internal class InstanceProvider : IInstanceProvider
     {
-        private CreateInstanceDelegate creator;
+        private readonly CreateInstanceDelegate creator;
 
         internal InstanceProvider(CreateInstanceDelegate creator)
         {
             if (creator == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(creator));
+            }
 
             this.creator = creator;
         }
@@ -277,7 +287,9 @@ namespace CoreWCF.Dispatcher
         {
             IDisposable dispose = instance as IDisposable;
             if (dispose != null)
+            {
                 dispose.Dispose();
+            }
         }
     }
 

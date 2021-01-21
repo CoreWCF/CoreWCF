@@ -14,10 +14,10 @@ namespace Helpers
 {
     internal class TestRequestContext : RequestContext
     {
-        private Message _requestMessage;
+        private readonly Message _requestMessage;
         private string _replyMessageString;
         private MessageBuffer _bufferedCopy;
-        private ManualResetEvent _mre;
+        private readonly ManualResetEvent _mre;
 
         public TestRequestContext(Message requestMessage)
         {
@@ -98,7 +98,7 @@ namespace Helpers
   </s:Body>
 </s:Envelope>";
 
-        private static string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleService/EchoResponse</Action></s:Header><s:Body><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
+        private static readonly string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleService/EchoResponse</Action></s:Header><s:Body><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
 
         internal bool WaitForReply(TimeSpan timeout)
         {

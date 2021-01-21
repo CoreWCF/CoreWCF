@@ -14,9 +14,9 @@ namespace CoreWCF.Description
         private Type _contractType;
         private XmlName _name;
         private string _ns;
-        private OperationDescriptionCollection _operations;
+        private readonly OperationDescriptionCollection _operations;
         private SessionMode _sessionMode;
-        private KeyedByTypeCollection<IContractBehavior> _behaviors = new KeyedByTypeCollection<IContractBehavior>();
+        private readonly KeyedByTypeCollection<IContractBehavior> _behaviors = new KeyedByTypeCollection<IContractBehavior>();
         //ProtectionLevel protectionLevel;
         //bool hasProtectionLevel;
 
@@ -31,7 +31,9 @@ namespace CoreWCF.Description
             // the property setter validates given value
             Name = name;
             if (!string.IsNullOrEmpty(ns))
+            {
                 NamingHelper.CheckUriParameter(ns, "ns");
+            }
 
             _operations = new OperationDescriptionCollection();
             _ns = ns ?? NamingHelper.DefaultNamespace; // ns can be ""
@@ -80,7 +82,10 @@ namespace CoreWCF.Description
             set
             {
                 if (!string.IsNullOrEmpty(value))
+                {
                     NamingHelper.CheckUriProperty(value, "Namespace");
+                }
+
                 _ns = value;
             }
         }
@@ -137,7 +142,9 @@ namespace CoreWCF.Description
         public static ContractDescription GetContract<TService>(Type contractType) where TService : class
         {
             if (contractType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractType));
+            }
 
             var typeLoader = new TypeLoader<TService>();
             ContractDescription description = typeLoader.LoadContractDescription(contractType);
@@ -147,10 +154,14 @@ namespace CoreWCF.Description
         public static ContractDescription GetContract<TService>(Type contractType, object serviceImplementation) where TService : class
         {
             if (contractType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractType));
+            }
 
             if (serviceImplementation == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceImplementation));
+            }
 
             var typeLoader = new TypeLoader<TService>();
             ContractDescription description = typeLoader.LoadContractDescription(contractType, serviceImplementation);
@@ -180,7 +191,10 @@ namespace CoreWCF.Description
                 OperationDescription operationDescription = Operations[i];
                 operationDescription.EnsureInvariants();
                 if (operationDescription.IsInitiating)
+                {
                     thereIsAtLeastOneInitiatingOperation = true;
+                }
+
                 if ((!operationDescription.IsInitiating || operationDescription.IsTerminating)
                     && (SessionMode != SessionMode.Required))
                 {

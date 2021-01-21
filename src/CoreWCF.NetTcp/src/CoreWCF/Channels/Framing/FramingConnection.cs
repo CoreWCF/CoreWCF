@@ -16,7 +16,7 @@ namespace CoreWCF.Channels.Framing
 {
     public class FramingConnection
     {
-        private ConnectionContext _context;
+        private readonly ConnectionContext _context;
         public FramingConnection(ConnectionContext context)
         {
             _context = context;
@@ -179,7 +179,9 @@ namespace CoreWCF.Channels.Framing
                 }
 
                 if (readResult.IsCompleted)
+                {
                     break;
+                }
 
                 readTotal += readResult.Buffer.Length;
                 Input.AdvanceTo(readResult.Buffer.End);

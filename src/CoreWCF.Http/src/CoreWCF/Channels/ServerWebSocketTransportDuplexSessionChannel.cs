@@ -15,9 +15,9 @@ namespace CoreWCF.Channels
     internal class ServerWebSocketTransportDuplexSessionChannel : WebSocketTransportDuplexSessionChannel
     {
         private WebSocketContext _webSocketContext;
-        private HttpContext _httpContext;
-        private IHttpTransportFactorySettings _transportSettings;
-        private IServiceProvider _serviceProvider;
+        private readonly HttpContext _httpContext;
+        private readonly IHttpTransportFactorySettings _transportSettings;
+        private readonly IServiceProvider _serviceProvider;
         private WebSocketMessageSource webSocketMessageSource;
         private SessionOpenNotification sessionOpenNotification;
 
@@ -32,19 +32,19 @@ namespace CoreWCF.Channels
 
         protected override bool IsStreamedOutput
         {
-            get { return TransferModeHelper.IsResponseStreamed(this.TransferMode); }
+            get { return TransferModeHelper.IsResponseStreamed(TransferMode); }
         }
 
         public override T GetProperty<T>()
         {
             if (typeof(T) == typeof(SessionOpenNotification))
             {
-                if (this.sessionOpenNotification == null)
+                if (sessionOpenNotification == null)
                 {
-                    this.sessionOpenNotification = new SessionOpenNotificationHelper(this);
+                    sessionOpenNotification = new SessionOpenNotificationHelper(this);
                 }
 
-                return (T)(object)this.sessionOpenNotification;
+                return (T)(object)sessionOpenNotification;
             }
 
             T service = _serviceProvider.GetService<T>();
@@ -59,25 +59,25 @@ namespace CoreWCF.Channels
         internal void SetWebSocketInfo(WebSocketContext webSocketContext, RemoteEndpointMessageProperty remoteEndpointMessageProperty, SecurityMessageProperty handshakeSecurityMessageProperty, bool shouldDisposeWebSocketAfterClosed, HttpContext httpContext)
         {
             Fx.Assert(webSocketContext != null, "webSocketContext should not be null.");
-            this.ShouldDisposeWebSocketAfterClosed = shouldDisposeWebSocketAfterClosed;
-            this._webSocketContext = webSocketContext;
-            this.WebSocket = webSocketContext.WebSocket;
+            ShouldDisposeWebSocketAfterClosed = shouldDisposeWebSocketAfterClosed;
+            _webSocketContext = webSocketContext;
+            WebSocket = webSocketContext.WebSocket;
 
             if (handshakeSecurityMessageProperty != null)
             {
-                this.RemoteSecurity = handshakeSecurityMessageProperty;
+                RemoteSecurity = handshakeSecurityMessageProperty;
             }
 
-            bool inputUseStreaming = TransferModeHelper.IsRequestStreamed(this.TransferMode);
-            this.webSocketMessageSource = new WebSocketMessageSource(
+            bool inputUseStreaming = TransferModeHelper.IsRequestStreamed(TransferMode);
+            webSocketMessageSource = new WebSocketMessageSource(
                             this,
-                            this._webSocketContext,
+                            _webSocketContext,
                             inputUseStreaming,
                             remoteEndpointMessageProperty,
                             this,
                             httpContext);
 
-            this.SetMessageSource(this.webSocketMessageSource);
+            SetMessageSource(webSocketMessageSource);
         }
 
         protected override void OnClosed()
@@ -104,7 +104,7 @@ namespace CoreWCF.Channels
 
         private SecurityMessageProperty ProcessAuthentication()
         {
-            if (this.ShouldProcessAuthentication())
+            if (ShouldProcessAuthentication())
             {
                 // TODO: Create SecurityMessageProperty further up stack
                 return null;
@@ -136,13 +136,13 @@ namespace CoreWCF.Channels
             {
                 get
                 {
-                    return this.channel.WebSocketSettings.CreateNotificationOnConnection;
+                    return channel.WebSocketSettings.CreateNotificationOnConnection;
                 }
             }
 
             public override void UpdateMessageProperties(MessageProperties inboundMessageProperties)
             {
-                this.channel.webSocketMessageSource.UpdateOpenNotificationMessageProperties(inboundMessageProperties);
+                channel.webSocketMessageSource.UpdateOpenNotificationMessageProperties(inboundMessageProperties);
             }
         }
     }

@@ -144,27 +144,38 @@ namespace CoreWCF.Description
 
         internal static void CheckUriProperty(string ns, string propName)
         {
-            Uri uri;
-            if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out uri))
+            if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out Uri uri))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SFXUnvalidNamespaceValue, ns, propName));
+            }
         }
 
         internal static void CheckUriParameter(string ns, string paramName)
         {
-            Uri uri;
-            if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out uri))
+            if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out Uri uri))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(paramName, SR.Format(SR.SFXUnvalidNamespaceParam, ns));
+            }
         }
 
         // Converts names that contain characters that are not permitted in XML names to valid names.
         internal static string XmlName(string name)
         {
             if (string.IsNullOrEmpty(name))
+            {
                 return name;
+            }
+
             if (IsAsciiLocalName(name))
+            {
                 return name;
+            }
+
             if (IsValidNCName(name))
+            {
                 return name;
+            }
+
             return XmlConvert.EncodeLocalName(name);
         }
 
@@ -188,12 +199,17 @@ namespace CoreWCF.Description
         {
             Fx.Assert(null != localName, "");
             if (!IsAlpha(localName[0]))
+            {
                 return false;
+            }
+
             for (int i = 1; i < localName.Length; i++)
             {
                 char ch = localName[i];
                 if (!IsAlpha(ch) && !IsDigit(ch))
+                {
                     return false;
+                }
             }
             return true;
         }
@@ -241,7 +257,10 @@ namespace CoreWCF.Description
             get
             {
                 if (_encoded == null)
+                {
                     _encoded = NamingHelper.XmlName(_decoded);
+                }
+
                 return _encoded;
             }
         }
@@ -251,7 +270,10 @@ namespace CoreWCF.Description
             get
             {
                 if (_decoded == null)
+                {
                     _decoded = NamingHelper.CodeName(_encoded);
+                }
+
                 return _decoded;
             }
         }
@@ -259,7 +281,9 @@ namespace CoreWCF.Description
         private static void ValidateEncodedName(string name, bool allowNull)
         {
             if (allowNull && name == null)
+            {
                 return;
+            }
 
             try
             {
@@ -978,7 +1002,10 @@ namespace CoreWCF.Description
         {
             OperationContractAttribute opSettings = GetOperationContractAttribute(method);
             if (opSettings == null)
+            {
                 return false;
+            }
+
             return IsBegin(opSettings, method);
         }
 

@@ -13,7 +13,10 @@ namespace CoreWCF
         public FaultReasonText(string text)
         {
             if (text == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
+            }
+
             _text = text;
             _xmlLang = CultureInfo.CurrentCulture.Name;
         }
@@ -21,9 +24,15 @@ namespace CoreWCF
         public FaultReasonText(string text, string xmlLang)
         {
             if (text == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
+            }
+
             if (xmlLang == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlLang));
+            }
+
             _text = text;
             _xmlLang = xmlLang;
         }
@@ -32,9 +41,14 @@ namespace CoreWCF
         internal FaultReasonText(string text, CultureInfo cultureInfo)
         {
             if (text == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
+            }
+
             if (cultureInfo == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(cultureInfo));
+            }
 
             _text = text;
             _xmlLang = cultureInfo.Name;
@@ -43,7 +57,9 @@ namespace CoreWCF
         public bool Matches(CultureInfo cultureInfo)
         {
             if (cultureInfo == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(cultureInfo));
+            }
 
             return _xmlLang == cultureInfo.Name;
         }

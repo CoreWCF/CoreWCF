@@ -10,7 +10,7 @@ namespace Helpers
 {
     public static class ClientHelper
     {
-        private static TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
+        private static readonly TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
         public static NetTcpBinding GetBufferedModeBinding(SecurityMode securityMode = SecurityMode.None)
         {

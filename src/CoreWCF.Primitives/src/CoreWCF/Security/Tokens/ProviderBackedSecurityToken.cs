@@ -17,10 +17,10 @@ namespace CoreWCF.Security.Tokens
     internal class ProviderBackedSecurityToken : SecurityToken
     {
         // Double-checked locking pattern requires volatile for read/write synchronization
-        private SecurityToken _securityToken;
+        private readonly SecurityToken _securityToken;
         private TimeSpan _timeout;
         private ChannelBinding _channelBinding;
-        private object _lock;
+        private readonly object _lock;
 
         /// <summary>
         /// Constructor to create an instance of this class.

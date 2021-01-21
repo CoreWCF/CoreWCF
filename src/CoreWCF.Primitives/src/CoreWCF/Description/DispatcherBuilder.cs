@@ -126,7 +126,9 @@ namespace CoreWCF.Description
 
             // VSWhidbey#541152: new Uri(Uri, string.Empty) is broken
             if (path.Length == 0)
+            {
                 return baseUri;
+            }
 
             if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
             {
@@ -297,9 +299,8 @@ namespace CoreWCF.Description
                                 EndpointFilterProvider iProvider = endpointInfos[i].FilterProvider;
                                 EndpointFilterProvider jProvider = endpointInfos[j].FilterProvider;
                                 // if not default EndpointFilterProvider, we won't try to throw, you're on your own
-                                string commonAction;
                                 if (iProvider != null && jProvider != null
-                                    && HaveCommonInitiatingActions(iProvider, jProvider, out commonAction))
+                                    && HaveCommonInitiatingActions(iProvider, jProvider, out string commonAction))
                                 {
                                     // you will definitely get a MultipleFiltersMatchedException at runtime,
                                     // so let's go ahead and throw now
@@ -429,8 +430,7 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(contractDescription)));
             }
 
-            ChannelRequirements reqs;
-            ChannelRequirements.ComputeContractRequirements(contractDescription, out reqs);
+            ChannelRequirements.ComputeContractRequirements(contractDescription, out ChannelRequirements reqs);
             Type[] supportedChannels = ChannelRequirements.ComputeRequiredChannels(ref reqs);
             // supportedChannels is client-side, need to make server-side
             for (int i = 0; i < supportedChannels.Length; i++)
@@ -509,8 +509,7 @@ namespace CoreWCF.Description
             }
 
             //dispatcher.SetSupportedChannels(DispatcherBuilder.GetSupportedChannelTypes(contractDescription));
-            int filterPriority = 0;
-            dispatcher.ContractFilter = provider.CreateFilter(out filterPriority);
+            dispatcher.ContractFilter = provider.CreateFilter(out int filterPriority);
             dispatcher.FilterPriority = filterPriority;
 
             return dispatcher;
@@ -776,9 +775,9 @@ namespace CoreWCF.Description
         #region InnerClasses
         private class EndpointInfo
         {
-            private ServiceEndpoint endpoint;
-            private EndpointDispatcher endpointDispatcher;
-            private EndpointFilterProvider provider;
+            private readonly ServiceEndpoint endpoint;
+            private readonly EndpointDispatcher endpointDispatcher;
+            private readonly EndpointFilterProvider provider;
 
             public EndpointInfo(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher, EndpointFilterProvider provider)
             {
@@ -793,8 +792,8 @@ namespace CoreWCF.Description
 
         internal class ListenUriInfo
         {
-            private Uri listenUri;
-            private ListenUriMode listenUriMode;
+            private readonly Uri listenUri;
+            private readonly ListenUriMode listenUriMode;
 
             public ListenUriInfo(Uri listenUri, ListenUriMode listenUriMode)
             {

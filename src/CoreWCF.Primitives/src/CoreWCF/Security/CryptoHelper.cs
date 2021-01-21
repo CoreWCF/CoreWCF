@@ -51,7 +51,10 @@ namespace CoreWCF.Security
             {
                 HashAlgorithm hashAlgorithm = algorithmObject as HashAlgorithm;
                 if (hashAlgorithm != null)
+                {
                     return hashAlgorithm;
+                }
+
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.CustomCryptoAlgorithmIsNotValidHashAlgorithm, digestMethod)));
             }
 
@@ -79,12 +82,16 @@ namespace CoreWCF.Security
                 {
                     hashAlgorithm = signatureDescription.CreateDigest();
                     if (hashAlgorithm != null)
+                    {
                         return hashAlgorithm;
+                    }
                 }
 
                 hashAlgorithm = algorithmObject as HashAlgorithm;
                 if (hashAlgorithm != null)
+                {
                     return hashAlgorithm;
+                }
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.CustomCryptoAlgorithmIsNotValidAsymmetricSignature, signatureMethod)));
             }
@@ -158,14 +165,18 @@ namespace CoreWCF.Security
                 SymmetricAlgorithm symmetricAlgorithm = algorithmObject as SymmetricAlgorithm;
                 KeyedHashAlgorithm keyedHashAlgorithm = algorithmObject as KeyedHashAlgorithm;
                 if (symmetricAlgorithm != null || keyedHashAlgorithm != null)
+                {
                     return CryptoAlgorithmType.Symmetric;
+                }
 
                 // NOTE: A KeyedHashAlgorithm is symmetric in nature.
 
                 AsymmetricAlgorithm asymmetricAlgorithm = algorithmObject as AsymmetricAlgorithm;
                 SignatureDescription signatureDescription = algorithmObject as SignatureDescription;
                 if (asymmetricAlgorithm != null || signatureDescription != null)
+                {
                     return CryptoAlgorithmType.Asymmetric;
+                }
 
                 return CryptoAlgorithmType.Unknown;
             }
@@ -198,9 +209,7 @@ namespace CoreWCF.Security
 
         internal static byte[] GenerateIVAndEncrypt(SymmetricAlgorithm algorithm, byte[] plainText, int offset, int count)
         {
-            byte[] iv;
-            byte[] cipherText;
-            GenerateIVAndEncrypt(algorithm, new ArraySegment<byte>(plainText, offset, count), out iv, out cipherText);
+            GenerateIVAndEncrypt(algorithm, new ArraySegment<byte>(plainText, offset, count), out byte[] iv, out byte[] cipherText);
             byte[] output = Fx.AllocateByteArray(checked(iv.Length + cipherText.Length));
             Buffer.BlockCopy(iv, 0, output, 0, iv.Length);
             Buffer.BlockCopy(cipherText, 0, output, iv.Length, cipherText.Length);
@@ -261,7 +270,9 @@ namespace CoreWCF.Security
                 SymmetricAlgorithm symmetricAlgorithm = algorithmObject as SymmetricAlgorithm;
                 KeyedHashAlgorithm keyedHashAlgorithm = algorithmObject as KeyedHashAlgorithm;
                 if (symmetricAlgorithm != null || keyedHashAlgorithm != null)
+                {
                     found = true;
+                }
             }
 
             switch (algorithm)
@@ -291,7 +302,10 @@ namespace CoreWCF.Security
                     return keySize == 128 || keySize == 192;
                 default:
                     if (found)
+                    {
                         return true;
+                    }
+
                     return false;
             }
         }

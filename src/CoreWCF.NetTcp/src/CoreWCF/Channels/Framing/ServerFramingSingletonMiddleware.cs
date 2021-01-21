@@ -12,7 +12,7 @@ namespace CoreWCF.Channels.Framing
 {
     internal class ServerFramingSingletonMiddleware
     {
-        private HandshakeDelegate _next;
+        private readonly HandshakeDelegate _next;
 
         public ServerFramingSingletonMiddleware(HandshakeDelegate next)
         {
@@ -114,7 +114,9 @@ namespace CoreWCF.Channels.Framing
                                         catch (Exception exception)
                                         {
                                             if (Fx.IsFatal(exception))
+                                            {
                                                 throw;
+                                            }
 
                                             throw;
                                         }

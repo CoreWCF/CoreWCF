@@ -13,8 +13,8 @@ namespace CoreWCF.Security.Tokens
     public class SspiSecurityToken : SecurityToken
     {
         private string _id;
-        private DateTime _effectiveTime;
-        private DateTime _expirationTime;
+        private readonly DateTime _effectiveTime;
+        private readonly DateTime _expirationTime;
 
         public SspiSecurityToken(TokenImpersonationLevel impersonationLevel, bool allowNtlm, NetworkCredential networkCredential)
         {
@@ -39,7 +39,10 @@ namespace CoreWCF.Security.Tokens
             get
             {
                 if (_id == null)
+                {
                     _id = SecurityUniqueId.Create().Value;
+                }
+
                 return _id;
             }
         }

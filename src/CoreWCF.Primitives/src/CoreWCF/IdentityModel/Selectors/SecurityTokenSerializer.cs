@@ -223,7 +223,9 @@ namespace CoreWCF.IdentityModel.Selectors
                 for (int i = 0; i < tokenTypes.Length; ++i)
                 {
                     if (tokenTypes[i].IsAssignableFrom(tokenType))
+                    {
                         return true;
+                    }
                 }
                 return false;
             }
@@ -233,7 +235,10 @@ namespace CoreWCF.IdentityModel.Selectors
             public Type[] GetTokenTypes()
             {
                 if (tokenTypes == null)
+                {
                     tokenTypes = GetTokenTypesCore();
+                }
+
                 return tokenTypes;
             }
 

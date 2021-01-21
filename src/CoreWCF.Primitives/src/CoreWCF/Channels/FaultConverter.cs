@@ -79,7 +79,7 @@ namespace CoreWCF.Channels
 
         private class DefaultFaultConverter : FaultConverter
         {
-            private MessageVersion version;
+            private readonly MessageVersion version;
 
             internal DefaultFaultConverter(MessageVersion version)
             {

@@ -13,7 +13,7 @@ namespace CoreWCF.Security
     public class ImpersonateOnSerializingReplyMessageProperty : IMessageProperty
     {
         private const string PropertyName = "ImpersonateOnSerializingReplyMessageProperty";
-        private MessageRpc _rpc;
+        private readonly MessageRpc _rpc;
 
         internal ImpersonateOnSerializingReplyMessageProperty(MessageRpc rpc)
         {
@@ -57,8 +57,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
-            object value = null;
-            if (properties.TryGetValue(PropertyName, out value))
+            if (properties.TryGetValue(PropertyName, out object value))
             {
                 property = value as ImpersonateOnSerializingReplyMessageProperty;
             }

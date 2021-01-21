@@ -18,7 +18,7 @@ namespace NetHttp
     {
         private const string NetHttpServiceBaseUri = "http://localhost:8080";
         private const string NetHttpBufferedServiceUri = NetHttpServiceBaseUri + Startup.BufferedPath;
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public WebSocketsTests(ITestOutputHelper output)
         {

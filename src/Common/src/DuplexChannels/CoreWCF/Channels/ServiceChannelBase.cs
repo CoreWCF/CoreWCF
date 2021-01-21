@@ -8,7 +8,7 @@ namespace CoreWCF.Channels
 {
     internal abstract class ServiceChannelBase : CommunicationObject, IChannel, IDefaultCommunicationTimeouts
     {
-        private IDefaultCommunicationTimeouts _timeouts;
+        private readonly IDefaultCommunicationTimeouts _timeouts;
 
         protected ServiceChannelBase(IDefaultCommunicationTimeouts timeouts)
         {

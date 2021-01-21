@@ -15,7 +15,7 @@ namespace CoreWCF.Channels
     public sealed class BaseUriWithWildcard
     {
         [DataMember]
-        private Uri _baseAddress;
+        private readonly Uri _baseAddress;
         private const char segmentDelimiter = '/';
 
         [DataMember]

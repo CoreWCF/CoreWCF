@@ -18,7 +18,7 @@ namespace CoreWCF.Runtime
         private IOThreadTimer backoffTimer;
         private Action<object> backoffCallback;
         private object backoffState;
-        private Random random;
+        private readonly Random random;
         private TimeSpan originalTimeout;
 
         internal BackoffTimeoutHelper(TimeSpan timeout)

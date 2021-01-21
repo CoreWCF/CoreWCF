@@ -13,12 +13,12 @@ namespace CoreWCF
 {
     public sealed class OperationContext : IExtensibleObject<OperationContext>
     {
-        private static AsyncLocal<Holder> currentContext = new AsyncLocal<Holder>();
+        private static readonly AsyncLocal<Holder> currentContext = new AsyncLocal<Holder>();
         private ServiceChannel channel;
         private Message clientReply;
         private bool closeClientReply;
         private ExtensionCollection<OperationContext> extensions;
-        private ServiceHostBase host;
+        private readonly ServiceHostBase host;
         private RequestContext requestContext;
         private Message request;
         private InstanceContext instanceContext;
@@ -26,7 +26,7 @@ namespace CoreWCF
         internal IPrincipal threadPrincipal;
         private MessageProperties outgoingMessageProperties;
         private MessageHeaders outgoingMessageHeaders;
-        private MessageVersion outgoingMessageVersion;
+        private readonly MessageVersion outgoingMessageVersion;
         private EndpointDispatcher endpointDispatcher;
 
         public event EventHandler OperationCompleted;
@@ -34,7 +34,9 @@ namespace CoreWCF
         public OperationContext(IContextChannel channel)
         {
             if (channel == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channel));
+            }
 
             ServiceChannel serviceChannel = channel as ServiceChannel;
 
@@ -63,7 +65,9 @@ namespace CoreWCF
         internal OperationContext(ServiceHostBase host, MessageVersion outgoingMessageVersion)
         {
             if (outgoingMessageVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(outgoingMessageVersion));
+            }
 
             this.host = host;
             this.outgoingMessageVersion = outgoingMessageVersion;
@@ -174,7 +178,9 @@ namespace CoreWCF
             get
             {
                 if (outgoingMessageHeaders == null)
+                {
                     outgoingMessageHeaders = new MessageHeaders(OutgoingMessageVersion);
+                }
 
                 return outgoingMessageHeaders;
             }
@@ -190,7 +196,9 @@ namespace CoreWCF
             get
             {
                 if (outgoingMessageProperties == null)
+                {
                     outgoingMessageProperties = new MessageProperties();
+                }
 
                 return outgoingMessageProperties;
             }
@@ -207,9 +215,13 @@ namespace CoreWCF
             {
                 Message message = clientReply ?? request;
                 if (message != null)
+                {
                     return message.Headers;
+                }
                 else
+                {
                     return null;
+                }
             }
         }
 
@@ -219,9 +231,13 @@ namespace CoreWCF
             {
                 Message message = clientReply ?? request;
                 if (message != null)
+                {
                     return message.Properties;
+                }
                 else
+                {
                     return null;
+                }
             }
         }
 
@@ -231,9 +247,13 @@ namespace CoreWCF
             {
                 Message message = clientReply ?? request;
                 if (message != null)
+                {
                     return message.Version;
+                }
                 else
+                {
                     return null;
+                }
             }
         }
 
@@ -252,7 +272,7 @@ namespace CoreWCF
         {
             get
             {
-                MessageProperties properties = this.IncomingMessageProperties;
+                MessageProperties properties = IncomingMessageProperties;
                 if (properties != null && properties.Security != null)
                 {
                     return properties.Security.ServiceSecurityContext;
@@ -263,8 +283,8 @@ namespace CoreWCF
 
         internal IPrincipal ThreadPrincipal
         {
-            get { return this.threadPrincipal; }
-            set { this.threadPrincipal = value; }
+            get { return threadPrincipal; }
+            set { threadPrincipal = value; }
         }
 
         public ClaimsPrincipal ClaimsPrincipal
@@ -292,7 +312,9 @@ namespace CoreWCF
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperCallback(e);
             }
@@ -301,7 +323,9 @@ namespace CoreWCF
         public T GetCallbackChannel<T>()
         {
             if (channel == null || IsUserContext)
+            {
                 return default(T);
+            }
 
             // yes, we might throw InvalidCastException here.  Is it really
             // better to check and throw something else instead?

@@ -15,7 +15,7 @@ namespace CoreWCF.Http.Tests
 {
     public class ServiceContractNameSpaceTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public ServiceContractNameSpaceTests(ITestOutputHelper output)
         {
             _output = output;
@@ -44,50 +44,50 @@ namespace CoreWCF.Http.Tests
                 {
                     case "XmlCharacters":
                         {
-                            result = this.Variation_Service_XmlCharacters(clientString);
+                            result = Variation_Service_XmlCharacters(clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "WhiteSpace":
                         {
-                            result = this.Variation_Service_WhiteSpace(clientString);
+                            result = Variation_Service_WhiteSpace(clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "XMLEncoded":
                         {
-                            result = this.Variation_Service_XMLEncoded(clientString);
+                            result = Variation_Service_XMLEncoded(clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
 
                     case "XMLReservedCharacters":
                         {
-                            result = this.Variation_Service_XMLReservedCharacters(clientString);
+                            result = Variation_Service_XMLReservedCharacters(clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "NonAlphaCharacters":
                         {
-                            result = this.Variation_Service_NonAlphaCharacters(clientString);
+                            result = Variation_Service_NonAlphaCharacters(clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "LocalizedCharacters":
                         {
-                            result = this.Variation_Service_LocalizedCharacters(clientString);
+                            result = Variation_Service_LocalizedCharacters(clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "SurrogateCharacters":
                         {
-                            result = this.Variation_Service_SurrogateCharacters(clientString);
+                            result = Variation_Service_SurrogateCharacters(clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "URI":
                         {
-                            result = this.Variation_Service_URI(clientString);
+                            result = Variation_Service_URI(clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;

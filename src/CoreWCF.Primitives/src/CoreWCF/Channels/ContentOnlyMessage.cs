@@ -11,7 +11,7 @@ namespace CoreWCF.Channels
     /// </summary>
     internal abstract class ContentOnlyMessage : Message
     {
-        private MessageHeaders headers;
+        private readonly MessageHeaders headers;
         private MessageProperties properties;
 
         protected ContentOnlyMessage()
@@ -66,7 +66,7 @@ namespace CoreWCF.Channels
 
     internal class StringMessage : ContentOnlyMessage
     {
-        private string data;
+        private readonly string data;
 
         public StringMessage(string data)
             : base()

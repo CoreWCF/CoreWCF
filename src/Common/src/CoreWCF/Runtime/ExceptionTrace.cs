@@ -10,8 +10,8 @@ namespace CoreWCF.Runtime
 {
     internal class ExceptionTrace
     {
-        private string _eventSourceName;
-        private EtwDiagnosticTrace _diagnosticTrace;
+        private readonly string _eventSourceName;
+        private readonly EtwDiagnosticTrace _diagnosticTrace;
 
         internal ExceptionTrace(string eventSourceName, EtwDiagnosticTrace diagnosticTrace)
         {

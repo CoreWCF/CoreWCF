@@ -17,7 +17,7 @@ namespace CoreWCF.Http.Tests
 {
     public class StreamingServiceTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public const string TestString = "String to test";
         public const string FileToSend = "temp.dat";
 

@@ -116,8 +116,7 @@ namespace CoreWCF.Channels
             clientAuthRequirement.KeyUsage = SecurityKeyUsage.Signature;
             clientAuthRequirement.TransportScheme = transportScheme;
             clientAuthRequirement.ListenUri = listenUri;
-            SecurityTokenResolver dummy;
-            return tokenManager.CreateSecurityTokenAuthenticator(clientAuthRequirement, out dummy);
+            return tokenManager.CreateSecurityTokenAuthenticator(clientAuthRequirement, out SecurityTokenResolver dummy);
         }
 
         public static Uri GetListenUri(Uri baseAddress, string relativeAddress)

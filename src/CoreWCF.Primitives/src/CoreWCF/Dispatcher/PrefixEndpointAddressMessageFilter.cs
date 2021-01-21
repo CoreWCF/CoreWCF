@@ -9,10 +9,10 @@ namespace CoreWCF.Dispatcher
 {
     internal class PrefixEndpointAddressMessageFilter : MessageFilter
     {
-        private EndpointAddress _address;
-        private EndpointAddressMessageFilterHelper _helper;
-        private UriPrefixTable<object> _addressTable;
-        private HostNameComparisonMode _hostNameComparisonMode;
+        private readonly EndpointAddress _address;
+        private readonly EndpointAddressMessageFilterHelper _helper;
+        private readonly UriPrefixTable<object> _addressTable;
+        private readonly HostNameComparisonMode _hostNameComparisonMode;
 
         public PrefixEndpointAddressMessageFilter(EndpointAddress address)
             : this(address, false)
@@ -80,8 +80,7 @@ namespace CoreWCF.Dispatcher
             // To
             Uri to = message.Headers.To;
 
-            object o;
-            if (to == null || !_addressTable.TryLookupUri(to, _hostNameComparisonMode, out o))
+            if (to == null || !_addressTable.TryLookupUri(to, _hostNameComparisonMode, out object o))
             {
                 return false;
             }

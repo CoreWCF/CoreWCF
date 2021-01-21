@@ -129,9 +129,9 @@ namespace System.Xml.XmlDiff
         private void InitFiles()
         {
             _SourceDoc = new XmlDiffDocument();
-            _SourceDoc.Option = this._XmlDiffOption;
+            _SourceDoc.Option = _XmlDiffOption;
             _TargetDoc = new XmlDiffDocument();
-            _TargetDoc.Option = this.Option;
+            _TargetDoc.Option = Option;
             _Output = new StringBuilder(string.Empty);
         }
 
@@ -258,7 +258,9 @@ namespace System.Xml.XmlDiff
                             WriteResult(sourceChild, targetChild, DiffType.Success);
                             // Check whether this Node has  Children, if it does call CompareChildren recursively
                             if (sourceChild.FirstChild != null)
+                            {
                                 tempFlag = CompareChildren(sourceChild, targetChild);
+                            }
                             else if (targetChild.FirstChild != null)
                             {
                                 WriteResult(null, targetChild, DiffType.TargetExtra);
@@ -439,8 +441,16 @@ namespace System.Xml.XmlDiff
         /// to the value of this node</param>
         private void DoConcatenateAdjacentTextNodes(XmlDiffCharacterData node)
         {
-            if (node.NextSibling == null) return;
-            if (!(node.NextSibling is XmlDiffCharacterData)) return;
+            if (node.NextSibling == null)
+            {
+                return;
+            }
+
+            if (!(node.NextSibling is XmlDiffCharacterData))
+            {
+                return;
+            }
+
             StringBuilder sb = new StringBuilder();
             sb.Append(node.Value);
             XmlDiffCharacterData nextNode = (node.NextSibling as XmlDiffCharacterData);
@@ -564,7 +574,10 @@ namespace System.Xml.XmlDiff
         // This function writes the result in XML format so that it can be used by other applications to display the diff
         private void WriteResult(XmlDiffNode sourceNode, XmlDiffNode targetNode, DiffType result)
         {
-            if (DontWriteAnythingToOutput) return;
+            if (DontWriteAnythingToOutput)
+            {
+                return;
+            }
 
             if (result != DiffType.Success || !DontWriteMatchingNodesToOutput)
             {
@@ -654,7 +667,10 @@ namespace System.Xml.XmlDiff
             {
                 case XmlDiffNodeType.Element:
                     if (result == DiffType.SourceExtra || result == DiffType.TargetExtra)
+                    {
                         return diffNode.OuterXml;
+                    }
+
                     StringWriter str = new StringWriter();
                     XmlTextWriter writer = new XmlTextWriter(str);
                     XmlDiffElement diffElem = diffNode as XmlDiffElement;
@@ -694,10 +710,14 @@ namespace System.Xml.XmlDiff
             Debug.Assert(sourceElem != null);
             Debug.Assert(targetElem != null);
             if (sourceElem.AttributeCount != targetElem.AttributeCount)
+            {
                 return false;
+            }
 
             if (sourceElem.AttributeCount == 0)
+            {
                 return true;
+            }
 
             XmlDiffAttribute sourceAttr = sourceElem.FirstAttribute;
             XmlDiffAttribute targetAttr = targetElem.FirstAttribute;
@@ -747,11 +767,17 @@ namespace System.Xml.XmlDiff
                             {
                                 if (sourceAttr.ValueAsQName != null)
                                 {
-                                    if (!sourceAttr.ValueAsQName.Equals(targetAttr.ValueAsQName)) return false;
+                                    if (!sourceAttr.ValueAsQName.Equals(targetAttr.ValueAsQName))
+                                    {
+                                        return false;
+                                    }
                                 }
                                 else
                                 {
-                                    if (targetAttr.ValueAsQName != null) return false;
+                                    if (targetAttr.ValueAsQName != null)
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
                             else
@@ -822,11 +848,17 @@ namespace System.Xml.XmlDiff
                         {
                             if (sourceAttr.ValueAsQName != null)
                             {
-                                if (!sourceAttr.ValueAsQName.Equals(targetAttr.ValueAsQName)) return false;
+                                if (!sourceAttr.ValueAsQName.Equals(targetAttr.ValueAsQName))
+                                {
+                                    return false;
+                                }
                             }
                             else
                             {
-                                if (targetAttr.ValueAsQName != null) return false;
+                                if (targetAttr.ValueAsQName != null)
+                                {
+                                    return false;
+                                }
                             }
                         }
                         else
@@ -842,7 +874,10 @@ namespace System.Xml.XmlDiff
         public string ToXml()
         {
             if (_Output != null)
+            {
                 return _Output.ToString();
+            }
+
             return string.Empty;
         }
 

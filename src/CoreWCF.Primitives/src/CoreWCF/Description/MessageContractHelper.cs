@@ -16,7 +16,9 @@ namespace CoreWCF.Description
             {
                 if (attr.GetType() == typeof(MessageContractAttribute)
                 || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageContractAttributeFullName, true) == 0))
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -36,7 +38,9 @@ namespace CoreWCF.Description
             foreach (Attribute attr in memberInfo.GetCustomAttributes())
             {
                 if (eligibleMessageList.Contains(attr.GetType().FullName))
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -49,7 +53,9 @@ namespace CoreWCF.Description
                     || (attr.GetType() == typeof(MessageHeaderArrayAttribute))
                     || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageHeaderAttributeFullName, true) == 0)
                     )
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -60,7 +66,9 @@ namespace CoreWCF.Description
             {
                 if ((attr.GetType() == typeof(MessagePropertyAttribute))
                     || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessagePropertyAttributeFullName, true) == 0))
+                {
                     return true;
+                }
             }
             return false;
         }

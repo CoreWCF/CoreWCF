@@ -21,13 +21,13 @@ namespace CoreWCF.Security
         {
             if (doubleEncrypted)
             {
-                return (this.encryptedFormId == id || this.encryptedFormWsuId == id);
+                return (encryptedFormId == id || encryptedFormWsuId == id);
             }
             else
             {
                 if (requiresEncryptedFormId)
                 {
-                    return this.encryptedFormId == id;
+                    return encryptedFormId == id;
                 }
                 else
                 {
@@ -38,7 +38,7 @@ namespace CoreWCF.Security
 
         public void PreserveIdBeforeDecryption()
         {
-            this.encryptedFormId = this.id;
+            encryptedFormId = id;
         }
 
         public void SetElement(

@@ -10,8 +10,8 @@ namespace CoreWCF.Channels.Framing
 {
     internal class FramingModeHandshakeMiddleware
     {
-        private HandshakeDelegate _next;
-        private IApplicationLifetime _appLifetime;
+        private readonly HandshakeDelegate _next;
+        private readonly IApplicationLifetime _appLifetime;
 
         public FramingModeHandshakeMiddleware(HandshakeDelegate next, IApplicationLifetime appLifetime)
         {
@@ -42,8 +42,7 @@ namespace CoreWCF.Channels.Framing
                     catch (CommunicationException e)
                     {
                         // see if we need to send back a framing fault
-                        string framingFault;
-                        if (FramingEncodingString.TryGetFaultString(e, out framingFault))
+                        if (FramingEncodingString.TryGetFaultString(e, out string framingFault))
                         {
                             // TODO: Timeouts
                             await connection.SendFaultAsync(framingFault, Timeout.InfiniteTimeSpan/*GetRemainingTimeout()*/,

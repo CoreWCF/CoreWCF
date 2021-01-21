@@ -10,16 +10,16 @@ namespace CoreWCF.Dispatcher
 {
     internal class ImmutableClientRuntime
     {
-        private int correlationCount;
+        private readonly int correlationCount;
 
         //bool addTransactionFlowProperties;
         //IInteractiveChannelInitializer[] interactiveChannelInitializers;
-        private IClientOperationSelector operationSelector;
-        private IChannelInitializer[] channelInitializers;
-        private IClientMessageInspector[] messageInspectors;
-        private Dictionary<string, ProxyOperationRuntime> operations;
-        private ProxyOperationRuntime unhandled;
-        private bool useSynchronizationContext;
+        private readonly IClientOperationSelector operationSelector;
+        private readonly IChannelInitializer[] channelInitializers;
+        private readonly IClientMessageInspector[] messageInspectors;
+        private readonly Dictionary<string, ProxyOperationRuntime> operations;
+        private readonly ProxyOperationRuntime unhandled;
+        private readonly bool useSynchronizationContext;
         private bool validateMustUnderstand;
 
         internal ImmutableClientRuntime(ClientRuntime behavior)
@@ -197,8 +197,7 @@ namespace CoreWCF.Dispatcher
                     canCacheResult = true;
                 }
                 string operationName = operationSelector.SelectOperation(methodBase, args);
-                ProxyOperationRuntime operation;
-                if ((operationName != null) && operations.TryGetValue(operationName, out operation))
+                if ((operationName != null) && operations.TryGetValue(operationName, out ProxyOperationRuntime operation))
                 {
                     return operation;
                 }
@@ -225,11 +224,14 @@ namespace CoreWCF.Dispatcher
 
         internal ProxyOperationRuntime GetOperationByName(string operationName)
         {
-            ProxyOperationRuntime operation = null;
-            if (operations.TryGetValue(operationName, out operation))
+            if (operations.TryGetValue(operationName, out ProxyOperationRuntime operation))
+            {
                 return operation;
+            }
             else
+            {
                 return null;
+            }
         }
     }
 }

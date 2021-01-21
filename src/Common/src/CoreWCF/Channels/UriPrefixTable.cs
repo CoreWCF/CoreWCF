@@ -15,10 +15,10 @@ namespace CoreWCF.Channels
         private int count;
         private const int HopperSize = 128;
         private volatile HopperCache lookupCache; // cache matches, for lookup speed
-        private AsyncLock _asyncLock = new AsyncLock();
-        private SegmentHierarchyNode<TItem> root;
-        private bool useWeakReferences;
-        private bool includePortInComparison;
+        private readonly AsyncLock _asyncLock = new AsyncLock();
+        private readonly SegmentHierarchyNode<TItem> root;
+        private readonly bool useWeakReferences;
+        private readonly bool includePortInComparison;
 
         public UriPrefixTable()
             : this(false)
@@ -133,9 +133,8 @@ namespace CoreWCF.Channels
             {
                 // exact match failed, perform the full lookup (which will also
                 // catch case-insensitive variations that aren't yet in our cache)
-                bool dummy;
                 SegmentHierarchyNode<TItem> node = FindDataNode(
-                    UriSegmenter.ToPath(key.BaseAddress, hostNameComparisonMode, includePortInComparison), out dummy);
+                    UriSegmenter.ToPath(key.BaseAddress, hostNameComparisonMode, includePortInComparison), out bool dummy);
                 if (node != null)
                 {
                     item = node.Data;
@@ -197,8 +196,7 @@ namespace CoreWCF.Channels
             SegmentHierarchyNode<TItem> result = null;
             for (int i = 0; i < path.Length; ++i)
             {
-                SegmentHierarchyNode<TItem> next;
-                if (!current.TryGetChild(path[i], out next))
+                if (!current.TryGetChild(path[i], out SegmentHierarchyNode<TItem> next))
                 {
                     break;
                 }
@@ -220,8 +218,7 @@ namespace CoreWCF.Channels
             SegmentHierarchyNode<TItem> current = root;
             for (int i = 0; i < path.Length; ++i)
             {
-                SegmentHierarchyNode<TItem> next;
-                if (!current.TryGetChild(path[i], out next))
+                if (!current.TryGetChild(path[i], out SegmentHierarchyNode<TItem> next))
                 {
                     next = new SegmentHierarchyNode<TItem>(path[i], useWeakReferences);
                     current.SetChildNode(path[i], next);
@@ -250,7 +247,7 @@ namespace CoreWCF.Channels
                 private int segmentStartAt;
                 private int segmentLength;
                 private UriSegmentType type;
-                private Uri uri;
+                private readonly Uri uri;
 
                 internal UriSegmentEnum(Uri uri)
                 {
@@ -418,10 +415,10 @@ namespace CoreWCF.Channels
     {
         private BaseUriWithWildcard path;
         private TData data;
-        private string name;
-        private Dictionary<string, SegmentHierarchyNode<TData>> children;
+        private readonly string name;
+        private readonly Dictionary<string, SegmentHierarchyNode<TData>> children;
         private WeakReference weakData;
-        private bool useWeakReferences;
+        private readonly bool useWeakReferences;
 
         public SegmentHierarchyNode(string name, bool useWeakReferences)
         {
@@ -510,8 +507,7 @@ namespace CoreWCF.Channels
                 return children.Count == 0;
             }
 
-            SegmentHierarchyNode<TData> node;
-            if (!TryGetChild(path[seg], out node))
+            if (!TryGetChild(path[seg], out SegmentHierarchyNode<TData> node))
             {
                 return (children.Count == 0 && Data == null);
             }

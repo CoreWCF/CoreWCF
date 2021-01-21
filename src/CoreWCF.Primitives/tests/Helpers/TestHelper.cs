@@ -14,12 +14,12 @@ namespace Helpers
     public static class TestHelper
     {
         private const string EchoAction = "http://tempuri.org/ISimpleService/Echo";
-        private static string s_echoPrefix = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private static readonly string s_echoPrefix = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"">
   <s:Body>
     <Echo xmlns = ""http://tempuri.org/"">
       <echo>";
-        private static string s_echoSuffix = @"</echo>
+        private static readonly string s_echoSuffix = @"</echo>
     </Echo>
   </s:Body>
 </s:Envelope>";

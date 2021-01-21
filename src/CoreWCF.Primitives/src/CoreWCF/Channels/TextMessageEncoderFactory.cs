@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
 {
     internal class TextMessageEncoderFactory : MessageEncoderFactory
     {
-        private TextMessageEncoder messageEncoder;
+        private readonly TextMessageEncoder messageEncoder;
         //internal static ContentEncoding[] Soap11Content = GetContentEncodingMap(MessageVersion.Soap11WSAddressing10);
         // I believe replacing Soap11WSAddressing10 with Soap11 should work
         internal static ContentEncoding[] Soap11Content = GetContentEncodingMap(MessageVersion.Soap11);
@@ -222,7 +222,9 @@ namespace CoreWCF.Channels
             }
 
             if (TryGetEncodingFromCharSet(charSet, out enc))
+            {
                 return enc;
+            }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ProtocolException(SR.Format(SR.EncoderUnrecognizedCharSet, charSet)));
         }
@@ -231,7 +233,9 @@ namespace CoreWCF.Channels
         {
             encoding = null;
             if (charSet == null || charSet.Length == 0)
+            {
                 return true;
+            }
 
             return TextEncoderDefaults.TryGetEncoding(charSet, out encoding);
         }
@@ -244,8 +248,8 @@ namespace CoreWCF.Channels
 
         private class TextMessageEncoder : MessageEncoder
         {
-            private int maxReadPoolSize;
-            private int maxWritePoolSize;
+            private readonly int maxReadPoolSize;
+            private readonly int maxWritePoolSize;
 
             // Double-checked locking pattern requires volatile for read/write synchronization
             private volatile SynchronizedPool<XmlDictionaryWriter> streamedWriterPool;
@@ -253,24 +257,29 @@ namespace CoreWCF.Channels
             private volatile SynchronizedPool<UTF8BufferedMessageData> bufferedReaderPool;
             private volatile SynchronizedPool<TextBufferedMessageWriter> bufferedWriterPool;
             private volatile SynchronizedPool<RecycledMessageState> recycledStatePool;
-            private object thisLock;
-            private string contentType;
-            private string mediaType;
-            private Encoding writeEncoding;
-            private MessageVersion version;
-            private bool optimizeWriteForUTF8;
+            private readonly object thisLock;
+            private readonly string contentType;
+            private readonly string mediaType;
+            private readonly Encoding writeEncoding;
+            private readonly MessageVersion version;
+            private readonly bool optimizeWriteForUTF8;
             private const int maxPooledXmlReadersPerMessage = 2;
-            private XmlDictionaryReaderQuotas readerQuotas;
-            private XmlDictionaryReaderQuotas bufferedReadReaderQuotas;
-            private OnXmlDictionaryReaderClose onStreamedReaderClose;
-            private ContentEncoding[] contentEncodingMap;
+            private readonly XmlDictionaryReaderQuotas readerQuotas;
+            private readonly XmlDictionaryReaderQuotas bufferedReadReaderQuotas;
+            private readonly OnXmlDictionaryReaderClose onStreamedReaderClose;
+            private readonly ContentEncoding[] contentEncodingMap;
 
             public TextMessageEncoder(MessageVersion version, Encoding writeEncoding, int maxReadPoolSize, int maxWritePoolSize, XmlDictionaryReaderQuotas quotas)
             {
                 if (version == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+                }
+
                 if (writeEncoding == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writeEncoding));
+                }
 
                 TextEncoderDefaults.ValidateEncoding(writeEncoding);
                 this.writeEncoding = writeEncoding;
@@ -356,8 +365,7 @@ namespace CoreWCF.Channels
 
             internal override bool IsCharSetSupported(string charSet)
             {
-                Encoding tmp;
-                return TextEncoderDefaults.TryGetEncoding(charSet, out tmp);
+                return TextEncoderDefaults.TryGetEncoding(charSet, out Encoding tmp);
             }
 
             public override bool IsContentTypeSupported(string contentType)
@@ -405,7 +413,9 @@ namespace CoreWCF.Channels
             public override Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
             {
                 if (bufferManager == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
+                }
 
                 Message message;
 
@@ -414,7 +424,10 @@ namespace CoreWCF.Channels
                 messageData.Open(buffer, bufferManager);
                 RecycledMessageState messageState = messageData.TakeMessageState();
                 if (messageState == null)
+                {
                     messageState = new RecycledMessageState();
+                }
+
                 message = new BufferedMessage(messageData, messageState);
 
                 message.Properties.Encoder = this;
@@ -425,7 +438,9 @@ namespace CoreWCF.Channels
             public override Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType)
             {
                 if (stream == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(stream)));
+                }
 
                 XmlReader reader = TakeStreamedReader(stream, GetEncodingFromContentType(contentType, contentEncodingMap));
                 Message message = Message.CreateMessage(reader, maxSizeOfHeaders, version);
@@ -437,15 +452,26 @@ namespace CoreWCF.Channels
             public override ArraySegment<byte> WriteMessage(Message message, int maxMessageSize, BufferManager bufferManager, int messageOffset)
             {
                 if (message == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(message)));
+                }
+
                 if (bufferManager == null)
+                {
                     throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(bufferManager)), message);
+                }
+
                 if (maxMessageSize < 0)
+                {
                     throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxMessageSize), maxMessageSize,
                                                                 SR.ValueMustBeNonNegative), message);
+                }
+
                 if (messageOffset < 0 || messageOffset > maxMessageSize)
+                {
                     throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(messageOffset), messageOffset,
                                                     SR.Format(SR.ValueMustBeInRange, 0, maxMessageSize)), message);
+                }
 
                 ThrowIfMismatchedMessageVersion(message);
 
@@ -460,9 +486,15 @@ namespace CoreWCF.Channels
             public override async Task WriteMessageAsync(Message message, Stream stream)
             {
                 if (message == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+                }
+
                 if (stream == null)
+                {
                     throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(stream)), message);
+                }
+
                 ThrowIfMismatchedMessageVersion(message);
 
                 message.Properties.Encoder = this;
@@ -625,9 +657,9 @@ namespace CoreWCF.Channels
 
             private class UTF8BufferedMessageData : BufferedMessageData
             {
-                private TextMessageEncoder messageEncoder;
-                private Pool<XmlDictionaryReader> readerPool;
-                private OnXmlDictionaryReaderClose onClose;
+                private readonly TextMessageEncoder messageEncoder;
+                private readonly Pool<XmlDictionaryReader> readerPool;
+                private readonly OnXmlDictionaryReaderClose onClose;
                 private Encoding encoding;
                 private const int additionalNodeSpace = 1024;
 
@@ -692,7 +724,7 @@ namespace CoreWCF.Channels
 
             private class TextBufferedMessageWriter : BufferedMessageWriter
             {
-                private TextMessageEncoder messageEncoder;
+                private readonly TextMessageEncoder messageEncoder;
                 //XmlDictionaryWriter writer;
 
                 public TextBufferedMessageWriter(TextMessageEncoder messageEncoder)
@@ -703,13 +735,17 @@ namespace CoreWCF.Channels
                 protected override void OnWriteStartMessage(XmlDictionaryWriter writer)
                 {
                     if (!messageEncoder.optimizeWriteForUTF8)
+                    {
                         writer.WriteStartDocument();
+                    }
                 }
 
                 protected override void OnWriteEndMessage(XmlDictionaryWriter writer)
                 {
                     if (!messageEncoder.optimizeWriteForUTF8)
+                    {
                         writer.WriteEndDocument();
+                    }
                 }
 
                 protected override XmlDictionaryWriter TakeXmlWriter(Stream stream)

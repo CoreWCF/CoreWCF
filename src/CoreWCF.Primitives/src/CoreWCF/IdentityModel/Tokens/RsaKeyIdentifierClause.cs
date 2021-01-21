@@ -11,7 +11,7 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class RsaKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        private static string clauseType = XmlSignatureStrings.Namespace + XmlSignatureStrings.RsaKeyValue;
+        private static readonly string clauseType = XmlSignatureStrings.Namespace + XmlSignatureStrings.RsaKeyValue;
         private readonly RSA rsa;
         private readonly RSAParameters rsaParameters;
         private RsaSecurityKey rsaSecurityKey;
@@ -20,10 +20,12 @@ namespace CoreWCF.IdentityModel.Tokens
             : base(clauseType)
         {
             if (rsa == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
+            }
 
             this.rsa = rsa;
-            this.rsaParameters = rsa.ExportParameters(false);
+            rsaParameters = rsa.ExportParameters(false);
         }
 
         public override bool CanCreateKey
@@ -33,38 +35,40 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public RSA Rsa
         {
-            get { return this.rsa; }
+            get { return rsa; }
         }
 
         public override SecurityKey CreateKey()
         {
-            if (this.rsaSecurityKey == null)
+            if (rsaSecurityKey == null)
             {
-                this.rsaSecurityKey = new RsaSecurityKey(this.rsa);
+                rsaSecurityKey = new RsaSecurityKey(rsa);
             }
-            return this.rsaSecurityKey;
+            return rsaSecurityKey;
         }
 
         public byte[] GetExponent()
         {
-            return SecurityUtils.CloneBuffer(this.rsaParameters.Exponent);
+            return SecurityUtils.CloneBuffer(rsaParameters.Exponent);
         }
 
         public byte[] GetModulus()
         {
-            return SecurityUtils.CloneBuffer(this.rsaParameters.Modulus);
+            return SecurityUtils.CloneBuffer(rsaParameters.Modulus);
         }
 
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             RsaKeyIdentifierClause that = keyIdentifierClause as RsaKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(this.rsa));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(rsa));
         }
 
         public bool Matches(RSA rsa)
         {
             if (rsa == null)
+            {
                 return false;
+            }
 
             RSAParameters rsaParameters = rsa.ExportParameters(false);
             return SecurityUtils.MatchesBuffer(this.rsaParameters.Modulus, rsaParameters.Modulus) &&
@@ -74,8 +78,8 @@ namespace CoreWCF.IdentityModel.Tokens
         public override string ToString()
         {
             return string.Format(CultureInfo.InvariantCulture, "RsaKeyIdentifierClause(Modulus = {0}, Exponent = {1})",
-                Convert.ToBase64String(this.rsaParameters.Modulus),
-                Convert.ToBase64String(this.rsaParameters.Exponent));
+                Convert.ToBase64String(rsaParameters.Modulus),
+                Convert.ToBase64String(rsaParameters.Exponent));
         }
 
         public void WriteExponentAsBase64(XmlWriter writer)
@@ -84,7 +88,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
-            writer.WriteBase64(this.rsaParameters.Exponent, 0, this.rsaParameters.Exponent.Length);
+            writer.WriteBase64(rsaParameters.Exponent, 0, rsaParameters.Exponent.Length);
         }
 
         public void WriteModulusAsBase64(XmlWriter writer)
@@ -93,7 +97,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
-            writer.WriteBase64(this.rsaParameters.Modulus, 0, this.rsaParameters.Modulus.Length);
+            writer.WriteBase64(rsaParameters.Modulus, 0, rsaParameters.Modulus.Length);
         }
     }
 }

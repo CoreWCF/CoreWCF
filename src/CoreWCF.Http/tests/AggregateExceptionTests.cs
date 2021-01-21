@@ -17,7 +17,7 @@ namespace CoreWCF.Http.Tests
 {
     public class AggregateExceptionTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public AggregateExceptionTests(ITestOutputHelper output)
         {
             _output = output;
@@ -73,12 +73,12 @@ namespace CoreWCF.Http.Tests
                 }
                 catch (System.ServiceModel.FaultException<ClientContract.SampleServiceFault> faultEx)
                 {
-                    this.VerifyFaultThrown(faultEx);
+                    VerifyFaultThrown(faultEx);
                 }
                 catch (AggregateException ex)
                 {
                     System.ServiceModel.FaultException<ClientContract.SampleServiceFault> faultEx2 = ex.InnerExceptions[0] as System.ServiceModel.FaultException<ClientContract.SampleServiceFault>;
-                    this.VerifyFaultThrown(faultEx2);
+                    VerifyFaultThrown(faultEx2);
                 }
                 catch (Exception ex2)
                 {

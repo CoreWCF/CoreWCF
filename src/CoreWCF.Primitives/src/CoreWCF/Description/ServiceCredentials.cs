@@ -12,15 +12,15 @@ namespace CoreWCF.Description
 {
     public class ServiceCredentials : SecurityCredentialsManager, IServiceBehavior
     {
-        private UserNamePasswordServiceCredential userName;
-        private X509CertificateInitiatorServiceCredential clientCertificate;
-        private X509CertificateRecipientServiceCredential serviceCertificate;
-        private WindowsServiceCredential windows;
-        private IssuedTokenServiceCredential issuedToken;
-        private SecureConversationServiceCredential secureConversation;
-        private bool useIdentityConfiguration = false;
+        private readonly UserNamePasswordServiceCredential userName;
+        private readonly X509CertificateInitiatorServiceCredential clientCertificate;
+        private readonly X509CertificateRecipientServiceCredential serviceCertificate;
+        private readonly WindowsServiceCredential windows;
+        private readonly IssuedTokenServiceCredential issuedToken;
+        private readonly SecureConversationServiceCredential secureConversation;
+        private readonly bool useIdentityConfiguration = false;
         private bool isReadOnly = false;
-        private bool saveBootstrapTokenInSession = true;
+        private readonly bool saveBootstrapTokenInSession = true;
         private ExceptionMapper exceptionMapper;
 
         public ServiceCredentials()
@@ -29,8 +29,8 @@ namespace CoreWCF.Description
             clientCertificate = new X509CertificateInitiatorServiceCredential();
             serviceCertificate = new X509CertificateRecipientServiceCredential();
             windows = new WindowsServiceCredential();
-            this.issuedToken = new IssuedTokenServiceCredential();
-            this.secureConversation = new SecureConversationServiceCredential();
+            issuedToken = new IssuedTokenServiceCredential();
+            secureConversation = new SecureConversationServiceCredential();
             exceptionMapper = new ExceptionMapper();
         }
 
@@ -44,8 +44,8 @@ namespace CoreWCF.Description
             clientCertificate = new X509CertificateInitiatorServiceCredential(other.clientCertificate);
             serviceCertificate = new X509CertificateRecipientServiceCredential(other.serviceCertificate);
             windows = new WindowsServiceCredential(other.windows);
-            this.issuedToken = new IssuedTokenServiceCredential(other.issuedToken);
-            this.secureConversation = new SecureConversationServiceCredential(other.secureConversation);
+            issuedToken = new IssuedTokenServiceCredential(other.issuedToken);
+            secureConversation = new SecureConversationServiceCredential(other.secureConversation);
             saveBootstrapTokenInSession = other.saveBootstrapTokenInSession;
             exceptionMapper = other.exceptionMapper;
         }
@@ -86,7 +86,7 @@ namespace CoreWCF.Description
         {
             get
             {
-                return this.issuedToken;
+                return issuedToken;
             }
         }
 
@@ -94,7 +94,7 @@ namespace CoreWCF.Description
         {
             get
             {
-                return this.secureConversation;
+                return secureConversation;
             }
         }
 
@@ -183,8 +183,8 @@ namespace CoreWCF.Description
         {
             isReadOnly = true;
             ClientCertificate.MakeReadOnly();
-            this.IssuedTokenAuthentication.MakeReadOnly();
-            this.SecureConversationAuthentication.MakeReadOnly();
+            IssuedTokenAuthentication.MakeReadOnly();
+            SecureConversationAuthentication.MakeReadOnly();
             ServiceCertificate.MakeReadOnly();
             UserNameAuthentication.MakeReadOnly();
             WindowsAuthentication.MakeReadOnly();

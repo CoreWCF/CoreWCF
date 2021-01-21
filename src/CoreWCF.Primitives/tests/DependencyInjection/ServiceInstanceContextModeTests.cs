@@ -249,19 +249,31 @@ namespace DependencyInjection
 
         public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection bindingParameters)
         {
-            if (IsDisposed) throw new ObjectDisposedException(GetType().Name);
+            if (IsDisposed)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
+
             AddBindingParametersCallCount++;
         }
 
         public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
-            if (IsDisposed) throw new ObjectDisposedException(GetType().Name);
+            if (IsDisposed)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
+
             ApplyDispatchBehaviorCount++;
         }
 
         public void Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
-            if (IsDisposed) throw new ObjectDisposedException(GetType().Name);
+            if (IsDisposed)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
+
             ValidateCallCount++;
         }
     }
@@ -274,7 +286,7 @@ namespace DependencyInjection
         public static int ApplyDispatchBehaviorCount { get; protected set; }
         public static int ValidateCallCount { get; protected set; }
         public int CallCount { get; private set; }
-        private static ManualResetEventSlim s_disposalCountWaitable = new ManualResetEventSlim(false);
+        private static readonly ManualResetEventSlim s_disposalCountWaitable = new ManualResetEventSlim(false);
 
         public static void ClearCounts()
         {

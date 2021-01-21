@@ -149,8 +149,7 @@ namespace CoreWCF.Runtime
                 throw Fx.AssertAndThrowFatal("Head/Tail overflow!");
             }
 
-            bool wrapped;
-            bool queued = slots[slot >> Bits.HiShift & SlotMask].TryEnqueueWorkItem(callback, state, out wrapped);
+            bool queued = slots[slot >> Bits.HiShift & SlotMask].TryEnqueueWorkItem(callback, state, out bool wrapped);
 
             if (wrapped)
             {
@@ -205,9 +204,8 @@ namespace CoreWCF.Runtime
                 throw Fx.AssertAndThrowFatal("Low-priority Head/Tail overflow!");
             }
 
-            bool wrapped;
             bool queued = slotsLowPri[slot >> Bits.HiShift & SlotMaskLowPri].TryEnqueueWorkItem(
-                callback, state, out wrapped);
+                callback, state, out bool wrapped);
 
             if (wrapped)
             {
@@ -557,10 +555,10 @@ namespace CoreWCF.Runtime
         // by the GC anyway.
         private unsafe class ScheduledOverlapped
         {
-            private static bool s_isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            private static readonly bool s_isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             private readonly NativeOverlapped* _nativeOverlapped;
             private IOThreadScheduler _scheduler;
-            private Action _postDelegate;
+            private readonly Action _postDelegate;
 
             public ScheduledOverlapped()
             {

@@ -12,7 +12,7 @@ namespace CoreWCF.Channels.Framing
 {
     internal class DuplexFramingMiddleware
     {
-        private HandshakeDelegate _next;
+        private readonly HandshakeDelegate _next;
 
         public DuplexFramingMiddleware(HandshakeDelegate next)
         {

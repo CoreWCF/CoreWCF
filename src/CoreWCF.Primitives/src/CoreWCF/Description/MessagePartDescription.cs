@@ -10,8 +10,8 @@ namespace CoreWCF.Description
 {
     public class MessagePartDescription
     {
-        private XmlName name;
-        private string ns;
+        private readonly XmlName name;
+        private readonly string ns;
         private int index;
         private Type type;
         private int serializationPosition;
@@ -50,8 +50,8 @@ namespace CoreWCF.Description
             index = other.index;
             type = other.type;
             serializationPosition = other.serializationPosition;
-            this.hasProtectionLevel = other.hasProtectionLevel;
-            this.protectionLevel = other.protectionLevel;
+            hasProtectionLevel = other.hasProtectionLevel;
+            protectionLevel = other.protectionLevel;
             memberInfo = other.memberInfo;
             multiple = other.multiple;
             additionalAttributesProvider = other.additionalAttributesProvider;
@@ -99,13 +99,16 @@ namespace CoreWCF.Description
 
         public ProtectionLevel ProtectionLevel
         {
-            get { return this.protectionLevel; }
+            get { return protectionLevel; }
             set
             {
                 if (!ProtectionLevelHelper.IsDefined(value))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
-                this.protectionLevel = value;
-                this.hasProtectionLevel = true;
+                }
+
+                protectionLevel = value;
+                hasProtectionLevel = true;
             }
         }
         public MemberInfo MemberInfo

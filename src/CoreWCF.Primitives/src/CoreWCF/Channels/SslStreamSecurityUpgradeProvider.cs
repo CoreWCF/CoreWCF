@@ -26,13 +26,13 @@ namespace CoreWCF.Channels
         private SecurityTokenAuthenticator clientCertificateAuthenticator;
         private SecurityTokenProvider serverTokenProvider;
         private EndpointIdentity identity;
-        private IdentityVerifier identityVerifier;
+        private readonly IdentityVerifier identityVerifier;
         private X509Certificate2 serverCertificate;
-        private bool requireClientCertificate;
-        private string scheme;
+        private readonly bool requireClientCertificate;
+        private readonly string scheme;
         private bool enableChannelBinding;
-        private SslProtocols sslProtocols;
-        private SecurityTokenManager clientSecurityTokenManager;
+        private readonly SslProtocols sslProtocols;
+        private readonly SecurityTokenManager clientSecurityTokenManager;
 
         private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenProvider serverTokenProvider, bool requireClientCertificate, SecurityTokenAuthenticator clientCertificateAuthenticator, string scheme, IdentityVerifier identityVerifier, SslProtocols sslProtocols)
             : base(timeouts)
@@ -257,7 +257,7 @@ namespace CoreWCF.Channels
 
     internal class SslStreamSecurityUpgradeAcceptor : StreamSecurityUpgradeAcceptorBase
     {
-        private SslStreamSecurityUpgradeProvider parent;
+        private readonly SslStreamSecurityUpgradeProvider parent;
         private SecurityMessageProperty clientSecurity;
 
         // for audit

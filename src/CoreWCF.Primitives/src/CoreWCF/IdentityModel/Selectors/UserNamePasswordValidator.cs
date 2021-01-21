@@ -13,7 +13,10 @@ namespace CoreWCF.IdentityModel.Selectors
             get
             {
                 if (none == null)
+                {
                     none = new NoneUserNamePasswordValidator();
+                }
+
                 return none;
             }
         }

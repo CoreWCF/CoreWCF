@@ -29,13 +29,19 @@ namespace CoreWCF.Security
         internal bool CheckAccess(EndpointAddress reference, Message message)
         {
             if (reference == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reference));
-            if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
 
-            EndpointIdentity identity;
-            if (!TryGetIdentity(reference, out identity))
+            if (message == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
+
+            if (!TryGetIdentity(reference, out EndpointIdentity identity))
+            {
                 return false;
+            }
 
             //SecurityMessageProperty securityContextProperty = null;
             //if (message.Properties != null)
@@ -94,8 +100,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationContext));
             }
-            EndpointIdentity identity;
-            if (!TryGetIdentity(serviceReference, out identity))
+            if (!TryGetIdentity(serviceReference, out EndpointIdentity identity))
             {
                 //SecurityTraceRecordHelper.TraceIdentityVerificationFailure(identity, authorizationContext, this.GetType());
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(errorString, identity, serviceReference)));
@@ -180,7 +185,9 @@ namespace CoreWCF.Security
             public override bool TryGetIdentity(EndpointAddress reference, out EndpointIdentity identity)
             {
                 if (reference == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reference));
+                }
 
                 identity = reference.Identity;
 
@@ -206,7 +213,9 @@ namespace CoreWCF.Security
                 Uri toAddress = reference.Uri;
 
                 if (!toAddress.IsAbsoluteUri)
+                {
                     return null;
+                }
 
                 return EndpointIdentity.CreateDnsIdentity(toAddress.DnsSafeHost);
             }
@@ -216,9 +225,14 @@ namespace CoreWCF.Security
                 // if the incoming claim is a SID and the EndpointIdentity is UPN/SPN/DNS, try to find the SID corresponding to
                 // the UPN/SPN/DNS (transactions case)
                 if (claim.Resource is WindowsIdentity)
+                {
                     return ((WindowsIdentity)claim.Resource).User;
+                }
                 else if (claim.Resource is WindowsSidIdentity)
+                {
                     return ((WindowsSidIdentity)claim.Resource).SecurityIdentifier;
+                }
+
                 return claim.Resource as SecurityIdentifier;
             }
 
@@ -257,10 +271,14 @@ namespace CoreWCF.Security
                 //EventTraceActivity eventTraceActivity = null;
 
                 if (identity == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(identity));
+                }
 
                 if (authContext == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authContext));
+                }
 
 
                 //if (FxTrace.Trace.IsEnd2EndActivityTracingEnabled)

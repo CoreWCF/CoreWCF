@@ -109,7 +109,7 @@ namespace CoreWCF.Security.Tokens
             }
             set
             {
-                this.Properties[SecurityBindingElementProperty] = value;
+                Properties[SecurityBindingElementProperty] = value;
             }
         }
 
@@ -145,7 +145,7 @@ namespace CoreWCF.Security.Tokens
             }
             set
             {
-                this.Properties[SecureConversationSecurityBindingElementProperty] = value;
+                Properties[SecureConversationSecurityBindingElementProperty] = value;
             }
         }
 
@@ -157,7 +157,7 @@ namespace CoreWCF.Security.Tokens
             }
             set
             {
-                this.Properties[MessageSecurityVersionProperty] = value;
+                Properties[MessageSecurityVersionProperty] = value;
             }
         }
 
@@ -165,12 +165,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                MessageSecurityVersion messageSecurityVersion;
-                return (this.TryGetProperty<MessageSecurityVersion>(DefaultMessageSecurityVersionProperty, out messageSecurityVersion)) ? messageSecurityVersion : null;
+                return (TryGetProperty<MessageSecurityVersion>(DefaultMessageSecurityVersionProperty, out MessageSecurityVersion messageSecurityVersion)) ? messageSecurityVersion : null;
             }
             set
             {
-                this.Properties[DefaultMessageSecurityVersionProperty] = (object)value;
+                Properties[DefaultMessageSecurityVersionProperty] = (object)value;
             }
         }
 
@@ -212,8 +211,7 @@ namespace CoreWCF.Security.Tokens
 
         internal TValue GetPropertyOrDefault<TValue>(string propertyName, TValue defaultValue)
         {
-            TValue result;
-            if (!TryGetProperty<TValue>(propertyName, out result))
+            if (!TryGetProperty<TValue>(propertyName, out TValue result))
             {
                 result = defaultValue;
             }

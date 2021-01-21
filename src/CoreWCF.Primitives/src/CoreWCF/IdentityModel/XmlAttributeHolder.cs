@@ -8,10 +8,10 @@ namespace CoreWCF.IdentityModel
 {
     internal struct XmlAttributeHolder
     {
-        private string prefix;
-        private string ns;
-        private string localName;
-        private string value;
+        private readonly string prefix;
+        private readonly string ns;
+        private readonly string localName;
+        private readonly string value;
 
         public static XmlAttributeHolder[] emptyArray = new XmlAttributeHolder[0];
 
@@ -53,7 +53,9 @@ namespace CoreWCF.IdentityModel
         public static void WriteAttributes(XmlAttributeHolder[] attributes, XmlWriter writer)
         {
             for (int i = 0; i < attributes.Length; i++)
+            {
                 attributes[i].WriteTo(writer);
+            }
         }
 
         public static XmlAttributeHolder[] ReadAttributes(XmlDictionaryReader reader)
@@ -65,7 +67,10 @@ namespace CoreWCF.IdentityModel
         public static XmlAttributeHolder[] ReadAttributes(XmlDictionaryReader reader, ref int maxSizeOfHeaders)
         {
             if (reader.AttributeCount == 0)
+            {
                 return emptyArray;
+            }
+
             XmlAttributeHolder[] attributes = new XmlAttributeHolder[reader.AttributeCount];
             reader.MoveToFirstAttribute();
             for (int i = 0; i < attributes.Length; i++)
@@ -77,9 +82,13 @@ namespace CoreWCF.IdentityModel
                 while (reader.ReadAttributeValue())
                 {
                     if (value.Length == 0)
+                    {
                         value = reader.Value;
+                    }
                     else
+                    {
                         value += reader.Value;
+                    }
                 }
                 Deduct(prefix, ref maxSizeOfHeaders);
                 Deduct(localName, ref maxSizeOfHeaders);
@@ -105,8 +114,13 @@ namespace CoreWCF.IdentityModel
         public static string GetAttribute(XmlAttributeHolder[] attributes, string localName, string ns)
         {
             for (int i = 0; i < attributes.Length; i++)
+            {
                 if (attributes[i].LocalName == localName && attributes[i].NamespaceUri == ns)
+                {
                     return attributes[i].Value;
+                }
+            }
+
             return null;
         }
     }

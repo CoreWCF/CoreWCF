@@ -23,9 +23,8 @@ namespace CoreWCF.Channels
             }
 
             property = null;
-            object value;
 
-            if (properties.TryGetValue(ChannelBindingMessageProperty.Name, out value))
+            if (properties.TryGetValue(ChannelBindingMessageProperty.Name, out object value))
             {
                 property = value as ChannelBindingMessageProperty;
                 return property != null;

@@ -29,7 +29,10 @@ namespace CoreWCF.Description
         public XmlSerializerOperationBehavior(OperationDescription operation, XmlSerializerFormatAttribute attribute)
         {
             if (operation == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operation));
+            }
+
             Reflector parentReflector = new Reflector(operation.DeclaringContract.Namespace, operation.DeclaringContract.ContractType);
             reflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
@@ -127,10 +130,14 @@ namespace CoreWCF.Description
         void IOperationBehavior.ApplyDispatchBehavior(OperationDescription description, DispatchOperation dispatch)
         {
             if (description == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
+            }
 
             if (dispatch == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatch));
+            }
 
             if (dispatch.Formatter == null)
             {
@@ -159,10 +166,14 @@ namespace CoreWCF.Description
         void IOperationBehavior.ApplyClientBehavior(OperationDescription description, ClientOperation proxy)
         {
             if (description == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
+            }
 
             if (proxy == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxy));
+            }
 
             if (proxy.Formatter == null)
             {
@@ -172,20 +183,34 @@ namespace CoreWCF.Description
             }
 
             if (reflector.Attribute.SupportFaults && !proxy.IsFaultFormatterSetExplicit)
+            {
                 proxy.FaultFormatter = (IClientFaultFormatter)CreateFaultFormatter(proxy.FaultContractInfos);
+            }
         }
 
         public Collection<XmlMapping> GetXmlMappings()
         {
             Collection<XmlMapping> mappings = new Collection<XmlMapping>();
             if (OperationReflector.Request != null && OperationReflector.Request.HeadersMapping != null)
+            {
                 mappings.Add(OperationReflector.Request.HeadersMapping);
+            }
+
             if (OperationReflector.Request != null && OperationReflector.Request.BodyMapping != null)
+            {
                 mappings.Add(OperationReflector.Request.BodyMapping);
+            }
+
             if (OperationReflector.Reply != null && OperationReflector.Reply.HeadersMapping != null)
+            {
                 mappings.Add(OperationReflector.Reply.HeadersMapping);
+            }
+
             if (OperationReflector.Reply != null && OperationReflector.Reply.BodyMapping != null)
+            {
                 mappings.Add(OperationReflector.Reply.BodyMapping);
+            }
+
             return mappings;
         }
 
@@ -194,8 +219,8 @@ namespace CoreWCF.Description
         {
             private readonly XmlSerializerImporter importer;
             private readonly SerializerGenerationContext generation;
-            private Collection<OperationReflector> operationReflectors = new Collection<OperationReflector>();
-            private object thisLock = new object();
+            private readonly Collection<OperationReflector> operationReflectors = new Collection<OperationReflector>();
+            private readonly object thisLock = new object();
 
             internal Reflector(string defaultNs, Type type)
             {
@@ -226,7 +251,9 @@ namespace CoreWCF.Description
             {
                 XmlSerializerFormatAttribute attr = FindAttribute(operation);
                 if (attr == null)
+                {
                     return null;
+                }
 
                 return ReflectOperation(operation, attr);
             }
@@ -289,11 +316,18 @@ namespace CoreWCF.Description
                         keyBase = keyBase + operation.Name;
                     }
                     else
+                    {
                         keyBase = methodInfo.DeclaringType.FullName + ":" + methodInfo.ToString();
+                    }
 
                     foreach (MessageDescription message in operation.Messages)
+                    {
                         foreach (MessageHeaderDescription header in message.Headers)
+                        {
                             SetUnknownHeaderInDescription(header);
+                        }
+                    }
+
                     if (!reflectOnDemand)
                     {
                         EnsureMessageInfos();
@@ -303,7 +337,10 @@ namespace CoreWCF.Description
                 private void SetUnknownHeaderInDescription(MessageHeaderDescription header)
                 {
                     if (IsEncoded) //XmlAnyElementAttribute does not apply
+                    {
                         return;
+                    }
+
                     if (header.AdditionalAttributesProvider != null)
                     {
                         object[] attrs = header.AdditionalAttributesProvider.GetCustomAttributes(false).ToArray();
@@ -376,18 +413,26 @@ namespace CoreWCF.Description
                         foreach (Type knownType in Operation.KnownTypes)
                         {
                             if (knownType == null)
+                            {
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeNull, Operation.Name)));
+                            }
+
                             parent.importer.IncludeType(knownType, IsEncoded);
                         }
                         request = CreateMessageInfo(Operation.Messages[0], ":Request");
                         if (request != null && IsRpc && Operation.IsValidateRpcWrapperName && request.BodyMapping.XsdElementName != Operation.Name)
+                        {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxRpcMessageBodyPartNameInvalid, Operation.Name, Operation.Messages[0].MessageName, request.BodyMapping.XsdElementName, Operation.Name)));
+                        }
+
                         if (!IsOneWay)
                         {
                             reply = CreateMessageInfo(Operation.Messages[1], ":Response");
                             XmlName responseName = TypeLoader.GetBodyWrapperResponseName(Operation.Name);
                             if (reply != null && IsRpc && Operation.IsValidateRpcWrapperName && reply.BodyMapping.XsdElementName != responseName.EncodedName)
+                            {
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxRpcMessageBodyPartNameInvalid, Operation.Name, Operation.Messages[1].MessageName, reply.BodyMapping.XsdElementName, responseName.EncodedName)));
+                            }
                         }
                         if (Attribute.SupportFaults)
                         {
@@ -404,8 +449,7 @@ namespace CoreWCF.Description
                         FaultDescription fault = Operation.Faults[i];
                         FaultContractInfo faultContractInfo = new FaultContractInfo(fault.Action, fault.DetailType, fault.ElementName, fault.Namespace, Operation.KnownTypes);
 
-                        XmlQualifiedName elementName;
-                        XmlMembersMapping xmlMembersMapping = ImportFaultElement(fault, out elementName);
+                        XmlMembersMapping xmlMembersMapping = ImportFaultElement(fault, out XmlQualifiedName elementName);
 
                         SerializerStub serializerStub = parent.generation.AddSerializer(xmlMembersMapping);
                         faultInfos.Add(new XmlSerializerFaultContractInfo(faultContractInfo, serializerStub, elementName));
@@ -416,14 +460,19 @@ namespace CoreWCF.Description
                 private MessageInfo CreateMessageInfo(MessageDescription message, string key)
                 {
                     if (message.IsUntypedMessage)
+                    {
                         return null;
+                    }
+
                     MessageInfo info = new MessageInfo();
                     if (message.IsTypedMessage)
+                    {
                         key = message.MessageType.FullName + ":" + IsEncoded + ":" + IsRpc;
+                    }
+
                     XmlMembersMapping headersMapping = LoadHeadersMapping(message, key + ":Headers");
                     info.SetHeaders(parent.generation.AddSerializer(headersMapping));
-                    MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts;
-                    info.SetBody(parent.generation.AddSerializer(LoadBodyMapping(message, key, out rpcEncodedTypedMessageBodyParts)), rpcEncodedTypedMessageBodyParts);
+                    info.SetBody(parent.generation.AddSerializer(LoadBodyMapping(message, key, out MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts)), rpcEncodedTypedMessageBodyParts);
                     CreateHeaderDescriptionTable(message, info, headersMapping);
                     return info;
                 }
@@ -436,7 +485,9 @@ namespace CoreWCF.Description
                     foreach (MessageHeaderDescription header in message.Headers)
                     {
                         if (header.IsUnknownHeaderCollection)
+                        {
                             info.SetUnknownHeaderDescription(header);
+                        }
                         else if (headersMapping != null)
                         {
                             XmlMemberMapping memberMapping = headersMapping[headerNameIndex++];
@@ -454,16 +505,24 @@ namespace CoreWCF.Description
                             if (headerName != header.Name)
                             {
                                 if (message.MessageType != null)
+                                {
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxHeaderNameMismatchInMessageContract, message.MessageType, header.MemberInfo.Name, header.Name, headerName)));
+                                }
                                 else
+                                {
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxHeaderNameMismatchInOperation, Operation.Name, Operation.DeclaringContract.Name, Operation.DeclaringContract.Namespace, header.Name, headerName)));
+                                }
                             }
                             if (headerNs != header.Namespace)
                             {
                                 if (message.MessageType != null)
+                                {
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxHeaderNamespaceMismatchInMessageContract, message.MessageType, header.MemberInfo.Name, header.Namespace, headerNs)));
+                                }
                                 else
+                                {
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxHeaderNamespaceMismatchInOperation, Operation.Name, Operation.DeclaringContract.Name, Operation.DeclaringContract.Namespace, header.Namespace, headerNs)));
+                                }
                             }
 
                             headerDescriptionTable.Add(headerName, headerNs, header);
@@ -503,28 +562,47 @@ namespace CoreWCF.Description
                     XmlReflectionMember[] members = new XmlReflectionMember[paramCount];
                     int paramIndex = 0;
                     if (hasReturnValue)
+                    {
                         members[paramIndex++] = XmlSerializerHelper.GetXmlReflectionMember(returnPart, IsRpc, IsEncoded, isWrapped);
+                    }
 
                     for (int i = 0; i < bodyParts.Count; i++)
+                    {
                         members[paramIndex++] = XmlSerializerHelper.GetXmlReflectionMember(bodyParts[i], IsRpc, IsEncoded, isWrapped);
+                    }
 
                     if (!isWrapped)
+                    {
                         wrapperNs = ContractNamespace;
+                    }
+
                     return ImportMembersMapping(wrapperName, wrapperNs, members, isWrapped, IsRpc, mappingKey);
                 }
 
                 private MessagePartDescription GetWrapperPart(MessageDescription message)
                 {
                     if (message.Body.Parts.Count != 1)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxRpcMessageMustHaveASingleBody, Operation.Name, message.MessageName)));
+                    }
+
                     MessagePartDescription bodyPart = message.Body.Parts[0];
                     Type bodyObjectType = bodyPart.Type;
                     if (bodyObjectType.GetTypeInfo().BaseType != null && bodyObjectType.GetTypeInfo().BaseType != typeof(object))
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxBodyObjectTypeCannotBeInherited, bodyObjectType.FullName)));
+                    }
+
                     if (typeof(IEnumerable).IsAssignableFrom(bodyObjectType))
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxBodyObjectTypeCannotBeInterface, bodyObjectType.FullName, typeof(IEnumerable).FullName)));
+                    }
+
                     if (typeof(IXmlSerializable).IsAssignableFrom(bodyObjectType))
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxBodyObjectTypeCannotBeInterface, bodyObjectType.FullName, typeof(IXmlSerializable).FullName)));
+                    }
+
                     return bodyPart;
                 }
 
@@ -535,7 +613,9 @@ namespace CoreWCF.Description
                     foreach (MemberInfo member in bodyObjectType.GetMembers(BindingFlags.Instance | BindingFlags.Public))
                     {
                         if ((member as PropertyInfo) == null && (member as FieldInfo) == null)
+                        {
                             continue;
+                        }
                         // TODO: SoapIgnoreAttribute is in 1.7
                         //if (member.IsDefined(typeof(SoapIgnoreAttribute), false/*inherit*/))
                         //    continue;
@@ -554,9 +634,14 @@ namespace CoreWCF.Description
                     int headerCount = message.Headers.Count;
 
                     if (headerCount == 0)
+                    {
                         return null;
+                    }
+
                     if (IsEncoded)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxHeadersAreNotSupportedInEncoded, message.MessageName)));
+                    }
 
                     int unknownHeaderCount = 0, headerIndex = 0;
                     XmlReflectionMember[] members = new XmlReflectionMember[headerCount];
@@ -607,7 +692,9 @@ namespace CoreWCF.Description
                         faultElementName = new XmlName(mapping.ElementName, IsEncoded);
                         faultNamespace = mapping.Namespace;
                         if (faultElementName == null)
+                        {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxFaultTypeAnonymous, Operation.Name, fault.DetailType.FullName)));
+                        }
                     }
 
                     elementName = new XmlQualifiedName(faultElementName.DecodedName, faultNamespace);
@@ -674,18 +761,21 @@ namespace CoreWCF.Description
 
                 internal XmlMembersMapping ImportMembersMapping(XmlName elementName, string ns, XmlReflectionMember[] members, bool hasWrapperElement, bool rpc, bool isEncoded, string mappingKey)
                 {
-                    XmlMembersMapping mapping;
                     string mappingName = elementName.DecodedName;
-                    if (XmlMappings.TryGetValue(mappingKey, out mapping))
+                    if (XmlMappings.TryGetValue(mappingKey, out XmlMembersMapping mapping))
                     {
                         return mapping;
                     }
 
                     if (isEncoded)
+                    {
                         throw new PlatformNotSupportedException();
+                    }
                     //mapping = this.SoapImporter.ImportMembersMapping(mappingName, ns, members, hasWrapperElement, rpc);
                     else
+                    {
                         mapping = XmlImporter.ImportMembersMapping(mappingName, ns, members, hasWrapperElement, rpc);
+                    }
 
                     mapping.SetKey(mappingKey);
                     XmlMappings.Add(mappingKey, mapping);
@@ -695,28 +785,36 @@ namespace CoreWCF.Description
                 internal XmlTypeMapping ImportTypeMapping(Type type, bool isEncoded)
                 {
                     if (isEncoded)
+                    {
                         throw new PlatformNotSupportedException();
+                    }
                     //return this.SoapImporter.ImportTypeMapping(type);
                     else
+                    {
                         return XmlImporter.ImportTypeMapping(type);
+                    }
                 }
 
                 internal void IncludeType(Type knownType, bool isEncoded)
                 {
                     if (isEncoded)
+                    {
                         throw new PlatformNotSupportedException();
+                    }
                     //this.SoapImporter.IncludeType(knownType);
                     else
+                    {
                         XmlImporter.IncludeType(knownType);
+                    }
                 }
             }
 
             internal class SerializerGenerationContext
             {
-                private List<XmlMembersMapping> Mappings = new List<XmlMembersMapping>();
+                private readonly List<XmlMembersMapping> Mappings = new List<XmlMembersMapping>();
                 private XmlSerializer[] serializers = null;
-                private Type type;
-                private object thisLock = new object();
+                private readonly Type type;
+                private readonly object thisLock = new object();
 
                 internal SerializerGenerationContext(Type type)
                 {
@@ -774,7 +872,10 @@ namespace CoreWCF.Description
                     }
                     XmlSerializer[] uniqueSerializers = CreateSerializersFromMappings(uniqueMappings.ToArray(), type);
                     if (uniqueMappings.Count == Mappings.Count)
+                    {
                         return uniqueSerializers;
+                    }
+
                     XmlSerializer[] serializers = new XmlSerializer[Mappings.Count];
                     for (int i = 0; i < Mappings.Count; i++)
                     {
@@ -811,9 +912,9 @@ namespace CoreWCF.Description
 
             internal class XmlSerializerFaultContractInfo
             {
-                private FaultContractInfo faultContractInfo;
-                private SerializerStub serializerStub;
-                private XmlQualifiedName faultContractElementName;
+                private readonly FaultContractInfo faultContractInfo;
+                private readonly SerializerStub serializerStub;
+                private readonly XmlQualifiedName faultContractElementName;
                 private XmlSerializerObjectSerializer serializer;
 
                 internal XmlSerializerFaultContractInfo(FaultContractInfo faultContractInfo, SerializerStub serializerStub,
@@ -847,7 +948,10 @@ namespace CoreWCF.Description
                     get
                     {
                         if (serializer == null)
+                        {
                             serializer = new XmlSerializerObjectSerializer(faultContractInfo.Detail, faultContractElementName, serializerStub.GetSerializer());
+                        }
+
                         return serializer;
                     }
                 }
@@ -928,7 +1032,10 @@ namespace CoreWCF.Description
             string ns = isRpc ? null : part.Namespace;
             MemberInfo additionalAttributesProvider = null;
             if (part.AdditionalAttributesProvider.MemberInfo != null)
+            {
                 additionalAttributesProvider = part.AdditionalAttributesProvider.MemberInfo;
+            }
+
             XmlName memberName = string.IsNullOrEmpty(part.UniquePartName) ? null : new XmlName(part.UniquePartName, true /*isEncoded*/);
             XmlName elementName = part.XmlName;
             return GetXmlReflectionMember(memberName, elementName, ns, part.Type, additionalAttributesProvider, part.Multiple, isEncoded, isWrapped);
@@ -937,22 +1044,34 @@ namespace CoreWCF.Description
         static internal XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, MemberInfo additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
         {
             if (isEncoded && isMultiple)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxMultiplePartsNotAllowedInEncoded, elementName.DecodedName, ns)));
+            }
 
             XmlReflectionMember member = new XmlReflectionMember();
             member.MemberName = (memberName ?? elementName).DecodedName;
             member.MemberType = type;
             if (member.MemberType.IsByRef)
+            {
                 member.MemberType = member.MemberType.GetElementType();
+            }
+
             if (isMultiple)
+            {
                 member.MemberType = member.MemberType.MakeArrayType();
+            }
+
             if (additionalAttributesProvider != null)
             {
                 if (isEncoded)
+                {
                     throw new PlatformNotSupportedException();
+                }
                 //member.SoapAttributes = new SoapAttributes(additionalAttributesProvider);
                 else
+                {
                     member.XmlAttributes = new XmlAttributes(additionalAttributesProvider);
+                }
             }
             if (isEncoded)
             {
@@ -961,29 +1080,50 @@ namespace CoreWCF.Description
             else
             {
                 if (member.XmlAttributes == null)
+                {
                     member.XmlAttributes = new XmlAttributes();
+                }
                 else
                 {
                     Type invalidAttributeType = null;
                     if (member.XmlAttributes.XmlAttribute != null)
+                    {
                         invalidAttributeType = typeof(XmlAttributeAttribute);
+                    }
                     else if (member.XmlAttributes.XmlAnyAttribute != null && !isWrapped)
+                    {
                         invalidAttributeType = typeof(XmlAnyAttributeAttribute);
+                    }
                     else if (member.XmlAttributes.XmlChoiceIdentifier != null)
+                    {
                         invalidAttributeType = typeof(XmlChoiceIdentifierAttribute);
+                    }
                     else if (member.XmlAttributes.XmlIgnore)
+                    {
                         invalidAttributeType = typeof(XmlIgnoreAttribute);
+                    }
                     else if (member.XmlAttributes.Xmlns)
+                    {
                         invalidAttributeType = typeof(XmlNamespaceDeclarationsAttribute);
+                    }
                     else if (member.XmlAttributes.XmlText != null)
+                    {
                         invalidAttributeType = typeof(XmlTextAttribute);
+                    }
                     else if (member.XmlAttributes.XmlEnum != null)
+                    {
                         invalidAttributeType = typeof(XmlEnumAttribute);
-                    if (invalidAttributeType != null)
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(isWrapped ? SR.SFxInvalidXmlAttributeInWrapped : SR.SFxInvalidXmlAttributeInBare, invalidAttributeType, elementName.DecodedName)));
-                    if (member.XmlAttributes.XmlArray != null && isMultiple)
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxXmlArrayNotAllowedForMultiple, elementName.DecodedName, ns)));
+                    }
 
+                    if (invalidAttributeType != null)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(isWrapped ? SR.SFxInvalidXmlAttributeInWrapped : SR.SFxInvalidXmlAttributeInBare, invalidAttributeType, elementName.DecodedName)));
+                    }
+
+                    if (member.XmlAttributes.XmlArray != null && isMultiple)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxXmlArrayNotAllowedForMultiple, elementName.DecodedName, ns)));
+                    }
                 }
 
 
@@ -994,9 +1134,14 @@ namespace CoreWCF.Description
                     if (member.XmlAttributes.XmlArray != null)
                     {
                         if (member.XmlAttributes.XmlArray.ElementName == string.Empty)
+                        {
                             member.XmlAttributes.XmlArray.ElementName = elementName.DecodedName;
+                        }
+
                         if (member.XmlAttributes.XmlArray.Namespace == null)
+                        {
                             member.XmlAttributes.XmlArray.Namespace = ns;
+                        }
                     }
                     else if (HasNoXmlParameterAttributes(member.XmlAttributes))
                     {
@@ -1022,9 +1167,14 @@ namespace CoreWCF.Description
                         foreach (XmlElementAttribute elementAttribute in member.XmlAttributes.XmlElements)
                         {
                             if (elementAttribute.ElementName == string.Empty)
+                            {
                                 elementAttribute.ElementName = elementName.DecodedName;
+                            }
+
                             if (elementAttribute.Namespace == null)
+                            {
                                 elementAttribute.Namespace = ns;
+                            }
                         }
                     }
                 }

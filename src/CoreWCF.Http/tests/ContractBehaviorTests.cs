@@ -18,7 +18,7 @@ namespace CoreWCF.Http.Tests
 {
     public class ContractBehaviorTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ContractBehaviorTests(ITestOutputHelper output)
         {
@@ -129,7 +129,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -153,7 +155,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -177,7 +181,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -199,7 +205,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -223,7 +231,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -249,7 +259,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 

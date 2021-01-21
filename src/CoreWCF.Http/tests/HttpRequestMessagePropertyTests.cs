@@ -17,7 +17,7 @@ namespace BasicHttp
 {
     public class HttpRequestMessagePropertyTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         internal const string TestHeaderName = "HttpRequestMessagePropertyTests-TestHeader";
         internal const string TestHeaderValue = "HttpRequestMessagePropertyTestsHeaderValue";
 

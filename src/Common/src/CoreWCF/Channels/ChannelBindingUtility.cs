@@ -10,8 +10,8 @@ namespace CoreWCF.Channels
 {
     internal static class ChannelBindingUtility
     {
-        private static ExtendedProtectionPolicy disabledPolicy = new ExtendedProtectionPolicy(PolicyEnforcement.Never);
-        private static ExtendedProtectionPolicy defaultPolicy = disabledPolicy;
+        private static readonly ExtendedProtectionPolicy disabledPolicy = new ExtendedProtectionPolicy(PolicyEnforcement.Never);
+        private static readonly ExtendedProtectionPolicy defaultPolicy = disabledPolicy;
 
         public static ExtendedProtectionPolicy DefaultPolicy
         {

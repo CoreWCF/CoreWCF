@@ -20,8 +20,8 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             PopulateJan2004StrEntries(strEntries);
             //  strEntries.Add(new SamlDirectStrEntry());
-            strEntries.Add(new X509ThumbprintStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
-            strEntries.Add(new EncryptedKeyHashStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
+            strEntries.Add(new X509ThumbprintStrEntry(SecurityTokenSerializer.EmitBspRequiredAttributes));
+            strEntries.Add(new EncryptedKeyHashStrEntry(SecurityTokenSerializer.EmitBspRequiredAttributes));
         }
 
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
@@ -34,8 +34,8 @@ namespace CoreWCF.IdentityModel.Tokens
         public override void PopulateKeyIdentifierClauseEntries(IList<KeyIdentifierClauseEntry> clauseEntries)
         {
             List<StrEntry> strEntries = new List<StrEntry>();
-            this.SecurityTokenSerializer.PopulateStrEntries(strEntries);
-            SecurityTokenReferenceXXX2005ClauseEntry strClause = new SecurityTokenReferenceXXX2005ClauseEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes, strEntries);
+            SecurityTokenSerializer.PopulateStrEntries(strEntries);
+            SecurityTokenReferenceXXX2005ClauseEntry strClause = new SecurityTokenReferenceXXX2005ClauseEntry(SecurityTokenSerializer.EmitBspRequiredAttributes, strEntries);
             clauseEntries.Add(strClause);
         }
 
@@ -58,19 +58,19 @@ namespace CoreWCF.IdentityModel.Tokens
 
             public override void WriteKeyIdentifierClauseCore(XmlDictionaryWriter writer, SecurityKeyIdentifierClause keyIdentifierClause)
             {
-                for (int i = 0; i < this.StrEntries.Count; ++i)
+                for (int i = 0; i < StrEntries.Count; ++i)
                 {
-                    if (this.StrEntries[i].SupportsCore(keyIdentifierClause))
+                    if (StrEntries[i].SupportsCore(keyIdentifierClause))
                     {
                         writer.WriteStartElement(CoreWCF.XD.SecurityJan2004Dictionary.Prefix.Value, CoreWCF.XD.SecurityJan2004Dictionary.SecurityTokenReference, CoreWCF.XD.SecurityJan2004Dictionary.Namespace);
 
-                        string tokenTypeUri = this.GetTokenTypeUri(this.StrEntries[i], keyIdentifierClause);
+                        string tokenTypeUri = GetTokenTypeUri(StrEntries[i], keyIdentifierClause);
                         if (tokenTypeUri != null)
                         {
                             writer.WriteAttributeString(CoreWCF.XD.SecurityXXX2005Dictionary.Prefix.Value, CoreWCF.XD.SecurityXXX2005Dictionary.TokenTypeAttribute, CoreWCF.XD.SecurityXXX2005Dictionary.Namespace, tokenTypeUri);
                         }
 
-                        this.StrEntries[i].WriteContent(writer, keyIdentifierClause);
+                        StrEntries[i].WriteContent(writer, keyIdentifierClause);
                         writer.WriteEndElement();
                         return;
                     }
@@ -80,7 +80,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
             private string GetTokenTypeUri(StrEntry str, SecurityKeyIdentifierClause keyIdentifierClause)
             {
-                bool emitTokenType = this.EmitTokenType(str);
+                bool emitTokenType = EmitTokenType(str);
                 if (emitTokenType)
                 {
                     string tokenTypeUri;
@@ -126,7 +126,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 {
                     emitTokenType = true;
                 }
-                else if (this.EmitBspRequiredAttributes)
+                else if (EmitBspRequiredAttributes)
                 {
                     if (
                         //(str is KerberosHashStrEntry)

@@ -25,7 +25,9 @@ namespace CoreWCF
             }
 
             if (xmlLang == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.XmlLangAttributeMissing));
+            }
 
             return xmlLang;
         }
@@ -43,7 +45,10 @@ namespace CoreWCF
         public static string TrimEnd(string s)
         {
             int i;
-            for (i = s.Length; i > 0 && IsWhitespace(s[i - 1]); i--) ;
+            for (i = s.Length; i > 0 && IsWhitespace(s[i - 1]); i--)
+            {
+                ;
+            }
 
             if (i != s.Length)
             {
@@ -56,7 +61,10 @@ namespace CoreWCF
         public static string TrimStart(string s)
         {
             int i;
-            for (i = 0; i < s.Length && IsWhitespace(s[i]); i++) ;
+            for (i = 0; i < s.Length && IsWhitespace(s[i]); i++)
+            {
+                ;
+            }
 
             if (i != 0)
             {
@@ -69,7 +77,10 @@ namespace CoreWCF
         public static string Trim(string s)
         {
             int i;
-            for (i = 0; i < s.Length && IsWhitespace(s[i]); i++) ;
+            for (i = 0; i < s.Length && IsWhitespace(s[i]); i++)
+            {
+                ;
+            }
 
             if (i >= s.Length)
             {
@@ -77,7 +88,10 @@ namespace CoreWCF
             }
 
             int j;
-            for (j = s.Length; j > 0 && IsWhitespace(s[j - 1]); j--) ;
+            for (j = s.Length; j > 0 && IsWhitespace(s[j - 1]); j--)
+            {
+                ;
+            }
 
             Fx.Assert(j > i, "Logic error in XmlUtil.Trim().");
 
@@ -100,13 +114,18 @@ namespace CoreWCF
             else
             {
                 if (index == qname.Length - 1)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.InvalidXmlQualifiedName, qname)));
+                }
+
                 prefix = TrimStart(qname.Substring(0, index));
                 localName = TrimEnd(qname.Substring(index + 1));
             }
             ns = reader.LookupNamespace(prefix);
             if (ns == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.UnboundPrefixInQName, qname)));
+            }
         }
 
         // This code was copied from XmlDictionaryReader.ReadElementContentAsDateTime which is an internal method

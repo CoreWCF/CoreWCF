@@ -38,17 +38,25 @@ namespace CoreWCF
         public bool TryLookup(string key, out XmlDictionaryString value)
         {
             if (key == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
+            }
+
             if (_dictionary == null)
             {
                 Dictionary<string, int> dictionary = new Dictionary<string, int>(_count);
                 for (int i = 0; i < _count; i++)
+                {
                     dictionary.Add(_strings[i], i);
+                }
+
                 _dictionary = dictionary;
             }
-            int id;
-            if (_dictionary.TryGetValue(key, out id))
+            if (_dictionary.TryGetValue(key, out int id))
+            {
                 return TryLookup(id, out value);
+            }
+
             value = null;
             return false;
         }
@@ -65,7 +73,10 @@ namespace CoreWCF
             if (key < keyThreshold)
             {
                 if (_dictionaryStrings1 == null)
+                {
                     _dictionaryStrings1 = new XmlDictionaryString[keyThreshold];
+                }
+
                 s = _dictionaryStrings1[key];
                 if (s == null)
                 {
@@ -76,7 +87,10 @@ namespace CoreWCF
             else
             {
                 if (_dictionaryStrings2 == null)
+                {
                     _dictionaryStrings2 = new XmlDictionaryString[_count - keyThreshold];
+                }
+
                 s = _dictionaryStrings2[key - keyThreshold];
                 if (s == null)
                 {
@@ -91,7 +105,10 @@ namespace CoreWCF
         public bool TryLookup(XmlDictionaryString key, out XmlDictionaryString value)
         {
             if (key == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
+            }
+
             if (key.Dictionary == this)
             {
                 value = key;
@@ -100,7 +117,10 @@ namespace CoreWCF
             if (key.Dictionary == CurrentVersion)
             {
                 if (_versionedDictionaryStrings == null)
+                {
                     _versionedDictionaryStrings = new XmlDictionaryString[CurrentVersion._count];
+                }
+
                 XmlDictionaryString s = _versionedDictionaryStrings[key.Key];
                 if (s == null)
                 {

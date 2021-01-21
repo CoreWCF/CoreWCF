@@ -38,7 +38,9 @@ namespace CoreWCF
                 ValidateOperationFormatUse(value);
                 use = value;
                 if (!isStyleSet && IsEncoded)
+                {
                     Style = OperationFormatStyle.Rpc;
+                }
             }
         }
 

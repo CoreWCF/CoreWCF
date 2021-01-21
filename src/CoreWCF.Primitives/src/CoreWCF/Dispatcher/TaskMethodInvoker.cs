@@ -19,8 +19,8 @@ namespace CoreWCF.Dispatcher
         private InvokeDelegate _invokeDelegate;
         private int _inputParameterCount;
         private int _outputParameterCount;
-        private MethodInfo _taskTResultGetMethod;
-        private bool _isGenericTask;
+        private readonly MethodInfo _taskTResultGetMethod;
+        private readonly bool _isGenericTask;
 
         public TaskMethodInvoker(MethodInfo taskMethod, Type taskType)
         {
@@ -282,9 +282,7 @@ namespace CoreWCF.Dispatcher
             {
                 // Only pass locals byref because InvokerUtil may store temporary results in the byref.
                 // If two threads both reference this.count, temporary results may interact.
-                int inputParameterCount;
-                int outputParameterCount;
-                InvokeDelegate invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(TaskMethod, out inputParameterCount, out outputParameterCount);
+                InvokeDelegate invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(TaskMethod, out int inputParameterCount, out int outputParameterCount);
                 _inputParameterCount = inputParameterCount;
                 _outputParameterCount = outputParameterCount;
                 _invokeDelegate = invokeDelegate;  // must set this last due to race

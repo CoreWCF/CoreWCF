@@ -11,8 +11,8 @@ namespace CoreWCF.Channels
 {
     internal class SynchronizedMessageSource
     {
-        private IMessageSource source;
-        private SemaphoreSlim sourceLock;
+        private readonly IMessageSource source;
+        private readonly SemaphoreSlim sourceLock;
 
         public SynchronizedMessageSource(IMessageSource source)
         {
@@ -39,7 +39,9 @@ namespace CoreWCF.Channels
             finally
             {
                 if (lockAcquired)
+                {
                     sourceLock.Release();
+                }
             }
         }
 
@@ -62,7 +64,9 @@ namespace CoreWCF.Channels
             finally
             {
                 if (lockAcquired)
+                {
                     sourceLock.Release();
+                }
             }
         }
     }

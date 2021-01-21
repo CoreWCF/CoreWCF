@@ -17,7 +17,9 @@ namespace CoreWCF.Runtime
         public RecoverableTimeoutCancellationTokenSource(TimeSpan timeout) : base()
         {
             if (timeout.TotalMilliseconds > int.MaxValue)
+            {
                 throw new ArgumentOutOfRangeException(nameof(timeout), $"Only TimeSpan's representing up to {int.MaxValue}ms are supported");
+            }
 
             _originalTimeout = timeout;
         }
@@ -43,7 +45,9 @@ namespace CoreWCF.Runtime
         {
             // Covers CancellationToken.None as well as any other non-cancellable token
             if (!token.CanBeCanceled)
+            {
                 return Timeout.InfiniteTimeSpan;
+            }
 
             return TimeSpan.FromMilliseconds(token.GetHashCode());
         }
@@ -51,7 +55,7 @@ namespace CoreWCF.Runtime
 
     internal class CancellationTokenSourceIOThreadTimer : IOThreadTimer
     {
-        private List<CancellationTokenSource> _cancellationTokenSources = new List<CancellationTokenSource>();
+        private readonly List<CancellationTokenSource> _cancellationTokenSources = new List<CancellationTokenSource>();
         private bool _timerFired = false;
         private Action<object> _timerFiredCallback;
         private object _timerFiredState;

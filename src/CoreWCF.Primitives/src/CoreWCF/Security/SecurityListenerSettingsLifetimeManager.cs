@@ -10,9 +10,9 @@ namespace CoreWCF.Security
 {
     internal class SecurityListenerSettingsLifetimeManager
     {
-        private SecurityProtocolFactory securityProtocolFactory;
-        private SecuritySessionServerSettings sessionSettings;
-        private bool sessionMode;
+        private readonly SecurityProtocolFactory securityProtocolFactory;
+        private readonly SecuritySessionServerSettings sessionSettings;
+        private readonly bool sessionMode;
         private int referenceCount;
 
         public SecurityListenerSettingsLifetimeManager(SecurityProtocolFactory securityProtocolFactory, SecuritySessionServerSettings sessionSettings, bool sessionMode)
@@ -25,7 +25,7 @@ namespace CoreWCF.Security
 
         public void Abort()
         {
-            if (Interlocked.Decrement(ref this.referenceCount) == 0)
+            if (Interlocked.Decrement(ref referenceCount) == 0)
             {
                 AbortCore();
             }
@@ -33,15 +33,15 @@ namespace CoreWCF.Security
 
         public void AddReference()
         {
-            Interlocked.Increment(ref this.referenceCount);
+            Interlocked.Increment(ref referenceCount);
         }
 
         public Task OpenAsync(TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            if (this.sessionMode && this.sessionSettings != null)
+            if (sessionMode && sessionSettings != null)
             {
-                this.sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
+                sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
             }
 
             /* if (this.securityProtocolFactory != null)
@@ -79,19 +79,19 @@ namespace CoreWCF.Security
 
         public Task CloseAsync(TimeSpan timeout)
         {
-            if (Interlocked.Decrement(ref this.referenceCount) == 0)
+            if (Interlocked.Decrement(ref referenceCount) == 0)
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 bool throwing = true;
                 try
                 {
-                    if (this.securityProtocolFactory != null)
+                    if (securityProtocolFactory != null)
                     {
-                        this.securityProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
+                        securityProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
                     }
                     if (sessionMode && sessionSettings != null)
                     {
-                        this.sessionSettings.CloseAsync(timeoutHelper.RemainingTime());
+                        sessionSettings.CloseAsync(timeoutHelper.RemainingTime());
                     }
                     throwing = false;
                 }
@@ -108,13 +108,13 @@ namespace CoreWCF.Security
 
         private void AbortCore()
         {
-            if (this.securityProtocolFactory != null)
+            if (securityProtocolFactory != null)
             {
-                this.securityProtocolFactory.OnCloseAsync(TimeSpan.Zero);
+                securityProtocolFactory.OnCloseAsync(TimeSpan.Zero);
             }
-            if (sessionMode && this.sessionSettings != null)
+            if (sessionMode && sessionSettings != null)
             {
-                this.sessionSettings.Abort();
+                sessionSettings.Abort();
             }
         }
 

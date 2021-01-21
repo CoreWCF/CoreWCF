@@ -18,7 +18,7 @@ namespace AsyncServices
 {
     public class TaskBasedOperationTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public TaskBasedOperationTests(ITestOutputHelper output)
         {

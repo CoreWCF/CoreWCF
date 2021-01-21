@@ -111,7 +111,7 @@ namespace CoreWCF
         {
             get
             {
-                if (this.primaryIdentity == null)
+                if (primaryIdentity == null)
                 {
                     IIdentity primaryIdentity = null;
                     IList<IIdentity> identities = GetIdentities();
@@ -123,7 +123,7 @@ namespace CoreWCF
 
                     this.primaryIdentity = primaryIdentity ?? Security.SecurityUtils.AnonymousIdentity;
                 }
-                return this.primaryIdentity;
+                return primaryIdentity;
             }
         }
 
@@ -131,7 +131,7 @@ namespace CoreWCF
         {
             get
             {
-                if (this.windowsIdentity == null)
+                if (windowsIdentity == null)
                 {
                     WindowsIdentity windowsIdentity = null;
                     IList<IIdentity> identities = GetIdentities();
@@ -155,7 +155,7 @@ namespace CoreWCF
 
                     this.windowsIdentity = windowsIdentity ?? WindowsIdentity.GetAnonymous();
                 }
-                return this.windowsIdentity;
+                return windowsIdentity;
             }
         }
 
@@ -185,9 +185,8 @@ namespace CoreWCF
 
         private IList<IIdentity> GetIdentities()
         {
-            object identities;
             AuthorizationContext authContext = AuthorizationContext;
-            if (authContext != null && authContext.Properties.TryGetValue(Security.SecurityUtils.Identities, out identities))
+            if (authContext != null && authContext.Properties.TryGetValue(Security.SecurityUtils.Identities, out object identities))
             {
                 return identities as IList<IIdentity>;
             }

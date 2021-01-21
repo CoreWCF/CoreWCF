@@ -21,11 +21,11 @@ namespace CoreWCF.Security
 
         private static WSSecurityTokenSerializer s_instance;
         private readonly List<SerializerEntries> _serializerEntries;
-        private WSSecureConversation _secureConversation;
+        private readonly WSSecureConversation _secureConversation;
         private readonly List<TokenEntry> _tokenEntries = new List<TokenEntry>();
-        private int _maximumKeyDerivationNonceLength;
+        private readonly int _maximumKeyDerivationNonceLength;
 
-        private KeyInfoSerializer _keyInfoSerializer;
+        private readonly KeyInfoSerializer _keyInfoSerializer;
 
         public WSSecurityTokenSerializer()
             : this(SecurityVersion.WSSecurity11)
@@ -507,7 +507,7 @@ namespace CoreWCF.Security
 
         internal class CollectionDictionary : IXmlDictionary
         {
-            private List<XmlDictionaryString> _dictionaryStrings;
+            private readonly List<XmlDictionaryString> _dictionaryStrings;
 
             public CollectionDictionary(List<XmlDictionaryString> dictionaryStrings)
             {

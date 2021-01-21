@@ -10,7 +10,7 @@ namespace CoreWCF.Dispatcher
     internal class EndpointDispatcherTable
     {
         private MessageFilterTable<EndpointDispatcher> filters;
-        private object thisLock;
+        private readonly object thisLock;
         private const int optimizationThreshold = 2;
         private List<EndpointDispatcher> cachedEndpoints;
 
@@ -109,8 +109,7 @@ namespace CoreWCF.Dispatcher
                     AndMessageFilter andFilter = cachedFilter as AndMessageFilter;
                     if (andFilter != null)
                     {
-                        bool addressResult;
-                        matchResult = andFilter.Match(message, out addressResult);
+                        matchResult = andFilter.Match(message, out bool addressResult);
                         addressMatched |= addressResult;
                     }
                     else

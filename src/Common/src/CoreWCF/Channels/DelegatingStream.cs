@@ -9,7 +9,7 @@ namespace CoreWCF.Channels
 {
     internal abstract class DelegatingStream : Stream
     {
-        private Stream _stream;
+        private readonly Stream _stream;
         private bool _disposed;
 
         protected DelegatingStream(Stream stream)

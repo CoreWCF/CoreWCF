@@ -48,7 +48,7 @@ namespace CoreWCF
 
         internal override void SetReaderQuotas(XmlDictionaryReaderQuotas readerQuotas)
         {
-            readerQuotas.CopyTo(this._binaryMessageEncodingBindingElement.ReaderQuotas);
+            readerQuotas.CopyTo(_binaryMessageEncodingBindingElement.ReaderQuotas);
         }
 
         public override BindingElementCollection CreateBindingElements()

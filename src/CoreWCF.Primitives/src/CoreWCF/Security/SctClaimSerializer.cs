@@ -27,7 +27,10 @@ namespace CoreWCF.Security
         private static void WriteRightAttribute(Claim claim, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
         {
             if (Rights.PossessProperty.Equals(claim.Right))
+            {
                 return;
+            }
+
             writer.WriteAttributeString(dictionary.Right, dictionary.EmptyString, claim.Right);
         }
 
@@ -396,9 +399,8 @@ namespace CoreWCF.Security
 
         public static void SerializeIdentities(AuthorizationContext authContext, SctClaimDictionary dictionary, XmlDictionaryWriter writer, XmlObjectSerializer serializer)
         {
-            object obj;
             IList<IIdentity> identities;
-            if (authContext.Properties.TryGetValue(SecurityUtils.Identities, out obj))
+            if (authContext.Properties.TryGetValue(SecurityUtils.Identities, out object obj))
             {
                 identities = obj as IList<IIdentity>;
                 if (identities != null && identities.Count > 0)
@@ -437,7 +439,10 @@ namespace CoreWCF.Security
                         }
                     }
                     if (!String.IsNullOrEmpty(authenticationType))
+                    {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, authenticationType);
+                    }
+
                     writer.WriteString(wid.Name);
                     writer.WriteEndElement();
                 }
@@ -447,7 +452,10 @@ namespace CoreWCF.Security
                     writer.WriteStartElement(dictionary.WindowsSidIdentity, dictionary.EmptyString);
                     WriteSidAttribute(wsid.SecurityIdentifier, dictionary, writer);
                     if (!String.IsNullOrEmpty(wsid.AuthenticationType))
+                    {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, wsid.AuthenticationType);
+                    }
+
                     writer.WriteString(wsid.Name);
                     writer.WriteEndElement();
                 }
@@ -456,7 +464,10 @@ namespace CoreWCF.Security
                     GenericIdentity genericIdentity = (GenericIdentity)identity;
                     writer.WriteStartElement(dictionary.GenericIdentity, dictionary.EmptyString);
                     if (!String.IsNullOrEmpty(genericIdentity.AuthenticationType))
+                    {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, genericIdentity.AuthenticationType);
+                    }
+
                     writer.WriteString(genericIdentity.Name);
                     writer.WriteEndElement();
                 }

@@ -19,7 +19,7 @@ namespace CoreWCF.Channels
         {
             if (objectToClone.anonymousUriPrefixes != null)
             {
-                this.anonymousUriPrefixes = new UriPrefixTable<Uri>(objectToClone.anonymousUriPrefixes);
+                anonymousUriPrefixes = new UriPrefixTable<Uri>(objectToClone.anonymousUriPrefixes);
             }
         }
 
@@ -35,14 +35,14 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(anonymousUriPrefix), SR.UriMustBeAbsolute);
             }
 
-            if (this.anonymousUriPrefixes == null)
+            if (anonymousUriPrefixes == null)
             {
-                this.anonymousUriPrefixes = new UriPrefixTable<Uri>(true);
+                anonymousUriPrefixes = new UriPrefixTable<Uri>(true);
             }
 
-            if (!this.anonymousUriPrefixes.IsRegistered(new BaseUriWithWildcard(anonymousUriPrefix, HostNameComparisonMode.Exact)))
+            if (!anonymousUriPrefixes.IsRegistered(new BaseUriWithWildcard(anonymousUriPrefix, HostNameComparisonMode.Exact)))
             {
-                this.anonymousUriPrefixes.RegisterUri(anonymousUriPrefix, HostNameComparisonMode.Exact, anonymousUriPrefix);
+                anonymousUriPrefixes.RegisterUri(anonymousUriPrefix, HostNameComparisonMode.Exact, anonymousUriPrefix);
             }
         }
 
@@ -50,13 +50,12 @@ namespace CoreWCF.Channels
         {
             Fx.Assert(to == null || to.IsAbsoluteUri, SR.UriMustBeAbsolute);
 
-            if (this.anonymousUriPrefixes == null)
+            if (anonymousUriPrefixes == null)
             {
                 return false;
             }
 
-            Uri returnValue;
-            return this.anonymousUriPrefixes.TryLookupUri(to, HostNameComparisonMode.Exact, out returnValue);
+            return anonymousUriPrefixes.TryLookupUri(to, HostNameComparisonMode.Exact, out Uri returnValue);
         }
     }
 }

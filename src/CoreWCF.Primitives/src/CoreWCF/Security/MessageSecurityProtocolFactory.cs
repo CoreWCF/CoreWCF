@@ -18,7 +18,7 @@ namespace CoreWCF.Security
         private bool applyConfidentiality = true;
         private bool doRequestSignatureConfirmation = defaultDoRequestSignatureConfirmation;
         private IdentityVerifier identityVerifier;
-        private ChannelProtectionRequirements protectionRequirements = new ChannelProtectionRequirements();
+        private readonly ChannelProtectionRequirements protectionRequirements = new ChannelProtectionRequirements();
         private MessageProtectionOrder messageProtectionOrder = defaultMessageProtectionOrder;
         private bool requireIntegrity = true;
         private bool requireConfidentiality = true;
@@ -32,28 +32,30 @@ namespace CoreWCF.Security
             : base(factory)
         {
             if (factory == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(factory));
+            }
 
-            this.applyIntegrity = factory.applyIntegrity;
-            this.applyConfidentiality = factory.applyConfidentiality;
-            this.identityVerifier = factory.identityVerifier;
-            this.protectionRequirements = new ChannelProtectionRequirements(factory.protectionRequirements);
-            this.messageProtectionOrder = factory.messageProtectionOrder;
-            this.requireIntegrity = factory.requireIntegrity;
-            this.requireConfidentiality = factory.requireConfidentiality;
-            this.doRequestSignatureConfirmation = factory.doRequestSignatureConfirmation;
+            applyIntegrity = factory.applyIntegrity;
+            applyConfidentiality = factory.applyConfidentiality;
+            identityVerifier = factory.identityVerifier;
+            protectionRequirements = new ChannelProtectionRequirements(factory.protectionRequirements);
+            messageProtectionOrder = factory.messageProtectionOrder;
+            requireIntegrity = factory.requireIntegrity;
+            requireConfidentiality = factory.requireConfidentiality;
+            doRequestSignatureConfirmation = factory.doRequestSignatureConfirmation;
         }
 
         public bool ApplyConfidentiality
         {
             get
             {
-                return this.applyConfidentiality;
+                return applyConfidentiality;
             }
             set
             {
                 ThrowIfImmutable();
-                this.applyConfidentiality = value;
+                applyConfidentiality = value;
             }
         }
 
@@ -61,12 +63,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.applyIntegrity;
+                return applyIntegrity;
             }
             set
             {
                 ThrowIfImmutable();
-                this.applyIntegrity = value;
+                applyIntegrity = value;
             }
         }
 
@@ -74,12 +76,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.doRequestSignatureConfirmation;
+                return doRequestSignatureConfirmation;
             }
             set
             {
                 ThrowIfImmutable();
-                this.doRequestSignatureConfirmation = value;
+                doRequestSignatureConfirmation = value;
             }
         }
 
@@ -87,12 +89,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.identityVerifier;
+                return identityVerifier;
             }
             set
             {
                 ThrowIfImmutable();
-                this.identityVerifier = value;
+                identityVerifier = value;
             }
         }
 
@@ -100,7 +102,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.protectionRequirements;
+                return protectionRequirements;
             }
         }
 
@@ -108,12 +110,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.messageProtectionOrder;
+                return messageProtectionOrder;
             }
             set
             {
                 ThrowIfImmutable();
-                this.messageProtectionOrder = value;
+                messageProtectionOrder = value;
             }
         }
 
@@ -121,12 +123,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.requireIntegrity;
+                return requireIntegrity;
             }
             set
             {
                 ThrowIfImmutable();
-                this.requireIntegrity = value;
+                requireIntegrity = value;
             }
         }
 
@@ -134,12 +136,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.requireConfidentiality;
+                return requireConfidentiality;
             }
             set
             {
                 ThrowIfImmutable();
-                this.requireConfidentiality = value;
+                requireConfidentiality = value;
             }
         }
 
@@ -147,16 +149,16 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.wrappedKeyTokenAuthenticator;
+                return wrappedKeyTokenAuthenticator;
             }
         }
 
         protected virtual void ValidateCorrelationSecuritySettings()
         {
-            if (this.ActAsInitiator && this.SupportsRequestReply)
+            if (ActAsInitiator && SupportsRequestReply)
             {
-                bool savesCorrelationTokenOnRequest = this.ApplyIntegrity || this.ApplyConfidentiality;
-                bool needsCorrelationTokenOnReply = this.RequireIntegrity || this.RequireConfidentiality;
+                bool savesCorrelationTokenOnRequest = ApplyIntegrity || ApplyConfidentiality;
+                bool needsCorrelationTokenOnReply = RequireIntegrity || RequireConfidentiality;
                 if (!savesCorrelationTokenOnRequest && needsCorrelationTokenOnReply)
                 {
                     OnPropertySettingsError("ApplyIntegrity", false);
@@ -167,16 +169,16 @@ namespace CoreWCF.Security
         public override Task OnOpenAsync(TimeSpan timeout)
         {
             base.OnOpenAsync(timeout);
-            this.protectionRequirements.MakeReadOnly();
+            protectionRequirements.MakeReadOnly();
 
-            if (this.DetectReplays && !this.RequireIntegrity)
+            if (DetectReplays && !RequireIntegrity)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(RequireIntegrity), SR.ForReplayDetectionToBeDoneRequireIntegrityMustBeSet);
             }
 
-            if (this.DoRequestSignatureConfirmation)
+            if (DoRequestSignatureConfirmation)
             {
-                if (!this.SupportsRequestReply)
+                if (!SupportsRequestReply)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SignatureConfirmationRequiresRequestReply);
                 }
@@ -187,9 +189,9 @@ namespace CoreWCF.Security
                 //}
             }
 
-            this.wrappedKeyTokenAuthenticator = new List<SecurityTokenAuthenticator>(1);
+            wrappedKeyTokenAuthenticator = new List<SecurityTokenAuthenticator>(1);
             SecurityTokenAuthenticator authenticator = new NonValidatingSecurityTokenAuthenticator<WrappedKeySecurityToken>();
-            this.wrappedKeyTokenAuthenticator.Add(authenticator);
+            wrappedKeyTokenAuthenticator.Add(authenticator);
 
             ValidateCorrelationSecuritySettings();
             return Task.CompletedTask;
@@ -198,9 +200,8 @@ namespace CoreWCF.Security
         private static MessagePartSpecification ExtractMessageParts(string action,
             ScopedMessagePartSpecification scopedParts, bool isForSignature)
         {
-            MessagePartSpecification parts = null;
 
-            if (scopedParts.TryGetParts(action, out parts))
+            if (scopedParts.TryGetParts(action, out MessagePartSpecification parts))
             {
                 return parts;
             }
@@ -227,12 +228,16 @@ namespace CoreWCF.Security
 
         internal MessagePartSpecification GetIncomingEncryptionParts(string action)
         {
-            if (this.RequireConfidentiality)
+            if (RequireConfidentiality)
             {
-                if (this.IsDuplexReply)
-                    return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingEncryptionParts, false);
+                if (IsDuplexReply)
+                {
+                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingEncryptionParts, false);
+                }
                 else
-                    return ExtractMessageParts(action, (this.ActAsInitiator) ? this.ProtectionRequirements.OutgoingEncryptionParts : this.ProtectionRequirements.IncomingEncryptionParts, false);
+                {
+                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.OutgoingEncryptionParts : ProtectionRequirements.IncomingEncryptionParts, false);
+                }
             }
             else
             {
@@ -242,12 +247,16 @@ namespace CoreWCF.Security
 
         internal MessagePartSpecification GetIncomingSignatureParts(string action)
         {
-            if (this.RequireIntegrity)
+            if (RequireIntegrity)
             {
-                if (this.IsDuplexReply)
-                    return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingSignatureParts, true);
+                if (IsDuplexReply)
+                {
+                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingSignatureParts, true);
+                }
                 else
-                    return ExtractMessageParts(action, (this.ActAsInitiator) ? this.ProtectionRequirements.OutgoingSignatureParts : this.ProtectionRequirements.IncomingSignatureParts, true);
+                {
+                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.OutgoingSignatureParts : ProtectionRequirements.IncomingSignatureParts, true);
+                }
             }
             else
             {
@@ -257,12 +266,16 @@ namespace CoreWCF.Security
 
         internal MessagePartSpecification GetOutgoingEncryptionParts(string action)
         {
-            if (this.ApplyConfidentiality)
+            if (ApplyConfidentiality)
             {
-                if (this.IsDuplexReply)
-                    return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingEncryptionParts, false);
+                if (IsDuplexReply)
+                {
+                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingEncryptionParts, false);
+                }
                 else
-                    return ExtractMessageParts(action, (this.ActAsInitiator) ? this.ProtectionRequirements.IncomingEncryptionParts : this.ProtectionRequirements.OutgoingEncryptionParts, false);
+                {
+                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.IncomingEncryptionParts : ProtectionRequirements.OutgoingEncryptionParts, false);
+                }
             }
             else
             {
@@ -272,12 +285,16 @@ namespace CoreWCF.Security
 
         internal MessagePartSpecification GetOutgoingSignatureParts(string action)
         {
-            if (this.ApplyIntegrity)
+            if (ApplyIntegrity)
             {
-                if (this.IsDuplexReply)
-                    return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingSignatureParts, true);
+                if (IsDuplexReply)
+                {
+                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingSignatureParts, true);
+                }
                 else
-                    return ExtractMessageParts(action, (this.ActAsInitiator) ? this.ProtectionRequirements.IncomingSignatureParts : this.ProtectionRequirements.OutgoingSignatureParts, true);
+                {
+                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.IncomingSignatureParts : ProtectionRequirements.OutgoingSignatureParts, true);
+                }
             }
             else
             {

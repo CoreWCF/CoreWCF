@@ -55,9 +55,13 @@ namespace CoreWCF.Security
 
             WSUtilitySpecificationVersion = WSUtilitySpecificationVersion.Default;
             if (messageSecurityVersion.MessageSecurityTokenVersion.TrustVersion == TrustVersion.WSTrust13)
-                this.trustDriver = new WSTrustDec2005.DriverDec2005(this);
+            {
+                trustDriver = new WSTrustDec2005.DriverDec2005(this);
+            }
             else
-                this.trustDriver = new WSTrustFeb2005.DriverFeb2005(this);
+            {
+                trustDriver = new WSTrustFeb2005.DriverFeb2005(this);
+            }
         }
 
         public static SecurityStandardsManager DefaultInstance
@@ -152,8 +156,8 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
-            SecureConversationDriver driver = this.SecureConversationDriver;
-            int securityHeaderIndex = this.SecurityVersion.FindIndexOfSecurityHeader(message, actors);
+            SecureConversationDriver driver = SecureConversationDriver;
+            int securityHeaderIndex = SecurityVersion.FindIndexOfSecurityHeader(message, actors);
             if (securityHeaderIndex < 0)
             {
                 return false;

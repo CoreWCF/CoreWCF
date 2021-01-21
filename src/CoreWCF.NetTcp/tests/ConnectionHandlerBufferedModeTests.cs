@@ -18,7 +18,7 @@ namespace ConnectionHandler
 {
     public class ConnectionHandlerBufferedModeTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ConnectionHandlerBufferedModeTests(ITestOutputHelper output)
         {

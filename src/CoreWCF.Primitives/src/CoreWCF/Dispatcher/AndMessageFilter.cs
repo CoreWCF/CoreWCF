@@ -7,15 +7,20 @@ namespace CoreWCF.Dispatcher
 {
     internal class AndMessageFilter : MessageFilter
     {
-        private MessageFilter filter1;
-        private MessageFilter filter2;
+        private readonly MessageFilter filter1;
+        private readonly MessageFilter filter2;
 
         public AndMessageFilter(MessageFilter filter1, MessageFilter filter2)
         {
             if (filter1 == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter1));
+            }
+
             if (filter2 == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter2));
+            }
 
             this.filter1 = filter1;
             this.filter2 = filter2;

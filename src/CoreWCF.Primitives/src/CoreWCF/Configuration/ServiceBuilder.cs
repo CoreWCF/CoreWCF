@@ -12,9 +12,9 @@ namespace CoreWCF.Configuration
 {
     internal class ServiceBuilder : CommunicationObject, IServiceBuilder
     {
-        private IServiceProvider _serviceProvider;
-        private IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
-        private TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
+        private readonly TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public ServiceBuilder(IServiceProvider serviceProvider)
         {

@@ -23,7 +23,10 @@ namespace CoreWCF.IdentityModel.Selectors
             get
             {
                 if (none == null)
+                {
                     none = new NoneX509CertificateValidator();
+                }
+
                 return none;
             }
         }
@@ -33,7 +36,10 @@ namespace CoreWCF.IdentityModel.Selectors
             get
             {
                 if (peerTrust == null)
+                {
                     peerTrust = new PeerTrustValidator();
+                }
+
                 return peerTrust;
             }
         }
@@ -43,7 +49,10 @@ namespace CoreWCF.IdentityModel.Selectors
             get
             {
                 if (chainTrust == null)
+                {
                     chainTrust = new ChainTrustValidator();
+                }
+
                 return chainTrust;
             }
         }
@@ -54,7 +63,10 @@ namespace CoreWCF.IdentityModel.Selectors
             get
             {
                 if (ntAuthChainTrust == null)
+                {
                     ntAuthChainTrust = new ChainTrustValidator(false, null, CAPI_CERT_CHAIN_POLICY_NT_AUTH);
+                }
+
                 return ntAuthChainTrust;
             }
         }
@@ -64,7 +76,10 @@ namespace CoreWCF.IdentityModel.Selectors
             get
             {
                 if (peerOrChainTrust == null)
+                {
                     peerOrChainTrust = new PeerOrChainTrustValidator();
+                }
+
                 return peerOrChainTrust;
             }
         }
@@ -72,14 +87,20 @@ namespace CoreWCF.IdentityModel.Selectors
         public static X509CertificateValidator CreateChainTrustValidator(bool useMachineContext, X509ChainPolicy chainPolicy)
         {
             if (chainPolicy == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(chainPolicy));
+            }
+
             return new ChainTrustValidator(useMachineContext, chainPolicy, X509CertificateChain.DefaultChainPolicyOID);
         }
 
         public static X509CertificateValidator CreatePeerOrChainTrustValidator(bool useMachineContext, X509ChainPolicy chainPolicy)
         {
             if (chainPolicy == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(chainPolicy));
+            }
+
             return new PeerOrChainTrustValidator(useMachineContext, chainPolicy);
         }
 
@@ -90,7 +111,9 @@ namespace CoreWCF.IdentityModel.Selectors
             public override void Validate(X509Certificate2 certificate)
             {
                 if (certificate == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
+                }
             }
         }
 
@@ -99,11 +122,14 @@ namespace CoreWCF.IdentityModel.Selectors
             public override void Validate(X509Certificate2 certificate)
             {
                 if (certificate == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
+                }
 
-                Exception exception;
-                if (!TryValidate(certificate, out exception))
+                if (!TryValidate(certificate, out Exception exception))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(exception);
+                }
             }
 
             private static bool StoreContainsCertificate(StoreName storeName, X509Certificate2 certificate)
@@ -167,9 +193,9 @@ namespace CoreWCF.IdentityModel.Selectors
 
         private class ChainTrustValidator : X509CertificateValidator
         {
-            private bool useMachineContext;
-            private X509ChainPolicy chainPolicy;
-            private uint chainPolicyOID = X509CertificateChain.DefaultChainPolicyOID;
+            private readonly bool useMachineContext;
+            private readonly X509ChainPolicy chainPolicy;
+            private readonly uint chainPolicyOID = X509CertificateChain.DefaultChainPolicyOID;
 
             public ChainTrustValidator()
             {
@@ -186,7 +212,9 @@ namespace CoreWCF.IdentityModel.Selectors
             public override void Validate(X509Certificate2 certificate)
             {
                 if (certificate == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
+                }
 
                 X509Chain chain = new X509Chain();
                 if (chainPolicy != null)
@@ -219,8 +247,8 @@ namespace CoreWCF.IdentityModel.Selectors
 
         private class PeerOrChainTrustValidator : X509CertificateValidator
         {
-            private X509CertificateValidator chain;
-            private PeerTrustValidator peer;
+            private readonly X509CertificateValidator chain;
+            private readonly PeerTrustValidator peer;
 
             public PeerOrChainTrustValidator()
             {
@@ -237,11 +265,14 @@ namespace CoreWCF.IdentityModel.Selectors
             public override void Validate(X509Certificate2 certificate)
             {
                 if (certificate == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
+                }
 
-                Exception exception;
-                if (peer.TryValidate(certificate, out exception))
+                if (peer.TryValidate(certificate, out Exception exception))
+                {
                     return;
+                }
 
                 try
                 {

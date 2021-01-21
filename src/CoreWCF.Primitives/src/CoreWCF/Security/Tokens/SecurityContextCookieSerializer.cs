@@ -19,8 +19,8 @@ namespace CoreWCF.Security.Tokens
     internal struct SecurityContextCookieSerializer
     {
         private const int SupportedPersistanceVersion = 1;
-        private SecurityStateEncoder securityStateEncoder;
-        private IList<Type> knownTypes;
+        private readonly SecurityStateEncoder securityStateEncoder;
+        private readonly IList<Type> knownTypes;
 
         public SecurityContextCookieSerializer(SecurityStateEncoder securityStateEncoder, IList<Type> knownTypes)
         {
@@ -91,14 +91,14 @@ namespace CoreWCF.Security.Tokens
                 }
                 else if (reader.IsStartElement(dictionary.Identities, dictionary.EmptyString))
                 {
-                    identities = SctClaimSerializer.DeserializeIdentities(reader, dictionary, DataContractSerializerDefaults.CreateSerializer(typeof(IIdentity), this.knownTypes, int.MaxValue));
+                    identities = SctClaimSerializer.DeserializeIdentities(reader, dictionary, DataContractSerializerDefaults.CreateSerializer(typeof(IIdentity), knownTypes, int.MaxValue));
                 }
                 else if (reader.IsStartElement(dictionary.ClaimSets, dictionary.EmptyString))
                 {
                     reader.ReadStartElement();
 
-                    DataContractSerializer claimSetSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(ClaimSet), this.knownTypes, int.MaxValue);
-                    DataContractSerializer claimSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(Claim), this.knownTypes, int.MaxValue);
+                    DataContractSerializer claimSetSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(ClaimSet), knownTypes, int.MaxValue);
+                    DataContractSerializer claimSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(Claim), knownTypes, int.MaxValue);
                     claimSets = new List<ClaimSet>(1);
                     while (reader.IsStartElement())
                     {
@@ -170,7 +170,10 @@ namespace CoreWCF.Security.Tokens
             writer.WriteValue(SupportedPersistanceVersion);
             writer.WriteEndElement();
             if (id != null)
+            {
                 writer.WriteElementString(dictionary.Id, dictionary.EmptyString, id);
+            }
+
             XmlHelper.WriteElementStringAsUniqueId(writer, dictionary.ContextId, dictionary.EmptyString, contextId);
 
             writer.WriteStartElement(dictionary.Key, dictionary.EmptyString);
@@ -189,13 +192,15 @@ namespace CoreWCF.Security.Tokens
 
             AuthorizationContext authContext = null;
             if (authorizationPolicies != null)
+            {
                 authContext = AuthorizationContext.CreateDefaultAuthorizationContext(authorizationPolicies);
+            }
 
             if (authContext != null && authContext.ClaimSets.Count != 0)
             {
-                DataContractSerializer identitySerializer = DataContractSerializerDefaults.CreateSerializer(typeof(IIdentity), this.knownTypes, int.MaxValue);
-                DataContractSerializer claimSetSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(ClaimSet), this.knownTypes, int.MaxValue);
-                DataContractSerializer claimSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(Claim), this.knownTypes, int.MaxValue);
+                DataContractSerializer identitySerializer = DataContractSerializerDefaults.CreateSerializer(typeof(IIdentity), knownTypes, int.MaxValue);
+                DataContractSerializer claimSetSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(ClaimSet), knownTypes, int.MaxValue);
+                DataContractSerializer claimSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(Claim), knownTypes, int.MaxValue);
                 SctClaimSerializer.SerializeIdentities(authContext, dictionary, writer, identitySerializer);
 
                 writer.WriteStartElement(dictionary.ClaimSets, dictionary.EmptyString);
@@ -210,7 +215,7 @@ namespace CoreWCF.Security.Tokens
             writer.Flush();
 
             byte[] serializedContext = stream.ToArray();
-            return this.securityStateEncoder.EncodeSecurityState(serializedContext);
+            return securityStateEncoder.EncodeSecurityState(serializedContext);
         }
 
         public SecurityContextSecurityToken CreateSecurityContextFromCookie(byte[] encodedCookie, UniqueId contextId, UniqueId generation, string id, XmlDictionaryReaderQuotas quotas)
@@ -219,7 +224,7 @@ namespace CoreWCF.Security.Tokens
 
             try
             {
-                cookie = this.securityStateEncoder.DecodeSecurityState(encodedCookie);
+                cookie = securityStateEncoder.DecodeSecurityState(encodedCookie);
             }
             catch (Exception e)
             {
@@ -254,10 +259,10 @@ namespace CoreWCF.Security.Tokens
 
         internal class SctUnconditionalPolicy : IAuthorizationPolicy
         {
-            private SecurityUniqueId id = SecurityUniqueId.Create();
-            private IList<IIdentity> identities;
-            private IList<ClaimSet> claimSets;
-            private DateTime expirationTime;
+            private readonly SecurityUniqueId id = SecurityUniqueId.Create();
+            private readonly IList<IIdentity> identities;
+            private readonly IList<ClaimSet> claimSets;
+            private readonly DateTime expirationTime;
 
             public SctUnconditionalPolicy(IList<IIdentity> identities, IList<ClaimSet> claimSets, DateTime expirationTime)
             {
@@ -268,7 +273,7 @@ namespace CoreWCF.Security.Tokens
 
             public string Id
             {
-                get { return this.id.Value; }
+                get { return id.Value; }
             }
 
             public ClaimSet Issuer
@@ -278,17 +283,16 @@ namespace CoreWCF.Security.Tokens
 
             public bool Evaluate(EvaluationContext evaluationContext, ref object state)
             {
-                for (int i = 0; i < this.claimSets.Count; ++i)
+                for (int i = 0; i < claimSets.Count; ++i)
                 {
-                    evaluationContext.AddClaimSet(this, this.claimSets[i]);
+                    evaluationContext.AddClaimSet(this, claimSets[i]);
                 }
 
-                if (this.identities != null)
+                if (identities != null)
                 {
-                    object obj;
-                    if (!evaluationContext.Properties.TryGetValue(SecurityUtils.Identities, out obj))
+                    if (!evaluationContext.Properties.TryGetValue(SecurityUtils.Identities, out object obj))
                     {
-                        evaluationContext.Properties.Add(SecurityUtils.Identities, this.identities);
+                        evaluationContext.Properties.Add(SecurityUtils.Identities, identities);
                     }
                     else
                     {
@@ -296,11 +300,11 @@ namespace CoreWCF.Security.Tokens
                         List<IIdentity> dstIdentities = obj as List<IIdentity>;
                         if (dstIdentities != null)
                         {
-                            dstIdentities.AddRange(this.identities);
+                            dstIdentities.AddRange(identities);
                         }
                     }
                 }
-                evaluationContext.RecordExpirationTime(this.expirationTime);
+                evaluationContext.RecordExpirationTime(expirationTime);
                 return true;
             }
         }

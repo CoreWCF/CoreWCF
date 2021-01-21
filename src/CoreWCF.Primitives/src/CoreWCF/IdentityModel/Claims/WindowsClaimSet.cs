@@ -12,12 +12,12 @@ namespace CoreWCF.IdentityModel.Claims
     internal class WindowsClaimSet : ClaimSet, IIdentityInfo, IDisposable
     {
         internal const bool DefaultIncludeWindowsGroups = true;
-        private WindowsIdentity _windowsIdentity;
-        private DateTime _expirationTime;
-        private bool _includeWindowsGroups;
+        private readonly WindowsIdentity _windowsIdentity;
+        private readonly DateTime _expirationTime;
+        private readonly bool _includeWindowsGroups;
         private IList<Claim> _claims;
         private bool _disposed = false;
-        private string _authenticationType;
+        private readonly string _authenticationType;
 
         public WindowsClaimSet(WindowsIdentity windowsIdentity)
             : this(windowsIdentity, DefaultIncludeWindowsGroups)
@@ -52,7 +52,9 @@ namespace CoreWCF.IdentityModel.Claims
         internal WindowsClaimSet(WindowsIdentity windowsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone)
         {
             if (windowsIdentity == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
+            }
 
             _windowsIdentity = clone ? CoreWCF.Security.SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
             _includeWindowsGroups = includeWindowsGroups;
@@ -131,12 +133,13 @@ namespace CoreWCF.IdentityModel.Claims
         private IList<Claim> InitializeClaimsCore()
         {
             if (_windowsIdentity.AccessToken == null)
+            {
                 return new List<Claim>();
+            }
 
             List<Claim> claims = new List<Claim>(3);
             claims.Add(new Claim(ClaimTypes.Sid, _windowsIdentity.User, Rights.Identity));
-            Claim claim;
-            if (TryCreateWindowsSidClaim(_windowsIdentity, out claim))
+            if (TryCreateWindowsSidClaim(_windowsIdentity, out Claim claim))
             {
                 claims.Add(claim);
             }
@@ -151,7 +154,9 @@ namespace CoreWCF.IdentityModel.Claims
         private void EnsureClaims()
         {
             if (_claims != null)
+            {
                 return;
+            }
 
             _claims = InitializeClaimsCore();
         }
@@ -192,8 +197,7 @@ namespace CoreWCF.IdentityModel.Claims
 
                 if (right == null || Rights.PossessProperty == right)
                 {
-                    Claim sid;
-                    if (TryCreateWindowsSidClaim(_windowsIdentity, out sid))
+                    if (TryCreateWindowsSidClaim(_windowsIdentity, out Claim sid))
                     {
                         if (claimType == sid.ClaimType)
                         {

@@ -12,18 +12,18 @@ namespace CoreWCF.Security.Tokens
 {
     public class WrappedKeySecurityToken : SecurityToken
     {
-        private string id;
-        private DateTime effectiveTime;
+        private readonly string id;
+        private readonly DateTime effectiveTime;
         private EncryptedKey encryptedKey;
-        private ReadOnlyCollection<SecurityKey> securityKey;
-        private byte[] wrappedKey;
-        private string wrappingAlgorithm;
-        private SecurityToken wrappingToken;
-        private SecurityKey wrappingSecurityKey;
-        private SecurityKeyIdentifier wrappingTokenReference;
-        private bool serializeCarriedKeyName;
+        private readonly ReadOnlyCollection<SecurityKey> securityKey;
+        private readonly byte[] wrappedKey;
+        private readonly string wrappingAlgorithm;
+        private readonly SecurityToken wrappingToken;
+        private readonly SecurityKey wrappingSecurityKey;
+        private readonly SecurityKeyIdentifier wrappingTokenReference;
+        private readonly bool serializeCarriedKeyName;
         private byte[] wrappedKeyHash;
-        private XmlDictionaryString wrappingAlgorithmDictionaryString;
+        private readonly XmlDictionaryString wrappingAlgorithmDictionaryString;
 
         internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference)
             : this(id, keyToWrap, wrappingAlgorithm, wrappingAlgorithmDictionaryString, wrappingToken, wrappingTokenReference, null, null)
@@ -48,59 +48,67 @@ namespace CoreWCF.Security.Tokens
                 this.wrappedKey = wrappedKey;
             }
             this.wrappingSecurityKey = wrappingSecurityKey;
-            this.serializeCarriedKeyName = true;
+            serializeCarriedKeyName = true;
         }
 
         private WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString)
         {
             if (id == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
+            }
+
             if (wrappingAlgorithm == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappingAlgorithm));
+            }
+
             if (keyToWrap == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyToWrap));
+            }
 
             this.id = id;
-            this.effectiveTime = DateTime.UtcNow;
-            this.securityKey = SecurityUtils.CreateSymmetricSecurityKeys(keyToWrap);
+            effectiveTime = DateTime.UtcNow;
+            securityKey = SecurityUtils.CreateSymmetricSecurityKeys(keyToWrap);
             this.wrappingAlgorithm = wrappingAlgorithm;
             this.wrappingAlgorithmDictionaryString = wrappingAlgorithmDictionaryString;
         }
 
-        public override string Id => this.id;
+        public override string Id => id;
 
-        public override DateTime ValidFrom => this.effectiveTime;
+        public override DateTime ValidFrom => effectiveTime;
 
         public override DateTime ValidTo => DateTime.MaxValue;
 
         internal EncryptedKey EncryptedKey
         {
-            get { return this.encryptedKey; }
-            set { this.encryptedKey = value; }
+            get { return encryptedKey; }
+            set { encryptedKey = value; }
         }
 
-        internal ReferenceList ReferenceList => this.encryptedKey == null ? null : this.encryptedKey.ReferenceList;
+        internal ReferenceList ReferenceList => encryptedKey == null ? null : encryptedKey.ReferenceList;
 
-        public string WrappingAlgorithm => this.wrappingAlgorithm;
+        public string WrappingAlgorithm => wrappingAlgorithm;
 
-        internal SecurityKey WrappingSecurityKey => this.wrappingSecurityKey;
+        internal SecurityKey WrappingSecurityKey => wrappingSecurityKey;
 
-        public SecurityToken WrappingToken => this.wrappingToken;
+        public SecurityToken WrappingToken => wrappingToken;
 
-        public SecurityKeyIdentifier WrappingTokenReference => this.wrappingTokenReference;
+        public SecurityKeyIdentifier WrappingTokenReference => wrappingTokenReference;
 
         internal string CarriedKeyName => null;
 
-        public override ReadOnlyCollection<SecurityKey> SecurityKeys => this.securityKey;
+        public override ReadOnlyCollection<SecurityKey> SecurityKeys => securityKey;
 
         internal byte[] GetHash()
         {
-            if (this.wrappedKeyHash == null)
+            if (wrappedKeyHash == null)
             {
                 EnsureEncryptedKeySetUp();
                 using (HashAlgorithm hash = CryptoHelper.NewSha1HashAlgorithm())
                 {
-                    this.wrappedKeyHash = hash.ComputeHash(this.encryptedKey.GetWrappedKey());
+                    wrappedKeyHash = hash.ComputeHash(encryptedKey.GetWrappedKey());
                 }
             }
             return wrappedKeyHash;
@@ -108,38 +116,40 @@ namespace CoreWCF.Security.Tokens
 
         public byte[] GetWrappedKey()
         {
-            return SecurityUtils.CloneBuffer(this.wrappedKey);
+            return SecurityUtils.CloneBuffer(wrappedKey);
         }
 
         internal void EnsureEncryptedKeySetUp()
         {
-            if (this.encryptedKey == null)
+            if (encryptedKey == null)
             {
                 EncryptedKey ek = new EncryptedKey();
-                ek.Id = this.Id;
-                if (this.serializeCarriedKeyName)
+                ek.Id = Id;
+                if (serializeCarriedKeyName)
                 {
-                    ek.CarriedKeyName = this.CarriedKeyName;
+                    ek.CarriedKeyName = CarriedKeyName;
                 }
                 else
                 {
                     ek.CarriedKeyName = null;
                 }
-                ek.EncryptionMethod = this.WrappingAlgorithm;
-                ek.EncryptionMethodDictionaryString = this.wrappingAlgorithmDictionaryString;
-                ek.SetUpKeyWrap(this.wrappedKey);
-                if (this.WrappingTokenReference != null)
+                ek.EncryptionMethod = WrappingAlgorithm;
+                ek.EncryptionMethodDictionaryString = wrappingAlgorithmDictionaryString;
+                ek.SetUpKeyWrap(wrappedKey);
+                if (WrappingTokenReference != null)
                 {
-                    ek.KeyIdentifier = this.WrappingTokenReference;
+                    ek.KeyIdentifier = WrappingTokenReference;
                 }
-                this.encryptedKey = ek;
+                encryptedKey = ek;
             }
         }
 
         public override bool CanCreateKeyIdentifierClause<T>()
         {
             if (typeof(T) == typeof(EncryptedKeyHashIdentifierClause))
+            {
                 return true;
+            }
 
             return base.CanCreateKeyIdentifierClause<T>();
         }
@@ -147,7 +157,9 @@ namespace CoreWCF.Security.Tokens
         public override T CreateKeyIdentifierClause<T>()
         {
             if (typeof(T) == typeof(EncryptedKeyHashIdentifierClause))
+            {
                 return new EncryptedKeyHashIdentifierClause(GetHash()) as T;
+            }
 
             return base.CreateKeyIdentifierClause<T>();
         }
@@ -156,7 +168,9 @@ namespace CoreWCF.Security.Tokens
         {
             EncryptedKeyHashIdentifierClause encKeyIdentifierClause = keyIdentifierClause as EncryptedKeyHashIdentifierClause;
             if (encKeyIdentifierClause != null)
+            {
                 return encKeyIdentifierClause.Matches(GetHash());
+            }
 
             return base.MatchesKeyIdentifierClause(keyIdentifierClause);
         }

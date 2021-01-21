@@ -13,7 +13,7 @@ namespace CoreWCF.Channels
     {
         private bool _configured = false;
         private DateTime _configuredTime = DateTime.MinValue;
-        private object _lock = new object();
+        private readonly object _lock = new object();
 
         public void Configure(IApplicationBuilder app)
         {

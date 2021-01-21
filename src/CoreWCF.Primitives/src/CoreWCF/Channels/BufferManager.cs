@@ -43,7 +43,7 @@ namespace CoreWCF.Channels
 
         private class WrappingBufferManager : BufferManager
         {
-            private InternalBufferManager innerBufferManager;
+            private readonly InternalBufferManager innerBufferManager;
 
             public WrappingBufferManager(InternalBufferManager innerBufferManager)
             {
@@ -84,7 +84,7 @@ namespace CoreWCF.Channels
 
         private class WrappingInternalBufferManager : InternalBufferManager
         {
-            private BufferManager innerBufferManager;
+            private readonly BufferManager innerBufferManager;
 
             public WrappingInternalBufferManager(BufferManager innerBufferManager)
             {

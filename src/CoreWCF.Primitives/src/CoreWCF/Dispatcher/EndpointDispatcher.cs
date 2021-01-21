@@ -13,19 +13,19 @@ namespace CoreWCF.Dispatcher
         private bool addressFilterSetExplicit;
         private ChannelDispatcher channelDispatcher;
         private MessageFilter contractFilter;
-        private string contractName;
-        private string contractNamespace;
+        private readonly string contractName;
+        private readonly string contractNamespace;
         private ServiceChannel datagramChannel;
-        private DispatchRuntime dispatchRuntime;
+        private readonly DispatchRuntime dispatchRuntime;
         private MessageFilter endpointFilter;
         private int filterPriority;
-        private Uri listenUri;
-        private EndpointAddress originalAddress;
+        private readonly Uri listenUri;
+        private readonly EndpointAddress originalAddress;
 
         //string perfCounterId;
         //string perfCounterBaseId;
         private string id; // for ServiceMetadataBehavior, to help get EndpointIdentity of ServiceEndpoint from EndpointDispatcher
-        private bool isSystemEndpoint;
+        private readonly bool isSystemEndpoint;
 
         internal EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, string id, bool isSystemEndpoint)
             : this(address, contractName, contractNamespace)

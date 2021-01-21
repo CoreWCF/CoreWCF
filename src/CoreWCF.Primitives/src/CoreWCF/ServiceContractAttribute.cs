@@ -57,7 +57,10 @@ namespace CoreWCF
             set
             {
                 if (!string.IsNullOrEmpty(value))
+                {
                     NamingHelper.CheckUriProperty(value, "Namespace");
+                }
+
                 _ns = value;
             }
         }

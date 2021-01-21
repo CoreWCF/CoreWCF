@@ -19,7 +19,7 @@ namespace CoreWCF.Runtime
 #endif
         private readonly SemaphoreSlim _semaphore;
         private readonly SafeSemaphoreRelease _semaphoreRelease;
-        private static AsyncLocal<object> s_heldLocks = new AsyncLocal<object>(LockTakenValueChanged);
+        private static readonly AsyncLocal<object> s_heldLocks = new AsyncLocal<object>(LockTakenValueChanged);
 
         public AsyncLock()
         {

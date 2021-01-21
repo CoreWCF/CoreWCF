@@ -11,13 +11,13 @@ namespace CoreWCF.Security
 
         internal TrustVersion(XmlDictionaryString ns, XmlDictionaryString prefix)
         {
-            this.Namespace = ns;
+            Namespace = ns;
             this.prefix = prefix;
         }
 
         public XmlDictionaryString Namespace { get; }
 
-        public XmlDictionaryString Prefix => this.prefix;
+        public XmlDictionaryString Prefix => prefix;
 
         public static TrustVersion Default => WSTrustFeb2005;
 

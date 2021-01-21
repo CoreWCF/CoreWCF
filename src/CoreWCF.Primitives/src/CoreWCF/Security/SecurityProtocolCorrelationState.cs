@@ -7,7 +7,7 @@ namespace CoreWCF.Security
 {
     internal class SecurityProtocolCorrelationState
     {
-        private SecurityToken token;
+        private readonly SecurityToken token;
         private SignatureConfirmations signatureConfirmations;
         // ServiceModelActivity activity;
 
@@ -19,13 +19,13 @@ namespace CoreWCF.Security
 
         public SecurityToken Token
         {
-            get { return this.token; }
+            get { return token; }
         }
 
         internal SignatureConfirmations SignatureConfirmations
         {
-            get { return this.signatureConfirmations; }
-            set { this.signatureConfirmations = value; }
+            get { return signatureConfirmations; }
+            set { signatureConfirmations = value; }
         }
 
         //internal ServiceModelActivity Activity

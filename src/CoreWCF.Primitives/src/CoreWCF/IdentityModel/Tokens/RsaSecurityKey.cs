@@ -15,14 +15,16 @@ namespace CoreWCF.IdentityModel.Tokens
         public RsaSecurityKey(RSA rsa)
         {
             if (rsa == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
+            }
 
             this.rsa = rsa;
         }
 
         public override int KeySize
         {
-            get { return this.rsa.KeySize; }
+            get { return rsa.KeySize; }
         }
 
         public override byte[] DecryptKey(string algorithm, byte[] keyData)
@@ -35,7 +37,9 @@ namespace CoreWCF.IdentityModel.Tokens
                     return EncryptedXml.DecryptKey(keyData, rsa, true);
                 default:
                     if (IsSupportedAlgorithm(algorithm))
+                    {
                         return EncryptedXml.DecryptKey(keyData, rsa, false);
+                    }
 
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("c",
                  algorithm, "DecryptKey")));
@@ -52,7 +56,9 @@ namespace CoreWCF.IdentityModel.Tokens
                     return EncryptedXml.EncryptKey(keyData, rsa, true);
                 default:
                     if (IsSupportedAlgorithm(algorithm))
+                    {
                         return EncryptedXml.EncryptKey(keyData, rsa, false);
+                    }
 
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
                         algorithm, nameof(EncryptKey))));
@@ -66,7 +72,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.NoPrivateKeyAvailable));
             }
 
-            return this.rsa;
+            return rsa;
         }
 
         public override HashAlgorithm GetHashAlgorithmForSignature(string algorithm)
@@ -82,11 +88,15 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 SignatureDescription description = algorithmObject as SignatureDescription;
                 if (description != null)
+                {
                     return description.CreateDigest();
+                }
 
                 HashAlgorithm hashAlgorithm = algorithmObject as HashAlgorithm;
                 if (hashAlgorithm != null)
+                {
                     return hashAlgorithm;
+                }
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedCryptoAlgorithm,
                         algorithm)));
@@ -116,14 +126,16 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 SignatureDescription description = algorithmObject as SignatureDescription;
                 if (description != null)
-                    return description.CreateDeformatter(this.rsa);
+                {
+                    return description.CreateDeformatter(rsa);
+                }
 
                 try
                 {
                     AsymmetricSignatureDeformatter asymmetricSignatureDeformatter = algorithmObject as AsymmetricSignatureDeformatter;
                     if (asymmetricSignatureDeformatter != null)
                     {
-                        asymmetricSignatureDeformatter.SetKey(this.rsa);
+                        asymmetricSignatureDeformatter.SetKey(rsa);
                         return asymmetricSignatureDeformatter;
                     }
                 }
@@ -159,7 +171,9 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 SignatureDescription description = algorithmObject as SignatureDescription;
                 if (description != null)
+                {
                     return description.CreateFormatter(rsa);
+                }
 
                 try
                 {
@@ -185,7 +199,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 case SecurityAlgorithms.RsaSha1Signature:
                 case SecurityAlgorithms.RsaSha256Signature:
                     // Ensure that we have an RSA algorithm object.
-                    return new RSAPKCS1SignatureFormatter(this.rsa);
+                    return new RSAPKCS1SignatureFormatter(rsa);
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
                         algorithm, "GetSignatureFormatter")));
@@ -194,28 +208,28 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public override bool HasPrivateKey()
         {
-            if (this.privateKeyStatus == PrivateKeyStatus.AvailabilityNotDetermined)
+            if (privateKeyStatus == PrivateKeyStatus.AvailabilityNotDetermined)
             {
-                RSACryptoServiceProvider rsaCryptoServiceProvider = this.rsa as RSACryptoServiceProvider;
+                RSACryptoServiceProvider rsaCryptoServiceProvider = rsa as RSACryptoServiceProvider;
                 if (rsaCryptoServiceProvider != null)
                 {
-                    this.privateKeyStatus = rsaCryptoServiceProvider.PublicOnly ? PrivateKeyStatus.DoesNotHavePrivateKey : PrivateKeyStatus.HasPrivateKey;
+                    privateKeyStatus = rsaCryptoServiceProvider.PublicOnly ? PrivateKeyStatus.DoesNotHavePrivateKey : PrivateKeyStatus.HasPrivateKey;
                 }
                 else
                 {
                     try
                     {
                         byte[] hash = new byte[20];
-                        this.rsa.DecryptValue(hash); // imitate signing
-                        this.privateKeyStatus = PrivateKeyStatus.HasPrivateKey;
+                        rsa.DecryptValue(hash); // imitate signing
+                        privateKeyStatus = PrivateKeyStatus.HasPrivateKey;
                     }
                     catch (CryptographicException)
                     {
-                        this.privateKeyStatus = PrivateKeyStatus.DoesNotHavePrivateKey;
+                        privateKeyStatus = PrivateKeyStatus.DoesNotHavePrivateKey;
                     }
                 }
             }
-            return this.privateKeyStatus == PrivateKeyStatus.HasPrivateKey;
+            return privateKeyStatus == PrivateKeyStatus.HasPrivateKey;
         }
 
         public override bool IsSupportedAlgorithm(string algorithm)
@@ -238,10 +252,16 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 SignatureDescription signatureDescription = algorithmObject as SignatureDescription;
                 if (signatureDescription != null)
+                {
                     return true;
+                }
+
                 AsymmetricAlgorithm asymmetricAlgorithm = algorithmObject as AsymmetricAlgorithm;
                 if (asymmetricAlgorithm != null)
+                {
                     return true;
+                }
+
                 return false;
             }
             switch (algorithm)

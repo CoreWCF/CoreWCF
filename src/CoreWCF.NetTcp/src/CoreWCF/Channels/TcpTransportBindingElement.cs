@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
     {
         private int _listenBacklog;
         private ExtendedProtectionPolicy _extendedProtectionPolicy;
-        private TcpConnectionPoolSettings _connectionPoolSettings;
+        private readonly TcpConnectionPoolSettings _connectionPoolSettings;
 
         public TcpTransportBindingElement() : base()
         {

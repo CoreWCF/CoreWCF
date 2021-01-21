@@ -265,8 +265,7 @@ namespace CoreWCF.Runtime
         private static readonly Action<object> s_deregisterTimer = (object state) =>
         {
             var targetTime = (long)state;
-            CancellationTokenSourceIOThreadTimer ignored;
-            s_timerCache.TryRemove(targetTime, out ignored);
+            s_timerCache.TryRemove(targetTime, out CancellationTokenSourceIOThreadTimer ignored);
         };
 
         public static CancellationToken FromTimeout(int millisecondsTimeout)
@@ -298,8 +297,7 @@ namespace CoreWCF.Runtime
             }
             targetTime = ((targetTime + (coalescingSpanMs - 1)) / coalescingSpanMs) * coalescingSpanMs;
 
-            CancellationTokenSourceIOThreadTimer ctsTimer;
-            if (!s_timerCache.TryGetValue(targetTime, out ctsTimer))
+            if (!s_timerCache.TryGetValue(targetTime, out CancellationTokenSourceIOThreadTimer ctsTimer))
             {
                 ctsTimer = new CancellationTokenSourceIOThreadTimer();
 

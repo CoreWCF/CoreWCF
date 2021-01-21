@@ -19,7 +19,7 @@ namespace BasicHttp
 {
     public class ServiceWithMessageBodyAndHeaderTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ServiceWithMessageBodyAndHeaderTest(ITestOutputHelper output)
         {

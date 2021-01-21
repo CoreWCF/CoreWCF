@@ -47,8 +47,8 @@ namespace CoreWCF.Security
             internal const string EncodingTypeValueHexBinary = SecurityJan2004Strings.EncodingTypeValueHexBinary;
             internal static readonly XmlDictionaryString ValueTypeAttribute = XD.SecurityJan2004Dictionary.ValueType;
 
-            private WSSecurityTokenSerializer _tokenSerializer;
-            private string[] _valueTypeUris = null;
+            private readonly WSSecurityTokenSerializer _tokenSerializer;
+            private readonly string[] _valueTypeUris = null;
 
             protected BinaryTokenEntry(WSSecurityTokenSerializer tokenSerializer, string valueTypeUri)
             {
@@ -153,10 +153,8 @@ namespace CoreWCF.Security
 
             public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
             {
-                string id;
-                byte[] rawData;
 
-                WriteBinaryCore(token, out id, out rawData);
+                WriteBinaryCore(token, out string id, out byte[] rawData);
 
                 if (rawData == null)
                 {
@@ -235,7 +233,7 @@ namespace CoreWCF.Security
 
         private class UserNamePasswordTokenEntry : TokenEntry
         {
-            private WSSecurityTokenSerializer _tokenSerializer;
+            private readonly WSSecurityTokenSerializer _tokenSerializer;
 
             public UserNamePasswordTokenEntry(WSSecurityTokenSerializer tokenSerializer)
             {
@@ -267,11 +265,8 @@ namespace CoreWCF.Security
 
             public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
             {
-                string id;
-                string userName;
-                string password;
 
-                ParseToken(reader, out id, out userName, out password);
+                ParseToken(reader, out string id, out string userName, out string password);
 
                 if (id == null)
                 {
@@ -384,8 +379,7 @@ namespace CoreWCF.Security
 
             public override SecurityToken ReadBinaryCore(string id, string valueTypeUri, byte[] rawData)
             {
-                X509Certificate2 certificate;
-                if (!SecurityUtils.TryCreateX509CertificateFromRawData(rawData, out certificate))
+                if (!SecurityUtils.TryCreateX509CertificateFromRawData(rawData, out X509Certificate2 certificate))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.InvalidX509RawData));
                 }

@@ -17,16 +17,19 @@ namespace CoreWCF.Dispatcher
     {
         private const string soap11Encoding = "http://schemas.xmlsoap.org/soap/encoding/";
         private const string soap12Encoding = "http://www.w3.org/2003/05/soap-encoding";
-        private bool isEncoded;
-        private MessageInfo requestMessageInfo;
-        private MessageInfo replyMessageInfo;
+        private readonly bool isEncoded;
+        private readonly MessageInfo requestMessageInfo;
+        private readonly MessageInfo replyMessageInfo;
 
         public XmlSerializerOperationFormatter(OperationDescription description, XmlSerializerFormatAttribute xmlSerializerFormatAttribute,
             MessageInfo requestMessageInfo, MessageInfo replyMessageInfo) :
             base(description, xmlSerializerFormatAttribute.Style == OperationFormatStyle.Rpc, xmlSerializerFormatAttribute.IsEncoded)
         {
             if (xmlSerializerFormatAttribute.IsEncoded && xmlSerializerFormatAttribute.Style != OperationFormatStyle.Rpc)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxDocEncodedNotSupported, description.Name)));
+            }
+
             isEncoded = xmlSerializerFormatAttribute.IsEncoded;
 
             this.requestMessageInfo = requestMessageInfo;
@@ -69,11 +72,16 @@ namespace CoreWCF.Dispatcher
                             if (headerDescription.TypedHeader)
                             {
                                 if (messageHeaderOfTHelper == null)
+                                {
                                     messageHeaderOfTHelper = new MessageHeaderOfTHelper(parameters.Length);
+                                }
+
                                 headerValues[headerIndex++] = messageHeaderOfTHelper.GetContentAndSaveHeaderAttributes(parameters[headerDescription.Index], headerDescription);
                             }
                             else
+                            {
                                 headerValues[headerIndex++] = parameterValue;
+                            }
                         }
                     }
 
@@ -94,12 +102,16 @@ namespace CoreWCF.Dispatcher
                     {
                         MessageHeaderDescription matchingHeaderDescription = headerDescriptionTable.Get(element.LocalName, element.NamespaceURI);
                         if (matchingHeaderDescription == null)
+                        {
                             message.Headers.Add(new XmlElementMessageHeader(this, message.Version, element.LocalName, element.NamespaceURI,
                                                                             false/*mustUnderstand*/, null/*actor*/, false/*relay*/, element));
+                        }
                         else
                         {
                             if (matchingHeaderDescription.TypedHeader)
+                            {
                                 messageHeaderOfTHelper.GetHeaderAttributes(matchingHeaderDescription, out mustUnderstand, out relay, out actor);
+                            }
                             else
                             {
                                 mustUnderstand = matchingHeaderDescription.MustUnderstand;
@@ -118,8 +130,10 @@ namespace CoreWCF.Dispatcher
 
                         XmlElement element = (XmlElement)GetContentOfMessageHeaderOfT(unknownHeaderDescription, unknownHeader, out mustUnderstand, out relay, out actor);
                         if (element != null)
+                        {
                             message.Headers.Add(new XmlElementMessageHeader(this, message.Version, element.LocalName, element.NamespaceURI,
                                                                   mustUnderstand, actor, relay, element));
+                        }
                     }
                 }
             }
@@ -162,7 +176,10 @@ namespace CoreWCF.Dispatcher
                     if (unknownHeaderDescription != null)
                     {
                         for (int headerIndex = 0; headerIndex < headers.Count; headerIndex++)
+                        {
                             AddUnknownHeader(unknownHeaderDescription, unknownHeaders, xmlDoc, null/*bufferWriter*/, headers[headerIndex], headers.GetReaderAtHeader(headerIndex));
+                        }
+
                         parameters[unknownHeaderDescription.Index] = unknownHeaders.ToArray(unknownHeaderDescription.TypedHeader ? typeof(MessageHeader<XmlElement>) : typeof(XmlElement));
                     }
                     return;
@@ -182,19 +199,30 @@ namespace CoreWCF.Dispatcher
                     if (matchingHeaderDescription != null)
                     {
                         if (header.MustUnderstand)
+                        {
                             headers.UnderstoodHeaders.Add(header);
+                        }
+
                         if (matchingHeaderDescription.TypedHeader)
                         {
                             if (messageHeaderOfTHelper == null)
+                            {
                                 messageHeaderOfTHelper = new MessageHeaderOfTHelper(parameters.Length);
+                            }
+
                             messageHeaderOfTHelper.SetHeaderAttributes(matchingHeaderDescription, header.MustUnderstand, header.Relay, header.Actor);
                         }
 
                     }
                     if (matchingHeaderDescription == null && unknownHeaderDescription != null)
+                    {
                         AddUnknownHeader(unknownHeaderDescription, unknownHeaders, xmlDoc, bufferWriter, header, headerReader);
+                    }
                     else
+                    {
                         bufferWriter.WriteNode(headerReader, false);
+                    }
+
                     headerReader.Dispose();
                 }
                 bufferWriter.WriteEndElement();
@@ -209,8 +237,7 @@ namespace CoreWCF.Dispatcher
                 */
 
                 memoryStream.Position = 0;
-                ArraySegment<byte> memoryBuffer;
-                memoryStream.TryGetBuffer(out memoryBuffer);
+                memoryStream.TryGetBuffer(out ArraySegment<byte> memoryBuffer);
                 XmlDictionaryReader bufferReader = XmlDictionaryReader.CreateTextReader(memoryBuffer.Array, 0, (int)memoryStream.Length, XmlDictionaryReaderQuotas.Max);
 
                 bufferReader.ReadStartElement();
@@ -227,14 +254,19 @@ namespace CoreWCF.Dispatcher
                         {
                             object parameterValue = headerValues[headerIndex++];
                             if (headerDescription.TypedHeader && parameterValue != null)
+                            {
                                 parameterValue = messageHeaderOfTHelper.CreateMessageHeader(headerDescription, parameterValue);
+                            }
+
                             parameters[headerDescription.Index] = parameterValue;
                         }
                     }
                     bufferReader.Dispose();
                 }
                 if (unknownHeaderDescription != null)
+                {
                     parameters[unknownHeaderDescription.Index] = unknownHeaders.ToArray(unknownHeaderDescription.TypedHeader ? typeof(MessageHeader<XmlElement>) : typeof(XmlElement));
+                }
             }
             catch (InvalidOperationException e)
             {
@@ -249,9 +281,14 @@ namespace CoreWCF.Dispatcher
         {
             object unknownHeader = xmlDoc.ReadNode(headerReader);
             if (bufferWriter != null)
+            {
                 ((XmlElement)unknownHeader).WriteTo(bufferWriter);
+            }
+
             if (unknownHeader != null && unknownHeaderDescription.TypedHeader)
+            {
                 unknownHeader = TypedHeaderManager.Create(unknownHeaderDescription.Type, unknownHeader, header.MustUnderstand, header.Relay, header.Actor);
+            }
 
             unknownHeaders.Add(unknownHeader);
         }
@@ -269,15 +306,28 @@ namespace CoreWCF.Dispatcher
 
         protected override void SerializeBody(XmlDictionaryWriter writer, MessageVersion version, string action, MessageDescription messageDescription, object returnValue, object[] parameters, bool isRequest)
         {
-            if (writer == null) throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(writer)));
-            if (parameters == null) throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)));
+            if (writer == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(writer)));
+            }
+
+            if (parameters == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)));
+            }
+
             try
             {
                 MessageInfo messageInfo;
                 if (isRequest)
+                {
                     messageInfo = requestMessageInfo;
+                }
                 else
+                {
                     messageInfo = replyMessageInfo;
+                }
+
                 if (messageInfo.RpcEncodedTypedMessageBodyParts == null)
                 {
                     SerializeBody(writer, version, messageInfo.BodySerializer, messageDescription.Body.ReturnValue, messageDescription.Body.Parts, returnValue, parameters);
@@ -287,19 +337,26 @@ namespace CoreWCF.Dispatcher
                 object[] bodyPartValues = new object[messageInfo.RpcEncodedTypedMessageBodyParts.Count];
                 object bodyObject = parameters[messageDescription.Body.Parts[0].Index];
                 if (bodyObject == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxBodyCannotBeNull, messageDescription.MessageName)));
+                }
+
                 int i = 0;
                 foreach (MessagePartDescription bodyPart in messageInfo.RpcEncodedTypedMessageBodyParts)
                 {
                     MemberInfo member = bodyPart.MemberInfo;
                     FieldInfo field = member as FieldInfo;
                     if (field != null)
+                    {
                         bodyPartValues[i++] = field.GetValue(bodyObject);
+                    }
                     else
                     {
                         PropertyInfo property = member as PropertyInfo;
                         if (property != null)
+                        {
                             bodyPartValues[i++] = property.GetValue(bodyObject, null);
+                        }
                     }
                 }
                 SerializeBody(writer, version, messageInfo.BodySerializer, null/*returnPart*/, messageInfo.RpcEncodedTypedMessageBodyParts, null/*returnValue*/, bodyPartValues);
@@ -323,10 +380,14 @@ namespace CoreWCF.Dispatcher
             int paramIndex = 0;
 
             if (hasReturnValue)
+            {
                 bodyParameters[paramIndex++] = returnValue;
+            }
 
             for (int i = 0; i < bodyParts.Count; i++)
+            {
                 bodyParameters[paramIndex++] = parameters[bodyParts[i].Index];
+            }
 
             // TODO: Switch to using encoding once available
             //string encoding = isEncoded ? GetEncoding(version.Envelope) : null;
@@ -338,11 +399,18 @@ namespace CoreWCF.Dispatcher
         {
             MessageInfo messageInfo;
             if (isRequest)
+            {
                 messageInfo = requestMessageInfo;
+            }
             else
+            {
                 messageInfo = replyMessageInfo;
+            }
+
             if (messageInfo.RpcEncodedTypedMessageBodyParts == null)
+            {
                 return DeserializeBody(reader, version, messageInfo.BodySerializer, messageDescription.Body.ReturnValue, messageDescription.Body.Parts, parameters, isRequest);
+            }
 
             object[] bodyPartValues = new object[messageInfo.RpcEncodedTypedMessageBodyParts.Count];
             DeserializeBody(reader, version, messageInfo.BodySerializer, null/*returnPart*/, messageInfo.RpcEncodedTypedMessageBodyParts, bodyPartValues, isRequest);
@@ -353,12 +421,16 @@ namespace CoreWCF.Dispatcher
                 MemberInfo member = bodyPart.MemberInfo;
                 FieldInfo field = member as FieldInfo;
                 if (field != null)
+                {
                     field.SetValue(bodyObject, bodyPartValues[i++]);
+                }
                 else
                 {
                     PropertyInfo property = member as PropertyInfo;
                     if (property != null)
+                    {
                         property.SetValue(bodyObject, bodyPartValues[i++], null);
+                    }
                 }
             }
             parameters[messageDescription.Body.Parts[0].Index] = bodyObject;
@@ -369,25 +441,40 @@ namespace CoreWCF.Dispatcher
         {
             try
             {
-                if (reader == null) throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(reader)));
-                if (parameters == null) throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)));
+                if (reader == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(reader)));
+                }
+
+                if (parameters == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)));
+                }
+
                 object returnValue = null;
                 if (serializer == null)
                 {
                     return null;
                 }
                 if (reader.NodeType == XmlNodeType.EndElement)
+                {
                     return null;
+                }
 
                 // TODO: Use overload which takes encoding once available
                 object[] bodyParameters = (object[])serializer.Deserialize(reader); //, isEncoded ? GetEncoding(version.Envelope) : null);
 
                 int paramIndex = 0;
                 if (IsValidReturnValue(returnPart))
+                {
                     returnValue = bodyParameters[paramIndex++];
+                }
 
                 for (int i = 0; i < bodyParts.Count; i++)
+                {
                     parameters[bodyParts[i].Index] = bodyParameters[paramIndex++];
+                }
+
                 return returnValue;
             }
             catch (InvalidOperationException e)
@@ -429,7 +516,7 @@ namespace CoreWCF.Dispatcher
 
         private class MessageHeaderOfTHelper
         {
-            private object[] attributes;
+            private readonly object[] attributes;
             internal MessageHeaderOfTHelper(int parameterCount)
             {
                 attributes = new object[parameterCount];
@@ -437,7 +524,10 @@ namespace CoreWCF.Dispatcher
             internal object GetContentAndSaveHeaderAttributes(object parameterValue, MessageHeaderDescription headerDescription)
             {
                 if (parameterValue == null)
+                {
                     return null;
+                }
+
                 bool mustUnderstand;
                 bool relay;
                 string actor;
@@ -482,7 +572,10 @@ namespace CoreWCF.Dispatcher
 
                 }
                 else
+                {
                     matchingMessageHeaderOfTAttribute = (MessageHeader<object>)attributes[headerDescription.Index];
+                }
+
                 mustUnderstand = matchingMessageHeaderOfTAttribute.MustUnderstand;
                 relay = matchingMessageHeaderOfTAttribute.Relay;
                 actor = matchingMessageHeaderOfTAttribute.Actor;
@@ -493,12 +586,14 @@ namespace CoreWCF.Dispatcher
                 if (headerDescription.Multiple)
                 {
                     if (attributes[headerDescription.Index] == null)
+                    {
                         attributes[headerDescription.Index] = new List<MessageHeader<object>>();
-                    ((List<MessageHeader<object>>)attributes[headerDescription.Index]).Add(new MessageHeader<object>(null, mustUnderstand, actor, relay));
+                    } ((List<MessageHeader<object>>)attributes[headerDescription.Index]).Add(new MessageHeader<object>(null, mustUnderstand, actor, relay));
                 }
                 else
+                {
                     attributes[headerDescription.Index] = new MessageHeader<object>(null, mustUnderstand, actor, relay);
-
+                }
             }
             internal object CreateMessageHeader(MessageHeaderDescription headerDescription, object headerValue)
             {

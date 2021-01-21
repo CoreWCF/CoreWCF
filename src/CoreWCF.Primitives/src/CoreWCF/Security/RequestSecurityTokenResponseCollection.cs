@@ -11,8 +11,8 @@ namespace CoreWCF.Security
 {
     internal sealed class RequestSecurityTokenResponseCollection : BodyWriter
     {
-        private IEnumerable<RequestSecurityTokenResponse> rstrCollection;
-        private SecurityStandardsManager standardsManager;
+        private readonly IEnumerable<RequestSecurityTokenResponse> rstrCollection;
+        private readonly SecurityStandardsManager standardsManager;
 
         public RequestSecurityTokenResponseCollection(IEnumerable<RequestSecurityTokenResponse> rstrCollection)
             : this(rstrCollection, SecurityStandardsManager.DefaultInstance)
@@ -22,12 +22,18 @@ namespace CoreWCF.Security
             : base(true)
         {
             if (rstrCollection == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rstrCollection));
+            }
+
             int index = 0;
             foreach (RequestSecurityTokenResponse rstr in rstrCollection)
             {
                 if (rstr == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(String.Format(CultureInfo.InvariantCulture, "rstrCollection[{0}]", index));
+                }
+
                 ++index;
             }
             this.rstrCollection = rstrCollection;
@@ -42,13 +48,13 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.rstrCollection;
+                return rstrCollection;
             }
         }
 
         public void WriteTo(XmlWriter writer)
         {
-            this.standardsManager.TrustDriver.WriteRequestSecurityTokenResponseCollection(this, writer);
+            standardsManager.TrustDriver.WriteRequestSecurityTokenResponseCollection(this, writer);
         }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)

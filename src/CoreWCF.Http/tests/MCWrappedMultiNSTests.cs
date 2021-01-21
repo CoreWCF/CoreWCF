@@ -15,7 +15,7 @@ namespace CoreWCF.Http.Tests
 {
     public class MCWrappedMultiNSTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public MCWrappedMultiNSTests(ITestOutputHelper output)
         {

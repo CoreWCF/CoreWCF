@@ -499,7 +499,7 @@ namespace CoreWCF
         {
             get
             {
-                DiagnosticUtility.DebugAssert(index >= 0 && index < this.Count, "check index");
+                DiagnosticUtility.DebugAssert(index >= 0 && index < Count, "check index");
                 switch (index)
                 {
                     case 0: return String0;

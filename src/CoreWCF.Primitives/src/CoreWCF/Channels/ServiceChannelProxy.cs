@@ -52,9 +52,8 @@ namespace CoreWCF.Channels
 
         private MethodData GetMethodData(MethodCall methodCall)
         {
-            MethodData methodData;
             MethodBase method = methodCall.MethodBase;
-            if (_methodDataCache.TryGetMethodData(method, out methodData))
+            if (_methodDataCache.TryGetMethodData(method, out MethodData methodData))
             {
                 return methodData;
             }
@@ -169,9 +168,18 @@ namespace CoreWCF.Channels
                 {
                     var tcsProxy = obj as TaskCompletionSourceProxy;
                     Contract.Assert(tcsProxy != null);
-                    if (antecedent.IsFaulted) tcsProxy.TrySetException(antecedent.Exception.InnerException);
-                    else if (antecedent.IsCanceled) tcsProxy.TrySetCanceled();
-                    else tcsProxy.TrySetResult(antecedent.Result);
+                    if (antecedent.IsFaulted)
+                    {
+                        tcsProxy.TrySetException(antecedent.Exception.InnerException);
+                    }
+                    else if (antecedent.IsCanceled)
+                    {
+                        tcsProxy.TrySetCanceled();
+                    }
+                    else
+                    {
+                        tcsProxy.TrySetResult(antecedent.Result);
+                    }
                 };
 
                 try
@@ -195,9 +203,18 @@ namespace CoreWCF.Channels
                 {
                     var tcsObj = obj as TaskCompletionSource<object>;
                     Contract.Assert(tcsObj != null);
-                    if (antecedent.IsFaulted) tcsObj.TrySetException(antecedent.Exception.InnerException);
-                    else if (antecedent.IsCanceled) tcsObj.TrySetCanceled();
-                    else tcsObj.TrySetResult(antecedent.Result);
+                    if (antecedent.IsFaulted)
+                    {
+                        tcsObj.TrySetException(antecedent.Exception.InnerException);
+                    }
+                    else if (antecedent.IsCanceled)
+                    {
+                        tcsObj.TrySetCanceled();
+                    }
+                    else
+                    {
+                        tcsObj.TrySetResult(antecedent.Result);
+                    }
                 };
 
 
@@ -217,8 +234,8 @@ namespace CoreWCF.Channels
 
         private class TaskCompletionSourceProxy
         {
-            private TaskCompletionSourceInfo _tcsInfo;
-            private object _tcsInstance;
+            private readonly TaskCompletionSourceInfo _tcsInfo;
+            private readonly object _tcsInstance;
 
             public TaskCompletionSourceProxy(Type resultType)
             {
@@ -246,7 +263,7 @@ namespace CoreWCF.Channels
 
         private class TaskCompletionSourceInfo
         {
-            private static ConcurrentDictionary<Type, TaskCompletionSourceInfo> s_cache = new ConcurrentDictionary<Type, TaskCompletionSourceInfo>();
+            private static readonly ConcurrentDictionary<Type, TaskCompletionSourceInfo> s_cache = new ConcurrentDictionary<Type, TaskCompletionSourceInfo>();
 
             public TaskCompletionSourceInfo(Type resultType)
             {
@@ -314,18 +331,14 @@ namespace CoreWCF.Channels
 
         private object InvokeBeginService(MethodCall methodCall, ProxyOperationRuntime operation)
         {
-            AsyncCallback callback;
-            object asyncState;
-            object[] ins = operation.MapAsyncBeginInputs(methodCall, out callback, out asyncState);
+            object[] ins = operation.MapAsyncBeginInputs(methodCall, out AsyncCallback callback, out object asyncState);
             object ret = _serviceChannel.BeginCall(operation.Action, operation.IsOneWay, operation, ins, callback, asyncState);
             return ret;
         }
 
         private object InvokeEndService(MethodCall methodCall, ProxyOperationRuntime operation)
         {
-            IAsyncResult result;
-            object[] outs;
-            operation.MapAsyncEndInputs(methodCall, out result, out outs);
+            operation.MapAsyncEndInputs(methodCall, out IAsyncResult result, out object[] outs);
             object ret = _serviceChannel.EndCall(operation.Action, outs, result);
             operation.MapAsyncOutputs(methodCall, outs, ref ret);
             return ret;
@@ -333,8 +346,7 @@ namespace CoreWCF.Channels
 
         private object InvokeService(MethodCall methodCall, ProxyOperationRuntime operation)
         {
-            object[] outs;
-            object[] ins = operation.MapSyncInputs(methodCall, out outs);
+            object[] ins = operation.MapSyncInputs(methodCall, out object[] outs);
             object ret;
             using (TaskHelpers.RunTaskContinuationsOnOurThreads())
             {
@@ -449,9 +461,9 @@ namespace CoreWCF.Channels
 
         internal struct MethodData
         {
-            private MethodBase _methodBase;
-            private MethodType _methodType;
-            private ProxyOperationRuntime _operation;
+            private readonly MethodBase _methodBase;
+            private readonly MethodType _methodType;
+            private readonly ProxyOperationRuntime _operation;
 
             public MethodData(MethodBase methodBase, MethodType methodType)
                 : this(methodBase, methodType, null)

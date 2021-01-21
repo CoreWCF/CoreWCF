@@ -36,7 +36,10 @@ namespace CoreWCF.Security.Tokens
             get
             {
                 if (_name == null)
+                {
                     _name = ((NTAccount)SecurityIdentifier.Translate(typeof(NTAccount))).Value;
+                }
+
                 return _name;
             }
         }
@@ -44,11 +47,15 @@ namespace CoreWCF.Security.Tokens
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
+            {
                 return true;
+            }
 
             var sidIdentity = obj as WindowsSidIdentity;
             if (sidIdentity == null)
+            {
                 return false;
+            }
 
             return SecurityIdentifier == sidIdentity.SecurityIdentifier;
         }

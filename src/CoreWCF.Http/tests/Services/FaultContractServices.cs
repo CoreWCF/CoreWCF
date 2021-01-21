@@ -333,7 +333,9 @@ namespace Services
 
             byte[] errorByteArray = new byte[128];
             for (int i = 0; i < errorByteArray.Length; i++)
+            {
                 errorByteArray[i] = (byte)i;
+            }
 
             ServiceContract.SomeFault[] errorSomeFaultArray = new ServiceContract.SomeFault[]
                     {

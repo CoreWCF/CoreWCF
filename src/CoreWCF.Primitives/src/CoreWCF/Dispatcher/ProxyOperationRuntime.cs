@@ -24,24 +24,29 @@ namespace CoreWCF.Dispatcher
         private readonly IParameterInspector[] _parameterInspectors;
         private readonly IClientFaultFormatter _faultFormatter;
         private readonly ImmutableClientRuntime _parent;
-        private bool _serializeRequest;
-        private bool _deserializeReply;
-        private string _action;
-        private string _replyAction;
-        private MethodInfo _beginMethod;
-        private MethodInfo _syncMethod;
-        private MethodInfo _taskMethod;
-        private ParameterInfo[] _inParams;
-        private ParameterInfo[] _outParams;
-        private ParameterInfo[] _endOutParams;
-        private ParameterInfo _returnParam;
+        private readonly bool _serializeRequest;
+        private readonly bool _deserializeReply;
+        private readonly string _action;
+        private readonly string _replyAction;
+        private readonly MethodInfo _beginMethod;
+        private readonly MethodInfo _syncMethod;
+        private readonly MethodInfo _taskMethod;
+        private readonly ParameterInfo[] _inParams;
+        private readonly ParameterInfo[] _outParams;
+        private readonly ParameterInfo[] _endOutParams;
+        private readonly ParameterInfo _returnParam;
 
         internal ProxyOperationRuntime(ClientOperation operation, ImmutableClientRuntime parent)
         {
             if (operation == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operation));
+            }
+
             if (parent == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
+            }
 
             _parent = parent;
             _formatter = operation.Formatter;
@@ -266,7 +271,9 @@ namespace CoreWCF.Dispatcher
 
                 rpc.Request = (Message)rpc.InputParameters[0];
                 if (!IsValidAction(rpc.Request, Action))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInvalidRequestAction, Name, rpc.Request.Headers.Action ?? "{NULL}", Action)));
+                }
             }
         }
 
@@ -322,7 +329,10 @@ namespace CoreWCF.Dispatcher
                 outs = new object[_outParams.Length];
             }
             if (_inParams.Length == 0)
+            {
                 return Array.Empty<object>();
+            }
+
             return methodCall.Args;
         }
 

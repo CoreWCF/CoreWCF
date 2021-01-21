@@ -9,7 +9,7 @@ namespace CoreWCF.Security
 {
     internal sealed class SoapHexBinary
     {
-        private StringBuilder _sb = new StringBuilder(100);
+        private readonly StringBuilder _sb = new StringBuilder(100);
 
         public SoapHexBinary()
         {

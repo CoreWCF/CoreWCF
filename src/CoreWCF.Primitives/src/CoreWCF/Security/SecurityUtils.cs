@@ -83,7 +83,9 @@ namespace CoreWCF.Security
                 }
             }
             else
+            {
                 return 1;
+            }
         }
     }
 
@@ -118,7 +120,9 @@ namespace CoreWCF.Security
             get
             {
                 if (dictionaryManager == null)
+                {
                     dictionaryManager = new DictionaryManager((ServiceModelDictionary)BinaryMessageEncoderFactory.XmlDictionary);
+                }
 
                 return dictionaryManager;
             }
@@ -181,7 +185,10 @@ namespace CoreWCF.Security
             get
             {
                 if (administratorsSid == null)
+                {
                     administratorsSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+                }
+
                 return administratorsSid;
             }
         }
@@ -282,9 +289,13 @@ namespace CoreWCF.Security
         private static WindowsIdentity UnsafeCreateWindowsIdentityFromToken(IntPtr token, string authType)
         {
             if (authType != null)
+            {
                 return new WindowsIdentity(token, authType);
+            }
             else
+            {
                 return new WindowsIdentity(token);
+            }
         }
 
         internal static Claim GetPrimaryIdentityClaim(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
@@ -537,8 +548,7 @@ namespace CoreWCF.Security
                 EncryptedKeyIdentifierClause keyClause = (EncryptedKeyIdentifierClause)keyIdentifierClause;
                 for (int i = 0; i < keyClause.EncryptingKeyIdentifier.Count; i++)
                 {
-                    SecurityKey unwrappingSecurityKey = null;
-                    if (resolver.TryResolveSecurityKey(keyClause.EncryptingKeyIdentifier[i], out unwrappingSecurityKey))
+                    if (resolver.TryResolveSecurityKey(keyClause.EncryptingKeyIdentifier[i], out SecurityKey unwrappingSecurityKey))
                     {
                         byte[] wrappedKey = keyClause.GetEncryptedKey();
                         string wrappingAlgorithm = keyClause.EncryptionMethod;
@@ -693,8 +703,7 @@ namespace CoreWCF.Security
                 return null;
             }
 
-            ChannelBindingMessageProperty channelBindingMessageProperty = null;
-            ChannelBindingMessageProperty.TryGet(message, out channelBindingMessageProperty);
+            ChannelBindingMessageProperty.TryGet(message, out ChannelBindingMessageProperty channelBindingMessageProperty);
             ChannelBinding channelBinding = null;
 
             if (channelBindingMessageProperty != null)
@@ -762,7 +771,9 @@ namespace CoreWCF.Security
         {
             X509Certificate2 certificate = GetCertificateFromStoreCore(storeName, storeLocation, findType, findValue, target, true);
             if (certificate == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.CannotFindCert, storeName, storeLocation, findType, findValue)));
+            }
 
             return certificate;
         }
@@ -936,7 +947,9 @@ namespace CoreWCF.Security
         private static Task OpenCommunicationObjectAsync(ICommunicationObject obj, CancellationToken token)
         {
             if (obj != null)
+            {
                 return obj.OpenAsync(token);
+            }
 
             return Task.CompletedTask;
         }
@@ -977,8 +990,7 @@ namespace CoreWCF.Security
         {
             using (X509CertificateClaimSet claimSet = new X509CertificateClaimSet(certificate))
             {
-                EndpointIdentity identity;
-                if (!TryCreateIdentity(claimSet, ClaimTypes.Dns, out identity))
+                if (!TryCreateIdentity(claimSet, ClaimTypes.Dns, out EndpointIdentity identity))
                 {
                     TryCreateIdentity(claimSet, ClaimTypes.Rsa, out identity);
                 }
@@ -1050,19 +1062,33 @@ namespace CoreWCF.Security
         {
             MessageSecurityTokenVersion securityVersion = (MessageSecurityTokenVersion)requirement.GetProperty<MessageSecurityTokenVersion>(ServiceModelSecurityTokenRequirement.MessageSecurityVersionProperty);
             if (securityVersion == MessageSecurityTokenVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10)
+            {
                 return CreateSecurityStandardsManager(MessageSecurityVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10, tokenManager);
+            }
             else if (securityVersion == MessageSecurityTokenVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005)
+            {
                 return CreateSecurityStandardsManager(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11, tokenManager);
+            }
             else if (securityVersion == MessageSecurityTokenVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10)
+            {
                 return CreateSecurityStandardsManager(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10, tokenManager);
+            }
             else if (securityVersion == MessageSecurityTokenVersion.WSSecurity10WSTrust13WSSecureConversation13BasicSecurityProfile10)
+            {
                 return CreateSecurityStandardsManager(MessageSecurityVersion.WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10, tokenManager);
+            }
             else if (securityVersion == MessageSecurityTokenVersion.WSSecurity11WSTrust13WSSecureConversation13)
+            {
                 return CreateSecurityStandardsManager(MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12, tokenManager);
+            }
             else if (securityVersion == MessageSecurityTokenVersion.WSSecurity11WSTrust13WSSecureConversation13BasicSecurityProfile10)
+            {
                 return CreateSecurityStandardsManager(MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10, tokenManager);
+            }
             else
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
+            }
         }
 
         internal static SecurityStandardsManager CreateSecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer securityTokenSerializer)
@@ -1148,7 +1174,10 @@ namespace CoreWCF.Security
         {
             string certificateId = certificate.SubjectName.Name;
             if (string.IsNullOrEmpty(certificateId))
+            {
                 certificateId = certificate.Thumbprint;
+            }
+
             return certificateId;
         }
 
@@ -1164,19 +1193,31 @@ namespace CoreWCF.Security
 
             // defensive programming
             if ((dstOffset < 0) || (srcOffset < 0))
+            {
                 return false;
+            }
 
             if (src == null || srcOffset >= src.Length)
+            {
                 return false;
+            }
+
             if (dst == null || dstOffset >= dst.Length)
+            {
                 return false;
+            }
+
             if ((src.Length - srcOffset) != (dst.Length - dstOffset))
+            {
                 return false;
+            }
 
             for (int i = srcOffset, j = dstOffset; i < src.Length; i++, j++)
             {
                 if (src[i] != dst[j])
+                {
                     return false;
+                }
             }
             return true;
         }
@@ -1291,17 +1332,17 @@ namespace CoreWCF.Security
         private class SimpleAuthorizationContext : AuthorizationContext
         {
             private SecurityUniqueId id;
-            private UnconditionalPolicy policy;
-            private IDictionary<string, object> properties;
+            private readonly UnconditionalPolicy policy;
+            private readonly IDictionary<string, object> properties;
 
             public SimpleAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
             {
-                this.policy = (UnconditionalPolicy)authorizationPolicies[0];
+                policy = (UnconditionalPolicy)authorizationPolicies[0];
                 Dictionary<string, object> properties = new Dictionary<string, object>();
-                if (this.policy.PrimaryIdentity != null && this.policy.PrimaryIdentity != SecurityUtils.AnonymousIdentity)
+                if (policy.PrimaryIdentity != null && policy.PrimaryIdentity != SecurityUtils.AnonymousIdentity)
                 {
                     List<IIdentity> identities = new List<IIdentity>();
-                    identities.Add(this.policy.PrimaryIdentity);
+                    identities.Add(policy.PrimaryIdentity);
                     properties.Add(SecurityUtils.Identities, identities);
                 }
                 // Might need to port ReadOnlyDictionary?
@@ -1312,14 +1353,17 @@ namespace CoreWCF.Security
             {
                 get
                 {
-                    if (this.id == null)
-                        this.id = SecurityUniqueId.Create();
-                    return this.id.Value;
+                    if (id == null)
+                    {
+                        id = SecurityUniqueId.Create();
+                    }
+
+                    return id.Value;
                 }
             }
-            public override ReadOnlyCollection<ClaimSet> ClaimSets { get { return this.policy.Issuances; } }
-            public override DateTime ExpirationTime { get { return this.policy.ExpirationTime; } }
-            public override IDictionary<string, object> Properties { get { return this.properties; } }
+            public override ReadOnlyCollection<ClaimSet> ClaimSets { get { return policy.Issuances; } }
+            public override DateTime ExpirationTime { get { return policy.ExpirationTime; } }
+            public override IDictionary<string, object> Properties { get { return properties; } }
         }
         internal static AuthorizationContext CreateDefaultAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
         {
@@ -1349,7 +1393,9 @@ namespace CoreWCF.Security
                     for (int i = 0; i < authorizationPolicies.Count; i++)
                     {
                         if (policyState[i] == done)
+                        {
                             continue;
+                        }
 
                         IAuthorizationPolicy policy = authorizationPolicies[i];
                         if (policy == null)
@@ -1389,7 +1435,10 @@ namespace CoreWCF.Security
                 .RequestSecurityContextIssuance.Value) == 0 ||
                 String.CompareOrdinal(actionString, CoreWCF.XD.SecureConversationApr2004Dictionary
                 .RequestSecurityContextIssuance.Value) == 0)
+            {
                 return true;
+            }
+
             return false;
         }
 

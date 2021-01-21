@@ -16,7 +16,7 @@ namespace CoreWCF.Security.Tokens
         internal const bool defaultRequireCancellation = true;
         internal const bool defaultCanRenewSession = true;
         private SecurityBindingElement bootstrapSecurityBindingElement;
-        private ChannelProtectionRequirements bootstrapProtectionRequirements;
+        private readonly ChannelProtectionRequirements bootstrapProtectionRequirements;
         private bool requireCancellation;
         private bool canRenewSession = defaultCanRenewSession;
         private BindingContext issuerBindingContext;
@@ -24,14 +24,22 @@ namespace CoreWCF.Security.Tokens
         protected SecureConversationSecurityTokenParameters(SecureConversationSecurityTokenParameters other)
             : base(other)
         {
-            this.requireCancellation = other.requireCancellation;
-            this.canRenewSession = other.canRenewSession;
+            requireCancellation = other.requireCancellation;
+            canRenewSession = other.canRenewSession;
             if (other.bootstrapSecurityBindingElement != null)
-                this.bootstrapSecurityBindingElement = (SecurityBindingElement)other.bootstrapSecurityBindingElement.Clone();
+            {
+                bootstrapSecurityBindingElement = (SecurityBindingElement)other.bootstrapSecurityBindingElement.Clone();
+            }
+
             if (other.bootstrapProtectionRequirements != null)
-                this.bootstrapProtectionRequirements = new ChannelProtectionRequirements(other.bootstrapProtectionRequirements);
+            {
+                bootstrapProtectionRequirements = new ChannelProtectionRequirements(other.bootstrapProtectionRequirements);
+            }
+
             if (other.issuerBindingContext != null)
-                this.issuerBindingContext = other.issuerBindingContext.Clone();
+            {
+                issuerBindingContext = other.issuerBindingContext.Clone();
+            }
         }
 
         public SecureConversationSecurityTokenParameters()
@@ -70,7 +78,9 @@ namespace CoreWCF.Security.Tokens
             this.bootstrapSecurityBindingElement = bootstrapSecurityBindingElement;
             this.canRenewSession = canRenewSession;
             if (bootstrapProtectionRequirements != null)
+            {
                 this.bootstrapProtectionRequirements = new ChannelProtectionRequirements(bootstrapProtectionRequirements);
+            }
             else
             {
                 this.bootstrapProtectionRequirements = new ChannelProtectionRequirements();
@@ -88,21 +98,21 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.bootstrapSecurityBindingElement;
+                return bootstrapSecurityBindingElement;
             }
             set
             {
-                this.bootstrapSecurityBindingElement = value;
+                bootstrapSecurityBindingElement = value;
             }
         }
 
-        public ChannelProtectionRequirements BootstrapProtectionRequirements => this.bootstrapProtectionRequirements;
+        public ChannelProtectionRequirements BootstrapProtectionRequirements => bootstrapProtectionRequirements;
 
         internal BindingContext IssuerBindingContext
         {
             get
             {
-                return this.issuerBindingContext;
+                return issuerBindingContext;
             }
             set
             {
@@ -110,21 +120,21 @@ namespace CoreWCF.Security.Tokens
                 {
                     value = value.Clone();
                 }
-                this.issuerBindingContext = value;
+                issuerBindingContext = value;
             }
         }
 
-        private ISecurityCapabilities BootstrapSecurityCapabilities => this.bootstrapSecurityBindingElement.GetIndividualProperty<ISecurityCapabilities>();
+        private ISecurityCapabilities BootstrapSecurityCapabilities => bootstrapSecurityBindingElement.GetIndividualProperty<ISecurityCapabilities>();
 
         public bool RequireCancellation
         {
             get
             {
-                return this.requireCancellation;
+                return requireCancellation;
             }
             set
             {
-                this.requireCancellation = value;
+                requireCancellation = value;
             }
         }
 
@@ -132,19 +142,19 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.canRenewSession;
+                return canRenewSession;
             }
             set
             {
-                this.canRenewSession = value;
+                canRenewSession = value;
             }
         }
 
-        internal protected override bool SupportsClientAuthentication => this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsClientAuthentication;
+        internal protected override bool SupportsClientAuthentication => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsClientAuthentication;
 
-        internal protected override bool SupportsServerAuthentication => this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsServerAuthentication;
+        internal protected override bool SupportsServerAuthentication => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsServerAuthentication;
 
-        internal protected override bool SupportsClientWindowsIdentity => this.BootstrapSecurityCapabilities == null ? false : this.BootstrapSecurityCapabilities.SupportsClientWindowsIdentity;
+        internal protected override bool SupportsClientWindowsIdentity => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsClientWindowsIdentity;
 
         protected override SecurityTokenParameters CloneCore()
         {
@@ -154,9 +164,13 @@ namespace CoreWCF.Security.Tokens
         internal protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token is GenericXmlSecurityToken)
+            {
                 return base.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+            }
             else
-                return this.CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+            {
+                return CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+            }
         }
 
         protected internal override void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
@@ -164,10 +178,10 @@ namespace CoreWCF.Security.Tokens
             requirement.TokenType = ServiceModelSecurityTokenTypes.SecureConversation;
             requirement.KeyType = SecurityKeyType.SymmetricKey;
             requirement.RequireCryptographicToken = true;
-            requirement.Properties[ServiceModelSecurityTokenRequirement.SupportSecurityContextCancellationProperty] = this.RequireCancellation;
-            requirement.Properties[ServiceModelSecurityTokenRequirement.SecureConversationSecurityBindingElementProperty] = this.BootstrapSecurityBindingElement;
-            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty] = this.IssuerBindingContext.Clone();
-            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = this.Clone();
+            requirement.Properties[ServiceModelSecurityTokenRequirement.SupportSecurityContextCancellationProperty] = RequireCancellation;
+            requirement.Properties[ServiceModelSecurityTokenRequirement.SecureConversationSecurityBindingElementProperty] = BootstrapSecurityBindingElement;
+            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty] = IssuerBindingContext.Clone();
+            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = Clone();
         }
 
         public override string ToString()
@@ -175,15 +189,15 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", this.requireCancellation.ToString()));
-            if (this.bootstrapSecurityBindingElement == null)
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", requireCancellation.ToString()));
+            if (bootstrapSecurityBindingElement == null)
             {
                 sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "BootstrapSecurityBindingElement: null"));
             }
             else
             {
                 sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "BootstrapSecurityBindingElement:"));
-                sb.AppendLine("  " + this.BootstrapSecurityBindingElement.ToString().Trim().Replace("\n", "\n  "));
+                sb.AppendLine("  " + BootstrapSecurityBindingElement.ToString().Trim().Replace("\n", "\n  "));
             }
 
             return sb.ToString().Trim();

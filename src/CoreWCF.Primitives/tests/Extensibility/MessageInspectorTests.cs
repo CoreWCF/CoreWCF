@@ -80,7 +80,7 @@ namespace Extensibility
 
     public class MessageReplacingDispatchMessageInspector : IDispatchMessageInspector
     {
-        private string _replacementEchoString;
+        private readonly string _replacementEchoString;
 
         public MessageReplacingDispatchMessageInspector(string replacementEchoString)
         {

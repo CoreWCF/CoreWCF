@@ -31,7 +31,7 @@ namespace CoreWCF
         private static bool disableOperationContextAsyncFlow;
         private static bool deferSslStreamServerCertificateCleanup;
         private static volatile bool settingsInitalized = false;
-        private static object appSettingsLock = new object();
+        private static readonly object appSettingsLock = new object();
 
         internal static bool UseLegacyCertificateUsagePolicy
         {

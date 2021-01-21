@@ -11,13 +11,13 @@ namespace CoreWCF
     public class MessageHeaderException : ProtocolException
     {
         //[NonSerialized]
-        private string headerName;
+        private readonly string headerName;
 
         //[NonSerialized]
-        private string headerNamespace;
+        private readonly string headerNamespace;
 
         //[NonSerialized]
-        private bool isDuplicate;
+        private readonly bool isDuplicate;
 
         public MessageHeaderException(string message)
             : this(message, null, null)

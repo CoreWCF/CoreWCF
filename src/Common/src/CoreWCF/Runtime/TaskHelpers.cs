@@ -367,9 +367,18 @@ namespace CoreWCF.Runtime
                 var tcsObj = (TaskCompletionSource<TResult>)stateArr[0];
                 var tokenRegistration = (CancellationTokenRegistration)stateArr[1];
                 tokenRegistration.Dispose();
-                if (antecedent.IsFaulted) tcsObj.TrySetException(antecedent.Exception.InnerException);
-                else if (antecedent.IsCanceled) tcsObj.TrySetCanceled();
-                else tcsObj.TrySetResult(antecedent.Result);
+                if (antecedent.IsFaulted)
+                {
+                    tcsObj.TrySetException(antecedent.Exception.InnerException);
+                }
+                else if (antecedent.IsCanceled)
+                {
+                    tcsObj.TrySetCanceled();
+                }
+                else
+                {
+                    tcsObj.TrySetResult(antecedent.Result);
+                }
             }, state, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
 
             return tcs.Task;

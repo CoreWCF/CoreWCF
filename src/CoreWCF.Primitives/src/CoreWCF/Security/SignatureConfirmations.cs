@@ -37,7 +37,7 @@ namespace CoreWCF.Security
             }
             confirmations[Count] = new SignatureConfirmation(value);
             ++Count;
-            this.IsMarkedForEncryption |= encrypted;
+            IsMarkedForEncryption |= encrypted;
         }
 
         public void GetConfirmation(int index, out byte[] value, out bool encrypted)
@@ -48,7 +48,7 @@ namespace CoreWCF.Security
             }
 
             value = confirmations[index].value;
-            encrypted = this.IsMarkedForEncryption;
+            encrypted = IsMarkedForEncryption;
         }
 
         public bool IsMarkedForEncryption { get; private set; }

@@ -12,12 +12,14 @@ namespace CoreWCF
         private string action;
         private string name;
         private string ns;
-        private Type type;
+        private readonly Type type;
 
         public FaultContractAttribute(Type detailType)
         {
             if (detailType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(detailType));
+            }
 
             type = detailType;
         }
@@ -33,7 +35,10 @@ namespace CoreWCF
             set
             {
                 if (value == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
                 action = value;
             }
         }
@@ -44,10 +49,16 @@ namespace CoreWCF
             set
             {
                 if (value == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
                 if (value == string.Empty)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value),
                         SR.SFxNameCannotBeEmpty));
+                }
+
                 name = value;
             }
         }
@@ -58,7 +69,10 @@ namespace CoreWCF
             set
             {
                 if (!string.IsNullOrEmpty(value))
+                {
                     NamingHelper.CheckUriProperty(value, "Namespace");
+                }
+
                 ns = value;
             }
         }

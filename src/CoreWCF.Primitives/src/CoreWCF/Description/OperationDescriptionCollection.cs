@@ -16,7 +16,9 @@ namespace CoreWCF.Description
             for (int i = 0; i < Count; i++)
             {
                 if (this[i].Name == name)
+                {
                     return this[i];
+                }
             }
             return null;
         }
@@ -27,7 +29,9 @@ namespace CoreWCF.Description
             for (int i = 0; i < Count; i++)
             {
                 if (this[i].Name == name)
+                {
                     results.Add(this[i]);
+                }
             }
             return results;
         }

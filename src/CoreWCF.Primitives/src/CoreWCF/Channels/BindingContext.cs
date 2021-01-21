@@ -65,13 +65,13 @@ namespace CoreWCF.Channels
         public IServiceDispatcher BuildNextServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher)
     where TChannel : class, IChannel
         {
-            return this.RemoveNextElement().BuildServiceDispatcher<TChannel>(this, innerDispatcher);
+            return RemoveNextElement().BuildServiceDispatcher<TChannel>(this, innerDispatcher);
         }
 
         public bool CanBuildNextServiceDispatcher<TChannel>()
     where TChannel : class, IChannel
         {
-            BindingContext clone = this.Clone();
+            BindingContext clone = Clone();
             return clone.RemoveNextElement().CanBuildServiceDispatcher<TChannel>(clone);
         }
 
@@ -98,7 +98,10 @@ namespace CoreWCF.Channels
         {
             BindingElement element = RemainingBindingElements.Remove<BindingElement>();
             if (element != null)
+            {
                 return element;
+            }
+
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
                 SR.NoChannelBuilderAvailable, Binding.Name, Binding.Namespace)));
         }

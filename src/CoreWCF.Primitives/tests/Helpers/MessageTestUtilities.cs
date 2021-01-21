@@ -35,7 +35,11 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 versions = value;
             }
         }
@@ -48,7 +52,11 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 actions = value;
             }
         }
@@ -61,8 +69,16 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
-                if (types != null && value != null) CheckValidTypes(types);
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (types != null && value != null)
+                {
+                    CheckValidTypes(types);
+                }
+
                 bodies = value;
             }
         }
@@ -75,8 +91,16 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
-                if (bodies != null && value != null) CheckValidTypes(value);
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (bodies != null && value != null)
+                {
+                    CheckValidTypes(value);
+                }
+
                 types = value;
             }
         }
@@ -89,8 +113,16 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
-                if (bodies != null) throw new InvalidOperationException();
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (bodies != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 bodySizes = value;
             }
         }
@@ -106,8 +138,16 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
-                if (bodies != null) throw new InvalidOperationException();
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (bodies != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 maxBodyComplexity = value;
             }
         }
@@ -120,7 +160,11 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 headers = value;
             }
         }
@@ -136,7 +180,11 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 maxHeaderComplexity = value;
             }
         }
@@ -150,7 +198,11 @@ namespace Helpers
             }
             set
             {
-                if (mp != null) throw new InvalidOperationException();
+                if (mp != null)
+                {
+                    throw new InvalidOperationException();
+                }
+
                 addComments = value;
             }
         }
@@ -163,9 +215,20 @@ namespace Helpers
         {
             get
             {
-                if (disposed) throw new ObjectDisposedException("Object disposed!");
-                if (atEnd) throw new InvalidOperationException();
-                if (mp == null) throw new InvalidOperationException();
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("Object disposed!");
+                }
+
+                if (atEnd)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (mp == null)
+                {
+                    throw new InvalidOperationException();
+                }
 
                 return mp.CreateMessage();
             }
@@ -183,9 +246,20 @@ namespace Helpers
         {
             get
             {
-                if (disposed) throw new ObjectDisposedException("Object disposed!");
-                if (atEnd) throw new InvalidOperationException();
-                if (mp == null) throw new InvalidOperationException();
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("Object disposed!");
+                }
+
+                if (atEnd)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (mp == null)
+                {
+                    throw new InvalidOperationException();
+                }
 
                 return new MessageParameters(mp);
             }
@@ -229,7 +303,10 @@ namespace Helpers
 
         public bool MoveNext()
         {
-            if (disposed) throw new ObjectDisposedException("Object disposed!");
+            if (disposed)
+            {
+                throw new ObjectDisposedException("Object disposed!");
+            }
 
             if (mp == null)
             {
@@ -272,11 +349,17 @@ namespace Helpers
 
         private bool TypeNotAllowed(MessageType foo)
         {
-            if (Types == null) return false;
+            if (Types == null)
+            {
+                return false;
+            }
 
             foreach (MessageType x in Types)
             {
-                if (foo == x) return false;
+                if (foo == x)
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -405,11 +488,15 @@ namespace Helpers
                 for (j = 0; j < legalTypesForCustomBodies.Length; j++)
                 {
                     if (types[i] == legalTypesForCustomBodies[j])
+                    {
                         break;
+                    }
                 }
 
                 if (j == legalTypesForCustomBodies.Length)
+                {
                     throw new InvalidOperationException("Not a legal type for custom bodies!");
+                }
             }
         }
 
@@ -427,7 +514,7 @@ namespace Helpers
         private MessageParameters mp = null;
         private bool disposed = false;
         private bool atEnd = false;
-        private MessageType[] legalTypesForCustomBodies = { MessageType.Streamed, MessageType.Custom, MessageType.DefaultBuffered, MessageType.BufferedBuffered };
+        private readonly MessageType[] legalTypesForCustomBodies = { MessageType.Streamed, MessageType.Custom, MessageType.DefaultBuffered, MessageType.BufferedBuffered };
         private int typeIndex = 0;
         private int versionIndex, actionIndex, bodyIndex, bodySizeIndex, headersIndex;
     }
@@ -571,7 +658,7 @@ namespace Helpers
                         model = new CustomStringMessage(this);
                         StringWriter s1 = new StringWriter();
                         model.WriteMessage(new XmlTextWriter(s1));
-                        message = Message.CreateMessage(new XmlTextReader(new StringReader(s1.ToString())), int.MaxValue, this.version);
+                        message = Message.CreateMessage(new XmlTextReader(new StringReader(s1.ToString())), int.MaxValue, version);
                         break;
                     case MessageType.DefaultBuffered:
                         model = new CustomStringMessage(this);
@@ -723,10 +810,10 @@ namespace Helpers
 
     public class CustomGeneratedHeader : MessageHeader
     {
-        private int id;
-        private int complexity;
-        private string name;
-        private string namespaceString = MessageTestUtilities.SampleNamespace;
+        private readonly int id;
+        private readonly int complexity;
+        private readonly string name;
+        private readonly string namespaceString = MessageTestUtilities.SampleNamespace;
 
         // Complexity is an abstract measure that corresponds to general
         // fuzziness of a message:  attributes per element, children per
@@ -779,12 +866,12 @@ namespace Helpers
 
     public class CustomGeneratedMessage : Message
     {
-        private MessageVersion version;
-        private MessageHeaders headers;
-        private MessageProperties properties;
-        private int complexity;
-        private long size;
-        private bool addComments = false;
+        private readonly MessageVersion version;
+        private readonly MessageHeaders headers;
+        private readonly MessageProperties properties;
+        private readonly int complexity;
+        private readonly long size;
+        private readonly bool addComments = false;
 
         public CustomGeneratedMessage(MessageParameters howToCreate)
             :
@@ -800,7 +887,7 @@ namespace Helpers
         {
             this.version = version;
             headers = new MessageHeaders(version);
-            this.Headers.Action = action;
+            Headers.Action = action;
             properties = new MessageProperties();
             complexity = bodyComplexity;
             size = bodyContentSize;
@@ -814,7 +901,10 @@ namespace Helpers
             get
             {
                 if (IsDisposed)
+                {
                     throw new ObjectDisposedException("", "MessageClosed.");
+                }
+
                 return headers;
             }
         }
@@ -824,7 +914,10 @@ namespace Helpers
             get
             {
                 if (IsDisposed)
+                {
                     throw new ObjectDisposedException("", "MessageClosed.");
+                }
+
                 return properties;
             }
         }
@@ -834,7 +927,10 @@ namespace Helpers
             get
             {
                 if (IsDisposed)
+                {
                     throw new ObjectDisposedException("", "MessageClosed.");
+                }
+
                 return version;
             }
         }
@@ -842,20 +938,31 @@ namespace Helpers
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
             if (IsDisposed)
+            {
                 throw new ObjectDisposedException("", "MessageClosed.");
+            }
+
             if (writer == null)
+            {
                 throw new ArgumentNullException("writer");
+            }
 
             for (int i = 0; i < complexity; i++)
             {
                 writer.WriteStartElement(("nestedSubtag" + i));
-                if (addComments) writer.WriteComment("Some after-open-tag comment" + i);
+                if (addComments)
+                {
+                    writer.WriteComment("Some after-open-tag comment" + i);
+                }
             }
 
             for (int i = 0; i < complexity; i++)
             {
                 writer.WriteEndElement();
-                if (addComments) writer.WriteComment("Some after-end-tag comment" + i);
+                if (addComments)
+                {
+                    writer.WriteComment("Some after-end-tag comment" + i);
+                }
             }
 
             long dataSizeLong = size / complexity;
@@ -866,23 +973,29 @@ namespace Helpers
                 writer.WriteElementString(("nonNestedSubtag" + i), MessageTestUtilities.GenerateData(dataSize));
             }
 
-            if (addComments) writer.WriteComment("Some comment");
+            if (addComments)
+            {
+                writer.WriteComment("Some comment");
+            }
         }
 
         protected override void OnWriteStartEnvelope(XmlDictionaryWriter writer)
         {
             base.OnWriteStartEnvelope(writer);
-            if (addComments) writer.WriteComment("Post-header open tag comment");
+            if (addComments)
+            {
+                writer.WriteComment("Post-header open tag comment");
+            }
         }
     }
 
     public class CustomStringMessage : Message
     {
-        private MessageVersion version;
-        private MessageHeaders headers;
-        private MessageProperties properties;
-        private XmlReader bodyReader;
-        private bool addComments = false;
+        private readonly MessageVersion version;
+        private readonly MessageHeaders headers;
+        private readonly MessageProperties properties;
+        private readonly XmlReader bodyReader;
+        private readonly bool addComments = false;
 
         public CustomStringMessage(MessageParameters howToCreate)
             : this(howToCreate.version, howToCreate.action, howToCreate.body)
@@ -894,7 +1007,7 @@ namespace Helpers
         {
             this.version = version;
             headers = new MessageHeaders(version);
-            this.Headers.Action = action;
+            Headers.Action = action;
             properties = new MessageProperties();
             _ = CreateMessage(version, action, body);
             bodyReader = new XmlTextReader(body, XmlNodeType.Element, null);
@@ -905,7 +1018,10 @@ namespace Helpers
             get
             {
                 if (IsDisposed)
+                {
                     throw new ObjectDisposedException("", "MessageClosed.");
+                }
+
                 return headers;
             }
         }
@@ -915,7 +1031,10 @@ namespace Helpers
             get
             {
                 if (IsDisposed)
+                {
                     throw new ObjectDisposedException("", "MessageClosed.");
+                }
+
                 return properties;
             }
         }
@@ -925,7 +1044,10 @@ namespace Helpers
             get
             {
                 if (IsDisposed)
+                {
                     throw new ObjectDisposedException("", "MessageClosed.");
+                }
+
                 return version;
             }
         }
@@ -933,16 +1055,27 @@ namespace Helpers
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
             if (IsDisposed)
+            {
                 throw new ObjectDisposedException("", "MessageClosed.");
-            if (writer == null)
-                throw new ArgumentNullException("writer");
+            }
 
-            if (addComments) writer.WriteComment("some comment");
+            if (writer == null)
+            {
+                throw new ArgumentNullException("writer");
+            }
+
+            if (addComments)
+            {
+                writer.WriteComment("some comment");
+            }
 
             while (!bodyReader.EOF)
             {
                 writer.WriteNode(bodyReader, false);
-                if (addComments) writer.WriteComment("some comment");
+                if (addComments)
+                {
+                    writer.WriteComment("some comment");
+                }
             }
 
             bodyReader.Close();
@@ -961,9 +1094,9 @@ namespace Helpers
 
     public class CustomGeneratedBodyWriter : BodyWriter
     {
-        private int complexity;
-        private long size;
-        private bool addComments = false;
+        private readonly int complexity;
+        private readonly long size;
+        private readonly bool addComments = false;
 
         public CustomGeneratedBodyWriter(MessageParameters howToCreate)
             :
@@ -987,18 +1120,26 @@ namespace Helpers
         public void WriteBody(XmlWriter writer)
         {
             if (writer == null)
+            {
                 throw new ArgumentNullException("writer");
+            }
 
             for (int i = 0; i < complexity; i++)
             {
                 writer.WriteStartElement(("nestedSubtag" + i));
-                if (addComments) writer.WriteComment("Some after-open-tag comment" + i);
+                if (addComments)
+                {
+                    writer.WriteComment("Some after-open-tag comment" + i);
+                }
             }
 
             for (int i = 0; i < complexity; i++)
             {
                 writer.WriteEndElement();
-                if (addComments) writer.WriteComment("Some after-end-tag comment" + i);
+                if (addComments)
+                {
+                    writer.WriteComment("Some after-end-tag comment" + i);
+                }
             }
 
             long dataSizeLong = size / complexity;
@@ -1009,7 +1150,10 @@ namespace Helpers
                 writer.WriteElementString(("nonNestedSubtag" + i), MessageTestUtilities.GenerateData(dataSize));
             }
 
-            if (addComments) writer.WriteComment("Some comment");
+            if (addComments)
+            {
+                writer.WriteComment("Some comment");
+            }
         }
     }
 
@@ -1060,7 +1204,10 @@ namespace Helpers
         {
             // Check for null values and compare run-time types.
             if (obj == null || GetType() != obj.GetType())
+            {
                 return false;
+            }
+
             GeneratedSerializableObject foo = (GeneratedSerializableObject)obj;
 
             return
@@ -1083,8 +1230,15 @@ namespace Helpers
         {
             int r = 0;
 
-            if (a != null) r ^= a.GetHashCode();
-            if (b != null) r ^= b.GetHashCode();
+            if (a != null)
+            {
+                r ^= a.GetHashCode();
+            }
+
+            if (b != null)
+            {
+                r ^= b.GetHashCode();
+            }
 
             return r;
         }

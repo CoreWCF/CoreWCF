@@ -7,8 +7,8 @@ namespace CoreWCF
 {
     public sealed class EnvelopeVersion
     {
-        private string _actor;
-        private string _toStringFormat;
+        private readonly string _actor;
+        private readonly string _toStringFormat;
 
         private EnvelopeVersion(string ultimateReceiverActor, string nextDestinationActorValue,
             string ns, XmlDictionaryString dictionaryNs, string actor, XmlDictionaryString dictionaryActor,

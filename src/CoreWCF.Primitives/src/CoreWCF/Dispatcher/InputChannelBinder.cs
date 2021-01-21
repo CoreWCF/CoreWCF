@@ -113,7 +113,7 @@ namespace CoreWCF.Dispatcher
 
         private class InputRequestContext : RequestContextBase
         {
-            private InputChannelBinder binder;
+            private readonly InputChannelBinder binder;
 
             internal InputRequestContext(Message request, InputChannelBinder binder)
                 : base(request, TimeSpan.Zero, TimeSpan.Zero)

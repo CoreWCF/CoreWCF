@@ -9,8 +9,8 @@ namespace CoreWCF
     //[Serializable]
     internal class ActionMismatchAddressingException : ProtocolException
     {
-        private string httpActionHeader;
-        private string soapActionHeader;
+        private readonly string httpActionHeader;
+        private readonly string soapActionHeader;
 
         public ActionMismatchAddressingException(string message, string soapActionHeader, string httpActionHeader)
             : base(message)

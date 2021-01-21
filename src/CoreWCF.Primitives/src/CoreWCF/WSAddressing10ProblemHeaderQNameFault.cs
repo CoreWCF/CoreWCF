@@ -9,11 +9,11 @@ namespace CoreWCF
 {
     internal class WSAddressing10ProblemHeaderQNameFault : MessageFault
     {
-        private FaultCode code;
-        private FaultReason reason;
-        private string actor;
-        private string node;
-        private string invalidHeaderName;
+        private readonly FaultCode code;
+        private readonly FaultReason reason;
+        private readonly string actor;
+        private readonly string node;
+        private readonly string invalidHeaderName;
 
         public WSAddressing10ProblemHeaderQNameFault(MessageHeaderException e)
         {
@@ -116,7 +116,7 @@ namespace CoreWCF
 
         private class WSAddressing10ProblemHeaderQNameHeader : MessageHeader
         {
-            private string invalidHeaderName;
+            private readonly string invalidHeaderName;
 
             public WSAddressing10ProblemHeaderQNameHeader(string invalidHeaderName)
             {

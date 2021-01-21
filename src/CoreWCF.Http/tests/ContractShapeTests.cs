@@ -14,7 +14,7 @@ namespace CoreWCF.Http.Tests
 {
     public class ContractShapeTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ContractShapeTests(ITestOutputHelper output)
         {

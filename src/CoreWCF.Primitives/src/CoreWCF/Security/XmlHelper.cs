@@ -110,9 +110,7 @@ namespace CoreWCF.Security
 
         internal static XmlQualifiedName GetValueAsQName(XmlReader reader, string value)
         {
-            string prefix;
-            string name;
-            SplitIntoPrefixAndName(value, out prefix, out name);
+            SplitIntoPrefixAndName(value, out string prefix, out string name);
             string ns = reader.LookupNamespace(prefix);
             if (ns == null && prefix.Length > 0)
             {

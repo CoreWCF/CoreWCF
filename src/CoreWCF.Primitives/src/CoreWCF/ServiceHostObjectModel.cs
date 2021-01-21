@@ -21,7 +21,7 @@ namespace CoreWCF
     internal class ServiceHostObjectModel<TService> : ServiceHostBase where TService : class
     {
         private IDisposable _disposableInstance;
-        private TService _singletonInstance;
+        private readonly TService _singletonInstance;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ServiceHostObjectModel<TService>> _logger;
 
@@ -164,7 +164,9 @@ namespace CoreWCF
             protected override Type GetKeyForItem(ContractDescription item)
             {
                 if (item == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+                }
 
                 return item.ContractType;
             }
@@ -187,8 +189,8 @@ namespace CoreWCF
 
         private class ReflectedAndBehaviorContractCollection
         {
-            private ReflectedContractCollection reflectedContracts;
-            private KeyedByTypeCollection<IServiceBehavior> behaviors;
+            private readonly ReflectedContractCollection reflectedContracts;
+            private readonly KeyedByTypeCollection<IServiceBehavior> behaviors;
             public ReflectedAndBehaviorContractCollection(ReflectedContractCollection reflectedContracts, KeyedByTypeCollection<IServiceBehavior> behaviors)
             {
                 this.reflectedContracts = reflectedContracts;
@@ -197,7 +199,7 @@ namespace CoreWCF
 
             internal bool Contains(Type implementedContract)
             {
-                if (this.reflectedContracts.Contains(implementedContract))
+                if (reflectedContracts.Contains(implementedContract))
                 {
                     return true;
                 }
@@ -301,7 +303,9 @@ namespace CoreWCF
 
             // new Uri(Uri, string.Empty) is broken
             if (path.Length == 0)
+            {
                 return baseUri;
+            }
 
             if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
             {

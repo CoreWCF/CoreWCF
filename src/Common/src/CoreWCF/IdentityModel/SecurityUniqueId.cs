@@ -10,9 +10,9 @@ namespace CoreWCF.IdentityModel
     internal class SecurityUniqueId
     {
         private static long nextId = 0;
-        private static string commonPrefix = "uuid-" + Guid.NewGuid().ToString() + "-";
-        private long id;
-        private string prefix;
+        private static readonly string commonPrefix = "uuid-" + Guid.NewGuid().ToString() + "-";
+        private readonly long id;
+        private readonly string prefix;
         private string val;
 
         private SecurityUniqueId(string prefix, long id)
@@ -37,7 +37,9 @@ namespace CoreWCF.IdentityModel
             get
             {
                 if (val == null)
+                {
                     val = prefix + id.ToString(CultureInfo.InvariantCulture);
+                }
 
                 return val;
             }

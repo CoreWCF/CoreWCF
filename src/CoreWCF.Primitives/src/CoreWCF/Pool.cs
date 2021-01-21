@@ -5,7 +5,7 @@ namespace CoreWCF
 {
     internal class Pool<T> where T : class
     {
-        private T[] items;
+        private readonly T[] items;
         private int count;
 
         public Pool(int maxCount)
@@ -48,7 +48,10 @@ namespace CoreWCF
         public void Clear()
         {
             for (int i = 0; i < count; i++)
+            {
                 items[i] = null;
+            }
+
             count = 0;
         }
     }

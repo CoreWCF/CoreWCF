@@ -11,7 +11,7 @@ namespace CoreWCF
     internal class DiagnosticUtility
     {
         private static ExceptionUtility exceptionUtility = (ExceptionUtility)null;
-        private static object lockObject = new object();
+        private static readonly object lockObject = new object();
 
         internal static ExceptionUtility ExceptionUtility
         {
@@ -26,9 +26,11 @@ namespace CoreWCF
             lock (lockObject)
             {
                 if (exceptionUtility == null)
+                {
                     // TODO: Make this generic shared code used by multiple assemblies
                     //exceptionUtility = new ExceptionUtility("System.ServiceModel", "System.ServiceModel 4.0.0.0", (object)DiagnosticUtility.diagnosticTrace, (object)FxTrace.Exception);
                     exceptionUtility = new ExceptionUtility();
+                }
             }
 
             return exceptionUtility;

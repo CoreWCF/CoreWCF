@@ -559,9 +559,9 @@ namespace CoreWCF.Dispatcher
                 // a. reply message is not null.
                 // b. Impersonation is enabled on serializing Reply
 
-                if (reply != null && this.parent.IsImpersonationEnabledOnSerializingReply)
+                if (reply != null && parent.IsImpersonationEnabledOnSerializingReply)
                 {
-                    bool shouldImpersonate = this.parent.SecurityImpersonation != null && this.parent.SecurityImpersonation.IsImpersonationEnabledOnCurrentOperation(rpc);
+                    bool shouldImpersonate = parent.SecurityImpersonation != null && parent.SecurityImpersonation.IsImpersonationEnabledOnCurrentOperation(rpc);
                     if (shouldImpersonate)
                     {
                         reply.Properties.Add(ImpersonateOnSerializingReplyMessageProperty.Name, new ImpersonateOnSerializingReplyMessageProperty(rpc));

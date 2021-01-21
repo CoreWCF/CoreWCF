@@ -7,7 +7,7 @@ namespace CoreWCF.Security
 {
     internal sealed class StrictModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
     {
-        private static StrictModeSecurityHeaderElementInferenceEngine instance = new StrictModeSecurityHeaderElementInferenceEngine();
+        private static readonly StrictModeSecurityHeaderElementInferenceEngine instance = new StrictModeSecurityHeaderElementInferenceEngine();
 
         private StrictModeSecurityHeaderElementInferenceEngine() { }
 
@@ -26,8 +26,7 @@ namespace CoreWCF.Security
             bool primarySignatureFound = false;
             for (int position = 0; position < elementManager.Count; position++)
             {
-                ReceiveSecurityHeaderEntry entry;
-                elementManager.GetElementEntry(position, out entry);
+                elementManager.GetElementEntry(position, out ReceiveSecurityHeaderEntry entry);
                 if (entry.elementCategory == ReceiveSecurityHeaderElementCategory.Signature)
                 {
                     if (!messageSecurityMode || primarySignatureFound)

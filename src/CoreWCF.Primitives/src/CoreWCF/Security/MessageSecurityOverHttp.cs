@@ -26,40 +26,40 @@ namespace CoreWCF
 
         public MessageCredentialType ClientCredentialType
         {
-            get { return this.clientCredentialType; }
+            get { return clientCredentialType; }
             set
             {
                 if (!MessageCredentialTypeHelper.IsDefined(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
                 }
-                this.clientCredentialType = value;
+                clientCredentialType = value;
             }
         }
 
         public bool NegotiateServiceCredential
         {
-            get { return this.negotiateServiceCredential; }
-            set { this.negotiateServiceCredential = value; }
+            get { return negotiateServiceCredential; }
+            set { negotiateServiceCredential = value; }
         }
 
         public SecurityAlgorithmSuite AlgorithmSuite
         {
-            get { return this.algorithmSuite; }
+            get { return algorithmSuite; }
             set
             {
                 if (value == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
                 }
-                this.algorithmSuite = value;
+                algorithmSuite = value;
                 wasAlgorithmSuiteSet = true;
             }
         }
 
         internal bool WasAlgorithmSuiteSet
         {
-            get { return this.wasAlgorithmSuiteSet; }
+            get { return wasAlgorithmSuiteSet; }
         }
 
         protected virtual bool IsSecureConversationEnabled()
@@ -69,7 +69,7 @@ namespace CoreWCF
 
         public SecurityBindingElement CreateSecurityBindingElement(bool isSecureTransportMode, bool isReliableSession, MessageSecurityVersion version)
         {
-            if (isReliableSession && !this.IsSecureConversationEnabled())
+            if (isReliableSession && !IsSecureConversationEnabled())
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecureConversationRequiredByReliableSession)));
             }
@@ -81,7 +81,7 @@ namespace CoreWCF
             bool emitBspAttributes = true;
             if (isSecureTransportMode)
             {
-                switch (this.clientCredentialType)
+                switch (clientCredentialType)
                 {
                     case MessageCredentialType.None:
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ClientCredentialTypeMustBeSpecifiedForMixedMode)));
@@ -101,7 +101,7 @@ namespace CoreWCF
                         Fx.Assert("unknown ClientCredentialType");
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
                 }
-                if (this.IsSecureConversationEnabled())
+                if (IsSecureConversationEnabled())
                 {
                     result = SecurityBindingElement.CreateSecureConversationBindingElement(oneShotSecurity, true);
                 }
@@ -163,7 +163,7 @@ namespace CoreWCF
                 //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
                 //    }
                 //}
-                if (this.IsSecureConversationEnabled())
+                if (IsSecureConversationEnabled())
                 {
                     result = SecurityBindingElement.CreateSecureConversationBindingElement(oneShotSecurity, true);
                 }
@@ -176,7 +176,7 @@ namespace CoreWCF
             // set the algorithm suite and issued token params if required
             if (wasAlgorithmSuiteSet || (!isKerberosSelected))
             {
-                result.DefaultAlgorithmSuite = oneShotSecurity.DefaultAlgorithmSuite = this.AlgorithmSuite;
+                result.DefaultAlgorithmSuite = oneShotSecurity.DefaultAlgorithmSuite = AlgorithmSuite;
             }
             else if (isKerberosSelected)
             {
@@ -195,7 +195,7 @@ namespace CoreWCF
                 result.LocalServiceSettings.ReconnectTransportOnFailure = true;
             }
 
-            if (this.IsSecureConversationEnabled())
+            if (IsSecureConversationEnabled())
             {
                 oneShotSecurity.LocalServiceSettings.IssuedCookieLifetime = defaultServerIssuedTransitionTokenLifetime;
                 //TODO SpNego when port, remove above and enable below.

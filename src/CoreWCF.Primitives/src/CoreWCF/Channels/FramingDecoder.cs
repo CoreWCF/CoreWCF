@@ -29,7 +29,10 @@ namespace CoreWCF.Channels
             get
             {
                 if (!isValueDecoded)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                }
+
                 return value;
             }
         }

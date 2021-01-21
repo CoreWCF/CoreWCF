@@ -13,7 +13,7 @@ namespace DispatcherClient
 {
     internal class DispatcherReplyChannel : CommunicationObject, IReplyChannel
     {
-        private IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
 
         public DispatcherReplyChannel(IServiceProvider serviceProvider)
         {

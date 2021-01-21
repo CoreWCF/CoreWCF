@@ -48,40 +48,50 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public string LocalId
         {
-            get { return this.localId; }
+            get { return localId; }
         }
 
         public Type OwnerType
         {
-            get { return (this.ownerTypes == null || this.ownerTypes.Length == 0) ? null : this.ownerTypes[0]; }
+            get { return (ownerTypes == null || ownerTypes.Length == 0) ? null : ownerTypes[0]; }
         }
 
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             LocalIdKeyIdentifierClause that = keyIdentifierClause as LocalIdKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(this.localId, this.OwnerType));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(localId, OwnerType));
         }
 
         public bool Matches(string localId, Type ownerType)
         {
             if (string.IsNullOrEmpty(localId))
-                return false;
-            if (this.localId != localId)
-                return false;
-            if (this.ownerTypes == null || ownerType == null)
-                return true;
-
-            for (int i = 0; i < this.ownerTypes.Length; ++i)
             {
-                if (this.ownerTypes[i] == null || this.ownerTypes[i] == ownerType)
+                return false;
+            }
+
+            if (this.localId != localId)
+            {
+                return false;
+            }
+
+            if (ownerTypes == null || ownerType == null)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < ownerTypes.Length; ++i)
+            {
+                if (ownerTypes[i] == null || ownerTypes[i] == ownerType)
+                {
                     return true;
+                }
             }
             return false;
         }
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.InvariantCulture, "LocalIdKeyIdentifierClause(LocalId = '{0}', Owner = '{1}')", this.LocalId, this.OwnerType);
+            return string.Format(CultureInfo.InvariantCulture, "LocalIdKeyIdentifierClause(LocalId = '{0}', Owner = '{1}')", LocalId, OwnerType);
         }
     }
 }

@@ -22,7 +22,10 @@ namespace CoreWCF.Channels
         {
             _messageProtectionOrder = elementToBeCloned._messageProtectionOrder;
             if (elementToBeCloned._protectionTokenParameters != null)
+            {
                 _protectionTokenParameters = (SecurityTokenParameters)elementToBeCloned._protectionTokenParameters.Clone();
+            }
+
             _requireSignatureConfirmation = elementToBeCloned._requireSignatureConfirmation;
         }
 
@@ -61,7 +64,10 @@ namespace CoreWCF.Channels
             set
             {
                 if (!MessageProtectionOrderHelper.IsDefined(value))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                }
+
                 _messageProtectionOrder = value;
             }
         }
@@ -81,9 +87,7 @@ namespace CoreWCF.Channels
         internal override ISecurityCapabilities GetIndividualISecurityCapabilities()
         {
             bool supportsServerAuthentication = false;
-            bool supportsClientAuthentication;
-            bool supportsClientWindowsIdentity;
-            GetSupportingTokensCapabilities(out supportsClientAuthentication, out supportsClientWindowsIdentity);
+            GetSupportingTokensCapabilities(out bool supportsClientAuthentication, out bool supportsClientWindowsIdentity);
             if (ProtectionTokenParameters != null)
             {
                 supportsClientAuthentication = supportsClientAuthentication || ProtectionTokenParameters.SupportsClientAuthentication;
@@ -107,17 +111,21 @@ namespace CoreWCF.Channels
         {
             get
             {
-                SecureConversationSecurityTokenParameters secureConversationTokenParameters = this.ProtectionTokenParameters as SecureConversationSecurityTokenParameters;
+                SecureConversationSecurityTokenParameters secureConversationTokenParameters = ProtectionTokenParameters as SecureConversationSecurityTokenParameters;
                 if (secureConversationTokenParameters != null)
+                {
                     return secureConversationTokenParameters.RequireCancellation;
+                }
                 else
+                {
                     return false;
+                }
             }
         }
 
         internal override bool SupportsDuplex
         {
-            get { return this.SessionMode; }
+            get { return SessionMode; }
         }
 
         internal override bool SupportsRequestReply
@@ -129,13 +137,17 @@ namespace CoreWCF.Channels
         {
             base.SetKeyDerivation(requireDerivedKeys);
             if (_protectionTokenParameters != null)
+            {
                 _protectionTokenParameters.RequireDerivedKeys = requireDerivedKeys;
+            }
         }
 
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
 
             if (typeof(T) == typeof(ChannelProtectionRequirements))
             {
@@ -164,9 +176,13 @@ namespace CoreWCF.Channels
             sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireSignatureConfirmation: {0}", _requireSignatureConfirmation.ToString()));
             sb.Append("ProtectionTokenParameters: ");
             if (_protectionTokenParameters != null)
+            {
                 sb.AppendLine(_protectionTokenParameters.ToString().Trim().Replace("\n", "\n  "));
+            }
             else
+            {
                 sb.AppendLine("null");
+            }
 
             return sb.ToString().Trim();
         }

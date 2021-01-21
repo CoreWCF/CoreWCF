@@ -34,7 +34,9 @@ namespace CoreWCF.IdentityModel.Policy
         public UnconditionalPolicy(ClaimSet issuance, DateTime expirationTime)
         {
             if (issuance == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuance));
+            }
 
             Initialize(ClaimSet.System, issuance, null, expirationTime);
         }
@@ -42,7 +44,9 @@ namespace CoreWCF.IdentityModel.Policy
         public UnconditionalPolicy(ReadOnlyCollection<ClaimSet> issuances, DateTime expirationTime)
         {
             if (issuances == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuances));
+            }
 
             Initialize(ClaimSet.System, null, issuances, expirationTime);
         }
@@ -109,7 +113,10 @@ namespace CoreWCF.IdentityModel.Policy
             get
             {
                 if (id == null)
+                {
                     id = SecurityUniqueId.Create();
+                }
+
                 return id.Value;
             }
         }
@@ -127,7 +134,7 @@ namespace CoreWCF.IdentityModel.Policy
                 if (primaryIdentity == null)
                 {
                     IIdentity identity = null;
-                    if (this.issuance != null)
+                    if (issuance != null)
                     {
                         if (issuance is IIdentityInfo)
                         {
@@ -161,13 +168,13 @@ namespace CoreWCF.IdentityModel.Policy
             get
             {
                 ThrowIfDisposed();
-                if (this.issuances == null)
+                if (issuances == null)
                 {
                     List<ClaimSet> issuances = new List<ClaimSet>(1);
                     issuances.Add(issuance);
                     this.issuances = issuances.AsReadOnly();
                 }
-                return this.issuances;
+                return issuances;
             }
         }
 
@@ -228,8 +235,7 @@ namespace CoreWCF.IdentityModel.Policy
             if (PrimaryIdentity != null && PrimaryIdentity != SecurityUtils.AnonymousIdentity)
             {
                 IList<IIdentity> identities;
-                object obj;
-                if (!evaluationContext.Properties.TryGetValue(SecurityUtils.Identities, out obj))
+                if (!evaluationContext.Properties.TryGetValue(SecurityUtils.Identities, out object obj))
                 {
                     identities = new List<IIdentity>(1);
                     evaluationContext.Properties.Add(SecurityUtils.Identities, identities);

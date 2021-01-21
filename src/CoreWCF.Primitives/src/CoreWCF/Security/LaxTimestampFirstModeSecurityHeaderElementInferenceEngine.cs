@@ -5,7 +5,7 @@ namespace CoreWCF.Security
 {
     internal sealed class LaxTimestampFirstModeSecurityHeaderElementInferenceEngine : LaxModeSecurityHeaderElementInferenceEngine
     {
-        private static LaxTimestampFirstModeSecurityHeaderElementInferenceEngine instance = new LaxTimestampFirstModeSecurityHeaderElementInferenceEngine();
+        private static readonly LaxTimestampFirstModeSecurityHeaderElementInferenceEngine instance = new LaxTimestampFirstModeSecurityHeaderElementInferenceEngine();
 
         private LaxTimestampFirstModeSecurityHeaderElementInferenceEngine() { }
 

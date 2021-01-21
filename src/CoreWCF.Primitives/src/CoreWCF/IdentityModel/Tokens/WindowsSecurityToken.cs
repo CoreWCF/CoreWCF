@@ -45,7 +45,10 @@ namespace CoreWCF.IdentityModel.Tokens
         {
 
             if (windowsIdentity == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
+            }
+
             _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             AuthenticationType = authenticationType;
             _effectiveTime = effectiveTime;

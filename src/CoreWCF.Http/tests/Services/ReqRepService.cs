@@ -30,7 +30,7 @@ namespace Services
 
     internal class MyStream : Stream
     {
-        private long messageSize;
+        private readonly long messageSize;
 
         public MyStream(long messageSize)
         {
@@ -80,16 +80,16 @@ namespace Services
         }
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (this.numberoftotalbytes < this.messageSize)
+            if (numberoftotalbytes < messageSize)
             {
                 long num;
-                if (this.numberoftotalbytes < this.messageSize - 5000L)
+                if (numberoftotalbytes < messageSize - 5000L)
                 {
                     num = 5000L;
                 }
                 else
                 {
-                    num = (long)((int)(this.messageSize - this.numberoftotalbytes));
+                    num = (long)((int)(messageSize - numberoftotalbytes));
                 }
                 num = Math.Min((long)count, num);
                 int num2 = 0;
@@ -98,7 +98,7 @@ namespace Services
                     buffer[num2] = (byte)(num2 % 255);
                     num2++;
                 }
-                this.numberoftotalbytes += num;
+                numberoftotalbytes += num;
                 return (int)num;
             }
             return 0;

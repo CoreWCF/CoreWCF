@@ -13,7 +13,7 @@ namespace CoreWCF.Primitives.Tests
     {
         private bool testPassed = true;
         private static byte[] buffer;
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public VerifyBufferUsed(ITestOutputHelper output)
         {

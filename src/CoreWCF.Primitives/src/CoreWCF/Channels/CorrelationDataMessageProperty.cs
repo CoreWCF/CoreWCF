@@ -62,8 +62,7 @@ namespace CoreWCF.Channels
 
         public bool TryGetValue(string name, out string value)
         {
-            DataProviderEntry entry;
-            if (dataProviders != null && dataProviders.TryGetValue(name, out entry))
+            if (dataProviders != null && dataProviders.TryGetValue(name, out DataProviderEntry entry))
             {
                 value = entry.Data;
                 return true;
@@ -86,8 +85,7 @@ namespace CoreWCF.Channels
 
         public static bool TryGet(MessageProperties properties, out CorrelationDataMessageProperty property)
         {
-            object value = null;
-            if (properties.TryGetValue(PropertyName, out value))
+            if (properties.TryGetValue(PropertyName, out object value))
             {
                 property = value as CorrelationDataMessageProperty;
             }
@@ -111,8 +109,7 @@ namespace CoreWCF.Channels
             }
 
             CorrelationDataMessageProperty data = null;
-            object value = null;
-            if (message.Properties.TryGetValue(PropertyName, out value))
+            if (message.Properties.TryGetValue(PropertyName, out object value))
             {
                 data = value as CorrelationDataMessageProperty;
             }

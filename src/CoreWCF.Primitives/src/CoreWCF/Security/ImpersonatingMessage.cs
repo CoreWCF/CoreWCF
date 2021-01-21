@@ -10,7 +10,7 @@ namespace CoreWCF.Security
 {
     internal sealed class ImpersonatingMessage : Message
     {
-        private Message innerMessage;
+        private readonly Message innerMessage;
 
         public ImpersonatingMessage(Message innerMessage)
         {

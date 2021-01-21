@@ -209,8 +209,7 @@ namespace CoreWCF.Runtime
 
         public MemoryStream ToMemoryStream()
         {
-            int bufferSize;
-            byte[] buffer = ToArray(out bufferSize);
+            byte[] buffer = ToArray(out int bufferSize);
             return new MemoryStream(buffer, 0, bufferSize);
         }
 

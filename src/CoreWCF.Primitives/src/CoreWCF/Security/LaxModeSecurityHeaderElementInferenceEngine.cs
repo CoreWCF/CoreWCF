@@ -8,7 +8,7 @@ namespace CoreWCF.Security
 {
     internal class LaxModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
     {
-        private static LaxModeSecurityHeaderElementInferenceEngine instance = new LaxModeSecurityHeaderElementInferenceEngine();
+        private static readonly LaxModeSecurityHeaderElementInferenceEngine instance = new LaxModeSecurityHeaderElementInferenceEngine();
 
         protected LaxModeSecurityHeaderElementInferenceEngine() { }
 
@@ -43,8 +43,7 @@ namespace CoreWCF.Security
             bool primarySignatureFound = false;
             for (int position = 0; position < elementManager.Count; position++)
             {
-                ReceiveSecurityHeaderEntry entry;
-                elementManager.GetElementEntry(position, out entry);
+                elementManager.GetElementEntry(position, out ReceiveSecurityHeaderEntry entry);
                 if (entry.elementCategory == ReceiveSecurityHeaderElementCategory.Signature)
                 {
                     if (!messageSecurityMode)
@@ -72,8 +71,7 @@ namespace CoreWCF.Security
                         }
                         for (int j = 0; j < elementManager.Count; j++)
                         {
-                            ReceiveSecurityHeaderEntry inner;
-                            elementManager.GetElementEntry(j, out inner);
+                            elementManager.GetElementEntry(j, out ReceiveSecurityHeaderEntry inner);
                             if (j != position && inner.elementCategory == ReceiveSecurityHeaderElementCategory.Signature && inner.id == id)
                             {
                                 targetsSignature = true;

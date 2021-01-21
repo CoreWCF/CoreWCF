@@ -18,10 +18,10 @@ namespace CoreWCF
     public class FaultException : CommunicationException
     {
         internal const string Namespace = "http://schemas.xmlsoap.org/Microsoft/WindowsCommunicationFoundation/2005/08/Faults/";
-        private string _action;
-        private FaultCode _code;
-        private FaultReason _reason;
-        private MessageFault _fault;
+        private readonly string _action;
+        private readonly FaultCode _code;
+        private readonly FaultReason _reason;
+        private readonly MessageFault _fault;
 
         public FaultException()
             : base(SR.SFxFaultReason)
@@ -94,7 +94,9 @@ namespace CoreWCF
             : base(GetSafeReasonText(GetReason(fault)))
         {
             if (fault == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+            }
 
             _code = EnsureCode(fault.Code);
             _reason = EnsureReason(fault.Reason);
@@ -105,7 +107,9 @@ namespace CoreWCF
             : base(GetSafeReasonText(GetReason(fault)))
         {
             if (fault == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+            }
 
             _code = fault.Code;
             _reason = fault.Reason;
@@ -230,7 +234,9 @@ namespace CoreWCF
         internal static string GetSafeReasonText(MessageFault messageFault)
         {
             if (messageFault == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageFault));
+            }
 
             return GetSafeReasonText(messageFault.Reason);
         }
@@ -238,7 +244,9 @@ namespace CoreWCF
         internal static string GetSafeReasonText(FaultReason reason)
         {
             if (reason == null)
+            {
                 return SR.SFxUnknownFaultNullReason0;
+            }
 
             try
             {

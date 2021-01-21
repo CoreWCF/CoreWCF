@@ -11,7 +11,7 @@ namespace CoreWCF.Channels
     public abstract class ConnectionOrientedTransportBindingElement : TransportBindingElement
     {
         private int connectionBufferSize;
-        private bool exposeConnectionProperty;
+        private readonly bool exposeConnectionProperty;
         private HostNameComparisonMode hostNameComparisonMode;
         private bool inheritBaseAddressSettings;
         private TimeSpan channelInitializationTimeout;
@@ -131,8 +131,10 @@ namespace CoreWCF.Channels
             set
             {
                 if (value <= 0)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
                         SR.ValueMustBePositive));
+                }
 
                 maxPendingConnections = value;
                 isMaxPendingConnectionsSet = true;
@@ -266,32 +268,59 @@ namespace CoreWCF.Channels
         protected override bool IsMatch(BindingElement b)
         {
             if (!base.IsMatch(b))
+            {
                 return false;
+            }
 
             ConnectionOrientedTransportBindingElement connection = b as ConnectionOrientedTransportBindingElement;
             if (connection == null)
+            {
                 return false;
+            }
 
             if (connectionBufferSize != connection.connectionBufferSize)
+            {
                 return false;
+            }
+
             if (hostNameComparisonMode != connection.hostNameComparisonMode)
+            {
                 return false;
+            }
+
             if (inheritBaseAddressSettings != connection.inheritBaseAddressSettings)
+            {
                 return false;
+            }
+
             if (channelInitializationTimeout != connection.channelInitializationTimeout)
             {
                 return false;
             }
             if (maxBufferSize != connection.maxBufferSize)
+            {
                 return false;
+            }
+
             if (maxPendingConnections != connection.maxPendingConnections)
+            {
                 return false;
+            }
+
             if (maxOutputDelay != connection.maxOutputDelay)
+            {
                 return false;
+            }
+
             if (maxPendingAccepts != connection.maxPendingAccepts)
+            {
                 return false;
+            }
+
             if (transferMode != connection.transferMode)
+            {
                 return false;
+            }
 
             return true;
         }

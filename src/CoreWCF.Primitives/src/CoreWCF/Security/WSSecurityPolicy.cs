@@ -105,10 +105,10 @@ namespace CoreWCF.Security
         public const string HttpsTokenName = "HttpsToken";
         public const string HttpBasicAuthenticationName = "HttpBasicAuthentication";
         public const string HttpDigestAuthenticationName = "HttpDigestAuthentication";
-        private bool _mustSupportRefKeyIdentifierName = false;
-        private bool _mustSupportRefIssuerSerialName = false;
-        private bool _mustSupportRefThumbprintName = false;
-        private bool _protectionTokenHasAsymmetricKey = false;
+        private readonly bool _mustSupportRefKeyIdentifierName = false;
+        private readonly bool _mustSupportRefIssuerSerialName = false;
+        private readonly bool _mustSupportRefThumbprintName = false;
+        private readonly bool _protectionTokenHasAsymmetricKey = false;
     }
 
     internal static class SecurityPolicyStrings

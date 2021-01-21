@@ -67,14 +67,18 @@ namespace CoreWCF.Channels
             get
             {
                 if (name == null)
+                {
                     name = GetType().Name;
+                }
 
                 return name;
             }
             set
             {
                 if (string.IsNullOrEmpty(value))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("value", SR.SFXBindingNameCannotBeNullOrEmpty);
+                }
 
                 name = value;
             }
@@ -182,7 +186,7 @@ namespace CoreWCF.Channels
         public virtual IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingParameterCollection parameters, IServiceDispatcher dispatcher)
 where TChannel : class, IChannel
         {
-            UriBuilder listenUriBuilder = new UriBuilder(this.Scheme, DnsCache.MachineName);
+            UriBuilder listenUriBuilder = new UriBuilder(Scheme, DnsCache.MachineName);
             return BuildServiceDispatcher<TChannel>(listenUriBuilder.Uri, string.Empty, parameters, dispatcher);
         }
 
@@ -197,7 +201,11 @@ where TChannel : class, IChannel
         {
             EnsureInvariants();
             var binding = this as CustomBinding;
-            if (binding == null) binding = new CustomBinding(this);
+            if (binding == null)
+            {
+                binding = new CustomBinding(this);
+            }
+
             BindingContext context = new BindingContext(binding, parameters, listenUriBaseAddress, listenUriRelativeAddress);
             IServiceDispatcher serviceDispatcher = context.BuildNextServiceDispatcher<TChannel>(dispatcher);
             context.ValidateBindingElementsConsumed();
@@ -230,7 +238,9 @@ where TChannel : class, IChannel
             {
                 transport = elements[index] as TransportBindingElement;
                 if (transport != null)
+                {
                     break;
+                }
             }
 
             if (transport == null)

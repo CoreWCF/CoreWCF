@@ -21,7 +21,9 @@ namespace CoreWCF.IdentityModel
         public HashStream(HashAlgorithm hash)
         {
             if (hash == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("hash");
+            }
 
             Reset(hash);
         }
@@ -43,17 +45,17 @@ namespace CoreWCF.IdentityModel
 
         public HashAlgorithm Hash
         {
-            get { return this.hash; }
+            get { return hash; }
         }
 
         public override long Length
         {
-            get { return this.length; }
+            get { return length; }
         }
 
         public override long Position
         {
-            get { return this.length; }
+            get { return length; }
             set
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
@@ -72,7 +74,7 @@ namespace CoreWCF.IdentityModel
         public void FlushHash(MemoryStream preCanonicalBytes)
         {
 
-            this.hash.TransformFinalBlock(CryptoHelper.EmptyBuffer, 0, 0);
+            hash.TransformFinalBlock(CryptoHelper.EmptyBuffer, 0, 0);
             //TODO logs Pii data
             //if (DigestTraceRecordHelper.ShouldTraceDigest)
             //    DigestTraceRecordHelper.TraceDigest(this.logStream, this.hash);
@@ -86,7 +88,7 @@ namespace CoreWCF.IdentityModel
         public byte[] FlushHashAndGetValue(MemoryStream preCanonicalBytes)
         {
             FlushHash(preCanonicalBytes);
-            return this.hash.Hash;
+            return hash.Hash;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -96,12 +98,12 @@ namespace CoreWCF.IdentityModel
 
         public void Reset()
         {
-            if (this.hashNeedsReset)
+            if (hashNeedsReset)
             {
-                this.hash.Initialize();
-                this.hashNeedsReset = false;
+                hash.Initialize();
+                hashNeedsReset = false;
             }
-            this.length = 0;
+            length = 0;
 
             // if (DigestTraceRecordHelper.ShouldTraceDigest)
             //     this.logStream = new MemoryStream();
@@ -111,8 +113,8 @@ namespace CoreWCF.IdentityModel
         public void Reset(HashAlgorithm hash)
         {
             this.hash = hash;
-            this.hashNeedsReset = false;
-            this.length = 0;
+            hashNeedsReset = false;
+            length = 0;
 
             //  if (DigestTraceRecordHelper.ShouldTraceDigest)
             //     this.logStream = new MemoryStream();
@@ -120,9 +122,9 @@ namespace CoreWCF.IdentityModel
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            this.hash.TransformBlock(buffer, offset, count, buffer, offset);
-            this.length += count;
-            this.hashNeedsReset = true;
+            hash.TransformBlock(buffer, offset, count, buffer, offset);
+            length += count;
+            hashNeedsReset = true;
 
             // if (DigestTraceRecordHelper.ShouldTraceDigest)
             //    this.logStream.Write(buffer, offset, count);
@@ -144,7 +146,7 @@ namespace CoreWCF.IdentityModel
         {
             base.Dispose(disposing);
 
-            if (this.disposed)
+            if (disposed)
             {
                 return;
             }
@@ -155,16 +157,16 @@ namespace CoreWCF.IdentityModel
                 // Free all of our managed resources
                 //
 
-                if (this.logStream != null)
+                if (logStream != null)
                 {
-                    this.logStream.Dispose();
-                    this.logStream = null;
+                    logStream.Dispose();
+                    logStream = null;
                 }
             }
 
             // Free native resources, if any.
 
-            this.disposed = true;
+            disposed = true;
         }
 
         #endregion

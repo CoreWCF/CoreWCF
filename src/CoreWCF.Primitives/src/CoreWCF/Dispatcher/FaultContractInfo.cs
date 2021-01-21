@@ -35,7 +35,10 @@ namespace CoreWCF.Dispatcher
             _action = action;
             _detail = detail;
             if (elementName != null)
+            {
                 _elementName = elementName.EncodedName;
+            }
+
             _ns = ns;
             _knownTypes = knownTypes;
         }

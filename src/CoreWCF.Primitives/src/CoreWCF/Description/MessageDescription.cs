@@ -10,7 +10,7 @@ namespace CoreWCF.Description
     {
         private static Type typeOfUntypedMessage;
         private string action;
-        private MessageDirection direction;
+        private readonly MessageDirection direction;
         private MessageDescriptionItems items;
         private XmlName messageName;
         private Type messageType;
@@ -21,7 +21,9 @@ namespace CoreWCF.Description
         internal MessageDescription(string action, MessageDirection direction, MessageDescriptionItems items)
         {
             if (!MessageDirectionHelper.IsDefined(direction))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(direction)));
+            }
 
             this.action = action;
             this.direction = direction;
@@ -59,7 +61,10 @@ namespace CoreWCF.Description
             get
             {
                 if (items == null)
+                {
                     items = new MessageDescriptionItems();
+                }
+
                 return items;
             }
         }
@@ -127,7 +132,10 @@ namespace CoreWCF.Description
             get
             {
                 if (body == null)
+                {
                     body = new MessageBodyDescription();
+                }
+
                 return body;
             }
             set
@@ -141,7 +149,10 @@ namespace CoreWCF.Description
             get
             {
                 if (headers == null)
+                {
                     headers = new MessageHeaderDescriptionCollection();
+                }
+
                 return headers;
             }
         }
@@ -151,7 +162,10 @@ namespace CoreWCF.Description
             get
             {
                 if (properties == null)
+                {
                     properties = new MessagePropertyDescriptionCollection();
+                }
+
                 return properties;
             }
         }

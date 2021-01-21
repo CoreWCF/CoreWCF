@@ -22,25 +22,25 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.securityTokenParameters;
+                return securityTokenParameters;
             }
             set
             {
                 ThrowIfImmutable();
-                this.securityTokenParameters = value;
+                securityTokenParameters = value;
             }
         }
 
         internal override SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, TimeSpan timeout)
         {
-            if (this.SecurityTokenParameters == null)
+            if (SecurityTokenParameters == null)
             {
                 OnPropertySettingsError("SecurityTokenParameters", true);
             }
-            if (this.SecurityTokenParameters.RequireDerivedKeys)
+            if (SecurityTokenParameters.RequireDerivedKeys)
             {
-                this.ExpectKeyDerivation = true;
-                this.derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(this.ActAsInitiator);
+                ExpectKeyDerivation = true;
+                derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
             }
             return new AcceptorSessionSymmetricTransportSecurityProtocol(this);
 
@@ -49,27 +49,27 @@ namespace CoreWCF.Security
         public override Task OnOpenAsync(TimeSpan timeout)
         {
             base.OnOpenAsync(timeout);
-            if (this.SecurityTokenParameters == null)
+            if (SecurityTokenParameters == null)
             {
                 OnPropertySettingsError("SecurityTokenParameters", true);
             }
-            if (this.SecurityTokenParameters.RequireDerivedKeys)
+            if (SecurityTokenParameters.RequireDerivedKeys)
             {
-                this.ExpectKeyDerivation = true;
-                this.derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(this.ActAsInitiator);
+                ExpectKeyDerivation = true;
+                derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
             }
             return Task.CompletedTask;
         }
 
         internal SecurityTokenParameters GetTokenParameters()
         {
-            if (this.derivedKeyTokenParameters != null)
+            if (derivedKeyTokenParameters != null)
             {
-                return this.derivedKeyTokenParameters;
+                return derivedKeyTokenParameters;
             }
             else
             {
-                return this.securityTokenParameters;
+                return securityTokenParameters;
             }
         }
     }

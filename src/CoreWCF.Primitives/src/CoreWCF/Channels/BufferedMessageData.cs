@@ -15,7 +15,7 @@ namespace CoreWCF.Channels
         private int outstandingReaders;
         private bool multipleUsers;
         private RecycledMessageState messageState;
-        private SynchronizedPool<RecycledMessageState> messageStatePool;
+        private readonly SynchronizedPool<RecycledMessageState> messageStatePool;
 
         public BufferedMessageData(SynchronizedPool<RecycledMessageState> messageStatePool)
         {

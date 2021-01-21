@@ -52,9 +52,9 @@ namespace ErrorHandling
 
     public class FaultingService : IFaultingService
     {
-        private TestFault _fault;
-        private FaultReason _reason;
-        private FaultCode _code;
+        private readonly TestFault _fault;
+        private readonly FaultReason _reason;
+        private readonly FaultCode _code;
 
         public FaultingService(TestFault fault, FaultReason reason, FaultCode code)
         {

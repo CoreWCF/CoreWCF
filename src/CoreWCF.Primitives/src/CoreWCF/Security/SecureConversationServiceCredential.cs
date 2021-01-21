@@ -10,53 +10,53 @@ namespace CoreWCF.Security
     {
         private static readonly SecurityStateEncoder defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
         private SecurityStateEncoder securityStateEncoder;
-        private Collection<Type> securityContextClaimTypes;
+        private readonly Collection<Type> securityContextClaimTypes;
         private bool isReadOnly;
 
         internal SecureConversationServiceCredential()
         {
-            this.securityStateEncoder = defaultSecurityStateEncoder;
+            securityStateEncoder = defaultSecurityStateEncoder;
             securityContextClaimTypes = new Collection<Type>();
             // SamlAssertion.AddSamlClaimTypes(securityContextClaimTypes);
         }
 
         internal SecureConversationServiceCredential(SecureConversationServiceCredential other)
         {
-            this.securityStateEncoder = other.securityStateEncoder;
-            this.securityContextClaimTypes = new Collection<Type>();
+            securityStateEncoder = other.securityStateEncoder;
+            securityContextClaimTypes = new Collection<Type>();
             for (int i = 0; i < other.securityContextClaimTypes.Count; ++i)
             {
-                this.securityContextClaimTypes.Add(other.securityContextClaimTypes[i]);
+                securityContextClaimTypes.Add(other.securityContextClaimTypes[i]);
             }
-            this.isReadOnly = other.isReadOnly;
+            isReadOnly = other.isReadOnly;
         }
 
         public SecurityStateEncoder SecurityStateEncoder
         {
             get
             {
-                return this.securityStateEncoder;
+                return securityStateEncoder;
             }
             set
             {
                 ThrowIfImmutable();
-                this.securityStateEncoder = value;
+                securityStateEncoder = value;
             }
         }
 
         public Collection<Type> SecurityContextClaimTypes
         {
-            get { return this.securityContextClaimTypes; }
+            get { return securityContextClaimTypes; }
         }
 
         internal void MakeReadOnly()
         {
-            this.isReadOnly = true;
+            isReadOnly = true;
         }
 
         private void ThrowIfImmutable()
         {
-            if (this.isReadOnly)
+            if (isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }

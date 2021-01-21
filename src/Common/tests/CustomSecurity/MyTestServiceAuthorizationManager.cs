@@ -26,7 +26,9 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
                     {
                         // If the Claim resource matches the action URI then return true to allow access.
                         if (action == c.Resource.ToString())
+                        {
                             return true;
+                        }
                     }
                 }
                 else if (cs.Issuer == ClaimSet.Windows)

@@ -25,7 +25,7 @@ namespace CoreWCF.Security.Tokens
             SecurityContextSecurityToken sct = (SecurityContextSecurityToken)token;
             if (!IsTimeValid(sct))
             {
-                this.ThrowExpiredContextFaultException(sct.ContextId, sct);
+                ThrowExpiredContextFaultException(sct.ContextId, sct);
             }
 
             return sct.AuthorizationPolicies;

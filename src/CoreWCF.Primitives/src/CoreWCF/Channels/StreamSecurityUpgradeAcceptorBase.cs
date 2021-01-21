@@ -10,8 +10,8 @@ namespace CoreWCF.Channels
     internal abstract class StreamSecurityUpgradeAcceptorBase : StreamSecurityUpgradeAcceptor
     {
         private SecurityMessageProperty remoteSecurity;
-        private bool securityUpgraded;
-        private string upgradeString;
+        private readonly bool securityUpgraded;
+        private readonly string upgradeString;
 
         protected StreamSecurityUpgradeAcceptorBase(string upgradeString)
         {

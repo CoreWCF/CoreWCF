@@ -21,9 +21,9 @@ namespace CoreWCF.Channels.Framing
         private readonly PipeReader _input;
         private readonly PipeWriter _output;
         private bool _canRead;
-        private object _thisLock;
+        private readonly object _thisLock;
         private TaskCompletionSource<object> _unwrapTcs;
-        private SemaphoreSlim _readSemaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _readSemaphore = new SemaphoreSlim(1, 1);
 
         public RawStream(FramingConnection connection)
         {
@@ -276,7 +276,10 @@ namespace CoreWCF.Channels.Framing
             }
             finally
             {
-                if (acquired) _readSemaphore.Release();
+                if (acquired)
+                {
+                    _readSemaphore.Release();
+                }
             }
         }
 

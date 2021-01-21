@@ -22,7 +22,7 @@ namespace CoreWCF.Channels
         private int _cleanupStatus = WebSocketHelper.OperationNotStarted;
         private readonly WebSocketCloseDetails _webSocketCloseDetails = new WebSocketCloseDetails();
         private bool _shouldDisposeWebSocketAfterClosed = true;
-        private Exception _pendingWritingMessageException;
+        private readonly Exception _pendingWritingMessageException;
 
         public WebSocketTransportDuplexSessionChannel(IHttpTransportFactorySettings settings, EndpointAddress localAddress, Uri localVia)
             : base(settings, localAddress, localVia, EndpointAddress.AnonymousAddress, settings.MessageVersion.Addressing.AnonymousUri)
@@ -598,8 +598,8 @@ namespace CoreWCF.Channels
 
             private async void StartNextReceiveAsync()
             {
-                Fx.Assert(this.receiveTask == null || this.receiveTask.Task.IsCompleted, "this.receiveTask is not completed.");
-                this.receiveTask = new TaskCompletionSource<object>();
+                Fx.Assert(receiveTask == null || receiveTask.Task.IsCompleted, "this.receiveTask is not completed.");
+                receiveTask = new TaskCompletionSource<object>();
                 int currentState = Interlocked.CompareExchange(ref asyncReceiveState, AsyncReceiveState.Started, AsyncReceiveState.Finished);
                 Fx.Assert(currentState == AsyncReceiveState.Finished, "currentState is not AsyncReceiveState.Finished: " + currentState);
                 if (currentState != AsyncReceiveState.Finished)
@@ -717,7 +717,7 @@ namespace CoreWCF.Channels
             {
                 ThrowOnPendingException(ref pendingException);
 
-                if (this.pendingMessage != null)
+                if (pendingMessage != null)
                 {
                     Message pendingMessage = this.pendingMessage;
                     this.pendingMessage = null;

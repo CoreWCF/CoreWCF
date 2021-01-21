@@ -84,24 +84,37 @@ namespace CoreWCF.Channels.Framing
         public override bool Equals(object o)
         {
             if (o is EncodedFramingRecord)
+            {
                 return Equals((EncodedFramingRecord)o);
+            }
+
             return false;
         }
 
         public bool Equals(EncodedFramingRecord other)
         {
             if (other == null)
+            {
                 return false;
+            }
+
             if (other == this)
+            {
                 return true;
+            }
+
             byte[] otherBytes = other._encodedBytes;
             if (_encodedBytes.Length != otherBytes.Length)
+            {
                 return false;
+            }
 
             for (int i = 0; i < _encodedBytes.Length; i++)
             {
                 if (_encodedBytes[i] != otherBytes[i])
+                {
                     return false;
+                }
             }
 
             return true;

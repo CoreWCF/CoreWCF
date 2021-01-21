@@ -148,10 +148,9 @@ namespace CoreWCF.Dispatcher
             }
 
             Type filterType = filter.GetType();
-            Type tableType = null;
             IMessageFilterTable<TFilterData> table = null;
 
-            if (filterTypeMappings.TryGetValue(filterType, out tableType))
+            if (filterTypeMappings.TryGetValue(filterType, out Type tableType))
             {
                 for (int i = 0; i < tables.Count; ++i)
                 {
@@ -238,7 +237,9 @@ namespace CoreWCF.Dispatcher
             IMessageFilterTable<TFilterData> ft = filter.CreateFilterTable<TFilterData>();
 
             if (ft == null)
+            {
                 return new SequentialMessageFilterTable<TFilterData>();
+            }
 
             return ft;
         }
@@ -283,9 +284,8 @@ namespace CoreWCF.Dispatcher
                 }
                 pri = tables[i].priority;
 
-                TFilterData currentData;
 
-                if (tables[i].table.GetMatchingValue(message, out currentData))
+                if (tables[i].table.GetMatchingValue(message, out TFilterData currentData))
                 {
                     if (dataSet)
                     {
@@ -321,8 +321,7 @@ namespace CoreWCF.Dispatcher
                 AndMessageFilterTable<TFilterData> andTable = table as AndMessageFilterTable<TFilterData>;
                 if (andTable != null)
                 {
-                    bool addressResult;
-                    matchResult = andTable.GetMatchingValue(message, out currentData, out addressResult);
+                    matchResult = andTable.GetMatchingValue(message, out currentData, out bool addressResult);
                     addressMatched |= addressResult;
                 }
                 else
@@ -439,7 +438,6 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingFilter(Message message, out MessageFilter filter)
         {
-            MessageFilter f;
             int pri = int.MinValue;
             filter = null;
             for (int i = 0; i < tables.Count; ++i)
@@ -451,7 +449,7 @@ namespace CoreWCF.Dispatcher
                 }
                 pri = tables[i].priority;
 
-                if (tables[i].table.GetMatchingFilter(message, out f))
+                if (tables[i].table.GetMatchingFilter(message, out MessageFilter f))
                 {
                     if (filter == null)
                     {
@@ -472,7 +470,6 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingFilter(MessageBuffer buffer, out MessageFilter filter)
         {
-            MessageFilter f;
             int pri = int.MinValue;
             filter = null;
             for (int i = 0; i < tables.Count; ++i)
@@ -484,7 +481,7 @@ namespace CoreWCF.Dispatcher
                 }
                 pri = tables[i].priority;
 
-                if (tables[i].table.GetMatchingFilter(buffer, out f))
+                if (tables[i].table.GetMatchingFilter(buffer, out MessageFilter f))
                 {
                     if (filter == null)
                     {

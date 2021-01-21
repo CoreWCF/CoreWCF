@@ -11,7 +11,7 @@ namespace CoreWCF.Primitives.Tests
     public class VerifyBufferPoolsCreated
     {
         private bool testPassed = true;
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public VerifyBufferPoolsCreated(ITestOutputHelper output)
         {

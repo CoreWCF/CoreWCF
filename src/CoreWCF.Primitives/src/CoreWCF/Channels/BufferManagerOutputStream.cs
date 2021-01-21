@@ -8,7 +8,7 @@ namespace CoreWCF.Channels
 {
     internal class BufferManagerOutputStream : BufferedOutputStream
     {
-        private string quotaExceededString;
+        private readonly string quotaExceededString;
 
         public BufferManagerOutputStream(string quotaExceededString)
             : base()

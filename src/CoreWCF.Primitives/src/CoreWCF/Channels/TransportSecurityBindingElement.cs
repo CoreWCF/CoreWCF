@@ -24,9 +24,7 @@ namespace CoreWCF.Channels
 
         internal override ISecurityCapabilities GetIndividualISecurityCapabilities()
         {
-            bool supportsClientAuthentication;
-            bool supportsClientWindowsIdentity;
-            GetSupportingTokensCapabilities(out supportsClientAuthentication, out supportsClientWindowsIdentity);
+            GetSupportingTokensCapabilities(out bool supportsClientAuthentication, out bool supportsClientWindowsIdentity);
             return new SecurityCapabilities(supportsClientAuthentication, false, supportsClientWindowsIdentity,
                 ProtectionLevel.None, ProtectionLevel.None);
         }
@@ -36,12 +34,19 @@ namespace CoreWCF.Channels
             get
             {
                 SecureConversationSecurityTokenParameters scParameters = null;
-                if (this.EndpointSupportingTokenParameters.Endorsing.Count > 0)
-                    scParameters = this.EndpointSupportingTokenParameters.Endorsing[0] as SecureConversationSecurityTokenParameters;
+                if (EndpointSupportingTokenParameters.Endorsing.Count > 0)
+                {
+                    scParameters = EndpointSupportingTokenParameters.Endorsing[0] as SecureConversationSecurityTokenParameters;
+                }
+
                 if (scParameters != null)
+                {
                     return scParameters.RequireCancellation;
+                }
                 else
+                {
                     return false;
+                }
             }
         }
 
@@ -59,9 +64,14 @@ namespace CoreWCF.Channels
         internal override SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext)
         {
             if (context == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+            }
+
             if (credentialsManager == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("credentialsManager");
+            }
 
             TransportSecurityProtocolFactory protocolFactory = new TransportSecurityProtocolFactory();
             // if (isForService)
@@ -77,13 +87,19 @@ namespace CoreWCF.Channels
             SecurityServiceDispatcher securityServiceDispatcher = new SecurityServiceDispatcher(this, context, serviceDispatcher);
             SecurityCredentialsManager credentialsManager = serviceDispatcher.Host.Description.Behaviors.Find<SecurityCredentialsManager>();
             if (credentialsManager == null)
+            {
                 credentialsManager = ServiceCredentials.CreateDefaultCredentials();
+            }
 
             SecureConversationSecurityTokenParameters scParameters;
-            if (this.EndpointSupportingTokenParameters.Endorsing.Count > 0)
-                scParameters = this.EndpointSupportingTokenParameters.Endorsing[0] as SecureConversationSecurityTokenParameters;
+            if (EndpointSupportingTokenParameters.Endorsing.Count > 0)
+            {
+                scParameters = EndpointSupportingTokenParameters.Endorsing[0] as SecureConversationSecurityTokenParameters;
+            }
             else
+            {
                 scParameters = null;
+            }
 
             bool requireDemuxer = RequiresChannelDemuxer();
             ChannelBuilder channelBuilder = new ChannelBuilder(context, requireDemuxer);
@@ -98,29 +114,32 @@ namespace CoreWCF.Channels
             if (scParameters != null)
             {
                 if (scParameters.BootstrapSecurityBindingElement == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecureConversationSecurityTokenParametersRequireBootstrapBinding)));
+                }
+
                 if (scParameters.RequireCancellation)
                 {
                     SessionSymmetricTransportSecurityProtocolFactory sessionFactory = new SessionSymmetricTransportSecurityProtocolFactory();
                     // base.ApplyAuditBehaviorSettings(context, sessionFactory);
                     sessionFactory.SecurityTokenParameters = scParameters.Clone();
                     ((SecureConversationSecurityTokenParameters)sessionFactory.SecurityTokenParameters).IssuerBindingContext = issuerBindingContext;
-                    this.EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
+                    EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
                     try
                     {
                         base.ConfigureProtocolFactory(sessionFactory, credentialsManager, true, issuerBindingContext, context.Binding);
                     }
                     finally
                     {
-                        this.EndpointSupportingTokenParameters.Endorsing.Insert(0, scParameters);
+                        EndpointSupportingTokenParameters.Endorsing.Insert(0, scParameters);
                     }
 
                     securityServiceDispatcher.SessionMode = true;
-                    securityServiceDispatcher.SessionServerSettings.InactivityTimeout = this.LocalServiceSettings.InactivityTimeout;
-                    securityServiceDispatcher.SessionServerSettings.KeyRolloverInterval = this.LocalServiceSettings.SessionKeyRolloverInterval;
-                    securityServiceDispatcher.SessionServerSettings.MaximumPendingSessions = this.LocalServiceSettings.MaxPendingSessions;
-                    securityServiceDispatcher.SessionServerSettings.MaximumKeyRenewalInterval = this.LocalServiceSettings.SessionKeyRenewalInterval;
-                    securityServiceDispatcher.SessionServerSettings.TolerateTransportFailures = this.LocalServiceSettings.ReconnectTransportOnFailure;
+                    securityServiceDispatcher.SessionServerSettings.InactivityTimeout = LocalServiceSettings.InactivityTimeout;
+                    securityServiceDispatcher.SessionServerSettings.KeyRolloverInterval = LocalServiceSettings.SessionKeyRolloverInterval;
+                    securityServiceDispatcher.SessionServerSettings.MaximumPendingSessions = LocalServiceSettings.MaxPendingSessions;
+                    securityServiceDispatcher.SessionServerSettings.MaximumKeyRenewalInterval = LocalServiceSettings.SessionKeyRenewalInterval;
+                    securityServiceDispatcher.SessionServerSettings.TolerateTransportFailures = LocalServiceSettings.ReconnectTransportOnFailure;
                     securityServiceDispatcher.SessionServerSettings.CanRenewSession = scParameters.CanRenewSession;
                     securityServiceDispatcher.SessionServerSettings.IssuedSecurityTokenParameters = scParameters.Clone();
                     ((SecureConversationSecurityTokenParameters)securityServiceDispatcher.SessionServerSettings.IssuedSecurityTokenParameters).IssuerBindingContext = issuerBindingContext;
@@ -141,7 +160,7 @@ namespace CoreWCF.Channels
                     //TODO later 
                     TransportSecurityProtocolFactory protocolFactory = new TransportSecurityProtocolFactory();
                     // base.ApplyAuditBehaviorSettings(context, protocolFactory);
-                    this.EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
+                    EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
                     try
                     {
                         base.ConfigureProtocolFactory(protocolFactory, credentialsManager, true, issuerBindingContext, context.Binding);
@@ -151,7 +170,7 @@ namespace CoreWCF.Channels
                     }
                     finally
                     {
-                        this.EndpointSupportingTokenParameters.Endorsing.Insert(0, scParameters);
+                        EndpointSupportingTokenParameters.Endorsing.Insert(0, scParameters);
                     }
 
                     securityServiceDispatcher.SecurityProtocolFactory = protocolFactory;
@@ -160,7 +179,7 @@ namespace CoreWCF.Channels
             }
             else
             {
-                SecurityProtocolFactory protocolFactory = this.CreateSecurityProtocolFactory<TChannel>(context, credentialsManager, true, issuerBindingContext);
+                SecurityProtocolFactory protocolFactory = CreateSecurityProtocolFactory<TChannel>(context, credentialsManager, true, issuerBindingContext);
                 securityServiceDispatcher.SecurityProtocolFactory = protocolFactory;
             }
             securityServiceDispatcher.InitializeSecurityDispatcher(channelBuilder, typeof(TChannel));
@@ -172,7 +191,9 @@ namespace CoreWCF.Channels
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+            }
 
             if (typeof(T) == typeof(ChannelProtectionRequirements))
             {

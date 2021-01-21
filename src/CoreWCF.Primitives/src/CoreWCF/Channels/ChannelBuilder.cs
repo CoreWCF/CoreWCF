@@ -12,18 +12,21 @@ namespace CoreWCF.Channels
         private CustomBinding binding;
         private BindingContext context;
         private BindingParameterCollection bindingParameters;
-        private Uri listenUri;
-        private ChannelDemuxer channelDemuxer;
-        private bool isChannelDemuxerRequired = false;
+        private readonly Uri listenUri;
+        private readonly ChannelDemuxer channelDemuxer;
+        private readonly bool isChannelDemuxerRequired = false;
 
         public ChannelBuilder(BindingContext context, bool addChannelDemuxerIfRequired)
         {
             this.context = context;
             isChannelDemuxerRequired = addChannelDemuxerIfRequired;
             if (isChannelDemuxerRequired)
+            {
                 channelDemuxer = new ChannelDemuxer();
-            this.binding = new CustomBinding(context.Binding, context.RemainingBindingElements);
-            this.bindingParameters = context.BindingParameters;
+            }
+
+            binding = new CustomBinding(context.Binding, context.RemainingBindingElements);
+            bindingParameters = context.BindingParameters;
         }
 
         public ChannelBuilder(Binding binding, BindingParameterCollection bindingParameters, bool addChannelDemuxerIfRequired)
@@ -36,14 +39,14 @@ namespace CoreWCF.Channels
 
         public CustomBinding Binding
         {
-            get { return this.binding; }
-            set { this.binding = value; }
+            get { return binding; }
+            set { binding = value; }
         }
 
         public BindingParameterCollection BindingParameters
         {
-            get { return this.bindingParameters; }
-            set { this.bindingParameters = value; }
+            get { return bindingParameters; }
+            set { bindingParameters = value; }
         }
 
         public ChannelDemuxer ChannelDemuxer
@@ -53,21 +56,30 @@ namespace CoreWCF.Channels
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             if (!isChannelDemuxerRequired)
+            {
                 throw new Exception("ChannelDemuxerRequired is set to false");
+            }
+
             return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher);
         }
 
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter) where TChannel : class, IChannel
         {
             if (!isChannelDemuxerRequired)
+            {
                 throw new Exception("ChannelDemuxerRequired is set to false");
+            }
+
             return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter);
         }
 
         public void RemoveServiceDispatcher<TChannel>(MessageFilter filter) where TChannel : class, IChannel
         {
             if (channelDemuxer == null)
+            {
                 throw new Exception("Demuxer can't be null");
+            }
+
             channelDemuxer.RemoveServiceDispatcher<TChannel>(filter);
         }
 
@@ -82,7 +94,7 @@ namespace CoreWCF.Channels
             }
             else
             {
-                return this.binding.BuildServiceDispatcher<TChannel>(this.bindingParameters, innerDispatcher);
+                return binding.BuildServiceDispatcher<TChannel>(bindingParameters, innerDispatcher);
             }
         }
     }

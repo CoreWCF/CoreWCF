@@ -19,9 +19,9 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenParameters));
             }
-            this.TokenProvider = tokenProvider;
-            this.SecurityTokenAttachmentMode = attachmentMode;
-            this.TokenParameters = tokenParameters;
+            TokenProvider = tokenProvider;
+            SecurityTokenAttachmentMode = attachmentMode;
+            TokenParameters = tokenParameters;
         }
 
         public SecurityTokenProvider TokenProvider { get; }

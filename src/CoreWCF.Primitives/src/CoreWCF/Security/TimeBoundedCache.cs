@@ -13,29 +13,29 @@ namespace CoreWCF.Security
     internal class TimeBoundedCache
     {
         private static Action<object> purgeCallback;
-        private Hashtable entries;
+        private readonly Hashtable entries;
 
         // if there are less than lowWaterMark entries, no purging is done
-        private int lowWaterMark;
+        private readonly int lowWaterMark;
         private DateTime nextPurgeTimeUtc;
         private TimeSpan purgeInterval;
-        private PurgingMode purgingMode;
+        private readonly PurgingMode purgingMode;
         private IOThreadTimer purgingTimer;
-        private bool doRemoveNotification;
+        private readonly bool doRemoveNotification;
 
         protected TimeBoundedCache(int lowWaterMark, int maxCacheItems, IEqualityComparer keyComparer, PurgingMode purgingMode, TimeSpan purgeInterval, bool doRemoveNotification)
         {
-            this.entries = new Hashtable(keyComparer);
-            this.CacheLock = new ReaderWriterLock();
+            entries = new Hashtable(keyComparer);
+            CacheLock = new ReaderWriterLock();
             this.lowWaterMark = lowWaterMark;
-            this.Capacity = maxCacheItems;
+            Capacity = maxCacheItems;
             this.purgingMode = purgingMode;
             this.purgeInterval = purgeInterval;
             this.doRemoveNotification = doRemoveNotification;
-            this.nextPurgeTimeUtc = DateTime.UtcNow.Add(this.purgeInterval);
+            nextPurgeTimeUtc = DateTime.UtcNow.Add(this.purgeInterval);
         }
 
-        public int Count => this.entries.Count;
+        public int Count => entries.Count;
 
         private static Action<object> PurgeCallback
         {
@@ -51,34 +51,34 @@ namespace CoreWCF.Security
 
         protected int Capacity { get; }
 
-        protected Hashtable Entries => this.entries;
+        protected Hashtable Entries => entries;
 
         protected ReaderWriterLock CacheLock { get; }
 
         protected bool TryAddItem(object key, object item, DateTime expirationTime, bool replaceExistingEntry)
         {
-            return this.TryAddItem(key, new ExpirableItem(item, expirationTime), replaceExistingEntry);
+            return TryAddItem(key, new ExpirableItem(item, expirationTime), replaceExistingEntry);
         }
 
         private void CancelTimerIfNeeded()
         {
-            if (this.Count == 0 && this.purgingTimer != null)
+            if (Count == 0 && purgingTimer != null)
             {
-                this.purgingTimer.Cancel();
-                this.purgingTimer = null;
+                purgingTimer.Cancel();
+                purgingTimer = null;
             }
         }
 
         private void StartTimerIfNeeded()
         {
-            if (this.purgingMode != PurgingMode.TimerBasedPurge)
+            if (purgingMode != PurgingMode.TimerBasedPurge)
             {
                 return;
             }
-            if (this.purgingTimer == null)
+            if (purgingTimer == null)
             {
-                this.purgingTimer = new IOThreadTimer(PurgeCallback, this, false);
-                this.purgingTimer.Set(this.purgeInterval);
+                purgingTimer = new IOThreadTimer(PurgeCallback, this, false);
+                purgingTimer.Set(purgeInterval);
             }
         }
 
@@ -90,15 +90,15 @@ namespace CoreWCF.Security
                 try { }
                 finally
                 {
-                    this.CacheLock.AcquireWriterLock(-1);
+                    CacheLock.AcquireWriterLock(-1);
                     lockHeld = true;
                 }
                 PurgeIfNeeded();
                 EnforceQuota();
-                IExpirableItem currentItem = this.entries[key] as IExpirableItem;
+                IExpirableItem currentItem = entries[key] as IExpirableItem;
                 if (currentItem == null || IsExpired(currentItem))
                 {
-                    this.entries[key] = item;
+                    entries[key] = item;
                 }
                 else if (!replaceExistingEntry)
                 {
@@ -106,11 +106,11 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    this.entries[key] = item;
+                    entries[key] = item;
                 }
                 if (currentItem != null && doRemoveNotification)
                 {
-                    this.OnRemove(ExtractItem(currentItem));
+                    OnRemove(ExtractItem(currentItem));
                 }
                 StartTimerIfNeeded();
                 return true;
@@ -119,7 +119,7 @@ namespace CoreWCF.Security
             {
                 if (lockHeld)
                 {
-                    this.CacheLock.ReleaseWriterLock();
+                    CacheLock.ReleaseWriterLock();
                 }
             }
         }
@@ -132,22 +132,22 @@ namespace CoreWCF.Security
                 try { }
                 finally
                 {
-                    this.CacheLock.AcquireWriterLock(-1);
+                    CacheLock.AcquireWriterLock(-1);
                     lockHeld = true;
                 }
                 PurgeIfNeeded();
                 EnforceQuota();
-                IExpirableItem currentItem = this.entries[key] as IExpirableItem;
+                IExpirableItem currentItem = entries[key] as IExpirableItem;
                 if (currentItem == null || IsExpired(currentItem))
                 {
                     return false;
                 }
                 else
                 {
-                    this.entries[key] = new ExpirableItem(item, expirationTime);
+                    entries[key] = new ExpirableItem(item, expirationTime);
                     if (currentItem != null && doRemoveNotification)
                     {
-                        this.OnRemove(ExtractItem(currentItem));
+                        OnRemove(ExtractItem(currentItem));
                     }
                     StartTimerIfNeeded();
                     return true;
@@ -157,7 +157,7 @@ namespace CoreWCF.Security
             {
                 if (lockHeld)
                 {
-                    this.CacheLock.ReleaseWriterLock();
+                    CacheLock.ReleaseWriterLock();
                 }
             }
         }
@@ -170,26 +170,26 @@ namespace CoreWCF.Security
                 try { }
                 finally
                 {
-                    this.CacheLock.AcquireWriterLock(-1);
+                    CacheLock.AcquireWriterLock(-1);
                     lockHeld = true;
                 }
 
-                int count = this.entries.Count;
+                int count = entries.Count;
                 if (doRemoveNotification)
                 {
-                    foreach (IExpirableItem item in this.entries.Values)
+                    foreach (IExpirableItem item in entries.Values)
                     {
                         OnRemove(ExtractItem(item));
                     }
                 }
-                this.entries.Clear();
+                entries.Clear();
                 CancelTimerIfNeeded();
             }
             finally
             {
                 if (lockHeld)
                 {
-                    this.CacheLock.ReleaseWriterLock();
+                    CacheLock.ReleaseWriterLock();
                 }
             }
         }
@@ -202,10 +202,10 @@ namespace CoreWCF.Security
                 try { }
                 finally
                 {
-                    this.CacheLock.AcquireReaderLock(-1);
+                    CacheLock.AcquireReaderLock(-1);
                     lockHeld = true;
                 }
-                IExpirableItem item = this.entries[key] as IExpirableItem;
+                IExpirableItem item = entries[key] as IExpirableItem;
                 if (item == null)
                 {
                     return null;
@@ -224,14 +224,14 @@ namespace CoreWCF.Security
             {
                 if (lockHeld)
                 {
-                    this.CacheLock.ReleaseReaderLock();
+                    CacheLock.ReleaseReaderLock();
                 }
             }
         }
 
         protected virtual ArrayList OnQuotaReached(Hashtable cacheTable)
         {
-            this.ThrowQuotaReachedException();
+            ThrowQuotaReachedException();
             return null;
         }
 
@@ -247,18 +247,18 @@ namespace CoreWCF.Security
                 try { }
                 finally
                 {
-                    this.CacheLock.AcquireWriterLock(-1);
+                    CacheLock.AcquireWriterLock(-1);
                     lockHeld = true;
                 }
                 PurgeIfNeeded();
-                IExpirableItem currentItem = this.entries[key] as IExpirableItem;
+                IExpirableItem currentItem = entries[key] as IExpirableItem;
                 bool result = (currentItem != null) && !IsExpired(currentItem);
                 if (currentItem != null)
                 {
-                    this.entries.Remove(key);
+                    entries.Remove(key);
                     if (doRemoveNotification)
                     {
-                        this.OnRemove(ExtractItem(currentItem));
+                        OnRemove(ExtractItem(currentItem));
                     }
                     CancelTimerIfNeeded();
                 }
@@ -268,35 +268,35 @@ namespace CoreWCF.Security
             {
                 if (lockHeld)
                 {
-                    this.CacheLock.ReleaseWriterLock();
+                    CacheLock.ReleaseWriterLock();
                 }
             }
         }
 
         private void EnforceQuota()
         {
-            if (!(this.CacheLock.IsWriterLockHeld == true))
+            if (!(CacheLock.IsWriterLockHeld == true))
             {
                 // we failfast here because if we don't have the lock we could corrupt the cache
                 Fx.Assert("Cache write lock is not held.");
                 DiagnosticUtility.FailFast("Cache write lock is not held.");
             }
-            if (this.Count >= this.Capacity)
+            if (Count >= Capacity)
             {
                 ArrayList keysToBeRemoved;
-                keysToBeRemoved = this.OnQuotaReached(this.entries);
+                keysToBeRemoved = OnQuotaReached(entries);
                 if (keysToBeRemoved != null)
                 {
                     for (int i = 0; i < keysToBeRemoved.Count; ++i)
                     {
-                        this.entries.Remove(keysToBeRemoved[i]);
+                        entries.Remove(keysToBeRemoved[i]);
                     }
 
                 }
                 CancelTimerIfNeeded();
-                if (this.Count >= this.Capacity)
+                if (Count >= Capacity)
                 {
-                    this.ThrowQuotaReachedException();
+                    ThrowQuotaReachedException();
                 }
             }
         }
@@ -322,11 +322,11 @@ namespace CoreWCF.Security
 
         private bool ShouldPurge()
         {
-            if (this.Count >= this.Capacity)
+            if (Count >= Capacity)
             {
                 return true;
             }
-            else if (this.purgingMode == PurgingMode.AccessBasedPurge && DateTime.UtcNow > this.nextPurgeTimeUtc && this.Count > this.lowWaterMark)
+            else if (purgingMode == PurgingMode.AccessBasedPurge && DateTime.UtcNow > nextPurgeTimeUtc && Count > lowWaterMark)
             {
                 return true;
             }
@@ -338,7 +338,7 @@ namespace CoreWCF.Security
 
         private void PurgeIfNeeded()
         {
-            if (!(this.CacheLock.IsWriterLockHeld == true))
+            if (!(CacheLock.IsWriterLockHeld == true))
             {
                 // we failfast here because if we don't have the lock we could corrupt the cache
                 Fx.Assert("Cache write lock is not held.");
@@ -355,34 +355,34 @@ namespace CoreWCF.Security
         /// </summary>
         private void PurgeStaleItems()
         {
-            if (!(this.CacheLock.IsWriterLockHeld == true))
+            if (!(CacheLock.IsWriterLockHeld == true))
             {
                 // we failfast here because if we don't have the lock we could corrupt the cache
                 Fx.Assert("Cache write lock is not held.");
                 DiagnosticUtility.FailFast("Cache write lock is not held.");
             }
             ArrayList expiredItems = new ArrayList();
-            foreach (object key in this.entries.Keys)
+            foreach (object key in entries.Keys)
             {
-                IExpirableItem item = this.entries[key] as IExpirableItem;
+                IExpirableItem item = entries[key] as IExpirableItem;
                 if (IsExpired(item))
                 {
                     // this is a stale item. Remove!
-                    this.OnRemove(ExtractItem(item));
+                    OnRemove(ExtractItem(item));
                     expiredItems.Add(key);
                 }
             }
             for (int i = 0; i < expiredItems.Count; ++i)
             {
-                this.entries.Remove(expiredItems[i]);
+                entries.Remove(expiredItems[i]);
             }
             CancelTimerIfNeeded();
-            this.nextPurgeTimeUtc = DateTime.UtcNow.Add(this.purgeInterval);
+            nextPurgeTimeUtc = DateTime.UtcNow.Add(purgeInterval);
         }
 
         private void ThrowQuotaReachedException()
         {
-            string message = SR.Format(SR.CacheQuotaReached, this.Capacity);
+            string message = SR.Format(SR.CacheQuotaReached, Capacity);
             Exception inner = new QuotaExceededException(message);
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(message, inner));
         }
@@ -466,17 +466,17 @@ namespace CoreWCF.Security
 
         internal sealed class ExpirableItem : IExpirableItem
         {
-            private object item;
+            private readonly object item;
 
             public ExpirableItem(object item, DateTime expirationTime)
             {
                 this.item = item;
                 Fx.Assert(expirationTime == DateTime.MaxValue || expirationTime.Kind == DateTimeKind.Utc, "");
-                this.ExpirationTime = expirationTime;
+                ExpirationTime = expirationTime;
             }
 
             public DateTime ExpirationTime { get; }
-            public object Item => this.item;
+            public object Item => item;
         }
     }
 

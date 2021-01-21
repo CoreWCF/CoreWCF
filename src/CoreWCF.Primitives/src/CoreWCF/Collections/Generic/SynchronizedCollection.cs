@@ -22,7 +22,9 @@ namespace CoreWCF.Collections.Generic
         public SynchronizedCollection(object syncRoot)
         {
             if (syncRoot == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
+            }
 
             _items = new List<T>();
             _sync = syncRoot;
@@ -31,9 +33,14 @@ namespace CoreWCF.Collections.Generic
         public SynchronizedCollection(object syncRoot, IEnumerable<T> list)
         {
             if (syncRoot == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
+            }
+
             if (list == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(list));
+            }
 
             _items = new List<T>(list);
             _sync = syncRoot;
@@ -42,13 +49,20 @@ namespace CoreWCF.Collections.Generic
         public SynchronizedCollection(object syncRoot, params T[] list)
         {
             if (syncRoot == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
+            }
+
             if (list == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(list));
+            }
 
             _items = new List<T>(list.Length);
             foreach (T t in list)
+            {
                 _items.Add(t);
+            }
 
             _sync = syncRoot;
         }
@@ -82,8 +96,10 @@ namespace CoreWCF.Collections.Generic
                 lock (_sync)
                 {
                     if (index < 0 || index >= _items.Count)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), index,
                                                     SR.Format(SR.ValueMustBeInRange, 0, _items.Count - 1)));
+                    }
 
                     SetItem(index, value);
                 }
@@ -144,8 +160,10 @@ namespace CoreWCF.Collections.Generic
             lock (_sync)
             {
                 if (index < 0 || index > _items.Count)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), index,
                                                 SR.Format(SR.ValueMustBeInRange, 0, _items.Count - 1)));
+                }
 
                 InsertItem(index, item);
             }
@@ -171,7 +189,9 @@ namespace CoreWCF.Collections.Generic
             {
                 int index = InternalIndexOf(item);
                 if (index < 0)
+                {
                     return false;
+                }
 
                 RemoveItem(index);
                 return true;
@@ -183,8 +203,10 @@ namespace CoreWCF.Collections.Generic
             lock (_sync)
             {
                 if (index < 0 || index >= _items.Count)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), index,
                                                 SR.Format(SR.ValueMustBeInRange, 0, _items.Count - 1)));
+                }
 
                 RemoveItem(index);
             }

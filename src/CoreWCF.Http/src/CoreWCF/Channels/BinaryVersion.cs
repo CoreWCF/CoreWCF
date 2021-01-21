@@ -14,8 +14,8 @@ namespace CoreWCF.Channels
 
         private BinaryVersion(string contentType, string sessionContentType, IXmlDictionary dictionary)
         {
-            this.ContentType = contentType;
-            this.SessionContentType = sessionContentType;
+            ContentType = contentType;
+            SessionContentType = sessionContentType;
             this.dictionary = dictionary;
         }
 

@@ -17,7 +17,7 @@ namespace CoreWCF.Http.Tests
 {
     public class RequestReplyTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public RequestReplyTests(ITestOutputHelper output)
         {

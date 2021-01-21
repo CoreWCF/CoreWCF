@@ -9,8 +9,8 @@ namespace CoreWCF.Security
     [Serializable]
     public class MessageSecurityException : CommunicationException
     {
-        private MessageFault fault;
-        private bool isReplay = false;
+        private readonly MessageFault fault;
+        private readonly bool isReplay = false;
 
         public MessageSecurityException()
             : base()

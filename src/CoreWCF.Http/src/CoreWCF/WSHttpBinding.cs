@@ -44,13 +44,13 @@ namespace CoreWCF
         {
             if (_security.Mode == SecurityMode.None || _security.Mode == SecurityMode.Message)
             {
-                this.HttpTransport.ExtendedProtectionPolicy = _security.Transport.ExtendedProtectionPolicy;
-                return this.HttpTransport;
+                HttpTransport.ExtendedProtectionPolicy = _security.Transport.ExtendedProtectionPolicy;
+                return HttpTransport;
             }
             else
             {
-                _security.ApplyTransportSecurity(this.HttpsTransport);
-                return this.HttpsTransport;
+                _security.ApplyTransportSecurity(HttpsTransport);
+                return HttpsTransport;
             }
         }
 

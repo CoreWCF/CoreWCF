@@ -18,7 +18,7 @@ namespace CoreWCF.NetTcp.Tests
 {
     public class TransportFrameworkTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public TransportFrameworkTests(ITestOutputHelper output)
         {

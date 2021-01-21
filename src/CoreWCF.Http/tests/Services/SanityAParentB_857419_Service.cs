@@ -15,7 +15,11 @@ namespace Services
         public void OneWayMethod(object o)
         {
             string input = o as string;
-            if (input == null) throw new NullReferenceException("clientString was not in the SharedContext");
+            if (input == null)
+            {
+                throw new NullReferenceException("clientString was not in the SharedContext");
+            }
+
             return;
         }
 
@@ -39,16 +43,27 @@ namespace Services
 
         public string TwoWayMethod(string input)
         {
-            if (input == null) throw new NullReferenceException("clientString was not in the SharedContext");
+            if (input == null)
+            {
+                throw new NullReferenceException("clientString was not in the SharedContext");
+            }
+
             return input;
         }
 
         public object DataContractMethod(object o)
         {
             MyBaseDataType data = o as MyBaseDataType;
-            if (data == null) throw new NullReferenceException("DataContractMethod received null " + o);
+            if (data == null)
+            {
+                throw new NullReferenceException("DataContractMethod received null " + o);
+            }
+
             string input = data.data;
-            if (input == null) throw new NullReferenceException("clientString was not in the SharedContext");
+            if (input == null)
+            {
+                throw new NullReferenceException("clientString was not in the SharedContext");
+            }
 
             return data;
         }

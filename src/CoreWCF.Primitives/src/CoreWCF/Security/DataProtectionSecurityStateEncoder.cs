@@ -11,8 +11,8 @@ namespace CoreWCF.Security
 
     public class DataProtectionSecurityStateEncoder : SecurityStateEncoder
     {
-        private byte[] entropy;
-        private bool useCurrentUserProtectionScope;
+        private readonly byte[] entropy;
+        private readonly bool useCurrentUserProtectionScope;
 
         public DataProtectionSecurityStateEncoder() : this(true)
         {
@@ -40,17 +40,17 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.useCurrentUserProtectionScope;
+                return useCurrentUserProtectionScope;
             }
         }
 
         public byte[] GetEntropy()
         {
             byte[] result = null;
-            if (this.entropy != null)
+            if (entropy != null)
             {
-                result = Fx.AllocateByteArray(this.entropy.Length);
-                Buffer.BlockCopy(this.entropy, 0, result, 0, this.entropy.Length);
+                result = Fx.AllocateByteArray(entropy.Length);
+                Buffer.BlockCopy(entropy, 0, result, 0, entropy.Length);
             }
             return result;
         }
@@ -58,9 +58,9 @@ namespace CoreWCF.Security
         public override string ToString()
         {
             StringBuilder result = new StringBuilder();
-            result.Append(this.GetType().ToString());
-            result.AppendFormat("{0}  UseCurrentUserProtectionScope={1}", Environment.NewLine, this.useCurrentUserProtectionScope);
-            result.AppendFormat("{0}  Entropy Length={1}", Environment.NewLine, (this.entropy == null) ? 0 : this.entropy.Length);
+            result.Append(GetType().ToString());
+            result.AppendFormat("{0}  UseCurrentUserProtectionScope={1}", Environment.NewLine, useCurrentUserProtectionScope);
+            result.AppendFormat("{0}  Entropy Length={1}", Environment.NewLine, (entropy == null) ? 0 : entropy.Length);
             return result.ToString();
         }
 
@@ -68,7 +68,7 @@ namespace CoreWCF.Security
         {
             try
             {
-                return ProtectedData.Unprotect(data, this.entropy, (this.useCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
+                return ProtectedData.Unprotect(data, entropy, (useCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
             }
             catch (CryptographicException exception)
             {
@@ -81,7 +81,7 @@ namespace CoreWCF.Security
         {
             try
             {
-                return ProtectedData.Protect(data, this.entropy, (this.useCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
+                return ProtectedData.Protect(data, entropy, (useCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
             }
             catch (CryptographicException exception)
             {

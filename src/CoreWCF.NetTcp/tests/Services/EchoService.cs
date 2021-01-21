@@ -15,7 +15,7 @@ namespace Services
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, InstanceContextMode = InstanceContextMode.Single)]
     public class EchoService : Contract.IEchoService
     {
-        private ManualResetEvent _mre = new ManualResetEvent(false);
+        private readonly ManualResetEvent _mre = new ManualResetEvent(false);
 
         public string EchoString(string echo)
         {

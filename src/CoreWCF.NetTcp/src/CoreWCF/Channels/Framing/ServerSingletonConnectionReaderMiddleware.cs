@@ -18,11 +18,11 @@ namespace CoreWCF.Channels.Framing
 {
     internal class ServerSingletonConnectionReaderMiddleware
     {
-        private HandshakeDelegate _next;
-        private IServiceScopeFactory _servicesScopeFactory;
+        private readonly HandshakeDelegate _next;
+        private readonly IServiceScopeFactory _servicesScopeFactory;
         private ConnectionOrientedTransportReplyChannel _replyChannel;
         private IServiceChannelDispatcher _channelDispatcher;
-        private AsyncLock _lock = new AsyncLock();
+        private readonly AsyncLock _lock = new AsyncLock();
 
         public ServerSingletonConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory)
         {
@@ -89,7 +89,9 @@ namespace CoreWCF.Channels.Framing
                 if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                 {
                     if (!readResult.IsCompleted)
+                    {
                         connection.Input.AdvanceTo(readResult.Buffer.Start);
+                    }
                     //EnsureDecoderAtEof(connection);
                     connection.EOF = true;
                 }
@@ -200,9 +202,9 @@ namespace CoreWCF.Channels.Framing
         // ensures that the reader is notified at end-of-stream, and takes care of the framing chunk headers
         private class SingletonInputConnectionStream : Stream
         {
-            private FramingConnection _connection;
-            private IDefaultCommunicationTimeouts _timeouts;
-            private SingletonMessageDecoder decoder;
+            private readonly FramingConnection _connection;
+            private readonly IDefaultCommunicationTimeouts _timeouts;
+            private readonly SingletonMessageDecoder decoder;
             private ReadOnlySequence<byte> _buffer = ReadOnlySequence<byte>.Empty;
             private bool atEof;
             private int chunkBytesRemaining;
@@ -292,8 +294,7 @@ namespace CoreWCF.Channels.Framing
             {
                 if (_buffer.Length == 0 && !atEof)
                 {
-                    ReadResult readResult;
-                    if (!_connection.Input.TryRead(out readResult))
+                    if (!_connection.Input.TryRead(out ReadResult readResult))
                     {
                         readResult = await _connection.Input.ReadAsync(token).ConfigureAwait(false);
                     }

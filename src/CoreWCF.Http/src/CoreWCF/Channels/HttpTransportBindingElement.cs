@@ -47,13 +47,19 @@ namespace CoreWCF.Channels
             get
             {
                 if (_maxBufferSizeInitialized || TransferMode != TransferMode.Buffered)
+                {
                     return _maxBufferSize;
+                }
 
                 long maxReceivedMessageSize = MaxReceivedMessageSize;
                 if (maxReceivedMessageSize > int.MaxValue)
+                {
                     return int.MaxValue;
+                }
                 else
+                {
                     return (int)maxReceivedMessageSize;
+                }
             }
             set
             {
@@ -153,11 +159,11 @@ namespace CoreWCF.Channels
         {
             if (typeof(TChannel) == typeof(IReplyChannel))
             {
-                return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always;
+                return WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always;
             }
             else if (typeof(TChannel) == typeof(IDuplexSessionChannel))
             {
-                return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Never;
+                return WebSocketSettings.TransportUsage != WebSocketTransportUsage.Never;
             }
 
             return false;
@@ -209,7 +215,11 @@ namespace CoreWCF.Channels
             else if (typeof(T).FullName.Equals("CoreWCF.Channels.ITransportCompressionSupport"))
             {
                 var app = context.BindingParameters.Find<IApplicationBuilder>();
-                if (app == null) return base.GetProperty<T>(context);
+                if (app == null)
+                {
+                    return base.GetProperty<T>(context);
+                }
+
                 var tcs = app.ApplicationServices.GetService(typeof(T).Assembly.GetType("CoreWCF.Channels.TransportCompressionSupportHelper"));
                 return (T)tcs;
             }
@@ -230,9 +240,8 @@ namespace CoreWCF.Channels
                 return currentAuthenticationSchemes;
             }
 
-            AuthenticationSchemes hostSupportedAuthenticationSchemes;
 
-            if (!AuthenticationSchemesBindingParameter.TryExtract(bindingParameters, out hostSupportedAuthenticationSchemes))
+            if (!AuthenticationSchemesBindingParameter.TryExtract(bindingParameters, out AuthenticationSchemes hostSupportedAuthenticationSchemes))
             {
                 return currentAuthenticationSchemes;
             }

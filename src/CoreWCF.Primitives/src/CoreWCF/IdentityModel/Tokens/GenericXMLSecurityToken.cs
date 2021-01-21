@@ -14,14 +14,14 @@ namespace CoreWCF.IdentityModel.Tokens
     public class GenericXmlSecurityToken : SecurityToken
     {
         private const int SupportedPersistanceVersion = 1;
-        private string id;
-        private SecurityToken proofToken;
-        private SecurityKeyIdentifierClause internalTokenReference;
-        private SecurityKeyIdentifierClause externalTokenReference;
-        private XmlElement tokenXml;
-        private ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
-        private DateTime effectiveTime;
-        private DateTime expirationTime;
+        private readonly string id;
+        private readonly SecurityToken proofToken;
+        private readonly SecurityKeyIdentifierClause internalTokenReference;
+        private readonly SecurityKeyIdentifierClause externalTokenReference;
+        private readonly XmlElement tokenXml;
+        private readonly ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+        private readonly DateTime effectiveTime;
+        private readonly DateTime expirationTime;
 
         public GenericXmlSecurityToken(
             XmlElement tokenXml,
@@ -38,7 +38,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenXml));
             }
 
-            this.id = GetId(tokenXml);
+            id = GetId(tokenXml);
             this.tokenXml = tokenXml;
             this.proofToken = proofToken;
             this.effectiveTime = effectiveTime.ToUniversalTime();
@@ -49,30 +49,34 @@ namespace CoreWCF.IdentityModel.Tokens
             this.authorizationPolicies = authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
         }
 
-        public override string Id => this.id;
+        public override string Id => id;
 
-        public override DateTime ValidFrom => this.effectiveTime;
+        public override DateTime ValidFrom => effectiveTime;
 
-        public override DateTime ValidTo => this.expirationTime;
+        public override DateTime ValidTo => expirationTime;
 
-        public SecurityKeyIdentifierClause InternalTokenReference => this.internalTokenReference;
+        public SecurityKeyIdentifierClause InternalTokenReference => internalTokenReference;
 
-        public SecurityKeyIdentifierClause ExternalTokenReference => this.externalTokenReference;
+        public SecurityKeyIdentifierClause ExternalTokenReference => externalTokenReference;
 
-        public XmlElement TokenXml => this.tokenXml;
+        public XmlElement TokenXml => tokenXml;
 
-        public SecurityToken ProofToken => this.proofToken;
+        public SecurityToken ProofToken => proofToken;
 
-        public ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies => this.authorizationPolicies;
+        public ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies => authorizationPolicies;
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys
         {
             get
             {
-                if (this.proofToken != null)
-                    return this.proofToken.SecurityKeys;
+                if (proofToken != null)
+                {
+                    return proofToken.SecurityKeys;
+                }
                 else
+                {
                     return EmptyReadOnlyCollection<SecurityKey>.Instance;
+                }
             }
         }
 
@@ -80,13 +84,19 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             StringWriter writer = new StringWriter(CultureInfo.InvariantCulture);
             writer.WriteLine("Generic XML token:");
-            writer.WriteLine("   validFrom: {0}", this.ValidFrom);
-            writer.WriteLine("   validTo: {0}", this.ValidTo);
-            if (this.internalTokenReference != null)
-                writer.WriteLine("   InternalTokenReference: {0}", this.internalTokenReference);
-            if (this.externalTokenReference != null)
-                writer.WriteLine("   ExternalTokenReference: {0}", this.externalTokenReference);
-            writer.WriteLine("   Token Element: ({0}, {1})", this.tokenXml.LocalName, this.tokenXml.NamespaceURI);
+            writer.WriteLine("   validFrom: {0}", ValidFrom);
+            writer.WriteLine("   validTo: {0}", ValidTo);
+            if (internalTokenReference != null)
+            {
+                writer.WriteLine("   InternalTokenReference: {0}", internalTokenReference);
+            }
+
+            if (externalTokenReference != null)
+            {
+                writer.WriteLine("   ExternalTokenReference: {0}", externalTokenReference);
+            }
+
+            writer.WriteLine("   Token Element: ({0}, {1})", tokenXml.LocalName, tokenXml.NamespaceURI);
             return writer.ToString();
         }
 
@@ -125,33 +135,41 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public override bool CanCreateKeyIdentifierClause<T>()
         {
-            if (this.internalTokenReference != null && typeof(T) == this.internalTokenReference.GetType())
+            if (internalTokenReference != null && typeof(T) == internalTokenReference.GetType())
+            {
                 return true;
+            }
 
-            if (this.externalTokenReference != null && typeof(T) == this.externalTokenReference.GetType())
+            if (externalTokenReference != null && typeof(T) == externalTokenReference.GetType())
+            {
                 return true;
+            }
 
             return false;
         }
 
         public override T CreateKeyIdentifierClause<T>()
         {
-            if (this.internalTokenReference != null && typeof(T) == this.internalTokenReference.GetType())
-                return (T)this.internalTokenReference;
+            if (internalTokenReference != null && typeof(T) == internalTokenReference.GetType())
+            {
+                return (T)internalTokenReference;
+            }
 
-            if (this.externalTokenReference != null && typeof(T) == this.externalTokenReference.GetType())
-                return (T)this.externalTokenReference;
+            if (externalTokenReference != null && typeof(T) == externalTokenReference.GetType())
+            {
+                return (T)externalTokenReference;
+            }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.UnableToCreateTokenReference)));
         }
 
         public override bool MatchesKeyIdentifierClause(SecurityKeyIdentifierClause keyIdentifierClause)
         {
-            if (this.internalTokenReference != null && this.internalTokenReference.Matches(keyIdentifierClause))
+            if (internalTokenReference != null && internalTokenReference.Matches(keyIdentifierClause))
             {
                 return true;
             }
-            else if (this.externalTokenReference != null && this.externalTokenReference.Matches(keyIdentifierClause))
+            else if (externalTokenReference != null && externalTokenReference.Matches(keyIdentifierClause))
             {
                 return true;
             }

@@ -11,7 +11,7 @@ namespace DispatcherClient
 {
     internal class DispatcherBinding<TService, TContract> : Binding where TService : class
     {
-        private Action<IServiceCollection> _configureServices;
+        private readonly Action<IServiceCollection> _configureServices;
 
         internal DispatcherBinding(Action<IServiceCollection> configureServices)
         {

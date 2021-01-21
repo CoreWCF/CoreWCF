@@ -10,8 +10,8 @@ namespace CoreWCF
     internal class ServiceModelDictionary : IXmlDictionary
     {
         static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
-        private ServiceModelStrings strings;
-        private int count;
+        private readonly ServiceModelStrings strings;
+        private readonly int count;
         private XmlDictionaryString[] dictionaryStrings1;
         private XmlDictionaryString[] dictionaryStrings2;
         private Dictionary<string, int> dictionary;
@@ -20,7 +20,7 @@ namespace CoreWCF
         public ServiceModelDictionary(ServiceModelStrings strings)
         {
             this.strings = strings;
-            this.count = strings.Count;
+            count = strings.Count;
         }
 
         static public ServiceModelDictionary CurrentVersion => Version1;
@@ -30,17 +30,25 @@ namespace CoreWCF
         public bool TryLookup(string key, out XmlDictionaryString value)
         {
             if (key == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
-            if (this.dictionary == null)
+            }
+
+            if (dictionary == null)
             {
                 Dictionary<string, int> dictionary = new Dictionary<string, int>(count);
                 for (int i = 0; i < count; i++)
+                {
                     dictionary.Add(strings[i], i);
+                }
+
                 this.dictionary = dictionary;
             }
-            int id;
-            if (this.dictionary.TryGetValue(key, out id))
+            if (dictionary.TryGetValue(key, out int id))
+            {
                 return TryLookup(id, out value);
+            }
+
             value = null;
             return false;
         }
@@ -57,7 +65,10 @@ namespace CoreWCF
             if (key < keyThreshold)
             {
                 if (dictionaryStrings1 == null)
+                {
                     dictionaryStrings1 = new XmlDictionaryString[keyThreshold];
+                }
+
                 s = dictionaryStrings1[key];
                 if (s == null)
                 {
@@ -68,7 +79,10 @@ namespace CoreWCF
             else
             {
                 if (dictionaryStrings2 == null)
+                {
                     dictionaryStrings2 = new XmlDictionaryString[count - keyThreshold];
+                }
+
                 s = dictionaryStrings2[key - keyThreshold];
                 if (s == null)
                 {
@@ -83,7 +97,10 @@ namespace CoreWCF
         public bool TryLookup(XmlDictionaryString key, out XmlDictionaryString value)
         {
             if (key == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("key"));
+            }
+
             if (key.Dictionary == this)
             {
                 value = key;
@@ -92,7 +109,10 @@ namespace CoreWCF
             if (key.Dictionary == CurrentVersion)
             {
                 if (versionedDictionaryStrings == null)
+                {
                     versionedDictionaryStrings = new XmlDictionaryString[CurrentVersion.count];
+                }
+
                 XmlDictionaryString s = versionedDictionaryStrings[key.Key];
                 if (s == null)
                 {

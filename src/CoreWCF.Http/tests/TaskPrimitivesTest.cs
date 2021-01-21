@@ -17,7 +17,7 @@ namespace BasicHttp
 {
     public class TaskPrimitivesTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public static DateTime TestDateTime = new DateTime(2010, 09, 04, new GregorianCalendar(GregorianCalendarTypes.USEnglish));
         public TaskPrimitivesTest(ITestOutputHelper output)
         {

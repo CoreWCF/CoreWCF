@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
 {
     public sealed class AddressHeaderCollection : System.Collections.ObjectModel.ReadOnlyCollection<AddressHeader>
     {
-        private static AddressHeaderCollection emptyHeaderCollection = new AddressHeaderCollection();
+        private static readonly AddressHeaderCollection emptyHeaderCollection = new AddressHeaderCollection();
 
         public AddressHeaderCollection()
             : base(new List<AddressHeader>())
@@ -27,8 +27,10 @@ namespace CoreWCF.Channels
                 for (int i = 0; i < collection.Count; i++)
                 {
                     if (collection[i] == null)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                             new ArgumentException(SR.MessageHeaderIsNull0));
+                    }
                 }
             }
             else
@@ -36,8 +38,10 @@ namespace CoreWCF.Channels
                 foreach (AddressHeader addressHeader in addressHeaders)
                 {
                     if (addressHeader == null)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                             new ArgumentException(SR.MessageHeaderIsNull0));
+                    }
                 }
             }
         }
@@ -47,7 +51,10 @@ namespace CoreWCF.Channels
             get
             {
                 if (this == (object)emptyHeaderCollection)
+                {
                     return 0;
+                }
+
                 return Count;
             }
         }
@@ -55,7 +62,9 @@ namespace CoreWCF.Channels
         public void AddHeadersTo(Message message)
         {
             if (message == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
 
             for (int i = 0; i < InternalCount; i++)
             {
@@ -66,9 +75,14 @@ namespace CoreWCF.Channels
         public AddressHeader[] FindAll(string name, string ns)
         {
             if (name == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            }
+
             if (ns == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(ns));
+            }
 
             List<AddressHeader> results = new List<AddressHeader>();
             for (int i = 0; i < Count; i++)
@@ -86,9 +100,14 @@ namespace CoreWCF.Channels
         public AddressHeader FindHeader(string name, string ns)
         {
             if (name == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            }
+
             if (ns == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(ns));
+            }
 
             AddressHeader matchingHeader = null;
 
@@ -98,7 +117,10 @@ namespace CoreWCF.Channels
                 if (header.Name == name && header.Namespace == ns)
                 {
                     if (matchingHeader != null)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.MultipleMessageHeaders, name, ns)));
+                    }
+
                     matchingHeader = header;
                 }
             }
@@ -109,7 +131,9 @@ namespace CoreWCF.Channels
         internal bool IsEquivalent(AddressHeaderCollection col)
         {
             if (InternalCount != col.InternalCount)
+            {
                 return false;
+            }
 
             StringBuilder builder = new StringBuilder();
             Dictionary<string, int> myHeaders = new Dictionary<string, int>();
@@ -119,15 +143,18 @@ namespace CoreWCF.Channels
             col.PopulateHeaderDictionary(builder, otherHeaders);
 
             if (myHeaders.Count != otherHeaders.Count)
+            {
                 return false;
+            }
 
             foreach (KeyValuePair<string, int> pair in myHeaders)
             {
-                int count;
-                if (otherHeaders.TryGetValue(pair.Key, out count))
+                if (otherHeaders.TryGetValue(pair.Key, out int count))
                 {
                     if (count != pair.Value)
+                    {
                         return false;
+                    }
                 }
                 else
                 {
@@ -185,7 +212,9 @@ namespace CoreWCF.Channels
         internal void WriteContentsTo(XmlDictionaryWriter writer)
         {
             for (int i = 0; i < InternalCount; i++)
+            {
                 this[i].WriteAddressHeader(writer);
+            }
         }
     }
 }

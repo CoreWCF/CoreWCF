@@ -13,10 +13,10 @@ namespace CoreWCF.Dispatcher
 
     internal class EndpointAddressMessageFilter : MessageFilter
     {
-        private EndpointAddress address;
-        private bool includeHostNameInComparison;
-        private EndpointAddressMessageFilterHelper helper;
-        private UriComparer comparer;
+        private readonly EndpointAddress address;
+        private readonly bool includeHostNameInComparison;
+        private readonly EndpointAddressMessageFilterHelper helper;
+        private readonly UriComparer comparer;
 
         public EndpointAddressMessageFilter(EndpointAddress address)
             : this(address, false)
@@ -184,8 +184,8 @@ namespace CoreWCF.Dispatcher
 
     internal class EndpointAddressMessageFilterHelper
     {
-        private EndpointAddress address;
-        private WeakReference processorPool;
+        private readonly EndpointAddress address;
+        private readonly WeakReference processorPool;
         private int size;
         private byte[] mask;
         private Dictionary<QName, int> qnameLookup;
@@ -213,7 +213,6 @@ namespace CoreWCF.Dispatcher
         {
             int nextBit = 0;
             string key;
-            HeaderBit[] bits;
             QName qname;
             qnameLookup = new Dictionary<QName, int>(EndpointAddressProcessor.QNameComparer);
             headerLookup = new Dictionary<string, HeaderBit[]>();
@@ -222,13 +221,16 @@ namespace CoreWCF.Dispatcher
             for (int i = 0; i < address.Headers.Count; ++i)
             {
                 if (builder == null)
+                {
                     builder = new StringBuilder();
+                }
                 else
+                {
                     builder.Remove(0, builder.Length);
-
+                }
 
                 key = address.Headers[i].GetComparableForm(builder);
-                if (headerLookup.TryGetValue(key, out bits))
+                if (headerLookup.TryGetValue(key, out HeaderBit[] bits))
                 {
                     Array.Resize(ref bits, bits.Length + 1);
                     bits[bits.Length - 1] = new HeaderBit(nextBit++);
@@ -279,7 +281,10 @@ namespace CoreWCF.Dispatcher
             get
             {
                 if (headerLookup == null)
+                {
                     headerLookup = new Dictionary<string, HeaderBit[]>();
+                }
+
                 return headerLookup;
             }
         }

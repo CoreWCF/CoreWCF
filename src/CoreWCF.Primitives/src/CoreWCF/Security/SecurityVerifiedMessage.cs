@@ -37,30 +37,30 @@ namespace CoreWCF.Security
             if (securityHeader.RequireMessageProtection)
             {
                 XmlDictionaryReader messageReader;
-                BufferedMessage bufferedMessage = this.InnerMessage as BufferedMessage;
-                if (bufferedMessage != null && this.Headers.ContainsOnlyBufferedMessageHeaders)
+                BufferedMessage bufferedMessage = InnerMessage as BufferedMessage;
+                if (bufferedMessage != null && Headers.ContainsOnlyBufferedMessageHeaders)
                 {
                     messageReader = bufferedMessage.GetMessageReader();
                 }
                 else
                 {
-                    this.messageBuffer = new XmlBuffer(int.MaxValue);
-                    XmlDictionaryWriter writer = this.messageBuffer.OpenSection(this.securityHeader.ReaderQuotas);
-                    this.InnerMessage.WriteMessage(writer);
-                    this.messageBuffer.CloseSection();
-                    this.messageBuffer.Close();
-                    messageReader = this.messageBuffer.GetReader(0);
+                    messageBuffer = new XmlBuffer(int.MaxValue);
+                    XmlDictionaryWriter writer = messageBuffer.OpenSection(this.securityHeader.ReaderQuotas);
+                    InnerMessage.WriteMessage(writer);
+                    messageBuffer.CloseSection();
+                    messageBuffer.Close();
+                    messageReader = messageBuffer.GetReader(0);
                 }
                 MoveToSecurityHeader(messageReader, securityHeader.HeaderIndex, true);
-                this.cachedReaderAtSecurityHeader = messageReader;
-                this.state = BodyState.Buffered;
+                cachedReaderAtSecurityHeader = messageReader;
+                state = BodyState.Buffered;
             }
             else
             {
-                this.envelopeAttributes = XmlAttributeHolder.emptyArray;
-                this.headerAttributes = XmlAttributeHolder.emptyArray;
-                this.bodyAttributes = XmlAttributeHolder.emptyArray;
-                this.canDelegateCreateBufferedCopyToInnerMessage = true;
+                envelopeAttributes = XmlAttributeHolder.emptyArray;
+                headerAttributes = XmlAttributeHolder.emptyArray;
+                bodyAttributes = XmlAttributeHolder.emptyArray;
+                canDelegateCreateBufferedCopyToInnerMessage = true;
             }
         }
 
@@ -68,18 +68,18 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (this.IsDisposed)
+                if (IsDisposed)
                 {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
                 }
-                if (!this.bodyDecrypted)
+                if (!bodyDecrypted)
                 {
-                    return this.InnerMessage.IsEmpty;
+                    return InnerMessage.IsEmpty;
                 }
 
                 EnsureDecryptedBodyStatusDetermined();
 
-                return this.isDecryptedBodyEmpty;
+                return isDecryptedBodyEmpty;
             }
         }
 
@@ -87,34 +87,34 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (this.IsDisposed)
+                if (IsDisposed)
                 {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
                 }
-                if (!this.bodyDecrypted)
+                if (!bodyDecrypted)
                 {
-                    return this.InnerMessage.IsFault;
+                    return InnerMessage.IsFault;
                 }
 
                 EnsureDecryptedBodyStatusDetermined();
 
-                return this.isDecryptedBodyFault;
+                return isDecryptedBodyFault;
             }
         }
 
-        internal byte[] PrimarySignatureValue => this.securityHeader.PrimarySignatureValue;
+        internal byte[] PrimarySignatureValue => securityHeader.PrimarySignatureValue;
 
-        internal ReceiveSecurityHeader ReceivedSecurityHeader => this.securityHeader;
+        internal ReceiveSecurityHeader ReceivedSecurityHeader => securityHeader;
 
         private Exception CreateBadStateException(string operation)
         {
             return new InvalidOperationException(SR.Format(SR.MessageBodyOperationNotValidInBodyState,
-                operation, this.state));
+                operation, state));
         }
 
         public XmlDictionaryReader CreateFullBodyReader()
         {
-            switch (this.state)
+            switch (state)
             {
                 case BodyState.Buffered:
                     return CreateFullBodyReaderFromBufferedState();
@@ -127,61 +127,61 @@ namespace CoreWCF.Security
 
         private XmlDictionaryReader CreateFullBodyReaderFromBufferedState()
         {
-            if (this.messageBuffer != null)
+            if (messageBuffer != null)
             {
-                XmlDictionaryReader reader = this.messageBuffer.GetReader(0);
+                XmlDictionaryReader reader = messageBuffer.GetReader(0);
                 MoveToBody(reader);
                 return reader;
             }
             else
             {
-                return ((BufferedMessage)this.InnerMessage).GetBufferedReaderAtBody();
+                return ((BufferedMessage)InnerMessage).GetBufferedReaderAtBody();
             }
         }
 
         private XmlDictionaryReader CreateFullBodyReaderFromDecryptedState()
         {
-            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(this.decryptedBuffer, 0, this.decryptedBuffer.Length, this.securityHeader.ReaderQuotas);
+            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(decryptedBuffer, 0, decryptedBuffer.Length, securityHeader.ReaderQuotas);
             MoveToBody(reader);
             return reader;
         }
 
         private void EnsureDecryptedBodyStatusDetermined()
         {
-            if (!this.isDecryptedBodyStatusDetermined)
+            if (!isDecryptedBodyStatusDetermined)
             {
                 XmlDictionaryReader reader = CreateFullBodyReader();
-                if (Message.ReadStartBody(reader, this.InnerMessage.Version.Envelope, out this.isDecryptedBodyFault, out this.isDecryptedBodyEmpty))
+                if (Message.ReadStartBody(reader, InnerMessage.Version.Envelope, out isDecryptedBodyFault, out isDecryptedBodyEmpty))
                 {
-                    this.cachedDecryptedBodyContentReader = reader;
+                    cachedDecryptedBodyContentReader = reader;
                 }
                 else
                 {
                     reader.Close();
                 }
-                this.isDecryptedBodyStatusDetermined = true;
+                isDecryptedBodyStatusDetermined = true;
             }
         }
 
         public XmlAttributeHolder[] GetEnvelopeAttributes()
         {
-            return this.envelopeAttributes;
+            return envelopeAttributes;
         }
 
         public XmlAttributeHolder[] GetHeaderAttributes()
         {
-            return this.headerAttributes;
+            return headerAttributes;
         }
 
         private XmlDictionaryReader GetReaderAtEnvelope()
         {
-            if (this.messageBuffer != null)
+            if (messageBuffer != null)
             {
-                return this.messageBuffer.GetReader(0);
+                return messageBuffer.GetReader(0);
             }
             else
             {
-                return ((BufferedMessage)this.InnerMessage).GetMessageReader();
+                return ((BufferedMessage)InnerMessage).GetMessageReader();
             }
         }
 
@@ -195,13 +195,13 @@ namespace CoreWCF.Security
 
         public XmlDictionaryReader GetReaderAtSecurityHeader()
         {
-            if (this.cachedReaderAtSecurityHeader != null)
+            if (cachedReaderAtSecurityHeader != null)
             {
-                XmlDictionaryReader result = this.cachedReaderAtSecurityHeader;
-                this.cachedReaderAtSecurityHeader = null;
+                XmlDictionaryReader result = cachedReaderAtSecurityHeader;
+                cachedReaderAtSecurityHeader = null;
                 return result;
             }
-            return this.Headers.GetReaderAtHeader(this.securityHeader.HeaderIndex);
+            return Headers.GetReaderAtHeader(securityHeader.HeaderIndex);
         }
 
         private void MoveToBody(XmlDictionaryReader reader)
@@ -211,7 +211,7 @@ namespace CoreWCF.Security
                 reader.MoveToContent();
             }
             reader.ReadStartElement();
-            if (reader.IsStartElement(XD.MessageDictionary.Header, this.Version.Envelope.DictionaryNamespace))
+            if (reader.IsStartElement(XD.MessageDictionary.Header, Version.Envelope.DictionaryNamespace))
             {
                 reader.Skip();
             }
@@ -229,14 +229,14 @@ namespace CoreWCF.Security
             }
             if (captureAttributes)
             {
-                this.envelopePrefix = reader.Prefix;
-                this.envelopeAttributes = XmlAttributeHolder.ReadAttributes(reader);
+                envelopePrefix = reader.Prefix;
+                envelopeAttributes = XmlAttributeHolder.ReadAttributes(reader);
             }
             reader.ReadStartElement();
-            reader.MoveToStartElement(XD.MessageDictionary.Header, this.Version.Envelope.DictionaryNamespace);
+            reader.MoveToStartElement(XD.MessageDictionary.Header, Version.Envelope.DictionaryNamespace);
             if (captureAttributes)
             {
-                this.headerAttributes = XmlAttributeHolder.ReadAttributes(reader);
+                headerAttributes = XmlAttributeHolder.ReadAttributes(reader);
             }
         }
 
@@ -261,7 +261,7 @@ namespace CoreWCF.Security
 
         protected override void OnBodyToString(XmlDictionaryWriter writer)
         {
-            if (this.state == BodyState.Created)
+            if (state == BodyState.Created)
             {
                 base.OnBodyToString(writer);
             }
@@ -273,11 +273,11 @@ namespace CoreWCF.Security
 
         protected override void OnClose()
         {
-            if (this.cachedDecryptedBodyContentReader != null)
+            if (cachedDecryptedBodyContentReader != null)
             {
                 try
                 {
-                    this.cachedDecryptedBodyContentReader.Close();
+                    cachedDecryptedBodyContentReader.Close();
                 }
                 catch (System.IO.IOException exception)
                 {
@@ -289,15 +289,15 @@ namespace CoreWCF.Security
                 }
                 finally
                 {
-                    this.cachedDecryptedBodyContentReader = null;
+                    cachedDecryptedBodyContentReader = null;
                 }
             }
 
-            if (this.cachedReaderAtSecurityHeader != null)
+            if (cachedReaderAtSecurityHeader != null)
             {
                 try
                 {
-                    this.cachedReaderAtSecurityHeader.Close();
+                    cachedReaderAtSecurityHeader.Close();
                 }
                 catch (System.IO.IOException exception)
                 {
@@ -309,30 +309,30 @@ namespace CoreWCF.Security
                 }
                 finally
                 {
-                    this.cachedReaderAtSecurityHeader = null;
+                    cachedReaderAtSecurityHeader = null;
                 }
             }
 
-            this.messageBuffer = null;
-            this.decryptedBuffer = null;
-            this.state = BodyState.Disposed;
-            this.InnerMessage.Close();
+            messageBuffer = null;
+            decryptedBuffer = null;
+            state = BodyState.Disposed;
+            InnerMessage.Close();
         }
 
         protected override XmlDictionaryReader OnGetReaderAtBodyContents()
         {
-            if (this.state == BodyState.Created)
+            if (state == BodyState.Created)
             {
-                return this.InnerMessage.GetReaderAtBodyContents();
+                return InnerMessage.GetReaderAtBodyContents();
             }
-            if (this.bodyDecrypted)
+            if (bodyDecrypted)
             {
                 EnsureDecryptedBodyStatusDetermined();
             }
-            if (this.cachedDecryptedBodyContentReader != null)
+            if (cachedDecryptedBodyContentReader != null)
             {
-                XmlDictionaryReader result = this.cachedDecryptedBodyContentReader;
-                this.cachedDecryptedBodyContentReader = null;
+                XmlDictionaryReader result = cachedDecryptedBodyContentReader;
+                cachedDecryptedBodyContentReader = null;
                 return result;
             }
             else
@@ -346,9 +346,9 @@ namespace CoreWCF.Security
 
         protected override MessageBuffer OnCreateBufferedCopy(int maxBufferSize)
         {
-            if (this.canDelegateCreateBufferedCopyToInnerMessage && this.InnerMessage is BufferedMessage)
+            if (canDelegateCreateBufferedCopyToInnerMessage && InnerMessage is BufferedMessage)
             {
-                return this.InnerMessage.CreateBufferedCopy(maxBufferSize);
+                return InnerMessage.CreateBufferedCopy(maxBufferSize);
             }
             else
             {
@@ -358,7 +358,7 @@ namespace CoreWCF.Security
 
         internal void OnMessageProtectionPassComplete(bool atLeastOneHeaderOrBodyEncrypted)
         {
-            this.canDelegateCreateBufferedCopyToInnerMessage = !atLeastOneHeaderOrBodyEncrypted;
+            canDelegateCreateBufferedCopyToInnerMessage = !atLeastOneHeaderOrBodyEncrypted;
         }
 
         internal void OnUnencryptedPart(string name, string ns)
@@ -387,9 +387,9 @@ namespace CoreWCF.Security
 
         protected override void OnWriteStartBody(XmlDictionaryWriter writer)
         {
-            if (this.state == BodyState.Created)
+            if (state == BodyState.Created)
             {
-                this.InnerMessage.WriteStartBody(writer);
+                InnerMessage.WriteStartBody(writer);
                 return;
             }
 
@@ -402,29 +402,32 @@ namespace CoreWCF.Security
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            if (this.state == BodyState.Created)
+            if (state == BodyState.Created)
             {
-                this.InnerMessage.WriteBodyContents(writer);
+                InnerMessage.WriteBodyContents(writer);
                 return;
             }
 
             XmlDictionaryReader reader = CreateFullBodyReader();
             reader.ReadStartElement();
             while (reader.NodeType != XmlNodeType.EndElement)
+            {
                 writer.WriteNode(reader, false);
+            }
+
             reader.ReadEndElement();
             reader.Close();
         }
 
         public void SetBodyPrefixAndAttributes(XmlDictionaryReader bodyReader)
         {
-            this.bodyPrefix = bodyReader.Prefix;
-            this.bodyAttributes = XmlAttributeHolder.ReadAttributes(bodyReader);
+            bodyPrefix = bodyReader.Prefix;
+            bodyAttributes = XmlAttributeHolder.ReadAttributes(bodyReader);
         }
 
         public void SetDecryptedBody(byte[] decryptedBodyContent)
         {
-            if (this.state != BodyState.Buffered)
+            if (state != BodyState.Buffered)
             {
                 throw TraceUtility.ThrowHelperError(CreateBadStateException("SetDecryptedBody"), this);
             }
@@ -432,20 +435,20 @@ namespace CoreWCF.Security
             MemoryStream stream = new MemoryStream();
             XmlDictionaryWriter writer = XmlDictionaryWriter.CreateTextWriter(stream);
 
-            writer.WriteStartElement(this.envelopePrefix, XD.MessageDictionary.Envelope, this.Version.Envelope.DictionaryNamespace);
-            XmlAttributeHolder.WriteAttributes(this.envelopeAttributes, writer);
+            writer.WriteStartElement(envelopePrefix, XD.MessageDictionary.Envelope, Version.Envelope.DictionaryNamespace);
+            XmlAttributeHolder.WriteAttributes(envelopeAttributes, writer);
 
-            writer.WriteStartElement(this.bodyPrefix, XD.MessageDictionary.Body, this.Version.Envelope.DictionaryNamespace);
-            XmlAttributeHolder.WriteAttributes(this.bodyAttributes, writer);
+            writer.WriteStartElement(bodyPrefix, XD.MessageDictionary.Body, Version.Envelope.DictionaryNamespace);
+            XmlAttributeHolder.WriteAttributes(bodyAttributes, writer);
             writer.WriteString(" "); // ensure non-empty element
             writer.WriteEndElement();
             writer.WriteEndElement();
             writer.Flush();
 
-            this.decryptedBuffer = ContextImportHelper.SpliceBuffers(decryptedBodyContent, stream.GetBuffer(), (int)stream.Length, 2);
+            decryptedBuffer = ContextImportHelper.SpliceBuffers(decryptedBodyContent, stream.GetBuffer(), (int)stream.Length, 2);
 
-            this.bodyDecrypted = true;
-            this.state = BodyState.Decrypted;
+            bodyDecrypted = true;
+            state = BodyState.Decrypted;
         }
 
         private enum BodyState

@@ -149,8 +149,7 @@ namespace CoreWCF.Channels.Framing
 
         internal static HandshakeDelegate GetServiceHandshakeDelegate(UriPrefixTable<HandshakeDelegate> addressTable, Uri via)
         {
-            HandshakeDelegate handshake = null;
-            if (addressTable.TryLookupUri(via, HostNameComparisonMode.StrongWildcard, out handshake))
+            if (addressTable.TryLookupUri(via, HostNameComparisonMode.StrongWildcard, out HandshakeDelegate handshake))
             {
                 return handshake;
             }

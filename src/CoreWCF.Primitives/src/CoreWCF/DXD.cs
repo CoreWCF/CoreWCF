@@ -10,12 +10,12 @@ namespace CoreWCF
     // When adding or removing memebers please keep the capacity of the XmlDictionary field current.
     internal static class DXD
     {
-        private static AtomicTransactionExternal11Dictionary atomicTransactionExternal11Dictionary;
-        private static CoordinationExternal11Dictionary coordinationExternal11Dictionary;
-        private static SecureConversationDec2005Dictionary secureConversationDec2005Dictionary;
-        private static SecurityAlgorithmDec2005Dictionary securityAlgorithmDec2005Dictionary;
-        private static TrustDec2005Dictionary trustDec2005Dictionary;
-        private static Wsrm11Dictionary wsrm11Dictionary;
+        private static readonly AtomicTransactionExternal11Dictionary atomicTransactionExternal11Dictionary;
+        private static readonly CoordinationExternal11Dictionary coordinationExternal11Dictionary;
+        private static readonly SecureConversationDec2005Dictionary secureConversationDec2005Dictionary;
+        private static readonly SecurityAlgorithmDec2005Dictionary securityAlgorithmDec2005Dictionary;
+        private static readonly TrustDec2005Dictionary trustDec2005Dictionary;
+        private static readonly Wsrm11Dictionary wsrm11Dictionary;
 
         static DXD()
         {
@@ -86,20 +86,20 @@ namespace CoreWCF
 
         public AtomicTransactionExternal11Dictionary(XmlDictionary dictionary)
         {
-            this.Namespace = dictionary.Add(AtomicTransactionExternal11Strings.Namespace);
-            this.CompletionUri = dictionary.Add(AtomicTransactionExternal11Strings.CompletionUri);
-            this.Durable2PCUri = dictionary.Add(AtomicTransactionExternal11Strings.Durable2PCUri);
-            this.Volatile2PCUri = dictionary.Add(AtomicTransactionExternal11Strings.Volatile2PCUri);
-            this.CommitAction = dictionary.Add(AtomicTransactionExternal11Strings.CommitAction);
-            this.RollbackAction = dictionary.Add(AtomicTransactionExternal11Strings.RollbackAction);
-            this.CommittedAction = dictionary.Add(AtomicTransactionExternal11Strings.CommittedAction);
-            this.AbortedAction = dictionary.Add(AtomicTransactionExternal11Strings.AbortedAction);
-            this.PrepareAction = dictionary.Add(AtomicTransactionExternal11Strings.PrepareAction);
-            this.PreparedAction = dictionary.Add(AtomicTransactionExternal11Strings.PreparedAction);
-            this.ReadOnlyAction = dictionary.Add(AtomicTransactionExternal11Strings.ReadOnlyAction);
-            this.ReplayAction = dictionary.Add(AtomicTransactionExternal11Strings.ReplayAction);
-            this.FaultAction = dictionary.Add(AtomicTransactionExternal11Strings.FaultAction);
-            this.UnknownTransaction = dictionary.Add(AtomicTransactionExternal11Strings.UnknownTransaction);
+            Namespace = dictionary.Add(AtomicTransactionExternal11Strings.Namespace);
+            CompletionUri = dictionary.Add(AtomicTransactionExternal11Strings.CompletionUri);
+            Durable2PCUri = dictionary.Add(AtomicTransactionExternal11Strings.Durable2PCUri);
+            Volatile2PCUri = dictionary.Add(AtomicTransactionExternal11Strings.Volatile2PCUri);
+            CommitAction = dictionary.Add(AtomicTransactionExternal11Strings.CommitAction);
+            RollbackAction = dictionary.Add(AtomicTransactionExternal11Strings.RollbackAction);
+            CommittedAction = dictionary.Add(AtomicTransactionExternal11Strings.CommittedAction);
+            AbortedAction = dictionary.Add(AtomicTransactionExternal11Strings.AbortedAction);
+            PrepareAction = dictionary.Add(AtomicTransactionExternal11Strings.PrepareAction);
+            PreparedAction = dictionary.Add(AtomicTransactionExternal11Strings.PreparedAction);
+            ReadOnlyAction = dictionary.Add(AtomicTransactionExternal11Strings.ReadOnlyAction);
+            ReplayAction = dictionary.Add(AtomicTransactionExternal11Strings.ReplayAction);
+            FaultAction = dictionary.Add(AtomicTransactionExternal11Strings.FaultAction);
+            UnknownTransaction = dictionary.Add(AtomicTransactionExternal11Strings.UnknownTransaction);
         }
     }
 
@@ -116,14 +116,14 @@ namespace CoreWCF
 
         public CoordinationExternal11Dictionary(XmlDictionary dictionary)
         {
-            this.Namespace = dictionary.Add(CoordinationExternal11Strings.Namespace);
-            this.CreateCoordinationContextAction = dictionary.Add(CoordinationExternal11Strings.CreateCoordinationContextAction);
-            this.CreateCoordinationContextResponseAction = dictionary.Add(CoordinationExternal11Strings.CreateCoordinationContextResponseAction);
-            this.RegisterAction = dictionary.Add(CoordinationExternal11Strings.RegisterAction);
-            this.RegisterResponseAction = dictionary.Add(CoordinationExternal11Strings.RegisterResponseAction);
-            this.FaultAction = dictionary.Add(CoordinationExternal11Strings.FaultAction);
-            this.CannotCreateContext = dictionary.Add(CoordinationExternal11Strings.CannotCreateContext);
-            this.CannotRegisterParticipant = dictionary.Add(CoordinationExternal11Strings.CannotRegisterParticipant);
+            Namespace = dictionary.Add(CoordinationExternal11Strings.Namespace);
+            CreateCoordinationContextAction = dictionary.Add(CoordinationExternal11Strings.CreateCoordinationContextAction);
+            CreateCoordinationContextResponseAction = dictionary.Add(CoordinationExternal11Strings.CreateCoordinationContextResponseAction);
+            RegisterAction = dictionary.Add(CoordinationExternal11Strings.RegisterAction);
+            RegisterResponseAction = dictionary.Add(CoordinationExternal11Strings.RegisterResponseAction);
+            FaultAction = dictionary.Add(CoordinationExternal11Strings.FaultAction);
+            CannotCreateContext = dictionary.Add(CoordinationExternal11Strings.CannotCreateContext);
+            CannotRegisterParticipant = dictionary.Add(CoordinationExternal11Strings.CannotRegisterParticipant);
         }
     }
 
@@ -139,31 +139,31 @@ namespace CoreWCF
 
         public SecureConversationDec2005Dictionary(XmlDictionary dictionary)
         {
-            this.SecurityContextToken = dictionary.Add(SecureConversationDec2005Strings.SecurityContextToken);
-            this.AlgorithmAttribute = dictionary.Add(SecureConversationDec2005Strings.AlgorithmAttribute);
-            this.Generation = dictionary.Add(SecureConversationDec2005Strings.Generation);
-            this.Label = dictionary.Add(SecureConversationDec2005Strings.Label);
-            this.Offset = dictionary.Add(SecureConversationDec2005Strings.Offset);
-            this.Properties = dictionary.Add(SecureConversationDec2005Strings.Properties);
-            this.Identifier = dictionary.Add(SecureConversationDec2005Strings.Identifier);
-            this.Cookie = dictionary.Add(SecureConversationDec2005Strings.Cookie);
-            this.RenewNeededFaultCode = dictionary.Add(SecureConversationDec2005Strings.RenewNeededFaultCode);
-            this.BadContextTokenFaultCode = dictionary.Add(SecureConversationDec2005Strings.BadContextTokenFaultCode);
-            this.Prefix = dictionary.Add(SecureConversationDec2005Strings.Prefix);
-            this.DerivedKeyTokenType = dictionary.Add(SecureConversationDec2005Strings.DerivedKeyTokenType);
-            this.SecurityContextTokenType = dictionary.Add(SecureConversationDec2005Strings.SecurityContextTokenType);
-            this.SecurityContextTokenReferenceValueType = dictionary.Add(SecureConversationDec2005Strings.SecurityContextTokenReferenceValueType);
-            this.RequestSecurityContextIssuance = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextIssuance);
-            this.RequestSecurityContextIssuanceResponse = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextIssuanceResponse);
-            this.RequestSecurityContextRenew = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextRenew);
-            this.RequestSecurityContextRenewResponse = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextRenewResponse);
-            this.RequestSecurityContextClose = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextClose);
-            this.RequestSecurityContextCloseResponse = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextCloseResponse);
-            this.Namespace = dictionary.Add(SecureConversationDec2005Strings.Namespace);
-            this.DerivedKeyToken = dictionary.Add(SecureConversationDec2005Strings.DerivedKeyToken);
-            this.Nonce = dictionary.Add(SecureConversationDec2005Strings.Nonce);
-            this.Length = dictionary.Add(SecureConversationDec2005Strings.Length);
-            this.Instance = dictionary.Add(SecureConversationDec2005Strings.Instance);
+            SecurityContextToken = dictionary.Add(SecureConversationDec2005Strings.SecurityContextToken);
+            AlgorithmAttribute = dictionary.Add(SecureConversationDec2005Strings.AlgorithmAttribute);
+            Generation = dictionary.Add(SecureConversationDec2005Strings.Generation);
+            Label = dictionary.Add(SecureConversationDec2005Strings.Label);
+            Offset = dictionary.Add(SecureConversationDec2005Strings.Offset);
+            Properties = dictionary.Add(SecureConversationDec2005Strings.Properties);
+            Identifier = dictionary.Add(SecureConversationDec2005Strings.Identifier);
+            Cookie = dictionary.Add(SecureConversationDec2005Strings.Cookie);
+            RenewNeededFaultCode = dictionary.Add(SecureConversationDec2005Strings.RenewNeededFaultCode);
+            BadContextTokenFaultCode = dictionary.Add(SecureConversationDec2005Strings.BadContextTokenFaultCode);
+            Prefix = dictionary.Add(SecureConversationDec2005Strings.Prefix);
+            DerivedKeyTokenType = dictionary.Add(SecureConversationDec2005Strings.DerivedKeyTokenType);
+            SecurityContextTokenType = dictionary.Add(SecureConversationDec2005Strings.SecurityContextTokenType);
+            SecurityContextTokenReferenceValueType = dictionary.Add(SecureConversationDec2005Strings.SecurityContextTokenReferenceValueType);
+            RequestSecurityContextIssuance = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextIssuance);
+            RequestSecurityContextIssuanceResponse = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextIssuanceResponse);
+            RequestSecurityContextRenew = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextRenew);
+            RequestSecurityContextRenewResponse = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextRenewResponse);
+            RequestSecurityContextClose = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextClose);
+            RequestSecurityContextCloseResponse = dictionary.Add(SecureConversationDec2005Strings.RequestSecurityContextCloseResponse);
+            Namespace = dictionary.Add(SecureConversationDec2005Strings.Namespace);
+            DerivedKeyToken = dictionary.Add(SecureConversationDec2005Strings.DerivedKeyToken);
+            Nonce = dictionary.Add(SecureConversationDec2005Strings.Nonce);
+            Length = dictionary.Add(SecureConversationDec2005Strings.Length);
+            Instance = dictionary.Add(SecureConversationDec2005Strings.Instance);
         }
 
         public void PopulateSecureConversationDec2005()
@@ -204,7 +204,7 @@ namespace CoreWCF
 
         public SecurityAlgorithmDec2005Dictionary(XmlDictionary dictionary)
         {
-            this.Psha1KeyDerivationDec2005 = dictionary.Add(SecurityAlgorithmDec2005Strings.Psha1KeyDerivationDec2005);
+            Psha1KeyDerivationDec2005 = dictionary.Add(SecurityAlgorithmDec2005Strings.Psha1KeyDerivationDec2005);
         }
 
         public void PopulateSecurityAlgorithmDictionaryString()
@@ -234,70 +234,70 @@ namespace CoreWCF
 
         public TrustDec2005Dictionary(XmlDictionary dictionary)
         {
-            this.CombinedHashLabel = dictionary.Add(TrustDec2005Strings.CombinedHashLabel);
-            this.RequestSecurityTokenResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenResponse);
-            this.TokenType = dictionary.Add(TrustDec2005Strings.TokenType);
-            this.KeySize = dictionary.Add(TrustDec2005Strings.KeySize);
-            this.RequestedTokenReference = dictionary.Add(TrustDec2005Strings.RequestedTokenReference);
-            this.AppliesTo = dictionary.Add(TrustDec2005Strings.AppliesTo);
-            this.Authenticator = dictionary.Add(TrustDec2005Strings.Authenticator);
-            this.CombinedHash = dictionary.Add(TrustDec2005Strings.CombinedHash);
-            this.BinaryExchange = dictionary.Add(TrustDec2005Strings.BinaryExchange);
-            this.Lifetime = dictionary.Add(TrustDec2005Strings.Lifetime);
-            this.RequestedSecurityToken = dictionary.Add(TrustDec2005Strings.RequestedSecurityToken);
-            this.Entropy = dictionary.Add(TrustDec2005Strings.Entropy);
-            this.RequestedProofToken = dictionary.Add(TrustDec2005Strings.RequestedProofToken);
-            this.ComputedKey = dictionary.Add(TrustDec2005Strings.ComputedKey);
-            this.RequestSecurityToken = dictionary.Add(TrustDec2005Strings.RequestSecurityToken);
-            this.RequestType = dictionary.Add(TrustDec2005Strings.RequestType);
-            this.Context = dictionary.Add(TrustDec2005Strings.Context);
-            this.BinarySecret = dictionary.Add(TrustDec2005Strings.BinarySecret);
-            this.Type = dictionary.Add(TrustDec2005Strings.Type);
-            this.SpnegoValueTypeUri = dictionary.Add(TrustDec2005Strings.SpnegoValueTypeUri);
-            this.TlsnegoValueTypeUri = dictionary.Add(TrustDec2005Strings.TlsnegoValueTypeUri);
-            this.Prefix = dictionary.Add(TrustDec2005Strings.Prefix);
-            this.RequestSecurityTokenIssuance = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenIssuance);
-            this.RequestSecurityTokenIssuanceResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenIssuanceResponse);
-            this.RequestTypeIssue = dictionary.Add(TrustDec2005Strings.RequestTypeIssue);
-            this.AsymmetricKeyBinarySecret = dictionary.Add(TrustDec2005Strings.AsymmetricKeyBinarySecret);
-            this.SymmetricKeyBinarySecret = dictionary.Add(TrustDec2005Strings.SymmetricKeyBinarySecret);
-            this.NonceBinarySecret = dictionary.Add(TrustDec2005Strings.NonceBinarySecret);
-            this.Psha1ComputedKeyUri = dictionary.Add(TrustDec2005Strings.Psha1ComputedKeyUri);
-            this.KeyType = dictionary.Add(TrustDec2005Strings.KeyType);
-            this.SymmetricKeyType = dictionary.Add(TrustDec2005Strings.SymmetricKeyType);
-            this.PublicKeyType = dictionary.Add(TrustDec2005Strings.PublicKeyType);
-            this.Claims = dictionary.Add(TrustDec2005Strings.Claims);
-            this.InvalidRequestFaultCode = dictionary.Add(TrustDec2005Strings.InvalidRequestFaultCode);
-            this.FailedAuthenticationFaultCode = dictionary.Add(TrustDec2005Strings.FailedAuthenticationFaultCode);
-            this.UseKey = dictionary.Add(TrustDec2005Strings.UseKey);
-            this.SignWith = dictionary.Add(TrustDec2005Strings.SignWith);
-            this.EncryptWith = dictionary.Add(TrustDec2005Strings.EncryptWith);
-            this.EncryptionAlgorithm = dictionary.Add(TrustDec2005Strings.EncryptionAlgorithm);
-            this.CanonicalizationAlgorithm = dictionary.Add(TrustDec2005Strings.CanonicalizationAlgorithm);
-            this.ComputedKeyAlgorithm = dictionary.Add(TrustDec2005Strings.ComputedKeyAlgorithm);
-            this.RequestSecurityTokenResponseCollection = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenResponseCollection);
-            this.Namespace = dictionary.Add(TrustDec2005Strings.Namespace);
-            this.BinarySecretClauseType = dictionary.Add(TrustDec2005Strings.BinarySecretClauseType);
-            this.RequestSecurityTokenCollectionIssuanceFinalResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCollectionIssuanceFinalResponse);
-            this.RequestSecurityTokenRenewal = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenRenewal);
-            this.RequestSecurityTokenRenewalResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenRenewalResponse);
-            this.RequestSecurityTokenCollectionRenewalFinalResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCollectionRenewalFinalResponse);
-            this.RequestSecurityTokenCancellation = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCancellation);
-            this.RequestSecurityTokenCancellationResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCancellationResponse);
-            this.RequestSecurityTokenCollectionCancellationFinalResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCollectionCancellationFinalResponse);
-            this.RequestTypeRenew = dictionary.Add(TrustDec2005Strings.RequestTypeRenew);
-            this.RequestTypeClose = dictionary.Add(TrustDec2005Strings.RequestTypeClose);
-            this.RenewTarget = dictionary.Add(TrustDec2005Strings.RenewTarget);
-            this.CloseTarget = dictionary.Add(TrustDec2005Strings.CloseTarget);
-            this.RequestedTokenClosed = dictionary.Add(TrustDec2005Strings.RequestedTokenClosed);
-            this.RequestedAttachedReference = dictionary.Add(TrustDec2005Strings.RequestedAttachedReference);
-            this.RequestedUnattachedReference = dictionary.Add(TrustDec2005Strings.RequestedUnattachedReference);
-            this.IssuedTokensHeader = dictionary.Add(TrustDec2005Strings.IssuedTokensHeader);
-            this.KeyWrapAlgorithm = dictionary.Add(TrustDec2005Strings.KeyWrapAlgorithm);
-            this.BearerKeyType = dictionary.Add(TrustDec2005Strings.BearerKeyType);
-            this.SecondaryParameters = dictionary.Add(TrustDec2005Strings.SecondaryParameters);
-            this.Dialect = dictionary.Add(TrustDec2005Strings.Dialect);
-            this.DialectType = dictionary.Add(TrustDec2005Strings.DialectType);
+            CombinedHashLabel = dictionary.Add(TrustDec2005Strings.CombinedHashLabel);
+            RequestSecurityTokenResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenResponse);
+            TokenType = dictionary.Add(TrustDec2005Strings.TokenType);
+            KeySize = dictionary.Add(TrustDec2005Strings.KeySize);
+            RequestedTokenReference = dictionary.Add(TrustDec2005Strings.RequestedTokenReference);
+            AppliesTo = dictionary.Add(TrustDec2005Strings.AppliesTo);
+            Authenticator = dictionary.Add(TrustDec2005Strings.Authenticator);
+            CombinedHash = dictionary.Add(TrustDec2005Strings.CombinedHash);
+            BinaryExchange = dictionary.Add(TrustDec2005Strings.BinaryExchange);
+            Lifetime = dictionary.Add(TrustDec2005Strings.Lifetime);
+            RequestedSecurityToken = dictionary.Add(TrustDec2005Strings.RequestedSecurityToken);
+            Entropy = dictionary.Add(TrustDec2005Strings.Entropy);
+            RequestedProofToken = dictionary.Add(TrustDec2005Strings.RequestedProofToken);
+            ComputedKey = dictionary.Add(TrustDec2005Strings.ComputedKey);
+            RequestSecurityToken = dictionary.Add(TrustDec2005Strings.RequestSecurityToken);
+            RequestType = dictionary.Add(TrustDec2005Strings.RequestType);
+            Context = dictionary.Add(TrustDec2005Strings.Context);
+            BinarySecret = dictionary.Add(TrustDec2005Strings.BinarySecret);
+            Type = dictionary.Add(TrustDec2005Strings.Type);
+            SpnegoValueTypeUri = dictionary.Add(TrustDec2005Strings.SpnegoValueTypeUri);
+            TlsnegoValueTypeUri = dictionary.Add(TrustDec2005Strings.TlsnegoValueTypeUri);
+            Prefix = dictionary.Add(TrustDec2005Strings.Prefix);
+            RequestSecurityTokenIssuance = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenIssuance);
+            RequestSecurityTokenIssuanceResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenIssuanceResponse);
+            RequestTypeIssue = dictionary.Add(TrustDec2005Strings.RequestTypeIssue);
+            AsymmetricKeyBinarySecret = dictionary.Add(TrustDec2005Strings.AsymmetricKeyBinarySecret);
+            SymmetricKeyBinarySecret = dictionary.Add(TrustDec2005Strings.SymmetricKeyBinarySecret);
+            NonceBinarySecret = dictionary.Add(TrustDec2005Strings.NonceBinarySecret);
+            Psha1ComputedKeyUri = dictionary.Add(TrustDec2005Strings.Psha1ComputedKeyUri);
+            KeyType = dictionary.Add(TrustDec2005Strings.KeyType);
+            SymmetricKeyType = dictionary.Add(TrustDec2005Strings.SymmetricKeyType);
+            PublicKeyType = dictionary.Add(TrustDec2005Strings.PublicKeyType);
+            Claims = dictionary.Add(TrustDec2005Strings.Claims);
+            InvalidRequestFaultCode = dictionary.Add(TrustDec2005Strings.InvalidRequestFaultCode);
+            FailedAuthenticationFaultCode = dictionary.Add(TrustDec2005Strings.FailedAuthenticationFaultCode);
+            UseKey = dictionary.Add(TrustDec2005Strings.UseKey);
+            SignWith = dictionary.Add(TrustDec2005Strings.SignWith);
+            EncryptWith = dictionary.Add(TrustDec2005Strings.EncryptWith);
+            EncryptionAlgorithm = dictionary.Add(TrustDec2005Strings.EncryptionAlgorithm);
+            CanonicalizationAlgorithm = dictionary.Add(TrustDec2005Strings.CanonicalizationAlgorithm);
+            ComputedKeyAlgorithm = dictionary.Add(TrustDec2005Strings.ComputedKeyAlgorithm);
+            RequestSecurityTokenResponseCollection = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenResponseCollection);
+            Namespace = dictionary.Add(TrustDec2005Strings.Namespace);
+            BinarySecretClauseType = dictionary.Add(TrustDec2005Strings.BinarySecretClauseType);
+            RequestSecurityTokenCollectionIssuanceFinalResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCollectionIssuanceFinalResponse);
+            RequestSecurityTokenRenewal = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenRenewal);
+            RequestSecurityTokenRenewalResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenRenewalResponse);
+            RequestSecurityTokenCollectionRenewalFinalResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCollectionRenewalFinalResponse);
+            RequestSecurityTokenCancellation = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCancellation);
+            RequestSecurityTokenCancellationResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCancellationResponse);
+            RequestSecurityTokenCollectionCancellationFinalResponse = dictionary.Add(TrustDec2005Strings.RequestSecurityTokenCollectionCancellationFinalResponse);
+            RequestTypeRenew = dictionary.Add(TrustDec2005Strings.RequestTypeRenew);
+            RequestTypeClose = dictionary.Add(TrustDec2005Strings.RequestTypeClose);
+            RenewTarget = dictionary.Add(TrustDec2005Strings.RenewTarget);
+            CloseTarget = dictionary.Add(TrustDec2005Strings.CloseTarget);
+            RequestedTokenClosed = dictionary.Add(TrustDec2005Strings.RequestedTokenClosed);
+            RequestedAttachedReference = dictionary.Add(TrustDec2005Strings.RequestedAttachedReference);
+            RequestedUnattachedReference = dictionary.Add(TrustDec2005Strings.RequestedUnattachedReference);
+            IssuedTokensHeader = dictionary.Add(TrustDec2005Strings.IssuedTokensHeader);
+            KeyWrapAlgorithm = dictionary.Add(TrustDec2005Strings.KeyWrapAlgorithm);
+            BearerKeyType = dictionary.Add(TrustDec2005Strings.BearerKeyType);
+            SecondaryParameters = dictionary.Add(TrustDec2005Strings.SecondaryParameters);
+            Dialect = dictionary.Add(TrustDec2005Strings.Dialect);
+            DialectType = dictionary.Add(TrustDec2005Strings.DialectType);
         }
 
         public void PopulateFeb2005DictionaryString()
@@ -454,31 +454,31 @@ namespace CoreWCF
 
         public Wsrm11Dictionary(XmlDictionary dictionary)
         {
-            this.AckRequestedAction = dictionary.Add(Wsrm11Strings.AckRequestedAction);
-            this.CloseSequence = dictionary.Add(Wsrm11Strings.CloseSequence);
-            this.CloseSequenceAction = dictionary.Add(Wsrm11Strings.CloseSequenceAction);
-            this.CloseSequenceResponse = dictionary.Add(Wsrm11Strings.CloseSequenceResponse);
-            this.CloseSequenceResponseAction = dictionary.Add(Wsrm11Strings.CloseSequenceResponseAction);
-            this.CreateSequenceAction = dictionary.Add(Wsrm11Strings.CreateSequenceAction);
-            this.CreateSequenceResponseAction = dictionary.Add(Wsrm11Strings.CreateSequenceResponseAction);
-            this.DiscardFollowingFirstGap = dictionary.Add(Wsrm11Strings.DiscardFollowingFirstGap);
-            this.Endpoint = dictionary.Add(Wsrm11Strings.Endpoint);
-            this.FaultAction = dictionary.Add(Wsrm11Strings.FaultAction);
-            this.Final = dictionary.Add(Wsrm11Strings.Final);
-            this.IncompleteSequenceBehavior = dictionary.Add(Wsrm11Strings.IncompleteSequenceBehavior);
-            this.LastMsgNumber = dictionary.Add(Wsrm11Strings.LastMsgNumber);
-            this.MaxMessageNumber = dictionary.Add(Wsrm11Strings.MaxMessageNumber);
-            this.Namespace = dictionary.Add(Wsrm11Strings.Namespace);
-            this.NoDiscard = dictionary.Add(Wsrm11Strings.NoDiscard);
-            this.None = dictionary.Add(Wsrm11Strings.None);
-            this.SequenceAcknowledgementAction = dictionary.Add(Wsrm11Strings.SequenceAcknowledgementAction);
-            this.SequenceClosed = dictionary.Add(Wsrm11Strings.SequenceClosed);
-            this.TerminateSequenceAction = dictionary.Add(Wsrm11Strings.TerminateSequenceAction);
-            this.TerminateSequenceResponse = dictionary.Add(Wsrm11Strings.TerminateSequenceResponse);
-            this.TerminateSequenceResponseAction = dictionary.Add(Wsrm11Strings.TerminateSequenceResponseAction);
-            this.UsesSequenceSSL = dictionary.Add(Wsrm11Strings.UsesSequenceSSL);
-            this.UsesSequenceSTR = dictionary.Add(Wsrm11Strings.UsesSequenceSTR);
-            this.WsrmRequired = dictionary.Add(Wsrm11Strings.WsrmRequired);
+            AckRequestedAction = dictionary.Add(Wsrm11Strings.AckRequestedAction);
+            CloseSequence = dictionary.Add(Wsrm11Strings.CloseSequence);
+            CloseSequenceAction = dictionary.Add(Wsrm11Strings.CloseSequenceAction);
+            CloseSequenceResponse = dictionary.Add(Wsrm11Strings.CloseSequenceResponse);
+            CloseSequenceResponseAction = dictionary.Add(Wsrm11Strings.CloseSequenceResponseAction);
+            CreateSequenceAction = dictionary.Add(Wsrm11Strings.CreateSequenceAction);
+            CreateSequenceResponseAction = dictionary.Add(Wsrm11Strings.CreateSequenceResponseAction);
+            DiscardFollowingFirstGap = dictionary.Add(Wsrm11Strings.DiscardFollowingFirstGap);
+            Endpoint = dictionary.Add(Wsrm11Strings.Endpoint);
+            FaultAction = dictionary.Add(Wsrm11Strings.FaultAction);
+            Final = dictionary.Add(Wsrm11Strings.Final);
+            IncompleteSequenceBehavior = dictionary.Add(Wsrm11Strings.IncompleteSequenceBehavior);
+            LastMsgNumber = dictionary.Add(Wsrm11Strings.LastMsgNumber);
+            MaxMessageNumber = dictionary.Add(Wsrm11Strings.MaxMessageNumber);
+            Namespace = dictionary.Add(Wsrm11Strings.Namespace);
+            NoDiscard = dictionary.Add(Wsrm11Strings.NoDiscard);
+            None = dictionary.Add(Wsrm11Strings.None);
+            SequenceAcknowledgementAction = dictionary.Add(Wsrm11Strings.SequenceAcknowledgementAction);
+            SequenceClosed = dictionary.Add(Wsrm11Strings.SequenceClosed);
+            TerminateSequenceAction = dictionary.Add(Wsrm11Strings.TerminateSequenceAction);
+            TerminateSequenceResponse = dictionary.Add(Wsrm11Strings.TerminateSequenceResponse);
+            TerminateSequenceResponseAction = dictionary.Add(Wsrm11Strings.TerminateSequenceResponseAction);
+            UsesSequenceSSL = dictionary.Add(Wsrm11Strings.UsesSequenceSSL);
+            UsesSequenceSTR = dictionary.Add(Wsrm11Strings.UsesSequenceSTR);
+            WsrmRequired = dictionary.Add(Wsrm11Strings.WsrmRequired);
         }
     }
 

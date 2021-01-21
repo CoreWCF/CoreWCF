@@ -20,52 +20,52 @@ namespace CoreWCF.IdentityModel
 
         public char[] TakeBase64Buffer()
         {
-            if (this.base64Buffer == null)
+            if (base64Buffer == null)
             {
-                this.base64Buffer = new char[BufferSize];
+                base64Buffer = new char[BufferSize];
             }
-            return this.base64Buffer;
+            return base64Buffer;
         }
 
         public byte[] TakeEncodingBuffer()
         {
-            if (this.encodingBuffer == null)
+            if (encodingBuffer == null)
             {
-                this.encodingBuffer = new byte[BufferSize];
+                encodingBuffer = new byte[BufferSize];
             }
-            return this.encodingBuffer;
+            return encodingBuffer;
         }
 
         public HashAlgorithm TakeHashAlgorithm(string algorithm)
         {
-            if (this.hashAlgorithm == null)
+            if (hashAlgorithm == null)
             {
                 if (string.IsNullOrEmpty(algorithm))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format("EmptyOrNullArgumentString", "algorithm"));
                 }
 
-                this.hashAlgorithm = CryptoHelper.CreateHashAlgorithm(algorithm);
+                hashAlgorithm = CryptoHelper.CreateHashAlgorithm(algorithm);
             }
             else
             {
-                this.hashAlgorithm.Initialize();
+                hashAlgorithm.Initialize();
             }
 
-            return this.hashAlgorithm;
+            return hashAlgorithm;
         }
 
         public HashStream TakeHashStream(HashAlgorithm hash)
         {
-            if (this.hashStream == null)
+            if (hashStream == null)
             {
-                this.hashStream = new HashStream(hash);
+                hashStream = new HashStream(hash);
             }
             else
             {
-                this.hashStream.Reset(hash);
+                hashStream.Reset(hash);
             }
-            return this.hashStream;
+            return hashStream;
         }
 
         public HashStream TakeHashStream(string algorithm)
@@ -94,15 +94,15 @@ namespace CoreWCF.IdentityModel
 
         public XmlDictionaryWriter TakeUtf8Writer()
         {
-            if (this.utf8Writer == null)
+            if (utf8Writer == null)
             {
-                this.utf8Writer = XmlDictionaryWriter.CreateTextWriter(Stream.Null, Encoding.UTF8, false);
+                utf8Writer = XmlDictionaryWriter.CreateTextWriter(Stream.Null, Encoding.UTF8, false);
             }
             else
             {
-                ((IXmlTextWriterInitializer)this.utf8Writer).SetOutput(Stream.Null, Encoding.UTF8, false);
+                ((IXmlTextWriterInitializer)utf8Writer).SetOutput(Stream.Null, Encoding.UTF8, false);
             }
-            return this.utf8Writer;
+            return utf8Writer;
         }
     }
 }

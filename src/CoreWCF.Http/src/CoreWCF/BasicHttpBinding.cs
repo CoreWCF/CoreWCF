@@ -32,7 +32,9 @@ namespace CoreWCF
             // order of BindingElements is important
             // add encoding
             if (MessageEncoding == WSMessageEncoding.Text)
+            {
                 bindingElements.Add(TextMessageEncodingBindingElement);
+            }
             // add transport (http or https)
             bindingElements.Add(GetTransport());
 

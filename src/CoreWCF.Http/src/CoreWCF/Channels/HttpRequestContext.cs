@@ -20,7 +20,7 @@ namespace CoreWCF.Channels
         private HttpOutput httpOutput;
         private bool errorGettingHttpInput;
         private SecurityMessageProperty securityProperty;
-        private TaskCompletionSource<object> _replySentTcs;
+        private readonly TaskCompletionSource<object> _replySentTcs;
         //EventTraceActivity eventTraceActivity;
         //ServerWebSocketTransportDuplexSessionChannel webSocketChannel;
 
@@ -335,7 +335,7 @@ namespace CoreWCF.Channels
 
         private class AspNetCoreHttpContext : HttpRequestContext
         {
-            private HttpContext _aspNetContext;
+            private readonly HttpContext _aspNetContext;
             // byte[] webSocketInternalBuffer;
 
             public AspNetCoreHttpContext(IHttpTransportFactorySettings settings, HttpContext aspNetContext)
@@ -409,9 +409,9 @@ namespace CoreWCF.Channels
 
             private class AspNetCoreHttpInput : HttpInput
             {
-                private AspNetCoreHttpContext _aspNetCoreHttpContext;
+                private readonly AspNetCoreHttpContext _aspNetCoreHttpContext;
                 private string cachedContentType; // accessing the header in System.Net involves a native transition
-                private byte[] preReadBuffer;
+                private readonly byte[] preReadBuffer;
 
                 // TODO: ChannelBindingSupport
                 public AspNetCoreHttpInput(AspNetCoreHttpContext aspNetCoreHttpContext)

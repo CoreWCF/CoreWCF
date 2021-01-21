@@ -202,11 +202,15 @@ namespace CoreWCF.Security
         public static SecurityMessageProperty GetOrCreate(Message message)
         {
             if (message == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
 
             SecurityMessageProperty result = null;
             if (message.Properties != null)
+            {
                 result = message.Properties.Security;
+            }
 
             if (result == null)
             {

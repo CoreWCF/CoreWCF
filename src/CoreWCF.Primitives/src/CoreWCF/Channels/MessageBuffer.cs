@@ -22,7 +22,10 @@ namespace CoreWCF.Channels
         public virtual void WriteMessage(Stream stream)
         {
             if (stream == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
+            }
+
             Message message = CreateMessage();
             using (message)
             {
@@ -73,14 +76,14 @@ namespace CoreWCF.Channels
 
     internal class DefaultMessageBuffer : MessageBuffer
     {
-        private XmlBuffer msgBuffer;
-        private KeyValuePair<string, object>[] properties;
-        private bool[] understoodHeaders;
+        private readonly XmlBuffer msgBuffer;
+        private readonly KeyValuePair<string, object>[] properties;
+        private readonly bool[] understoodHeaders;
         private bool closed;
-        private MessageVersion version;
-        private Uri to;
-        private string action;
-        private bool isNullMessage;
+        private readonly MessageVersion version;
+        private readonly Uri to;
+        private readonly string action;
+        private readonly bool isNullMessage;
 
         public DefaultMessageBuffer(Message message, XmlBuffer msgBuffer)
         {
@@ -92,7 +95,9 @@ namespace CoreWCF.Channels
             ((ICollection<KeyValuePair<string, object>>)message.Properties).CopyTo(properties, 0);
             understoodHeaders = new bool[message.Headers.Count];
             for (int i = 0; i < understoodHeaders.Length; ++i)
+            {
                 understoodHeaders[i] = message.Headers.IsUnderstood(i);
+            }
 
             //CSDMain 17837: CreateBufferedCopy should have code to copy over the To and Action headers
             if (version == MessageVersion.None)
@@ -117,14 +122,18 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 if (closed)
+                {
                     return;
+                }
 
                 closed = true;
                 for (int i = 0; i < properties.Length; i++)
                 {
                     IDisposable disposable = properties[i].Value as IDisposable;
                     if (disposable != null)
+                    {
                         disposable.Dispose();
+                    }
                 }
             }
         }
@@ -132,7 +141,9 @@ namespace CoreWCF.Channels
         public override Message CreateMessage()
         {
             if (closed)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
+            }
 
             Message msg;
             if (isNullMessage)
@@ -152,7 +163,9 @@ namespace CoreWCF.Channels
             for (int i = 0; i < understoodHeaders.Length; ++i)
             {
                 if (understoodHeaders[i])
+                {
                     msg.Headers.AddUnderstood(i);
+                }
             }
 
             if (to != null)
@@ -172,11 +185,11 @@ namespace CoreWCF.Channels
     internal class BufferedMessageBuffer : MessageBuffer
     {
         private IBufferedMessageData messageData;
-        private KeyValuePair<string, object>[] properties;
+        private readonly KeyValuePair<string, object>[] properties;
         private bool closed;
-        private object thisLock = new object();
-        private bool[] understoodHeaders;
-        private bool understoodHeadersModified;
+        private readonly object thisLock = new object();
+        private readonly bool[] understoodHeaders;
+        private readonly bool understoodHeadersModified;
 
         public BufferedMessageBuffer(IBufferedMessageData messageData,
             KeyValuePair<string, object>[] properties, bool[] understoodHeaders, bool understoodHeadersModified)
@@ -195,7 +208,10 @@ namespace CoreWCF.Channels
                 lock (ThisLock)
                 {
                     if (closed)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
+                    }
+
                     return messageData.Buffer.Count;
                 }
             }
@@ -204,11 +220,17 @@ namespace CoreWCF.Channels
         public override void WriteMessage(Stream stream)
         {
             if (stream == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
+            }
+
             lock (ThisLock)
             {
                 if (closed)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
+                }
+
                 ArraySegment<byte> buffer = messageData.Buffer;
                 stream.Write(buffer.Array, buffer.Offset, buffer.Count);
             }
@@ -221,7 +243,10 @@ namespace CoreWCF.Channels
                 lock (ThisLock)
                 {
                     if (closed)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
+                    }
+
                     return messageData.MessageEncoder.ContentType;
                 }
             }
@@ -250,10 +275,16 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 if (closed)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
+                }
+
                 RecycledMessageState recycledMessageState = messageData.TakeMessageState();
                 if (recycledMessageState == null)
+                {
                     recycledMessageState = new RecycledMessageState();
+                }
+
                 BufferedMessage bufferedMessage = new BufferedMessage(messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
                 bufferedMessage.Properties.CopyProperties(properties);
                 messageData.Open();
@@ -268,7 +299,7 @@ namespace CoreWCF.Channels
         private KeyValuePair<string, object>[] properties;
         private MessageHeaders headers;
         private bool closed;
-        private object thisLock = new object();
+        private readonly object thisLock = new object();
 
         public BodyWriterMessageBuffer(MessageHeaders headers,
             KeyValuePair<string, object>[] properties, BodyWriter bodyWriter)
@@ -307,7 +338,10 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 if (closed)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
+                }
+
                 return new BodyWriterMessage(headers, properties, bodyWriter);
             }
         }

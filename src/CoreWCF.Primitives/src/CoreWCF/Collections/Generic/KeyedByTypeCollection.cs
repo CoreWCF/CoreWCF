@@ -19,7 +19,9 @@ namespace CoreWCF.Collections.Generic
             : base(null, 4)
         {
             if (items == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(items));
+            }
 
             foreach (TItem item in items)
             {

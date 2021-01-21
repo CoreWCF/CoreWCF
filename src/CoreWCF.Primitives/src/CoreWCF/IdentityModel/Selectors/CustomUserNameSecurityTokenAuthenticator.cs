@@ -12,12 +12,15 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     internal class CustomUserNameSecurityTokenAuthenticator : UserNameSecurityTokenAuthenticator
     {
-        private UserNamePasswordValidator validator;
+        private readonly UserNamePasswordValidator validator;
 
         public CustomUserNameSecurityTokenAuthenticator(UserNamePasswordValidator validator)
         {
             if (validator == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
+            }
+
             this.validator = validator;
         }
 
@@ -29,12 +32,14 @@ namespace CoreWCF.IdentityModel.Selectors
 
         private class UserNameClaimSet : DefaultClaimSet, IIdentityInfo
         {
-            private IIdentity identity;
+            private readonly IIdentity identity;
 
             public UserNameClaimSet(string userName, string authType)
             {
                 if (userName == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(userName));
+                }
 
                 identity = SecurityUtils.CreateIdentity(userName, authType);
 

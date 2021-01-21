@@ -24,14 +24,19 @@ namespace CoreWCF.Description
         public ServiceEndpoint(ContractDescription contract)
         {
             if (contract == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
+            }
+
             _contract = contract;
         }
 
         public ServiceEndpoint(ContractDescription contract, Binding binding, EndpointAddress address)
         {
             if (contract == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
+            }
 
             _contract = contract;
             _binding = binding;
@@ -158,7 +163,10 @@ namespace CoreWCF.Description
             get
             {
                 if (_id == null)
+                {
                     _id = Guid.NewGuid().ToString();
+                }
+
                 return _id;
             }
         }

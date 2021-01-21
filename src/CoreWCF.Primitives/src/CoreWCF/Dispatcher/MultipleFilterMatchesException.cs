@@ -10,7 +10,7 @@ namespace CoreWCF.Dispatcher
     internal class MultipleFilterMatchesException : Exception //SystemException
     {
         //[NonSerialized]
-        private Collection<MessageFilter> filters;
+        private readonly Collection<MessageFilter> filters;
 
         //protected MultipleFilterMatchesException(SerializationInfo info, StreamingContext context)
         //    : base(info, context)

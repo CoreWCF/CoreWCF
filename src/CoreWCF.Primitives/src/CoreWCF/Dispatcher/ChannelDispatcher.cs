@@ -16,7 +16,7 @@ namespace CoreWCF.Dispatcher
     // This class has been kept to enable using existing behaviors.
     public class ChannelDispatcher : ChannelDispatcherBase
     {
-        private ThreadSafeMessageFilterTable<EndpointAddress> addressTable;
+        private readonly ThreadSafeMessageFilterTable<EndpointAddress> addressTable;
         private CommunicationObjectManager<IChannel> channels;
         private EndpointDispatcherCollection endpointDispatchers;
         private EndpointDispatcherTable filterTable;
@@ -32,14 +32,14 @@ namespace CoreWCF.Dispatcher
         private bool includeExceptionDetailInFaults;
 
         //ServiceThrottle serviceThrottle;
-        private bool session;
+        private readonly bool session;
         private SharedRuntimeState shared;
-        private IDefaultCommunicationTimeouts timeouts;
+        private readonly IDefaultCommunicationTimeouts timeouts;
 
         //IsolationLevel transactionIsolationLevel = ServiceBehaviorAttribute.DefaultIsolationLevel;
         //bool transactionIsolationLevelSet;
         private TimeSpan transactionTimeout;
-        private bool performDefaultCloseInput;
+        private readonly bool performDefaultCloseInput;
 
         //EventTraceActivity eventTraceActivity;
         private ErrorBehavior errorBehavior;
@@ -459,7 +459,7 @@ namespace CoreWCF.Dispatcher
 
         private class EndpointDispatcherCollection : SynchronizedCollection<EndpointDispatcher>
         {
-            private ChannelDispatcher owner;
+            private readonly ChannelDispatcher owner;
 
             internal EndpointDispatcherCollection(ChannelDispatcher owner)
                 : base(owner.ThisLock)
@@ -479,7 +479,9 @@ namespace CoreWCF.Dispatcher
             protected override void InsertItem(int index, EndpointDispatcher item)
             {
                 if (item == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+                }
 
                 owner.OnAddEndpoint(item);
                 base.InsertItem(index, item);
@@ -501,7 +503,7 @@ namespace CoreWCF.Dispatcher
 
         private class ChannelDispatcherBehaviorCollection<T> : SynchronizedCollection<T>
         {
-            private ChannelDispatcher outer;
+            private readonly ChannelDispatcher outer;
 
             internal ChannelDispatcherBehaviorCollection(ChannelDispatcher outer)
                 : base(outer.ThisLock)

@@ -12,7 +12,7 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal class XmlDsigSep2000 : SecurityTokenSerializer.SerializerEntries
     {
-        private KeyInfoSerializer _securityTokenSerializer;
+        private readonly KeyInfoSerializer _securityTokenSerializer;
 
         public XmlDsigSep2000(KeyInfoSerializer securityTokenSerializer)
         {
@@ -31,7 +31,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         internal class KeyInfoEntry : KeyIdentifierEntry
         {
-            private KeyInfoSerializer _securityTokenSerializer;
+            private readonly KeyInfoSerializer _securityTokenSerializer;
 
             public KeyInfoEntry(KeyInfoSerializer securityTokenSerializer)
             {
@@ -133,8 +133,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 {
                     if (ski == null && reader.IsStartElement(CoreWCF.XD.XmlSignatureDictionary.X509Certificate, NamespaceUri))
                     {
-                        X509Certificate2 certificate = null;
-                        if (!SecurityUtils.TryCreateX509CertificateFromRawData(reader.ReadElementContentAsBase64(), out certificate))
+                        if (!SecurityUtils.TryCreateX509CertificateFromRawData(reader.ReadElementContentAsBase64(), out X509Certificate2 certificate))
                         {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityMessageSerializationException(SR.InvalidX509RawData));
                         }

@@ -19,7 +19,7 @@ namespace CoreWCF.IdentityModel.Claims
         //private static IEqualityComparer<Claim> upnComparer;
         private static IEqualityComparer<Claim> s_x500DistinguishedNameComparer;
 
-        private IEqualityComparer _resourceComparer;
+        private readonly IEqualityComparer _resourceComparer;
 
         private ClaimComparer(IEqualityComparer resourceComparer)
         {
@@ -29,19 +29,40 @@ namespace CoreWCF.IdentityModel.Claims
         public static IEqualityComparer<Claim> GetComparer(string claimType)
         {
             if (claimType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claimType));
+            }
+
             if (claimType == ClaimTypes.Dns)
+            {
                 return Dns;
+            }
+
             if (claimType == ClaimTypes.Hash)
+            {
                 return Hash;
+            }
+
             if (claimType == ClaimTypes.Rsa)
+            {
                 return Rsa;
+            }
+
             if (claimType == ClaimTypes.Thumbprint)
+            {
                 return Thumbprint;
+            }
+
             if (claimType == ClaimTypes.Upn)
+            {
                 return Upn;
+            }
+
             if (claimType == ClaimTypes.X500DistinguishedName)
+            {
                 return X500DistinguishedName;
+            }
+
             return Default;
         }
 
@@ -138,13 +159,19 @@ namespace CoreWCF.IdentityModel.Claims
         public bool Equals(Claim claim1, Claim claim2)
         {
             if (ReferenceEquals(claim1, claim2))
+            {
                 return true;
+            }
 
             if (claim1 == null || claim2 == null)
+            {
                 return false;
+            }
 
             if (claim1.ClaimType != claim2.ClaimType || claim1.Right != claim2.Right)
+            {
                 return false;
+            }
 
             return _resourceComparer.Equals(claim1.Resource, claim2.Resource);
         }
@@ -152,7 +179,9 @@ namespace CoreWCF.IdentityModel.Claims
         public int GetHashCode(Claim claim)
         {
             if (claim == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
+            }
 
             return claim.ClaimType.GetHashCode() ^ claim.Right.GetHashCode()
                 ^ ((claim.Resource == null) ? 0 : _resourceComparer.GetHashCode(claim.Resource));
@@ -163,16 +192,25 @@ namespace CoreWCF.IdentityModel.Claims
             bool IEqualityComparer.Equals(object obj1, object obj2)
             {
                 if (obj1 == null && obj2 == null)
+                {
                     return true;
+                }
+
                 if (obj1 == null || obj2 == null)
+                {
                     return false;
+                }
+
                 return obj1.Equals(obj2);
             }
 
             int IEqualityComparer.GetHashCode(object obj)
             {
                 if (obj == null)
+                {
                     return 0;
+                }
+
                 return obj.GetHashCode();
             }
         }
@@ -182,20 +220,28 @@ namespace CoreWCF.IdentityModel.Claims
             bool IEqualityComparer.Equals(object obj1, object obj2)
             {
                 if (ReferenceEquals(obj1, obj2))
+                {
                     return true;
+                }
 
                 byte[] bytes1 = obj1 as byte[];
                 byte[] bytes2 = obj2 as byte[];
                 if (bytes1 == null || bytes2 == null)
+                {
                     return false;
+                }
 
                 if (bytes1.Length != bytes2.Length)
+                {
                     return false;
+                }
 
                 for (int i = 0; i < bytes1.Length; ++i)
                 {
                     if (bytes1[i] != bytes2[i])
+                    {
                         return false;
+                    }
                 }
 
                 return true;
@@ -205,7 +251,9 @@ namespace CoreWCF.IdentityModel.Claims
             {
                 byte[] bytes = obj as byte[];
                 if (bytes == null)
+                {
                     return 0;
+                }
 
                 int hashCode = 0;
                 for (int i = 0; i < bytes.Length && i < 4; ++i)
@@ -222,30 +270,40 @@ namespace CoreWCF.IdentityModel.Claims
             bool IEqualityComparer.Equals(object obj1, object obj2)
             {
                 if (ReferenceEquals(obj1, obj2))
+                {
                     return true;
+                }
 
                 RSA rsa1 = obj1 as RSA;
                 RSA rsa2 = obj2 as RSA;
                 if (rsa1 == null || rsa2 == null)
+                {
                     return false;
+                }
 
                 RSAParameters parm1 = rsa1.ExportParameters(false);
                 RSAParameters parm2 = rsa2.ExportParameters(false);
 
                 if (parm1.Modulus.Length != parm2.Modulus.Length ||
                     parm1.Exponent.Length != parm2.Exponent.Length)
+                {
                     return false;
+                }
 
                 for (int i = 0; i < parm1.Modulus.Length; ++i)
                 {
                     if (parm1.Modulus[i] != parm2.Modulus[i])
+                    {
                         return false;
+                    }
                 }
 
                 for (int i = 0; i < parm1.Exponent.Length; ++i)
                 {
                     if (parm1.Exponent[i] != parm2.Exponent[i])
+                    {
                         return false;
+                    }
                 }
 
                 return true;
@@ -255,7 +313,9 @@ namespace CoreWCF.IdentityModel.Claims
             {
                 RSA rsa = obj as RSA;
                 if (rsa == null)
+                {
                     return 0;
+                }
 
                 RSAParameters parm = rsa.ExportParameters(false);
                 return parm.Modulus.Length ^ parm.Exponent.Length;
@@ -264,7 +324,7 @@ namespace CoreWCF.IdentityModel.Claims
 
         private class X500DistinguishedNameObjectComparer : IEqualityComparer
         {
-            private IEqualityComparer binaryComparer;
+            private readonly IEqualityComparer binaryComparer;
             public X500DistinguishedNameObjectComparer()
             {
                 binaryComparer = new BinaryObjectComparer();
@@ -273,16 +333,22 @@ namespace CoreWCF.IdentityModel.Claims
             bool IEqualityComparer.Equals(object obj1, object obj2)
             {
                 if (ReferenceEquals(obj1, obj2))
+                {
                     return true;
+                }
 
                 X500DistinguishedName dn1 = obj1 as X500DistinguishedName;
                 X500DistinguishedName dn2 = obj2 as X500DistinguishedName;
                 if (dn1 == null || dn2 == null)
+                {
                     return false;
+                }
 
                 // 1) Hopefully cover most cases (perf reason).
                 if (StringComparer.Ordinal.Equals(dn1.Name, dn2.Name))
+                {
                     return true;
+                }
 
                 // 2) Raw byte compare.  Note: we assume the rawbyte is in the same order 
                 // (default = X500DistinguishedNameFlags.Reversed). 
@@ -293,7 +359,9 @@ namespace CoreWCF.IdentityModel.Claims
             {
                 X500DistinguishedName dn = obj as X500DistinguishedName;
                 if (dn == null)
+                {
                     return 0;
+                }
 
                 return binaryComparer.GetHashCode(dn.RawData);
             }

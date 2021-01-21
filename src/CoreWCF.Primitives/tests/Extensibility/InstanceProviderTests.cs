@@ -58,7 +58,7 @@ namespace Extensibility
         public int ReleaseInstanceCallCount { get; private set; }
         public int InstanceHashCode { get; private set; } = -1;
         public int ReleasedInstanceHashCode { get; private set; } = -2;
-        private AsyncLock _asyncLock = new AsyncLock();
+        private readonly AsyncLock _asyncLock = new AsyncLock();
         private IDisposable _asyncLockHoldObj = null;
 
         public object GetInstance(InstanceContext instanceContext)
@@ -101,7 +101,7 @@ namespace Extensibility
 
     public class SimpleService : ISimpleService
     {
-        private DateTime _dateTime;
+        private readonly DateTime _dateTime;
 
         public SimpleService()
         {

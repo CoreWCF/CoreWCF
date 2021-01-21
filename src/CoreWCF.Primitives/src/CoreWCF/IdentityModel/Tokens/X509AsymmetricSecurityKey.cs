@@ -10,7 +10,7 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509AsymmetricSecurityKey : AsymmetricSecurityKey
     {
-        private X509Certificate2 _certificate;
+        private readonly X509Certificate2 _certificate;
         private AsymmetricAlgorithm _privateKey;
         private bool _privateKeyAvailabilityDetermined;
         private AsymmetricAlgorithm _publicKey;

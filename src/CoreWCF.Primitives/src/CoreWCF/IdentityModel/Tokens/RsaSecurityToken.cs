@@ -10,9 +10,9 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal class RsaSecurityToken : SecurityToken
     {
-        private string id;
-        private DateTime effectiveTime;
-        private RSA rsa;
+        private readonly string id;
+        private readonly DateTime effectiveTime;
+        private readonly RSA rsa;
 
         public RsaSecurityToken(RSA rsa)
             : this(rsa, SecurityUniqueId.Create().Value)
@@ -22,9 +22,15 @@ namespace CoreWCF.IdentityModel.Tokens
         public RsaSecurityToken(RSA rsa, string id)
         {
             if (rsa == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
+            }
+
             if (id == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
+            }
+
             this.rsa = rsa;
             this.id = id;
             effectiveTime = DateTime.UtcNow;

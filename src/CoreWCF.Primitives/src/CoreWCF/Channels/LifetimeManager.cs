@@ -21,7 +21,7 @@ namespace CoreWCF.Channels
         private int _busyCount;
         private ICommunicationWaiter _busyWaiter;
         private int _busyWaiterCount;
-        private object _mutex;
+        private readonly object _mutex;
         private LifetimeState _state;
 
         public LifetimeManager(object mutex)
@@ -50,7 +50,10 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 if (State == LifetimeState.Closed || _aborted)
+                {
                     return;
+                }
+
                 _aborted = true;
                 _state = LifetimeState.Closing;
             }
@@ -104,7 +107,10 @@ namespace CoreWCF.Channels
                     if (_busyWaiter != null)
                     {
                         if (!aborting && _aborted)
+                        {
                             return CommunicationWaitResult.Aborted;
+                        }
+
                         busyWaiter = _busyWaiter;
                     }
                     else
@@ -197,7 +203,9 @@ namespace CoreWCF.Channels
             }
 
             if (empty && State == LifetimeState.Opened)
+            {
                 OnEmpty();
+            }
         }
 
         protected virtual void IncrementBusyCount()
@@ -244,7 +252,7 @@ namespace CoreWCF.Channels
     internal class AsyncCommunicationWaiter : ICommunicationWaiter
     {
         private bool _closed;
-        private object _mutex;
+        private readonly object _mutex;
         private CommunicationWaitResult _result;
 
         private TaskCompletionSource<bool> _tcs;
@@ -265,7 +273,10 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 if (_closed)
+                {
                     return;
+                }
+
                 _closed = true;
                 _tcs?.TrySetResult(false);
             }
@@ -276,7 +287,10 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 if (_closed)
+                {
                     return;
+                }
+
                 _tcs.TrySetResult(true);
             }
         }

@@ -48,7 +48,7 @@ namespace CoreWCF.Channels
         private bool hasCleanedUpChannelCollections;
 
         //EventTraceActivity eventActivity;
-        private IDefaultCommunicationTimeouts timeouts;
+        private readonly IDefaultCommunicationTimeouts timeouts;
         private EventHandler<UnknownMessageReceivedEventArgs> unknownMessageReceived;
 
         private ServiceChannel(IChannelBinder binder, Binding binding)
@@ -58,7 +58,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(binder));
             }
 
-            this.messageVersion = binding.MessageVersion;
+            messageVersion = binding.MessageVersion;
             this.binder = binder;
             isReplyChannel = this.binder.Channel is IReplyChannel;
 
@@ -71,7 +71,7 @@ namespace CoreWCF.Channels
             openBinder = (binder.Channel.State == CommunicationState.Created);
 
             operationTimeout = binding.SendTimeout;
-            this.timeouts = binding;
+            timeouts = binding;
         }
 
         // Only used by ServiceChannelFactory
@@ -115,12 +115,13 @@ namespace CoreWCF.Channels
             this.idleManager = idleManager;
 
             if (!binder.HasSession)
+            {
                 closeBinder = false;
+            }
 
             if (this.idleManager != null)
             {
-                bool didIdleAbort;
-                this.idleManager.RegisterChannel(this, out didIdleAbort);
+                this.idleManager.RegisterChannel(this, out bool didIdleAbort);
                 if (didIdleAbort)
                 {
                     Abort();
@@ -335,9 +336,13 @@ namespace CoreWCF.Channels
             {
                 object proxy = this.proxy;
                 if (proxy != null)
+                {
                     return proxy;
+                }
                 else
+                {
                     return this;
+                }
             }
             set
             {
@@ -357,11 +362,15 @@ namespace CoreWCF.Channels
             {
                 IOutputChannel outputChannel = InnerChannel as IOutputChannel;
                 if (outputChannel != null)
+                {
                     return outputChannel.RemoteAddress;
+                }
 
                 IRequestChannel requestChannel = InnerChannel as IRequestChannel;
                 if (requestChannel != null)
+                {
                     return requestChannel.RemoteAddress;
+                }
 
                 return null;
             }
@@ -378,11 +387,15 @@ namespace CoreWCF.Channels
             {
                 IOutputChannel outputChannel = InnerChannel as IOutputChannel;
                 if (outputChannel != null)
+                {
                     return outputChannel.Via;
+                }
 
                 IRequestChannel requestChannel = InnerChannel as IRequestChannel;
                 if (requestChannel != null)
+                {
                     return requestChannel.Via;
+                }
 
                 return null;
             }
@@ -396,17 +409,17 @@ namespace CoreWCF.Channels
 
         internal ServiceThrottle InstanceContextServiceThrottle
         {
-            get { return this.instanceContextServiceThrottle; }
-            set { this.instanceContextServiceThrottle = value; }
+            get { return instanceContextServiceThrottle; }
+            set { instanceContextServiceThrottle = value; }
         }
 
         internal ServiceThrottle ServiceThrottle
         {
-            get { return this.serviceThrottle; }
+            get { return serviceThrottle; }
             set
             {
-                this.ThrowIfDisposed();
-                this.serviceThrottle = value;
+                ThrowIfDisposed();
+                serviceThrottle = value;
             }
         }
 
@@ -431,13 +444,19 @@ namespace CoreWCF.Channels
         internal bool CanCastTo(Type t)
         {
             if (t.IsAssignableFrom(typeof(IClientChannel)))
+            {
                 return true;
+            }
 
             if (t.IsAssignableFrom(typeof(IDuplexContextChannel)))
+            {
                 return InnerChannel is IDuplexChannel;
+            }
 
             if (t.IsAssignableFrom(typeof(IServiceChannel)))
+            {
                 return true;
+            }
 
             return false;
         }
@@ -481,7 +500,10 @@ namespace CoreWCF.Channels
         {
             IChannel innerChannel = InnerChannel;
             if (innerChannel != null)
+            {
                 return innerChannel.GetProperty<T>();
+            }
+
             return null;
         }
 
@@ -783,7 +805,9 @@ namespace CoreWCF.Channels
         {
             EventHandler<UnknownMessageReceivedEventArgs> handler = unknownMessageReceived;
             if (handler != null)
+            {
                 handler(proxy, new UnknownMessageReceivedEventArgs(message));
+            }
         }
 
         private TimeoutException GetOpenTimeoutException(TimeSpan timeout)
@@ -814,7 +838,9 @@ namespace CoreWCF.Channels
                 {
                     DispatchRuntime dispatchBehavior = ClientRuntime.DispatchRuntime;
                     if (dispatchBehavior != null)
+                    {
                         dispatchBehavior.GetRuntime().InputSessionDoneReceiving(this);
+                    }
 
                     DecrementActivity();
                 }
@@ -925,8 +951,7 @@ namespace CoreWCF.Channels
 
         private void ThrowIfFaultUnderstood(Message reply, MessageFault fault, string action, MessageVersion version, FaultConverter faultConverter)
         {
-            Exception exception;
-            if (faultConverter != null && faultConverter.TryCreateException(reply, fault, out exception))
+            if (faultConverter != null && faultConverter.TryCreateException(reply, fault, out Exception exception))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(exception);
             }
@@ -1152,7 +1177,9 @@ namespace CoreWCF.Channels
             //}
 
             if (closeBinder)
+            {
                 await InnerChannel.CloseAsync(token);
+            }
 
             CleanupChannelCollections();
 
@@ -1244,7 +1271,10 @@ namespace CoreWCF.Channels
                 lock (ThisLock)
                 {
                     if (extensions == null)
+                    {
                         extensions = new ExtensionCollection<IContextChannel>((IContextChannel)Proxy, ThisLock);
+                    }
+
                     return extensions;
                 }
             }
@@ -1280,11 +1310,15 @@ namespace CoreWCF.Channels
                 {
                     ISessionChannel<IInputSession> inputSession = InnerChannel as ISessionChannel<IInputSession>;
                     if (inputSession != null)
+                    {
                         return inputSession.Session;
+                    }
 
                     ISessionChannel<IDuplexSession> duplexSession = InnerChannel as ISessionChannel<IDuplexSession>;
                     if (duplexSession != null)
+                    {
                         return duplexSession.Session;
+                    }
                 }
 
                 return null;
@@ -1299,11 +1333,15 @@ namespace CoreWCF.Channels
                 {
                     ISessionChannel<IOutputSession> outputSession = InnerChannel as ISessionChannel<IOutputSession>;
                     if (outputSession != null)
+                    {
                         return outputSession.Session;
+                    }
 
                     ISessionChannel<IDuplexSession> duplexSession = InnerChannel as ISessionChannel<IDuplexSession>;
                     if (duplexSession != null)
+                    {
                         return duplexSession.Session;
+                    }
                 }
 
                 return null;
@@ -1318,15 +1356,21 @@ namespace CoreWCF.Channels
                 {
                     ISessionChannel<IInputSession> inputSession = InnerChannel as ISessionChannel<IInputSession>;
                     if (inputSession != null)
+                    {
                         return inputSession.Session.Id;
+                    }
 
                     ISessionChannel<IOutputSession> outputSession = InnerChannel as ISessionChannel<IOutputSession>;
                     if (outputSession != null)
+                    {
                         return outputSession.Session.Id;
+                    }
 
                     ISessionChannel<IDuplexSession> duplexSession = InnerChannel as ISessionChannel<IDuplexSession>;
                     if (duplexSession != null)
+                    {
                         return duplexSession.Session.Id;
+                    }
                 }
 
                 return null;
@@ -1680,7 +1724,7 @@ namespace CoreWCF.Channels
                     this.binder = binder;
                     timer = new IOThreadTimer(GetTimerCallback(), this, false);
                     idleTicks = Ticks.FromTimeSpan(idle);
-                    timer.SetAt(Ticks.Now + this.idleTicks);
+                    timer.SetAt(Ticks.Now + idleTicks);
                     thisLock = new object();
                     isNeeded = true;
                     return this;

@@ -10,14 +10,14 @@ namespace CoreWCF.Security.Tokens
 {
     internal sealed class DerivedKeySecurityTokenStub : SecurityToken
     {
-        private string id;
-        private string derivationAlgorithm;
-        private string label;
-        private int length;
-        private byte[] nonce;
-        private int offset;
-        private int generation;
-        private SecurityKeyIdentifierClause tokenToDeriveIdentifier;
+        private readonly string id;
+        private readonly string derivationAlgorithm;
+        private readonly string label;
+        private readonly int length;
+        private readonly byte[] nonce;
+        private readonly int offset;
+        private readonly int generation;
+        private readonly SecurityKeyIdentifierClause tokenToDeriveIdentifier;
 
         public DerivedKeySecurityTokenStub(int generation, int offset, int length,
             string label, byte[] nonce,
@@ -33,7 +33,7 @@ namespace CoreWCF.Security.Tokens
             this.derivationAlgorithm = derivationAlgorithm;
         }
 
-        public override string Id => this.id;
+        public override string Id => id;
 
         public override DateTime ValidFrom => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotImplementedException());
 
@@ -41,12 +41,12 @@ namespace CoreWCF.Security.Tokens
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys => null;
 
-        public SecurityKeyIdentifierClause TokenToDeriveIdentifier => this.tokenToDeriveIdentifier;
+        public SecurityKeyIdentifierClause TokenToDeriveIdentifier => tokenToDeriveIdentifier;
 
         public DerivedKeySecurityToken CreateToken(SecurityToken tokenToDerive, int maxKeyLength)
         {
-            DerivedKeySecurityToken result = new DerivedKeySecurityToken(this.generation, this.offset, this.length,
-                this.label, this.nonce, tokenToDerive, this.tokenToDeriveIdentifier, this.derivationAlgorithm, this.Id);
+            DerivedKeySecurityToken result = new DerivedKeySecurityToken(generation, offset, length,
+                label, nonce, tokenToDerive, tokenToDeriveIdentifier, derivationAlgorithm, Id);
             result.InitializeDerivedKey(maxKeyLength);
             return result;
         }

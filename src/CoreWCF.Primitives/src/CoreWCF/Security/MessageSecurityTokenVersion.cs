@@ -9,14 +9,14 @@ namespace CoreWCF.Security
 {
     internal sealed class MessageSecurityTokenVersion : SecurityTokenVersion
     {
-        private SecurityVersion securityVersion;
-        private TrustVersion trustVersion;
-        private SecureConversationVersion secureConversationVersion;
-        private bool emitBspRequiredAttributes;
-        private string toString;
-        private ReadOnlyCollection<string> supportedSpecs;
+        private readonly SecurityVersion securityVersion;
+        private readonly TrustVersion trustVersion;
+        private readonly SecureConversationVersion secureConversationVersion;
+        private readonly bool emitBspRequiredAttributes;
+        private readonly string toString;
+        private readonly ReadOnlyCollection<string> supportedSpecs;
         private const string bsp10ns = @"http://ws-i.org/profiles/basic-security/core/1.0";
-        private static MessageSecurityTokenVersion wss11 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion wss11 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrustFeb2005,
             SecureConversationVersion.WSSecureConversationFeb2005,
@@ -25,7 +25,7 @@ namespace CoreWCF.Security
             XD.SecurityXXX2005Dictionary.Namespace.Value,
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value);
-        private static MessageSecurityTokenVersion wss10bsp10 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion wss10bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity10,
             TrustVersion.WSTrustFeb2005,
             SecureConversationVersion.WSSecureConversationFeb2005,
@@ -35,7 +35,7 @@ namespace CoreWCF.Security
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value,
             bsp10ns);
-        private static MessageSecurityTokenVersion wss11bsp10 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion wss11bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrustFeb2005,
             SecureConversationVersion.WSSecureConversationFeb2005,
@@ -45,7 +45,7 @@ namespace CoreWCF.Security
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value,
             bsp10ns);
-        private static MessageSecurityTokenVersion wss10oasisdec2005bsp10 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion wss10oasisdec2005bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity10,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -55,7 +55,7 @@ namespace CoreWCF.Security
             DXD.TrustDec2005Dictionary.Namespace.Value,
             DXD.SecureConversationDec2005Dictionary.Namespace.Value
             );
-        private static MessageSecurityTokenVersion wss11oasisdec2005 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion wss11oasisdec2005 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -65,7 +65,7 @@ namespace CoreWCF.Security
             DXD.TrustDec2005Dictionary.Namespace.Value,
             DXD.SecureConversationDec2005Dictionary.Namespace.Value
             );
-        private static MessageSecurityTokenVersion wss11oasisdec2005bsp10 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion wss11oasisdec2005bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -129,16 +129,24 @@ namespace CoreWCF.Security
             if (version == SecurityVersion.WSSecurity10)
             {
                 if (emitBspAttributes)
+                {
                     return MessageSecurityTokenVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10;
+                }
                 else
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
+                }
             }
             else if (version == SecurityVersion.WSSecurity11)
             {
                 if (emitBspAttributes)
+                {
                     return MessageSecurityTokenVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10;
+                }
                 else
+                {
                     return MessageSecurityTokenVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005;
+                }
             }
             else
             {
@@ -161,7 +169,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.emitBspRequiredAttributes;
+                return emitBspRequiredAttributes;
             }
         }
 
@@ -169,7 +177,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.securityVersion;
+                return securityVersion;
             }
         }
 
@@ -177,7 +185,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.trustVersion;
+                return trustVersion;
             }
         }
 
@@ -185,7 +193,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.secureConversationVersion;
+                return secureConversationVersion;
             }
         }
 
@@ -196,7 +204,7 @@ namespace CoreWCF.Security
 
         public override string ToString()
         {
-            return this.toString;
+            return toString;
         }
     }
 }

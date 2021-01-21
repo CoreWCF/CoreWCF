@@ -55,12 +55,12 @@ namespace CoreWCF.Security
 
         internal bool DoesMessageContainSecurityHeader(Message message)
         {
-            return message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value) >= 0;
+            return message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value) >= 0;
         }
 
         internal int FindIndexOfSecurityHeader(Message message, string[] actors)
         {
-            return message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value, actors);
+            return message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, actors);
 
         }
 
@@ -76,10 +76,10 @@ namespace CoreWCF.Security
             SecurityStandardsManager standardsManager,
             SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
         {
-            int headerIndex = message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value, actor);
+            int headerIndex = message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, actor);
             if (headerIndex < 0 && String.IsNullOrEmpty(actor))
             {
-                headerIndex = message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value, message.Version.Envelope.UltimateDestinationActorValues);
+                headerIndex = message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, message.Version.Envelope.UltimateDestinationActorValues);
             }
 
             if (headerIndex < 0)
@@ -101,7 +101,7 @@ namespace CoreWCF.Security
 
         internal void WriteStartHeader(XmlDictionaryWriter writer)
         {
-            writer.WriteStartElement(this.HeaderPrefix.Value, this.HeaderName, this.HeaderNamespace);
+            writer.WriteStartElement(HeaderPrefix.Value, HeaderName, HeaderNamespace);
         }
 
         internal virtual ISignatureValueSecurityElement ReadSignatureConfirmation(XmlDictionaryReader reader)

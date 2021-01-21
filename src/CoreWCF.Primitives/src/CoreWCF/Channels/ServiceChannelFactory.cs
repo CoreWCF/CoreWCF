@@ -12,7 +12,7 @@ namespace CoreWCF.Channels
     public class ServiceChannelFactory
     {
         private delegate object CreateProxyDelegate(MessageDirection direction, ServiceChannel serviceChannel);
-        private static IDictionary<Type, CreateProxyDelegate> s_createProxyDelegateCache = new ConcurrentDictionary<Type, CreateProxyDelegate>();
+        private static readonly IDictionary<Type, CreateProxyDelegate> s_createProxyDelegateCache = new ConcurrentDictionary<Type, CreateProxyDelegate>();
 
         internal static object CreateProxy(Type interfaceType, Type proxiedType, MessageDirection direction, ServiceChannel serviceChannel)
         {
@@ -21,8 +21,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxChannelFactoryTypeMustBeInterface));
             }
 
-            CreateProxyDelegate createProxyDelegate;
-            if (!s_createProxyDelegateCache.TryGetValue(proxiedType, out createProxyDelegate))
+            if (!s_createProxyDelegateCache.TryGetValue(proxiedType, out CreateProxyDelegate createProxyDelegate))
             {
                 MethodInfo method = typeof(ServiceChannelFactory).GetMethod(nameof(CreateProxyWithType),
                     BindingFlags.NonPublic | BindingFlags.Static);
@@ -49,9 +48,13 @@ namespace CoreWCF.Channels
             ServiceChannelProxy proxy = transparentProxy as ServiceChannelProxy;
 
             if (proxy != null)
+            {
                 return proxy.GetServiceChannel();
+            }
             else
+            {
                 return null;
+            }
         }
     }
 }

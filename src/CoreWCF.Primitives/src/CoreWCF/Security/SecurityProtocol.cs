@@ -67,7 +67,7 @@ namespace CoreWCF.Security
 
         public Task OpenAsync(TimeSpan timeout)
         {
-            return this.CommunicationObject.OpenAsync();
+            return CommunicationObject.OpenAsync();
         }
 
         public void OnClosed() { }
@@ -286,8 +286,7 @@ namespace CoreWCF.Security
                 foreach (string action in SecurityProtocolFactory.SecurityBindingElement.OptionalOperationSupportingTokenParameters.Keys)
                 {
                     Collection<SupportingTokenProviderSpecification> providerSpecList;
-                    ICollection<SupportingTokenProviderSpecification> existingList;
-                    if (ScopedSupportingTokenProviderSpecification.TryGetValue(action, out existingList))
+                    if (ScopedSupportingTokenProviderSpecification.TryGetValue(action, out ICollection<SupportingTokenProviderSpecification> existingList))
                     {
                         providerSpecList = ((Collection<SupportingTokenProviderSpecification>)existingList);
                     }
@@ -612,11 +611,8 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
             }
-            bool expectBasicTokens;
-            bool expectSignedTokens;
-            bool expectEndorsingTokens;
             IList<SupportingTokenAuthenticatorSpecification> authenticators = factory.GetSupportingTokenAuthenticators(message.Headers.Action,
-                out expectSignedTokens, out expectBasicTokens, out expectEndorsingTokens);
+                out bool expectSignedTokens, out bool expectBasicTokens, out bool expectEndorsingTokens);
             securityHeader.ExpectBasicTokens = expectBasicTokens;
             securityHeader.ExpectEndorsingTokens = expectEndorsingTokens;
             securityHeader.ExpectSignedTokens = expectSignedTokens;
@@ -627,11 +623,11 @@ namespace CoreWCF.Security
         {
             if (aborted)
             {
-                this.CommunicationObject.Abort();
+                CommunicationObject.Abort();
             }
             else
             {
-                this.CommunicationObject.CloseAsync();
+                CommunicationObject.CloseAsync();
             }
             return Task.CompletedTask;
         }

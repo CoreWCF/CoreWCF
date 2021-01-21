@@ -21,10 +21,10 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class SecurityImpersonationBehavior
     {
-        private PrincipalPermissionMode principalPermissionMode;
-        private object roleProvider;
-        private bool impersonateCallerForAllOperations;
-        private Dictionary<string, string> ncNameMap;
+        private readonly PrincipalPermissionMode principalPermissionMode;
+        private readonly object roleProvider;
+        private readonly bool impersonateCallerForAllOperations;
+        private readonly Dictionary<string, string> ncNameMap;
 
         //Dictionary<string, string> domainNameMap;
         private Random random;
@@ -63,7 +63,9 @@ namespace CoreWCF.Dispatcher
             get
             {
                 if (anonymousWindowsPrincipal == null)
+                {
                     anonymousWindowsPrincipal = new WindowsPrincipal(WindowsIdentity.GetAnonymous());
+                }
 
                 return anonymousWindowsPrincipal;
             }
@@ -109,7 +111,9 @@ namespace CoreWCF.Dispatcher
             if (principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
             {
                 if (claimsPrincipal is WindowsPrincipal)
+                {
                     principal = claimsPrincipal;
+                }
                 else if (securityContext.PrimaryIdentity != null && securityContext.PrimaryIdentity is GenericIdentity)
                 {
                     principal = new ClaimsPrincipal(securityContext.PrimaryIdentity);
@@ -145,11 +149,14 @@ namespace CoreWCF.Dispatcher
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IPrincipal GetCustomPrincipal(ServiceSecurityContext securityContext)
         {
-            object customPrincipal;
-            if (securityContext.AuthorizationContext.Properties.TryGetValue(SecurityUtils.Principal, out customPrincipal) && customPrincipal is IPrincipal)
+            if (securityContext.AuthorizationContext.Properties.TryGetValue(SecurityUtils.Principal, out object customPrincipal) && customPrincipal is IPrincipal)
+            {
                 return (IPrincipal)customPrincipal;
+            }
             else
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.NoPrincipalSpecifiedInAuthorizationContext));
+            }
         }
 
         internal bool IsSecurityContextImpersonationRequired(MessageRpc rpc)
@@ -173,12 +180,18 @@ namespace CoreWCF.Dispatcher
             bool setThreadPrincipal = principalPermissionMode != PrincipalPermissionMode.None;
             bool isSecurityContextImpersonationOn = IsSecurityContextImpersonationRequired(rpc);
             if (setThreadPrincipal || isSecurityContextImpersonationOn)
+            {
                 securityContext = GetAndCacheSecurityContext(rpc);
+            }
             else
+            {
                 securityContext = null;
+            }
 
             if (setThreadPrincipal && securityContext != null)
+            {
                 originalPrincipal = SetCurrentThreadPrincipal(securityContext, out isThreadPrincipalSet);
+            }
 
             try
             {
@@ -210,7 +223,9 @@ namespace CoreWCF.Dispatcher
                 if (isSecurityContextImpersonationOn)
                 {
                     if (securityContext == null)
+                    {
                         throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.SFxSecurityContextPropertyMissingFromRequestMessage), rpc.Request);
+                    }
 
                     WindowsIdentity impersonationToken = securityContext.WindowsIdentity;
                     if (impersonationToken.User != null)
@@ -236,7 +251,9 @@ namespace CoreWCF.Dispatcher
                         }
                     }
                     else
+                    {
                         throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityContextDoesNotAllowImpersonation, rpc.Operation.Action)), rpc.Request);
+                    }
                 }
 
                 //SecurityTraceRecordHelper.TraceImpersonationSucceeded(rpc.EventTraceActivity, rpc.Operation);
@@ -292,11 +309,15 @@ namespace CoreWCF.Dispatcher
         {
             WindowsIdentity wid = securityContext.WindowsIdentity;
             if (!wid.IsAnonymous)
+            {
                 return new WindowsPrincipal(wid);
+            }
 
             WindowsSidIdentity wsid = securityContext.PrimaryIdentity as WindowsSidIdentity;
             if (wsid != null)
+            {
                 return new WindowsSidPrincipal(wsid, securityContext);
+            }
 
             return AnonymousWindowsPrincipal;
         }
@@ -309,12 +330,16 @@ namespace CoreWCF.Dispatcher
             {
                 SecurityMessageProperty securityContextProperty = rpc.Request.Properties.Security;
                 if (securityContextProperty == null)
+                {
                     securityContext = null; // SecurityContext.Anonymous
+                }
                 else
                 {
                     securityContext = securityContextProperty.ServiceSecurityContext;
                     if (securityContext == null)
+                    {
                         throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityContextMissing, rpc.Operation.Name)), rpc.Request);
+                    }
                 }
 
                 rpc.SecurityContext = securityContext;
@@ -441,8 +466,8 @@ namespace CoreWCF.Dispatcher
 
         private class WindowsSidPrincipal : IPrincipal
         {
-            private WindowsSidIdentity identity;
-            private ServiceSecurityContext securityContext;
+            private readonly WindowsSidIdentity identity;
+            private readonly ServiceSecurityContext securityContext;
 
             public WindowsSidPrincipal(WindowsSidIdentity identity, ServiceSecurityContext securityContext)
             {
@@ -458,7 +483,9 @@ namespace CoreWCF.Dispatcher
             public bool IsInRole(string role)
             {
                 if (role == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("role");
+                }
 
                 NTAccount account = new NTAccount(role);
                 Claim claim = Claim.CreateWindowsSidClaim((SecurityIdentifier)account.Translate(typeof(SecurityIdentifier)));
@@ -467,7 +494,9 @@ namespace CoreWCF.Dispatcher
                 {
                     ClaimSet claimSet = authContext.ClaimSets[i];
                     if (claimSet.ContainsClaim(claim))
+                    {
                         return true;
+                    }
                 }
                 return false;
             }

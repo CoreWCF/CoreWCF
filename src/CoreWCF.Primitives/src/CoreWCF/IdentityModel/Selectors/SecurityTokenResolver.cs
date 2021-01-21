@@ -16,8 +16,7 @@ namespace CoreWCF.IdentityModel.Selectors
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifier));
             }
-            SecurityToken token;
-            if (!this.TryResolveTokenCore(keyIdentifier, out token))
+            if (!TryResolveTokenCore(keyIdentifier, out SecurityToken token))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.Format("UnableToResolveTokenReference", keyIdentifier)));
             }
@@ -39,8 +38,7 @@ namespace CoreWCF.IdentityModel.Selectors
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
-            SecurityToken token;
-            if (!this.TryResolveTokenCore(keyIdentifierClause, out token))
+            if (!TryResolveTokenCore(keyIdentifierClause, out SecurityToken token))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.Format("UnableToResolveTokenReference", keyIdentifierClause)));
             }
@@ -53,7 +51,7 @@ namespace CoreWCF.IdentityModel.Selectors
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
-            return this.TryResolveTokenCore(keyIdentifierClause, out token);
+            return TryResolveTokenCore(keyIdentifierClause, out token);
         }
 
         public SecurityKey ResolveSecurityKey(SecurityKeyIdentifierClause keyIdentifierClause)
@@ -62,8 +60,7 @@ namespace CoreWCF.IdentityModel.Selectors
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
-            SecurityKey key;
-            if (!this.TryResolveSecurityKeyCore(keyIdentifierClause, out key))
+            if (!TryResolveSecurityKeyCore(keyIdentifierClause, out SecurityKey key))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new InvalidOperationException(SR.Format("UnableToResolveKeyReference", keyIdentifierClause)));
             }
@@ -76,7 +73,7 @@ namespace CoreWCF.IdentityModel.Selectors
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
-            return this.TryResolveSecurityKeyCore(keyIdentifierClause, out key);
+            return TryResolveSecurityKeyCore(keyIdentifierClause, out key);
         }
 
         // protected methods
@@ -91,13 +88,15 @@ namespace CoreWCF.IdentityModel.Selectors
 
         private class SimpleTokenResolver : SecurityTokenResolver
         {
-            private ReadOnlyCollection<SecurityToken> tokens;
-            private bool canMatchLocalId;
+            private readonly ReadOnlyCollection<SecurityToken> tokens;
+            private readonly bool canMatchLocalId;
 
             public SimpleTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
             {
                 if (tokens == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokens));
+                }
 
                 this.tokens = tokens;
                 this.canMatchLocalId = canMatchLocalId;
@@ -106,12 +105,14 @@ namespace CoreWCF.IdentityModel.Selectors
             protected override bool TryResolveSecurityKeyCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityKey key)
             {
                 if (keyIdentifierClause == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
+                }
 
                 key = null;
-                for (int i = 0; i < this.tokens.Count; ++i)
+                for (int i = 0; i < tokens.Count; ++i)
                 {
-                    SecurityKey securityKey = this.tokens[i].ResolveKeyIdentifierClause(keyIdentifierClause);
+                    SecurityKey securityKey = tokens[i].ResolveKeyIdentifierClause(keyIdentifierClause);
                     if (securityKey != null)
                     {
                         key = securityKey;
@@ -127,8 +128,7 @@ namespace CoreWCF.IdentityModel.Selectors
                     {
                         for (int i = 0; i < keyIdentifier.Count; i++)
                         {
-                            SecurityKey unwrappingSecurityKey = null;
-                            if (TryResolveSecurityKey(keyIdentifier[i], out unwrappingSecurityKey))
+                            if (TryResolveSecurityKey(keyIdentifier[i], out SecurityKey unwrappingSecurityKey))
                             {
                                 byte[] wrappedKey = keyClause.GetEncryptedKey();
                                 string wrappingAlgorithm = keyClause.EncryptionMethod;
@@ -146,7 +146,9 @@ namespace CoreWCF.IdentityModel.Selectors
             protected override bool TryResolveTokenCore(SecurityKeyIdentifier keyIdentifier, out SecurityToken token)
             {
                 if (keyIdentifier == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifier));
+                }
 
                 token = null;
                 for (int i = 0; i < keyIdentifier.Count; ++i)
@@ -166,13 +168,17 @@ namespace CoreWCF.IdentityModel.Selectors
             protected override bool TryResolveTokenCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token)
             {
                 if (keyIdentifierClause == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
+                }
 
                 token = null;
 
                 SecurityToken securityToken = ResolveSecurityToken(keyIdentifierClause);
                 if (securityToken != null)
+                {
                     token = securityToken;
+                }
 
                 return (token != null);
             }
@@ -180,15 +186,21 @@ namespace CoreWCF.IdentityModel.Selectors
             private SecurityToken ResolveSecurityToken(SecurityKeyIdentifierClause keyIdentifierClause)
             {
                 if (keyIdentifierClause == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
-
-                if (!this.canMatchLocalId && keyIdentifierClause is LocalIdKeyIdentifierClause)
-                    return null;
-
-                for (int i = 0; i < this.tokens.Count; ++i)
                 {
-                    if (this.tokens[i].MatchesKeyIdentifierClause(keyIdentifierClause))
-                        return this.tokens[i];
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
+                }
+
+                if (!canMatchLocalId && keyIdentifierClause is LocalIdKeyIdentifierClause)
+                {
+                    return null;
+                }
+
+                for (int i = 0; i < tokens.Count; ++i)
+                {
+                    if (tokens[i].MatchesKeyIdentifierClause(keyIdentifierClause))
+                    {
+                        return tokens[i];
+                    }
                 }
 
                 return null;

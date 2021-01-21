@@ -7,9 +7,9 @@ namespace CoreWCF.Security
 {
     internal sealed class BinaryNegotiation
     {
-        private byte[] negotiationData;
+        private readonly byte[] negotiationData;
         private XmlDictionaryString valueTypeUriDictionaryString;
-        private string valueTypeUri;
+        private readonly string valueTypeUri;
 
         public BinaryNegotiation(
             string valueTypeUri,
@@ -23,7 +23,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
             }
-            this.valueTypeUriDictionaryString = null;
+            valueTypeUriDictionaryString = null;
             this.valueTypeUri = valueTypeUri;
             this.negotiationData = negotiationData;
         }
@@ -40,16 +40,16 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
             }
-            this.valueTypeUriDictionaryString = valueTypeDictionaryString;
-            this.valueTypeUri = valueTypeDictionaryString.Value;
+            valueTypeUriDictionaryString = valueTypeDictionaryString;
+            valueTypeUri = valueTypeDictionaryString.Value;
             this.negotiationData = negotiationData;
         }
 
         public void Validate(XmlDictionaryString valueTypeUriDictionaryString)
         {
-            if (this.valueTypeUri != valueTypeUriDictionaryString.Value)
+            if (valueTypeUri != valueTypeUriDictionaryString.Value)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.IncorrectBinaryNegotiationValueType, this.valueTypeUri)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.IncorrectBinaryNegotiationValueType, valueTypeUri)));
             }
             this.valueTypeUriDictionaryString = valueTypeUriDictionaryString;
         }
@@ -59,14 +59,19 @@ namespace CoreWCF.Security
             writer.WriteStartElement(prefix, localName, ns);
             writer.WriteStartAttribute(valueTypeLocalName, valueTypeNs);
             if (valueTypeUriDictionaryString != null)
+            {
                 writer.WriteString(valueTypeUriDictionaryString);
+            }
             else
+            {
                 writer.WriteString(valueTypeUri);
+            }
+
             writer.WriteEndAttribute();
             writer.WriteStartAttribute(XD.SecurityJan2004Dictionary.EncodingType, null);
             writer.WriteString(XD.SecurityJan2004Dictionary.EncodingTypeValueBase64Binary);
             writer.WriteEndAttribute();
-            writer.WriteBase64(this.negotiationData, 0, this.negotiationData.Length);
+            writer.WriteBase64(negotiationData, 0, negotiationData.Length);
             writer.WriteEndElement();
         }
 
@@ -74,14 +79,14 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.valueTypeUri;
+                return valueTypeUri;
             }
         }
 
         public byte[] GetNegotiationData()
         {
             // avoid copying since this is internal and callers use it as read-only
-            return this.negotiationData;
+            return negotiationData;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace CoreWCF.Http.Tests
 {
     public class InterestingTypeTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public InterestingTypeTests(ITestOutputHelper output)
         {

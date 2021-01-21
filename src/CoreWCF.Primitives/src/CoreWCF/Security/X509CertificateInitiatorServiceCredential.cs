@@ -12,7 +12,7 @@ namespace CoreWCF.Security
         internal const StoreName DefaultStoreName = StoreName.My;
         internal const X509FindType DefaultFindType = X509FindType.FindBySubjectDistinguishedName;
         private X509Certificate2 certificate;
-        private X509ClientCertificateAuthentication authentication;
+        private readonly X509ClientCertificateAuthentication authentication;
         private bool isReadOnly;
 
         internal X509CertificateInitiatorServiceCredential()

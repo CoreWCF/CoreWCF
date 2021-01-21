@@ -20,7 +20,7 @@ namespace CoreWCF.Security
         private bool processingStarted;
         private bool maintainSignatureConfirmationState;
         private readonly SecurityStandardsManager standardsManager;
-        private MessageDirection transferDirection;
+        private readonly MessageDirection transferDirection;
         private SecurityHeaderLayout layout = SecurityHeaderLayout.Strict;
 
         public SecurityHeader(Message message,
@@ -55,77 +55,77 @@ namespace CoreWCF.Security
             this.transferDirection = transferDirection;
         }
 
-        public override string Actor => this.actor;
+        public override string Actor => actor;
 
-        public SecurityAlgorithmSuite AlgorithmSuite => this.algorithmSuite;
+        public SecurityAlgorithmSuite AlgorithmSuite => algorithmSuite;
 
         public bool EncryptedKeyContainsReferenceList
         {
-            get { return this.encryptedKeyContainsReferenceList; }
+            get { return encryptedKeyContainsReferenceList; }
             set
             {
                 ThrowIfProcessingStarted();
-                this.encryptedKeyContainsReferenceList = value;
+                encryptedKeyContainsReferenceList = value;
             }
         }
 
         public bool RequireMessageProtection
         {
-            get { return this.requireMessageProtection; }
+            get { return requireMessageProtection; }
             set
             {
                 ThrowIfProcessingStarted();
-                this.requireMessageProtection = value;
+                requireMessageProtection = value;
             }
         }
 
         public bool MaintainSignatureConfirmationState
         {
-            get { return this.maintainSignatureConfirmationState; }
+            get { return maintainSignatureConfirmationState; }
             set
             {
                 ThrowIfProcessingStarted();
-                this.maintainSignatureConfirmationState = value;
+                maintainSignatureConfirmationState = value;
             }
         }
 
         protected Message Message
         {
-            get { return this.message; }
-            set { this.message = value; }
+            get { return message; }
+            set { message = value; }
         }
 
-        public override bool MustUnderstand => this.mustUnderstand;
+        public override bool MustUnderstand => mustUnderstand;
 
-        public override bool Relay => this.relay;
+        public override bool Relay => relay;
 
         public SecurityHeaderLayout Layout
         {
             get
             {
-                return this.layout;
+                return layout;
             }
             set
             {
                 ThrowIfProcessingStarted();
-                this.layout = value;
+                layout = value;
             }
         }
 
-        public SecurityStandardsManager StandardsManager => this.standardsManager;
+        public SecurityStandardsManager StandardsManager => standardsManager;
 
-        public MessageDirection MessageDirection => this.transferDirection;
+        public MessageDirection MessageDirection => transferDirection;
 
-        protected MessageVersion Version => this.message.Version;
+        protected MessageVersion Version => message.Version;
 
         protected void SetProcessingStarted()
         {
-            this.processingStarted = true;
+            processingStarted = true;
         }
 
         protected void ThrowIfProcessingStarted()
         {
-            if (this.processingStarted)
+            if (processingStarted)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.OperationCannotBeDoneAfterProcessingIsStarted));
             }
@@ -133,7 +133,7 @@ namespace CoreWCF.Security
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.InvariantCulture, "{0}(Actor = '{1}')", GetType().Name, this.Actor);
+            return string.Format(CultureInfo.InvariantCulture, "{0}(Actor = '{1}')", GetType().Name, Actor);
         }
     }
 }

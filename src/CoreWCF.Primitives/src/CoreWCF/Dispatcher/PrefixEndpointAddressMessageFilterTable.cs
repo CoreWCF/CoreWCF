@@ -60,8 +60,7 @@ namespace CoreWCF.Dispatcher
 
             Uri soapToAddress = filter.Address.Uri;
 
-            CandidateSet cset;
-            if (!TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out cset))
+            if (!TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out CandidateSet cset))
             {
                 cset = new CandidateSet();
                 GetAddressTable(filter.IncludeHostNameInComparison).RegisterUri(soapToAddress, GetComparisonMode(filter.IncludeHostNameInComparison), cset);
@@ -134,8 +133,7 @@ namespace CoreWCF.Dispatcher
             Candidate can = candidates[filter];
             Uri soapToAddress = filter.Address.Uri;
 
-            CandidateSet cset = null;
-            if (TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out cset))
+            if (TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out CandidateSet cset))
             {
                 if (cset.candidates.Count == 1)
                 {

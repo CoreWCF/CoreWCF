@@ -47,7 +47,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.creationTimeUtc;
+                return creationTimeUtc;
             }
         }
 
@@ -55,7 +55,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.expiryTimeUtc;
+                return expiryTimeUtc;
             }
         }
 
@@ -63,7 +63,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.id;
+                return id;
             }
         }
 
@@ -71,31 +71,31 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.digestAlgorithm;
+                return digestAlgorithm;
             }
         }
 
         internal byte[] GetDigest()
         {
-            return this.digest;
+            return digest;
         }
 
         internal char[] GetCreationTimeChars()
         {
-            if (this.computedCreationTimeUtc == null)
+            if (computedCreationTimeUtc == null)
             {
-                this.computedCreationTimeUtc = ToChars(ref this.creationTimeUtc);
+                computedCreationTimeUtc = ToChars(ref creationTimeUtc);
             }
-            return this.computedCreationTimeUtc;
+            return computedCreationTimeUtc;
         }
 
         internal char[] GetExpiryTimeChars()
         {
-            if (this.computedExpiryTimeUtc == null)
+            if (computedExpiryTimeUtc == null)
             {
-                this.computedExpiryTimeUtc = ToChars(ref this.expiryTimeUtc);
+                computedExpiryTimeUtc = ToChars(ref expiryTimeUtc);
             }
-            return this.computedExpiryTimeUtc;
+            return computedExpiryTimeUtc;
         }
 
         private static char[] ToChars(ref DateTime utcTime)
@@ -143,9 +143,9 @@ namespace CoreWCF.Security
             return string.Format(
                 CultureInfo.InvariantCulture,
                 "SecurityTimestamp: Id={0}, CreationTimeUtc={1}, ExpirationTimeUtc={2}",
-                this.Id,
-                XmlConvert.ToString(this.CreationTimeUtc, XmlDateTimeSerializationMode.RoundtripKind),
-                XmlConvert.ToString(this.ExpiryTimeUtc, XmlDateTimeSerializationMode.RoundtripKind));
+                Id,
+                XmlConvert.ToString(CreationTimeUtc, XmlDateTimeSerializationMode.RoundtripKind),
+                XmlConvert.ToString(ExpiryTimeUtc, XmlDateTimeSerializationMode.RoundtripKind));
         }
 
         /// <summary>
@@ -158,9 +158,9 @@ namespace CoreWCF.Security
         internal void ValidateRangeAndFreshness(TimeSpan timeToLive, TimeSpan allowedClockSkew)
         {
             // Check that the creation time is less than expiry time
-            if (this.CreationTimeUtc >= this.ExpiryTimeUtc)
+            if (CreationTimeUtc >= ExpiryTimeUtc)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TimeStampHasCreationAheadOfExpiry, this.CreationTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture), this.ExpiryTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture))));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TimeStampHasCreationAheadOfExpiry, CreationTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture), ExpiryTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture))));
             }
 
             ValidateFreshness(timeToLive, allowedClockSkew);
@@ -170,21 +170,21 @@ namespace CoreWCF.Security
         {
             DateTime now = DateTime.UtcNow;
             // check that the message has not expired
-            if (this.ExpiryTimeUtc <= TimeoutHelper.Subtract(now, allowedClockSkew))
+            if (ExpiryTimeUtc <= TimeoutHelper.Subtract(now, allowedClockSkew))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TimeStampHasExpiryTimeInPast, this.ExpiryTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture), now.ToString(DefaultFormat, CultureInfo.CurrentCulture), allowedClockSkew)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TimeStampHasExpiryTimeInPast, ExpiryTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture), now.ToString(DefaultFormat, CultureInfo.CurrentCulture), allowedClockSkew)));
             }
 
             // check that creation time is not in the future (modulo clock skew)
-            if (this.CreationTimeUtc >= TimeoutHelper.Add(now, allowedClockSkew))
+            if (CreationTimeUtc >= TimeoutHelper.Add(now, allowedClockSkew))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TimeStampHasCreationTimeInFuture, this.CreationTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture), now.ToString(DefaultFormat, CultureInfo.CurrentCulture), allowedClockSkew)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TimeStampHasCreationTimeInFuture, CreationTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture), now.ToString(DefaultFormat, CultureInfo.CurrentCulture), allowedClockSkew)));
             }
 
             // check that the creation time is not more than timeToLive in the past
-            if (this.CreationTimeUtc <= TimeoutHelper.Subtract(now, TimeoutHelper.Add(timeToLive, allowedClockSkew)))
+            if (CreationTimeUtc <= TimeoutHelper.Subtract(now, TimeoutHelper.Add(timeToLive, allowedClockSkew)))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TimeStampWasCreatedTooLongAgo, this.CreationTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture), now.ToString(DefaultFormat, CultureInfo.CurrentCulture), timeToLive, allowedClockSkew)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TimeStampWasCreatedTooLongAgo, CreationTimeUtc.ToString(DefaultFormat, CultureInfo.CurrentCulture), now.ToString(DefaultFormat, CultureInfo.CurrentCulture), timeToLive, allowedClockSkew)));
             }
 
             // this is a fresh timestamp

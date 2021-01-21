@@ -20,7 +20,7 @@ namespace CoreWCF
         // for IXmlSerializable
         private EndpointAddressAugust2004()
         {
-            this.address = null;
+            address = null;
         }
 
         private EndpointAddressAugust2004(EndpointAddress address)
@@ -39,17 +39,17 @@ namespace CoreWCF
 
         public EndpointAddress ToEndpointAddress()
         {
-            return this.address;
+            return address;
         }
 
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            this.address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressingAugust2004, XmlDictionaryReader.CreateDictionaryReader(reader));
+            address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressingAugust2004, XmlDictionaryReader.CreateDictionaryReader(reader));
         }
 
         void IXmlSerializable.WriteXml(XmlWriter writer)
         {
-            this.address.WriteContentsTo(AddressingVersion.WSAddressingAugust2004, XmlDictionaryWriter.CreateDictionaryWriter(writer));
+            address.WriteContentsTo(AddressingVersion.WSAddressingAugust2004, XmlDictionaryWriter.CreateDictionaryWriter(writer));
         }
 
         private static XmlQualifiedName EprType
@@ -57,7 +57,10 @@ namespace CoreWCF
             get
             {
                 if (eprType == null)
+                {
                     eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing200408Strings.Namespace);
+                }
+
                 return eprType;
             }
         }
@@ -73,12 +76,17 @@ namespace CoreWCF
         public static XmlQualifiedName GetSchema(XmlSchemaSet xmlSchemaSet)
         {
             if (xmlSchemaSet == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("xmlSchemaSet");
+            }
+
             XmlQualifiedName eprType = EprType;
             XmlSchema eprSchema = GetEprSchema();
             ICollection schemas = xmlSchemaSet.Schemas(Addressing200408Strings.Namespace);
             if (schemas == null || schemas.Count == 0)
+            {
                 xmlSchemaSet.Add(eprSchema);
+            }
             else
             {
                 XmlSchema schemaToAdd = null;
@@ -90,14 +98,22 @@ namespace CoreWCF
                         break;
                     }
                     else
+                    {
                         schemaToAdd = xmlSchema;
+                    }
                 }
                 if (schemaToAdd != null)
                 {
                     foreach (XmlQualifiedName prefixNsPair in eprSchema.Namespaces.ToArray())
+                    {
                         schemaToAdd.Namespaces.Add(prefixNsPair.Name, prefixNsPair.Namespace);
+                    }
+
                     foreach (XmlSchemaObject schemaObject in eprSchema.Items)
+                    {
                         schemaToAdd.Items.Add(schemaObject);
+                    }
+
                     xmlSchemaSet.Reprocess(schemaToAdd);
                 }
             }

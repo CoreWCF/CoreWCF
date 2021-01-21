@@ -11,7 +11,7 @@ namespace CoreWCF.Channels
 {
     internal class RequestReplyCorrelator : IRequestReplyCorrelator
     {
-        private IDictionary<Key, object> states;
+        private readonly IDictionary<Key, object> states;
 
         internal RequestReplyCorrelator()
         {
@@ -50,7 +50,9 @@ namespace CoreWCF.Channels
                 value = (T)states[key];
 
                 if (remove)
+                {
                     states.Remove(key);
+                }
             }
 
             return value;
@@ -75,7 +77,10 @@ namespace CoreWCF.Channels
         {
             UniqueId relatesTo = reply.Headers.RelatesTo;
             if (relatesTo == null)
+            {
                 throw TraceUtility.ThrowHelperError(new ArgumentException(SR.SuppliedMessageIsNotAReplyItHasNoRelatesTo0), reply);
+            }
+
             return relatesTo;
         }
 
@@ -133,7 +138,9 @@ namespace CoreWCF.Channels
         internal static void PrepareReply(Message reply, UniqueId messageId)
         {
             if (object.ReferenceEquals(messageId, null))
+            {
                 throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.MissingMessageID), reply);
+            }
 
             MessageHeaders replyHeaders = reply.Headers;
 
@@ -176,7 +183,7 @@ namespace CoreWCF.Channels
                 ReplyTo = message.Headers.ReplyTo;
                 if (message.Version.Addressing == AddressingVersion.WSAddressingAugust2004)
                 {
-                    this.From = message.Headers.From;
+                    From = message.Headers.From;
                 }
                 else
                 {
@@ -227,7 +234,10 @@ namespace CoreWCF.Channels
             {
                 Key other = obj as Key;
                 if (other == null)
+                {
                     return false;
+                }
+
                 return other.MessageId == MessageId && other.StateType == StateType;
             }
 

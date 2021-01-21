@@ -18,7 +18,7 @@ namespace CoreWCF.Security.Tokens
         protected X509SecurityTokenParameters(X509SecurityTokenParameters other)
             : base(other)
         {
-            this.x509ReferenceStyle = other.x509ReferenceStyle;
+            x509ReferenceStyle = other.x509ReferenceStyle;
         }
 
         public X509SecurityTokenParameters()
@@ -42,9 +42,9 @@ namespace CoreWCF.Security.Tokens
             bool requireDerivedKeys)
             : base()
         {
-            this.X509ReferenceStyle = x509ReferenceStyle;
-            this.InclusionMode = inclusionMode;
-            this.RequireDerivedKeys = requireDerivedKeys;
+            X509ReferenceStyle = x509ReferenceStyle;
+            InclusionMode = inclusionMode;
+            RequireDerivedKeys = requireDerivedKeys;
         }
 
         internal protected override bool HasAsymmetricKey { get { return true; } }
@@ -53,12 +53,12 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.x509ReferenceStyle;
+                return x509ReferenceStyle;
             }
             set
             {
                 X509SecurityTokenReferenceStyleHelper.Validate(value);
-                this.x509ReferenceStyle = value;
+                x509ReferenceStyle = value;
             }
         }
 
@@ -75,7 +75,7 @@ namespace CoreWCF.Security.Tokens
         {
             SecurityKeyIdentifierClause result = null;
 
-            switch (this.x509ReferenceStyle)
+            switch (x509ReferenceStyle)
             {
                 default:
                 case X509KeyIdentifierClauseType.Any:
@@ -84,8 +84,7 @@ namespace CoreWCF.Security.Tokens
                         X509SecurityToken x509Token = token as X509SecurityToken;
                         if (x509Token != null)
                         {
-                            X509SubjectKeyIdentifierClause x509KeyIdentifierClause;
-                            if (X509SubjectKeyIdentifierClause.TryCreateFrom(x509Token.Certificate, out x509KeyIdentifierClause))
+                            if (X509SubjectKeyIdentifierClause.TryCreateFrom(x509Token.Certificate, out X509SubjectKeyIdentifierClause x509KeyIdentifierClause))
                             {
                                 result = x509KeyIdentifierClause;
                             }
@@ -95,8 +94,7 @@ namespace CoreWCF.Security.Tokens
                             X509WindowsSecurityToken windowsX509Token = token as X509WindowsSecurityToken;
                             if (windowsX509Token != null)
                             {
-                                X509SubjectKeyIdentifierClause x509KeyIdentifierClause;
-                                if (X509SubjectKeyIdentifierClause.TryCreateFrom(windowsX509Token.Certificate, out x509KeyIdentifierClause))
+                                if (X509SubjectKeyIdentifierClause.TryCreateFrom(windowsX509Token.Certificate, out X509SubjectKeyIdentifierClause x509KeyIdentifierClause))
                                 {
                                     result = x509KeyIdentifierClause;
                                 }
@@ -104,24 +102,32 @@ namespace CoreWCF.Security.Tokens
                         }
 
                         if (result == null)
+                        {
                             result = token.CreateKeyIdentifierClause<X509IssuerSerialKeyIdentifierClause>();
+                        }
+
                         if (result == null)
+                        {
                             result = token.CreateKeyIdentifierClause<X509ThumbprintKeyIdentifierClause>();
+                        }
                     }
                     else
+                    {
                         result = token.CreateKeyIdentifierClause<LocalIdKeyIdentifierClause>();
+                    }
+
                     break;
                 case X509KeyIdentifierClauseType.Thumbprint:
-                    result = this.CreateKeyIdentifierClause<X509ThumbprintKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+                    result = CreateKeyIdentifierClause<X509ThumbprintKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
                     break;
                 case X509KeyIdentifierClauseType.SubjectKeyIdentifier:
-                    result = this.CreateKeyIdentifierClause<X509SubjectKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+                    result = CreateKeyIdentifierClause<X509SubjectKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
                     break;
                 case X509KeyIdentifierClauseType.IssuerSerial:
-                    result = this.CreateKeyIdentifierClause<X509IssuerSerialKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+                    result = CreateKeyIdentifierClause<X509IssuerSerialKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
                     break;
                 case X509KeyIdentifierClauseType.RawDataKeyIdentifier:
-                    result = this.CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+                    result = CreateKeyIdentifierClause<X509RawDataKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
                     break;
             }
 
@@ -140,7 +146,7 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "X509ReferenceStyle: {0}", this.x509ReferenceStyle.ToString()));
+            sb.Append(String.Format(CultureInfo.InvariantCulture, "X509ReferenceStyle: {0}", x509ReferenceStyle.ToString()));
 
             return sb.ToString();
         }

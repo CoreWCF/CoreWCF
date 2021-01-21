@@ -10,8 +10,8 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class ClientOperation
     {
-        private string action;
-        private SynchronizedCollection<FaultContractInfo> faultContractInfos;
+        private readonly string action;
+        private readonly SynchronizedCollection<FaultContractInfo> faultContractInfos;
         private bool serializeRequest;
         private bool deserializeReply;
         private IClientMessageFormatter formatter;
@@ -20,16 +20,16 @@ namespace CoreWCF.Dispatcher
         private bool isOneWay;
         private bool isTerminating;
         private bool isSessionOpenNotificationEnabled;
-        private string name;
-        private ClientRuntime parent;
-        private string replyAction;
+        private readonly string name;
+        private readonly ClientRuntime parent;
+        private readonly string replyAction;
         private MethodInfo beginMethod;
         private MethodInfo endMethod;
         private MethodInfo syncMethod;
         private MethodInfo taskMethod;
         private Type taskTResult;
         private bool isFaultFormatterSetExplicit = false;
-        private SynchronizedCollection<IParameterInspector> parameterInspectors;
+        private readonly SynchronizedCollection<IParameterInspector> parameterInspectors;
 
         public ClientOperation(ClientRuntime parent, string name, string action)
             : this(parent, name, action, null)
@@ -39,10 +39,14 @@ namespace CoreWCF.Dispatcher
         public ClientOperation(ClientRuntime parent, string name, string action, string replyAction)
         {
             if (parent == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
+            }
 
             if (name == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            }
 
             this.parent = parent;
             this.name = name;

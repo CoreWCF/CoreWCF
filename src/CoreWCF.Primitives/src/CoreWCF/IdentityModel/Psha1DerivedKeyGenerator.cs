@@ -9,7 +9,7 @@ namespace CoreWCF.IdentityModel
 {
     internal sealed class Psha1DerivedKeyGenerator
     {
-        private byte[] _key;
+        private readonly byte[] _key;
 
         public Psha1DerivedKeyGenerator(byte[] key)
         {
@@ -35,13 +35,13 @@ namespace CoreWCF.IdentityModel
         private sealed class ManagedPsha1
         {
             private byte[] _aValue;
-            private byte[] _buffer;
+            private readonly byte[] _buffer;
             private byte[] _chunk;
-            private KeyedHashAlgorithm _hmac;
+            private readonly KeyedHashAlgorithm _hmac;
             private int _index;
             private int _position;
-            private byte[] _secret;
-            private byte[] _seed;
+            private readonly byte[] _secret;
+            private readonly byte[] _seed;
 
             // assume arguments are already validated
             public ManagedPsha1(byte[] secret, byte[] label, byte[] seed)

@@ -8,8 +8,8 @@ namespace CoreWCF.Dispatcher
 {
     internal class EndpointFilterProvider
     {
-        private SynchronizedCollection<string> initiatingActions;
-        private object mutex;
+        private readonly SynchronizedCollection<string> initiatingActions;
+        private readonly object mutex;
 
         public EndpointFilterProvider(params string[] initiatingActions)
         {
@@ -28,7 +28,9 @@ namespace CoreWCF.Dispatcher
             {
                 priority = 1;
                 if (initiatingActions.Count == 0)
+                {
                     return new MatchNoneMessageFilter();
+                }
 
                 string[] actions = new string[initiatingActions.Count];
                 int index = 0;

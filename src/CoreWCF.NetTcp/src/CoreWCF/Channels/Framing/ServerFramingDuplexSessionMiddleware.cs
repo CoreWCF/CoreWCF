@@ -12,7 +12,7 @@ namespace CoreWCF.Channels.Framing
 {
     internal class ServerFramingDuplexSessionMiddleware
     {
-        private HandshakeDelegate _next;
+        private readonly HandshakeDelegate _next;
 
         public ServerFramingDuplexSessionMiddleware(HandshakeDelegate next)
         {
@@ -75,7 +75,9 @@ namespace CoreWCF.Channels.Framing
                                 catch (Exception exception)
                                 {
                                     if (Fx.IsFatal(exception))
+                                    {
                                         throw;
+                                    }
 
                                     // Audit Authentication Failure
                                     //WriteAuditFailure(upgradeAcceptor as StreamSecurityUpgradeAcceptor, exception);

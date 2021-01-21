@@ -12,7 +12,7 @@ namespace DispatcherClient
 {
     public class DispatcherClientRequestContext : RequestContext
     {
-        private TaskCompletionSource<Message> _replyMessage;
+        private readonly TaskCompletionSource<Message> _replyMessage;
         private MessageBuffer _bufferedCopy;
 
         public DispatcherClientRequestContext(Message requestMessage)

@@ -51,10 +51,16 @@ namespace CoreWCF
             set
             {
                 if (value == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
                 if (value == string.Empty)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value),
                         SR.SFxWrapperNameCannotBeEmpty));
+                }
+
                 wrappedName = value;
             }
         }
@@ -68,7 +74,10 @@ namespace CoreWCF
             set
             {
                 if (!string.IsNullOrEmpty(value))
+                {
                     NamingHelper.CheckUriProperty(value, "WrapperNamespace");
+                }
+
                 wrappedNs = value;
             }
         }

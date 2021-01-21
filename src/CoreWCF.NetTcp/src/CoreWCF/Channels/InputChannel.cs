@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
 {
     internal class InputChannel : ServiceChannelBase, IInputChannel
     {
-        private IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
 
         public InputChannel(ITransportFactorySettings settings, EndpointAddress localAddress, IServiceProvider serviceProvider) : base(settings)
         {

@@ -26,9 +26,9 @@ namespace DispatcherClient
 
     internal class DispatcherChannelFactory<TChannel, TService, TContract> : DispatcherChannelFactory, IChannelFactory<TChannel> where TService : class
     {
-        private IServiceProvider _serviceProvider;
-        private IDictionary<object, IServiceChannelDispatcher> _serviceChannelDispatchers = new Dictionary<object, IServiceChannelDispatcher>();
-        private object _lock = new object();
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IDictionary<object, IServiceChannelDispatcher> _serviceChannelDispatchers = new Dictionary<object, IServiceChannelDispatcher>();
+        private readonly object _lock = new object();
 
         public DispatcherChannelFactory(Action<IServiceCollection> configureServices)
         {

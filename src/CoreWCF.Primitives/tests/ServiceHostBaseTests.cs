@@ -62,7 +62,7 @@ namespace CoreWCF.Primitives.Tests
 
         public class TestServiceHost : ServiceHostBase
         {
-            private SimpleService _serviceInstance = new SimpleService();
+            private readonly SimpleService _serviceInstance = new SimpleService();
             public bool OnOpenAsynCalled { get; set; }
             public bool OnCloseAsynCalled { get; set; }
             public bool OnAbortCalled { get; set; }

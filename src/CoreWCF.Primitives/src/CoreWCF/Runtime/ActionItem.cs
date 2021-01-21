@@ -191,8 +191,8 @@ namespace CoreWCF.Runtime
 
         private class DefaultActionItem : ActionItem
         {
-            private Action<object> callback;
-            private object state;
+            private readonly Action<object> callback;
+            private readonly object state;
 
             //bool flowLegacyActivityId;
             //Guid activityId;
@@ -300,8 +300,7 @@ namespace CoreWCF.Runtime
             private static void OnTaskQueued(object obj)
             {
                 var thisPtr = obj as IOThreadTaskScheduler;
-                Task nextTask;
-                if (thisPtr._tasks.TryDequeue(out nextTask))
+                if (thisPtr._tasks.TryDequeue(out Task nextTask))
                 {
                     _onSchedulerThread = true;
                     thisPtr.TryExecuteTask(nextTask);

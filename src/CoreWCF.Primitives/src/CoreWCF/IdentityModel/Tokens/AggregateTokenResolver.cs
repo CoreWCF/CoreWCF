@@ -13,7 +13,7 @@ namespace CoreWCF.IdentityModel.Tokens
     /// </summary>
     internal class AggregateTokenResolver : SecurityTokenResolver
     {
-        private List<SecurityTokenResolver> _tokenResolvers = new List<SecurityTokenResolver>();
+        private readonly List<SecurityTokenResolver> _tokenResolvers = new List<SecurityTokenResolver>();
 
         /// <summary>
         /// Initializes an instance of <see cref="AggregateTokenResolver"/>

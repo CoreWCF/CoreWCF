@@ -17,11 +17,11 @@ namespace CoreWCF
         private int activityCount;
         private ICommunicationWaiter activityWaiter;
         private int activityWaiterCount;
-        private Action<InstanceContext> emptyCallback;
+        private readonly Action<InstanceContext> emptyCallback;
         private IChannel firstIncomingChannel;
         private ChannelCollection incomingChannels;
         private ChannelCollection outgoingChannels;
-        private InstanceContext instanceContext;
+        private readonly InstanceContext instanceContext;
 
         public ServiceChannelManager(InstanceContext instanceContext)
             : this(instanceContext, null)
@@ -58,7 +58,9 @@ namespace CoreWCF
                     lock (ThisLock)
                     {
                         if (outgoingChannels == null)
+                        {
                             outgoingChannels = new ChannelCollection(this, ThisLock);
+                        }
                     }
                 }
                 return outgoingChannels;
@@ -70,14 +72,20 @@ namespace CoreWCF
             get
             {
                 if (ActivityCount > 0)
+                {
                     return true;
+                }
 
                 if (base.BusyCount > 0)
+                {
                     return true;
+                }
 
                 ICollection<IChannel> outgoing = outgoingChannels;
                 if ((outgoing != null) && (outgoing.Count > 0))
+                {
                     return true;
+                }
 
                 return false;
             }
@@ -101,7 +109,10 @@ namespace CoreWCF
                         else
                         {
                             if (incomingChannels.Contains(channel))
+                            {
                                 return;
+                            }
+
                             incomingChannels.Add(channel);
                         }
                     }
@@ -109,7 +120,10 @@ namespace CoreWCF
                     {
                         EnsureIncomingChannelCollection();
                         if (incomingChannels.Contains(channel))
+                        {
                             return;
+                        }
+
                         incomingChannels.Add(channel);
                     }
                     added = true;
@@ -191,7 +205,9 @@ namespace CoreWCF
                         Interlocked.Increment(ref activityWaiterCount);
                     }
                     if (BusyCount == 0)
+                    {
                         empty = true;
+                    }
                 }
             }
 
@@ -206,7 +222,9 @@ namespace CoreWCF
             }
 
             if (empty && State == LifetimeState.Opened)
+            {
                 OnEmpty();
+            }
         }
 
         private void EnsureIncomingChannelCollection()
@@ -231,7 +249,10 @@ namespace CoreWCF
             lock (ThisLock)
             {
                 if (State == LifetimeState.Closed)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().ToString()));
+                }
+
                 activityCount++;
             }
         }
@@ -245,7 +266,9 @@ namespace CoreWCF
         {
             IChannel[] channels = SnapshotChannels();
             for (int index = 0; index < channels.Length; index++)
+            {
                 channels[index].Abort();
+            }
 
             ICommunicationWaiter activityWaiter = null;
 
@@ -280,7 +303,9 @@ namespace CoreWCF
         protected override void OnEmpty()
         {
             if (emptyCallback != null)
+            {
                 emptyCallback(instanceContext);
+            }
         }
 
         private void OnChannelClosed(object sender, EventArgs args)
@@ -324,7 +349,10 @@ namespace CoreWCF
                     IChannel[] channels = new IChannel[1 + outgoingCount];
                     channels[0] = firstIncomingChannel;
                     if (outgoingCount > 0)
+                    {
                         outgoingChannels.CopyTo(channels, 1);
+                    }
+
                     return channels;
                 }
 
@@ -333,7 +361,10 @@ namespace CoreWCF
                     IChannel[] channels = new IChannel[incomingChannels.Count + outgoingCount];
                     incomingChannels.CopyTo(channels, 0);
                     if (outgoingCount > 0)
+                    {
                         outgoingChannels.CopyTo(channels, incomingChannels.Count);
+                    }
+
                     return channels;
                 }
 
@@ -349,9 +380,9 @@ namespace CoreWCF
 
         private class ChannelCollection : ICollection<IChannel>
         {
-            private ServiceChannelManager channelManager;
-            private object syncRoot;
-            private HashSet<IChannel> hashSet = new HashSet<IChannel>();
+            private readonly ServiceChannelManager channelManager;
+            private readonly object syncRoot;
+            private readonly HashSet<IChannel> hashSet = new HashSet<IChannel>();
 
             public bool IsReadOnly
             {
@@ -372,7 +403,9 @@ namespace CoreWCF
             public ChannelCollection(ServiceChannelManager channelManager, object syncRoot)
             {
                 if (syncRoot == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
+                }
 
                 this.channelManager = channelManager;
                 this.syncRoot = syncRoot;
@@ -394,7 +427,10 @@ namespace CoreWCF
                 lock (syncRoot)
                 {
                     foreach (IChannel channel in hashSet)
+                    {
                         channelManager.ChannelRemoved(channel);
+                    }
+
                     hashSet.Clear();
                 }
             }

@@ -9,7 +9,7 @@ namespace CoreWCF.Dispatcher
     internal class SingletonInstanceContextProvider : InstanceContextProviderBase
     {
         private InstanceContext singleton;
-        private object thisLock;
+        private readonly object thisLock;
 
         internal SingletonInstanceContextProvider(DispatchRuntime dispatchRuntime)
             : base(dispatchRuntime)

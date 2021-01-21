@@ -17,10 +17,10 @@ namespace CoreWCF.Dispatcher
     {
         protected Dictionary<MessageFilter, TFilterData> filters;
         protected Dictionary<MessageFilter, Candidate> candidates;
-        private WeakReference processorPool;
+        private readonly WeakReference processorPool;
         private int size;
         private int nextBit;
-        private Dictionary<string, HeaderBit[]> headerLookup;
+        private readonly Dictionary<string, HeaderBit[]> headerLookup;
         private Dictionary<Uri, CandidateSet> toHostLookup;
         private Dictionary<Uri, CandidateSet> toNoHostLookup;
 
@@ -173,13 +173,12 @@ namespace CoreWCF.Dispatcher
         {
             // Update the QName ref count
             QName qname;
-            int cnt;
             for (int i = 0; i < address.Headers.Count; ++i)
             {
                 AddressHeader parameter = address.Headers[i];
                 qname.name = parameter.Name;
                 qname.ns = parameter.Namespace;
-                if (cset.qnames.TryGetValue(qname, out cnt))
+                if (cset.qnames.TryGetValue(qname, out int cnt))
                 {
                     cset.qnames[qname] = cnt + 1;
                 }
@@ -197,11 +196,10 @@ namespace CoreWCF.Dispatcher
 
         protected byte[] BuildMask(Dictionary<string, HeaderBit[]> headerLookup)
         {
-            HeaderBit[] bits;
             byte[] mask = null;
             foreach (KeyValuePair<string, HeaderBit[]> item in headerLookup)
             {
-                if (this.headerLookup.TryGetValue(item.Key, out bits))
+                if (this.headerLookup.TryGetValue(item.Key, out HeaderBit[] bits))
                 {
                     if (bits.Length < item.Value.Length)
                     {
@@ -334,9 +332,8 @@ namespace CoreWCF.Dispatcher
                 return null;
             }
 
-            CandidateSet cset = null;
             Candidate can = null;
-            if (TryMatchCandidateSet(to, true/*includeHostNameInComparison*/, out cset))
+            if (TryMatchCandidateSet(to, true/*includeHostNameInComparison*/, out CandidateSet cset))
             {
                 can = GetSingleMatch(cset, message);
             }
@@ -414,8 +411,7 @@ namespace CoreWCF.Dispatcher
             Uri to = message.Headers.To;
             if (to != null)
             {
-                CandidateSet cset;
-                if (TryMatchCandidateSet(to, true /*includeHostNameInComparison*/, out cset))
+                if (TryMatchCandidateSet(to, true /*includeHostNameInComparison*/, out CandidateSet cset))
                 {
                     InnerMatchData(message, results, cset);
                 }
@@ -448,8 +444,7 @@ namespace CoreWCF.Dispatcher
             Uri to = message.Headers.To;
             if (to != null)
             {
-                CandidateSet cset;
-                if (TryMatchCandidateSet(to, true/*includeHostNameInComparison*/, out cset))
+                if (TryMatchCandidateSet(to, true/*includeHostNameInComparison*/, out CandidateSet cset))
                 {
                     InnerMatchFilters(message, results, cset);
                 }

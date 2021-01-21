@@ -20,7 +20,7 @@ namespace CoreWCF.NetTcp.Tests
 {
     public class ServiceAuthBehaviorTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ServiceAuthBehaviorTest(ITestOutputHelper output)
         {
@@ -174,13 +174,13 @@ namespace CoreWCF.NetTcp.Tests
 
     public class StartUpPermissionBase
     {
-        private PrincipalPermissionMode principalMode;
-        private bool isImpersonate = false;
+        private readonly PrincipalPermissionMode principalMode;
+        private readonly bool isImpersonate = false;
 
         public StartUpPermissionBase(PrincipalPermissionMode modeToTest, bool isImmpersonation = false)
         {
-            this.principalMode = modeToTest;
-            this.isImpersonate = isImmpersonation;
+            principalMode = modeToTest;
+            isImpersonate = isImmpersonation;
         }
 
         public const string WindowsAuthRelativePath = "/nettcp.svc/windows-auth";
@@ -195,7 +195,10 @@ namespace CoreWCF.NetTcp.Tests
             var authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
             authBehavior.PrincipalPermissionMode = principalMode;
             if (isImpersonate)
+            {
                 authBehavior.ImpersonateCallerForAllOperations = true;
+            }
+
             app.UseServiceModel(builder =>
             {
                 builder.AddService<Services.TestService>();

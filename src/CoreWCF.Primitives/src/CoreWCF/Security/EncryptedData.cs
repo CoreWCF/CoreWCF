@@ -25,11 +25,11 @@ namespace CoreWCF.Security
 
         private void EnsureDecryptionSet()
         {
-            if (this.State == EncryptionState.DecryptionSetup)
+            if (State == EncryptionState.DecryptionSetup)
             {
                 SetPlainText();
             }
-            else if (this.State != EncryptionState.Decrypted)
+            else if (State != EncryptionState.Decrypted)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
@@ -37,36 +37,36 @@ namespace CoreWCF.Security
 
         protected override void ForceEncryption()
         {
-            CryptoHelper.GenerateIVAndEncrypt(this.algorithm, this.buffer, out this.iv, out this.cipherText);
-            this.State = EncryptionState.Encrypted;
-            this.buffer = new ArraySegment<byte>(CryptoHelper.EmptyBuffer);
+            CryptoHelper.GenerateIVAndEncrypt(algorithm, buffer, out iv, out cipherText);
+            State = EncryptionState.Encrypted;
+            buffer = new ArraySegment<byte>(CryptoHelper.EmptyBuffer);
         }
 
         public byte[] GetDecryptedBuffer()
         {
             EnsureDecryptionSet();
-            return this.decryptedBuffer;
+            return decryptedBuffer;
         }
 
         protected override void ReadCipherData(XmlDictionaryReader reader)
         {
-            this.cipherText = reader.ReadContentAsBase64();
+            cipherText = reader.ReadContentAsBase64();
         }
 
         protected override void ReadCipherData(XmlDictionaryReader reader, long maxBufferSize)
         {
-            this.cipherText = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
+            cipherText = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
         }
 
         private void SetPlainText()
         {
-            this.decryptedBuffer = CryptoHelper.ExtractIVAndDecrypt(this.algorithm, this.cipherText, 0, this.cipherText.Length);
-            this.State = EncryptionState.Decrypted;
+            decryptedBuffer = CryptoHelper.ExtractIVAndDecrypt(algorithm, cipherText, 0, cipherText.Length);
+            State = EncryptionState.Decrypted;
         }
 
         public void SetUpDecryption(SymmetricAlgorithm algorithm)
         {
-            if (this.State != EncryptionState.Read)
+            if (State != EncryptionState.Read)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
@@ -75,12 +75,12 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
             }
             this.algorithm = algorithm;
-            this.State = EncryptionState.DecryptionSetup;
+            State = EncryptionState.DecryptionSetup;
         }
 
         public void SetUpEncryption(SymmetricAlgorithm algorithm, ArraySegment<byte> buffer)
         {
-            if (this.State != EncryptionState.New)
+            if (State != EncryptionState.New)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
@@ -90,13 +90,13 @@ namespace CoreWCF.Security
             }
             this.algorithm = algorithm;
             this.buffer = buffer;
-            this.State = EncryptionState.EncryptionSetup;
+            State = EncryptionState.EncryptionSetup;
         }
 
         protected override void WriteCipherData(XmlDictionaryWriter writer)
         {
-            writer.WriteBase64(this.iv, 0, this.iv.Length);
-            writer.WriteBase64(this.cipherText, 0, this.cipherText.Length);
+            writer.WriteBase64(iv, 0, iv.Length);
+            writer.WriteBase64(cipherText, 0, cipherText.Length);
         }
     }
 }

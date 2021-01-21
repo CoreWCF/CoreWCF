@@ -17,7 +17,7 @@ namespace CoreWCF.Description
         internal const bool DefaultImpersonateOnSerializingReply = false;
         internal const PrincipalPermissionMode DefaultPrincipalPermissionMode = PrincipalPermissionMode.UseWindowsGroups;
         private bool impersonateCallerForAllOperations;
-        private bool impersonateOnSerializingReply;
+        private readonly bool impersonateOnSerializingReply;
         private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
         private ServiceAuthorizationManager serviceAuthorizationManager;
         private PrincipalPermissionMode principalPermissionMode;

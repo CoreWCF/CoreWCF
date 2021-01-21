@@ -10,21 +10,23 @@ namespace CoreWCF.Description
 {
     public class ServiceDescription
     {
-        private KeyedByTypeCollection<IServiceBehavior> _behaviors = new KeyedByTypeCollection<IServiceBehavior>();
+        private readonly KeyedByTypeCollection<IServiceBehavior> _behaviors = new KeyedByTypeCollection<IServiceBehavior>();
         private string _configurationName;
-        private ServiceEndpointCollection _endpoints = new ServiceEndpointCollection();
+        private readonly ServiceEndpointCollection _endpoints = new ServiceEndpointCollection();
         private Type _serviceType;
         private XmlName _serviceName;
         private string _serviceNamespace = NamingHelper.DefaultNamespace;
-        private IDictionary<string, ContractDescription> _implementedContracts;
-        private ReflectedContractCollection _reflectedContracts;
+        private readonly IDictionary<string, ContractDescription> _implementedContracts;
+        private readonly ReflectedContractCollection _reflectedContracts;
 
         public ServiceDescription() { }
 
         internal ServiceDescription(string serviceName)
         {
             if (string.IsNullOrEmpty(serviceName))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceName));
+            }
 
             Name = serviceName;
         }
@@ -32,10 +34,14 @@ namespace CoreWCF.Description
         public ServiceDescription(IEnumerable<ServiceEndpoint> endpoints) : this()
         {
             if (endpoints == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpoints));
+            }
 
             foreach (ServiceEndpoint endpoint in endpoints)
+            {
                 _endpoints.Add(endpoint);
+            }
         }
 
         public string Name
@@ -43,11 +49,17 @@ namespace CoreWCF.Description
             get
             {
                 if (_serviceName != null)
+                {
                     return _serviceName.EncodedName;
+                }
                 else if (ServiceType != null)
+                {
                     return NamingHelper.XmlName(ServiceType.Name);
+                }
                 else
+                {
                     return NamingHelper.DefaultServiceName;
+                }
             }
             set
             {
@@ -115,9 +127,14 @@ namespace CoreWCF.Description
             ServiceBehaviorAttribute serviceBehavior = EnsureBehaviorAttribute(serviceDescription);
 
             if (serviceBehavior.Name != null)
+            {
                 serviceDescription.Name = new XmlName(serviceBehavior.Name).EncodedName;
+            }
+
             if (serviceBehavior.Namespace != null)
+            {
                 serviceDescription.Namespace = serviceBehavior.Namespace;
+            }
 
             if (string.IsNullOrEmpty(serviceBehavior.ConfigurationName))
             {
@@ -263,7 +280,9 @@ namespace CoreWCF.Description
             protected override Type GetKeyForItem(ContractDescription item)
             {
                 if (item == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+                }
 
                 return item.ContractType;
             }

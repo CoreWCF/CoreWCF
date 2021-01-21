@@ -17,7 +17,7 @@ namespace CoreWCF.Dispatcher
 
     internal abstract class InstanceContextProviderBase : IInstanceContextProvider
     {
-        private DispatchRuntime dispatchRuntime;
+        private readonly DispatchRuntime dispatchRuntime;
 
         public DispatchRuntime DispatchRuntime
         {

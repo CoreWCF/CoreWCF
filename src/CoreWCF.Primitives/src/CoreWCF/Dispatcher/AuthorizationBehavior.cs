@@ -13,7 +13,7 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class AuthorizationBehavior
     {
-        private static ServiceAuthorizationManager DefaultServiceAuthorizationManager = new ServiceAuthorizationManager();
+        private static readonly ServiceAuthorizationManager DefaultServiceAuthorizationManager = new ServiceAuthorizationManager();
         private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
         private ServiceAuthorizationManager serviceAuthorizationManager;
 
@@ -23,7 +23,7 @@ namespace CoreWCF.Dispatcher
         {
             // TODO: Events 
             SecurityMessageProperty security = SecurityMessageProperty.GetOrCreate(rpc.Request);
-            security.ExternalAuthorizationPolicies = this.externalAuthorizationPolicies;
+            security.ExternalAuthorizationPolicies = externalAuthorizationPolicies;
 
             ServiceAuthorizationManager serviceAuthorizationManager = this.serviceAuthorizationManager ?? DefaultServiceAuthorizationManager;
             try
@@ -59,10 +59,14 @@ namespace CoreWCF.Dispatcher
         public static AuthorizationBehavior TryCreate(DispatchRuntime dispatch)
         {
             if (dispatch == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(dispatch)));
+            }
 
             if (!dispatch.RequiresAuthorization)
+            {
                 return null;
+            }
 
             return CreateAuthorizationBehavior(dispatch);
         }

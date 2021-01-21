@@ -16,7 +16,7 @@ namespace CoreWCF.Http.Tests
 {
     public class MessageEncoderTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public MessageEncoderTests(ITestOutputHelper output)
         {

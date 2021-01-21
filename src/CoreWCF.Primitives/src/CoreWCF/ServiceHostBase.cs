@@ -15,21 +15,21 @@ namespace CoreWCF
     {
         internal static readonly Uri EmptyUri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
         private bool initializeDescriptionHasFinished;
-        private UriSchemeKeyedCollection baseAddresses;
-        private ChannelDispatcherCollection channelDispatchers;
+        private readonly UriSchemeKeyedCollection baseAddresses;
+        private readonly ChannelDispatcherCollection channelDispatchers;
         private TimeSpan closeTimeout = ServiceDefaults.ServiceHostCloseTimeout;
         private ServiceDescription description;
-        private ExtensionCollection<ServiceHostBase> extensions;
+        private readonly ExtensionCollection<ServiceHostBase> extensions;
         private ReadOnlyCollection<Uri> externalBaseAddresses;
         private IDictionary<string, ContractDescription> implementedContracts;
-        private IInstanceContextManager instances;
+        private readonly IInstanceContextManager instances;
         private TimeSpan openTimeout = ServiceDefaults.OpenTimeout;
-        private ServiceCredentials readOnlyCredentials;
-        private ServiceAuthorizationBehavior readOnlyAuthorization;
+        private readonly ServiceCredentials readOnlyCredentials;
+        private readonly ServiceAuthorizationBehavior readOnlyAuthorization;
 
         //ServiceAuthenticationBehavior readOnlyAuthentication;
-        private Dictionary<DispatcherBuilder.ListenUriInfo, Collection<ServiceEndpoint>> endpointsByListenUriInfo;
-        private int busyCount;
+        private readonly Dictionary<DispatcherBuilder.ListenUriInfo, Collection<ServiceEndpoint>> endpointsByListenUriInfo;
+        private readonly int busyCount;
         //EventTraceActivity eventTraceActivity;
 
         public event EventHandler<UnknownMessageReceivedEventArgs> UnknownMessageReceived;
@@ -391,7 +391,7 @@ namespace CoreWCF
 
         private class ImplementedContractsContractResolver : IContractResolver
         {
-            private IDictionary<string, ContractDescription> implementedContracts;
+            private readonly IDictionary<string, ContractDescription> implementedContracts;
 
             public ImplementedContractsContractResolver(IDictionary<string, ContractDescription> implementedContracts)
             {
@@ -406,8 +406,8 @@ namespace CoreWCF
 
         internal class ServiceAndBehaviorsContractResolver : IContractResolver
         {
-            private IContractResolver serviceResolver;
-            private Dictionary<string, ContractDescription> behaviorContracts;
+            private readonly IContractResolver serviceResolver;
+            private readonly Dictionary<string, ContractDescription> behaviorContracts;
 
             public Dictionary<string, ContractDescription> BehaviorContracts
             {

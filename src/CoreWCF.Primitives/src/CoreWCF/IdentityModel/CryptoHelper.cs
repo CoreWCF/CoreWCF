@@ -19,8 +19,8 @@ namespace CoreWCF.IdentityModel
         private const string SystemSecurityCryptographySha1String = "System.Security.Cryptography.SHA1";
         private static byte[] emptyBuffer;
 
-        private static Dictionary<string, Func<object>> s_algorithmDelegateDictionary = new Dictionary<string, Func<object>>();
-        private static object s_algorithmDictionaryLock = new object();
+        private static readonly Dictionary<string, Func<object>> s_algorithmDelegateDictionary = new Dictionary<string, Func<object>>();
+        private static readonly object s_algorithmDictionaryLock = new object();
 
         internal static byte[] EmptyBuffer
         {
@@ -323,9 +323,8 @@ namespace CoreWCF.IdentityModel
 
             object algorithmObject = null;
             object defaultObject = null;
-            Func<object> delegateFunction = null;
 
-            if (!s_algorithmDelegateDictionary.TryGetValue(algorithm, out delegateFunction))
+            if (!s_algorithmDelegateDictionary.TryGetValue(algorithm, out Func<object> delegateFunction))
             {
                 lock (s_algorithmDictionaryLock)
                 {

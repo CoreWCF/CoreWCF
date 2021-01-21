@@ -8,18 +8,18 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchOperation
     {
-        private string action;
-        private SynchronizedCollection<FaultContractInfo> faultContractInfos;
+        private readonly string action;
+        private readonly SynchronizedCollection<FaultContractInfo> faultContractInfos;
         private IDispatchMessageFormatter formatter;
         private IDispatchFaultFormatter faultFormatter;
         private ImpersonationOption impersonation;
         private IOperationInvoker invoker;
         private bool isTerminating;
         private bool isSessionOpenNotificationEnabled;
-        private string name;
+        private readonly string name;
         private bool releaseInstanceAfterCall;
         private bool releaseInstanceBeforeCall;
-        private string replyAction;
+        private readonly string replyAction;
         private bool deserializeRequest = true;
         private bool serializeReply = true;
         private bool autoDisposeParameters = true;
@@ -29,7 +29,7 @@ namespace CoreWCF.Dispatcher
             Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             this.name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             this.action = action;
-            this.impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
+            impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
             // Not necessary for basic functionality
             CallContextInitializers = parent.NewBehaviorCollection<ICallContextInitializer>();
             faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
@@ -122,13 +122,13 @@ namespace CoreWCF.Dispatcher
 
         public ImpersonationOption Impersonation
         {
-            get { return this.impersonation; }
+            get { return impersonation; }
             set
             {
-                lock (this.Parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    this.Parent.InvalidateRuntime();
-                    this.impersonation = value;
+                    Parent.InvalidateRuntime();
+                    impersonation = value;
                 }
             }
         }

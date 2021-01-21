@@ -109,7 +109,7 @@ namespace CoreWCF.Http.Tests
                 AsyncCallback callback = new AsyncCallback(CallbackResults);
                 IAsyncResult result = clientAsync_.BeginEchoString(clientString, callback, null);
                 _output.WriteLine("Message sent via Async, waiting for callback");
-                this.autoEvent.WaitOne();
+                autoEvent.WaitOne();
                 _output.WriteLine("Event has been signalled");
                 string text = clientAsync_.EndEchoString(result);
                 _output.WriteLine(text);

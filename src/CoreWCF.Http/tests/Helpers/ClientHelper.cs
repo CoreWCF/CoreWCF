@@ -13,7 +13,7 @@ namespace Helpers
 {
     public static class ClientHelper
     {
-        private static TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
+        private static readonly TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
         public static Binding GetBufferedModHttp1Binding()
         {

@@ -20,7 +20,7 @@ namespace CoreWCF.Http.Tests
 {
     public class ServiceAuthBehaviorTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public ServiceAuthBehaviorTest(ITestOutputHelper output)
         {
             _output = output;

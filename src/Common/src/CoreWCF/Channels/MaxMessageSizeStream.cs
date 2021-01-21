@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
 {
     internal class MaxMessageSizeStream : DelegatingStream
     {
-        private long _maxMessageSize;
+        private readonly long _maxMessageSize;
         private long _totalBytesRead;
         private long _bytesWritten;
 
@@ -44,7 +44,10 @@ namespace CoreWCF.Channels
             PrepareRead(1);
             int i = base.ReadByte();
             if (i != -1)
+            {
                 FinishRead(1);
+            }
+
             return i;
         }
 

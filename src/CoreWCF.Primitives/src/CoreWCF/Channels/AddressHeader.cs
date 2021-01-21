@@ -56,7 +56,10 @@ namespace CoreWCF.Channels
         public static AddressHeader CreateAddressHeader(string name, string ns, object value, XmlObjectSerializer serializer)
         {
             if (serializer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
+            }
+
             return new XmlObjectSerializerAddressHeader(name, ns, value, serializer);
         }
 
@@ -69,7 +72,9 @@ namespace CoreWCF.Channels
         {
             AddressHeader hdr = obj as AddressHeader;
             if (hdr == null)
+            {
                 return false;
+            }
 
             StringBuilder builder = new StringBuilder();
             string hdr1 = GetComparableForm(builder);
@@ -78,10 +83,14 @@ namespace CoreWCF.Channels
             string hdr2 = hdr.GetComparableForm(builder);
 
             if (hdr1.Length != hdr2.Length)
+            {
                 return false;
+            }
 
             if (string.CompareOrdinal(hdr1, hdr2) != 0)
+            {
                 return false;
+            }
 
             return true;
         }
@@ -109,13 +118,20 @@ namespace CoreWCF.Channels
         public T GetValue<T>(XmlObjectSerializer serializer)
         {
             if (serializer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
+            }
+
             using (XmlDictionaryReader reader = GetAddressHeaderReader())
             {
                 if (serializer.IsStartObject(reader))
+                {
                     return (T)serializer.ReadObject(reader);
+                }
                 else
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.ExpectedElementMissing, Name, Namespace)));
+                }
             }
         }
 
@@ -154,7 +170,10 @@ namespace CoreWCF.Channels
         public MessageHeader ToMessageHeader()
         {
             if (header == null)
+            {
                 header = new ParameterHeader(this);
+            }
+
             return header;
         }
 
@@ -166,7 +185,10 @@ namespace CoreWCF.Channels
         public void WriteAddressHeader(XmlDictionaryWriter writer)
         {
             if (writer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
+            }
+
             WriteStartAddressHeader(writer);
             WriteAddressHeaderContents(writer);
             writer.WriteEndElement();
@@ -175,20 +197,26 @@ namespace CoreWCF.Channels
         public void WriteStartAddressHeader(XmlDictionaryWriter writer)
         {
             if (writer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
+            }
+
             OnWriteStartAddressHeader(writer);
         }
 
         public void WriteAddressHeaderContents(XmlDictionaryWriter writer)
         {
             if (writer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
+            }
+
             OnWriteAddressHeaderContents(writer);
         }
 
         private class ParameterHeader : MessageHeader
         {
-            private AddressHeader parameter;
+            private readonly AddressHeader parameter;
 
             public override bool IsReferenceParameter
             {
@@ -213,7 +241,9 @@ namespace CoreWCF.Channels
             protected override void OnWriteStartHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
                 if (messageVersion == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
+                }
 
                 WriteStartHeader(writer, parameter, messageVersion.Addressing);
             }
@@ -240,10 +270,10 @@ namespace CoreWCF.Channels
 
         private class XmlObjectSerializerAddressHeader : AddressHeader
         {
-            private XmlObjectSerializer serializer;
-            private object objectToSerialize;
-            private string name;
-            private string ns;
+            private readonly XmlObjectSerializer serializer;
+            private readonly object objectToSerialize;
+            private readonly string name;
+            private readonly string ns;
 
             public XmlObjectSerializerAddressHeader(object objectToSerialize, XmlObjectSerializer serializer)
             {
@@ -298,8 +328,8 @@ namespace CoreWCF.Channels
         // astern, This will be kept internal for now.  If the optimization needs to be public, we'll re-evaluate it.
         private class DictionaryAddressHeader : XmlObjectSerializerAddressHeader
         {
-            private XmlDictionaryString name;
-            private XmlDictionaryString ns;
+            private readonly XmlDictionaryString name;
+            private readonly XmlDictionaryString ns;
 
             public DictionaryAddressHeader(XmlDictionaryString name, XmlDictionaryString ns, object value)
                 : base(name.Value, ns.Value, value, DataContractSerializerDefaults.CreateSerializer(GetObjectType(value), name, ns, int.MaxValue/*maxItems*/))
@@ -317,10 +347,10 @@ namespace CoreWCF.Channels
 
     internal class BufferedAddressHeader : AddressHeader
     {
-        private string name;
-        private string ns;
-        private XmlBuffer buffer;
-        private bool isReferenceProperty;
+        private readonly string name;
+        private readonly string ns;
+        private readonly XmlBuffer buffer;
+        private readonly bool isReferenceProperty;
 
         public BufferedAddressHeader(XmlDictionaryReader reader)
         {
@@ -373,7 +403,10 @@ namespace CoreWCF.Channels
             XmlDictionaryReader reader = GetAddressHeaderReader();
             reader.ReadStartElement();
             while (reader.NodeType != XmlNodeType.EndElement)
+            {
                 writer.WriteNode(reader, false);
+            }
+
             reader.ReadEndElement();
             reader.Dispose();
         }

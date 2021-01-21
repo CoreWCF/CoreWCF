@@ -29,41 +29,41 @@ namespace CoreWCF.Security.Tokens
             public Binding IssuerBinding;
         }
 
-        private Collection<XmlElement> additionalRequestParameters = new Collection<XmlElement>();
-        private Collection<AlternativeIssuerEndpoint> alternativeIssuerEndpoints = new Collection<AlternativeIssuerEndpoint>();
+        private readonly Collection<XmlElement> additionalRequestParameters = new Collection<XmlElement>();
+        private readonly Collection<AlternativeIssuerEndpoint> alternativeIssuerEndpoints = new Collection<AlternativeIssuerEndpoint>();
         private MessageSecurityVersion defaultMessageSecurityVersion;
         private EndpointAddress issuerAddress;
         private EndpointAddress issuerMetadataAddress;
         private Binding issuerBinding;
         private int keySize;
         private SecurityKeyType keyType = defaultKeyType;
-        private Collection<ClaimTypeRequirement> claimTypeRequirements = new Collection<ClaimTypeRequirement>();
+        private readonly Collection<ClaimTypeRequirement> claimTypeRequirements = new Collection<ClaimTypeRequirement>();
         private bool useStrTransform = defaultUseStrTransform;
         private string tokenType;
 
         protected IssuedSecurityTokenParameters(IssuedSecurityTokenParameters other)
             : base(other)
         {
-            this.defaultMessageSecurityVersion = other.defaultMessageSecurityVersion;
-            this.issuerAddress = other.issuerAddress;
-            this.keyType = other.keyType;
-            this.tokenType = other.tokenType;
-            this.keySize = other.keySize;
-            this.useStrTransform = other.useStrTransform;
+            defaultMessageSecurityVersion = other.defaultMessageSecurityVersion;
+            issuerAddress = other.issuerAddress;
+            keyType = other.keyType;
+            tokenType = other.tokenType;
+            keySize = other.keySize;
+            useStrTransform = other.useStrTransform;
 
             foreach (XmlElement parameter in other.additionalRequestParameters)
             {
-                this.additionalRequestParameters.Add((XmlElement)parameter.Clone());
+                additionalRequestParameters.Add((XmlElement)parameter.Clone());
             }
             foreach (ClaimTypeRequirement c in other.claimTypeRequirements)
             {
-                this.claimTypeRequirements.Add(c);
+                claimTypeRequirements.Add(c);
             }
             if (other.issuerBinding != null)
             {
-                this.issuerBinding = new CustomBinding(other.issuerBinding);
+                issuerBinding = new CustomBinding(other.issuerBinding);
             }
-            this.issuerMetadataAddress = other.issuerMetadataAddress;
+            issuerMetadataAddress = other.issuerMetadataAddress;
         }
 
         public IssuedSecurityTokenParameters()
@@ -92,13 +92,13 @@ namespace CoreWCF.Security.Tokens
             this.issuerBinding = issuerBinding;
         }
 
-        internal protected override bool HasAsymmetricKey { get { return this.KeyType == SecurityKeyType.AsymmetricKey; } }
+        internal protected override bool HasAsymmetricKey { get { return KeyType == SecurityKeyType.AsymmetricKey; } }
 
         public Collection<XmlElement> AdditionalRequestParameters
         {
             get
             {
-                return this.additionalRequestParameters;
+                return additionalRequestParameters;
             }
         }
 
@@ -106,7 +106,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.defaultMessageSecurityVersion;
+                return defaultMessageSecurityVersion;
             }
 
             set
@@ -119,7 +119,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.alternativeIssuerEndpoints;
+                return alternativeIssuerEndpoints;
             }
         }
 
@@ -127,11 +127,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.issuerAddress;
+                return issuerAddress;
             }
             set
             {
-                this.issuerAddress = value;
+                issuerAddress = value;
             }
         }
 
@@ -139,11 +139,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.issuerMetadataAddress;
+                return issuerMetadataAddress;
             }
             set
             {
-                this.issuerMetadataAddress = value;
+                issuerMetadataAddress = value;
             }
         }
 
@@ -151,11 +151,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.issuerBinding;
+                return issuerBinding;
             }
             set
             {
-                this.issuerBinding = value;
+                issuerBinding = value;
             }
         }
 
@@ -163,12 +163,12 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.keyType;
+                return keyType;
             }
             set
             {
                 SecurityKeyTypeHelper.Validate(value);
-                this.keyType = value;
+                keyType = value;
             }
         }
 
@@ -176,13 +176,16 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.keySize;
+                return keySize;
             }
             set
             {
                 if (value < 0)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeNonNegative));
-                this.keySize = value;
+                }
+
+                keySize = value;
             }
         }
 
@@ -190,11 +193,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.useStrTransform;
+                return useStrTransform;
             }
             set
             {
-                this.useStrTransform = value;
+                useStrTransform = value;
             }
         }
 
@@ -202,7 +205,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.claimTypeRequirements;
+                return claimTypeRequirements;
             }
         }
 
@@ -210,11 +213,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.tokenType;
+                return tokenType;
             }
             set
             {
-                this.tokenType = value;
+                tokenType = value;
             }
         }
 
@@ -230,9 +233,13 @@ namespace CoreWCF.Security.Tokens
         internal protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token is GenericXmlSecurityToken)
+            {
                 return base.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+            }
             else
+            {
                 throw new NotImplementedException();
+            }
             //TODO 
             //  return this.CreateKeyIdentifierClause<SamlAssertionKeyIdentifierClause, SamlAssertionKeyIdentifierClause>(token, referenceStyle);
         }
@@ -240,29 +247,35 @@ namespace CoreWCF.Security.Tokens
         internal void SetRequestParameters(Collection<XmlElement> requestParameters, TrustDriver trustDriver)
         {
             if (requestParameters == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("requestParameters");
+            }
 
             if (trustDriver == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("trustDriver");
+            }
 
             Collection<XmlElement> unknownRequestParameters = new Collection<XmlElement>();
 
             foreach (XmlElement element in requestParameters)
             {
-                int keySize;
-                string tokenType;
-                SecurityKeyType keyType;
-                Collection<XmlElement> requiredClaims;
-                if (trustDriver.TryParseKeySizeElement(element, out keySize))
+                if (trustDriver.TryParseKeySizeElement(element, out int keySize))
+                {
                     this.keySize = keySize;
-                else if (trustDriver.TryParseKeyTypeElement(element, out keyType))
-                    this.KeyType = keyType;
-                else if (trustDriver.TryParseTokenTypeElement(element, out tokenType))
-                    this.TokenType = tokenType;
+                }
+                else if (trustDriver.TryParseKeyTypeElement(element, out SecurityKeyType keyType))
+                {
+                    KeyType = keyType;
+                }
+                else if (trustDriver.TryParseTokenTypeElement(element, out string tokenType))
+                {
+                    TokenType = tokenType;
+                }
                 // Only copy RP policy to client policy for TrustFeb2005
                 else if (trustDriver.StandardsManager.TrustVersion == TrustVersion.WSTrustFeb2005)
                 {
-                    if (trustDriver.TryParseRequiredClaimsElement(element, out requiredClaims))
+                    if (trustDriver.TryParseRequiredClaimsElement(element, out Collection<XmlElement> requiredClaims))
                     {
                         Collection<XmlElement> unrecognizedRequiredClaims = new Collection<XmlElement>();
                         foreach (XmlElement claimRequirement in requiredClaims)
@@ -283,7 +296,7 @@ namespace CoreWCF.Security.Tokens
                                         claimTypeRequirement = new ClaimTypeRequirement(claimValue, XmlConvert.ToBoolean(optional));
                                     }
 
-                                    this.claimTypeRequirements.Add(claimTypeRequirement);
+                                    claimTypeRequirements.Add(claimTypeRequirement);
                                 }
                             }
                             else
@@ -292,7 +305,9 @@ namespace CoreWCF.Security.Tokens
                             }
                         }
                         if (unrecognizedRequiredClaims.Count > 0)
+                        {
                             unknownRequestParameters.Add(trustDriver.CreateRequiredClaimsElement(unrecognizedRequiredClaims));
+                        }
                     }
                     else
                     {
@@ -305,7 +320,9 @@ namespace CoreWCF.Security.Tokens
             if (unknownRequestParameters.Count > 0)
             {
                 for (int i = 0; i < unknownRequestParameters.Count; ++i)
-                    this.AdditionalRequestParameters.Add(unknownRequestParameters[i]);
+                {
+                    AdditionalRequestParameters.Add(unknownRequestParameters[i]);
+                }
             }
         }
 
@@ -317,26 +334,28 @@ namespace CoreWCF.Security.Tokens
         internal Collection<XmlElement> CreateRequestParameters(TrustDriver driver)
         {
             if (driver == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("driver");
+            }
 
             Collection<XmlElement> result = new Collection<XmlElement>();
 
-            if (this.tokenType != null)
+            if (tokenType != null)
             {
                 result.Add(driver.CreateTokenTypeElement(tokenType));
             }
 
-            result.Add(driver.CreateKeyTypeElement(this.keyType));
+            result.Add(driver.CreateKeyTypeElement(keyType));
 
-            if (this.keySize != 0)
+            if (keySize != 0)
             {
                 result.Add(driver.CreateKeySizeElement(keySize));
             }
-            if (this.claimTypeRequirements.Count > 0)
+            if (claimTypeRequirements.Count > 0)
             {
                 Collection<XmlElement> claimsElements = new Collection<XmlElement>();
                 XmlDocument doc = new XmlDocument();
-                foreach (ClaimTypeRequirement claimType in this.claimTypeRequirements)
+                foreach (ClaimTypeRequirement claimType in claimTypeRequirements)
                 {
                     XmlElement element = doc.CreateElement(wsidPrefix, "ClaimType", wsidNamespace);
                     XmlAttribute attr = doc.CreateAttribute("Uri");
@@ -353,11 +372,11 @@ namespace CoreWCF.Security.Tokens
                 result.Add(driver.CreateRequiredClaimsElement(claimsElements));
             }
 
-            if (this.additionalRequestParameters.Count > 0)
+            if (additionalRequestParameters.Count > 0)
             {
-                Collection<XmlElement> trustNormalizedParameters = NormalizeAdditionalParameters(this.additionalRequestParameters,
+                Collection<XmlElement> trustNormalizedParameters = NormalizeAdditionalParameters(additionalRequestParameters,
                                                                                                  driver,
-                                                                                                 (this.claimTypeRequirements.Count > 0));
+                                                                                                 (claimTypeRequirements.Count > 0));
 
                 foreach (XmlElement parameter in trustNormalizedParameters)
                 {
@@ -399,9 +418,8 @@ namespace CoreWCF.Security.Tokens
 
                 for (int i = 0; i < tmpCollection.Count; ++i)
                 {
-                    string algorithm;
 
-                    if (driver.IsEncryptionAlgorithmElement(tmpCollection[i], out algorithm))
+                    if (driver.IsEncryptionAlgorithmElement(tmpCollection[i], out string algorithm))
                     {
                         encryptionAlgorithmElement = tmpCollection[i];
                     }
@@ -426,9 +444,8 @@ namespace CoreWCF.Security.Tokens
                         XmlElement child = node as XmlElement;
                         if (child != null)
                         {
-                            string algorithm = null;
 
-                            if (driver.IsEncryptionAlgorithmElement(child, out algorithm) && (encryptionAlgorithmElement != null))
+                            if (driver.IsEncryptionAlgorithmElement(child, out string algorithm) && (encryptionAlgorithmElement != null))
                             {
                                 tmpCollection.Remove(encryptionAlgorithmElement);
                             }
@@ -578,10 +595,8 @@ namespace CoreWCF.Security.Tokens
                     // Replace the appropriate elements.
                     for (int i = 0; i < tmpCollection.Count; ++i)
                     {
-                        string algorithmParameter;
-                        Collection<XmlElement> reqClaims;
 
-                        if (trust13Driver.IsSignWithElement(tmpCollection[i], out algorithmParameter))
+                        if (trust13Driver.IsSignWithElement(tmpCollection[i], out string algorithmParameter))
                         {
                             tmpCollection[i] = driver.CreateSignWithElement(algorithmParameter);
                         }
@@ -603,7 +618,7 @@ namespace CoreWCF.Security.Tokens
                         {
                             keyWrapAlgorithmElement = tmpCollection[i];
                         }
-                        else if (trust13Driver.TryParseRequiredClaimsElement(tmpCollection[i], out reqClaims) && (requiredClaimsElement != null))
+                        else if (trust13Driver.TryParseRequiredClaimsElement(tmpCollection[i], out Collection<XmlElement> reqClaims) && (requiredClaimsElement != null))
                         {
                             tmpCollection[i] = requiredClaimsElement;
                             requiredClaimsElement = null;
@@ -617,9 +632,20 @@ namespace CoreWCF.Security.Tokens
                     }
 
                     // Add the remaining elements to the additionaParameters list to the end.
-                    if (encryptionElement != null) tmpCollection.Add(encryptionElement);
-                    if (canonicalizationElement != null) tmpCollection.Add(canonicalizationElement);
-                    if (requiredClaimsElement != null) tmpCollection.Add(requiredClaimsElement);
+                    if (encryptionElement != null)
+                    {
+                        tmpCollection.Add(encryptionElement);
+                    }
+
+                    if (canonicalizationElement != null)
+                    {
+                        tmpCollection.Add(canonicalizationElement);
+                    }
+
+                    if (requiredClaimsElement != null)
+                    {
+                        tmpCollection.Add(requiredClaimsElement);
+                    }
 
                     if (childrenToPromote.Count > 0)
                     {
@@ -650,13 +676,9 @@ namespace CoreWCF.Security.Tokens
 
         private bool CanPromoteToRoot(XmlElement innerElement, WSTrustDec2005.DriverDec2005 trust13Driver, bool clientSideClaimTypeRequirementsSpecified)
         {
-            SecurityKeyType dummyOutParamForKeyType;
-            int dummyOutParamForKeySize;
-            string dummyStringOutParam;
-            Collection<XmlElement> dummyOutParamForRequiredClaims = null;
 
             // check if SecondaryParameters has claim requirements specified
-            if (trust13Driver.TryParseRequiredClaimsElement(innerElement, out dummyOutParamForRequiredClaims))
+            if (trust13Driver.TryParseRequiredClaimsElement(innerElement, out Collection<XmlElement> dummyOutParamForRequiredClaims))
             {
                 // if client has not specified any claim requirements, promote claim requirements 
                 // in SecondaryParameters to root level (and subsequently fix up the trust namespace)
@@ -667,9 +689,9 @@ namespace CoreWCF.Security.Tokens
             // imported, so drop it here. We check for EncryptWith and SignWith as these are Client specific algorithm values and we
             // don't have to promote the service specified values. KeyWrapAlgorithm was never sent in the RST
             // in V1 and hence we are dropping it here as well.
-            return (!trust13Driver.TryParseKeyTypeElement(innerElement, out dummyOutParamForKeyType) &&
-                    !trust13Driver.TryParseKeySizeElement(innerElement, out dummyOutParamForKeySize) &&
-                    !trust13Driver.TryParseTokenTypeElement(innerElement, out dummyStringOutParam) &&
+            return (!trust13Driver.TryParseKeyTypeElement(innerElement, out SecurityKeyType dummyOutParamForKeyType) &&
+                    !trust13Driver.TryParseKeySizeElement(innerElement, out int dummyOutParamForKeySize) &&
+                    !trust13Driver.TryParseTokenTypeElement(innerElement, out string dummyStringOutParam) &&
                     !trust13Driver.IsSignWithElement(innerElement, out dummyStringOutParam) &&
                     !trust13Driver.IsEncryptWithElement(innerElement, out dummyStringOutParam) &&
                     !trust13Driver.IsKeyWrapAlgorithmElement(innerElement, out dummyStringOutParam));
@@ -677,18 +699,18 @@ namespace CoreWCF.Security.Tokens
 
         internal void AddAlgorithmParameters(SecurityAlgorithmSuite algorithmSuite, SecurityStandardsManager standardsManager, SecurityKeyType issuedKeyType)
         {
-            this.additionalRequestParameters.Insert(0, standardsManager.TrustDriver.CreateEncryptionAlgorithmElement(algorithmSuite.DefaultEncryptionAlgorithm));
-            this.additionalRequestParameters.Insert(0, standardsManager.TrustDriver.CreateCanonicalizationAlgorithmElement(algorithmSuite.DefaultCanonicalizationAlgorithm));
+            additionalRequestParameters.Insert(0, standardsManager.TrustDriver.CreateEncryptionAlgorithmElement(algorithmSuite.DefaultEncryptionAlgorithm));
+            additionalRequestParameters.Insert(0, standardsManager.TrustDriver.CreateCanonicalizationAlgorithmElement(algorithmSuite.DefaultCanonicalizationAlgorithm));
 
-            if (this.keyType == SecurityKeyType.BearerKey)
+            if (keyType == SecurityKeyType.BearerKey)
             {
                 // As the client does not have a proof token in the Bearer case
                 // we don't have any specific algorithms to request for.
                 return;
             }
 
-            string signWithAlgorithm = (this.keyType == SecurityKeyType.SymmetricKey) ? algorithmSuite.DefaultSymmetricSignatureAlgorithm : algorithmSuite.DefaultAsymmetricSignatureAlgorithm;
-            this.additionalRequestParameters.Insert(0, standardsManager.TrustDriver.CreateSignWithElement(signWithAlgorithm));
+            string signWithAlgorithm = (keyType == SecurityKeyType.SymmetricKey) ? algorithmSuite.DefaultSymmetricSignatureAlgorithm : algorithmSuite.DefaultAsymmetricSignatureAlgorithm;
+            additionalRequestParameters.Insert(0, standardsManager.TrustDriver.CreateSignWithElement(signWithAlgorithm));
             string encryptWithAlgorithm;
             if (issuedKeyType == SecurityKeyType.SymmetricKey)
             {
@@ -698,11 +720,11 @@ namespace CoreWCF.Security.Tokens
             {
                 encryptWithAlgorithm = algorithmSuite.DefaultAsymmetricKeyWrapAlgorithm;
             }
-            this.additionalRequestParameters.Insert(0, standardsManager.TrustDriver.CreateEncryptWithElement(encryptWithAlgorithm));
+            additionalRequestParameters.Insert(0, standardsManager.TrustDriver.CreateEncryptWithElement(encryptWithAlgorithm));
 
             if (standardsManager.TrustVersion != TrustVersion.WSTrustFeb2005)
             {
-                this.additionalRequestParameters.Insert(0, ((WSTrustDec2005.DriverDec2005)standardsManager.TrustDriver).CreateKeyWrapAlgorithmElement(algorithmSuite.DefaultAsymmetricKeyWrapAlgorithm));
+                additionalRequestParameters.Insert(0, ((WSTrustDec2005.DriverDec2005)standardsManager.TrustDriver).CreateKeyWrapAlgorithmElement(algorithmSuite.DefaultAsymmetricKeyWrapAlgorithm));
             }
 
             return;
@@ -724,26 +746,25 @@ namespace CoreWCF.Security.Tokens
             // element. So the list contains just one element called SecondaryParameters that 
             // contains all the other elements as child elements.
             if ((standardsManager.TrustVersion == TrustVersion.WSTrust13) &&
-                (this.AdditionalRequestParameters.Count == 1) &&
-                (((WSTrustDec2005.DriverDec2005)standardsManager.TrustDriver).IsSecondaryParametersElement(this.AdditionalRequestParameters[0])))
+                (AdditionalRequestParameters.Count == 1) &&
+                (((WSTrustDec2005.DriverDec2005)standardsManager.TrustDriver).IsSecondaryParametersElement(AdditionalRequestParameters[0])))
             {
                 trustNormalizationPerformed = true;
                 trustVersionNormalizedParameterCollection = new Collection<XmlElement>();
-                foreach (XmlElement innerElement in this.AdditionalRequestParameters[0])
+                foreach (XmlElement innerElement in AdditionalRequestParameters[0])
                 {
                     trustVersionNormalizedParameterCollection.Add(innerElement);
                 }
             }
             else
             {
-                trustVersionNormalizedParameterCollection = this.AdditionalRequestParameters;
+                trustVersionNormalizedParameterCollection = AdditionalRequestParameters;
             }
 
             for (int i = 0; i < trustVersionNormalizedParameterCollection.Count; i++)
             {
-                string algorithm;
                 XmlElement element = trustVersionNormalizedParameterCollection[i];
-                if (standardsManager.TrustDriver.IsCanonicalizationAlgorithmElement(element, out algorithm))
+                if (standardsManager.TrustDriver.IsCanonicalizationAlgorithmElement(element, out string algorithm))
                 {
                     if (algorithmSuite.DefaultCanonicalizationAlgorithm != algorithm)
                     {
@@ -753,8 +774,8 @@ namespace CoreWCF.Security.Tokens
                 }
                 else if (standardsManager.TrustDriver.IsSignWithElement(element, out algorithm))
                 {
-                    if ((this.keyType == SecurityKeyType.SymmetricKey && algorithm != algorithmSuite.DefaultSymmetricSignatureAlgorithm)
-                        || (this.keyType == SecurityKeyType.AsymmetricKey && algorithm != algorithmSuite.DefaultAsymmetricSignatureAlgorithm))
+                    if ((keyType == SecurityKeyType.SymmetricKey && algorithm != algorithmSuite.DefaultSymmetricSignatureAlgorithm)
+                        || (keyType == SecurityKeyType.AsymmetricKey && algorithm != algorithmSuite.DefaultAsymmetricSignatureAlgorithm))
                     {
                         return false;
                     }
@@ -762,8 +783,8 @@ namespace CoreWCF.Security.Tokens
                 }
                 else if (standardsManager.TrustDriver.IsEncryptWithElement(element, out algorithm))
                 {
-                    if ((this.keyType == SecurityKeyType.SymmetricKey && algorithm != algorithmSuite.DefaultEncryptionAlgorithm)
-                        || (this.keyType == SecurityKeyType.AsymmetricKey && algorithm != algorithmSuite.DefaultAsymmetricKeyWrapAlgorithm))
+                    if ((keyType == SecurityKeyType.SymmetricKey && algorithm != algorithmSuite.DefaultEncryptionAlgorithm)
+                        || (keyType == SecurityKeyType.AsymmetricKey && algorithm != algorithmSuite.DefaultAsymmetricKeyWrapAlgorithm))
                     {
                         return false;
                     }
@@ -795,10 +816,10 @@ namespace CoreWCF.Security.Tokens
             // move all back into secondaryParameters
             if (trustNormalizationPerformed)
             {
-                otherRequestParameters = this.AdditionalRequestParameters;
+                otherRequestParameters = AdditionalRequestParameters;
             }
 
-            if (this.keyType == SecurityKeyType.BearerKey)
+            if (keyType == SecurityKeyType.BearerKey)
             {
                 // As the client does not have a proof token in the Bearer case
                 // we don't have any specific algorithms to request for.
@@ -828,19 +849,32 @@ namespace CoreWCF.Security.Tokens
         internal static bool IsInfoCardParameters(IssuedSecurityTokenParameters parameters, SecurityStandardsManager standardsManager)
         {
             if (parameters == null)
+            {
                 return false;
+            }
+
             if (parameters.TokenType != SecurityXXX2005Strings.SamlTokenType)
+            {
                 return false;
+            }
+
             if (parameters.KeyType != SecurityKeyType.AsymmetricKey)
+            {
                 return false;
+            }
 
             if (parameters.ClaimTypeRequirements.Count == 1)
             {
                 ClaimTypeRequirement claimTypeRequirement = parameters.ClaimTypeRequirements[0] as ClaimTypeRequirement;
                 if (claimTypeRequirement == null)
+                {
                     return false;
+                }
+
                 if (claimTypeRequirement.ClaimType != wsidPPIClaim)
+                {
                     return false;
+                }
             }
             else if ((parameters.AdditionalRequestParameters != null) && (parameters.AdditionalRequestParameters.Count > 0))
             {
@@ -870,7 +904,10 @@ namespace CoreWCF.Security.Tokens
                 return false;
             }
             if (parameters.IssuerAddress != null)
+            {
                 return false;
+            }
+
             if (parameters.AlternativeIssuerEndpoints != null && parameters.AlternativeIssuerEndpoints.Count > 0)
             {
                 return false;
@@ -917,22 +954,22 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "TokenType: {0}", this.tokenType == null ? "null" : this.tokenType));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "KeyType: {0}", this.keyType.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "KeySize: {0}", this.keySize.ToString(CultureInfo.InvariantCulture)));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "IssuerAddress: {0}", this.issuerAddress == null ? "null" : this.issuerAddress.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "IssuerMetadataAddress: {0}", this.issuerMetadataAddress == null ? "null" : this.issuerMetadataAddress.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "DefaultMessgeSecurityVersion: {0}", this.defaultMessageSecurityVersion == null ? "null" : this.defaultMessageSecurityVersion.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "UseStrTransform: {0}", this.useStrTransform.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "TokenType: {0}", tokenType == null ? "null" : tokenType));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "KeyType: {0}", keyType.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "KeySize: {0}", keySize.ToString(CultureInfo.InvariantCulture)));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "IssuerAddress: {0}", issuerAddress == null ? "null" : issuerAddress.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "IssuerMetadataAddress: {0}", issuerMetadataAddress == null ? "null" : issuerMetadataAddress.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "DefaultMessgeSecurityVersion: {0}", defaultMessageSecurityVersion == null ? "null" : defaultMessageSecurityVersion.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "UseStrTransform: {0}", useStrTransform.ToString()));
 
-            if (this.issuerBinding == null)
+            if (issuerBinding == null)
             {
                 sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "IssuerBinding: null"));
             }
             else
             {
                 sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "IssuerBinding:"));
-                BindingElementCollection bindingElements = this.issuerBinding.CreateBindingElements();
+                BindingElementCollection bindingElements = issuerBinding.CreateBindingElements();
                 for (int i = 0; i < bindingElements.Count; i++)
                 {
                     sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "  BindingElement[{0}]:", i.ToString(CultureInfo.InvariantCulture)));
@@ -940,16 +977,16 @@ namespace CoreWCF.Security.Tokens
                 }
             }
 
-            if (this.claimTypeRequirements.Count == 0)
+            if (claimTypeRequirements.Count == 0)
             {
                 sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "ClaimTypeRequirements: none"));
             }
             else
             {
                 sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "ClaimTypeRequirements:"));
-                for (int i = 0; i < this.claimTypeRequirements.Count; i++)
+                for (int i = 0; i < claimTypeRequirements.Count; i++)
                 {
-                    sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "  {0}, optional={1}", this.claimTypeRequirements[i].ClaimType, this.claimTypeRequirements[i].IsOptional));
+                    sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "  {0}, optional={1}", claimTypeRequirements[i].ClaimType, claimTypeRequirements[i].IsOptional));
                 }
             }
 
@@ -958,30 +995,30 @@ namespace CoreWCF.Security.Tokens
 
         protected internal override void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
         {
-            requirement.TokenType = this.TokenType;
+            requirement.TokenType = TokenType;
             requirement.RequireCryptographicToken = true;
-            requirement.KeyType = this.KeyType;
+            requirement.KeyType = KeyType;
 
             ServiceModelSecurityTokenRequirement serviceModelSecurityTokenRequirement = requirement as ServiceModelSecurityTokenRequirement;
             if (serviceModelSecurityTokenRequirement != null)
             {
-                serviceModelSecurityTokenRequirement.DefaultMessageSecurityVersion = this.DefaultMessageSecurityVersion;
+                serviceModelSecurityTokenRequirement.DefaultMessageSecurityVersion = DefaultMessageSecurityVersion;
             }
             else
             {
-                requirement.Properties[ServiceModelSecurityTokenRequirement.DefaultMessageSecurityVersionProperty] = this.DefaultMessageSecurityVersion;
+                requirement.Properties[ServiceModelSecurityTokenRequirement.DefaultMessageSecurityVersionProperty] = DefaultMessageSecurityVersion;
             }
 
-            if (this.KeySize > 0)
+            if (KeySize > 0)
             {
-                requirement.KeySize = this.KeySize;
+                requirement.KeySize = KeySize;
             }
-            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerAddressProperty] = this.IssuerAddress;
-            if (this.IssuerBinding != null)
+            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerAddressProperty] = IssuerAddress;
+            if (IssuerBinding != null)
             {
-                requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingProperty] = this.IssuerBinding;
+                requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingProperty] = IssuerBinding;
             }
-            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = this.Clone();
+            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = Clone();
         }
     }
 }

@@ -32,7 +32,10 @@ namespace CoreWCF.Channels.Framing
         {
             if (context.Items.TryGetValue(typeof(T), out object item))
             {
-                if (item is T) return (T)item;
+                if (item is T)
+                {
+                    return (T)item;
+                }
             }
 
             return default(T);

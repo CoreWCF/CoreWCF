@@ -11,7 +11,7 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
     public class MyTestAuthorizationPolicy : IAuthorizationPolicy
     {
-        private string id;
+        private readonly string id;
         public MyTestAuthorizationPolicy()
         {
             id = Guid.NewGuid().ToString();
@@ -41,7 +41,7 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
                 IList<Claim> claims = new List<Claim>();
                 claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/EchoString", Rights.PossessProperty));
                 claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/ComplexEcho", Rights.PossessProperty));
-                evaluationContext.AddClaimSet(this, new DefaultClaimSet(this.Issuer, claims));
+                evaluationContext.AddClaimSet(this, new DefaultClaimSet(Issuer, claims));
                 // Record that claims were added.
                 customstate.ClaimsAdded = true;
                 // Return true, indicating that this method does not need to be called again.

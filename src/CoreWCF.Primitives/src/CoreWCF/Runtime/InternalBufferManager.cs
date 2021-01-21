@@ -35,9 +35,9 @@ namespace CoreWCF.Runtime
             private const int maxMissesBeforeTuning = 8;
             private const int initialBufferCount = 1;
             private readonly object tuningLock;
-            private int[] bufferSizes;
-            private BufferPool[] bufferPools;
-            private long memoryLimit;
+            private readonly int[] bufferSizes;
+            private readonly BufferPool[] bufferPools;
+            private readonly long memoryLimit;
             private long remainingMemory;
             private bool areQuotasBeingTuned;
             private int totalMisses;
@@ -324,9 +324,9 @@ namespace CoreWCF.Runtime
 
             private abstract class BufferPool
             {
-                private int bufferSize;
+                private readonly int bufferSize;
                 private int count;
-                private int limit;
+                private readonly int limit;
                 private int misses;
                 private int peak;
 
@@ -408,7 +408,7 @@ namespace CoreWCF.Runtime
 
                 private class SynchronizedBufferPool : BufferPool
                 {
-                    private SynchronizedPool<byte[]> innerPool;
+                    private readonly SynchronizedPool<byte[]> innerPool;
 
                     internal SynchronizedBufferPool(int bufferSize, int limit)
                         : base(bufferSize, limit)
@@ -434,7 +434,7 @@ namespace CoreWCF.Runtime
 
                 private class LargeBufferPool : BufferPool
                 {
-                    private Stack<byte[]> items;
+                    private readonly Stack<byte[]> items;
 
                     internal LargeBufferPool(int bufferSize, int limit)
                         : base(bufferSize, limit)
@@ -490,7 +490,7 @@ namespace CoreWCF.Runtime
 
         private class GCBufferManager : InternalBufferManager
         {
-            private static GCBufferManager value = new GCBufferManager();
+            private static readonly GCBufferManager value = new GCBufferManager();
 
             private GCBufferManager()
             {

@@ -103,7 +103,9 @@ namespace CoreWCF.Channels
         public virtual bool IsContentTypeSupported(string contentType)
         {
             if (contentType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("contentType"));
+            }
 
             return IsContentTypeSupported(contentType, ContentType, MediaType);
         }
@@ -111,12 +113,16 @@ namespace CoreWCF.Channels
         internal bool IsContentTypeSupported(string contentType, string supportedContentType, string supportedMediaType)
         {
             if (supportedContentType == contentType)
+            {
                 return true;
+            }
 
             if (contentType.Length > supportedContentType.Length &&
                 contentType.StartsWith(supportedContentType, StringComparison.Ordinal) &&
                 contentType[supportedContentType.Length] == ';')
+            {
                 return true;
+            }
 
             // now check case-insensitively
             if (contentType.StartsWith(supportedContentType, StringComparison.OrdinalIgnoreCase))
@@ -152,12 +158,17 @@ namespace CoreWCF.Channels
                         {
                             ch = contentType[i];
                             if (ch != ' ' && ch != '\t')
+                            {
                                 break;
+                            }
+
                             ++i;
                         }
                     }
                     if (ch == ';' || i == contentType.Length)
+                    {
                         return true;
+                    }
                 }
             }
 
@@ -168,10 +179,14 @@ namespace CoreWCF.Channels
                 MediaTypeHeaderValue parsedContentType = MediaTypeHeaderValue.Parse(contentType);
 
                 if (supportedMediaType.Length > 0 && !supportedMediaType.Equals(parsedContentType.MediaType, StringComparison.OrdinalIgnoreCase))
+                {
                     return false;
+                }
 
                 if (!IsCharSetSupported(parsedContentType.CharSet))
+                {
                     return false;
+                }
             }
             catch (FormatException)
             {

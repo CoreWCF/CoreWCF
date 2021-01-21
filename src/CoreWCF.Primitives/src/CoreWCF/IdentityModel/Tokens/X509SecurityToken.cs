@@ -11,13 +11,13 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509SecurityToken : SecurityToken, IDisposable
     {
-        private string id;
-        private X509Certificate2 certificate;
+        private readonly string id;
+        private readonly X509Certificate2 certificate;
         private ReadOnlyCollection<SecurityKey> securityKeys;
         private DateTime effectiveTime = SecurityUtils.MaxUtcDateTime;
         private DateTime expirationTime = SecurityUtils.MinUtcDateTime;
         private bool disposed = false;
-        private bool disposable;
+        private readonly bool disposable;
 
         public X509SecurityToken(X509Certificate2 certificate)
             : this(certificate, SecurityUniqueId.Create().Value)
@@ -47,9 +47,14 @@ namespace CoreWCF.IdentityModel.Tokens
         internal X509SecurityToken(X509Certificate2 certificate, string id, bool clone, bool disposable)
         {
             if (certificate == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
+            }
+
             if (id == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
+            }
 
             this.id = id;
             this.certificate = clone ? new X509Certificate2(certificate) : certificate;
@@ -67,13 +72,13 @@ namespace CoreWCF.IdentityModel.Tokens
             get
             {
                 ThrowIfDisposed();
-                if (this.securityKeys == null)
+                if (securityKeys == null)
                 {
                     List<SecurityKey> temp = new List<SecurityKey>(1);
-                    temp.Add(new X509AsymmetricSecurityKey(this.certificate));
-                    this.securityKeys = temp.AsReadOnly();
+                    temp.Add(new X509AsymmetricSecurityKey(certificate));
+                    securityKeys = temp.AsReadOnly();
                 }
-                return this.securityKeys;
+                return securityKeys;
             }
         }
 
@@ -83,7 +88,10 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 ThrowIfDisposed();
                 if (effectiveTime == SecurityUtils.MaxUtcDateTime)
+                {
                     effectiveTime = certificate.NotBefore.ToUniversalTime();
+                }
+
                 return effectiveTime;
             }
         }
@@ -94,7 +102,10 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 ThrowIfDisposed();
                 if (expirationTime == SecurityUtils.MinUtcDateTime)
+                {
                     expirationTime = certificate.NotAfter.ToUniversalTime();
+                }
+
                 return expirationTime;
             }
         }

@@ -11,9 +11,9 @@ namespace CoreWCF.Channels
     internal abstract class ReceiveContext
     {
         public readonly static string Name = "ReceiveContext";
-        private SemaphoreSlim stateLock; // protects state that may be reverted
+        private readonly SemaphoreSlim stateLock; // protects state that may be reverted
         private bool contextFaulted;
-        private object thisLock;
+        private readonly object thisLock;
         //EventTraceActivity eventTraceActivity;
 
         protected ReceiveContext()
@@ -60,8 +60,7 @@ namespace CoreWCF.Channels
             }
 
             property = null;
-            object foundProperty;
-            if (properties.TryGetValue(Name, out foundProperty))
+            if (properties.TryGetValue(Name, out object foundProperty))
             {
                 property = (ReceiveContext)foundProperty;
                 return true;

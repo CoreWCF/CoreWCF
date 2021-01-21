@@ -11,8 +11,8 @@ namespace CoreWCF.Dispatcher
     internal class SynchronizedChannelCollection<TChannel> : SynchronizedCollection<TChannel>
         where TChannel : IChannel
     {
-        private EventHandler onChannelClosed;
-        private EventHandler onChannelFaulted;
+        private readonly EventHandler onChannelClosed;
+        private readonly EventHandler onChannelFaulted;
 
         internal SynchronizedChannelCollection(object syncRoot)
             : base(syncRoot)

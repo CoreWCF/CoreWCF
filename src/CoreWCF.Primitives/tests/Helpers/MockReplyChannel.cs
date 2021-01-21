@@ -13,7 +13,7 @@ namespace Helpers
 {
     internal class MockReplyChannel : IReplyChannel
     {
-        private IServiceScope _serviceScope;
+        private readonly IServiceScope _serviceScope;
 
         public MockReplyChannel(IServiceProvider serviceProvider)
         {

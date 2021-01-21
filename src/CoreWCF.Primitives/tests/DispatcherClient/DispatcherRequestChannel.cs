@@ -13,7 +13,7 @@ namespace DispatcherClient
 {
     internal class DispatcherRequestChannel : CommunicationObject, IRequestChannel
     {
-        private IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
         private IServiceChannelDispatcher _serviceChannelDispatch;
 
         public DispatcherRequestChannel(IServiceProvider serviceProvider, EndpointAddress to, Uri via)

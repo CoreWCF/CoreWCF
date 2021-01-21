@@ -16,7 +16,7 @@ namespace CoreWCF.Http.Tests
 {
     public class BasicValidationSoapTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public BasicValidationSoapTests(ITestOutputHelper output)
         {
             _output = output;

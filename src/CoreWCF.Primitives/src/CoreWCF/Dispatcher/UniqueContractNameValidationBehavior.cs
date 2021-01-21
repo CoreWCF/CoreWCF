@@ -12,17 +12,21 @@ namespace CoreWCF.Dispatcher
 {
     internal class UniqueContractNameValidationBehavior : IServiceBehavior
     {
-        private Dictionary<XmlQualifiedName, ContractDescription> contracts = new Dictionary<XmlQualifiedName, ContractDescription>();
+        private readonly Dictionary<XmlQualifiedName, ContractDescription> contracts = new Dictionary<XmlQualifiedName, ContractDescription>();
 
         public UniqueContractNameValidationBehavior() { }
 
         public void Validate(ServiceDescription description, ServiceHostBase serviceHostBase)
         {
             if (description == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
-            if (serviceHostBase == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceHostBase));
+            }
 
+            if (serviceHostBase == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceHostBase));
+            }
 
             foreach (ServiceEndpoint endpoint in description.Endpoints)
             {

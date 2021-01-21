@@ -114,7 +114,7 @@ namespace CoreWCF
             else
             {
                 WindowsStreamSecurityBindingElement result = new WindowsStreamSecurityBindingElement();
-                result.ProtectionLevel = this.protectionLevel;
+                result.ProtectionLevel = protectionLevel;
                 return result;
             }
         }

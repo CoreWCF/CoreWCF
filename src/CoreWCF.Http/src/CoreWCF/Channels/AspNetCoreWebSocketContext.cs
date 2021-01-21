@@ -15,10 +15,10 @@ namespace CoreWCF.Channels
 {
     internal class AspNetCoreWebSocketContext : WebSocketContext
     {
-        private HttpContext _httpContext;
-        private WebSocket _webSocket;
+        private readonly HttpContext _httpContext;
+        private readonly WebSocket _webSocket;
         private CookieCollection _cookieCollection;
-        private NameValueCollection _headers;
+        private readonly NameValueCollection _headers;
         private bool? _isLocal;
         private Uri _requestUri;
 

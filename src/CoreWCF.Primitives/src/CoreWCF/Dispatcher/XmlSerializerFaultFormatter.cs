@@ -54,12 +54,16 @@ namespace CoreWCF.Dispatcher
             if (faultInfo != null)
             {
                 if (action == null)
+                {
                     action = faultInfo.FaultContractInfo.Action;
+                }
 
                 return faultInfo.Serializer;
             }
             else
+            {
                 return new XmlSerializerObjectSerializer(detailType);
+            }
         }
 
         protected override FaultException CreateFaultException(MessageFault messageFault, string action)
@@ -99,7 +103,9 @@ namespace CoreWCF.Dispatcher
                         FaultException faultException = CreateFaultException(messageFault, action,
                             detailObj, detailType, detailReader);
                         if (faultException != null)
+                        {
                             return faultException;
+                        }
                     }
                     catch (SerializationException)
                     {

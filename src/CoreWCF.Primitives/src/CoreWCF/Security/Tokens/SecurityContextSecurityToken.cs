@@ -14,7 +14,7 @@ namespace CoreWCF.Security.Tokens
 {
     public class SecurityContextSecurityToken : SecurityToken, IDisposable, TimeBoundedCache.IExpirableItem
     {
-        private byte[] cookieBlob;
+        private readonly byte[] cookieBlob;
         private UniqueId contextId = null;
         private UniqueId keyGeneration = null;
         private DateTime keyEffectiveTime;
@@ -26,7 +26,7 @@ namespace CoreWCF.Security.Tokens
         private string keyString;
         private ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
         private ReadOnlyCollection<SecurityKey> securityKeys;
-        private string id;
+        private readonly string id;
         private SecurityMessageProperty bootstrapMessageProperty;
         private bool disposed = false;
 
@@ -42,14 +42,14 @@ namespace CoreWCF.Security.Tokens
             : base()
         {
             this.id = id;
-            this.Initialize(contextId, key, validFrom, validTo, authorizationPolicies, false, null, validFrom, validTo);
+            Initialize(contextId, key, validFrom, validTo, authorizationPolicies, false, null, validFrom, validTo);
         }
 
         public SecurityContextSecurityToken(UniqueId contextId, string id, byte[] key, DateTime validFrom, DateTime validTo, UniqueId keyGeneration, DateTime keyEffectiveTime, DateTime keyExpirationTime, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
             : base()
         {
             this.id = id;
-            this.Initialize(contextId, key, validFrom, validTo, authorizationPolicies, false, keyGeneration, keyEffectiveTime, keyExpirationTime);
+            Initialize(contextId, key, validFrom, validTo, authorizationPolicies, false, keyGeneration, keyEffectiveTime, keyExpirationTime);
         }
 
         internal SecurityContextSecurityToken(SecurityContextSecurityToken sourceToken, string id)
@@ -61,9 +61,9 @@ namespace CoreWCF.Security.Tokens
             : base()
         {
             this.id = id;
-            this.Initialize(sourceToken.contextId, key, sourceToken.ValidFrom, sourceToken.ValidTo, authorizationPolicies, sourceToken.isCookieMode, keyGeneration, keyEffectiveTime, keyExpirationTime);
-            this.cookieBlob = sourceToken.cookieBlob;
-            this.bootstrapMessageProperty = (sourceToken.bootstrapMessageProperty == null) ? null : (SecurityMessageProperty)sourceToken.BootstrapMessageProperty.CreateCopy();
+            Initialize(sourceToken.contextId, key, sourceToken.ValidFrom, sourceToken.ValidTo, authorizationPolicies, sourceToken.isCookieMode, keyGeneration, keyEffectiveTime, keyExpirationTime);
+            cookieBlob = sourceToken.cookieBlob;
+            bootstrapMessageProperty = (sourceToken.bootstrapMessageProperty == null) ? null : (SecurityMessageProperty)sourceToken.BootstrapMessageProperty.CreateCopy();
         }
 
         internal SecurityContextSecurityToken(UniqueId contextId, string id, byte[] key, DateTime validFrom, DateTime validTo, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, bool isCookieMode, byte[] cookieBlob)
@@ -76,17 +76,17 @@ namespace CoreWCF.Security.Tokens
             : base()
         {
             this.id = id;
-            this.Initialize(contextId, key, validFrom, validTo, authorizationPolicies, isCookieMode, keyGeneration, keyEffectiveTime, keyExpirationTime);
+            Initialize(contextId, key, validFrom, validTo, authorizationPolicies, isCookieMode, keyGeneration, keyEffectiveTime, keyExpirationTime);
             this.cookieBlob = cookieBlob;
         }
 
         private SecurityContextSecurityToken(SecurityContextSecurityToken from)
         {
             ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.CloneAuthorizationPoliciesIfNecessary(from.authorizationPolicies);
-            this.id = from.id;
-            this.Initialize(from.contextId, from.key, from.tokenEffectiveTime, from.tokenExpirationTime, authorizationPolicies, from.isCookieMode, from.keyGeneration, from.keyEffectiveTime, from.keyExpirationTime);
-            this.cookieBlob = from.cookieBlob;
-            this.bootstrapMessageProperty = (from.bootstrapMessageProperty == null) ? null : (SecurityMessageProperty)from.BootstrapMessageProperty.CreateCopy();
+            id = from.id;
+            Initialize(from.contextId, from.key, from.tokenEffectiveTime, from.tokenExpirationTime, authorizationPolicies, from.isCookieMode, from.keyGeneration, from.keyEffectiveTime, from.keyExpirationTime);
+            cookieBlob = from.cookieBlob;
+            bootstrapMessageProperty = (from.bootstrapMessageProperty == null) ? null : (SecurityMessageProperty)from.BootstrapMessageProperty.CreateCopy();
         }
 
         /// <summary>
@@ -107,45 +107,45 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return this.bootstrapMessageProperty;
+                return bootstrapMessageProperty;
             }
             set
             {
-                this.bootstrapMessageProperty = value;
+                bootstrapMessageProperty = value;
             }
         }
 
-        public override string Id => this.id;
+        public override string Id => id;
 
-        public UniqueId ContextId => this.contextId;
+        public UniqueId ContextId => contextId;
 
-        public UniqueId KeyGeneration => this.keyGeneration;
+        public UniqueId KeyGeneration => keyGeneration;
 
-        public DateTime KeyEffectiveTime => this.keyEffectiveTime;
+        public DateTime KeyEffectiveTime => keyEffectiveTime;
 
-        public DateTime KeyExpirationTime => this.keyExpirationTime;
+        public DateTime KeyExpirationTime => keyExpirationTime;
 
         public ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies
         {
             get
             {
                 ThrowIfDisposed();
-                return this.authorizationPolicies;
+                return authorizationPolicies;
             }
 
             internal set
             {
-                this.authorizationPolicies = value;
+                authorizationPolicies = value;
             }
         }
 
-        public override ReadOnlyCollection<SecurityKey> SecurityKeys => this.securityKeys;
+        public override ReadOnlyCollection<SecurityKey> SecurityKeys => securityKeys;
 
-        public override DateTime ValidFrom => this.tokenEffectiveTime;
+        public override DateTime ValidFrom => tokenEffectiveTime;
 
-        public override DateTime ValidTo => this.tokenExpirationTime;
+        public override DateTime ValidTo => tokenExpirationTime;
 
-        internal byte[] CookieBlob => this.cookieBlob;
+        internal byte[] CookieBlob => cookieBlob;
 
         /// <summary>
         /// This is set by the issuer when creating the SCT to be sent in the RSTR
@@ -153,29 +153,29 @@ namespace CoreWCF.Security.Tokens
         /// out the SCT
         /// This field is set to true when the issuer reads in a cookie mode SCT
         /// </summary>
-        public bool IsCookieMode => this.isCookieMode;
+        public bool IsCookieMode => isCookieMode;
 
-        DateTime TimeBoundedCache.IExpirableItem.ExpirationTime => this.ValidTo;
+        DateTime TimeBoundedCache.IExpirableItem.ExpirationTime => ValidTo;
 
         internal string GetBase64KeyString()
         {
-            if (this.keyString == null)
+            if (keyString == null)
             {
-                this.keyString = Convert.ToBase64String(this.key);
+                keyString = Convert.ToBase64String(key);
             }
-            return this.keyString;
+            return keyString;
         }
 
         internal byte[] GetKeyBytes()
         {
-            byte[] retval = new byte[this.key.Length];
-            Buffer.BlockCopy(this.key, 0, retval, 0, this.key.Length);
+            byte[] retval = new byte[key.Length];
+            Buffer.BlockCopy(key, 0, retval, 0, key.Length);
             return retval;
         }
 
         public override string ToString()
         {
-            return String.Format(CultureInfo.CurrentCulture, "SecurityContextSecurityToken(Identifier='{0}', KeyGeneration='{1}')", this.contextId, this.keyGeneration);
+            return String.Format(CultureInfo.CurrentCulture, "SecurityContextSecurityToken(Identifier='{0}', KeyGeneration='{1}')", contextId, keyGeneration);
         }
 
         private void Initialize(UniqueId contextId, byte[] key, DateTime validFrom, DateTime validTo, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, bool isCookieMode,
@@ -197,8 +197,8 @@ namespace CoreWCF.Security.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(validFrom), SR.EffectiveGreaterThanExpiration);
             }
-            this.tokenEffectiveTime = tokenEffectiveTimeUtc;
-            this.tokenExpirationTime = tokenExpirationTimeUtc;
+            tokenEffectiveTime = tokenEffectiveTimeUtc;
+            tokenExpirationTime = tokenExpirationTimeUtc;
 
             this.keyEffectiveTime = keyEffectiveTime.ToUniversalTime();
             this.keyExpirationTime = keyExpirationTime.ToUniversalTime();
@@ -218,14 +218,16 @@ namespace CoreWCF.Security.Tokens
             this.authorizationPolicies = authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
             List<SecurityKey> temp = new List<SecurityKey>(1);
             temp.Add(new InMemorySymmetricSecurityKey(this.key, false));
-            this.securityKeys = temp.AsReadOnly();
+            securityKeys = temp.AsReadOnly();
             this.isCookieMode = isCookieMode;
         }
 
         public override bool CanCreateKeyIdentifierClause<T>()
         {
             if (typeof(T) == typeof(SecurityContextKeyIdentifierClause))
+            {
                 return true;
+            }
 
             return base.CanCreateKeyIdentifierClause<T>();
         }
@@ -233,7 +235,9 @@ namespace CoreWCF.Security.Tokens
         public override T CreateKeyIdentifierClause<T>()
         {
             if (typeof(T) == typeof(SecurityContextKeyIdentifierClause))
-                return new SecurityContextKeyIdentifierClause(this.contextId, this.keyGeneration) as T;
+            {
+                return new SecurityContextKeyIdentifierClause(contextId, keyGeneration) as T;
+            }
 
             return base.CreateKeyIdentifierClause<T>();
         }
@@ -242,7 +246,9 @@ namespace CoreWCF.Security.Tokens
         {
             SecurityContextKeyIdentifierClause sctKeyIdentifierClause = keyIdentifierClause as SecurityContextKeyIdentifierClause;
             if (sctKeyIdentifierClause != null)
-                return sctKeyIdentifierClause.Matches(this.contextId, this.keyGeneration);
+            {
+                return sctKeyIdentifierClause.Matches(contextId, keyGeneration);
+            }
 
             return base.MatchesKeyIdentifierClause(keyIdentifierClause);
         }
@@ -275,22 +281,22 @@ namespace CoreWCF.Security.Tokens
 
         public void Dispose()
         {
-            if (!this.disposed)
+            if (!disposed)
             {
-                this.disposed = true;
-                SecurityUtils.DisposeAuthorizationPoliciesIfNecessary(this.authorizationPolicies);
-                if (this.bootstrapMessageProperty != null)
+                disposed = true;
+                SecurityUtils.DisposeAuthorizationPoliciesIfNecessary(authorizationPolicies);
+                if (bootstrapMessageProperty != null)
                 {
-                    this.bootstrapMessageProperty.Dispose();
+                    bootstrapMessageProperty.Dispose();
                 }
             }
         }
 
         private void ThrowIfDisposed()
         {
-            if (this.disposed)
+            if (disposed)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(this.GetType().FullName));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().FullName));
             }
         }
     }

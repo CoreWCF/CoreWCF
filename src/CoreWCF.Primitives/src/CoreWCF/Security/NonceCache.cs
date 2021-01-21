@@ -18,7 +18,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.cachingTime;
+                return cachingTime;
             }
             set
             {
@@ -34,7 +34,7 @@ namespace CoreWCF.Security
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                this.cachingTime = value;
+                cachingTime = value;
             }
         }
 
@@ -45,7 +45,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.maxCachedNonces;
+                return maxCachedNonces;
             }
             set
             {
@@ -54,7 +54,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBeNonNegative));
                 }
-                this.maxCachedNonces = value;
+                maxCachedNonces = value;
 
             }
         }
