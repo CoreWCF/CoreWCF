@@ -5,6 +5,11 @@
   "nuGetPackageVersion": {
     "semVer": 2.0
   },
+  "release": {
+    "branchName" : "release/v{version}",
+    "versionIncrement" : "minor",
+    "firstUnstableTag" : "alpha"
+  },
   "publicReleaseRefSpec": [
     "^refs/heads/master$",
     "^refs/heads/v\\d+\\.\\d+\\.\\d+$"
