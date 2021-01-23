@@ -274,3 +274,6 @@ config.ps1
 
 #SignClient - prevent adding the signing client if locally installed
 SignClient.exe
+
+# Nerdbank versioning tool
+nbgv.exe
