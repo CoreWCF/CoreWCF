@@ -133,6 +133,7 @@ namespace CoreWCF.Security
     {
         public const string Principal = "Principal";
         public const string Identities = "Identities";
+        public const string AuthTypeCertMap = "SSL/PCT";
         private static SecurityIdentifier s_administratorsSid;
         internal static byte[] ReadContentAsBase64(XmlDictionaryReader reader, long maxBufferSize)
         {
@@ -627,11 +628,6 @@ namespace CoreWCF.Security
             return MessageFault.CreateFault(senderCode, reason);
         }
 
-        internal static string GenerateId()
-        {
-            return SecurityUniqueId.Create().Value;
-        }
-
         internal static string GenerateId() => SecurityUniqueId.Create().Value;
 
         internal static byte[] GenerateDerivedKey(SecurityToken tokenToDerive, string derivationAlgorithm, byte[] label, byte[] nonce, int keySize, int offset)
@@ -678,6 +674,17 @@ namespace CoreWCF.Security
         {
             byte[] copy = Fx.AllocateByteArray(buffer.Length);
             Buffer.BlockCopy(buffer, 0, copy, 0, buffer.Length);
+            return copy;
+        }
+
+        internal static byte[] CloneBuffer(byte[] buffer, int offset, int len)
+        {
+            DiagnosticUtility.DebugAssert(offset >= 0, "Negative offset passed to CloneBuffer.");
+            DiagnosticUtility.DebugAssert(len >= 0, "Negative len passed to CloneBuffer.");
+            DiagnosticUtility.DebugAssert(buffer.Length - offset >= len, "Invalid parameters to CloneBuffer.");
+
+            byte[] copy = Fx.AllocateByteArray(len);
+            Buffer.BlockCopy(buffer, offset, copy, 0, len);
             return copy;
         }
 

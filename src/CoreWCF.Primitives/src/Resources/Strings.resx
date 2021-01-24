@@ -2737,9 +2737,6 @@
   <data name = "TimeoutServiceChannelConcurrentOpen2" xml:space="preserve">
     <value>Opening the {0} channel timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name = "TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
-    <value>TimeSpan must be greater than TimeSpan.Zero.</value>
-  </data>
   <data name = "TimeSpanCannotBeLessThanTimeSpanZero" xml:space="preserve">
     <value>TimeSpan cannot be less than TimeSpan.Zero.</value>
   </data>
@@ -8038,4 +8035,7 @@
    <data name="NoKeyInfoClausesToWrite" xml:space="preserve">
     <value>The SecurityKeyIdentifier has no key identifier clauses to write.</value>
  </data>
+  <data name = "TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
+    <value>TimeSpan must be greater than TimeSpan.Zero.</value>
+  </data>
 </root>

@@ -119,7 +119,7 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustbeGreaterThanTimeSpanZero)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", "TimeSpanMustbeGreaterThanTimeSpanZero"));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
@@ -176,7 +176,7 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.TimeSpanMustbeGreaterThanTimeSpanZero)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", "TimeSpanMustbeGreaterThanTimeSpanZero"));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))

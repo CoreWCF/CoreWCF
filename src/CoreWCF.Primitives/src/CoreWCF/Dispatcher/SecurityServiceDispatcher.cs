@@ -9,6 +9,7 @@ using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Dispatcher
 {
@@ -294,16 +295,29 @@ namespace CoreWCF.Dispatcher
     {
         private static MessageFault s_secureConversationCloseNotSupportedFault;
         private readonly string _secureConversationCloseAction;
+        private SecurityListenerSettingsLifetimeManager settingsLifetimeManager;
+        private bool hasSecurityStateReference;
+        private readonly IServiceProvider serviceProvider;
 
-        protected ServerSecurityChannelDispatcher(SecurityServiceDispatcher securityServiceDispatcher, UChannel innerChannel, SecurityProtocol securityProtocol)
+        protected ServerSecurityChannelDispatcher(SecurityServiceDispatcher securityServiceDispatcher, UChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
         {
+            settingsLifetimeManager = settingsLifetimeManager;
             SecurityProtocol = securityProtocol;
-            _secureConversationCloseAction = SecurityProtocol.SecurityProtocolFactory.StandardsManager.SecureConversationDriver.CloseAction.Value;
             OuterChannel = (IReplyChannel)innerChannel;
+            serviceProvider = this.OuterChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
         }
 
         internal SecurityProtocol SecurityProtocol { get; set; }
+
         public IReplyChannel OuterChannel { get; private set; }
+
+        public T GetProperty<T>() where T : class
+        {
+            var tObj = serviceProvider.GetService<T>();
+            if (tObj == null)
+                return OuterChannel.GetProperty<T>();
+            else return tObj;
+        }
 
         private static MessageFault GetSecureConversationCloseNotSupportedFault()
         {
@@ -349,13 +363,19 @@ namespace CoreWCF.Dispatcher
         public abstract Task DispatchAsync(Message message);
     }
 
-    internal class SecurityReplyChannelDispatcher : ServerSecurityChannelDispatcher<IReplyChannel>  //, IChannel
+    internal class SecurityReplyChannelDispatcher : ServerSecurityChannelDispatcher<IReplyChannel>  , IReplyChannel
     {
         private readonly bool _sendUnsecuredFaults;
         internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
 
-        public SecurityReplyChannelDispatcher(SecurityServiceDispatcher securityServiceDispatcher, IReplyChannel innerChannel, SecurityProtocol securityProtocol)
-                : base(securityServiceDispatcher, innerChannel, securityProtocol)
+        public event EventHandler Closed;
+        public event EventHandler Closing;
+        public event EventHandler Faulted;
+        public event EventHandler Opened;
+        public event EventHandler Opening;
+
+        public SecurityReplyChannelDispatcher(SecurityServiceDispatcher securityServiceDispatcher, IReplyChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
+                : base(securityServiceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
         {
             _sendUnsecuredFaults = securityServiceDispatcher.SendUnsecuredFaults;
             SecurityServiceDispatcher = securityServiceDispatcher;
@@ -369,10 +389,6 @@ namespace CoreWCF.Dispatcher
 
         public CommunicationState State => OuterChannel.State;
 
-        public T GetProperty<T>() where T : class
-        {
-            return OuterChannel.GetProperty<T>();
-        }
 
         internal RequestContext ProcessReceivedRequest(RequestContext requestContext)
         {
@@ -439,13 +455,47 @@ namespace CoreWCF.Dispatcher
 
         public override async Task DispatchAsync(RequestContext context)
         {
-            SecurityRequestContext securedMessage = (SecurityRequestContext)ProcessReceivedRequest(context);
-            IServiceChannelDispatcher serviceChannelDispatcher =
-               await SecurityServiceDispatcher.GetAuthChannelDispatcher(OuterChannel);
-            await serviceChannelDispatcher.DispatchAsync(securedMessage);
+            try
+            {
+                SecurityRequestContext securedMessage = (SecurityRequestContext)ProcessReceivedRequest(context);
+                IServiceChannelDispatcher serviceChannelDispatcher =
+                   await SecurityServiceDispatcher.GetAuthChannelDispatcher(this);
+                await serviceChannelDispatcher.DispatchAsync(securedMessage);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Error : ");
+
+            }
+
         }
 
         public override Task DispatchAsync(Message message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Abort()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CloseAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CloseAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task OpenAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task OpenAsync(CancellationToken token)
         {
             throw new NotImplementedException();
         }

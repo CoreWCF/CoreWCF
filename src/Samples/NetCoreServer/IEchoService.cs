@@ -1,24 +1,30 @@
 ﻿using CoreWCF;
+using System.IO;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace Contract
 {
-    [XmlSerializerFormat]
-    [ServiceContract]
-    public interface IEchoService
+    internal static class Constants
     {
-
-        [OperationContract]
-        string Echo(string text);
-
-        [OperationContract]
-        string ComplexEcho(EchoMessage text);
+        public const string NS = "http://tempuri.org/";
+        public const string ECHOSERVICE_NAME = nameof(IEchoService);
+        public const string OPERATION_BASE = NS + ECHOSERVICE_NAME + "/";
     }
 
-    [DataContract]
-    public class EchoMessage
+    [ServiceContract(Namespace = Constants.NS, Name = Constants.ECHOSERVICE_NAME)]
+    public interface IEchoService
     {
-        [DataMember]
-        public string Text { get; set; }
+        [OperationContract(Name = "EchoString", Action = Constants.OPERATION_BASE + "EchoString",
+            ReplyAction = Constants.OPERATION_BASE + "EchoStringResponse")]
+        Task<string> EchoStringAsync(string echo);
+
+        [OperationContract(Name = "EchoStream", Action = Constants.OPERATION_BASE + "EchoStream",
+            ReplyAction = Constants.OPERATION_BASE + "EchoStreamResponse")]
+        Task<Stream> EchoStreamAsync(Stream echo);
+
+        [OperationContract(Name = "EchoToFail", Action = Constants.OPERATION_BASE + "EchoToFail",
+            ReplyAction = Constants.OPERATION_BASE + "EchoToFailResponse")]
+        string EchoToFail(string echo);
     }
 }

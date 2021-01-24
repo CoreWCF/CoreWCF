@@ -1079,6 +1079,8 @@ namespace CoreWCF.Security
             //     this.bootstrapSecurityBindingElement, this.IssuerBindingContext);
             securityServiceDispatcher.SecurityProtocolFactory = bootstrapSecurityProtocolFactory;
             securityServiceDispatcher.SendUnsecuredFaults = true;
+            if (bootstrapSecurityProtocolFactory.ListenUri == null)
+                bootstrapSecurityProtocolFactory.ListenUri = this.listenUri;
             bootstrapSecurityProtocolFactory.OpenAsync(ServiceDefaults.OpenTimeout);
             //TODO if/when we add support for composite duplex bindings, this will need to be false if the binding is a composite duplex binding.
             //securityServiceDispatcher.SendUnsecuredFaults = !SecurityUtils.IsCompositeDuplexBinding(context);

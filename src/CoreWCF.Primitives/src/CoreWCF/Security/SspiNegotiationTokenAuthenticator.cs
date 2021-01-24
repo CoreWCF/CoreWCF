@@ -1,25 +1,20 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using System.IO;
-using System.Runtime;
-using System.Runtime.Serialization;
-using System.Security.Authentication.ExtendedProtection;
-using System.Security.Cryptography;
-using CoreWCF;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Security.Authentication.ExtendedProtection;
+using System.Security.Cryptography;
 using System.Xml;
-
 using CanonicalizationDriver = CoreWCF.IdentityModel.CanonicalizationDriver;
 using Psha1DerivedKeyGenerator = CoreWCF.IdentityModel.Psha1DerivedKeyGenerator;
-using System;
-using CoreWCF.Runtime;
-using CoreWCF.IdentityModel;
 
 namespace CoreWCF.Security
 {

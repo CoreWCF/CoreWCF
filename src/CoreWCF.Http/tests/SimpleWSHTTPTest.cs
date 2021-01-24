@@ -206,6 +206,18 @@ namespace WSHttp
             }
         }
 
+        internal class WSHttpTransportSecurityWindowsAuth : StartupWSHttpBase
+        {
+            public WSHttpTransportSecurityWindowsAuth() : base(CoreWCF.SecurityMode.TransportWithMessageCredential, MessageCredentialType.Windows)
+            {
+            }
+
+            public override void ChangeHostBehavior(ServiceHostBase host)
+            {
+                //nothing to do
+            }
+        }
+
         internal class WSHttpNoSecurity : StartupWSHttpBase
         {
             public WSHttpNoSecurity() : base(SecurityMode.None, MessageCredentialType.None)

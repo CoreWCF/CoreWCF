@@ -237,6 +237,10 @@ namespace CoreWCF.Channels
         // to the authenticator
         internal void AddDemuxerForSecureConversation(ChannelBuilder builder, BindingContext secureConversationBindingContext)
         {
+            //new way -- commented below.
+            //ChannelBuilder holding the context of demuxer
+            secureConversationBindingContext.BindingParameters.Add(builder);
+            
             // add a demuxer element  right below security unless there's a demuxer already present below and the only 
             // binding elements between security and the demuxer are "ancillary" binding elements like message encoding element and
             // stream-security upgrade element. We could always add the channel demuxer below security but not doing so in the ancillary
