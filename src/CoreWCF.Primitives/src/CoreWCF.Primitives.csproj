@@ -4,8 +4,6 @@
     <AssemblyName>CoreWCF.Primitives</AssemblyName>
     <PackageId>CoreWCF.Primitives</PackageId>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <Nullable>enable</Nullable>
-    <LangVersion>8.0</LangVersion>
     <RootNamespace />
   </PropertyGroup>
   <ItemGroup>

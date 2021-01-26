@@ -1,29 +1,19 @@
 ﻿using Contract;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace NetCoreServer
 {
-    public class EchoService : IEchoService
+    public class EchoService : Contract.IEchoService
     {
-        public async Task<string> EchoStringAsync(string echo)
+        public string Echo(string text)
         {
-            await Task.Yield();
-            return echo;
+            System.Console.WriteLine($"Received {text} from client!");
+            return text;
         }
 
-        public async Task<Stream> EchoStreamAsync(Stream echo)
+        public string ComplexEcho(EchoMessage text)
         {
-            var stream = new MemoryStream();
-            await echo.CopyToAsync(stream);
-            stream.Position = 0;
-            return stream;
+            System.Console.WriteLine($"Received {text.Text} from client!");
+            return text.Text;
         }
-
-        public string EchoToFail(string echo)
-        {
-            return echo;
-        }
-
     }
 }

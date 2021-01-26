@@ -455,19 +455,10 @@ namespace CoreWCF.Dispatcher
 
         public override async Task DispatchAsync(RequestContext context)
         {
-            try
-            {
-                SecurityRequestContext securedMessage = (SecurityRequestContext)ProcessReceivedRequest(context);
-                IServiceChannelDispatcher serviceChannelDispatcher =
-                   await SecurityServiceDispatcher.GetAuthChannelDispatcher(this);
-                await serviceChannelDispatcher.DispatchAsync(securedMessage);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine("Error : ");
-
-            }
-
+            SecurityRequestContext securedMessage = (SecurityRequestContext)ProcessReceivedRequest(context);
+            IServiceChannelDispatcher serviceChannelDispatcher =
+               await SecurityServiceDispatcher.GetAuthChannelDispatcher(this);
+            await serviceChannelDispatcher.DispatchAsync(securedMessage);
         }
 
         public override Task DispatchAsync(Message message)
