@@ -49,12 +49,24 @@ namespace CoreWCF.Channels
 
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter) where TChannel : class, IChannel
         {
-            if (!_isChannelDemuxerRequired)
-            {
+            get { return channelDemuxer; }
+        }
+        public TypedChannelDemuxer GetTypedChannelDemuxer<TChannel>() where TChannel : class, IChannel
+        {
+            return ChannelDemuxer.GetTypedServiceDispatcher<TChannel>(context);
+        }
+        public  IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
+        {
+            if (!isChannelDemuxerRequired)
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            }
+            return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, context);
+        }
 
-            return ChannelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter);
+        public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter) where TChannel : class, IChannel
+        {
+            if (!isChannelDemuxerRequired)
+                throw new Exception("ChannelDemuxerRequired is set to false");
+            return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter, context);
         }
 
         public void RemoveServiceDispatcher<TChannel>(MessageFilter filter) where TChannel : class, IChannel
@@ -62,9 +74,7 @@ namespace CoreWCF.Channels
             if (ChannelDemuxer == null)
             {
                 throw new Exception("Demuxer can't be null");
-            }
-
-            ChannelDemuxer.RemoveServiceDispatcher<TChannel>(filter);
+            channelDemuxer.RemoveServiceDispatcher<TChannel>(filter, context);
         }
 
         public IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel

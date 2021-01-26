@@ -38,22 +38,21 @@ namespace CoreWCF.Channels
 
         public int MaxPendingSessions { get; set; }
 
-        internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
+       internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter, BindingContext context)
         {
-            return GetTypedServiceDispatcher<TChannel>().AddDispatcher(innerDispatcher, filter);
+            return GetTypedServiceDispatcher<TChannel>(context).AddDispatcher(innerDispatcher, filter);
         }
 
-        internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher)
+        internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, BindingContext context)
         {
-            return GetTypedServiceDispatcher<TChannel>().AddDispatcher(innerDispatcher, new ChannelDemuxerFilter(new MatchAllMessageFilter(), 0));
+            return GetTypedServiceDispatcher<TChannel>(context).AddDispatcher(innerDispatcher, new ChannelDemuxerFilter(new MatchAllMessageFilter(), 0));
         }
 
-        internal void RemoveServiceDispatcher<TChannel>(MessageFilter filter)
+        internal void RemoveServiceDispatcher<TChannel>(MessageFilter filter, BindingContext context)
         {
-            GetTypedServiceDispatcher<TChannel>().RemoveDispatcher(filter);
+             GetTypedServiceDispatcher<TChannel>(context).RemoveDispatcher(filter);
         }
-
-        internal TypedChannelDemuxer GetTypedServiceDispatcher<TChannel>()
+        internal TypedChannelDemuxer GetTypedServiceDispatcher<TChannel>(BindingContext context)
         {
             TypedChannelDemuxer typeDemuxer = null;
 
@@ -74,7 +73,7 @@ namespace CoreWCF.Channels
             {
                 if (_replyDemuxer == null)
                 {
-                    /*_inputDemuxer = */_replyDemuxer = new ReplyChannelDemuxer();
+                    /*_inputDemuxer = */_replyDemuxer = new ReplyChannelDemuxer(context);
                 }
 
                 typeDemuxer = _replyDemuxer;
@@ -161,17 +160,14 @@ namespace CoreWCF.Channels
         // since the OnOuterListenerOpen method will be called for every outer listener and we will open
         // the inner listener only once, we need to ensure that all the outer listeners wait till the 
         // inner listener is opened.
-        public DatagramChannelDemuxer()
+        public DatagramChannelDemuxer(BindingContext context)
         {
             _filterTable = new MessageFilterTable<IServiceDispatcher>();
+            if (context.BindingParameters != null)
+            {
+                this.demuxFailureHandler = context.BindingParameters.Find<IChannelDemuxFailureHandler>();
+            }
         }
-
-        public DatagramChannelDemuxer(IChannelDemuxFailureHandler demuxFailureHandlerPassed)
-        {
-            _filterTable = new MessageFilterTable<IServiceDispatcher>();
-            DemuxFailureHandler = demuxFailureHandlerPassed;
-        }
-
         protected TInnerChannel InnerChannel { get; }
 
         protected IServiceDispatcher InnerDispatcher { get; }
@@ -202,7 +198,7 @@ namespace CoreWCF.Channels
         }
 
         protected abstract void AbortItem(TInnerItem item);
-        protected abstract void EndpointNotFound(TInnerItem item);
+        protected abstract Task EndpointNotFound(TInnerItem item);
         protected abstract Message GetMessage(TInnerItem item);
 
         protected IServiceDispatcher MatchDispatcher(Message message)
@@ -429,7 +425,7 @@ namespace CoreWCF.Channels
 
         public override IList<Type> SupportedChannelTypes => s_supportedChannelTypes;
 
-        public ReplyChannelDemuxer()
+        public ReplyChannelDemuxer(BindingContext context):base(context)
         {
         }
 
@@ -444,55 +440,45 @@ namespace CoreWCF.Channels
             request.Abort();
         }
 
-        protected override void EndpointNotFound(RequestContext request)
+        protected override async Task EndpointNotFound(RequestContext request)
         {
-            //bool abortItem = true;
-            //try
-            //{
-            //    if (this.DemuxFailureHandler != null)
-            //    {
-            //        try
-            //        {
-            //            ReplyChannelDemuxFailureAsyncResult result = new ReplyChannelDemuxFailureAsyncResult(this.DemuxFailureHandler, request, Fx.ThunkCallback(new AsyncCallback(this.EndpointNotFoundCallback)), request);
-            //            result.Start();
-            //            if (!result.CompletedSynchronously)
-            //            {
-            //                abortItem = false;
-            //                return;
-            //            }
-            //            ReplyChannelDemuxFailureAsyncResult.End(result);
-            //            abortItem = false;
-            //        }
-            //        catch (CommunicationException e)
-            //        {
-            //            DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
-            //        }
-            //        catch (TimeoutException e)
-            //        {
-            //            if (TD.SendTimeoutIsEnabled())
-            //            {
-            //                TD.SendTimeout(e.Message);
-            //            }
-            //            DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
-            //        }
-            //        catch (ObjectDisposedException e)
-            //        {
-            //            DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
-            //        }
-            //        catch (Exception e)
-            //        {
-            //            if (Fx.IsFatal(e)) throw;
-            //            this.HandleUnknownException(e);
-            //        }
-            //    }
-            //}
-            //finally
-            //{
-            //    if (abortItem)
-            //    {
-            //        this.AbortItem(request);
-            //    }
-            //}
+            bool abortItem = true;
+            try
+            {
+                if (this.DemuxFailureHandler != null)
+                {
+                    try
+                    {
+                       await this.DemuxFailureHandler.HandleDemuxFailureAsync(request.RequestMessage, request);
+                        abortItem = false;
+                    }
+                    catch (CommunicationException e)
+                    {
+                        DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    }
+                    catch (TimeoutException e)
+                    {
+
+                        DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    }
+                    catch (ObjectDisposedException e)
+                    {
+                        DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    }
+                    catch (Exception e)
+                    {
+                        if (Fx.IsFatal(e)) throw;
+                        throw e;
+                    }
+                }
+            }
+            finally
+            {
+                if (abortItem)
+                {
+                    this.AbortItem(request);
+                }
+            }
         }
 
 
@@ -520,6 +506,8 @@ namespace CoreWCF.Channels
                 {
                     ErrorBehavior.ThrowAndCatch(
                         new EndpointNotFoundException(SR.Format(SR.UnableToDemuxChannel, context.RequestMessage.Headers.Action)), context.RequestMessage);
+                    await this.demuxer.EndpointNotFound(context);
+                    return;
                 }
                 // TODO: if serviceDispatcher == null, use the EndpointNotFound code path
                 IServiceChannelDispatcher serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(_channel);

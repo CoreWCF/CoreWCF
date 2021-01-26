@@ -151,11 +151,11 @@ namespace CoreWCF.Channels
 
                     // pass in the error handler for handling unknown security sessions - dont do this if the underlying channel is duplex since sending 
                     // back faults in response to badly secured requests over duplex can result in DoS.
-                    //if (context.BindingParameters != null && context.BindingParameters.Find<IChannelDemuxFailureHandler>() == null
-                    //    && !IsUnderlyingListenerDuplex<TChannel>(context))
-                    //{
-                    //    context.BindingParameters.Add(new SecuritySessionServerSettings.SecuritySessionDemuxFailureHandler(sessionFactory.StandardsManager));
-                    //}
+                    if (context.BindingParameters != null && context.BindingParameters.Find<IChannelDemuxFailureHandler>() == null
+                        && !IsUnderlyingDispatcherDuplex<TChannel>(context))
+                    {
+                        context.BindingParameters.Add(new SecuritySessionServerSettings.SecuritySessionDemuxFailureHandler(sessionFactory.StandardsManager));
+                    }
                 }
                 else
                 {

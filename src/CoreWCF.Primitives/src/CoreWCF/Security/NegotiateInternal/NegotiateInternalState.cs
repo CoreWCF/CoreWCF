@@ -58,10 +58,10 @@ namespace CoreWCF.Security.NegotiateInternal
             //end 
 
             //TODO this fails in framework
-          /*  var securityStatusType = secAssembly.GetType("System.Net.SecurityStatusPal", throwOnError: true);
+            var securityStatusType = secAssembly.GetType("System.Net.SecurityStatusPal", throwOnError: true);
            // securityStatusType.get
             _statusCode = securityStatusType.GetField("ErrorCode");
-            _statusException = securityStatusType.GetField("Exception");*/
+            _statusException = securityStatusType.GetField("Exception");
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

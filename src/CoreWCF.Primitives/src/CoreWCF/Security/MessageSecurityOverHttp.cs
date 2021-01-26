@@ -4,7 +4,9 @@
 using System;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
-using CoreWCF.Security;
+using System.Globalization;
+using System;
+using System.Runtime.InteropServices;
 
 namespace CoreWCF
 {
@@ -31,7 +33,16 @@ namespace CoreWCF
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
-                _clientCredentialType = value;
+                if(value is MessageCredentialType.Windows)
+                {
+                    //TODO Remove this after .net 5+
+                   var frameworkDescription = RuntimeInformation.FrameworkDescription;
+                    if (frameworkDescription.IndexOf(NetFrameworkFrameworkName, StringComparison.Ordinal) >= 0)
+                    {
+                        throw new PlatformNotSupportedException();
+                    }
+                }
+                this.clientCredentialType = value;
             }
         }
 

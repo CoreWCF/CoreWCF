@@ -73,6 +73,40 @@ namespace WSHttp
             }
         }
 
+        //This test meant to be run locally.
+        //To make this test run, ensure to change the  defaultInactivityTimeout = TimeSpan.FromSeconds(5) in SecuritySessionServerSettings.
+        // [Fact, Description("Demuxer-failure")]
+        public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
+        {
+            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
+            string testString = new string('a', 3000);
+            var host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                var wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
+                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                clientCredentials.UserName.UserName = "testuser@corewcf";
+                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication();
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None;
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                Thread.Sleep(6000);
+                try
+                {
+                    channel.EchoString(testString);
+                }catch(Exception ex)
+                {
+                    Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
+                    Assert.Contains("expired security context token", ex.InnerException.Message);
+                }
+            }
+        }
+
         [Fact, Description("transport-security-with-basic-authentication")]
         public void WSHttpRequestReplyWithTransportMessageEchoString()
         {

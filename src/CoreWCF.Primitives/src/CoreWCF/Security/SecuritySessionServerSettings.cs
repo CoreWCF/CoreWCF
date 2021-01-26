@@ -1993,5 +1993,66 @@ namespace CoreWCF.Security
                 }
             }
         }
+
+        //Failure Demuxer handler
+        internal class SecuritySessionDemuxFailureHandler : IChannelDemuxFailureHandler
+        {
+            SecurityStandardsManager standardsManager;
+
+            public SecuritySessionDemuxFailureHandler(SecurityStandardsManager standardsManager)
+            {
+                if (standardsManager == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
+                }
+                this.standardsManager = standardsManager;
+            }
+
+            public void HandleDemuxFailure(Message message)
+            {
+                if (message == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+                }
+            }
+
+            public Message CreateSessionDemuxFaultMessage(Message message)
+            {
+                MessageFault fault = SecurityUtils.CreateSecurityContextNotFoundFault(this.standardsManager, message.Headers.Action);
+                Message faultMessage = Message.CreateMessage(message.Version, fault, message.Version.Addressing.DefaultFaultAction);
+                if (message.Headers.MessageId != null)
+                {
+                    faultMessage.InitializeReply(message);
+                }
+                return faultMessage;
+            }
+           
+            public Task HandleDemuxFailureAsync(Message message)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task HandleDemuxFailureAsync(Message message, RequestContext faultContext)
+            {
+                this.HandleDemuxFailure(message);
+                Message faultMessage = CreateSessionDemuxFaultMessage(message);
+                try
+                {
+                    faultContext.ReplyAsync(faultMessage);
+                }
+                catch (Exception ex)
+                {
+                    if (Fx.IsFatal(ex))
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    faultMessage.Close();
+                }
+                return Task.CompletedTask;
+            }
+        }
     }
 }
