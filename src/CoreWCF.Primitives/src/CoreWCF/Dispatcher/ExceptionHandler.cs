@@ -8,7 +8,7 @@ namespace CoreWCF.Dispatcher
 {
     public abstract class ExceptionHandler
     {
-        private static ExceptionHandler transportExceptionHandler = AlwaysHandle;
+        private static ExceptionHandler s_transportExceptionHandler = AlwaysHandle;
 
         public static ExceptionHandler AlwaysHandle { get; } = new AlwaysHandleExceptionHandler();
 
@@ -30,12 +30,12 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return transportExceptionHandler;
+                return s_transportExceptionHandler;
             }
 
             set
             {
-                transportExceptionHandler = value;
+                s_transportExceptionHandler = value;
             }
         }
 

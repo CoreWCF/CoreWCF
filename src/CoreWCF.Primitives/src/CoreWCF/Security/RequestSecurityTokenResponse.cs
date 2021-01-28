@@ -22,31 +22,31 @@ namespace CoreWCF.Security
 {
     internal class RequestSecurityTokenResponse : BodyWriter
     {
-        private static readonly int minSaneKeySizeInBits = 8 * 8; // 8 Bytes.
-        private static readonly int maxSaneKeySizeInBits = (16 * 1024) * 8; // 16 K
-        private SecurityStandardsManager standardsManager;
-        private string context;
-        private int keySize;
-        private bool computeKey;
-        private string tokenType;
-        private SecurityKeyIdentifierClause requestedAttachedReference;
-        private SecurityKeyIdentifierClause requestedUnattachedReference;
-        private SecurityToken issuedToken;
-        private SecurityToken proofToken;
-        private SecurityToken entropyToken;
-        private BinaryNegotiation negotiationData;
-        private readonly XmlElement rstrXml;
-        private DateTime expirationTime;
-        private bool isLifetimeSet;
-        private byte[] authenticator;
-        private bool isReadOnly;
-        private byte[] cachedWriteBuffer;
-        private int cachedWriteBufferLength;
-        private bool isRequestedTokenClosed;
-        private object appliesTo;
-        private XmlObjectSerializer appliesToSerializer;
-        private Type appliesToType;
-        private readonly XmlBuffer issuedTokenBuffer;
+        private static readonly int s_minSaneKeySizeInBits = 8 * 8; // 8 Bytes.
+        private static readonly int s_maxSaneKeySizeInBits = (16 * 1024) * 8; // 16 K
+        private SecurityStandardsManager _standardsManager;
+        private string _context;
+        private int _keySize;
+        private bool _computeKey;
+        private string _tokenType;
+        private SecurityKeyIdentifierClause _requestedAttachedReference;
+        private SecurityKeyIdentifierClause _requestedUnattachedReference;
+        private SecurityToken _issuedToken;
+        private SecurityToken _proofToken;
+        private SecurityToken _entropyToken;
+        private BinaryNegotiation _negotiationData;
+        private readonly XmlElement _rstrXml;
+        private DateTime _expirationTime;
+        private bool _isLifetimeSet;
+        private byte[] _authenticator;
+        private bool _isReadOnly;
+        private byte[] _cachedWriteBuffer;
+        private int _cachedWriteBufferLength;
+        private bool _isRequestedTokenClosed;
+        private object _appliesTo;
+        private XmlObjectSerializer _appliesToSerializer;
+        private Type _appliesToType;
+        private readonly XmlBuffer _issuedTokenBuffer;
 
         public RequestSecurityTokenResponse()
             : this(SecurityStandardsManager.DefaultInstance)
@@ -115,13 +115,13 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
             }
-            this.standardsManager = standardsManager;
+            _standardsManager = standardsManager;
             ValidFrom = SecurityUtils.MinUtcDateTime;
-            expirationTime = SecurityUtils.MaxUtcDateTime;
-            isRequestedTokenClosed = false;
-            isLifetimeSet = false;
+            _expirationTime = SecurityUtils.MaxUtcDateTime;
+            _isRequestedTokenClosed = false;
+            _isLifetimeSet = false;
             IsReceiver = false;
-            isReadOnly = false;
+            _isReadOnly = false;
         }
 
         internal RequestSecurityTokenResponse(SecurityStandardsManager standardsManager,
@@ -141,26 +141,26 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
             }
-            this.standardsManager = standardsManager;
+            _standardsManager = standardsManager;
             if (rstrXml == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rstrXml));
             }
 
-            this.rstrXml = rstrXml;
-            this.context = context;
-            this.tokenType = tokenType;
-            this.keySize = keySize;
-            this.requestedAttachedReference = requestedAttachedReference;
-            this.requestedUnattachedReference = requestedUnattachedReference;
-            this.computeKey = computeKey;
+            _rstrXml = rstrXml;
+            _context = context;
+            _tokenType = tokenType;
+            _keySize = keySize;
+            _requestedAttachedReference = requestedAttachedReference;
+            _requestedUnattachedReference = requestedUnattachedReference;
+            _computeKey = computeKey;
             ValidFrom = validFrom.ToUniversalTime();
-            expirationTime = validTo.ToUniversalTime();
-            isLifetimeSet = true;
-            this.isRequestedTokenClosed = isRequestedTokenClosed;
+            _expirationTime = validTo.ToUniversalTime();
+            _isLifetimeSet = true;
+            _isRequestedTokenClosed = isRequestedTokenClosed;
             // this.issuedTokenBuffer = issuedTokenBuffer;
             IsReceiver = true;
-            isReadOnly = true;
+            _isReadOnly = true;
         }
 
         public RequestSecurityTokenResponse(SecurityStandardsManager standardsManager,
@@ -171,14 +171,14 @@ namespace CoreWCF.Security
             bool isRequestedTokenClosed, XmlBuffer issuedTokenBuffer) :
             this(standardsManager, rstrXml, context, tokenType, keySize, requestedAttachedReference, requestedUnattachedReference, computeKey, validFrom, validTo, isRequestedTokenClosed)
         {
-            this.issuedTokenBuffer = issuedTokenBuffer;
+            _issuedTokenBuffer = issuedTokenBuffer;
         }
 
         public string Context
         {
             get
             {
-                return context;
+                return _context;
             }
             set
             {
@@ -187,7 +187,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                context = value;
+                _context = value;
             }
         }
 
@@ -195,7 +195,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return tokenType;
+                return _tokenType;
             }
             set
             {
@@ -204,7 +204,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                tokenType = value;
+                _tokenType = value;
             }
         }
 
@@ -212,7 +212,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return requestedAttachedReference;
+                return _requestedAttachedReference;
             }
             set
             {
@@ -221,7 +221,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                requestedAttachedReference = value;
+                _requestedAttachedReference = value;
             }
         }
 
@@ -229,7 +229,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return requestedUnattachedReference;
+                return _requestedUnattachedReference;
             }
             set
             {
@@ -238,19 +238,19 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                requestedUnattachedReference = value;
+                _requestedUnattachedReference = value;
             }
         }
 
         public DateTime ValidFrom { get; private set; }
 
-        public DateTime ValidTo => expirationTime;
+        public DateTime ValidTo => _expirationTime;
 
         public bool ComputeKey
         {
             get
             {
-                return computeKey;
+                return _computeKey;
             }
             set
             {
@@ -259,7 +259,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                computeKey = value;
+                _computeKey = value;
             }
         }
 
@@ -267,7 +267,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return keySize;
+                return _keySize;
             }
             set
             {
@@ -281,7 +281,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeNonNegative));
                 }
 
-                keySize = value;
+                _keySize = value;
             }
         }
 
@@ -289,7 +289,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return isRequestedTokenClosed;
+                return _isRequestedTokenClosed;
             }
             set
             {
@@ -298,11 +298,11 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                isRequestedTokenClosed = value;
+                _isRequestedTokenClosed = value;
             }
         }
 
-        public bool IsReadOnly => isReadOnly;
+        public bool IsReadOnly => _isReadOnly;
 
         protected Object ThisLock { get; } = new Object();
 
@@ -312,7 +312,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return standardsManager;
+                return _standardsManager;
             }
             set
             {
@@ -321,7 +321,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                standardsManager = (value != null ? value : SecurityStandardsManager.DefaultInstance);
+                _standardsManager = (value != null ? value : SecurityStandardsManager.DefaultInstance);
             }
         }
 
@@ -333,7 +333,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(EntropyToken))));
                 }
-                return entropyToken;
+                return _entropyToken;
             }
         }
 
@@ -343,18 +343,18 @@ namespace CoreWCF.Security
             {
                 if (IsReceiver)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(issuedToken))));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(_issuedToken))));
                 }
-                return issuedToken;
+                return _issuedToken;
             }
             set
             {
-                if (isReadOnly)
+                if (_isReadOnly)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                issuedToken = value;
+                _issuedToken = value;
             }
         }
 
@@ -364,18 +364,18 @@ namespace CoreWCF.Security
             {
                 if (IsReceiver)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(proofToken))));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(_proofToken))));
                 }
-                return proofToken;
+                return _proofToken;
             }
             set
             {
-                if (isReadOnly)
+                if (_isReadOnly)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                proofToken = value;
+                _proofToken = value;
             }
         }
 
@@ -387,7 +387,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(RequestSecurityTokenResponseXml))));
                 }
-                return rstrXml;
+                return _rstrXml;
             }
         }
 
@@ -399,7 +399,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesTo))));
                 }
-                return appliesTo;
+                return _appliesTo;
             }
         }
 
@@ -411,7 +411,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesToSerializer))));
                 }
-                return appliesToSerializer;
+                return _appliesToSerializer;
             }
         }
 
@@ -423,7 +423,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesToType))));
                 }
-                return appliesToType;
+                return _appliesToType;
             }
         }
 
@@ -435,11 +435,11 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRSTR, nameof(IsLifetimeSet))));
                 }
-                return isLifetimeSet;
+                return _isLifetimeSet;
             }
         }
 
-        internal CoreWCF.XmlBuffer IssuedTokenBuffer => issuedTokenBuffer;
+        internal CoreWCF.XmlBuffer IssuedTokenBuffer => _issuedTokenBuffer;
 
         public void SetIssuerEntropy(byte[] issuerEntropy)
         {
@@ -448,7 +448,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
 
-            entropyToken = (issuerEntropy != null) ? new NonceToken(issuerEntropy) : null;
+            _entropyToken = (issuerEntropy != null) ? new NonceToken(issuerEntropy) : null;
         }
 
         internal void SetIssuerEntropy(WrappedKeySecurityToken issuerEntropy)
@@ -458,7 +458,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
 
-            entropyToken = issuerEntropy;
+            _entropyToken = issuerEntropy;
         }
 
         public SecurityToken GetIssuerEntropy()
@@ -470,11 +470,11 @@ namespace CoreWCF.Security
         {
             if (IsReceiver)
             {
-                return standardsManager.TrustDriver.GetEntropy(this, resolver);
+                return _standardsManager.TrustDriver.GetEntropy(this, resolver);
             }
             else
             {
-                return entropyToken;
+                return _entropyToken;
             }
         }
 
@@ -490,8 +490,8 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.EffectiveGreaterThanExpiration);
             }
             ValidFrom = validFrom.ToUniversalTime();
-            expirationTime = validTo.ToUniversalTime();
-            isLifetimeSet = true;
+            _expirationTime = validTo.ToUniversalTime();
+            _isLifetimeSet = true;
         }
 
         public void SetAppliesTo<T>(T appliesTo, XmlObjectSerializer serializer)
@@ -505,9 +505,9 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
             }
-            this.appliesTo = appliesTo;
-            appliesToSerializer = serializer;
-            appliesToType = typeof(T);
+            _appliesTo = appliesTo;
+            _appliesToSerializer = serializer;
+            _appliesToType = typeof(T);
         }
 
         public void GetAppliesToQName(out string localName, out string namespaceUri)
@@ -517,7 +517,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTOnly, "MatchesAppliesTo")));
             }
 
-            standardsManager.TrustDriver.GetAppliesToQName(this, out localName, out namespaceUri);
+            _standardsManager.TrustDriver.GetAppliesToQName(this, out localName, out namespaceUri);
         }
 
         public T GetAppliesTo<T>()
@@ -533,11 +533,11 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
                 }
-                return standardsManager.TrustDriver.GetAppliesTo<T>(this, serializer);
+                return _standardsManager.TrustDriver.GetAppliesTo<T>(this, serializer);
             }
             else
             {
-                return (T)appliesTo;
+                return (T)_appliesTo;
             }
         }
 
@@ -553,18 +553,18 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
 
-            negotiationData = negotiation;
+            _negotiationData = negotiation;
         }
 
         internal BinaryNegotiation GetBinaryNegotiation()
         {
             if (IsReceiver)
             {
-                return standardsManager.TrustDriver.GetBinaryNegotiation(this);
+                return _standardsManager.TrustDriver.GetBinaryNegotiation(this);
             }
             else
             {
-                return negotiationData;
+                return _negotiationData;
             }
         }
 
@@ -580,26 +580,26 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
 
-            this.authenticator = Fx.AllocateByteArray(authenticator.Length);
-            Buffer.BlockCopy(authenticator, 0, this.authenticator, 0, authenticator.Length);
+            _authenticator = Fx.AllocateByteArray(authenticator.Length);
+            Buffer.BlockCopy(authenticator, 0, _authenticator, 0, authenticator.Length);
         }
 
         internal byte[] GetAuthenticator()
         {
             if (IsReceiver)
             {
-                return standardsManager.TrustDriver.GetAuthenticator(this);
+                return _standardsManager.TrustDriver.GetAuthenticator(this);
             }
             else
             {
-                if (authenticator == null)
+                if (_authenticator == null)
                 {
                     return null;
                 }
                 else
                 {
-                    byte[] result = Fx.AllocateByteArray(authenticator.Length);
-                    Buffer.BlockCopy(authenticator, 0, result, 0, authenticator.Length);
+                    byte[] result = Fx.AllocateByteArray(_authenticator.Length);
+                    Buffer.BlockCopy(_authenticator, 0, result, 0, _authenticator.Length);
                     return result;
                 }
             }
@@ -609,11 +609,11 @@ namespace CoreWCF.Security
         {
             if (IsReceiver)
             {
-                rstrXml.WriteTo(w);
+                _rstrXml.WriteTo(w);
             }
             else
             {
-                standardsManager.TrustDriver.WriteRequestSecurityTokenResponse(this, w);
+                _standardsManager.TrustDriver.WriteRequestSecurityTokenResponse(this, w);
             }
         }
 
@@ -627,7 +627,7 @@ namespace CoreWCF.Security
             if (IsReadOnly)
             {
                 // cache the serialized bytes to ensure repeatability
-                if (cachedWriteBuffer == null)
+                if (_cachedWriteBuffer == null)
                 {
                     MemoryStream stream = new MemoryStream();
                     using (XmlDictionaryWriter binaryWriter = XmlDictionaryWriter.CreateBinaryWriter(stream, XD.Dictionary))
@@ -636,11 +636,11 @@ namespace CoreWCF.Security
                         binaryWriter.Flush();
                         stream.Flush();
                         stream.Seek(0, SeekOrigin.Begin);
-                        cachedWriteBuffer = stream.GetBuffer();
-                        cachedWriteBufferLength = (int)stream.Length;
+                        _cachedWriteBuffer = stream.GetBuffer();
+                        _cachedWriteBufferLength = (int)stream.Length;
                     }
                 }
-                writer.WriteNode(XmlDictionaryReader.CreateBinaryReader(cachedWriteBuffer, 0, cachedWriteBufferLength, XD.Dictionary, XmlDictionaryReaderQuotas.Max), false);
+                writer.WriteNode(XmlDictionaryReader.CreateBinaryReader(_cachedWriteBuffer, 0, _cachedWriteBufferLength, XD.Dictionary, XmlDictionaryReaderQuotas.Max), false);
             }
             else
             {
@@ -670,9 +670,9 @@ namespace CoreWCF.Security
 
         public void MakeReadOnly()
         {
-            if (!isReadOnly)
+            if (!_isReadOnly)
             {
-                isReadOnly = true;
+                _isReadOnly = true;
                 OnMakeReadOnly();
             }
         }
@@ -691,7 +691,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(GetIssuedToken))));
             }
 
-            return standardsManager.TrustDriver.GetIssuedToken(this, resolver, allowedAuthenticators, keyEntropyMode, requestorEntropy, expectedTokenType, authorizationPolicies, defaultKeySize, isBearerKeyType);
+            return _standardsManager.TrustDriver.GetIssuedToken(this, resolver, allowedAuthenticators, keyEntropyMode, requestorEntropy, expectedTokenType, authorizationPolicies, defaultKeySize, isBearerKeyType);
         }
 
         public virtual GenericXmlSecurityToken GetIssuedToken(string expectedTokenType, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, RSA clientKey)
@@ -701,7 +701,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTROnly, nameof(GetIssuedToken))));
             }
 
-            return standardsManager.TrustDriver.GetIssuedToken(this, expectedTokenType, authorizationPolicies, clientKey);
+            return _standardsManager.TrustDriver.GetIssuedToken(this, expectedTokenType, authorizationPolicies, clientKey);
         }
 
         protected internal virtual void OnWriteCustomAttributes(XmlWriter writer)
@@ -725,9 +725,9 @@ namespace CoreWCF.Security
             }
             // Do a sanity check here. We don't want to allow invalid keys or keys that are too
             // large.
-            if ((keySizeInBits < minSaneKeySizeInBits) || (keySizeInBits > maxSaneKeySizeInBits))
+            if ((keySizeInBits < s_minSaneKeySizeInBits) || (keySizeInBits > s_maxSaneKeySizeInBits))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.InvalidKeySizeSpecifiedInNegotiation, keySizeInBits, minSaneKeySizeInBits, maxSaneKeySizeInBits)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.InvalidKeySizeSpecifiedInNegotiation, keySizeInBits, s_minSaneKeySizeInBits, s_maxSaneKeySizeInBits)));
             }
 
             Psha1DerivedKeyGenerator generator = new Psha1DerivedKeyGenerator(requestorEntropy);

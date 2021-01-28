@@ -96,7 +96,6 @@ namespace CoreWCF.Description
 
         internal static void AddBehaviors<TService>(ServiceDescription serviceDescription) where TService : class
         {
-
             TypeLoader<TService>.ApplyServiceInheritance<IServiceBehavior, KeyedByTypeCollection<IServiceBehavior>>(
                 serviceDescription.Behaviors, GetIServiceBehaviorAttributes);
 

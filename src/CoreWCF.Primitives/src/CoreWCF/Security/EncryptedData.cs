@@ -12,11 +12,11 @@ namespace CoreWCF.Security
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.EncryptedData;
         internal static readonly string ElementType = XmlEncryptionStrings.ElementType;
         internal static readonly string ContentType = XmlEncryptionStrings.ContentType;
-        private SymmetricAlgorithm algorithm;
-        private byte[] decryptedBuffer;
-        private ArraySegment<byte> buffer;
-        private byte[] iv;
-        private byte[] cipherText;
+        private SymmetricAlgorithm _algorithm;
+        private byte[] _decryptedBuffer;
+        private ArraySegment<byte> _buffer;
+        private byte[] _iv;
+        private byte[] _cipherText;
 
         protected override XmlDictionaryString OpeningElementName
         {
@@ -37,30 +37,30 @@ namespace CoreWCF.Security
 
         protected override void ForceEncryption()
         {
-            CryptoHelper.GenerateIVAndEncrypt(algorithm, buffer, out iv, out cipherText);
+            CryptoHelper.GenerateIVAndEncrypt(_algorithm, _buffer, out _iv, out _cipherText);
             State = EncryptionState.Encrypted;
-            buffer = new ArraySegment<byte>(CryptoHelper.EmptyBuffer);
+            _buffer = new ArraySegment<byte>(CryptoHelper.EmptyBuffer);
         }
 
         public byte[] GetDecryptedBuffer()
         {
             EnsureDecryptionSet();
-            return decryptedBuffer;
+            return _decryptedBuffer;
         }
 
         protected override void ReadCipherData(XmlDictionaryReader reader)
         {
-            cipherText = reader.ReadContentAsBase64();
+            _cipherText = reader.ReadContentAsBase64();
         }
 
         protected override void ReadCipherData(XmlDictionaryReader reader, long maxBufferSize)
         {
-            cipherText = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
+            _cipherText = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
         }
 
         private void SetPlainText()
         {
-            decryptedBuffer = CryptoHelper.ExtractIVAndDecrypt(algorithm, cipherText, 0, cipherText.Length);
+            _decryptedBuffer = CryptoHelper.ExtractIVAndDecrypt(_algorithm, _cipherText, 0, _cipherText.Length);
             State = EncryptionState.Decrypted;
         }
 
@@ -74,7 +74,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
             }
-            this.algorithm = algorithm;
+            _algorithm = algorithm;
             State = EncryptionState.DecryptionSetup;
         }
 
@@ -88,15 +88,15 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
             }
-            this.algorithm = algorithm;
-            this.buffer = buffer;
+            _algorithm = algorithm;
+            _buffer = buffer;
             State = EncryptionState.EncryptionSetup;
         }
 
         protected override void WriteCipherData(XmlDictionaryWriter writer)
         {
-            writer.WriteBase64(iv, 0, iv.Length);
-            writer.WriteBase64(cipherText, 0, cipherText.Length);
+            writer.WriteBase64(_iv, 0, _iv.Length);
+            writer.WriteBase64(_cipherText, 0, _cipherText.Length);
         }
     }
 }

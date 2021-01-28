@@ -14,10 +14,10 @@ namespace CoreWCF.IdentityModel.Tokens
     public class GenericXmlSecurityToken : SecurityToken
     {
         private const int SupportedPersistanceVersion = 1;
-        private readonly string id;
-        private readonly SecurityKeyIdentifierClause externalTokenReference;
-        private readonly DateTime effectiveTime;
-        private readonly DateTime expirationTime;
+        private readonly string _id;
+        private readonly SecurityKeyIdentifierClause _externalTokenReference;
+        private readonly DateTime _effectiveTime;
+        private readonly DateTime _expirationTime;
 
         public GenericXmlSecurityToken(
             XmlElement tokenXml,
@@ -34,26 +34,26 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenXml));
             }
 
-            id = GetId(tokenXml);
+            _id = GetId(tokenXml);
             TokenXml = tokenXml;
             ProofToken = proofToken;
-            this.effectiveTime = effectiveTime.ToUniversalTime();
-            this.expirationTime = expirationTime.ToUniversalTime();
+            _effectiveTime = effectiveTime.ToUniversalTime();
+            _expirationTime = expirationTime.ToUniversalTime();
 
             InternalTokenReference = internalTokenReference;
-            this.externalTokenReference = externalTokenReference;
+            _externalTokenReference = externalTokenReference;
             AuthorizationPolicies = authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
         }
 
-        public override string Id => id;
+        public override string Id => _id;
 
-        public override DateTime ValidFrom => effectiveTime;
+        public override DateTime ValidFrom => _effectiveTime;
 
-        public override DateTime ValidTo => expirationTime;
+        public override DateTime ValidTo => _expirationTime;
 
         public SecurityKeyIdentifierClause InternalTokenReference { get; }
 
-        public SecurityKeyIdentifierClause ExternalTokenReference => externalTokenReference;
+        public SecurityKeyIdentifierClause ExternalTokenReference => _externalTokenReference;
 
         public XmlElement TokenXml { get; }
 
@@ -87,9 +87,9 @@ namespace CoreWCF.IdentityModel.Tokens
                 writer.WriteLine("   InternalTokenReference: {0}", InternalTokenReference);
             }
 
-            if (externalTokenReference != null)
+            if (_externalTokenReference != null)
             {
-                writer.WriteLine("   ExternalTokenReference: {0}", externalTokenReference);
+                writer.WriteLine("   ExternalTokenReference: {0}", _externalTokenReference);
             }
 
             writer.WriteLine("   Token Element: ({0}, {1})", TokenXml.LocalName, TokenXml.NamespaceURI);
@@ -136,7 +136,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 return true;
             }
 
-            if (externalTokenReference != null && typeof(T) == externalTokenReference.GetType())
+            if (_externalTokenReference != null && typeof(T) == _externalTokenReference.GetType())
             {
                 return true;
             }
@@ -151,9 +151,9 @@ namespace CoreWCF.IdentityModel.Tokens
                 return (T)InternalTokenReference;
             }
 
-            if (externalTokenReference != null && typeof(T) == externalTokenReference.GetType())
+            if (_externalTokenReference != null && typeof(T) == _externalTokenReference.GetType())
             {
-                return (T)externalTokenReference;
+                return (T)_externalTokenReference;
             }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.UnableToCreateTokenReference)));
@@ -165,7 +165,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 return true;
             }
-            else if (externalTokenReference != null && externalTokenReference.Matches(keyIdentifierClause))
+            else if (_externalTokenReference != null && _externalTokenReference.Matches(keyIdentifierClause))
             {
                 return true;
             }

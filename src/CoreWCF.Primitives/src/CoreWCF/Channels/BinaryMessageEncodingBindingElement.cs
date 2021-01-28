@@ -11,38 +11,38 @@ namespace CoreWCF.Channels
 {
     public sealed class BinaryMessageEncodingBindingElement : MessageEncodingBindingElement
     {
-        private int maxReadPoolSize;
-        private int maxWritePoolSize;
-        private readonly XmlDictionaryReaderQuotas readerQuotas;
-        private int maxSessionSize;
-        private BinaryVersion binaryVersion;
-        private MessageVersion messageVersion;
-        private long maxReceivedMessageSize;
+        private int _maxReadPoolSize;
+        private int _maxWritePoolSize;
+        private readonly XmlDictionaryReaderQuotas _readerQuotas;
+        private int _maxSessionSize;
+        private BinaryVersion _binaryVersion;
+        private MessageVersion _messageVersion;
+        private long _maxReceivedMessageSize;
 
         public BinaryMessageEncodingBindingElement()
         {
-            maxReadPoolSize = EncoderDefaults.MaxReadPoolSize;
-            maxWritePoolSize = EncoderDefaults.MaxWritePoolSize;
-            readerQuotas = new XmlDictionaryReaderQuotas();
-            EncoderDefaults.ReaderQuotas.CopyTo(readerQuotas);
-            maxSessionSize = BinaryEncoderDefaults.MaxSessionSize;
-            binaryVersion = BinaryEncoderDefaults.BinaryVersion;
-            messageVersion = MessageVersion.CreateVersion(BinaryEncoderDefaults.EnvelopeVersion);
+            _maxReadPoolSize = EncoderDefaults.MaxReadPoolSize;
+            _maxWritePoolSize = EncoderDefaults.MaxWritePoolSize;
+            _readerQuotas = new XmlDictionaryReaderQuotas();
+            EncoderDefaults.ReaderQuotas.CopyTo(_readerQuotas);
+            _maxSessionSize = BinaryEncoderDefaults.MaxSessionSize;
+            _binaryVersion = BinaryEncoderDefaults.BinaryVersion;
+            _messageVersion = MessageVersion.CreateVersion(BinaryEncoderDefaults.EnvelopeVersion);
             CompressionFormat = EncoderDefaults.DefaultCompressionFormat;
         }
 
         private BinaryMessageEncodingBindingElement(BinaryMessageEncodingBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
-            maxReadPoolSize = elementToBeCloned.maxReadPoolSize;
-            maxWritePoolSize = elementToBeCloned.maxWritePoolSize;
-            readerQuotas = new XmlDictionaryReaderQuotas();
-            elementToBeCloned.readerQuotas.CopyTo(readerQuotas);
+            _maxReadPoolSize = elementToBeCloned._maxReadPoolSize;
+            _maxWritePoolSize = elementToBeCloned._maxWritePoolSize;
+            _readerQuotas = new XmlDictionaryReaderQuotas();
+            elementToBeCloned._readerQuotas.CopyTo(_readerQuotas);
             MaxSessionSize = elementToBeCloned.MaxSessionSize;
             BinaryVersion = elementToBeCloned.BinaryVersion;
-            messageVersion = elementToBeCloned.messageVersion;
+            _messageVersion = elementToBeCloned._messageVersion;
             CompressionFormat = elementToBeCloned.CompressionFormat;
-            maxReceivedMessageSize = elementToBeCloned.maxReceivedMessageSize;
+            _maxReceivedMessageSize = elementToBeCloned._maxReceivedMessageSize;
         }
 
         [DefaultValue(EncoderDefaults.DefaultCompressionFormat)]
@@ -53,7 +53,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return binaryVersion;
+                return _binaryVersion;
             }
             set
             {
@@ -61,13 +61,13 @@ namespace CoreWCF.Channels
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
                 }
-                binaryVersion = value;
+                _binaryVersion = value;
             }
         }
 
         public override MessageVersion MessageVersion
         {
-            get { return messageVersion; }
+            get { return _messageVersion; }
             set
             {
                 if (value == null)
@@ -80,7 +80,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(errorMsg));
                 }
 
-                messageVersion = MessageVersion.CreateVersion(BinaryEncoderDefaults.EnvelopeVersion, value.Addressing);
+                _messageVersion = MessageVersion.CreateVersion(BinaryEncoderDefaults.EnvelopeVersion, value.Addressing);
             }
         }
 
@@ -89,7 +89,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxReadPoolSize;
+                return _maxReadPoolSize;
             }
             set
             {
@@ -98,7 +98,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBePositive));
                 }
-                maxReadPoolSize = value;
+                _maxReadPoolSize = value;
             }
         }
 
@@ -107,7 +107,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxWritePoolSize;
+                return _maxWritePoolSize;
             }
             set
             {
@@ -116,7 +116,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBePositive));
                 }
-                maxWritePoolSize = value;
+                _maxWritePoolSize = value;
             }
         }
 
@@ -124,7 +124,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return readerQuotas;
+                return _readerQuotas;
             }
             set
             {
@@ -133,7 +133,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
-                value.CopyTo(readerQuotas);
+                value.CopyTo(_readerQuotas);
             }
         }
 
@@ -142,7 +142,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxSessionSize;
+                return _maxSessionSize;
             }
             set
             {
@@ -152,7 +152,7 @@ namespace CoreWCF.Channels
                                                     SR.ValueMustBeNonNegative));
                 }
 
-                maxSessionSize = value;
+                _maxSessionSize = value;
             }
         }
 
@@ -179,7 +179,7 @@ namespace CoreWCF.Channels
                 // We are guaranteed that a transport exists when building a binding;  
                 // Allow the regular flow/checks to happen rather than throw here 
                 // (InternalBuildChannelListener will call into the BindingContext. Validation happens there and it will throw) 
-                maxReceivedMessageSize = transport.MaxReceivedMessageSize;
+                _maxReceivedMessageSize = transport.MaxReceivedMessageSize;
             }
         }
 
@@ -221,7 +221,7 @@ namespace CoreWCF.Channels
                 MaxWritePoolSize,
                 MaxSessionSize,
                 ReaderQuotas,
-                maxReceivedMessageSize,
+                _maxReceivedMessageSize,
                 BinaryVersion,
                 CompressionFormat);
         }
@@ -234,7 +234,7 @@ namespace CoreWCF.Channels
             }
             if (typeof(T) == typeof(XmlDictionaryReaderQuotas))
             {
-                return (T)(object)readerQuotas;
+                return (T)(object)_readerQuotas;
             }
             else
             {
@@ -255,38 +255,38 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            if (maxReadPoolSize != binary.MaxReadPoolSize)
+            if (_maxReadPoolSize != binary.MaxReadPoolSize)
             {
                 return false;
             }
 
-            if (maxWritePoolSize != binary.MaxWritePoolSize)
+            if (_maxWritePoolSize != binary.MaxWritePoolSize)
             {
                 return false;
             }
 
             // compare XmlDictionaryReaderQuotas
-            if (readerQuotas.MaxStringContentLength != binary.ReaderQuotas.MaxStringContentLength)
+            if (_readerQuotas.MaxStringContentLength != binary.ReaderQuotas.MaxStringContentLength)
             {
                 return false;
             }
 
-            if (readerQuotas.MaxArrayLength != binary.ReaderQuotas.MaxArrayLength)
+            if (_readerQuotas.MaxArrayLength != binary.ReaderQuotas.MaxArrayLength)
             {
                 return false;
             }
 
-            if (readerQuotas.MaxBytesPerRead != binary.ReaderQuotas.MaxBytesPerRead)
+            if (_readerQuotas.MaxBytesPerRead != binary.ReaderQuotas.MaxBytesPerRead)
             {
                 return false;
             }
 
-            if (readerQuotas.MaxDepth != binary.ReaderQuotas.MaxDepth)
+            if (_readerQuotas.MaxDepth != binary.ReaderQuotas.MaxDepth)
             {
                 return false;
             }
 
-            if (readerQuotas.MaxNameTableCharCount != binary.ReaderQuotas.MaxNameTableCharCount)
+            if (_readerQuotas.MaxNameTableCharCount != binary.ReaderQuotas.MaxNameTableCharCount)
             {
                 return false;
             }
@@ -313,8 +313,7 @@ namespace CoreWCF.Channels
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ShouldSerializeMessageVersion()
         {
-            return (!messageVersion.IsMatch(MessageVersion.Default));
+            return (!_messageVersion.IsMatch(MessageVersion.Default));
         }
     }
-
 }

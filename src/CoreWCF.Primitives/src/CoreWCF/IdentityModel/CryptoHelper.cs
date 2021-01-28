@@ -17,7 +17,7 @@ namespace CoreWCF.IdentityModel
         private const string SHA1String = "SHA1";
         private const string SHA256String = "SHA256";
         private const string SystemSecurityCryptographySha1String = "System.Security.Cryptography.SHA1";
-        private static byte[] emptyBuffer;
+        private static byte[] s_emptyBuffer;
 
         private static readonly Dictionary<string, Func<object>> s_algorithmDelegateDictionary = new Dictionary<string, Func<object>>();
         private static readonly object s_algorithmDictionaryLock = new object();
@@ -26,12 +26,12 @@ namespace CoreWCF.IdentityModel
         {
             get
             {
-                if (emptyBuffer == null)
+                if (s_emptyBuffer == null)
                 {
                     byte[] tmp = new byte[0];
-                    emptyBuffer = tmp;
+                    s_emptyBuffer = tmp;
                 }
-                return emptyBuffer;
+                return s_emptyBuffer;
             }
         }
 

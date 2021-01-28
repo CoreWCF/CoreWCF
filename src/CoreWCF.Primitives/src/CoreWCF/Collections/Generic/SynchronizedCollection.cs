@@ -329,5 +329,4 @@ namespace CoreWCF.Collections.Generic
             }
         }
     }
-
 }

@@ -11,15 +11,15 @@ namespace CoreWCF.Security
 {
     internal class SessionDerivedKeySecurityTokenParameters : SecurityTokenParameters
     {
-        private readonly bool actAsInitiator;
+        private readonly bool _actAsInitiator;
         protected SessionDerivedKeySecurityTokenParameters(SessionDerivedKeySecurityTokenParameters other) : base(other)
         {
-            actAsInitiator = other.actAsInitiator;
+            _actAsInitiator = other._actAsInitiator;
         }
 
         public SessionDerivedKeySecurityTokenParameters(bool actAsInitiator) : base()
         {
-            this.actAsInitiator = actAsInitiator;
+            _actAsInitiator = actAsInitiator;
             InclusionMode = actAsInitiator ? SecurityTokenInclusionMode.AlwaysToRecipient : SecurityTokenInclusionMode.AlwaysToInitiator;
             base.RequireDerivedKeys = false;
         }

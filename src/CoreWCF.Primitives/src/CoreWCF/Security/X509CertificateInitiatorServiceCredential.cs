@@ -11,8 +11,8 @@ namespace CoreWCF.Security
         internal const StoreLocation DefaultStoreLocation = StoreLocation.LocalMachine;
         internal const StoreName DefaultStoreName = StoreName.My;
         internal const X509FindType DefaultFindType = X509FindType.FindBySubjectDistinguishedName;
-        private X509Certificate2 certificate;
-        private bool isReadOnly;
+        private X509Certificate2 _certificate;
+        private bool _isReadOnly;
 
         internal X509CertificateInitiatorServiceCredential()
         {
@@ -21,21 +21,21 @@ namespace CoreWCF.Security
 
         internal X509CertificateInitiatorServiceCredential(X509CertificateInitiatorServiceCredential other)
         {
-            certificate = other.certificate;
+            _certificate = other._certificate;
             Authentication = new X509ClientCertificateAuthentication(other.Authentication);
-            isReadOnly = other.isReadOnly;
+            _isReadOnly = other._isReadOnly;
         }
 
         public X509Certificate2 Certificate
         {
             get
             {
-                return certificate;
+                return _certificate;
             }
             set
             {
                 ThrowIfImmutable();
-                certificate = value;
+                _certificate = value;
             }
         }
 
@@ -57,18 +57,18 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(findValue));
             }
             ThrowIfImmutable();
-            certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);
+            _certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);
         }
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
             Authentication.MakeReadOnly();
         }
 
         private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }

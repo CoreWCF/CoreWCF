@@ -79,26 +79,26 @@ namespace CoreWCF.Channels
 
         private class WrappingInternalBufferManager : InternalBufferManager
         {
-            private readonly BufferManager innerBufferManager;
+            private readonly BufferManager _innerBufferManager;
 
             public WrappingInternalBufferManager(BufferManager innerBufferManager)
             {
-                this.innerBufferManager = innerBufferManager;
+                _innerBufferManager = innerBufferManager;
             }
 
             public override void Clear()
             {
-                innerBufferManager.Clear();
+                _innerBufferManager.Clear();
             }
 
             public override void ReturnBuffer(byte[] buffer)
             {
-                innerBufferManager.ReturnBuffer(buffer);
+                _innerBufferManager.ReturnBuffer(buffer);
             }
 
             public override byte[] TakeBuffer(int bufferSize)
             {
-                return innerBufferManager.TakeBuffer(bufferSize);
+                return _innerBufferManager.TakeBuffer(bufferSize);
             }
         }
     }

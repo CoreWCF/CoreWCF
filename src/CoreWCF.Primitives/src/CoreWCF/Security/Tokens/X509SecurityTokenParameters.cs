@@ -13,12 +13,12 @@ namespace CoreWCF.Security.Tokens
     public class X509SecurityTokenParameters : SecurityTokenParameters
     {
         internal const X509KeyIdentifierClauseType defaultX509ReferenceStyle = X509KeyIdentifierClauseType.Any;
-        private X509KeyIdentifierClauseType x509ReferenceStyle;
+        private X509KeyIdentifierClauseType _x509ReferenceStyle;
 
         protected X509SecurityTokenParameters(X509SecurityTokenParameters other)
             : base(other)
         {
-            x509ReferenceStyle = other.x509ReferenceStyle;
+            _x509ReferenceStyle = other._x509ReferenceStyle;
         }
 
         public X509SecurityTokenParameters()
@@ -53,12 +53,12 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return x509ReferenceStyle;
+                return _x509ReferenceStyle;
             }
             set
             {
                 X509SecurityTokenReferenceStyleHelper.Validate(value);
-                x509ReferenceStyle = value;
+                _x509ReferenceStyle = value;
             }
         }
 
@@ -75,7 +75,7 @@ namespace CoreWCF.Security.Tokens
         {
             SecurityKeyIdentifierClause result = null;
 
-            switch (x509ReferenceStyle)
+            switch (_x509ReferenceStyle)
             {
                 default:
                 case X509KeyIdentifierClauseType.Any:
@@ -146,7 +146,7 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "X509ReferenceStyle: {0}", x509ReferenceStyle.ToString()));
+            sb.Append(String.Format(CultureInfo.InvariantCulture, "X509ReferenceStyle: {0}", _x509ReferenceStyle.ToString()));
 
             return sb.ToString();
         }

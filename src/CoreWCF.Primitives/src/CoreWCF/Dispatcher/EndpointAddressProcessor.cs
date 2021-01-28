@@ -25,13 +25,13 @@ namespace CoreWCF.Dispatcher
 
         // Pooling
         internal EndpointAddressProcessor next;
-        private readonly StringBuilder builder;
-        private byte[] resultData;
+        private readonly StringBuilder _builder;
+        private byte[] _resultData;
 
         internal EndpointAddressProcessor(int length)
         {
-            builder = new StringBuilder();
-            resultData = new byte[length];
+            _builder = new StringBuilder();
+            _resultData = new byte[length];
         }
 
         internal EndpointAddressProcessor Next
@@ -181,13 +181,13 @@ namespace CoreWCF.Dispatcher
 
         internal void Clear(int length)
         {
-            if (resultData.Length == length)
+            if (_resultData.Length == length)
             {
-                Array.Clear(resultData, 0, resultData.Length);
+                Array.Clear(_resultData, 0, _resultData.Length);
             }
             else
             {
-                resultData = new byte[length];
+                _resultData = new byte[length];
             }
         }
 
@@ -207,10 +207,10 @@ namespace CoreWCF.Dispatcher
                 }
                 if (qnameLookup.ContainsKey(qname))
                 {
-                    builder.Remove(0, builder.Length);
+                    _builder.Remove(0, _builder.Length);
                     XmlReader reader = headers.GetReaderAtHeader(j).ReadSubtree();
                     reader.Read();  // Needed after call to ReadSubtree
-                    key = GetComparableForm(builder, reader);
+                    key = GetComparableForm(_builder, reader);
 
                     if (headerLookup.TryGetValue(key, out HeaderBit[] bits))
                     {
@@ -224,11 +224,11 @@ namespace CoreWCF.Dispatcher
         {
             if (bits.Length == 1)
             {
-                resultData[bits[0].index] |= bits[0].mask;
+                _resultData[bits[0].index] |= bits[0].mask;
             }
             else
             {
-                byte[] results = resultData;
+                byte[] results = _resultData;
                 for (int i = 0; i < bits.Length; ++i)
                 {
                     if ((results[bits[i].index] & bits[i].mask) == 0)
@@ -242,9 +242,9 @@ namespace CoreWCF.Dispatcher
 
         internal bool TestExact(byte[] exact)
         {
-            Fx.Assert(resultData.Length == exact.Length, "");
+            Fx.Assert(_resultData.Length == exact.Length, "");
 
-            byte[] results = resultData;
+            byte[] results = _resultData;
             for (int i = 0; i < exact.Length; ++i)
             {
                 if (results[i] != exact[i])
@@ -263,7 +263,7 @@ namespace CoreWCF.Dispatcher
                 return true;
             }
 
-            byte[] results = resultData;
+            byte[] results = _resultData;
             for (int i = 0; i < mask.Length; ++i)
             {
                 if ((results[i] & mask[i]) != mask[i])
@@ -346,19 +346,19 @@ namespace CoreWCF.Dispatcher
             internal string local;
             internal string ns;
             internal string val;
-            private readonly string key;
+            private readonly string _key;
 
             internal Attr(string l, string ns, string v)
             {
                 local = l;
                 this.ns = ns;
                 val = v;
-                key = ns + ":" + l;
+                _key = ns + ":" + l;
             }
 
             public int CompareTo(Attr a)
             {
-                return string.Compare(key, a.key, StringComparison.Ordinal);
+                return string.Compare(_key, a._key, StringComparison.Ordinal);
             }
         }
     }

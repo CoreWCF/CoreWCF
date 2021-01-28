@@ -12,7 +12,7 @@ namespace CoreWCF.Channels
     public sealed class WebSocketMessageProperty
     {
         public const string Name = "WebSocketMessageProperty";
-        private readonly ReadOnlyDictionary<string, object> properties;
+        private readonly ReadOnlyDictionary<string, object> _properties;
 
         public WebSocketMessageProperty()
         {
@@ -24,7 +24,7 @@ namespace CoreWCF.Channels
             WebSocketContext = context;
             SubProtocol = subProtocol;
             MessageType = incomingMessageType;
-            this.properties = properties;
+            _properties = properties;
         }
 
         public WebSocketContext WebSocketContext { get; }
@@ -37,7 +37,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (properties == null)
+                if (_properties == null)
                 {
                     throw Fx.Exception.AsError(new InvalidOperationException(SR.Format(
                         SR.WebSocketOpeningHandshakePropertiesNotAvailable,
@@ -46,7 +46,7 @@ namespace CoreWCF.Channels
                         typeof(DelegatingHandler).Name)));
                 }
 
-                return properties;
+                return _properties;
             }
         }
 

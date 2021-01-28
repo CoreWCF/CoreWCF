@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+
 namespace CoreWCF.Security
 {
     internal class TransportSecurityProtocolFactory : SecurityProtocolFactory

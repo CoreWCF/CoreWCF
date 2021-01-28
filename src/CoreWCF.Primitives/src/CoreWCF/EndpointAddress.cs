@@ -11,9 +11,9 @@ namespace CoreWCF
 {
     public class EndpointAddress
     {
-        private static Uri anonymousUri;
-        private static Uri noneUri;
-        private static EndpointAddress anonymousAddress;
+        private static Uri s_anonymousUri;
+        private static Uri s_noneUri;
+        private static EndpointAddress s_anonymousAddress;
 
         /*
         Conceptually, the agnostic EndpointAddress class represents all of UNION(v200408,v10) data thusly:
@@ -67,12 +67,12 @@ namespace CoreWCF
          - Identity is always shuffled to front of extensions when doing anyWire->OM->anyWire
         */
 
-        private AddressingVersion addressingVersion;
-        private AddressHeaderCollection headers;
-        private int extensionSection;
-        private int metadataSection;
-        private int pspSection;
-        private bool isNone;
+        private AddressingVersion _addressingVersion;
+        private AddressHeaderCollection _headers;
+        private int _extensionSection;
+        private int _metadataSection;
+        private int _pspSection;
+        private bool _isNone;
         // these are the element name/namespace for the dummy wrapper element that wraps each buffer section
         internal const string DummyName = "Dummy";
         internal const string DummyNamespace = "http://Dummy";
@@ -111,7 +111,7 @@ namespace CoreWCF
 
         internal EndpointAddress(Uri newUri, EndpointAddress oldEndpointAddress)
         {
-            Init(oldEndpointAddress.addressingVersion, newUri, oldEndpointAddress.Identity, oldEndpointAddress.headers, oldEndpointAddress.Buffer, oldEndpointAddress.metadataSection, oldEndpointAddress.extensionSection, oldEndpointAddress.pspSection);
+            Init(oldEndpointAddress._addressingVersion, newUri, oldEndpointAddress.Identity, oldEndpointAddress._headers, oldEndpointAddress.Buffer, oldEndpointAddress._metadataSection, oldEndpointAddress._extensionSection, oldEndpointAddress._pspSection);
         }
 
         //public EndpointAddress(Uri uri, EndpointIdentity identity, AddressHeaderCollection headers)
@@ -132,7 +132,7 @@ namespace CoreWCF
             }
 
             XmlBuffer buffer = null;
-            PossiblyPopulateBuffer(metadataReader, ref buffer, out metadataSection);
+            PossiblyPopulateBuffer(metadataReader, ref buffer, out _metadataSection);
 
             buffer = ReadExtensions(extensionReader, null, buffer, out EndpointIdentity ident2, out int extSection);
 
@@ -141,14 +141,14 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.MultipleIdentities, nameof(extensionReader)));
             }
 
-            PossiblyPopulateBuffer(pspReader, ref buffer, out pspSection);
+            PossiblyPopulateBuffer(pspReader, ref buffer, out _pspSection);
 
             if (buffer != null)
             {
                 buffer.Close();
             }
 
-            Init(uri, identity ?? ident2, headers, buffer, metadataSection, extSection, pspSection);
+            Init(uri, identity ?? ident2, headers, buffer, _metadataSection, extSection, _pspSection);
         }
 
         //// metadataReader and extensionReader are assumed to not have a starting dummy wrapper element
@@ -181,30 +181,30 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("uri", SR.UriMustBeAbsolute);
             }
 
-            addressingVersion = version;
+            _addressingVersion = version;
             Uri = uri;
             Identity = identity;
-            this.headers = headers;
+            _headers = headers;
             Buffer = buffer;
-            this.metadataSection = metadataSection;
-            this.extensionSection = extensionSection;
-            this.pspSection = pspSection;
+            _metadataSection = metadataSection;
+            _extensionSection = extensionSection;
+            _pspSection = pspSection;
 
             if (version != null)
             {
                 IsAnonymous = uri == version.AnonymousUri;
-                isNone = uri == version.NoneUri;
+                _isNone = uri == version.NoneUri;
             }
             else
             {
                 IsAnonymous = object.ReferenceEquals(uri, AnonymousUri) || uri == AnonymousUri;
-                isNone = object.ReferenceEquals(uri, NoneUri) || uri == NoneUri;
+                _isNone = object.ReferenceEquals(uri, NoneUri) || uri == NoneUri;
             }
             if (IsAnonymous)
             {
                 Uri = AnonymousUri;
             }
-            if (isNone)
+            if (_isNone)
             {
                 Uri = NoneUri;
             }
@@ -215,12 +215,12 @@ namespace CoreWCF
         {
             get
             {
-                if (anonymousAddress == null)
+                if (s_anonymousAddress == null)
                 {
-                    anonymousAddress = new EndpointAddress(AnonymousUri);
+                    s_anonymousAddress = new EndpointAddress(AnonymousUri);
                 }
 
-                return anonymousAddress;
+                return s_anonymousAddress;
             }
         }
 
@@ -228,12 +228,12 @@ namespace CoreWCF
         {
             get
             {
-                if (anonymousUri == null)
+                if (s_anonymousUri == null)
                 {
-                    anonymousUri = new Uri(AddressingStrings.AnonymousUri);
+                    s_anonymousUri = new Uri(AddressingStrings.AnonymousUri);
                 }
 
-                return anonymousUri;
+                return s_anonymousUri;
             }
         }
 
@@ -241,12 +241,12 @@ namespace CoreWCF
         {
             get
             {
-                if (noneUri == null)
+                if (s_noneUri == null)
                 {
-                    noneUri = new Uri(AddressingStrings.NoneUri);
+                    s_noneUri = new Uri(AddressingStrings.NoneUri);
                 }
 
-                return noneUri;
+                return s_noneUri;
             }
         }
 
@@ -256,12 +256,12 @@ namespace CoreWCF
         {
             get
             {
-                if (headers == null)
+                if (_headers == null)
                 {
-                    headers = new AddressHeaderCollection();
+                    _headers = new AddressHeaderCollection();
                 }
 
-                return headers;
+                return _headers;
             }
         }
 
@@ -273,7 +273,7 @@ namespace CoreWCF
         {
             get
             {
-                return isNone;
+                return _isNone;
             }
         }
 
@@ -308,9 +308,9 @@ namespace CoreWCF
                 message.Headers.To = uri;
             }
             message.Properties.Via = message.Headers.To;
-            if (headers != null)
+            if (_headers != null)
             {
-                headers.AddHeadersTo(message);
+                _headers.AddHeadersTo(message);
             }
         }
 
@@ -469,19 +469,19 @@ namespace CoreWCF
         // returns reader without starting dummy wrapper element
         internal XmlDictionaryReader GetReaderAtPsp()
         {
-            return GetReaderAtSection(Buffer, pspSection);
+            return GetReaderAtSection(Buffer, _pspSection);
         }
 
         //// returns reader without starting dummy wrapper element
         internal XmlDictionaryReader GetReaderAtMetadata()
         {
-            return GetReaderAtSection(Buffer, metadataSection);
+            return GetReaderAtSection(Buffer, _metadataSection);
         }
 
         //// returns reader without starting dummy wrapper element
         internal XmlDictionaryReader GetReaderAtExtensions()
         {
-            return GetReaderAtSection(Buffer, extensionSection);
+            return GetReaderAtSection(Buffer, _extensionSection);
         }
 
         private static XmlDictionaryReader GetReaderAtSection(XmlBuffer buffer, int section)
@@ -887,7 +887,7 @@ namespace CoreWCF
             {
                 writer.WriteString(XD.Addressing10Dictionary.Anonymous);
             }
-            else if (isNone)
+            else if (_isNone)
             {
                 writer.WriteString(XD.Addressing10Dictionary.NoneAddress);
             }
@@ -898,17 +898,17 @@ namespace CoreWCF
             writer.WriteEndElement();
 
             // Headers
-            if (headers != null && headers.Count > 0)
+            if (_headers != null && _headers.Count > 0)
             {
                 writer.WriteStartElement(XD.AddressingDictionary.ReferenceParameters, XD.Addressing10Dictionary.Namespace);
-                headers.WriteContentsTo(writer);
+                _headers.WriteContentsTo(writer);
                 writer.WriteEndElement();
             }
 
             // Metadata
-            if (metadataSection >= 0)
+            if (_metadataSection >= 0)
             {
-                XmlDictionaryReader reader = GetReaderAtSection(Buffer, metadataSection);
+                XmlDictionaryReader reader = GetReaderAtSection(Buffer, _metadataSection);
                 writer.WriteStartElement(XD.Addressing10Dictionary.Metadata, XD.Addressing10Dictionary.Namespace);
                 Copy(writer, reader);
                 writer.WriteEndElement();
@@ -921,9 +921,9 @@ namespace CoreWCF
             }
 
             // Extensions
-            if (extensionSection >= 0)
+            if (_extensionSection >= 0)
             {
-                XmlDictionaryReader reader = GetReaderAtSection(Buffer, extensionSection);
+                XmlDictionaryReader reader = GetReaderAtSection(Buffer, _extensionSection);
                 while (reader.IsStartElement())
                 {
                     if (reader.NamespaceURI == AddressingVersion.WSAddressing10.Namespace)
@@ -959,11 +959,11 @@ namespace CoreWCF
 
     public class EndpointAddressBuilder
     {
-        private XmlBuffer extensionBuffer;  // this buffer is wrapped just like in EndpointAddress
-        private XmlBuffer metadataBuffer;   // this buffer is wrapped just like in EndpointAddress
-        private bool hasExtension;
-        private bool hasMetadata;
-        private readonly EndpointAddress epr;
+        private XmlBuffer _extensionBuffer;  // this buffer is wrapped just like in EndpointAddress
+        private XmlBuffer _metadataBuffer;   // this buffer is wrapped just like in EndpointAddress
+        private bool _hasExtension;
+        private bool _hasMetadata;
+        private readonly EndpointAddress _epr;
 
         public EndpointAddressBuilder()
         {
@@ -977,7 +977,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
 
-            epr = address;
+            _epr = address;
             Uri = address.Uri;
             Identity = address.Identity;
             Headers = new Collection<AddressHeader>();
@@ -995,17 +995,17 @@ namespace CoreWCF
 
         public XmlDictionaryReader GetReaderAtMetadata()
         {
-            if (!hasMetadata)
+            if (!_hasMetadata)
             {
-                return epr == null ? null : epr.GetReaderAtMetadata();
+                return _epr == null ? null : _epr.GetReaderAtMetadata();
             }
 
-            if (metadataBuffer == null)
+            if (_metadataBuffer == null)
             {
                 return null;
             }
 
-            XmlDictionaryReader reader = metadataBuffer.GetReader(0);
+            XmlDictionaryReader reader = _metadataBuffer.GetReader(0);
             reader.MoveToContent();
             Fx.Assert(reader.Name == EndpointAddress.DummyName, "EndpointAddressBuilder: Expected dummy element not found");
             reader.Read(); // consume the wrapper element
@@ -1014,32 +1014,32 @@ namespace CoreWCF
 
         public void SetMetadataReader(XmlDictionaryReader reader)
         {
-            hasMetadata = true;
-            metadataBuffer = null;
+            _hasMetadata = true;
+            _metadataBuffer = null;
             if (reader != null)
             {
-                metadataBuffer = new XmlBuffer(short.MaxValue);
-                XmlDictionaryWriter writer = metadataBuffer.OpenSection(reader.Quotas);
+                _metadataBuffer = new XmlBuffer(short.MaxValue);
+                XmlDictionaryWriter writer = _metadataBuffer.OpenSection(reader.Quotas);
                 writer.WriteStartElement(EndpointAddress.DummyName, EndpointAddress.DummyNamespace);
                 EndpointAddress.Copy(writer, reader);
-                metadataBuffer.CloseSection();
-                metadataBuffer.Close();
+                _metadataBuffer.CloseSection();
+                _metadataBuffer.Close();
             }
         }
 
         public XmlDictionaryReader GetReaderAtExtensions()
         {
-            if (!hasExtension)
+            if (!_hasExtension)
             {
-                return epr == null ? null : epr.GetReaderAtExtensions();
+                return _epr == null ? null : _epr.GetReaderAtExtensions();
             }
 
-            if (extensionBuffer == null)
+            if (_extensionBuffer == null)
             {
                 return null;
             }
 
-            XmlDictionaryReader reader = extensionBuffer.GetReader(0);
+            XmlDictionaryReader reader = _extensionBuffer.GetReader(0);
             reader.MoveToContent();
             Fx.Assert(reader.Name == EndpointAddress.DummyName, "EndpointAddressBuilder: Expected dummy element not found");
             reader.Read(); // consume the wrapper element
@@ -1048,11 +1048,11 @@ namespace CoreWCF
 
         public void SetExtensionReader(XmlDictionaryReader reader)
         {
-            hasExtension = true;
-            extensionBuffer = EndpointAddress.ReadExtensions(reader, null, null, out EndpointIdentity identity, out int tmp);
-            if (extensionBuffer != null)
+            _hasExtension = true;
+            _extensionBuffer = EndpointAddress.ReadExtensions(reader, null, null, out EndpointIdentity identity, out int tmp);
+            if (_extensionBuffer != null)
             {
-                extensionBuffer.Close();
+                _extensionBuffer.Close();
             }
             if (identity != null)
             {
@@ -1068,8 +1068,7 @@ namespace CoreWCF
                 new AddressHeaderCollection(Headers),
                 GetReaderAtMetadata(),
                 GetReaderAtExtensions(),
-                epr == null ? null : epr.GetReaderAtPsp());
+                _epr == null ? null : _epr.GetReaderAtPsp());
         }
     }
-
 }

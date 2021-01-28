@@ -11,22 +11,22 @@ namespace CoreWCF.IdentityModel.Claims
     [DataContract(Namespace = XsiConstants.Namespace)]
     public abstract class ClaimSet : IEnumerable<Claim>
     {
-        private static ClaimSet system;
-        private static ClaimSet windows;
-        private static ClaimSet anonymous;
+        private static ClaimSet s_system;
+        private static ClaimSet s_windows;
+        private static ClaimSet s_anonymous;
 
         public static ClaimSet System
         {
             get
             {
-                if (system == null)
+                if (s_system == null)
                 {
                     List<Claim> claims = new List<Claim>(2);
                     claims.Add(Claim.System);
                     claims.Add(new Claim(ClaimTypes.System, XsiConstants.System, Rights.PossessProperty));
-                    system = new DefaultClaimSet(claims);
+                    s_system = new DefaultClaimSet(claims);
                 }
-                return system;
+                return s_system;
             }
         }
 
@@ -34,15 +34,15 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (windows == null)
+                if (s_windows == null)
                 {
                     List<Claim> claims = new List<Claim>(2);
                     SecurityIdentifier sid = new SecurityIdentifier(WellKnownSidType.NTAuthoritySid, null);
                     claims.Add(new Claim(ClaimTypes.Sid, sid, Rights.Identity));
                     claims.Add(Claim.CreateWindowsSidClaim(sid));
-                    windows = new DefaultClaimSet(claims);
+                    s_windows = new DefaultClaimSet(claims);
                 }
-                return windows;
+                return s_windows;
             }
         }
 
@@ -50,12 +50,12 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (anonymous == null)
+                if (s_anonymous == null)
                 {
-                    anonymous = new DefaultClaimSet();
+                    s_anonymous = new DefaultClaimSet();
                 }
 
-                return anonymous;
+                return s_anonymous;
             }
         }
 
@@ -121,7 +121,5 @@ namespace CoreWCF.IdentityModel.Claims
         public abstract IEnumerable<Claim> FindClaims(string claimType, string right);
         public abstract IEnumerator<Claim> GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
-
     }
-
 }

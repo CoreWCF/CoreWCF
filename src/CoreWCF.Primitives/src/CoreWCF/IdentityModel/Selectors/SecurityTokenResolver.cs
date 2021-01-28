@@ -88,8 +88,8 @@ namespace CoreWCF.IdentityModel.Selectors
 
         private class SimpleTokenResolver : SecurityTokenResolver
         {
-            private readonly ReadOnlyCollection<SecurityToken> tokens;
-            private readonly bool canMatchLocalId;
+            private readonly ReadOnlyCollection<SecurityToken> _tokens;
+            private readonly bool _canMatchLocalId;
 
             public SimpleTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
             {
@@ -98,8 +98,8 @@ namespace CoreWCF.IdentityModel.Selectors
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokens));
                 }
 
-                this.tokens = tokens;
-                this.canMatchLocalId = canMatchLocalId;
+                _tokens = tokens;
+                _canMatchLocalId = canMatchLocalId;
             }
 
             protected override bool TryResolveSecurityKeyCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityKey key)
@@ -110,9 +110,9 @@ namespace CoreWCF.IdentityModel.Selectors
                 }
 
                 key = null;
-                for (int i = 0; i < tokens.Count; ++i)
+                for (int i = 0; i < _tokens.Count; ++i)
                 {
-                    SecurityKey securityKey = tokens[i].ResolveKeyIdentifierClause(keyIdentifierClause);
+                    SecurityKey securityKey = _tokens[i].ResolveKeyIdentifierClause(keyIdentifierClause);
                     if (securityKey != null)
                     {
                         key = securityKey;
@@ -153,7 +153,6 @@ namespace CoreWCF.IdentityModel.Selectors
                 token = null;
                 for (int i = 0; i < keyIdentifier.Count; ++i)
                 {
-
                     SecurityToken securityToken = ResolveSecurityToken(keyIdentifier[i]);
                     if (securityToken != null)
                     {
@@ -190,16 +189,16 @@ namespace CoreWCF.IdentityModel.Selectors
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
                 }
 
-                if (!canMatchLocalId && keyIdentifierClause is LocalIdKeyIdentifierClause)
+                if (!_canMatchLocalId && keyIdentifierClause is LocalIdKeyIdentifierClause)
                 {
                     return null;
                 }
 
-                for (int i = 0; i < tokens.Count; ++i)
+                for (int i = 0; i < _tokens.Count; ++i)
                 {
-                    if (tokens[i].MatchesKeyIdentifierClause(keyIdentifierClause))
+                    if (_tokens[i].MatchesKeyIdentifierClause(keyIdentifierClause))
                     {
-                        return tokens[i];
+                        return _tokens[i];
                     }
                 }
 

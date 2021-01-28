@@ -175,7 +175,6 @@ namespace CoreWCF.Channels
 
                     securityServiceDispatcher.SecurityProtocolFactory = protocolFactory;
                 }
-
             }
             else
             {
@@ -218,7 +217,5 @@ namespace CoreWCF.Channels
         {
             return new TransportSecurityBindingElement(this);
         }
-
-
     }
 }

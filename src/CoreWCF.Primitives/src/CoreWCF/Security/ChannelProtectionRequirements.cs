@@ -354,6 +354,5 @@ namespace CoreWCF.Security
                 }
             }
         }
-
     }
 }

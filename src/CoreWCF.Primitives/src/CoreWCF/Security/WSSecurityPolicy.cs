@@ -3,6 +3,7 @@
 
 using System.Xml;
 using CoreWCF.Description;
+
 namespace CoreWCF.Security
 {
     internal abstract class WSSecurityPolicy
@@ -115,5 +116,4 @@ namespace CoreWCF.Security
     {
         public const string SecureConversationBootstrapBindingElementsBelowSecurityKey = "SecureConversationBootstrapBindingElementsBelowSecurityKey";
     }
-
 }

@@ -40,7 +40,6 @@ namespace CoreWCF.Channels
 
         public void Abort()
         {
-
         }
 
         public Task CloseAsync()

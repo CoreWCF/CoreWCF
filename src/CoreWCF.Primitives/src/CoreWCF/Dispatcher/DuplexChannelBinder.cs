@@ -373,7 +373,6 @@ namespace CoreWCF.Dispatcher
                     }
                 }
             }
-
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -420,14 +419,14 @@ namespace CoreWCF.Dispatcher
 
         private class DuplexRequestContext : RequestContextBase
         {
-            private readonly DuplexChannelBinder binder;
-            private readonly IDuplexChannel channel;
+            private readonly DuplexChannelBinder _binder;
+            private readonly IDuplexChannel _channel;
 
             internal DuplexRequestContext(IDuplexChannel channel, Message request, DuplexChannelBinder binder)
                 : base(request, binder.DefaultCloseTimeout, binder.DefaultSendTimeout)
             {
-                this.channel = channel;
-                this.binder = binder;
+                _channel = channel;
+                _binder = binder;
             }
 
             protected override void OnAbort()
@@ -443,7 +442,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (message != null)
                 {
-                    return channel.SendAsync(message, token);
+                    return _channel.SendAsync(message, token);
                 }
 
                 return Task.CompletedTask;
@@ -458,42 +457,42 @@ namespace CoreWCF.Dispatcher
 
         private class AsyncDuplexRequest : IDuplexRequest, ICorrelatorKey
         {
-            private Message reply;
-            private readonly DuplexChannelBinder parent;
-            private readonly AsyncManualResetEvent wait = new AsyncManualResetEvent();
-            private int waitCount = 0;
-            private RequestReplyCorrelator.Key requestCorrelatorKey;
+            private Message _reply;
+            private readonly DuplexChannelBinder _parent;
+            private readonly AsyncManualResetEvent _wait = new AsyncManualResetEvent();
+            private int _waitCount = 0;
+            private RequestReplyCorrelator.Key _requestCorrelatorKey;
 
             internal AsyncDuplexRequest(DuplexChannelBinder parent)
             {
-                this.parent = parent;
+                _parent = parent;
             }
 
             RequestReplyCorrelator.Key ICorrelatorKey.RequestCorrelatorKey
             {
                 get
                 {
-                    return requestCorrelatorKey;
+                    return _requestCorrelatorKey;
                 }
                 set
                 {
-                    Fx.Assert(requestCorrelatorKey == null, "RequestCorrelatorKey is already set for this request");
-                    requestCorrelatorKey = value;
+                    Fx.Assert(_requestCorrelatorKey == null, "RequestCorrelatorKey is already set for this request");
+                    _requestCorrelatorKey = value;
                 }
             }
 
             public void Abort()
             {
-                wait.Set();
+                _wait.Set();
             }
 
             internal async Task<Message> WaitForReplyAsync(CancellationToken token)
             {
                 try
                 {
-                    if (!await wait.WaitAsync(token))
+                    if (!await _wait.WaitAsync(token))
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(parent.GetReceiveTimeoutException(TimeSpan.Zero));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(_parent.GetReceiveTimeoutException(TimeSpan.Zero));
                     }
                 }
                 finally
@@ -501,26 +500,26 @@ namespace CoreWCF.Dispatcher
                     CloseWaitHandle();
                 }
 
-                parent.ThrowIfInvalidReplyIdentity(reply);
-                return reply;
+                _parent.ThrowIfInvalidReplyIdentity(_reply);
+                return _reply;
             }
 
             public void GotReply(Message reply)
             {
-                lock (parent.ThisLock)
+                lock (_parent.ThisLock)
                 {
-                    parent.RequestCompleting(this);
+                    _parent.RequestCompleting(this);
                 }
-                this.reply = reply;
-                wait.Set();
+                _reply = reply;
+                _wait.Set();
                 CloseWaitHandle();
             }
 
             private void CloseWaitHandle()
             {
-                if (Interlocked.Increment(ref waitCount) == 2)
+                if (Interlocked.Increment(ref _waitCount) == 2)
                 {
-                    wait.Dispose();
+                    _wait.Dispose();
                 }
             }
         }

@@ -9,22 +9,22 @@ namespace CoreWCF.Channels
 {
     public abstract class TransportBindingElement : BindingElement
     {
-        private bool manualAddressing;
-        private long maxBufferPoolSize;
-        private long maxReceivedMessageSize;
+        private bool _manualAddressing;
+        private long _maxBufferPoolSize;
+        private long _maxReceivedMessageSize;
 
         protected TransportBindingElement()
         {
-            manualAddressing = TransportDefaults.ManualAddressing;
-            maxBufferPoolSize = TransportDefaults.MaxBufferPoolSize;
-            maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
+            _manualAddressing = TransportDefaults.ManualAddressing;
+            _maxBufferPoolSize = TransportDefaults.MaxBufferPoolSize;
+            _maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
         }
 
         protected TransportBindingElement(TransportBindingElement elementToBeCloned)
         {
-            manualAddressing = elementToBeCloned.manualAddressing;
-            maxBufferPoolSize = elementToBeCloned.maxBufferPoolSize;
-            maxReceivedMessageSize = elementToBeCloned.maxReceivedMessageSize;
+            _manualAddressing = elementToBeCloned._manualAddressing;
+            _maxBufferPoolSize = elementToBeCloned._maxBufferPoolSize;
+            _maxReceivedMessageSize = elementToBeCloned._maxReceivedMessageSize;
         }
 
         [System.ComponentModel.DefaultValueAttribute(false)]
@@ -32,12 +32,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return manualAddressing;
+                return _manualAddressing;
             }
 
             set
             {
-                manualAddressing = value;
+                _manualAddressing = value;
             }
         }
 
@@ -45,7 +45,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxBufferPoolSize;
+                return _maxBufferPoolSize;
             }
             set
             {
@@ -54,7 +54,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.ValueMustBeNonNegative));
                 }
-                maxBufferPoolSize = value;
+                _maxBufferPoolSize = value;
             }
         }
 
@@ -63,7 +63,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxReceivedMessageSize;
+                return _maxReceivedMessageSize;
             }
             set
             {
@@ -72,7 +72,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.ValueMustBePositive));
                 }
-                maxReceivedMessageSize = value;
+                _maxReceivedMessageSize = value;
             }
         }
 
@@ -131,11 +131,11 @@ namespace CoreWCF.Channels
             {
                 return false;
             }
-            if (maxBufferPoolSize != transport.MaxBufferPoolSize)
+            if (_maxBufferPoolSize != transport.MaxBufferPoolSize)
             {
                 return false;
             }
-            if (maxReceivedMessageSize != transport.MaxReceivedMessageSize)
+            if (_maxReceivedMessageSize != transport.MaxReceivedMessageSize)
             {
                 return false;
             }

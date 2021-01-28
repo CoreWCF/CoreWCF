@@ -79,6 +79,5 @@ namespace CoreWCF
         }
 
         public Type CallbackContract { get; set; }
-
     }
 }

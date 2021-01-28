@@ -14,7 +14,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class FaultFormatter : IClientFaultFormatter, IDispatchFaultFormatter
     {
-        private readonly FaultContractInfo[] faultContractInfos;
+        private readonly FaultContractInfo[] _faultContractInfos;
 
         internal FaultFormatter(Type[] detailTypes)
         {
@@ -25,7 +25,7 @@ namespace CoreWCF.Dispatcher
             }
 
             AddInfrastructureFaults(faultContractInfoList);
-            faultContractInfos = GetSortedArray(faultContractInfoList);
+            _faultContractInfos = GetSortedArray(faultContractInfoList);
         }
 
         internal FaultFormatter(SynchronizedCollection<FaultContractInfo> faultContractInfoCollection)
@@ -36,7 +36,7 @@ namespace CoreWCF.Dispatcher
                 faultContractInfoList = new List<FaultContractInfo>(faultContractInfoCollection);
             }
             AddInfrastructureFaults(faultContractInfoList);
-            faultContractInfos = GetSortedArray(faultContractInfoList);
+            _faultContractInfos = GetSortedArray(faultContractInfoList);
         }
 
         public MessageFault Serialize(FaultException faultException, out string action)
@@ -76,11 +76,11 @@ namespace CoreWCF.Dispatcher
         {
             action = faultExceptionAction;
             FaultContractInfo faultInfo = null;
-            for (int i = 0; i < faultContractInfos.Length; i++)
+            for (int i = 0; i < _faultContractInfos.Length; i++)
             {
-                if (faultContractInfos[i].Detail == detailType)
+                if (_faultContractInfos[i].Detail == detailType)
                 {
-                    faultInfo = faultContractInfos[i];
+                    faultInfo = _faultContractInfos[i];
                     break;
                 }
             }
@@ -105,17 +105,17 @@ namespace CoreWCF.Dispatcher
             if (action != null)
             {
                 faultInfos = new List<FaultContractInfo>();
-                for (int i = 0; i < faultContractInfos.Length; i++)
+                for (int i = 0; i < _faultContractInfos.Length; i++)
                 {
-                    if (faultContractInfos[i].Action == action || faultContractInfos[i].Action == MessageHeaders.WildcardAction)
+                    if (_faultContractInfos[i].Action == action || _faultContractInfos[i].Action == MessageHeaders.WildcardAction)
                     {
-                        faultInfos.Add(faultContractInfos[i]);
+                        faultInfos.Add(_faultContractInfos[i]);
                     }
                 }
             }
             else
             {
-                faultInfos = faultContractInfos;
+                faultInfos = _faultContractInfos;
             }
 
             Type detailType = null;
@@ -222,5 +222,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

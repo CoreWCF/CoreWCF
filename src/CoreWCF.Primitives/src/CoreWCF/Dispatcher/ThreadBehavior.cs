@@ -8,17 +8,17 @@ namespace CoreWCF.Dispatcher
 {
     internal class ThreadBehavior
     {
-        private readonly SynchronizationContext context;
+        private readonly SynchronizationContext _context;
 
         internal ThreadBehavior(DispatchRuntime dispatch)
         {
-            context = dispatch.SynchronizationContext;
+            _context = dispatch.SynchronizationContext;
         }
 
         internal SynchronizationContext GetSyncContext(MessageRpc rpc)
         {
             Fx.Assert(rpc.InstanceContext != null, "instanceContext is null !");
-            SynchronizationContext syncContext = rpc.InstanceContext.SynchronizationContext ?? context;
+            SynchronizationContext syncContext = rpc.InstanceContext.SynchronizationContext ?? _context;
             return syncContext;
         }
 
@@ -27,5 +27,4 @@ namespace CoreWCF.Dispatcher
             return SynchronizationContext.Current;
         }
     }
-
 }

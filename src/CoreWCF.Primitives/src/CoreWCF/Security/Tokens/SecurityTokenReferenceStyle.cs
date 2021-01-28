@@ -26,7 +26,6 @@ namespace CoreWCF.Security.Tokens
                     typeof(SecurityTokenReferenceStyle)));
             }
         }
-
     }
 }
 

@@ -9,7 +9,6 @@ namespace CoreWCF.Configuration
     {
         public void Configure(IApplicationBuilder app)
         {
-
         }
     }
 }

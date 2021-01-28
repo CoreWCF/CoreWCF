@@ -16,81 +16,81 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchRuntime
     {
-        private ServiceAuthenticationManager serviceAuthenticationManager;
-        private ServiceAuthorizationManager serviceAuthorizationManager;
-        private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
+        private ServiceAuthenticationManager _serviceAuthenticationManager;
+        private ServiceAuthorizationManager _serviceAuthorizationManager;
+        private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
 
         //AuditLogLocation securityAuditLogLocation;
-        private ConcurrencyMode concurrencyMode;
-        private bool ensureOrderedDispatch;
+        private ConcurrencyMode _concurrencyMode;
+        private bool _ensureOrderedDispatch;
 
         //bool suppressAuditFailure;
         //AuditLevel serviceAuthorizationAuditLevel;
         //AuditLevel messageAuthenticationAuditLevel;
-        private bool automaticInputSessionShutdown;
-        private readonly ChannelDispatcher channelDispatcher;
-        private readonly EndpointDispatcher endpointDispatcher;
-        private IInstanceProvider instanceProvider;
-        private IInstanceContextProvider instanceContextProvider;
-        private InstanceContext singleton;
-        private bool ignoreTransactionMessageProperty;
-        private readonly OperationCollection operations;
-        private IDispatchOperationSelector operationSelector;
-        private ImmutableDispatchRuntime runtime;
-        private bool isExternalPoliciesSet;
-        private bool isAuthorizationManagerSet;
-        private SynchronizationContext synchronizationContext;
-        private PrincipalPermissionMode principalPermissionMode;
+        private bool _automaticInputSessionShutdown;
+        private readonly ChannelDispatcher _channelDispatcher;
+        private readonly EndpointDispatcher _endpointDispatcher;
+        private IInstanceProvider _instanceProvider;
+        private IInstanceContextProvider _instanceContextProvider;
+        private InstanceContext _singleton;
+        private bool _ignoreTransactionMessageProperty;
+        private readonly OperationCollection _operations;
+        private IDispatchOperationSelector _operationSelector;
+        private ImmutableDispatchRuntime _runtime;
+        private bool _isExternalPoliciesSet;
+        private bool _isAuthorizationManagerSet;
+        private SynchronizationContext _synchronizationContext;
+        private PrincipalPermissionMode _principalPermissionMode;
 
         //object roleProvider;
-        private Type type;
-        private DispatchOperation unhandled;
-        private bool impersonateCallerForAllOperations;
-        private bool impersonateOnSerializingReply;
-        private readonly SharedRuntimeState shared;
-        private readonly bool preserveMessage;
-        private bool requireClaimsPrincipalOnOperationContext;
+        private Type _type;
+        private DispatchOperation _unhandled;
+        private bool _impersonateCallerForAllOperations;
+        private bool _impersonateOnSerializingReply;
+        private readonly SharedRuntimeState _shared;
+        private readonly bool _preserveMessage;
+        private bool _requireClaimsPrincipalOnOperationContext;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
         {
-            this.endpointDispatcher = endpointDispatcher ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
-            Fx.Assert(shared.IsOnServer, "Server constructor called on client?");
+            _endpointDispatcher = endpointDispatcher ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
+            Fx.Assert(_shared.IsOnServer, "Server constructor called on client?");
         }
 
         internal DispatchRuntime(ClientRuntime proxyRuntime, SharedRuntimeState shared)
             : this(shared)
         {
             ClientRuntime = proxyRuntime ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxyRuntime));
-            instanceProvider = new CallbackInstanceProvider();
-            channelDispatcher = new ChannelDispatcher(shared);
-            instanceContextProvider = InstanceContextProviderBase.GetProviderForMode(InstanceContextMode.PerSession, this);
+            _instanceProvider = new CallbackInstanceProvider();
+            _channelDispatcher = new ChannelDispatcher(shared);
+            _instanceContextProvider = InstanceContextProviderBase.GetProviderForMode(InstanceContextMode.PerSession, this);
 
             Fx.Assert(!shared.IsOnServer, "Client constructor called on server?");
         }
 
         private DispatchRuntime(SharedRuntimeState shared)
         {
-            this.shared = shared;
+            _shared = shared;
 
-            operations = new OperationCollection(this);
+            _operations = new OperationCollection(this);
 
             InputSessionShutdownHandlers = NewBehaviorCollection<IInputSessionShutdown>();
             MessageInspectors = NewBehaviorCollection<IDispatchMessageInspector>();
             InstanceContextInitializers = NewBehaviorCollection<IInstanceContextInitializer>();
-            synchronizationContext = ThreadBehavior.GetCurrentSynchronizationContext();
-            automaticInputSessionShutdown = true;
-            principalPermissionMode = ServiceAuthorizationBehavior.DefaultPrincipalPermissionMode;
-            unhandled = new DispatchOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
-            unhandled.InternalFormatter = MessageOperationFormatter.Instance;
-            unhandled.InternalInvoker = new UnhandledActionInvoker(this);
+            _synchronizationContext = ThreadBehavior.GetCurrentSynchronizationContext();
+            _automaticInputSessionShutdown = true;
+            _principalPermissionMode = ServiceAuthorizationBehavior.DefaultPrincipalPermissionMode;
+            _unhandled = new DispatchOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
+            _unhandled.InternalFormatter = MessageOperationFormatter.Instance;
+            _unhandled.InternalInvoker = new UnhandledActionInvoker(this);
         }
 
         internal IInstanceContextProvider InstanceContextProvider
         {
             get
             {
-                return instanceContextProvider;
+                return _instanceContextProvider;
             }
 
             set
@@ -103,14 +103,14 @@ namespace CoreWCF.Dispatcher
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    instanceContextProvider = value;
+                    _instanceContextProvider = value;
                 }
             }
         }
 
         public InstanceContext SingletonInstanceContext
         {
-            get { return singleton; }
+            get { return _singleton; }
             set
             {
                 if (value == null)
@@ -121,7 +121,7 @@ namespace CoreWCF.Dispatcher
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    singleton = value;
+                    _singleton = value;
                 }
             }
         }
@@ -130,14 +130,14 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return concurrencyMode;
+                return _concurrencyMode;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    concurrencyMode = value;
+                    _concurrencyMode = value;
                 }
             }
         }
@@ -146,14 +146,14 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return ensureOrderedDispatch;
+                return _ensureOrderedDispatch;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    ensureOrderedDispatch = value;
+                    _ensureOrderedDispatch = value;
                 }
             }
         }
@@ -162,15 +162,15 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return externalAuthorizationPolicies;
+                return _externalAuthorizationPolicies;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    externalAuthorizationPolicies = value;
-                    isExternalPoliciesSet = true;
+                    _externalAuthorizationPolicies = value;
+                    _isExternalPoliciesSet = true;
                 }
             }
         }
@@ -179,14 +179,14 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return serviceAuthenticationManager;
+                return _serviceAuthenticationManager;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    serviceAuthenticationManager = value;
+                    _serviceAuthenticationManager = value;
                     RequiresAuthentication = true;
                 }
             }
@@ -196,35 +196,35 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return serviceAuthorizationManager;
+                return _serviceAuthorizationManager;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    serviceAuthorizationManager = value;
-                    isAuthorizationManagerSet = true;
+                    _serviceAuthorizationManager = value;
+                    _isAuthorizationManagerSet = true;
                 }
             }
         }
 
         public bool AutomaticInputSessionShutdown
         {
-            get { return automaticInputSessionShutdown; }
+            get { return _automaticInputSessionShutdown; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    automaticInputSessionShutdown = value;
+                    _automaticInputSessionShutdown = value;
                 }
             }
         }
 
         internal ChannelDispatcher ChannelDispatcher
         {
-            get { return channelDispatcher ?? endpointDispatcher.ChannelDispatcher; }
+            get { return _channelDispatcher ?? _endpointDispatcher.ChannelDispatcher; }
         }
 
         public ClientRuntime CallbackClientRuntime
@@ -237,7 +237,7 @@ namespace CoreWCF.Dispatcher
                     {
                         if (ClientRuntime == null)
                         {
-                            ClientRuntime = new ClientRuntime(this, shared);
+                            ClientRuntime = new ClientRuntime(this, _shared);
                         }
                     }
                 }
@@ -248,21 +248,21 @@ namespace CoreWCF.Dispatcher
 
         public EndpointDispatcher EndpointDispatcher
         {
-            get { return endpointDispatcher; }
+            get { return _endpointDispatcher; }
         }
 
         public bool ImpersonateCallerForAllOperations
         {
             get
             {
-                return impersonateCallerForAllOperations;
+                return _impersonateCallerForAllOperations;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    impersonateCallerForAllOperations = value;
+                    _impersonateCallerForAllOperations = value;
                 }
             }
         }
@@ -271,14 +271,14 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return impersonateOnSerializingReply;
+                return _impersonateOnSerializingReply;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    impersonateOnSerializingReply = value;
+                    _impersonateOnSerializingReply = value;
                 }
             }
         }
@@ -287,14 +287,14 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return requireClaimsPrincipalOnOperationContext;
+                return _requireClaimsPrincipalOnOperationContext;
             }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    requireClaimsPrincipalOnOperationContext = value;
+                    _requireClaimsPrincipalOnOperationContext = value;
                 }
             }
         }
@@ -303,26 +303,26 @@ namespace CoreWCF.Dispatcher
 
         public bool IgnoreTransactionMessageProperty
         {
-            get { return ignoreTransactionMessageProperty; }
+            get { return _ignoreTransactionMessageProperty; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    ignoreTransactionMessageProperty = value;
+                    _ignoreTransactionMessageProperty = value;
                 }
             }
         }
 
         public IInstanceProvider InstanceProvider
         {
-            get { return instanceProvider; }
+            get { return _instanceProvider; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    instanceProvider = value;
+                    _instanceProvider = value;
                 }
             }
         }
@@ -331,18 +331,18 @@ namespace CoreWCF.Dispatcher
 
         public SynchronizedKeyedCollection<string, DispatchOperation> Operations
         {
-            get { return operations; }
+            get { return _operations; }
         }
 
         internal IDispatchOperationSelector OperationSelector
         {
-            get { return operationSelector; }
+            get { return _operationSelector; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    operationSelector = value;
+                    _operationSelector = value;
                 }
             }
         }
@@ -351,13 +351,13 @@ namespace CoreWCF.Dispatcher
 
         public SynchronizationContext SynchronizationContext
         {
-            get { return synchronizationContext; }
+            get { return _synchronizationContext; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    synchronizationContext = value;
+                    _synchronizationContext = value;
                 }
             }
         }
@@ -366,7 +366,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return principalPermissionMode;
+                return _principalPermissionMode;
             }
             set
             {
@@ -378,7 +378,7 @@ namespace CoreWCF.Dispatcher
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    principalPermissionMode = value;
+                    _principalPermissionMode = value;
                 }
             }
         }
@@ -411,20 +411,20 @@ namespace CoreWCF.Dispatcher
 
         public Type Type
         {
-            get { return type; }
+            get { return _type; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    type = value;
+                    _type = value;
                 }
             }
         }
 
         public DispatchOperation UnhandledDispatchOperation
         {
-            get { return unhandled; }
+            get { return _unhandled; }
             set
             {
                 if (value == null)
@@ -435,20 +435,20 @@ namespace CoreWCF.Dispatcher
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    unhandled = value;
+                    _unhandled = value;
                 }
             }
         }
 
         public bool ValidateMustUnderstand
         {
-            get { return shared.ValidateMustUnderstand; }
+            get { return _shared.ValidateMustUnderstand; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    shared.ValidateMustUnderstand = value;
+                    _shared.ValidateMustUnderstand = value;
                 }
             }
         }
@@ -456,7 +456,7 @@ namespace CoreWCF.Dispatcher
         // TODO: Only used for WF so remove
         public bool PreserveMessage
         {
-            get { return preserveMessage; }
+            get { return _preserveMessage; }
             set
             {
                 throw new PlatformNotSupportedException(nameof(PreserveMessage));
@@ -474,7 +474,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return (isAuthorizationManagerSet || isExternalPoliciesSet);
+                return (_isAuthorizationManagerSet || _isExternalPoliciesSet);
             }
         }
 
@@ -484,7 +484,7 @@ namespace CoreWCF.Dispatcher
             {
                 lock (ThisLock)
                 {
-                    return !(unhandled.Invoker is UnhandledActionInvoker);
+                    return !(_unhandled.Invoker is UnhandledActionInvoker);
                 }
             }
         }
@@ -500,14 +500,14 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    return shared.EnableFaults;
+                    return _shared.EnableFaults;
                 }
             }
         }
 
         internal bool IsOnServer
         {
-            get { return shared.IsOnServer; }
+            get { return _shared.IsOnServer; }
         }
 
         internal bool ManualAddressing
@@ -521,7 +521,7 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    return shared.ManualAddressing;
+                    return _shared.ManualAddressing;
                 }
             }
         }
@@ -534,11 +534,11 @@ namespace CoreWCF.Dispatcher
                 {
                     int max = 0;
 
-                    for (int i = 0; i < operations.Count; i++)
+                    for (int i = 0; i < _operations.Count; i++)
                     {
-                        max = System.Math.Max(max, operations[i].CallContextInitializers.Count);
+                        max = System.Math.Max(max, _operations[i].CallContextInitializers.Count);
                     }
-                    max = System.Math.Max(max, unhandled.CallContextInitializers.Count);
+                    max = System.Math.Max(max, _unhandled.CallContextInitializers.Count);
                     return max;
                 }
             }
@@ -552,11 +552,11 @@ namespace CoreWCF.Dispatcher
                 {
                     int max = 0;
 
-                    for (int i = 0; i < operations.Count; i++)
+                    for (int i = 0; i < _operations.Count; i++)
                     {
-                        max = System.Math.Max(max, operations[i].ParameterInspectors.Count);
+                        max = System.Math.Max(max, _operations[i].ParameterInspectors.Count);
                     }
-                    max = System.Math.Max(max, unhandled.ParameterInspectors.Count);
+                    max = System.Math.Max(max, _unhandled.ParameterInspectors.Count);
                     return max;
                 }
             }
@@ -567,7 +567,7 @@ namespace CoreWCF.Dispatcher
 
         internal object ThisLock
         {
-            get { return shared; }
+            get { return _shared; }
         }
 
         //internal bool IsRoleProviderSet
@@ -583,7 +583,7 @@ namespace CoreWCF.Dispatcher
 
         internal ImmutableDispatchRuntime GetRuntime()
         {
-            ImmutableDispatchRuntime runtime = this.runtime;
+            ImmutableDispatchRuntime runtime = _runtime;
             if (runtime != null)
             {
                 return runtime;
@@ -598,12 +598,12 @@ namespace CoreWCF.Dispatcher
         {
             lock (ThisLock)
             {
-                if (runtime == null)
+                if (_runtime == null)
                 {
-                    runtime = new ImmutableDispatchRuntime(this);
+                    _runtime = new ImmutableDispatchRuntime(this);
                 }
 
-                return runtime;
+                return _runtime;
             }
         }
 
@@ -611,15 +611,15 @@ namespace CoreWCF.Dispatcher
         {
             lock (ThisLock)
             {
-                shared.ThrowIfImmutable();
-                runtime = null;
+                _shared.ThrowIfImmutable();
+                _runtime = null;
             }
         }
 
         internal void LockDownProperties()
         {
-            shared.LockDownProperties();
-            if (concurrencyMode != ConcurrencyMode.Single && ensureOrderedDispatch)
+            _shared.LockDownProperties();
+            if (_concurrencyMode != ConcurrencyMode.Single && _ensureOrderedDispatch)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SfxDispatchRuntimeNonConcurrentOrEnsureOrderedDispatch));
             }
@@ -632,11 +632,11 @@ namespace CoreWCF.Dispatcher
 
         internal class UnhandledActionInvoker : IOperationInvoker
         {
-            private readonly DispatchRuntime dispatchRuntime;
+            private readonly DispatchRuntime _dispatchRuntime;
 
             public UnhandledActionInvoker(DispatchRuntime dispatchRuntime)
             {
-                this.dispatchRuntime = dispatchRuntime;
+                _dispatchRuntime = dispatchRuntime;
             }
 
             public object[] AllocateInputs()
@@ -676,7 +676,7 @@ namespace CoreWCF.Dispatcher
                 OperationContext.Current.OperationCompleted +=
                     delegate (object sender, EventArgs e)
                     {
-                        ChannelDispatcher channelDispatcher = dispatchRuntime.ChannelDispatcher;
+                        ChannelDispatcher channelDispatcher = _dispatchRuntime.ChannelDispatcher;
                         if (!channelDispatcher.HandleError(exception) && serviceChannel.HasSession)
                         {
                             try
@@ -695,7 +695,7 @@ namespace CoreWCF.Dispatcher
                         }
                     };
 
-                if (dispatchRuntime.shared.EnableFaults)
+                if (_dispatchRuntime._shared.EnableFaults)
                 {
                     MessageFault fault = MessageFault.CreateFault(code, reason, action);
                     return new ValueTask<(object returnValue, object[] outputs)>(
@@ -725,17 +725,17 @@ namespace CoreWCF.Dispatcher
 
         private class DispatchBehaviorCollection<T> : SynchronizedCollection<T>
         {
-            private readonly DispatchRuntime outer;
+            private readonly DispatchRuntime _outer;
 
             internal DispatchBehaviorCollection(DispatchRuntime outer)
                 : base(outer.ThisLock)
             {
-                this.outer = outer;
+                _outer = outer;
             }
 
             protected override void ClearItems()
             {
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.ClearItems();
             }
 
@@ -746,13 +746,13 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.InsertItem(index, item);
             }
 
             protected override void RemoveItem(int index)
             {
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.RemoveItem(index);
             }
 
@@ -763,24 +763,24 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.SetItem(index, item);
             }
         }
 
         private class OperationCollection : SynchronizedKeyedCollection<string, DispatchOperation>
         {
-            private readonly DispatchRuntime outer;
+            private readonly DispatchRuntime _outer;
 
             internal OperationCollection(DispatchRuntime outer)
                 : base(outer.ThisLock)
             {
-                this.outer = outer;
+                _outer = outer;
             }
 
             protected override void ClearItems()
             {
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.ClearItems();
             }
 
@@ -795,18 +795,18 @@ namespace CoreWCF.Dispatcher
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
-                if (item.Parent != outer)
+                if (item.Parent != _outer)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxMismatchedOperationParent);
                 }
 
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.InsertItem(index, item);
             }
 
             protected override void RemoveItem(int index)
             {
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.RemoveItem(index);
             }
 
@@ -816,12 +816,12 @@ namespace CoreWCF.Dispatcher
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
-                if (item.Parent != outer)
+                if (item.Parent != _outer)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxMismatchedOperationParent);
                 }
 
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.SetItem(index, item);
             }
         }

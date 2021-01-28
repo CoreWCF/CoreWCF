@@ -13,21 +13,21 @@ namespace CoreWCF.Security
 {
     internal sealed class SecurityVerifiedMessage : DelegatingMessage
     {
-        private byte[] decryptedBuffer;
-        private XmlDictionaryReader cachedDecryptedBodyContentReader;
-        private XmlAttributeHolder[] envelopeAttributes;
-        private XmlAttributeHolder[] headerAttributes;
-        private XmlAttributeHolder[] bodyAttributes;
-        private string envelopePrefix;
-        private bool bodyDecrypted;
-        private BodyState state = BodyState.Created;
-        private string bodyPrefix;
-        private bool isDecryptedBodyStatusDetermined;
-        private bool isDecryptedBodyFault;
-        private bool isDecryptedBodyEmpty;
-        private XmlDictionaryReader cachedReaderAtSecurityHeader;
-        private XmlBuffer messageBuffer;
-        private bool canDelegateCreateBufferedCopyToInnerMessage;
+        private byte[] _decryptedBuffer;
+        private XmlDictionaryReader _cachedDecryptedBodyContentReader;
+        private XmlAttributeHolder[] _envelopeAttributes;
+        private XmlAttributeHolder[] _headerAttributes;
+        private XmlAttributeHolder[] _bodyAttributes;
+        private string _envelopePrefix;
+        private bool _bodyDecrypted;
+        private BodyState _state = BodyState.Created;
+        private string _bodyPrefix;
+        private bool _isDecryptedBodyStatusDetermined;
+        private bool _isDecryptedBodyFault;
+        private bool _isDecryptedBodyEmpty;
+        private XmlDictionaryReader _cachedReaderAtSecurityHeader;
+        private XmlBuffer _messageBuffer;
+        private bool _canDelegateCreateBufferedCopyToInnerMessage;
 
         public SecurityVerifiedMessage(Message messageToProcess, ReceiveSecurityHeader securityHeader)
             : base(messageToProcess)
@@ -43,23 +43,23 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    messageBuffer = new XmlBuffer(int.MaxValue);
-                    XmlDictionaryWriter writer = messageBuffer.OpenSection(ReceivedSecurityHeader.ReaderQuotas);
+                    _messageBuffer = new XmlBuffer(int.MaxValue);
+                    XmlDictionaryWriter writer = _messageBuffer.OpenSection(ReceivedSecurityHeader.ReaderQuotas);
                     InnerMessage.WriteMessage(writer);
-                    messageBuffer.CloseSection();
-                    messageBuffer.Close();
-                    messageReader = messageBuffer.GetReader(0);
+                    _messageBuffer.CloseSection();
+                    _messageBuffer.Close();
+                    messageReader = _messageBuffer.GetReader(0);
                 }
                 MoveToSecurityHeader(messageReader, securityHeader.HeaderIndex, true);
-                cachedReaderAtSecurityHeader = messageReader;
-                state = BodyState.Buffered;
+                _cachedReaderAtSecurityHeader = messageReader;
+                _state = BodyState.Buffered;
             }
             else
             {
-                envelopeAttributes = XmlAttributeHolder.emptyArray;
-                headerAttributes = XmlAttributeHolder.emptyArray;
-                bodyAttributes = XmlAttributeHolder.emptyArray;
-                canDelegateCreateBufferedCopyToInnerMessage = true;
+                _envelopeAttributes = XmlAttributeHolder.emptyArray;
+                _headerAttributes = XmlAttributeHolder.emptyArray;
+                _bodyAttributes = XmlAttributeHolder.emptyArray;
+                _canDelegateCreateBufferedCopyToInnerMessage = true;
             }
         }
 
@@ -71,14 +71,14 @@ namespace CoreWCF.Security
                 {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
                 }
-                if (!bodyDecrypted)
+                if (!_bodyDecrypted)
                 {
                     return InnerMessage.IsEmpty;
                 }
 
                 EnsureDecryptedBodyStatusDetermined();
 
-                return isDecryptedBodyEmpty;
+                return _isDecryptedBodyEmpty;
             }
         }
 
@@ -90,14 +90,14 @@ namespace CoreWCF.Security
                 {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
                 }
-                if (!bodyDecrypted)
+                if (!_bodyDecrypted)
                 {
                     return InnerMessage.IsFault;
                 }
 
                 EnsureDecryptedBodyStatusDetermined();
 
-                return isDecryptedBodyFault;
+                return _isDecryptedBodyFault;
             }
         }
 
@@ -108,12 +108,12 @@ namespace CoreWCF.Security
         private Exception CreateBadStateException(string operation)
         {
             return new InvalidOperationException(SR.Format(SR.MessageBodyOperationNotValidInBodyState,
-                operation, state));
+                operation, _state));
         }
 
         public XmlDictionaryReader CreateFullBodyReader()
         {
-            switch (state)
+            switch (_state)
             {
                 case BodyState.Buffered:
                     return CreateFullBodyReaderFromBufferedState();
@@ -126,9 +126,9 @@ namespace CoreWCF.Security
 
         private XmlDictionaryReader CreateFullBodyReaderFromBufferedState()
         {
-            if (messageBuffer != null)
+            if (_messageBuffer != null)
             {
-                XmlDictionaryReader reader = messageBuffer.GetReader(0);
+                XmlDictionaryReader reader = _messageBuffer.GetReader(0);
                 MoveToBody(reader);
                 return reader;
             }
@@ -140,43 +140,43 @@ namespace CoreWCF.Security
 
         private XmlDictionaryReader CreateFullBodyReaderFromDecryptedState()
         {
-            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(decryptedBuffer, 0, decryptedBuffer.Length, ReceivedSecurityHeader.ReaderQuotas);
+            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(_decryptedBuffer, 0, _decryptedBuffer.Length, ReceivedSecurityHeader.ReaderQuotas);
             MoveToBody(reader);
             return reader;
         }
 
         private void EnsureDecryptedBodyStatusDetermined()
         {
-            if (!isDecryptedBodyStatusDetermined)
+            if (!_isDecryptedBodyStatusDetermined)
             {
                 XmlDictionaryReader reader = CreateFullBodyReader();
-                if (Message.ReadStartBody(reader, InnerMessage.Version.Envelope, out isDecryptedBodyFault, out isDecryptedBodyEmpty))
+                if (Message.ReadStartBody(reader, InnerMessage.Version.Envelope, out _isDecryptedBodyFault, out _isDecryptedBodyEmpty))
                 {
-                    cachedDecryptedBodyContentReader = reader;
+                    _cachedDecryptedBodyContentReader = reader;
                 }
                 else
                 {
                     reader.Close();
                 }
-                isDecryptedBodyStatusDetermined = true;
+                _isDecryptedBodyStatusDetermined = true;
             }
         }
 
         public XmlAttributeHolder[] GetEnvelopeAttributes()
         {
-            return envelopeAttributes;
+            return _envelopeAttributes;
         }
 
         public XmlAttributeHolder[] GetHeaderAttributes()
         {
-            return headerAttributes;
+            return _headerAttributes;
         }
 
         private XmlDictionaryReader GetReaderAtEnvelope()
         {
-            if (messageBuffer != null)
+            if (_messageBuffer != null)
             {
-                return messageBuffer.GetReader(0);
+                return _messageBuffer.GetReader(0);
             }
             else
             {
@@ -194,10 +194,10 @@ namespace CoreWCF.Security
 
         public XmlDictionaryReader GetReaderAtSecurityHeader()
         {
-            if (cachedReaderAtSecurityHeader != null)
+            if (_cachedReaderAtSecurityHeader != null)
             {
-                XmlDictionaryReader result = cachedReaderAtSecurityHeader;
-                cachedReaderAtSecurityHeader = null;
+                XmlDictionaryReader result = _cachedReaderAtSecurityHeader;
+                _cachedReaderAtSecurityHeader = null;
                 return result;
             }
             return Headers.GetReaderAtHeader(ReceivedSecurityHeader.HeaderIndex);
@@ -228,14 +228,14 @@ namespace CoreWCF.Security
             }
             if (captureAttributes)
             {
-                envelopePrefix = reader.Prefix;
-                envelopeAttributes = XmlAttributeHolder.ReadAttributes(reader);
+                _envelopePrefix = reader.Prefix;
+                _envelopeAttributes = XmlAttributeHolder.ReadAttributes(reader);
             }
             reader.ReadStartElement();
             reader.MoveToStartElement(XD.MessageDictionary.Header, Version.Envelope.DictionaryNamespace);
             if (captureAttributes)
             {
-                headerAttributes = XmlAttributeHolder.ReadAttributes(reader);
+                _headerAttributes = XmlAttributeHolder.ReadAttributes(reader);
             }
         }
 
@@ -260,7 +260,7 @@ namespace CoreWCF.Security
 
         protected override void OnBodyToString(XmlDictionaryWriter writer)
         {
-            if (state == BodyState.Created)
+            if (_state == BodyState.Created)
             {
                 base.OnBodyToString(writer);
             }
@@ -272,11 +272,11 @@ namespace CoreWCF.Security
 
         protected override void OnClose()
         {
-            if (cachedDecryptedBodyContentReader != null)
+            if (_cachedDecryptedBodyContentReader != null)
             {
                 try
                 {
-                    cachedDecryptedBodyContentReader.Close();
+                    _cachedDecryptedBodyContentReader.Close();
                 }
                 catch (System.IO.IOException exception)
                 {
@@ -288,15 +288,15 @@ namespace CoreWCF.Security
                 }
                 finally
                 {
-                    cachedDecryptedBodyContentReader = null;
+                    _cachedDecryptedBodyContentReader = null;
                 }
             }
 
-            if (cachedReaderAtSecurityHeader != null)
+            if (_cachedReaderAtSecurityHeader != null)
             {
                 try
                 {
-                    cachedReaderAtSecurityHeader.Close();
+                    _cachedReaderAtSecurityHeader.Close();
                 }
                 catch (System.IO.IOException exception)
                 {
@@ -308,30 +308,30 @@ namespace CoreWCF.Security
                 }
                 finally
                 {
-                    cachedReaderAtSecurityHeader = null;
+                    _cachedReaderAtSecurityHeader = null;
                 }
             }
 
-            messageBuffer = null;
-            decryptedBuffer = null;
-            state = BodyState.Disposed;
+            _messageBuffer = null;
+            _decryptedBuffer = null;
+            _state = BodyState.Disposed;
             InnerMessage.Close();
         }
 
         protected override XmlDictionaryReader OnGetReaderAtBodyContents()
         {
-            if (state == BodyState.Created)
+            if (_state == BodyState.Created)
             {
                 return InnerMessage.GetReaderAtBodyContents();
             }
-            if (bodyDecrypted)
+            if (_bodyDecrypted)
             {
                 EnsureDecryptedBodyStatusDetermined();
             }
-            if (cachedDecryptedBodyContentReader != null)
+            if (_cachedDecryptedBodyContentReader != null)
             {
-                XmlDictionaryReader result = cachedDecryptedBodyContentReader;
-                cachedDecryptedBodyContentReader = null;
+                XmlDictionaryReader result = _cachedDecryptedBodyContentReader;
+                _cachedDecryptedBodyContentReader = null;
                 return result;
             }
             else
@@ -345,7 +345,7 @@ namespace CoreWCF.Security
 
         protected override MessageBuffer OnCreateBufferedCopy(int maxBufferSize)
         {
-            if (canDelegateCreateBufferedCopyToInnerMessage && InnerMessage is BufferedMessage)
+            if (_canDelegateCreateBufferedCopyToInnerMessage && InnerMessage is BufferedMessage)
             {
                 return InnerMessage.CreateBufferedCopy(maxBufferSize);
             }
@@ -357,7 +357,7 @@ namespace CoreWCF.Security
 
         internal void OnMessageProtectionPassComplete(bool atLeastOneHeaderOrBodyEncrypted)
         {
-            canDelegateCreateBufferedCopyToInnerMessage = !atLeastOneHeaderOrBodyEncrypted;
+            _canDelegateCreateBufferedCopyToInnerMessage = !atLeastOneHeaderOrBodyEncrypted;
         }
 
         internal void OnUnencryptedPart(string name, string ns)
@@ -386,7 +386,7 @@ namespace CoreWCF.Security
 
         protected override void OnWriteStartBody(XmlDictionaryWriter writer)
         {
-            if (state == BodyState.Created)
+            if (_state == BodyState.Created)
             {
                 InnerMessage.WriteStartBody(writer);
                 return;
@@ -401,7 +401,7 @@ namespace CoreWCF.Security
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            if (state == BodyState.Created)
+            if (_state == BodyState.Created)
             {
                 InnerMessage.WriteBodyContents(writer);
                 return;
@@ -420,13 +420,13 @@ namespace CoreWCF.Security
 
         public void SetBodyPrefixAndAttributes(XmlDictionaryReader bodyReader)
         {
-            bodyPrefix = bodyReader.Prefix;
-            bodyAttributes = XmlAttributeHolder.ReadAttributes(bodyReader);
+            _bodyPrefix = bodyReader.Prefix;
+            _bodyAttributes = XmlAttributeHolder.ReadAttributes(bodyReader);
         }
 
         public void SetDecryptedBody(byte[] decryptedBodyContent)
         {
-            if (state != BodyState.Buffered)
+            if (_state != BodyState.Buffered)
             {
                 throw TraceUtility.ThrowHelperError(CreateBadStateException("SetDecryptedBody"), this);
             }
@@ -434,20 +434,20 @@ namespace CoreWCF.Security
             MemoryStream stream = new MemoryStream();
             XmlDictionaryWriter writer = XmlDictionaryWriter.CreateTextWriter(stream);
 
-            writer.WriteStartElement(envelopePrefix, XD.MessageDictionary.Envelope, Version.Envelope.DictionaryNamespace);
-            XmlAttributeHolder.WriteAttributes(envelopeAttributes, writer);
+            writer.WriteStartElement(_envelopePrefix, XD.MessageDictionary.Envelope, Version.Envelope.DictionaryNamespace);
+            XmlAttributeHolder.WriteAttributes(_envelopeAttributes, writer);
 
-            writer.WriteStartElement(bodyPrefix, XD.MessageDictionary.Body, Version.Envelope.DictionaryNamespace);
-            XmlAttributeHolder.WriteAttributes(bodyAttributes, writer);
+            writer.WriteStartElement(_bodyPrefix, XD.MessageDictionary.Body, Version.Envelope.DictionaryNamespace);
+            XmlAttributeHolder.WriteAttributes(_bodyAttributes, writer);
             writer.WriteString(" "); // ensure non-empty element
             writer.WriteEndElement();
             writer.WriteEndElement();
             writer.Flush();
 
-            decryptedBuffer = ContextImportHelper.SpliceBuffers(decryptedBodyContent, stream.GetBuffer(), (int)stream.Length, 2);
+            _decryptedBuffer = ContextImportHelper.SpliceBuffers(decryptedBodyContent, stream.GetBuffer(), (int)stream.Length, 2);
 
-            bodyDecrypted = true;
-            state = BodyState.Decrypted;
+            _bodyDecrypted = true;
+            _state = BodyState.Decrypted;
         }
 
         private enum BodyState

@@ -25,8 +25,8 @@ namespace CoreWCF.Channels.Framing
 
     internal struct IntDecoder
     {
-        private int value;
-        private short index;
+        private int _value;
+        private short _index;
         private const int LastIndex = 4;
 
         public int Value
@@ -38,7 +38,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return value;
+                return _value;
             }
         }
 
@@ -46,8 +46,8 @@ namespace CoreWCF.Channels.Framing
 
         public void Reset()
         {
-            index = 0;
-            value = 0;
+            _index = 0;
+            _value = 0;
             IsValueDecoded = false;
         }
 
@@ -64,13 +64,13 @@ namespace CoreWCF.Channels.Framing
             {
                 var data = buffer.First.Span;
                 int next = data[0];
-                value |= (next & 0x7F) << (index * 7);
+                _value |= (next & 0x7F) << (_index * 7);
                 bytesConsumed++;
-                if (index == LastIndex && (next & 0xF8) != 0)
+                if (_index == LastIndex && (next & 0xF8) != 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.FramingSizeTooLarge));
                 }
-                index++;
+                _index++;
                 if ((next & 0x80) == 0)
                 {
                     IsValueDecoded = true;
@@ -84,37 +84,37 @@ namespace CoreWCF.Channels.Framing
 
     internal abstract class StringDecoder
     {
-        private int encodedSize;
-        private byte[] encodedBytes;
-        private int bytesNeeded;
-        private string value;
-        private State currentState;
-        private IntDecoder sizeDecoder;
-        private readonly int sizeQuota;
-        private int valueLengthInBytes;
+        private int _encodedSize;
+        private byte[] _encodedBytes;
+        private int _bytesNeeded;
+        private string _value;
+        private State _currentState;
+        private IntDecoder _sizeDecoder;
+        private readonly int _sizeQuota;
+        private int _valueLengthInBytes;
 
         public StringDecoder(int sizeQuota)
         {
-            this.sizeQuota = sizeQuota;
-            sizeDecoder = new IntDecoder();
+            _sizeQuota = sizeQuota;
+            _sizeDecoder = new IntDecoder();
             Reset();
         }
 
         public bool IsValueDecoded
         {
-            get { return currentState == State.Done; }
+            get { return _currentState == State.Done; }
         }
 
         public string Value
         {
             get
             {
-                if (currentState != State.Done)
+                if (_currentState != State.Done)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return value;
+                return _value;
             }
         }
 
@@ -123,52 +123,52 @@ namespace CoreWCF.Channels.Framing
             DecoderHelper.ValidateSize(buffer.Length);
 
             int bytesConsumed;
-            switch (currentState)
+            switch (_currentState)
             {
                 case State.ReadingSize:
-                    bytesConsumed = sizeDecoder.Decode(buffer);
-                    if (sizeDecoder.IsValueDecoded)
+                    bytesConsumed = _sizeDecoder.Decode(buffer);
+                    if (_sizeDecoder.IsValueDecoded)
                     {
-                        encodedSize = sizeDecoder.Value;
-                        if (encodedSize > sizeQuota)
+                        _encodedSize = _sizeDecoder.Value;
+                        if (_encodedSize > _sizeQuota)
                         {
-                            Exception quotaExceeded = OnSizeQuotaExceeded(encodedSize);
+                            Exception quotaExceeded = OnSizeQuotaExceeded(_encodedSize);
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(quotaExceeded);
                         }
-                        if (encodedBytes == null || encodedBytes.Length < encodedSize)
+                        if (_encodedBytes == null || _encodedBytes.Length < _encodedSize)
                         {
-                            encodedBytes = Fx.AllocateByteArray(encodedSize);
-                            value = null;
+                            _encodedBytes = Fx.AllocateByteArray(_encodedSize);
+                            _value = null;
                         }
-                        currentState = State.ReadingBytes;
-                        bytesNeeded = encodedSize;
+                        _currentState = State.ReadingBytes;
+                        _bytesNeeded = _encodedSize;
                     }
                     break;
                 case State.ReadingBytes:
-                    if (value != null && valueLengthInBytes == encodedSize && bytesNeeded == encodedSize &&
-                        buffer.Length >= encodedSize && CompareBuffers(encodedBytes, buffer))
+                    if (_value != null && _valueLengthInBytes == _encodedSize && _bytesNeeded == _encodedSize &&
+                        buffer.Length >= _encodedSize && CompareBuffers(_encodedBytes, buffer))
                     {
-                        bytesConsumed = bytesNeeded;
-                        OnComplete(value);
+                        bytesConsumed = _bytesNeeded;
+                        OnComplete(_value);
                     }
                     else
                     {
-                        bytesConsumed = bytesNeeded;
-                        if (buffer.Length < bytesNeeded)
+                        bytesConsumed = _bytesNeeded;
+                        if (buffer.Length < _bytesNeeded)
                         {
                             bytesConsumed = (int)buffer.Length;
                         }
 
-                        Span<byte> span = encodedBytes;
-                        Span<byte> slicedBytes = span.Slice(encodedSize - bytesNeeded, bytesConsumed);
+                        Span<byte> span = _encodedBytes;
+                        Span<byte> slicedBytes = span.Slice(_encodedSize - _bytesNeeded, bytesConsumed);
                         var tempBuffer = buffer.Slice(0, bytesConsumed);
                         tempBuffer.CopyTo(slicedBytes);
-                        bytesNeeded -= bytesConsumed;
-                        if (bytesNeeded == 0)
+                        _bytesNeeded -= bytesConsumed;
+                        if (_bytesNeeded == 0)
                         {
-                            value = Encoding.UTF8.GetString(encodedBytes, 0, encodedSize);
-                            valueLengthInBytes = encodedSize;
-                            OnComplete(value);
+                            _value = Encoding.UTF8.GetString(_encodedBytes, 0, _encodedSize);
+                            _valueLengthInBytes = _encodedSize;
+                            OnComplete(_value);
                         }
                     }
                     break;
@@ -181,7 +181,7 @@ namespace CoreWCF.Channels.Framing
 
         protected virtual void OnComplete(string value)
         {
-            currentState = State.Done;
+            _currentState = State.Done;
         }
 
         private static bool CompareBuffers(byte[] buffer1, ReadOnlySequence<byte> buffer2)
@@ -201,8 +201,8 @@ namespace CoreWCF.Channels.Framing
 
         public void Reset()
         {
-            currentState = State.ReadingSize;
-            sizeDecoder.Reset();
+            _currentState = State.ReadingSize;
+            _sizeDecoder.Reset();
         }
 
         private enum State
@@ -215,7 +215,7 @@ namespace CoreWCF.Channels.Framing
 
     internal class ViaStringDecoder : StringDecoder
     {
-        private Uri via;
+        private Uri _via;
 
         public ViaStringDecoder(int sizeQuota)
             : base(sizeQuota)
@@ -233,7 +233,7 @@ namespace CoreWCF.Channels.Framing
         {
             try
             {
-                via = new Uri(value);
+                _via = new Uri(value);
                 base.OnComplete(value);
             }
             catch (UriFormatException exception)
@@ -251,7 +251,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return via;
+                return _via;
             }
         }
     }
@@ -470,9 +470,9 @@ namespace CoreWCF.Channels.Framing
     //   Done
     internal class ServerModeDecoder : FramingDecoder
     {
-        private int majorVersion;
-        private int minorVersion;
-        private FramingMode mode;
+        private int _majorVersion;
+        private int _minorVersion;
+        private FramingMode _mode;
 
         public ServerModeDecoder()
         {
@@ -495,13 +495,13 @@ namespace CoreWCF.Channels.Framing
                         bytesConsumed = 1;
                         break;
                     case State.ReadingMajorVersion:
-                        majorVersion = data[0];
-                        ValidateMajorVersion(majorVersion);
+                        _majorVersion = data[0];
+                        ValidateMajorVersion(_majorVersion);
                         CurrentState = State.ReadingMinorVersion;
                         bytesConsumed = 1;
                         break;
                     case State.ReadingMinorVersion:
-                        minorVersion = data[0];
+                        _minorVersion = data[0];
                         CurrentState = State.ReadingModeRecord;
                         bytesConsumed = 1;
                         break;
@@ -511,8 +511,8 @@ namespace CoreWCF.Channels.Framing
                         bytesConsumed = 1;
                         break;
                     case State.ReadingModeValue:
-                        mode = (FramingMode)data[0];
-                        ValidateFramingMode(mode);
+                        _mode = (FramingMode)data[0];
+                        ValidateFramingMode(_mode);
                         CurrentState = State.Done;
                         bytesConsumed = 1;
                         break;
@@ -601,7 +601,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return mode;
+                return _mode;
             }
         }
 
@@ -614,7 +614,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return majorVersion;
+                return _majorVersion;
             }
         }
 
@@ -627,7 +627,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return minorVersion;
+                return _minorVersion;
             }
         }
 
@@ -650,19 +650,19 @@ namespace CoreWCF.Channels.Framing
     //   End
     internal class ServerSessionDecoder : FramingDecoder
     {
-        private readonly ViaStringDecoder viaDecoder;
-        private readonly StringDecoder contentTypeDecoder;
-        private IntDecoder sizeDecoder;
-        private string contentType;
-        private int envelopeBytesNeeded;
-        private int envelopeSize;
-        private string upgrade;
+        private readonly ViaStringDecoder _viaDecoder;
+        private readonly StringDecoder _contentTypeDecoder;
+        private IntDecoder _sizeDecoder;
+        private string _contentType;
+        private int _envelopeBytesNeeded;
+        private int _envelopeSize;
+        private string _upgrade;
 
         public ServerSessionDecoder(int maxViaLength, int maxContentTypeLength)
         {
-            viaDecoder = new ViaStringDecoder(maxViaLength);
-            contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
-            sizeDecoder = new IntDecoder();
+            _viaDecoder = new ViaStringDecoder(maxViaLength);
+            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
+            _sizeDecoder = new IntDecoder();
             Reset();
         }
 
@@ -682,7 +682,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return contentType;
+                return _contentType;
             }
         }
 
@@ -695,7 +695,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return viaDecoder.ValueAsUri;
+                return _viaDecoder.ValueAsUri;
             }
         }
 
@@ -713,7 +713,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return upgrade;
+                return _upgrade;
             }
         }
 
@@ -726,7 +726,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return envelopeSize;
+                return _envelopeSize;
             }
         }
 
@@ -744,12 +744,12 @@ namespace CoreWCF.Channels.Framing
                         recordType = (FramingRecordType)data[0];
                         ValidateRecordType(FramingRecordType.Via, recordType);
                         bytesConsumed = 1;
-                        viaDecoder.Reset();
+                        _viaDecoder.Reset();
                         CurrentState = State.ReadingViaString;
                         break;
                     case State.ReadingViaString:
-                        bytesConsumed = viaDecoder.Decode(buffer);
-                        if (viaDecoder.IsValueDecoded)
+                        bytesConsumed = _viaDecoder.Decode(buffer);
+                        if (_viaDecoder.IsValueDecoded)
                         {
                             CurrentState = State.ReadingContentTypeRecord;
                         }
@@ -765,21 +765,21 @@ namespace CoreWCF.Channels.Framing
                         {
                             ValidateRecordType(FramingRecordType.ExtensibleEncoding, recordType);
                             bytesConsumed = 1;
-                            contentTypeDecoder.Reset();
+                            _contentTypeDecoder.Reset();
                             CurrentState = State.ReadingContentTypeString;
                         }
                         break;
                     case State.ReadingContentTypeByte:
-                        contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
+                        _contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
                         bytesConsumed = 1;
                         CurrentState = State.PreUpgradeStart;
                         break;
                     case State.ReadingContentTypeString:
-                        bytesConsumed = contentTypeDecoder.Decode(buffer);
-                        if (contentTypeDecoder.IsValueDecoded)
+                        bytesConsumed = _contentTypeDecoder.Decode(buffer);
+                        if (_contentTypeDecoder.IsValueDecoded)
                         {
                             CurrentState = State.PreUpgradeStart;
-                            contentType = contentTypeDecoder.Value;
+                            _contentType = _contentTypeDecoder.Value;
                         }
                         break;
                     case State.PreUpgradeStart:
@@ -791,7 +791,7 @@ namespace CoreWCF.Channels.Framing
                         if (recordType == FramingRecordType.UpgradeRequest)
                         {
                             bytesConsumed = 1;
-                            contentTypeDecoder.Reset();
+                            _contentTypeDecoder.Reset();
                             CurrentState = State.ReadingUpgradeString;
                         }
                         else
@@ -801,11 +801,11 @@ namespace CoreWCF.Channels.Framing
                         }
                         break;
                     case State.ReadingUpgradeString:
-                        bytesConsumed = contentTypeDecoder.Decode(buffer);
-                        if (contentTypeDecoder.IsValueDecoded)
+                        bytesConsumed = _contentTypeDecoder.Decode(buffer);
+                        if (_contentTypeDecoder.IsValueDecoded)
                         {
                             CurrentState = State.UpgradeRequest;
-                            upgrade = contentTypeDecoder.Value;
+                            _upgrade = _contentTypeDecoder.Value;
                         }
                         break;
                     case State.UpgradeRequest:
@@ -839,15 +839,15 @@ namespace CoreWCF.Channels.Framing
                         ValidateRecordType(FramingRecordType.SizedEnvelope, (FramingRecordType)data[0]);
                         bytesConsumed = 1;
                         CurrentState = State.ReadingEnvelopeSize;
-                        sizeDecoder.Reset();
+                        _sizeDecoder.Reset();
                         break;
                     case State.ReadingEnvelopeSize:
-                        bytesConsumed = sizeDecoder.Decode(buffer);
-                        if (sizeDecoder.IsValueDecoded)
+                        bytesConsumed = _sizeDecoder.Decode(buffer);
+                        if (_sizeDecoder.IsValueDecoded)
                         {
                             CurrentState = State.EnvelopeStart;
-                            envelopeSize = sizeDecoder.Value;
-                            envelopeBytesNeeded = envelopeSize;
+                            _envelopeSize = _sizeDecoder.Value;
+                            _envelopeBytesNeeded = _envelopeSize;
                         }
                         break;
                     case State.EnvelopeStart:
@@ -856,13 +856,13 @@ namespace CoreWCF.Channels.Framing
                         break;
                     case State.ReadingEnvelopeBytes:
                         bytesConsumed = (int)buffer.Length;
-                        if (bytesConsumed > envelopeBytesNeeded)
+                        if (bytesConsumed > _envelopeBytesNeeded)
                         {
-                            bytesConsumed = envelopeBytesNeeded;
+                            bytesConsumed = _envelopeBytesNeeded;
                         }
 
-                        envelopeBytesNeeded -= bytesConsumed;
-                        if (envelopeBytesNeeded == 0)
+                        _envelopeBytesNeeded -= bytesConsumed;
+                        if (_envelopeBytesNeeded == 0)
                         {
                             CurrentState = State.EnvelopeEnd;
                         }
@@ -913,13 +913,13 @@ namespace CoreWCF.Channels.Framing
 
     internal class SingletonMessageDecoder : FramingDecoder
     {
-        private IntDecoder sizeDecoder;
-        private int chunkBytesNeeded;
-        private int chunkSize;
+        private IntDecoder _sizeDecoder;
+        private int _chunkBytesNeeded;
+        private int _chunkSize;
 
         public SingletonMessageDecoder()
         {
-            sizeDecoder = new IntDecoder();
+            _sizeDecoder = new IntDecoder();
             CurrentState = State.ChunkStart;
         }
 
@@ -944,7 +944,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return chunkSize;
+                return _chunkSize;
             }
         }
 
@@ -958,20 +958,20 @@ namespace CoreWCF.Channels.Framing
                 switch (CurrentState)
                 {
                     case State.ReadingEnvelopeChunkSize:
-                        bytesConsumed = sizeDecoder.Decode(buffer);
-                        if (sizeDecoder.IsValueDecoded)
+                        bytesConsumed = _sizeDecoder.Decode(buffer);
+                        if (_sizeDecoder.IsValueDecoded)
                         {
-                            chunkSize = sizeDecoder.Value;
-                            sizeDecoder.Reset();
+                            _chunkSize = _sizeDecoder.Value;
+                            _sizeDecoder.Reset();
 
-                            if (chunkSize == 0)
+                            if (_chunkSize == 0)
                             {
                                 CurrentState = State.EnvelopeEnd;
                             }
                             else
                             {
                                 CurrentState = State.ChunkStart;
-                                chunkBytesNeeded = chunkSize;
+                                _chunkBytesNeeded = _chunkSize;
                             }
                         }
                         break;
@@ -981,12 +981,12 @@ namespace CoreWCF.Channels.Framing
                         break;
                     case State.ReadingEnvelopeBytes:
                         bytesConsumed = (int)buffer.Length;
-                        if (bytesConsumed > chunkBytesNeeded)
+                        if (bytesConsumed > _chunkBytesNeeded)
                         {
-                            bytesConsumed = chunkBytesNeeded;
+                            bytesConsumed = _chunkBytesNeeded;
                         }
-                        chunkBytesNeeded -= bytesConsumed;
-                        if (chunkBytesNeeded == 0)
+                        _chunkBytesNeeded -= bytesConsumed;
+                        if (_chunkBytesNeeded == 0)
                         {
                             CurrentState = State.ChunkEnd;
                         }
@@ -1034,15 +1034,15 @@ namespace CoreWCF.Channels.Framing
     //   EnvelopeStart,
     internal class ServerSingletonDecoder : FramingDecoder
     {
-        private readonly ViaStringDecoder viaDecoder;
-        private readonly ContentTypeStringDecoder contentTypeDecoder;
-        private string contentType;
-        private string upgrade;
+        private readonly ViaStringDecoder _viaDecoder;
+        private readonly ContentTypeStringDecoder _contentTypeDecoder;
+        private string _contentType;
+        private string _upgrade;
 
         public ServerSingletonDecoder(int maxViaLength, int maxContentTypeLength)
         {
-            viaDecoder = new ViaStringDecoder(maxViaLength);
-            contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
+            _viaDecoder = new ViaStringDecoder(maxViaLength);
+            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
             Reset();
         }
 
@@ -1067,7 +1067,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return viaDecoder.ValueAsUri;
+                return _viaDecoder.ValueAsUri;
             }
         }
 
@@ -1080,7 +1080,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return contentType;
+                return _contentType;
             }
         }
 
@@ -1093,7 +1093,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return upgrade;
+                return _upgrade;
             }
         }
 
@@ -1111,12 +1111,12 @@ namespace CoreWCF.Channels.Framing
                         recordType = (FramingRecordType)data[0];
                         ValidateRecordType(FramingRecordType.Via, recordType);
                         bytesConsumed = 1;
-                        viaDecoder.Reset();
+                        _viaDecoder.Reset();
                         CurrentState = State.ReadingViaString;
                         break;
                     case State.ReadingViaString:
-                        bytesConsumed = viaDecoder.Decode(buffer);
-                        if (viaDecoder.IsValueDecoded)
+                        bytesConsumed = _viaDecoder.Decode(buffer);
+                        if (_viaDecoder.IsValueDecoded)
                         {
                             CurrentState = State.ReadingContentTypeRecord;
                         }
@@ -1132,21 +1132,21 @@ namespace CoreWCF.Channels.Framing
                         {
                             ValidateRecordType(FramingRecordType.ExtensibleEncoding, recordType);
                             bytesConsumed = 1;
-                            contentTypeDecoder.Reset();
+                            _contentTypeDecoder.Reset();
                             CurrentState = State.ReadingContentTypeString;
                         }
                         break;
                     case State.ReadingContentTypeByte:
-                        contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
+                        _contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
                         bytesConsumed = 1;
                         CurrentState = State.PreUpgradeStart;
                         break;
                     case State.ReadingContentTypeString:
-                        bytesConsumed = contentTypeDecoder.Decode(buffer);
-                        if (contentTypeDecoder.IsValueDecoded)
+                        bytesConsumed = _contentTypeDecoder.Decode(buffer);
+                        if (_contentTypeDecoder.IsValueDecoded)
                         {
                             CurrentState = State.PreUpgradeStart;
-                            contentType = contentTypeDecoder.Value;
+                            _contentType = _contentTypeDecoder.Value;
                         }
                         break;
                     case State.PreUpgradeStart:
@@ -1158,7 +1158,7 @@ namespace CoreWCF.Channels.Framing
                         if (recordType == FramingRecordType.UpgradeRequest)
                         {
                             bytesConsumed = 1;
-                            contentTypeDecoder.Reset();
+                            _contentTypeDecoder.Reset();
                             CurrentState = State.ReadingUpgradeString;
                         }
                         else
@@ -1168,11 +1168,11 @@ namespace CoreWCF.Channels.Framing
                         }
                         break;
                     case State.ReadingUpgradeString:
-                        bytesConsumed = contentTypeDecoder.Decode(buffer);
-                        if (contentTypeDecoder.IsValueDecoded)
+                        bytesConsumed = _contentTypeDecoder.Decode(buffer);
+                        if (_contentTypeDecoder.IsValueDecoded)
                         {
                             CurrentState = State.UpgradeRequest;
-                            upgrade = contentTypeDecoder.Value;
+                            _upgrade = _contentTypeDecoder.Value;
                         }
                         break;
                     case State.UpgradeRequest:
@@ -1238,14 +1238,14 @@ namespace CoreWCF.Channels.Framing
     //   EnvelopeStart,
     internal class ServerSingletonSizedDecoder : FramingDecoder
     {
-        private readonly ViaStringDecoder viaDecoder;
-        private readonly ContentTypeStringDecoder contentTypeDecoder;
-        private string contentType;
+        private readonly ViaStringDecoder _viaDecoder;
+        private readonly ContentTypeStringDecoder _contentTypeDecoder;
+        private string _contentType;
 
         public ServerSingletonSizedDecoder(int maxViaLength, int maxContentTypeLength)
         {
-            viaDecoder = new ViaStringDecoder(maxViaLength);
-            contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
+            _viaDecoder = new ViaStringDecoder(maxViaLength);
+            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
             CurrentState = State.ReadingViaRecord;
         }
 
@@ -1263,12 +1263,12 @@ namespace CoreWCF.Channels.Framing
                         recordType = (FramingRecordType)data[0];
                         ValidateRecordType(FramingRecordType.Via, recordType);
                         bytesConsumed = 1;
-                        viaDecoder.Reset();
+                        _viaDecoder.Reset();
                         CurrentState = State.ReadingViaString;
                         break;
                     case State.ReadingViaString:
-                        bytesConsumed = viaDecoder.Decode(buffer);
-                        if (viaDecoder.IsValueDecoded)
+                        bytesConsumed = _viaDecoder.Decode(buffer);
+                        if (_viaDecoder.IsValueDecoded)
                         {
                             CurrentState = State.ReadingContentTypeRecord;
                         }
@@ -1285,21 +1285,21 @@ namespace CoreWCF.Channels.Framing
                         {
                             ValidateRecordType(FramingRecordType.ExtensibleEncoding, recordType);
                             bytesConsumed = 1;
-                            contentTypeDecoder.Reset();
+                            _contentTypeDecoder.Reset();
                             CurrentState = State.ReadingContentTypeString;
                         }
                         break;
                     case State.ReadingContentTypeByte:
-                        contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
+                        _contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
                         bytesConsumed = 1;
                         CurrentState = State.Start;
                         break;
                     case State.ReadingContentTypeString:
-                        bytesConsumed = contentTypeDecoder.Decode(buffer);
-                        if (contentTypeDecoder.IsValueDecoded)
+                        bytesConsumed = _contentTypeDecoder.Decode(buffer);
+                        if (_contentTypeDecoder.IsValueDecoded)
                         {
                             CurrentState = State.Start;
-                            contentType = contentTypeDecoder.Value;
+                            _contentType = _contentTypeDecoder.Value;
                         }
                         break;
                     case State.Start:
@@ -1339,7 +1339,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return viaDecoder.ValueAsUri;
+                return _viaDecoder.ValueAsUri;
             }
         }
 
@@ -1352,7 +1352,7 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
-                return contentType;
+                return _contentType;
             }
         }
 

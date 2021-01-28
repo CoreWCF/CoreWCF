@@ -11,8 +11,8 @@ namespace CoreWCF.Channels
     internal abstract class ReceiveContext
     {
         public readonly static string Name = "ReceiveContext";
-        private readonly SemaphoreSlim stateLock; // protects state that may be reverted
-        private bool contextFaulted;
+        private readonly SemaphoreSlim _stateLock; // protects state that may be reverted
+        private bool _contextFaulted;
 
         //EventTraceActivity eventTraceActivity;
 
@@ -20,7 +20,7 @@ namespace CoreWCF.Channels
         {
             ThisLock = new object();
             State = ReceiveContextState.Received;
-            stateLock = new SemaphoreSlim(1);
+            _stateLock = new SemaphoreSlim(1);
         }
 
         public ReceiveContextState State
@@ -227,7 +227,6 @@ namespace CoreWCF.Channels
                     Fault();
                 }
             }
-
         }
 
         public virtual void Complete(TimeSpan timeout)
@@ -328,11 +327,11 @@ namespace CoreWCF.Channels
         {
             lock (ThisLock)
             {
-                if (contextFaulted)
+                if (_contextFaulted)
                 {
                     return;
                 }
-                contextFaulted = true;
+                _contextFaulted = true;
             }
 
             //if (TD.ReceiveContextFaultedIsEnabled())
@@ -414,12 +413,11 @@ namespace CoreWCF.Channels
 
         private void ReleaseStateLock()
         {
-            stateLock.Release();
+            _stateLock.Release();
         }
 
         private void ThrowIfFaulted()
         {
-
             if (State == ReceiveContextState.Faulted)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
@@ -458,7 +456,7 @@ namespace CoreWCF.Channels
         {
             try
             {
-                await stateLock.WaitAsync(token);
+                await _stateLock.WaitAsync(token);
             }
             catch (TaskCanceledException exception)
             {
@@ -470,7 +468,7 @@ namespace CoreWCF.Channels
         {
             try
             {
-                stateLock.Wait(timeout);
+                _stateLock.Wait(timeout);
             }
             catch (TimeoutException exception)
             {

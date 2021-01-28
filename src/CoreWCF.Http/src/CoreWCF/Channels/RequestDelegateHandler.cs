@@ -192,7 +192,6 @@ namespace CoreWCF.Channels
             if (context.WebSockets.IsWebSocketRequest)
             {
                 WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-
             }
         }
     }

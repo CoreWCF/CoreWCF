@@ -12,7 +12,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class UniqueContractNameValidationBehavior : IServiceBehavior
     {
-        private readonly Dictionary<XmlQualifiedName, ContractDescription> contracts = new Dictionary<XmlQualifiedName, ContractDescription>();
+        private readonly Dictionary<XmlQualifiedName, ContractDescription> _contracts = new Dictionary<XmlQualifiedName, ContractDescription>();
 
         public UniqueContractNameValidationBehavior() { }
 
@@ -32,11 +32,11 @@ namespace CoreWCF.Dispatcher
             {
                 XmlQualifiedName qname = new XmlQualifiedName(endpoint.Contract.Name, endpoint.Contract.Namespace);
 
-                if (!contracts.ContainsKey(qname))
+                if (!_contracts.ContainsKey(qname))
                 {
-                    contracts.Add(qname, endpoint.Contract);
+                    _contracts.Add(qname, endpoint.Contract);
                 }
-                else if (contracts[qname] != endpoint.Contract)
+                else if (_contracts[qname] != endpoint.Contract)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                         SR.Format(SR.SFxMultipleContractsWithSameName, qname.Name, qname.Namespace)));
@@ -52,5 +52,4 @@ namespace CoreWCF.Dispatcher
         {
         }
     }
-
 }

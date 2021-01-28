@@ -8,7 +8,6 @@ namespace CoreWCF.Configuration
 {
     internal interface IServiceConfiguration<TService> : IServiceConfiguration where TService : class
     {
-
     }
 
     internal interface IServiceConfiguration

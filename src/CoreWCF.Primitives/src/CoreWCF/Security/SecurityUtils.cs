@@ -113,18 +113,18 @@ namespace CoreWCF.Security
 
     internal class ServiceModelDictionaryManager
     {
-        private static DictionaryManager dictionaryManager;
+        private static DictionaryManager s_dictionaryManager;
 
         public static DictionaryManager Instance
         {
             get
             {
-                if (dictionaryManager == null)
+                if (s_dictionaryManager == null)
                 {
-                    dictionaryManager = new DictionaryManager((ServiceModelDictionary)BinaryMessageEncoderFactory.XmlDictionary);
+                    s_dictionaryManager = new DictionaryManager((ServiceModelDictionary)BinaryMessageEncoderFactory.XmlDictionary);
                 }
 
-                return dictionaryManager;
+                return s_dictionaryManager;
             }
         }
     }
@@ -133,32 +133,32 @@ namespace CoreWCF.Security
     {
         public const string Principal = "Principal";
         public const string Identities = "Identities";
-        private static SecurityIdentifier administratorsSid;
+        private static SecurityIdentifier s_administratorsSid;
         internal static byte[] ReadContentAsBase64(XmlDictionaryReader reader, long maxBufferSize)
         {
             throw new PlatformNotSupportedException();
         }
 
-        private static bool computedDomain;
+        private static bool s_computedDomain;
 
         internal static byte[] EncryptKey(SecurityToken wrappingToken, string wrappingAlgorithm, byte[] keyToWrap)
         {
             throw new PlatformNotSupportedException();
         }
 
-        private static string currentDomain;
-        private static IIdentity anonymousIdentity;
-        private static X509SecurityTokenAuthenticator nonValidatingX509Authenticator;
+        private static string s_currentDomain;
+        private static IIdentity s_anonymousIdentity;
+        private static X509SecurityTokenAuthenticator s_nonValidatingX509Authenticator;
 
         internal static IIdentity AnonymousIdentity
         {
             get
             {
-                if (anonymousIdentity == null)
+                if (s_anonymousIdentity == null)
                 {
-                    anonymousIdentity = SecurityUtils.CreateIdentity(string.Empty);
+                    s_anonymousIdentity = SecurityUtils.CreateIdentity(string.Empty);
                 }
-                return anonymousIdentity;
+                return s_anonymousIdentity;
             }
         }
 
@@ -166,11 +166,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (nonValidatingX509Authenticator == null)
+                if (s_nonValidatingX509Authenticator == null)
                 {
-                    nonValidatingX509Authenticator = new X509SecurityTokenAuthenticator(X509CertificateValidator.None);
+                    s_nonValidatingX509Authenticator = new X509SecurityTokenAuthenticator(X509CertificateValidator.None);
                 }
-                return nonValidatingX509Authenticator;
+                return s_nonValidatingX509Authenticator;
             }
         }
 
@@ -184,12 +184,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (administratorsSid == null)
+                if (s_administratorsSid == null)
                 {
-                    administratorsSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+                    s_administratorsSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
                 }
 
-                return administratorsSid;
+                return s_administratorsSid;
             }
         }
 
@@ -329,17 +329,17 @@ namespace CoreWCF.Security
 
         internal static string GetPrimaryDomain(bool isSystemAccount)
         {
-            if (computedDomain == false)
+            if (s_computedDomain == false)
             {
                 try
                 {
                     if (isSystemAccount)
                     {
-                        currentDomain = Domain.GetComputerDomain().Name;
+                        s_currentDomain = Domain.GetComputerDomain().Name;
                     }
                     else
                     {
-                        currentDomain = Domain.GetCurrentDomain().Name;
+                        s_currentDomain = Domain.GetCurrentDomain().Name;
                     }
                 }
                 catch (Exception e)
@@ -352,10 +352,10 @@ namespace CoreWCF.Security
                 }
                 finally
                 {
-                    computedDomain = true;
+                    s_computedDomain = true;
                 }
             }
-            return currentDomain;
+            return s_currentDomain;
         }
 
         internal static void EnsureCertificateCanDoKeyExchange(X509Certificate2 certificate)
@@ -1141,7 +1141,6 @@ namespace CoreWCF.Security
             DateTime curTime = DateTime.UtcNow;
 
             return (curEffectiveTime.ToUniversalTime() <= curTime) && (curTime < curExpirationTime.ToUniversalTime());
-
         }
 
         // match the RST with the endpoint filters in case there is at least 1 asymmetric signature in the message
@@ -1331,39 +1330,39 @@ namespace CoreWCF.Security
 
         private class SimpleAuthorizationContext : AuthorizationContext
         {
-            private SecurityUniqueId id;
-            private readonly UnconditionalPolicy policy;
-            private readonly IDictionary<string, object> properties;
+            private SecurityUniqueId _id;
+            private readonly UnconditionalPolicy _policy;
+            private readonly IDictionary<string, object> _properties;
 
             public SimpleAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
             {
-                policy = (UnconditionalPolicy)authorizationPolicies[0];
+                _policy = (UnconditionalPolicy)authorizationPolicies[0];
                 Dictionary<string, object> properties = new Dictionary<string, object>();
-                if (policy.PrimaryIdentity != null && policy.PrimaryIdentity != SecurityUtils.AnonymousIdentity)
+                if (_policy.PrimaryIdentity != null && _policy.PrimaryIdentity != SecurityUtils.AnonymousIdentity)
                 {
                     List<IIdentity> identities = new List<IIdentity>();
-                    identities.Add(policy.PrimaryIdentity);
+                    identities.Add(_policy.PrimaryIdentity);
                     properties.Add(SecurityUtils.Identities, identities);
                 }
                 // Might need to port ReadOnlyDictionary?
-                this.properties = properties;
+                _properties = properties;
             }
 
             public override string Id
             {
                 get
                 {
-                    if (id == null)
+                    if (_id == null)
                     {
-                        id = SecurityUniqueId.Create();
+                        _id = SecurityUniqueId.Create();
                     }
 
-                    return id.Value;
+                    return _id.Value;
                 }
             }
-            public override ReadOnlyCollection<ClaimSet> ClaimSets { get { return policy.Issuances; } }
-            public override DateTime ExpirationTime { get { return policy.ExpirationTime; } }
-            public override IDictionary<string, object> Properties { get { return properties; } }
+            public override ReadOnlyCollection<ClaimSet> ClaimSets { get { return _policy.Issuances; } }
+            public override DateTime ExpirationTime { get { return _policy.ExpirationTime; } }
+            public override IDictionary<string, object> Properties { get { return _properties; } }
         }
         internal static AuthorizationContext CreateDefaultAuthorizationContext(IList<IAuthorizationPolicy> authorizationPolicies)
         {
@@ -1415,7 +1414,6 @@ namespace CoreWCF.Security
                              }*/
                         }
                     }
-
                 } while (oldContextCount < evaluationContext.Generation);
 
                 authorizationContext = new DefaultAuthorizationContext(evaluationContext);
@@ -1441,8 +1439,6 @@ namespace CoreWCF.Security
 
             return false;
         }
-
-
     }
 
     internal static class EmptyReadOnlyCollection<T>

@@ -18,18 +18,18 @@ namespace CoreWCF.Dispatcher
         //bool addTransactionFlowProperties = true;
         internal SynchronizedCollection<IClientMessageInspector> messageInspectors;
         internal SynchronizedKeyedCollection<string, ClientOperation> operations;
-        private Type callbackProxyType;
-        private readonly ProxyBehaviorCollection<IChannelInitializer> channelInitializers;
-        private readonly string contractNamespace;
-        private Type contractProxyType;
-        private IdentityVerifier identityVerifier;
-        private IClientOperationSelector operationSelector;
-        private ImmutableClientRuntime runtime;
-        private bool useSynchronizationContext = true;
-        private Uri via;
-        private readonly SharedRuntimeState shared;
-        private int maxFaultSize;
-        private bool messageVersionNoneFaultsEnabled;
+        private Type _callbackProxyType;
+        private readonly ProxyBehaviorCollection<IChannelInitializer> _channelInitializers;
+        private readonly string _contractNamespace;
+        private Type _contractProxyType;
+        private IdentityVerifier _identityVerifier;
+        private IClientOperationSelector _operationSelector;
+        private ImmutableClientRuntime _runtime;
+        private bool _useSynchronizationContext = true;
+        private Uri _via;
+        private readonly SharedRuntimeState _shared;
+        private int _maxFaultSize;
+        private bool _messageVersionNoneFaultsEnabled;
 
         internal ClientRuntime(DispatchRuntime dispatchRuntime, SharedRuntimeState shared)
             : this(dispatchRuntime.EndpointDispatcher.ContractName,
@@ -42,7 +42,7 @@ namespace CoreWCF.Dispatcher
             }
 
             DispatchRuntime = dispatchRuntime;
-            this.shared = shared;
+            _shared = shared;
 
             Fx.Assert(shared.IsOnServer, "Server constructor called on client?");
         }
@@ -50,23 +50,23 @@ namespace CoreWCF.Dispatcher
         internal ClientRuntime(string contractName, string contractNamespace)
             : this(contractName, contractNamespace, new SharedRuntimeState(false))
         {
-            Fx.Assert(!shared.IsOnServer, "Client constructor called on server?");
+            Fx.Assert(!_shared.IsOnServer, "Client constructor called on server?");
         }
 
         private ClientRuntime(string contractName, string contractNamespace, SharedRuntimeState shared)
         {
             ContractName = contractName;
-            this.contractNamespace = contractNamespace;
-            this.shared = shared;
+            _contractNamespace = contractNamespace;
+            _shared = shared;
 
             OperationCollection operations = new OperationCollection(this);
             this.operations = operations;
-            channelInitializers = new ProxyBehaviorCollection<IChannelInitializer>(this);
+            _channelInitializers = new ProxyBehaviorCollection<IChannelInitializer>(this);
             messageInspectors = new ProxyBehaviorCollection<IClientMessageInspector>(this);
 
             UnhandledClientOperation = new ClientOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
             UnhandledClientOperation.InternalFormatter = new MessageOperationFormatter();
-            maxFaultSize = TransportDefaults.MaxFaultSize;
+            _maxFaultSize = TransportDefaults.MaxFaultSize;
         }
 
         //internal bool AddTransactionFlowProperties
@@ -84,38 +84,38 @@ namespace CoreWCF.Dispatcher
 
         public Type CallbackClientType
         {
-            get { return callbackProxyType; }
+            get { return _callbackProxyType; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    callbackProxyType = value;
+                    _callbackProxyType = value;
                 }
             }
         }
 
         public SynchronizedCollection<IChannelInitializer> ChannelInitializers
         {
-            get { return channelInitializers; }
+            get { return _channelInitializers; }
         }
 
         public string ContractName { get; }
 
         public string ContractNamespace
         {
-            get { return contractNamespace; }
+            get { return _contractNamespace; }
         }
 
         public Type ContractClientType
         {
-            get { return contractProxyType; }
+            get { return _contractProxyType; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    contractProxyType = value;
+                    _contractProxyType = value;
                 }
             }
         }
@@ -124,12 +124,12 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (identityVerifier == null)
+                if (_identityVerifier == null)
                 {
-                    identityVerifier = IdentityVerifier.CreateDefault();
+                    _identityVerifier = IdentityVerifier.CreateDefault();
                 }
 
-                return identityVerifier;
+                return _identityVerifier;
             }
             set
             {
@@ -139,32 +139,32 @@ namespace CoreWCF.Dispatcher
                 }
                 InvalidateRuntime();
 
-                identityVerifier = value;
+                _identityVerifier = value;
             }
         }
 
         public Uri Via
         {
-            get { return via; }
+            get { return _via; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    via = value;
+                    _via = value;
                 }
             }
         }
 
         public bool ValidateMustUnderstand
         {
-            get { return shared.ValidateMustUnderstand; }
+            get { return _shared.ValidateMustUnderstand; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    shared.ValidateMustUnderstand = value;
+                    _shared.ValidateMustUnderstand = value;
                 }
             }
         }
@@ -173,12 +173,12 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return messageVersionNoneFaultsEnabled;
+                return _messageVersionNoneFaultsEnabled;
             }
             set
             {
                 InvalidateRuntime();
-                messageVersionNoneFaultsEnabled = value;
+                _messageVersionNoneFaultsEnabled = value;
             }
         }
 
@@ -190,7 +190,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (DispatchRuntime == null)
                 {
-                    DispatchRuntime = new DispatchRuntime(this, shared);
+                    DispatchRuntime = new DispatchRuntime(this, _shared);
                 }
 
                 return DispatchRuntime;
@@ -207,7 +207,7 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    return shared.EnableFaults;
+                    return _shared.EnableFaults;
                 }
             }
             set
@@ -222,7 +222,7 @@ namespace CoreWCF.Dispatcher
                     else
                     {
                         InvalidateRuntime();
-                        shared.EnableFaults = value;
+                        _shared.EnableFaults = value;
                     }
                 }
             }
@@ -232,18 +232,18 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return maxFaultSize;
+                return _maxFaultSize;
             }
             set
             {
                 InvalidateRuntime();
-                maxFaultSize = value;
+                _maxFaultSize = value;
             }
         }
 
         internal bool IsOnServer
         {
-            get { return shared.IsOnServer; }
+            get { return _shared.IsOnServer; }
         }
 
         public bool ManualAddressing
@@ -256,7 +256,7 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    return shared.ManualAddressing;
+                    return _shared.ManualAddressing;
                 }
             }
             set
@@ -271,7 +271,7 @@ namespace CoreWCF.Dispatcher
                     else
                     {
                         InvalidateRuntime();
-                        shared.ManualAddressing = value;
+                        _shared.ManualAddressing = value;
                     }
                 }
             }
@@ -318,33 +318,33 @@ namespace CoreWCF.Dispatcher
 
         internal IClientOperationSelector OperationSelector
         {
-            get { return operationSelector; }
+            get { return _operationSelector; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    operationSelector = value;
+                    _operationSelector = value;
                 }
             }
         }
 
         internal object ThisLock
         {
-            get { return shared; }
+            get { return _shared; }
         }
 
         public ClientOperation UnhandledClientOperation { get; }
 
         internal bool UseSynchronizationContext
         {
-            get { return useSynchronizationContext; }
+            get { return _useSynchronizationContext; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    useSynchronizationContext = value;
+                    _useSynchronizationContext = value;
                 }
             }
         }
@@ -370,12 +370,12 @@ namespace CoreWCF.Dispatcher
         {
             lock (ThisLock)
             {
-                if (runtime == null)
+                if (_runtime == null)
                 {
-                    runtime = new ImmutableClientRuntime(this);
+                    _runtime = new ImmutableClientRuntime(this);
                 }
 
-                return runtime;
+                return _runtime;
             }
         }
 
@@ -383,14 +383,14 @@ namespace CoreWCF.Dispatcher
         {
             lock (ThisLock)
             {
-                shared.ThrowIfImmutable();
-                runtime = null;
+                _shared.ThrowIfImmutable();
+                _runtime = null;
             }
         }
 
         internal void LockDownProperties()
         {
-            shared.LockDownProperties();
+            _shared.LockDownProperties();
         }
 
         internal SynchronizedCollection<T> NewBehaviorCollection<T>()
@@ -443,17 +443,17 @@ namespace CoreWCF.Dispatcher
 
         private class ProxyBehaviorCollection<T> : SynchronizedCollection<T>
         {
-            private readonly ClientRuntime outer;
+            private readonly ClientRuntime _outer;
 
             internal ProxyBehaviorCollection(ClientRuntime outer)
                 : base(outer.ThisLock)
             {
-                this.outer = outer;
+                _outer = outer;
             }
 
             protected override void ClearItems()
             {
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.ClearItems();
             }
 
@@ -464,13 +464,13 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.InsertItem(index, item);
             }
 
             protected override void RemoveItem(int index)
             {
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.RemoveItem(index);
             }
 
@@ -481,24 +481,24 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.SetItem(index, item);
             }
         }
 
         private class OperationCollection : SynchronizedKeyedCollection<string, ClientOperation>
         {
-            private readonly ClientRuntime outer;
+            private readonly ClientRuntime _outer;
 
             internal OperationCollection(ClientRuntime outer)
                 : base(outer.ThisLock)
             {
-                this.outer = outer;
+                _outer = outer;
             }
 
             protected override void ClearItems()
             {
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.ClearItems();
             }
 
@@ -514,18 +514,18 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                if (item.Parent != outer)
+                if (item.Parent != _outer)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxMismatchedOperationParent);
                 }
 
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.InsertItem(index, item);
             }
 
             protected override void RemoveItem(int index)
             {
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.RemoveItem(index);
             }
 
@@ -536,12 +536,12 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                if (item.Parent != outer)
+                if (item.Parent != _outer)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SFxMismatchedOperationParent);
                 }
 
-                outer.InvalidateRuntime();
+                _outer.InvalidateRuntime();
                 base.SetItem(index, item);
             }
 
@@ -554,15 +554,13 @@ namespace CoreWCF.Dispatcher
 
         private class OperationCollectionWrapper : KeyedCollection<string, ClientOperation>
         {
-            private readonly OperationCollection inner;
-            internal OperationCollectionWrapper(OperationCollection inner) { this.inner = inner; }
-            protected override void ClearItems() { inner.InternalClearItems(); }
-            protected override string GetKeyForItem(ClientOperation item) { return inner.InternalGetKeyForItem(item); }
-            protected override void InsertItem(int index, ClientOperation item) { inner.InternalInsertItem(index, item); }
-            protected override void RemoveItem(int index) { inner.InternalRemoveItem(index); }
-            protected override void SetItem(int index, ClientOperation item) { inner.InternalSetItem(index, item); }
+            private readonly OperationCollection _inner;
+            internal OperationCollectionWrapper(OperationCollection inner) { _inner = inner; }
+            protected override void ClearItems() { _inner.InternalClearItems(); }
+            protected override string GetKeyForItem(ClientOperation item) { return _inner.InternalGetKeyForItem(item); }
+            protected override void InsertItem(int index, ClientOperation item) { _inner.InternalInsertItem(index, item); }
+            protected override void RemoveItem(int index) { _inner.InternalRemoveItem(index); }
+            protected override void SetItem(int index, ClientOperation item) { _inner.InternalSetItem(index, item); }
         }
-
     }
-
 }

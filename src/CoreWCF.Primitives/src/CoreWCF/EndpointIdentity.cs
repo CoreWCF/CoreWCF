@@ -237,5 +237,4 @@ namespace CoreWCF
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnrecognizedIdentityPropertyType, IdentityClaim.GetType().ToString())));
         }
     }
-
 }

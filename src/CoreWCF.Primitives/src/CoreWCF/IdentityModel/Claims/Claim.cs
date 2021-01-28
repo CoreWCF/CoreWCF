@@ -15,15 +15,15 @@ namespace CoreWCF.IdentityModel.Claims
 {
     public class Claim
     {
-        private static Claim system;
+        private static Claim s_system;
 
         [DataMember(Name = "ClaimType")]
-        private readonly string claimType;
+        private readonly string _claimType;
         [DataMember(Name = "Resource")]
-        private readonly object resource;
+        private readonly object _resource;
         [DataMember(Name = "Right")]
-        private readonly string right;
-        private IEqualityComparer<Claim> comparer;
+        private readonly string _right;
+        private IEqualityComparer<Claim> _comparer;
 
         private Claim(string claimType, object resource, string right, IEqualityComparer<Claim> comparer)
         {
@@ -49,11 +49,11 @@ namespace CoreWCF.IdentityModel.Claims
 
             // String interning is only supported in .Net standard 1.7. Api tool says this is slow?
             //this.claimType = StringUtil.OptimizeString(claimType);
-            this.claimType = claimType;
-            this.resource = resource;
+            _claimType = claimType;
+            _resource = resource;
             //this.right = StringUtil.OptimizeString(right);
-            this.right = right;
-            this.comparer = comparer;
+            _right = right;
+            _comparer = comparer;
         }
 
         public Claim(string claimType, object resource, string right) : this(claimType, resource, right, null)
@@ -72,28 +72,28 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (system == null)
+                if (s_system == null)
                 {
-                    system = new Claim(ClaimTypes.System, XsiConstants.System, Rights.Identity);
+                    s_system = new Claim(ClaimTypes.System, XsiConstants.System, Rights.Identity);
                 }
 
-                return system;
+                return s_system;
             }
         }
 
         public object Resource
         {
-            get { return resource; }
+            get { return _resource; }
         }
 
         public string ClaimType
         {
-            get { return claimType; }
+            get { return _claimType; }
         }
 
         public string Right
         {
-            get { return right; }
+            get { return _right; }
         }
 
         // Turn key claims
@@ -215,28 +215,27 @@ namespace CoreWCF.IdentityModel.Claims
 
         public override bool Equals(object obj)
         {
-            if (comparer == null)
+            if (_comparer == null)
             {
-                comparer = ClaimComparer.GetComparer(claimType);
+                _comparer = ClaimComparer.GetComparer(_claimType);
             }
 
-            return comparer.Equals(this, obj as Claim);
+            return _comparer.Equals(this, obj as Claim);
         }
 
         public override int GetHashCode()
         {
-            if (comparer == null)
+            if (_comparer == null)
             {
-                comparer = ClaimComparer.GetComparer(claimType);
+                _comparer = ClaimComparer.GetComparer(_claimType);
             }
 
-            return comparer.GetHashCode(this);
+            return _comparer.GetHashCode(this);
         }
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.CurrentCulture, "{0}: {1}", right, claimType);
+            return string.Format(CultureInfo.CurrentCulture, "{0}: {1}", _right, _claimType);
         }
     }
-
 }

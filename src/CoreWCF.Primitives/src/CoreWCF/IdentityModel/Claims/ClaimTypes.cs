@@ -72,5 +72,4 @@ namespace CoreWCF.IdentityModel.Claims
         static public string PPID { get { return ppid; } }
         static public string Webpage { get { return webpage; } }
     }
-
 }

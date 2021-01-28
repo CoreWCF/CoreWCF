@@ -9,13 +9,13 @@ namespace CoreWCF.Description
 {
     internal class ConfigLoader
     {
-        private readonly Dictionary<string, Binding> bindingTable;
-        private readonly IContractResolver contractResolver;
+        private readonly Dictionary<string, Binding> _bindingTable;
+        private readonly IContractResolver _contractResolver;
 
         public ConfigLoader(IContractResolver contractResolver)
         {
-            this.contractResolver = contractResolver;
-            bindingTable = new Dictionary<string, Binding>();
+            _contractResolver = contractResolver;
+            _bindingTable = new Dictionary<string, Binding>();
         }
 
         internal ContractDescription LookupContract(string contractName, string serviceName)
@@ -38,7 +38,7 @@ namespace CoreWCF.Description
 
         internal ContractDescription LookupContractForStandardEndpoint(string contractName, string serviceName)
         {
-            return contractResolver.ResolveContract(contractName);
+            return _contractResolver.ResolveContract(contractName);
         }
     }
 }

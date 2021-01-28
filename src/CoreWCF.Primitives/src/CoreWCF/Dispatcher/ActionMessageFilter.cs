@@ -12,16 +12,16 @@ namespace CoreWCF.Dispatcher
     [DataContract]
     internal class ActionMessageFilter : MessageFilter
     {
-        private Dictionary<string, int> actions;
-        private ReadOnlyCollection<string> actionSet;
+        private Dictionary<string, int> _actions;
+        private ReadOnlyCollection<string> _actionSet;
 
         [DataMember(IsRequired = true)]
         internal string[] DCActions
         {
             get
             {
-                string[] act = new string[actions.Count];
-                actions.Keys.CopyTo(act, 0);
+                string[] act = new string[_actions.Count];
+                _actions.Keys.CopyTo(act, 0);
                 return act;
             }
             set
@@ -47,13 +47,13 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.ActionFilterEmptyList, nameof(actions)));
             }
 
-            this.actions = new Dictionary<string, int>();
+            _actions = new Dictionary<string, int>();
             for (int i = 0; i < actions.Length; ++i)
             {
                 // Duplicates are removed
-                if (!this.actions.ContainsKey(actions[i]))
+                if (!_actions.ContainsKey(actions[i]))
                 {
-                    this.actions.Add(actions[i], 0);
+                    _actions.Add(actions[i], 0);
                 }
             }
         }
@@ -62,11 +62,11 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (actionSet == null)
+                if (_actionSet == null)
                 {
-                    actionSet = new ReadOnlyCollection<string>(new List<string>(actions.Keys));
+                    _actionSet = new ReadOnlyCollection<string>(new List<string>(_actions.Keys));
                 }
-                return actionSet;
+                return _actionSet;
             }
         }
 
@@ -83,7 +83,7 @@ namespace CoreWCF.Dispatcher
                 act = string.Empty;
             }
 
-            return actions.ContainsKey(act);
+            return _actions.ContainsKey(act);
         }
 
         public override bool Match(Message message)
@@ -114,5 +114,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

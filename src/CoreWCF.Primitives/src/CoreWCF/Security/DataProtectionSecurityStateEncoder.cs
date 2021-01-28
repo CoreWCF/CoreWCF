@@ -8,10 +8,9 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
-
     public class DataProtectionSecurityStateEncoder : SecurityStateEncoder
     {
-        private readonly byte[] entropy;
+        private readonly byte[] _entropy;
 
         public DataProtectionSecurityStateEncoder() : this(true)
         {
@@ -26,12 +25,12 @@ namespace CoreWCF.Security
             UseCurrentUserProtectionScope = useCurrentUserProtectionScope;
             if (entropy == null)
             {
-                this.entropy = null;
+                _entropy = null;
             }
             else
             {
-                this.entropy = Fx.AllocateByteArray(entropy.Length);
-                Buffer.BlockCopy(entropy, 0, this.entropy, 0, entropy.Length);
+                _entropy = Fx.AllocateByteArray(entropy.Length);
+                Buffer.BlockCopy(entropy, 0, _entropy, 0, entropy.Length);
             }
         }
 
@@ -40,10 +39,10 @@ namespace CoreWCF.Security
         public byte[] GetEntropy()
         {
             byte[] result = null;
-            if (entropy != null)
+            if (_entropy != null)
             {
-                result = Fx.AllocateByteArray(entropy.Length);
-                Buffer.BlockCopy(entropy, 0, result, 0, entropy.Length);
+                result = Fx.AllocateByteArray(_entropy.Length);
+                Buffer.BlockCopy(_entropy, 0, result, 0, _entropy.Length);
             }
             return result;
         }
@@ -53,7 +52,7 @@ namespace CoreWCF.Security
             StringBuilder result = new StringBuilder();
             result.Append(GetType().ToString());
             result.AppendFormat("{0}  UseCurrentUserProtectionScope={1}", Environment.NewLine, UseCurrentUserProtectionScope);
-            result.AppendFormat("{0}  Entropy Length={1}", Environment.NewLine, (entropy == null) ? 0 : entropy.Length);
+            result.AppendFormat("{0}  Entropy Length={1}", Environment.NewLine, (_entropy == null) ? 0 : _entropy.Length);
             return result.ToString();
         }
 
@@ -61,20 +60,19 @@ namespace CoreWCF.Security
         {
             try
             {
-                return ProtectedData.Unprotect(data, entropy, (UseCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
+                return ProtectedData.Unprotect(data, _entropy, (UseCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
             }
             catch (CryptographicException exception)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.SecurityStateEncoderDecodingFailure, exception));
             }
-
         }
 
         protected internal override byte[] EncodeSecurityState(byte[] data)
         {
             try
             {
-                return ProtectedData.Protect(data, entropy, (UseCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
+                return ProtectedData.Protect(data, _entropy, (UseCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
             }
             catch (CryptographicException exception)
             {

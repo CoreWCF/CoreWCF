@@ -138,5 +138,4 @@ namespace CoreWCF
             return false;
         }
     }
-
 }

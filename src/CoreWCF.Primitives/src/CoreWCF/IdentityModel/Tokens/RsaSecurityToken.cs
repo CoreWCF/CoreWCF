@@ -10,8 +10,8 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal class RsaSecurityToken : SecurityToken
     {
-        private readonly string id;
-        private readonly DateTime effectiveTime;
+        private readonly string _id;
+        private readonly DateTime _effectiveTime;
 
         public RsaSecurityToken(RSA rsa)
             : this(rsa, SecurityUniqueId.Create().Value)
@@ -31,18 +31,18 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             Rsa = rsa;
-            this.id = id;
-            effectiveTime = DateTime.UtcNow;
+            _id = id;
+            _effectiveTime = DateTime.UtcNow;
         }
 
         public override string Id
         {
-            get { return id; }
+            get { return _id; }
         }
 
         public override DateTime ValidFrom
         {
-            get { return effectiveTime; }
+            get { return _effectiveTime; }
         }
 
         public override DateTime ValidTo

@@ -88,7 +88,6 @@ namespace CoreWCF
             if (_writer != null)
 
             {
-
                 // We always want to Dispose of the writer now; previously, writers could be reassigned 
 
                 // to a new stream, with a new dictionary and session. 
@@ -98,7 +97,6 @@ namespace CoreWCF
                 thisWriter.Dispose();
 
                 _writer = null;
-
             }
 
             _writer = XmlDictionaryWriter.CreateBinaryWriter(_stream, XD.Dictionary, null, true);
@@ -169,5 +167,4 @@ namespace CoreWCF
             }
         }
     }
-
 }

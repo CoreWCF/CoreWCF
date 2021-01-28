@@ -9,10 +9,10 @@ namespace CoreWCF.IdentityModel
 {
     internal sealed class HashStream : Stream
     {
-        private long length;
-        private bool disposed;
-        private bool hashNeedsReset;
-        private MemoryStream logStream;
+        private long _length;
+        private bool _disposed;
+        private bool _hashNeedsReset;
+        private MemoryStream _logStream;
 
         /// <summary>
         /// Constructor for HashStream. The HashAlgorithm instance is owned by the caller.
@@ -46,12 +46,12 @@ namespace CoreWCF.IdentityModel
 
         public override long Length
         {
-            get { return length; }
+            get { return _length; }
         }
 
         public override long Position
         {
-            get { return length; }
+            get { return _length; }
             set
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
@@ -69,7 +69,6 @@ namespace CoreWCF.IdentityModel
 
         public void FlushHash(MemoryStream preCanonicalBytes)
         {
-
             Hash.TransformFinalBlock(CryptoHelper.EmptyBuffer, 0, 0);
             //TODO logs Pii data
             //if (DigestTraceRecordHelper.ShouldTraceDigest)
@@ -94,23 +93,22 @@ namespace CoreWCF.IdentityModel
 
         public void Reset()
         {
-            if (hashNeedsReset)
+            if (_hashNeedsReset)
             {
                 Hash.Initialize();
-                hashNeedsReset = false;
+                _hashNeedsReset = false;
             }
-            length = 0;
+            _length = 0;
 
             // if (DigestTraceRecordHelper.ShouldTraceDigest)
             //     this.logStream = new MemoryStream();
-
         }
 
         public void Reset(HashAlgorithm hash)
         {
             Hash = hash;
-            hashNeedsReset = false;
-            length = 0;
+            _hashNeedsReset = false;
+            _length = 0;
 
             //  if (DigestTraceRecordHelper.ShouldTraceDigest)
             //     this.logStream = new MemoryStream();
@@ -119,8 +117,8 @@ namespace CoreWCF.IdentityModel
         public override void Write(byte[] buffer, int offset, int count)
         {
             Hash.TransformBlock(buffer, offset, count, buffer, offset);
-            length += count;
-            hashNeedsReset = true;
+            _length += count;
+            _hashNeedsReset = true;
 
             // if (DigestTraceRecordHelper.ShouldTraceDigest)
             //    this.logStream.Write(buffer, offset, count);
@@ -142,7 +140,7 @@ namespace CoreWCF.IdentityModel
         {
             base.Dispose(disposing);
 
-            if (disposed)
+            if (_disposed)
             {
                 return;
             }
@@ -153,16 +151,16 @@ namespace CoreWCF.IdentityModel
                 // Free all of our managed resources
                 //
 
-                if (logStream != null)
+                if (_logStream != null)
                 {
-                    logStream.Dispose();
-                    logStream = null;
+                    _logStream.Dispose();
+                    _logStream = null;
                 }
             }
 
             // Free native resources, if any.
 
-            disposed = true;
+            _disposed = true;
         }
 
         #endregion

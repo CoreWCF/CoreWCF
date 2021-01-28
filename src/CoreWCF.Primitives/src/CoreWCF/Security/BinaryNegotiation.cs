@@ -7,8 +7,8 @@ namespace CoreWCF.Security
 {
     internal sealed class BinaryNegotiation
     {
-        private readonly byte[] negotiationData;
-        private XmlDictionaryString valueTypeUriDictionaryString;
+        private readonly byte[] _negotiationData;
+        private XmlDictionaryString _valueTypeUriDictionaryString;
 
         public BinaryNegotiation(
             string valueTypeUri,
@@ -22,9 +22,9 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
             }
-            valueTypeUriDictionaryString = null;
+            _valueTypeUriDictionaryString = null;
             ValueTypeUri = valueTypeUri;
-            this.negotiationData = negotiationData;
+            _negotiationData = negotiationData;
         }
 
         public BinaryNegotiation(
@@ -39,9 +39,9 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
             }
-            valueTypeUriDictionaryString = valueTypeDictionaryString;
+            _valueTypeUriDictionaryString = valueTypeDictionaryString;
             ValueTypeUri = valueTypeDictionaryString.Value;
-            this.negotiationData = negotiationData;
+            _negotiationData = negotiationData;
         }
 
         public void Validate(XmlDictionaryString valueTypeUriDictionaryString)
@@ -50,16 +50,16 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.IncorrectBinaryNegotiationValueType, ValueTypeUri)));
             }
-            this.valueTypeUriDictionaryString = valueTypeUriDictionaryString;
+            _valueTypeUriDictionaryString = valueTypeUriDictionaryString;
         }
 
         public void WriteTo(XmlDictionaryWriter writer, string prefix, XmlDictionaryString localName, XmlDictionaryString ns, XmlDictionaryString valueTypeLocalName, XmlDictionaryString valueTypeNs)
         {
             writer.WriteStartElement(prefix, localName, ns);
             writer.WriteStartAttribute(valueTypeLocalName, valueTypeNs);
-            if (valueTypeUriDictionaryString != null)
+            if (_valueTypeUriDictionaryString != null)
             {
-                writer.WriteString(valueTypeUriDictionaryString);
+                writer.WriteString(_valueTypeUriDictionaryString);
             }
             else
             {
@@ -70,7 +70,7 @@ namespace CoreWCF.Security
             writer.WriteStartAttribute(XD.SecurityJan2004Dictionary.EncodingType, null);
             writer.WriteString(XD.SecurityJan2004Dictionary.EncodingTypeValueBase64Binary);
             writer.WriteEndAttribute();
-            writer.WriteBase64(negotiationData, 0, negotiationData.Length);
+            writer.WriteBase64(_negotiationData, 0, _negotiationData.Length);
             writer.WriteEndElement();
         }
 
@@ -79,7 +79,7 @@ namespace CoreWCF.Security
         public byte[] GetNegotiationData()
         {
             // avoid copying since this is internal and callers use it as read-only
-            return negotiationData;
+            return _negotiationData;
         }
     }
 }

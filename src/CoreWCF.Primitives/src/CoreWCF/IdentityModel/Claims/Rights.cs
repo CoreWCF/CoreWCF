@@ -11,6 +11,5 @@ namespace CoreWCF.IdentityModel.Claims
 
         static public string Identity { get { return identity; } }
         static public string PossessProperty { get { return possessProperty; } }
-
     }
 }

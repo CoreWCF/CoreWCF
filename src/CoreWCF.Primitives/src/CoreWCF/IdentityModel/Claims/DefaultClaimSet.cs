@@ -11,9 +11,9 @@ namespace CoreWCF.IdentityModel.Claims
     public class DefaultClaimSet : ClaimSet
     {
         [DataMember(Name = "Issuer")]
-        private ClaimSet issuer;
+        private ClaimSet _issuer;
         [DataMember(Name = "Claims")]
-        private IList<Claim> claims;
+        private IList<Claim> _claims;
 
         public DefaultClaimSet(params Claim[] claims)
         {
@@ -37,17 +37,17 @@ namespace CoreWCF.IdentityModel.Claims
 
         public override Claim this[int index]
         {
-            get { return claims[index]; }
+            get { return _claims[index]; }
         }
 
         public override int Count
         {
-            get { return claims.Count; }
+            get { return _claims.Count; }
         }
 
         public override ClaimSet Issuer
         {
-            get { return issuer; }
+            get { return _issuer; }
         }
 
         public override bool ContainsClaim(Claim claim)
@@ -57,9 +57,9 @@ namespace CoreWCF.IdentityModel.Claims
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
             }
 
-            for (int i = 0; i < claims.Count; ++i)
+            for (int i = 0; i < _claims.Count; ++i)
             {
-                if (claim.Equals(claims[i]))
+                if (claim.Equals(_claims[i]))
                 {
                     return true;
                 }
@@ -72,9 +72,9 @@ namespace CoreWCF.IdentityModel.Claims
             bool anyClaimType = (claimType == null);
             bool anyRight = (right == null);
 
-            for (int i = 0; i < claims.Count; ++i)
+            for (int i = 0; i < _claims.Count; ++i)
             {
-                Claim claim = claims[i];
+                Claim claim = _claims[i];
                 if ((claim != null) &&
                     (anyClaimType || claimType == claim.ClaimType) &&
                     (anyRight || right == claim.Right))
@@ -86,7 +86,7 @@ namespace CoreWCF.IdentityModel.Claims
 
         public override IEnumerator<Claim> GetEnumerator()
         {
-            return claims.GetEnumerator();
+            return _claims.GetEnumerator();
         }
 
         protected void Initialize(ClaimSet issuer, IList<Claim> claims)
@@ -101,8 +101,8 @@ namespace CoreWCF.IdentityModel.Claims
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claims));
             }
 
-            this.issuer = issuer;
-            this.claims = claims;
+            _issuer = issuer;
+            _claims = claims;
         }
 
         public override string ToString()
@@ -110,5 +110,4 @@ namespace CoreWCF.IdentityModel.Claims
             return SecurityUtils.ClaimSetToString(this);
         }
     }
-
 }

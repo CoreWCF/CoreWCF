@@ -10,17 +10,17 @@ namespace CoreWCF
     internal class ServiceModelDictionary : IXmlDictionary
     {
         static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
-        private readonly ServiceModelStrings strings;
-        private readonly int count;
-        private XmlDictionaryString[] dictionaryStrings1;
-        private XmlDictionaryString[] dictionaryStrings2;
-        private Dictionary<string, int> dictionary;
-        private XmlDictionaryString[] versionedDictionaryStrings;
+        private readonly ServiceModelStrings _strings;
+        private readonly int _count;
+        private XmlDictionaryString[] _dictionaryStrings1;
+        private XmlDictionaryString[] _dictionaryStrings2;
+        private Dictionary<string, int> _dictionary;
+        private XmlDictionaryString[] _versionedDictionaryStrings;
 
         public ServiceModelDictionary(ServiceModelStrings strings)
         {
-            this.strings = strings;
-            count = strings.Count;
+            _strings = strings;
+            _count = strings.Count;
         }
 
         static public ServiceModelDictionary CurrentVersion => Version1;
@@ -34,17 +34,17 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
             }
 
-            if (dictionary == null)
+            if (_dictionary == null)
             {
-                Dictionary<string, int> dictionary = new Dictionary<string, int>(count);
-                for (int i = 0; i < count; i++)
+                Dictionary<string, int> dictionary = new Dictionary<string, int>(_count);
+                for (int i = 0; i < _count; i++)
                 {
-                    dictionary.Add(strings[i], i);
+                    dictionary.Add(_strings[i], i);
                 }
 
-                this.dictionary = dictionary;
+                _dictionary = dictionary;
             }
-            if (dictionary.TryGetValue(key, out int id))
+            if (_dictionary.TryGetValue(key, out int id))
             {
                 return TryLookup(id, out value);
             }
@@ -56,7 +56,7 @@ namespace CoreWCF
         public bool TryLookup(int key, out XmlDictionaryString value)
         {
             const int keyThreshold = 32;
-            if (key < 0 || key >= count)
+            if (key < 0 || key >= _count)
             {
                 value = null;
                 return false;
@@ -64,30 +64,30 @@ namespace CoreWCF
             XmlDictionaryString s;
             if (key < keyThreshold)
             {
-                if (dictionaryStrings1 == null)
+                if (_dictionaryStrings1 == null)
                 {
-                    dictionaryStrings1 = new XmlDictionaryString[keyThreshold];
+                    _dictionaryStrings1 = new XmlDictionaryString[keyThreshold];
                 }
 
-                s = dictionaryStrings1[key];
+                s = _dictionaryStrings1[key];
                 if (s == null)
                 {
-                    s = CreateString(strings[key], key);
-                    dictionaryStrings1[key] = s;
+                    s = CreateString(_strings[key], key);
+                    _dictionaryStrings1[key] = s;
                 }
             }
             else
             {
-                if (dictionaryStrings2 == null)
+                if (_dictionaryStrings2 == null)
                 {
-                    dictionaryStrings2 = new XmlDictionaryString[count - keyThreshold];
+                    _dictionaryStrings2 = new XmlDictionaryString[_count - keyThreshold];
                 }
 
-                s = dictionaryStrings2[key - keyThreshold];
+                s = _dictionaryStrings2[key - keyThreshold];
                 if (s == null)
                 {
-                    s = CreateString(strings[key], key);
-                    dictionaryStrings2[key - keyThreshold] = s;
+                    s = CreateString(_strings[key], key);
+                    _dictionaryStrings2[key - keyThreshold] = s;
                 }
             }
             value = s;
@@ -108,12 +108,12 @@ namespace CoreWCF
             }
             if (key.Dictionary == CurrentVersion)
             {
-                if (versionedDictionaryStrings == null)
+                if (_versionedDictionaryStrings == null)
                 {
-                    versionedDictionaryStrings = new XmlDictionaryString[CurrentVersion.count];
+                    _versionedDictionaryStrings = new XmlDictionaryString[CurrentVersion._count];
                 }
 
-                XmlDictionaryString s = versionedDictionaryStrings[key.Key];
+                XmlDictionaryString s = _versionedDictionaryStrings[key.Key];
                 if (s == null)
                 {
                     if (!TryLookup(key.Value, out s))
@@ -121,7 +121,7 @@ namespace CoreWCF
                         value = null;
                         return false;
                     }
-                    versionedDictionaryStrings[key.Key] = s;
+                    _versionedDictionaryStrings[key.Key] = s;
                 }
                 value = s;
                 return true;

@@ -72,8 +72,5 @@ namespace CoreWCF.Description
             }
             return false;
         }
-
-
-
     }
 }

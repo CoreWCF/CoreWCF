@@ -8,19 +8,19 @@ namespace CoreWCF.Dispatcher
 {
     internal class EndpointFilterProvider
     {
-        private readonly object mutex;
+        private readonly object _mutex;
 
         public EndpointFilterProvider(params string[] initiatingActions)
         {
-            mutex = new object();
-            InitiatingActions = new SynchronizedCollection<string>(mutex, initiatingActions);
+            _mutex = new object();
+            InitiatingActions = new SynchronizedCollection<string>(_mutex, initiatingActions);
         }
 
         public SynchronizedCollection<string> InitiatingActions { get; }
 
         public MessageFilter CreateFilter(out int priority)
         {
-            lock (mutex)
+            lock (_mutex)
             {
                 priority = 1;
                 if (InitiatingActions.Count == 0)
@@ -46,5 +46,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

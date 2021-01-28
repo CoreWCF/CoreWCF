@@ -22,9 +22,9 @@ namespace CoreWCF.Channels
     internal class WindowsStreamSecurityUpgradeProvider : StreamSecurityUpgradeProvider
     {
         private EndpointIdentity _identity;
-        private readonly SecurityTokenManager securityTokenManager;
-        private readonly bool isClient;
-        private readonly Uri listenUri;
+        private readonly SecurityTokenManager _securityTokenManager;
+        private readonly bool _isClient;
+        private readonly Uri _listenUri;
 
         public WindowsStreamSecurityUpgradeProvider(WindowsStreamSecurityBindingElement bindingElement,
             BindingContext context, bool isClient)
@@ -33,8 +33,8 @@ namespace CoreWCF.Channels
             ExtractGroupsForWindowsAccounts = TransportDefaults.ExtractGroupsForWindowsAccounts;
             ProtectionLevel = bindingElement.ProtectionLevel;
             Scheme = context.Binding.Scheme;
-            this.isClient = isClient;
-            listenUri = TransportSecurityHelpers.GetListenUri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
+            _isClient = isClient;
+            _listenUri = TransportSecurityHelpers.GetListenUri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
 
             SecurityCredentialsManager credentialProvider = context.BindingParameters.Find<SecurityCredentialsManager>();
             if (credentialProvider == null)
@@ -50,7 +50,7 @@ namespace CoreWCF.Channels
             }
 
 
-            securityTokenManager = credentialProvider.CreateSecurityTokenManager();
+            _securityTokenManager = credentialProvider.CreateSecurityTokenManager();
         }
 
         public string Scheme { get; }
@@ -102,11 +102,11 @@ namespace CoreWCF.Channels
 
         protected override async Task OnOpenAsync(CancellationToken token)
         {
-            if (!isClient)
+            if (!_isClient)
             {
-                SecurityTokenRequirement sspiTokenRequirement = TransportSecurityHelpers.CreateSspiTokenRequirement(Scheme, listenUri);
+                SecurityTokenRequirement sspiTokenRequirement = TransportSecurityHelpers.CreateSspiTokenRequirement(Scheme, _listenUri);
                 (ServerCredential, ExtractGroupsForWindowsAccounts) = await
-                    TransportSecurityHelpers.GetSspiCredentialAsync(securityTokenManager, sspiTokenRequirement, token);
+                    TransportSecurityHelpers.GetSspiCredentialAsync(_securityTokenManager, sspiTokenRequirement, token);
             }
         }
 
@@ -127,14 +127,14 @@ namespace CoreWCF.Channels
 
         private class WindowsStreamSecurityUpgradeAcceptor : StreamSecurityUpgradeAcceptorBase
         {
-            private readonly WindowsStreamSecurityUpgradeProvider parent;
-            private readonly SecurityMessageProperty clientSecurity;
+            private readonly WindowsStreamSecurityUpgradeProvider _parent;
+            private readonly SecurityMessageProperty _clientSecurity;
 
             public WindowsStreamSecurityUpgradeAcceptor(WindowsStreamSecurityUpgradeProvider parent)
                 : base(FramingUpgradeString.Negotiate)
             {
-                this.parent = parent;
-                clientSecurity = new SecurityMessageProperty();
+                _parent = parent;
+                _clientSecurity = new SecurityMessageProperty();
             }
 
             protected override async Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
@@ -145,7 +145,7 @@ namespace CoreWCF.Channels
                 // authenticate
                 try
                 {
-                    await negotiateStream.AuthenticateAsServerAsync(parent.ServerCredential, parent.ProtectionLevel,
+                    await negotiateStream.AuthenticateAsServerAsync(_parent.ServerCredential, _parent.ProtectionLevel,
                         TokenImpersonationLevel.Identification);
                 }
                 catch (AuthenticationException exception)
@@ -159,7 +159,7 @@ namespace CoreWCF.Channels
                         SR.Format(SR.NegotiationFailedIO, ioException.Message), ioException));
                 }
 
-                SecurityMessageProperty remoteSecurity = CreateClientSecurity(negotiateStream, parent.ExtractGroupsForWindowsAccounts);
+                SecurityMessageProperty remoteSecurity = CreateClientSecurity(negotiateStream, _parent.ExtractGroupsForWindowsAccounts);
                 return (negotiateStream, remoteSecurity);
             }
 
@@ -191,9 +191,9 @@ namespace CoreWCF.Channels
 
             public override SecurityMessageProperty GetRemoteSecurity()
             {
-                if (clientSecurity.TransportToken != null)
+                if (_clientSecurity.TransportToken != null)
                 {
-                    return clientSecurity;
+                    return _clientSecurity;
                 }
                 return base.GetRemoteSecurity();
             }

@@ -44,5 +44,4 @@ namespace CoreWCF.IdentityModel.Selectors
         protected abstract bool CanValidateTokenCore(SecurityToken token);
         protected abstract ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token);
     }
-
 }

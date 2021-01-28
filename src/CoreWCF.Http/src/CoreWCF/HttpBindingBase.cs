@@ -180,6 +180,5 @@ namespace CoreWCF
             //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Transport.ClientCredentialType", transport.ClientCredentialType)));
             //}
         }
-
     }
 }

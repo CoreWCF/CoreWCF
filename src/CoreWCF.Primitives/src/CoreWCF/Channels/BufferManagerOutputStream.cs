@@ -8,24 +8,24 @@ namespace CoreWCF.Channels
 {
     internal class BufferManagerOutputStream : BufferedOutputStream
     {
-        private readonly string quotaExceededString;
+        private readonly string _quotaExceededString;
 
         public BufferManagerOutputStream(string quotaExceededString)
             : base()
         {
-            this.quotaExceededString = quotaExceededString;
+            _quotaExceededString = quotaExceededString;
         }
 
         public BufferManagerOutputStream(string quotaExceededString, int maxSize)
             : base(maxSize)
         {
-            this.quotaExceededString = quotaExceededString;
+            _quotaExceededString = quotaExceededString;
         }
 
         public BufferManagerOutputStream(string quotaExceededString, int initialSize, int maxSize, BufferManager bufferManager)
             : base(initialSize, maxSize, BufferManager.GetInternalBufferManager(bufferManager))
         {
-            this.quotaExceededString = quotaExceededString;
+            _quotaExceededString = quotaExceededString;
         }
 
         public void Init(int initialSize, int maxSizeQuota, BufferManager bufferManager)
@@ -40,7 +40,7 @@ namespace CoreWCF.Channels
 
         protected override Exception CreateQuotaExceededException(int maxSizeQuota)
         {
-            string excMsg = SR.Format(quotaExceededString, maxSizeQuota);
+            string excMsg = SR.Format(_quotaExceededString, maxSizeQuota);
             //if (TD.MaxSentMessageSizeExceededIsEnabled())
             //{
             //    TD.MaxSentMessageSizeExceeded(excMsg);

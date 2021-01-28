@@ -33,6 +33,5 @@ namespace CoreWCF.Security.Tokens
                     typeof(X509KeyIdentifierClauseType)));
             }
         }
-
     }
 }

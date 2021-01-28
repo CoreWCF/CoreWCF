@@ -10,12 +10,12 @@ namespace CoreWCF.Description
 {
     public class MessagePartDescription
     {
-        private readonly string ns;
-        private ProtectionLevel protectionLevel;
-        private bool hasProtectionLevel;
+        private readonly string _ns;
+        private ProtectionLevel _protectionLevel;
+        private bool _hasProtectionLevel;
 
         // TODO: Was ICustomAttributeProvider
-        private CustomAttributeProvider additionalAttributesProvider;
+        private CustomAttributeProvider _additionalAttributesProvider;
 
         public MessagePartDescription(string name, string ns)
         {
@@ -31,21 +31,21 @@ namespace CoreWCF.Description
                 NamingHelper.CheckUriParameter(ns, "ns");
             }
 
-            this.ns = ns;
+            _ns = ns;
         }
 
         internal MessagePartDescription(MessagePartDescription other)
         {
             XmlName = other.XmlName;
-            ns = other.ns;
+            _ns = other._ns;
             Index = other.Index;
             Type = other.Type;
             SerializationPosition = other.SerializationPosition;
-            hasProtectionLevel = other.hasProtectionLevel;
-            protectionLevel = other.protectionLevel;
+            _hasProtectionLevel = other._hasProtectionLevel;
+            _protectionLevel = other._protectionLevel;
             MemberInfo = other.MemberInfo;
             Multiple = other.Multiple;
-            additionalAttributesProvider = other.additionalAttributesProvider;
+            _additionalAttributesProvider = other._additionalAttributesProvider;
             //this.baseType = other.baseType;
             //this.uniquePartName = other.uniquePartName;
         }
@@ -64,7 +64,7 @@ namespace CoreWCF.Description
 
         public string Namespace
         {
-            get { return ns; }
+            get { return _ns; }
         }
 
         public Type Type { get; set; }
@@ -75,7 +75,7 @@ namespace CoreWCF.Description
 
         public ProtectionLevel ProtectionLevel
         {
-            get { return protectionLevel; }
+            get { return _protectionLevel; }
             set
             {
                 if (!ProtectionLevelHelper.IsDefined(value))
@@ -83,8 +83,8 @@ namespace CoreWCF.Description
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
 
-                protectionLevel = value;
-                hasProtectionLevel = true;
+                _protectionLevel = value;
+                _hasProtectionLevel = true;
             }
         }
         public MemberInfo MemberInfo { get; set; }
@@ -93,8 +93,8 @@ namespace CoreWCF.Description
 
         internal CustomAttributeProvider AdditionalAttributesProvider
         {
-            get { return additionalAttributesProvider ?? MemberInfo; }
-            set { additionalAttributesProvider = value; }
+            get { return _additionalAttributesProvider ?? MemberInfo; }
+            set { _additionalAttributesProvider = value; }
         }
 
         internal string UniquePartName { get; set; }

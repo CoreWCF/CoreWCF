@@ -27,67 +27,67 @@ namespace CoreWCF.Security
         // server->client symmetric binding case: only primary token is set
         // asymmetric binding case: primaryTokenAuthenticator and wrapping token is set
 
-        private SecurityTokenAuthenticator primaryTokenAuthenticator;
-        private readonly bool allowFirstTokenMismatch;
-        private SecurityToken outOfBandPrimaryToken;
-        private IList<SecurityToken> outOfBandPrimaryTokenCollection;
-        private SecurityTokenParameters primaryTokenParameters;
-        private TokenTracker primaryTokenTracker;
-        private SecurityToken wrappingToken;
-        private SecurityTokenParameters wrappingTokenParameters;
-        private readonly SecurityToken expectedEncryptionToken;
-        private readonly SecurityTokenParameters expectedEncryptionTokenParameters;
-        private SecurityTokenAuthenticator derivedTokenAuthenticator;
+        private SecurityTokenAuthenticator _primaryTokenAuthenticator;
+        private readonly bool _allowFirstTokenMismatch;
+        private SecurityToken _outOfBandPrimaryToken;
+        private IList<SecurityToken> _outOfBandPrimaryTokenCollection;
+        private SecurityTokenParameters _primaryTokenParameters;
+        private TokenTracker _primaryTokenTracker;
+        private SecurityToken _wrappingToken;
+        private SecurityTokenParameters _wrappingTokenParameters;
+        private readonly SecurityToken _expectedEncryptionToken;
+        private readonly SecurityTokenParameters _expectedEncryptionTokenParameters;
+        private SecurityTokenAuthenticator _derivedTokenAuthenticator;
 
         // assumes that the caller has done the check for uniqueness of types
-        private IList<SupportingTokenAuthenticatorSpecification> supportingTokenAuthenticators;
-        private ChannelBinding channelBinding;
-        private ExtendedProtectionPolicy extendedProtectionPolicy;
-        private bool expectEncryption = true;
+        private IList<SupportingTokenAuthenticatorSpecification> _supportingTokenAuthenticators;
+        private ChannelBinding _channelBinding;
+        private ExtendedProtectionPolicy _extendedProtectionPolicy;
+        private bool _expectEncryption = true;
 
         // caller should precompute and set expectations
-        private bool expectBasicTokens;
-        private bool expectSignedTokens;
-        private bool expectEndorsingTokens;
-        private bool expectSignature = true;
-        private bool requireSignedPrimaryToken;
-        private bool expectSignatureConfirmation;
+        private bool _expectBasicTokens;
+        private bool _expectSignedTokens;
+        private bool _expectEndorsingTokens;
+        private bool _expectSignature = true;
+        private bool _requireSignedPrimaryToken;
+        private bool _expectSignatureConfirmation;
 
         // maps from token to wire form (for basic and signed), and also tracks operations done
         // maps from supporting token parameter to the operations done for that token type
-        private List<TokenTracker> supportingTokenTrackers;
-        private SignatureConfirmations receivedSignatureValues;
-        private SignatureConfirmations receivedSignatureConfirmations;
-        private List<SecurityTokenAuthenticator> allowedAuthenticators;
-        private SecurityTokenAuthenticator pendingSupportingTokenAuthenticator;
-        private WrappedKeySecurityToken wrappedKeyToken;
-        private Collection<SecurityToken> basicTokens;
-        private Collection<SecurityToken> signedTokens;
-        private Collection<SecurityToken> endorsingTokens;
-        private Collection<SecurityToken> signedEndorsingTokens;
-        private Dictionary<SecurityToken, ReadOnlyCollection<IAuthorizationPolicy>> tokenPoliciesMapping;
-        private List<SecurityTokenAuthenticator> wrappedKeyAuthenticator;
-        private SecurityHeaderTokenResolver universalTokenResolver;
-        private ReadOnlyCollection<SecurityTokenResolver> outOfBandTokenResolver;
-        private SecurityTokenResolver combinedPrimaryTokenResolver;
-        private XmlAttributeHolder[] securityElementAttributes;
-        private OrderTracker orderTracker = new OrderTracker();
-        private OperationTracker signatureTracker = new OperationTracker();
-        private OperationTracker encryptionTracker = new OperationTracker();
-        private int maxDerivedKeys;
-        private int numDerivedKeys;
-        private bool enforceDerivedKeyRequirement = true;
-        private NonceCache nonceCache;
-        private TimeSpan replayWindow;
-        private TimeSpan clockSkew;
-        private TimeoutHelper timeoutHelper;
-        private long maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
-        private XmlDictionaryReaderQuotas readerQuotas;
-        private MessageProtectionOrder protectionOrder;
-        private bool hasAtLeastOneSupportingTokenExpectedToBeSigned;
-        private bool hasEndorsingOrSignedEndorsingSupportingTokens;
-        private SignatureResourcePool resourcePool;
-        private bool replayDetectionEnabled = false;
+        private List<TokenTracker> _supportingTokenTrackers;
+        private SignatureConfirmations _receivedSignatureValues;
+        private SignatureConfirmations _receivedSignatureConfirmations;
+        private List<SecurityTokenAuthenticator> _allowedAuthenticators;
+        private SecurityTokenAuthenticator _pendingSupportingTokenAuthenticator;
+        private WrappedKeySecurityToken _wrappedKeyToken;
+        private Collection<SecurityToken> _basicTokens;
+        private Collection<SecurityToken> _signedTokens;
+        private Collection<SecurityToken> _endorsingTokens;
+        private Collection<SecurityToken> _signedEndorsingTokens;
+        private Dictionary<SecurityToken, ReadOnlyCollection<IAuthorizationPolicy>> _tokenPoliciesMapping;
+        private List<SecurityTokenAuthenticator> _wrappedKeyAuthenticator;
+        private SecurityHeaderTokenResolver _universalTokenResolver;
+        private ReadOnlyCollection<SecurityTokenResolver> _outOfBandTokenResolver;
+        private SecurityTokenResolver _combinedPrimaryTokenResolver;
+        private XmlAttributeHolder[] _securityElementAttributes;
+        private OrderTracker _orderTracker = new OrderTracker();
+        private OperationTracker _signatureTracker = new OperationTracker();
+        private OperationTracker _encryptionTracker = new OperationTracker();
+        private int _maxDerivedKeys;
+        private int _numDerivedKeys;
+        private bool _enforceDerivedKeyRequirement = true;
+        private NonceCache _nonceCache;
+        private TimeSpan _replayWindow;
+        private TimeSpan _clockSkew;
+        private TimeoutHelper _timeoutHelper;
+        private long _maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
+        private XmlDictionaryReaderQuotas _readerQuotas;
+        private MessageProtectionOrder _protectionOrder;
+        private bool _hasAtLeastOneSupportingTokenExpectedToBeSigned;
+        private bool _hasEndorsingOrSignedEndorsingSupportingTokens;
+        private SignatureResourcePool _resourcePool;
+        private bool _replayDetectionEnabled = false;
         private const int AppendPosition = -1;
 
         // EventTraceActivity eventTraceActivity;
@@ -103,26 +103,26 @@ namespace CoreWCF.Security
             ElementManager = new ReceiveSecurityHeaderElementManager(this);
         }
 
-        public Collection<SecurityToken> BasicSupportingTokens => basicTokens;
+        public Collection<SecurityToken> BasicSupportingTokens => _basicTokens;
 
-        public Collection<SecurityToken> SignedSupportingTokens => signedTokens;
+        public Collection<SecurityToken> SignedSupportingTokens => _signedTokens;
 
-        public Collection<SecurityToken> EndorsingSupportingTokens => endorsingTokens;
+        public Collection<SecurityToken> EndorsingSupportingTokens => _endorsingTokens;
 
         public ReceiveSecurityHeaderElementManager ElementManager { get; }
 
-        public Collection<SecurityToken> SignedEndorsingSupportingTokens => signedEndorsingTokens;
+        public Collection<SecurityToken> SignedEndorsingSupportingTokens => _signedEndorsingTokens;
 
         public SecurityTokenAuthenticator DerivedTokenAuthenticator
         {
             get
             {
-                return derivedTokenAuthenticator;
+                return _derivedTokenAuthenticator;
             }
             set
             {
                 ThrowIfProcessingStarted();
-                derivedTokenAuthenticator = value;
+                _derivedTokenAuthenticator = value;
             }
         }
 
@@ -130,12 +130,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return wrappedKeyAuthenticator;
+                return _wrappedKeyAuthenticator;
             }
             set
             {
                 ThrowIfProcessingStarted();
-                wrappedKeyAuthenticator = value;
+                _wrappedKeyAuthenticator = value;
             }
         }
 
@@ -143,98 +143,98 @@ namespace CoreWCF.Security
         {
             get
             {
-                return enforceDerivedKeyRequirement;
+                return _enforceDerivedKeyRequirement;
             }
             set
             {
                 ThrowIfProcessingStarted();
-                enforceDerivedKeyRequirement = value;
+                _enforceDerivedKeyRequirement = value;
             }
         }
 
         public byte[] PrimarySignatureValue { get; private set; }
 
-        public bool EncryptBeforeSignMode => orderTracker.EncryptBeforeSignMode;
+        public bool EncryptBeforeSignMode => _orderTracker.EncryptBeforeSignMode;
 
-        public SecurityToken EncryptionToken => encryptionTracker.Token;
+        public SecurityToken EncryptionToken => _encryptionTracker.Token;
 
         public bool ExpectBasicTokens
         {
-            get { return expectBasicTokens; }
+            get { return _expectBasicTokens; }
             set
             {
                 ThrowIfProcessingStarted();
-                expectBasicTokens = value;
+                _expectBasicTokens = value;
             }
         }
 
         public bool ReplayDetectionEnabled
         {
-            get { return replayDetectionEnabled; }
+            get { return _replayDetectionEnabled; }
             set
             {
                 ThrowIfProcessingStarted();
-                replayDetectionEnabled = value;
+                _replayDetectionEnabled = value;
             }
         }
 
         public bool ExpectEncryption
         {
-            get { return expectEncryption; }
+            get { return _expectEncryption; }
             set
             {
                 ThrowIfProcessingStarted();
-                expectEncryption = value;
+                _expectEncryption = value;
             }
         }
 
         public bool ExpectSignature
         {
-            get { return expectSignature; }
+            get { return _expectSignature; }
             set
             {
                 ThrowIfProcessingStarted();
-                expectSignature = value;
+                _expectSignature = value;
             }
         }
 
         public bool ExpectSignatureConfirmation
         {
-            get { return expectSignatureConfirmation; }
+            get { return _expectSignatureConfirmation; }
             set
             {
                 ThrowIfProcessingStarted();
-                expectSignatureConfirmation = value;
+                _expectSignatureConfirmation = value;
             }
         }
 
         public bool ExpectSignedTokens
         {
-            get { return expectSignedTokens; }
+            get { return _expectSignedTokens; }
             set
             {
                 ThrowIfProcessingStarted();
-                expectSignedTokens = value;
+                _expectSignedTokens = value;
             }
         }
 
         public bool RequireSignedPrimaryToken
         {
-            get { return requireSignedPrimaryToken; }
+            get { return _requireSignedPrimaryToken; }
             set
             {
                 ThrowIfProcessingStarted();
-                requireSignedPrimaryToken = value;
+                _requireSignedPrimaryToken = value;
             }
         }
 
         public bool ExpectEndorsingTokens
         {
-            get { return expectEndorsingTokens; }
+            get { return _expectEndorsingTokens; }
             set
             {
                 ThrowIfProcessingStarted();
-                expectEndorsingTokens = value;
+                _expectEndorsingTokens = value;
             }
         }
 
@@ -244,7 +244,7 @@ namespace CoreWCF.Security
 
         public SecurityTokenResolver CombinedUniversalTokenResolver { get; private set; }
 
-        public SecurityTokenResolver CombinedPrimaryTokenResolver => combinedPrimaryTokenResolver;
+        public SecurityTokenResolver CombinedPrimaryTokenResolver => _combinedPrimaryTokenResolver;
 
         //protected EventTraceActivity EventTraceActivity
         //{
@@ -261,8 +261,8 @@ namespace CoreWCF.Security
 
         protected void VerifySignatureEncryption()
         {
-            if ((protectionOrder == MessageProtectionOrder.SignBeforeEncryptAndEncryptSignature) &&
-                (!orderTracker.AllSignaturesEncrypted))
+            if ((_protectionOrder == MessageProtectionOrder.SignBeforeEncryptAndEncryptSignature) &&
+                (!_orderTracker.AllSignaturesEncrypted))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
                                 SR.PrimarySignatureIsRequiredToBeEncrypted));
@@ -275,18 +275,18 @@ namespace CoreWCF.Security
         {
             get
             {
-                return maxReceivedMessageSize;
+                return _maxReceivedMessageSize;
             }
             set
             {
                 ThrowIfProcessingStarted();
-                maxReceivedMessageSize = value;
+                _maxReceivedMessageSize = value;
             }
         }
 
         internal XmlDictionaryReaderQuotas ReaderQuotas
         {
-            get { return readerQuotas; }
+            get { return _readerQuotas; }
             set
             {
                 ThrowIfProcessingStarted();
@@ -296,7 +296,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
-                readerQuotas = value;
+                _readerQuotas = value;
             }
         }
 
@@ -308,7 +308,7 @@ namespace CoreWCF.Security
 
         public MessagePartSpecification RequiredEncryptionParts
         {
-            get { return encryptionTracker.Parts; }
+            get { return _encryptionTracker.Parts; }
             set
             {
                 ThrowIfProcessingStarted();
@@ -321,13 +321,13 @@ namespace CoreWCF.Security
                     throw TraceUtility.ThrowHelperError(new InvalidOperationException(
                         SR.MessagePartSpecificationMustBeImmutable), Message);
                 }
-                encryptionTracker.Parts = value;
+                _encryptionTracker.Parts = value;
             }
         }
 
         public MessagePartSpecification RequiredSignatureParts
         {
-            get { return signatureTracker.Parts; }
+            get { return _signatureTracker.Parts; }
             set
             {
                 ThrowIfProcessingStarted();
@@ -340,7 +340,7 @@ namespace CoreWCF.Security
                     throw TraceUtility.ThrowHelperError(new InvalidOperationException(
                         SR.MessagePartSpecificationMustBeImmutable), Message);
                 }
-                signatureTracker.Parts = value;
+                _signatureTracker.Parts = value;
             }
         }
 
@@ -348,27 +348,27 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (resourcePool == null)
+                if (_resourcePool == null)
                 {
-                    resourcePool = new SignatureResourcePool();
+                    _resourcePool = new SignatureResourcePool();
                 }
-                return resourcePool;
+                return _resourcePool;
             }
         }
 
         internal SecurityVerifiedMessage SecurityVerifiedMessage { get; private set; }
 
-        public SecurityToken SignatureToken => signatureTracker.Token;
+        public SecurityToken SignatureToken => _signatureTracker.Token;
 
         public Dictionary<SecurityToken, ReadOnlyCollection<IAuthorizationPolicy>> SecurityTokenAuthorizationPoliciesMapping
         {
             get
             {
-                if (tokenPoliciesMapping == null)
+                if (_tokenPoliciesMapping == null)
                 {
-                    tokenPoliciesMapping = new Dictionary<SecurityToken, ReadOnlyCollection<IAuthorizationPolicy>>();
+                    _tokenPoliciesMapping = new Dictionary<SecurityToken, ReadOnlyCollection<IAuthorizationPolicy>>();
                 }
-                return tokenPoliciesMapping;
+                return _tokenPoliciesMapping;
             }
         }
 
@@ -383,50 +383,50 @@ namespace CoreWCF.Security
 
         public SignatureConfirmations GetSentSignatureConfirmations()
         {
-            return receivedSignatureConfirmations;
+            return _receivedSignatureConfirmations;
         }
 
         public void ConfigureSymmetricBindingServerReceiveHeader(SecurityTokenAuthenticator primaryTokenAuthenticator, SecurityTokenParameters primaryTokenParameters, IList<SupportingTokenAuthenticatorSpecification> supportingTokenAuthenticators)
         {
-            this.primaryTokenAuthenticator = primaryTokenAuthenticator;
-            this.primaryTokenParameters = primaryTokenParameters;
-            this.supportingTokenAuthenticators = supportingTokenAuthenticators;
+            _primaryTokenAuthenticator = primaryTokenAuthenticator;
+            _primaryTokenParameters = primaryTokenParameters;
+            _supportingTokenAuthenticators = supportingTokenAuthenticators;
         }
 
         // encrypted key case
         public void ConfigureSymmetricBindingServerReceiveHeader(SecurityToken wrappingToken, SecurityTokenParameters wrappingTokenParameters, IList<SupportingTokenAuthenticatorSpecification> supportingTokenAuthenticators)
         {
-            this.wrappingToken = wrappingToken;
-            this.wrappingTokenParameters = wrappingTokenParameters;
-            this.supportingTokenAuthenticators = supportingTokenAuthenticators;
+            _wrappingToken = wrappingToken;
+            _wrappingTokenParameters = wrappingTokenParameters;
+            _supportingTokenAuthenticators = supportingTokenAuthenticators;
         }
 
         public void ConfigureAsymmetricBindingServerReceiveHeader(SecurityTokenAuthenticator primaryTokenAuthenticator, SecurityTokenParameters primaryTokenParameters, SecurityToken wrappingToken, SecurityTokenParameters wrappingTokenParameters, IList<SupportingTokenAuthenticatorSpecification> supportingTokenAuthenticators)
         {
-            this.primaryTokenAuthenticator = primaryTokenAuthenticator;
-            this.primaryTokenParameters = primaryTokenParameters;
-            this.wrappingToken = wrappingToken;
-            this.wrappingTokenParameters = wrappingTokenParameters;
-            this.supportingTokenAuthenticators = supportingTokenAuthenticators;
+            _primaryTokenAuthenticator = primaryTokenAuthenticator;
+            _primaryTokenParameters = primaryTokenParameters;
+            _wrappingToken = wrappingToken;
+            _wrappingTokenParameters = wrappingTokenParameters;
+            _supportingTokenAuthenticators = supportingTokenAuthenticators;
         }
 
         public void ConfigureTransportBindingServerReceiveHeader(IList<SupportingTokenAuthenticatorSpecification> supportingTokenAuthenticators)
         {
-            this.supportingTokenAuthenticators = supportingTokenAuthenticators;
+            _supportingTokenAuthenticators = supportingTokenAuthenticators;
         }
 
 
 
         public void ConfigureSymmetricBindingClientReceiveHeader(SecurityToken primaryToken, SecurityTokenParameters primaryTokenParameters)
         {
-            outOfBandPrimaryToken = primaryToken;
-            this.primaryTokenParameters = primaryTokenParameters;
+            _outOfBandPrimaryToken = primaryToken;
+            _primaryTokenParameters = primaryTokenParameters;
         }
 
         public void ConfigureSymmetricBindingClientReceiveHeader(IList<SecurityToken> primaryTokens, SecurityTokenParameters primaryTokenParameters)
         {
-            outOfBandPrimaryTokenCollection = primaryTokens;
-            this.primaryTokenParameters = primaryTokenParameters;
+            _outOfBandPrimaryTokenCollection = primaryTokens;
+            _primaryTokenParameters = primaryTokenParameters;
         }
 
         public void ConfigureOutOfBandTokenResolver(ReadOnlyCollection<SecurityTokenResolver> outOfBandResolvers)
@@ -440,7 +440,7 @@ namespace CoreWCF.Security
             {
                 return;
             }
-            outOfBandTokenResolver = outOfBandResolvers;
+            _outOfBandTokenResolver = outOfBandResolvers;
         }
 
         protected abstract EncryptedData ReadSecurityHeaderEncryptedItem(XmlDictionaryReader reader, bool readXmlreferenceKeyInfoClause);
@@ -451,7 +451,7 @@ namespace CoreWCF.Security
 
         public SignatureConfirmations GetSentSignatureValues()
         {
-            return receivedSignatureValues;
+            return _receivedSignatureValues;
         }
 
         protected abstract bool IsReaderAtEncryptedKey(XmlDictionaryReader reader);
@@ -477,7 +477,7 @@ namespace CoreWCF.Security
         protected override void OnWriteStartHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
             StandardsManager.SecurityVersion.WriteStartHeader(writer);
-            Channels.XmlAttributeHolder[] attributes = securityElementAttributes;
+            Channels.XmlAttributeHolder[] attributes = _securityElementAttributes;
             for (int i = 0; i < attributes.Length; ++i)
             {
                 writer.WriteAttributeString(attributes[i].Prefix, attributes[i].LocalName, attributes[i].NamespaceUri, attributes[i].Value);
@@ -561,14 +561,14 @@ namespace CoreWCF.Security
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SupportingSignatureIsNotDerivedFrom, spec.TokenParameters)));
                     }
-                    EnsureSupportingTokens(ref endorsingTokens).Add(tracker.token);
+                    EnsureSupportingTokens(ref _endorsingTokens).Add(tracker.token);
                     break;
                 case SecurityTokenAttachmentMode.Signed:
                     if (!tracker.IsSigned && RequireMessageProtection)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SupportingTokenIsNotSigned, spec.TokenParameters)));
                     }
-                    EnsureSupportingTokens(ref signedTokens).Add(tracker.token);
+                    EnsureSupportingTokens(ref _signedTokens).Add(tracker.token);
                     break;
                 case SecurityTokenAttachmentMode.SignedEncrypted:
                     if (!tracker.IsSigned && RequireMessageProtection)
@@ -579,7 +579,7 @@ namespace CoreWCF.Security
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SupportingTokenIsNotEncrypted, spec.TokenParameters)));
                     }
-                    EnsureSupportingTokens(ref basicTokens).Add(tracker.token);
+                    EnsureSupportingTokens(ref _basicTokens).Add(tracker.token);
                     break;
                 case SecurityTokenAttachmentMode.SignedEndorsing:
                     if (!tracker.IsSigned && RequireMessageProtection)
@@ -594,7 +594,7 @@ namespace CoreWCF.Security
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SupportingSignatureIsNotDerivedFrom, spec.TokenParameters)));
                     }
-                    EnsureSupportingTokens(ref signedEndorsingTokens).Add(tracker.token);
+                    EnsureSupportingTokens(ref _signedEndorsingTokens).Add(tracker.token);
                     break;
 
                 default:
@@ -606,17 +606,17 @@ namespace CoreWCF.Security
         // replay detection done if enableReplayDetection is set to true.
         public void SetTimeParameters(NonceCache nonceCache, TimeSpan replayWindow, TimeSpan clockSkew)
         {
-            this.nonceCache = nonceCache;
-            this.replayWindow = replayWindow;
-            this.clockSkew = clockSkew;
+            _nonceCache = nonceCache;
+            _replayWindow = replayWindow;
+            _clockSkew = clockSkew;
         }
 
         public void Process(TimeSpan timeout, ChannelBinding channelBinding, ExtendedProtectionPolicy extendedProtectionPolicy)
         {
             Fx.Assert(ReaderQuotas != null, "Reader quotas must be set before processing");
-            MessageProtectionOrder actualProtectionOrder = protectionOrder;
+            MessageProtectionOrder actualProtectionOrder = _protectionOrder;
             bool wasProtectionOrderDowngraded = false;
-            if (protectionOrder == MessageProtectionOrder.SignBeforeEncryptAndEncryptSignature)
+            if (_protectionOrder == MessageProtectionOrder.SignBeforeEncryptAndEncryptSignature)
             {
                 if (RequiredEncryptionParts == null || !RequiredEncryptionParts.IsBodyIncluded)
                 {
@@ -627,12 +627,12 @@ namespace CoreWCF.Security
                 }
             }
 
-            this.channelBinding = channelBinding;
-            this.extendedProtectionPolicy = extendedProtectionPolicy;
-            orderTracker.SetRequiredProtectionOrder(actualProtectionOrder);
+            _channelBinding = channelBinding;
+            _extendedProtectionPolicy = extendedProtectionPolicy;
+            _orderTracker.SetRequiredProtectionOrder(actualProtectionOrder);
 
             SetProcessingStarted();
-            timeoutHelper = new TimeoutHelper(timeout);
+            _timeoutHelper = new TimeoutHelper(timeout);
             Message = SecurityVerifiedMessage = new SecurityVerifiedMessage(Message, this);
             XmlDictionaryReader reader = CreateSecurityHeaderReader();
             reader.MoveToStartElement();
@@ -642,107 +642,107 @@ namespace CoreWCF.Security
             }
             if (RequireMessageProtection)
             {
-                securityElementAttributes = XmlAttributeHolder.ReadAttributes(reader);
+                _securityElementAttributes = XmlAttributeHolder.ReadAttributes(reader);
             }
             else
             {
-                securityElementAttributes = XmlAttributeHolder.emptyArray;
+                _securityElementAttributes = XmlAttributeHolder.emptyArray;
             }
             reader.ReadStartElement();
 
-            if (primaryTokenParameters != null)
+            if (_primaryTokenParameters != null)
             {
-                primaryTokenTracker = new TokenTracker(null, outOfBandPrimaryToken, allowFirstTokenMismatch);
+                _primaryTokenTracker = new TokenTracker(null, _outOfBandPrimaryToken, _allowFirstTokenMismatch);
             }
             // universalTokenResolver is used for resolving tokens
-            universalTokenResolver = new SecurityHeaderTokenResolver(this);
+            _universalTokenResolver = new SecurityHeaderTokenResolver(this);
             // primary token resolver is used for resolving primary signature and decryption
             PrimaryTokenResolver = new SecurityHeaderTokenResolver(this);
-            if (outOfBandPrimaryToken != null)
+            if (_outOfBandPrimaryToken != null)
             {
-                universalTokenResolver.Add(outOfBandPrimaryToken, SecurityTokenReferenceStyle.External, primaryTokenParameters);
-                PrimaryTokenResolver.Add(outOfBandPrimaryToken, SecurityTokenReferenceStyle.External, primaryTokenParameters);
+                _universalTokenResolver.Add(_outOfBandPrimaryToken, SecurityTokenReferenceStyle.External, _primaryTokenParameters);
+                PrimaryTokenResolver.Add(_outOfBandPrimaryToken, SecurityTokenReferenceStyle.External, _primaryTokenParameters);
             }
-            else if (outOfBandPrimaryTokenCollection != null)
+            else if (_outOfBandPrimaryTokenCollection != null)
             {
-                for (int i = 0; i < outOfBandPrimaryTokenCollection.Count; ++i)
+                for (int i = 0; i < _outOfBandPrimaryTokenCollection.Count; ++i)
                 {
-                    universalTokenResolver.Add(outOfBandPrimaryTokenCollection[i], SecurityTokenReferenceStyle.External, primaryTokenParameters);
-                    PrimaryTokenResolver.Add(outOfBandPrimaryTokenCollection[i], SecurityTokenReferenceStyle.External, primaryTokenParameters);
+                    _universalTokenResolver.Add(_outOfBandPrimaryTokenCollection[i], SecurityTokenReferenceStyle.External, _primaryTokenParameters);
+                    PrimaryTokenResolver.Add(_outOfBandPrimaryTokenCollection[i], SecurityTokenReferenceStyle.External, _primaryTokenParameters);
                 }
             }
-            if (wrappingToken != null)
+            if (_wrappingToken != null)
             {
-                universalTokenResolver.ExpectedWrapper = wrappingToken;
-                universalTokenResolver.ExpectedWrapperTokenParameters = wrappingTokenParameters;
-                PrimaryTokenResolver.ExpectedWrapper = wrappingToken;
-                PrimaryTokenResolver.ExpectedWrapperTokenParameters = wrappingTokenParameters;
+                _universalTokenResolver.ExpectedWrapper = _wrappingToken;
+                _universalTokenResolver.ExpectedWrapperTokenParameters = _wrappingTokenParameters;
+                PrimaryTokenResolver.ExpectedWrapper = _wrappingToken;
+                PrimaryTokenResolver.ExpectedWrapperTokenParameters = _wrappingTokenParameters;
             }
-            else if (expectedEncryptionToken != null)
+            else if (_expectedEncryptionToken != null)
             {
-                universalTokenResolver.Add(expectedEncryptionToken, SecurityTokenReferenceStyle.External, expectedEncryptionTokenParameters);
-                PrimaryTokenResolver.Add(expectedEncryptionToken, SecurityTokenReferenceStyle.External, expectedEncryptionTokenParameters);
+                _universalTokenResolver.Add(_expectedEncryptionToken, SecurityTokenReferenceStyle.External, _expectedEncryptionTokenParameters);
+                PrimaryTokenResolver.Add(_expectedEncryptionToken, SecurityTokenReferenceStyle.External, _expectedEncryptionTokenParameters);
             }
 
-            if (outOfBandTokenResolver == null)
+            if (_outOfBandTokenResolver == null)
             {
-                CombinedUniversalTokenResolver = universalTokenResolver;
-                combinedPrimaryTokenResolver = PrimaryTokenResolver;
+                CombinedUniversalTokenResolver = _universalTokenResolver;
+                _combinedPrimaryTokenResolver = PrimaryTokenResolver;
             }
             else
             {
-                CombinedUniversalTokenResolver = new AggregateSecurityHeaderTokenResolver(universalTokenResolver, outOfBandTokenResolver);
-                combinedPrimaryTokenResolver = new AggregateSecurityHeaderTokenResolver(PrimaryTokenResolver, outOfBandTokenResolver);
+                CombinedUniversalTokenResolver = new AggregateSecurityHeaderTokenResolver(_universalTokenResolver, _outOfBandTokenResolver);
+                _combinedPrimaryTokenResolver = new AggregateSecurityHeaderTokenResolver(PrimaryTokenResolver, _outOfBandTokenResolver);
             }
 
-            allowedAuthenticators = new List<SecurityTokenAuthenticator>();
-            if (primaryTokenAuthenticator != null)
+            _allowedAuthenticators = new List<SecurityTokenAuthenticator>();
+            if (_primaryTokenAuthenticator != null)
             {
-                allowedAuthenticators.Add(primaryTokenAuthenticator);
+                _allowedAuthenticators.Add(_primaryTokenAuthenticator);
             }
             if (DerivedTokenAuthenticator != null)
             {
-                allowedAuthenticators.Add(DerivedTokenAuthenticator);
+                _allowedAuthenticators.Add(DerivedTokenAuthenticator);
             }
-            pendingSupportingTokenAuthenticator = null;
+            _pendingSupportingTokenAuthenticator = null;
             int numSupportingTokensRequiringDerivation = 0;
-            if (supportingTokenAuthenticators != null && supportingTokenAuthenticators.Count > 0)
+            if (_supportingTokenAuthenticators != null && _supportingTokenAuthenticators.Count > 0)
             {
-                supportingTokenTrackers = new List<TokenTracker>(supportingTokenAuthenticators.Count);
-                for (int i = 0; i < supportingTokenAuthenticators.Count; ++i)
+                _supportingTokenTrackers = new List<TokenTracker>(_supportingTokenAuthenticators.Count);
+                for (int i = 0; i < _supportingTokenAuthenticators.Count; ++i)
                 {
-                    SupportingTokenAuthenticatorSpecification spec = supportingTokenAuthenticators[i];
+                    SupportingTokenAuthenticatorSpecification spec = _supportingTokenAuthenticators[i];
                     switch (spec.SecurityTokenAttachmentMode)
                     {
                         case SecurityTokenAttachmentMode.Endorsing:
-                            hasEndorsingOrSignedEndorsingSupportingTokens = true;
+                            _hasEndorsingOrSignedEndorsingSupportingTokens = true;
                             break;
                         case SecurityTokenAttachmentMode.Signed:
-                            hasAtLeastOneSupportingTokenExpectedToBeSigned = true;
+                            _hasAtLeastOneSupportingTokenExpectedToBeSigned = true;
                             break;
                         case SecurityTokenAttachmentMode.SignedEndorsing:
-                            hasEndorsingOrSignedEndorsingSupportingTokens = true;
-                            hasAtLeastOneSupportingTokenExpectedToBeSigned = true;
+                            _hasEndorsingOrSignedEndorsingSupportingTokens = true;
+                            _hasAtLeastOneSupportingTokenExpectedToBeSigned = true;
                             break;
                         case SecurityTokenAttachmentMode.SignedEncrypted:
-                            hasAtLeastOneSupportingTokenExpectedToBeSigned = true;
+                            _hasAtLeastOneSupportingTokenExpectedToBeSigned = true;
                             break;
                     }
 
-                    if ((primaryTokenAuthenticator != null) && (primaryTokenAuthenticator.GetType().Equals(spec.TokenAuthenticator.GetType())))
+                    if ((_primaryTokenAuthenticator != null) && (_primaryTokenAuthenticator.GetType().Equals(spec.TokenAuthenticator.GetType())))
                     {
-                        pendingSupportingTokenAuthenticator = spec.TokenAuthenticator;
+                        _pendingSupportingTokenAuthenticator = spec.TokenAuthenticator;
                     }
                     else
                     {
-                        allowedAuthenticators.Add(spec.TokenAuthenticator);
+                        _allowedAuthenticators.Add(spec.TokenAuthenticator);
                     }
                     if (spec.TokenParameters.RequireDerivedKeys && !spec.TokenParameters.HasAsymmetricKey &&
                         (spec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.Endorsing || spec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.SignedEndorsing))
                     {
                         ++numSupportingTokensRequiringDerivation;
                     }
-                    supportingTokenTrackers.Add(new TokenTracker(spec));
+                    _supportingTokenTrackers.Add(new TokenTracker(spec));
                 }
             }
 
@@ -754,7 +754,7 @@ namespace CoreWCF.Security
                 MaxDerivedKeyLength = maxKeyDerivationLengthInBits / 8;
                 // the upper bound of derived keys is (1 for primary signature + 1 for encryption + supporting token signatures requiring derivation)*2
                 // the multiplication by 2 is to take care of interop scenarios that may arise that require more derived keys than the lower bound.
-                maxDerivedKeys = (1 + 1 + numSupportingTokensRequiringDerivation) * 2;
+                _maxDerivedKeys = (1 + 1 + numSupportingTokensRequiringDerivation) * 2;
             }
 
             SecurityHeaderElementInferenceEngine engine = SecurityHeaderElementInferenceEngine.GetInferenceEngine(Layout);
@@ -762,7 +762,7 @@ namespace CoreWCF.Security
             if (RequireMessageProtection)
             {
                 ElementManager.EnsureAllRequiredSecurityHeaderTargetsWereProtected();
-                ExecuteMessageProtectionPass(hasAtLeastOneSupportingTokenExpectedToBeSigned);
+                ExecuteMessageProtectionPass(_hasAtLeastOneSupportingTokenExpectedToBeSigned);
                 if (RequiredSignatureParts != null && SignatureToken == null)
                 {
                     throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.RequiredSignatureMissing), Message);
@@ -771,20 +771,20 @@ namespace CoreWCF.Security
 
             EnsureDecryptionComplete();
 
-            signatureTracker.SetDerivationSourceIfRequired();
-            encryptionTracker.SetDerivationSourceIfRequired();
+            _signatureTracker.SetDerivationSourceIfRequired();
+            _encryptionTracker.SetDerivationSourceIfRequired();
             if (EncryptionToken != null)
             {
-                if (wrappingToken != null)
+                if (_wrappingToken != null)
                 {
-                    if (!(EncryptionToken is WrappedKeySecurityToken) || ((WrappedKeySecurityToken)EncryptionToken).WrappingToken != wrappingToken)
+                    if (!(EncryptionToken is WrappedKeySecurityToken) || ((WrappedKeySecurityToken)EncryptionToken).WrappingToken != _wrappingToken)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.EncryptedKeyWasNotEncryptedWithTheRequiredEncryptingToken, wrappingToken)));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.EncryptedKeyWasNotEncryptedWithTheRequiredEncryptingToken, _wrappingToken)));
                     }
                 }
-                else if (expectedEncryptionToken != null)
+                else if (_expectedEncryptionToken != null)
                 {
-                    if (EncryptionToken != expectedEncryptionToken)
+                    if (EncryptionToken != _expectedEncryptionToken)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.MessageWasNotEncryptedWithTheRequiredEncryptingToken));
                     }
@@ -800,18 +800,18 @@ namespace CoreWCF.Security
             {
                 if (SignatureToken != null)
                 {
-                    if (primaryTokenParameters != null)
+                    if (_primaryTokenParameters != null)
                     {
-                        if (primaryTokenParameters.RequireDerivedKeys && !primaryTokenParameters.HasAsymmetricKey && !primaryTokenTracker.IsDerivedFrom)
+                        if (_primaryTokenParameters.RequireDerivedKeys && !_primaryTokenParameters.HasAsymmetricKey && !_primaryTokenTracker.IsDerivedFrom)
                         {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.PrimarySignatureWasNotSignedByDerivedKey, primaryTokenParameters)));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.PrimarySignatureWasNotSignedByDerivedKey, _primaryTokenParameters)));
                         }
                     }
-                    else if (wrappingTokenParameters != null && wrappingTokenParameters.RequireDerivedKeys)
+                    else if (_wrappingTokenParameters != null && _wrappingTokenParameters.RequireDerivedKeys)
                     {
-                        if (!signatureTracker.IsDerivedToken)
+                        if (!_signatureTracker.IsDerivedToken)
                         {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.PrimarySignatureWasNotSignedByDerivedWrappedKey, wrappingTokenParameters)));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.PrimarySignatureWasNotSignedByDerivedWrappedKey, _wrappingTokenParameters)));
                         }
                     }
                 }
@@ -819,23 +819,23 @@ namespace CoreWCF.Security
                 // verify that the encryption is using key derivation
                 if (EncryptionToken != null)
                 {
-                    if (wrappingTokenParameters != null)
+                    if (_wrappingTokenParameters != null)
                     {
-                        if (wrappingTokenParameters.RequireDerivedKeys && !encryptionTracker.IsDerivedToken)
+                        if (_wrappingTokenParameters.RequireDerivedKeys && !_encryptionTracker.IsDerivedToken)
                         {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.MessageWasNotEncryptedByDerivedWrappedKey, wrappingTokenParameters)));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.MessageWasNotEncryptedByDerivedWrappedKey, _wrappingTokenParameters)));
                         }
                     }
-                    else if (expectedEncryptionTokenParameters != null)
+                    else if (_expectedEncryptionTokenParameters != null)
                     {
-                        if (expectedEncryptionTokenParameters.RequireDerivedKeys && !encryptionTracker.IsDerivedToken)
+                        if (_expectedEncryptionTokenParameters.RequireDerivedKeys && !_encryptionTracker.IsDerivedToken)
                         {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.MessageWasNotEncryptedByDerivedEncryptionToken, expectedEncryptionTokenParameters)));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.MessageWasNotEncryptedByDerivedEncryptionToken, _expectedEncryptionTokenParameters)));
                         }
                     }
-                    else if (primaryTokenParameters != null && !primaryTokenParameters.HasAsymmetricKey && primaryTokenParameters.RequireDerivedKeys && !encryptionTracker.IsDerivedToken)
+                    else if (_primaryTokenParameters != null && !_primaryTokenParameters.HasAsymmetricKey && _primaryTokenParameters.RequireDerivedKeys && !_encryptionTracker.IsDerivedToken)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.MessageWasNotEncryptedByDerivedEncryptionToken, primaryTokenParameters)));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.MessageWasNotEncryptedByDerivedEncryptionToken, _primaryTokenParameters)));
                     }
                 }
             }
@@ -848,15 +848,15 @@ namespace CoreWCF.Security
             }
 
             // verify all supporting token parameters have their requirements met
-            if (supportingTokenTrackers != null)
+            if (_supportingTokenTrackers != null)
             {
-                for (int i = 0; i < supportingTokenTrackers.Count; ++i)
+                for (int i = 0; i < _supportingTokenTrackers.Count; ++i)
                 {
-                    VerifySupportingToken(supportingTokenTrackers[i]);
+                    VerifySupportingToken(_supportingTokenTrackers[i]);
                 }
             }
 
-            if (replayDetectionEnabled)
+            if (_replayDetectionEnabled)
             {
                 if (Timestamp == null)
                 {
@@ -869,10 +869,10 @@ namespace CoreWCF.Security
                         SR.NoSignatureAvailableInSecurityHeaderToDoReplayDetection), Message);
                 }
 
-                AddNonce(nonceCache, PrimarySignatureValue);
+                AddNonce(_nonceCache, PrimarySignatureValue);
 
                 // if replay detection is on, redo creation range checks to ensure full coverage
-                Timestamp.ValidateFreshness(replayWindow, clockSkew);
+                Timestamp.ValidateFreshness(_replayWindow, _clockSkew);
             }
 
             if (ExpectSignatureConfirmation)
@@ -956,7 +956,7 @@ namespace CoreWCF.Security
                 {
                     EncryptedData encryptedData = ElementManager.GetElement<EncryptedData>(position);
                     bool dummy = false;
-                    ProcessEncryptedData(encryptedData, timeoutHelper.RemainingTime(), position, false, ref dummy);
+                    ProcessEncryptedData(encryptedData, _timeoutHelper.RemainingTime(), position, false, ref dummy);
                 }
             }
         }
@@ -996,7 +996,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    ReadToken(reader, AppendPosition, null, null, null, timeoutHelper.RemainingTime());
+                    ReadToken(reader, AppendPosition, null, null, null, _timeoutHelper.RemainingTime());
                 }
                 position++;
             }
@@ -1042,7 +1042,7 @@ namespace CoreWCF.Security
                 else if (IsReaderAtEncryptedData(reader))
                 {
                     EncryptedData encryptedData = ReadEncryptedData(reader);
-                    ProcessEncryptedData(encryptedData, timeoutHelper.RemainingTime(), position, true, ref primarySignatureFound);
+                    ProcessEncryptedData(encryptedData, _timeoutHelper.RemainingTime(), position, true, ref primarySignatureFound);
                 }
                 else if (StandardsManager.SecurityVersion.IsReaderAtSignatureConfirmation(reader))
                 {
@@ -1054,7 +1054,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    ReadToken(reader, AppendPosition, null, null, null, timeoutHelper.RemainingTime());
+                    ReadToken(reader, AppendPosition, null, null, null, _timeoutHelper.RemainingTime());
                 }
                 position++;
             }
@@ -1064,10 +1064,10 @@ namespace CoreWCF.Security
 
         internal void EnsureDerivedKeyLimitNotReached()
         {
-            ++numDerivedKeys;
-            if (numDerivedKeys > maxDerivedKeys)
+            ++_numDerivedKeys;
+            if (_numDerivedKeys > _maxDerivedKeys)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.DerivedKeyLimitExceeded, maxDerivedKeys)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.DerivedKeyLimitExceeded, _maxDerivedKeys)));
             }
         }
 
@@ -1080,7 +1080,7 @@ namespace CoreWCF.Security
                     DerivedKeySecurityTokenStub stub = ElementManager.GetElement(position) as DerivedKeySecurityTokenStub;
                     if (stub != null)
                     {
-                        universalTokenResolver.TryResolveToken(stub.TokenToDeriveIdentifier, out SecurityToken sourceToken);
+                        _universalTokenResolver.TryResolveToken(stub.TokenToDeriveIdentifier, out SecurityToken sourceToken);
                         if (sourceToken != null)
                         {
                             EnsureDerivedKeyLimitNotReached();
@@ -1135,7 +1135,7 @@ namespace CoreWCF.Security
                 decryptedBuffer,
                 SecurityVerifiedMessage.GetEnvelopeAttributes(),
                 SecurityVerifiedMessage.GetHeaderAttributes(),
-                securityElementAttributes,
+                _securityElementAttributes,
                 ReaderQuotas
                 );
         }
@@ -1149,7 +1149,7 @@ namespace CoreWCF.Security
 
             string id = encryptedData.Id;
 
-            byte[] decryptedBuffer = DecryptSecurityHeaderElement(encryptedData, wrappedKeyToken, out SecurityToken encryptionToken);
+            byte[] decryptedBuffer = DecryptSecurityHeaderElement(encryptedData, _wrappedKeyToken, out SecurityToken encryptionToken);
 
             XmlDictionaryReader decryptedReader = CreateDecryptedReader(decryptedBuffer);
 
@@ -1181,7 +1181,6 @@ namespace CoreWCF.Security
             {
                 if (IsReaderAtEncryptedData(decryptedReader))
                 {
-
                     // The purpose of this code is to process a token that arrived at a client as encryptedData.
 
                     // This is a common scenario for supporting tokens.
@@ -1193,7 +1192,7 @@ namespace CoreWCF.Security
                     // What if the service sends its authentication token as an EncryptedData to the client?
 
                     EncryptedData ed = ReadSecurityHeaderEncryptedItem(decryptedReader, false);
-                    byte[] db = DecryptSecurityHeaderElement(ed, wrappedKeyToken, out SecurityToken securityToken);
+                    byte[] db = DecryptSecurityHeaderElement(ed, _wrappedKeyToken, out SecurityToken securityToken);
                     XmlDictionaryReader dr = CreateDecryptedReader(db);
 
 
@@ -1240,14 +1239,14 @@ namespace CoreWCF.Security
 
         private void ReadEncryptedKey(XmlDictionaryReader reader, bool processReferenceListIfPresent)
         {
-            orderTracker.OnEncryptedKey();
+            _orderTracker.OnEncryptedKey();
 
             WrappedKeySecurityToken wrappedKeyToken = DecryptWrappedKey(reader);
-            if (wrappedKeyToken.WrappingToken != wrappingToken)
+            if (wrappedKeyToken.WrappingToken != _wrappingToken)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.EncryptedKeyWasNotEncryptedWithTheRequiredEncryptingToken, wrappingToken)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.EncryptedKeyWasNotEncryptedWithTheRequiredEncryptingToken, _wrappingToken)));
             }
-            universalTokenResolver.Add(wrappedKeyToken);
+            _universalTokenResolver.Add(wrappedKeyToken);
             PrimaryTokenResolver.Add(wrappedKeyToken);
             if (wrappedKeyToken.ReferenceList != null)
             {
@@ -1263,7 +1262,7 @@ namespace CoreWCF.Security
                 {
                     ProcessReferenceList(wrappedKeyToken.ReferenceList, wrappedKeyToken);
                 }
-                this.wrappedKeyToken = wrappedKeyToken;
+                _wrappedKeyToken = wrappedKeyToken;
             }
             ElementManager.AppendToken(wrappedKeyToken, ReceiveSecurityHeaderBindingModes.Primary, null);
         }
@@ -1288,7 +1287,7 @@ namespace CoreWCF.Security
 
         private void ProcessReferenceList(ReferenceList referenceList, WrappedKeySecurityToken wrappedKeyToken)
         {
-            orderTracker.OnProcessReferenceList();
+            _orderTracker.OnProcessReferenceList();
             ProcessReferenceListCore(referenceList, wrappedKeyToken);
         }
 
@@ -1320,22 +1319,22 @@ namespace CoreWCF.Security
 
         private void ProcessPrimarySignature(SignedXml signedXml, bool isFromDecryptedSource)
         {
-            orderTracker.OnProcessSignature(isFromDecryptedSource);
+            _orderTracker.OnProcessSignature(isFromDecryptedSource);
 
             PrimarySignatureValue = signedXml.SignatureValue;
-            if (replayDetectionEnabled)
+            if (_replayDetectionEnabled)
             {
-                CheckNonce(nonceCache, PrimarySignatureValue);
+                CheckNonce(_nonceCache, PrimarySignatureValue);
             }
 
             SecurityToken signingToken = VerifySignature(signedXml, true, PrimaryTokenResolver, null, null);
             // verify that the signing token is the same as the primary token
             SecurityToken rootSigningToken = GetRootToken(signingToken);
             bool isDerivedKeySignature = signingToken is DerivedKeySecurityToken;
-            if (primaryTokenTracker != null)
+            if (_primaryTokenTracker != null)
             {
-                primaryTokenTracker.RecordToken(rootSigningToken);
-                primaryTokenTracker.IsDerivedFrom = isDerivedKeySignature;
+                _primaryTokenTracker.RecordToken(rootSigningToken);
+                _primaryTokenTracker.IsDerivedFrom = isDerivedKeySignature;
             }
             AddIncomingSignatureValue(signedXml.SignatureValue, isFromDecryptedSource);
         }
@@ -1347,7 +1346,7 @@ namespace CoreWCF.Security
             {
                 throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.SignatureConfirmationsNotExpected), Message);
             }
-            if (orderTracker.PrimarySignatureDone)
+            if (_orderTracker.PrimarySignatureDone)
             {
                 throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.SignatureConfirmationsOccursAfterPrimarySignature), Message);
             }
@@ -1366,16 +1365,16 @@ namespace CoreWCF.Security
 
         private TokenTracker GetSupportingTokenTracker(SecurityToken token)
         {
-            if (supportingTokenTrackers == null)
+            if (_supportingTokenTrackers == null)
             {
                 return null;
             }
 
-            for (int i = 0; i < supportingTokenTrackers.Count; ++i)
+            for (int i = 0; i < _supportingTokenTrackers.Count; ++i)
             {
-                if (supportingTokenTrackers[i].token == token)
+                if (_supportingTokenTrackers[i].token == token)
                 {
-                    return supportingTokenTrackers[i];
+                    return _supportingTokenTrackers[i];
                 }
             }
             return null;
@@ -1384,17 +1383,17 @@ namespace CoreWCF.Security
         protected TokenTracker GetSupportingTokenTracker(SecurityTokenAuthenticator tokenAuthenticator, out SupportingTokenAuthenticatorSpecification spec)
         {
             spec = null;
-            if (supportingTokenAuthenticators == null)
+            if (_supportingTokenAuthenticators == null)
             {
                 return null;
             }
 
-            for (int i = 0; i < supportingTokenAuthenticators.Count; ++i)
+            for (int i = 0; i < _supportingTokenAuthenticators.Count; ++i)
             {
-                if (supportingTokenAuthenticators[i].TokenAuthenticator == tokenAuthenticator)
+                if (_supportingTokenAuthenticators[i].TokenAuthenticator == tokenAuthenticator)
                 {
-                    spec = supportingTokenAuthenticators[i];
-                    return supportingTokenTrackers[i];
+                    spec = _supportingTokenAuthenticators[i];
+                    return _supportingTokenTrackers[i];
                 }
             }
             return null;
@@ -1403,18 +1402,18 @@ namespace CoreWCF.Security
         protected TAuthenticator FindAllowedAuthenticator<TAuthenticator>(bool removeIfPresent)
             where TAuthenticator : SecurityTokenAuthenticator
         {
-            if (allowedAuthenticators == null)
+            if (_allowedAuthenticators == null)
             {
                 return null;
             }
-            for (int i = 0; i < allowedAuthenticators.Count; ++i)
+            for (int i = 0; i < _allowedAuthenticators.Count; ++i)
             {
-                if (allowedAuthenticators[i] is TAuthenticator)
+                if (_allowedAuthenticators[i] is TAuthenticator)
                 {
-                    TAuthenticator result = (TAuthenticator)allowedAuthenticators[i];
+                    TAuthenticator result = (TAuthenticator)_allowedAuthenticators[i];
                     if (removeIfPresent)
                     {
-                        allowedAuthenticators.RemoveAt(i);
+                        _allowedAuthenticators.RemoveAt(i);
                     }
                     return result;
                 }
@@ -1456,7 +1455,7 @@ namespace CoreWCF.Security
                 }
                 signatureTarget = reader;
             }
-            SecurityToken signingToken = VerifySignature(signedXml, false, universalTokenResolver, signatureTarget, id);
+            SecurityToken signingToken = VerifySignature(signedXml, false, _universalTokenResolver, signatureTarget, id);
             if (reader != null)
             {
                 reader.Close();
@@ -1489,25 +1488,25 @@ namespace CoreWCF.Security
             {
                 throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.DuplicateTimestampInSecurityHeader), Message);
             }
-            bool expectTimestampToBeSigned = RequireMessageProtection || hasEndorsingOrSignedEndorsingSupportingTokens;
+            bool expectTimestampToBeSigned = RequireMessageProtection || _hasEndorsingOrSignedEndorsingSupportingTokens;
             string expectedDigestAlgorithm = expectTimestampToBeSigned ? AlgorithmSuite.DefaultDigestAlgorithm : null;
             SignatureResourcePool resourcePool = expectTimestampToBeSigned ? ResourcePool : null;
             Timestamp = StandardsManager.WSUtilitySpecificationVersion.ReadTimestamp(reader, expectedDigestAlgorithm, resourcePool);
-            Timestamp.ValidateRangeAndFreshness(replayWindow, clockSkew);
+            Timestamp.ValidateRangeAndFreshness(_replayWindow, _clockSkew);
             ElementManager.AppendTimestamp(Timestamp);
         }
 
         private bool IsPrimaryToken(SecurityToken token)
         {
-            bool result = (token == outOfBandPrimaryToken
-                || (primaryTokenTracker != null && token == primaryTokenTracker.token)
-                || (token == expectedEncryptionToken)
-                || ((token is WrappedKeySecurityToken) && ((WrappedKeySecurityToken)token).WrappingToken == wrappingToken));
-            if (!result && outOfBandPrimaryTokenCollection != null)
+            bool result = (token == _outOfBandPrimaryToken
+                || (_primaryTokenTracker != null && token == _primaryTokenTracker.token)
+                || (token == _expectedEncryptionToken)
+                || ((token is WrappedKeySecurityToken) && ((WrappedKeySecurityToken)token).WrappingToken == _wrappingToken));
+            if (!result && _outOfBandPrimaryTokenCollection != null)
             {
-                for (int i = 0; i < outOfBandPrimaryTokenCollection.Count; ++i)
+                for (int i = 0; i < _outOfBandPrimaryTokenCollection.Count; ++i)
                 {
-                    if (outOfBandPrimaryTokenCollection[i] == token)
+                    if (_outOfBandPrimaryTokenCollection[i] == token)
                     {
                         result = true;
                         break;
@@ -1526,7 +1525,7 @@ namespace CoreWCF.Security
             string namespaceUri = reader.NamespaceURI;
             string valueType = reader.GetAttribute(XD.SecurityJan2004Dictionary.ValueType, null);
 
-            SecurityToken token = ReadToken(reader, CombinedUniversalTokenResolver, allowedAuthenticators, out SecurityTokenAuthenticator usedTokenAuthenticator);
+            SecurityToken token = ReadToken(reader, CombinedUniversalTokenResolver, _allowedAuthenticators, out SecurityTokenAuthenticator usedTokenAuthenticator);
             if (token == null)
             {
                 throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenManagerCouldNotReadToken, localName, namespaceUri, valueType)), Message);
@@ -1540,24 +1539,24 @@ namespace CoreWCF.Security
 
             if (
                 //(usedTokenAuthenticator is SspiNegotiationTokenAuthenticator) ||
-                (usedTokenAuthenticator == primaryTokenAuthenticator))
+                (usedTokenAuthenticator == _primaryTokenAuthenticator))
             {
-                allowedAuthenticators.Remove(usedTokenAuthenticator);
+                _allowedAuthenticators.Remove(usedTokenAuthenticator);
             }
 
             ReceiveSecurityHeaderBindingModes mode;
             TokenTracker supportingTokenTracker = null;
-            if (usedTokenAuthenticator == primaryTokenAuthenticator)
+            if (usedTokenAuthenticator == _primaryTokenAuthenticator)
             {
                 // this is the primary token. Add to resolver as such
-                universalTokenResolver.Add(token, SecurityTokenReferenceStyle.Internal, primaryTokenParameters);
-                PrimaryTokenResolver.Add(token, SecurityTokenReferenceStyle.Internal, primaryTokenParameters);
-                if (pendingSupportingTokenAuthenticator != null)
+                _universalTokenResolver.Add(token, SecurityTokenReferenceStyle.Internal, _primaryTokenParameters);
+                PrimaryTokenResolver.Add(token, SecurityTokenReferenceStyle.Internal, _primaryTokenParameters);
+                if (_pendingSupportingTokenAuthenticator != null)
                 {
-                    allowedAuthenticators.Add(pendingSupportingTokenAuthenticator);
-                    pendingSupportingTokenAuthenticator = null;
+                    _allowedAuthenticators.Add(_pendingSupportingTokenAuthenticator);
+                    _pendingSupportingTokenAuthenticator = null;
                 }
-                primaryTokenTracker.RecordToken(token);
+                _primaryTokenTracker.RecordToken(token);
                 mode = ReceiveSecurityHeaderBindingModes.Primary;
             }
             else if (usedTokenAuthenticator == DerivedTokenAuthenticator)
@@ -1587,7 +1586,7 @@ namespace CoreWCF.Security
                 if (supportingTokenTracker.token != null)
                 {
                     supportingTokenTracker = new TokenTracker(supportingTokenSpec);
-                    supportingTokenTrackers.Add(supportingTokenTracker);
+                    _supportingTokenTrackers.Add(supportingTokenTracker);
                 }
 
                 supportingTokenTracker.RecordToken(token);
@@ -1615,7 +1614,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.SignedSupportingTokenNotExpected));
                 }
-                universalTokenResolver.Add(token, SecurityTokenReferenceStyle.Internal, supportingTokenSpec.TokenParameters);
+                _universalTokenResolver.Add(token, SecurityTokenReferenceStyle.Internal, supportingTokenSpec.TokenParameters);
             }
             if (position == AppendPosition)
             {
@@ -1673,7 +1672,7 @@ namespace CoreWCF.Security
 
         private void AddDerivedKeyTokenToResolvers(SecurityToken token)
         {
-            universalTokenResolver.Add(token);
+            _universalTokenResolver.Add(token);
             // add it to the primary token resolver only if its root is primary
             SecurityToken rootToken = GetRootToken(token);
             if (IsPrimaryToken(rootToken))
@@ -1686,11 +1685,11 @@ namespace CoreWCF.Security
         {
             if (MaintainSignatureConfirmationState)
             {
-                if (receivedSignatureConfirmations == null)
+                if (_receivedSignatureConfirmations == null)
                 {
-                    receivedSignatureConfirmations = new SignatureConfirmations();
+                    _receivedSignatureConfirmations = new SignatureConfirmations();
                 }
-                receivedSignatureConfirmations.AddConfirmation(signatureValue, isFromDecryptedSource);
+                _receivedSignatureConfirmations.AddConfirmation(signatureValue, isFromDecryptedSource);
             }
         }
 
@@ -1699,28 +1698,28 @@ namespace CoreWCF.Security
             // cache incoming signatures only on the server side
             if (MaintainSignatureConfirmationState && !ExpectSignatureConfirmation)
             {
-                if (receivedSignatureValues == null)
+                if (_receivedSignatureValues == null)
                 {
-                    receivedSignatureValues = new SignatureConfirmations();
+                    _receivedSignatureValues = new SignatureConfirmations();
                 }
-                receivedSignatureValues.AddConfirmation(signatureValue, isFromDecryptedSource);
+                _receivedSignatureValues.AddConfirmation(signatureValue, isFromDecryptedSource);
             }
         }
 
         protected void RecordEncryptionToken(SecurityToken token)
         {
-            encryptionTracker.RecordToken(token);
+            _encryptionTracker.RecordToken(token);
         }
 
         protected void RecordSignatureToken(SecurityToken token)
         {
-            signatureTracker.RecordToken(token);
+            _signatureTracker.RecordToken(token);
         }
 
         public void SetRequiredProtectionOrder(MessageProtectionOrder protectionOrder)
         {
             ThrowIfProcessingStarted();
-            this.protectionOrder = protectionOrder;
+            _protectionOrder = protectionOrder;
         }
 
         protected abstract SignedXml ReadSignatureCore(XmlDictionaryReader signatureReader);
@@ -1732,38 +1731,38 @@ namespace CoreWCF.Security
 
         private struct OrderTracker
         {
-            private static readonly ReceiverProcessingOrder[] stateTransitionTableOnDecrypt = new ReceiverProcessingOrder[]
+            private static readonly ReceiverProcessingOrder[] s_stateTransitionTableOnDecrypt = new ReceiverProcessingOrder[]
                 {
                     ReceiverProcessingOrder.Decrypt, ReceiverProcessingOrder.VerifyDecrypt, ReceiverProcessingOrder.Decrypt,
                     ReceiverProcessingOrder.Mixed, ReceiverProcessingOrder.VerifyDecrypt, ReceiverProcessingOrder.Mixed
                 };
-            private static readonly ReceiverProcessingOrder[] stateTransitionTableOnVerify = new ReceiverProcessingOrder[]
+            private static readonly ReceiverProcessingOrder[] s_stateTransitionTableOnVerify = new ReceiverProcessingOrder[]
                 {
                     ReceiverProcessingOrder.Verify, ReceiverProcessingOrder.Verify, ReceiverProcessingOrder.DecryptVerify,
                     ReceiverProcessingOrder.DecryptVerify, ReceiverProcessingOrder.Mixed, ReceiverProcessingOrder.Mixed
                 };
             private const int MaxAllowedWrappedKeys = 1;
-            private int referenceListCount;
-            private ReceiverProcessingOrder state;
-            private int signatureCount;
-            private int unencryptedSignatureCount;
-            private int numWrappedKeys;
-            private MessageProtectionOrder protectionOrder;
-            private bool enforce;
+            private int _referenceListCount;
+            private ReceiverProcessingOrder _state;
+            private int _signatureCount;
+            private int _unencryptedSignatureCount;
+            private int _numWrappedKeys;
+            private MessageProtectionOrder _protectionOrder;
+            private bool _enforce;
 
-            public bool AllSignaturesEncrypted => unencryptedSignatureCount == 0;
+            public bool AllSignaturesEncrypted => _unencryptedSignatureCount == 0;
 
-            public bool EncryptBeforeSignMode => enforce && protectionOrder == MessageProtectionOrder.EncryptBeforeSign;
+            public bool EncryptBeforeSignMode => _enforce && _protectionOrder == MessageProtectionOrder.EncryptBeforeSign;
 
-            public bool EncryptBeforeSignOrderRequirementMet => state != ReceiverProcessingOrder.DecryptVerify && state != ReceiverProcessingOrder.Mixed;
+            public bool EncryptBeforeSignOrderRequirementMet => _state != ReceiverProcessingOrder.DecryptVerify && _state != ReceiverProcessingOrder.Mixed;
 
-            public bool PrimarySignatureDone => signatureCount > 0;
+            public bool PrimarySignatureDone => _signatureCount > 0;
 
-            public bool SignBeforeEncryptOrderRequirementMet => state != ReceiverProcessingOrder.VerifyDecrypt && state != ReceiverProcessingOrder.Mixed;
+            public bool SignBeforeEncryptOrderRequirementMet => _state != ReceiverProcessingOrder.VerifyDecrypt && _state != ReceiverProcessingOrder.Mixed;
 
             private void EnforceProtectionOrder()
             {
-                switch (protectionOrder)
+                switch (_protectionOrder)
                 {
                     case MessageProtectionOrder.SignBeforeEncryptAndEncryptSignature:
                         if (!AllSignaturesEncrypted)
@@ -1776,14 +1775,14 @@ namespace CoreWCF.Security
                         if (!SignBeforeEncryptOrderRequirementMet)
                         {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
-                                SR.Format(SR.MessageProtectionOrderMismatch, protectionOrder)));
+                                SR.Format(SR.MessageProtectionOrderMismatch, _protectionOrder)));
                         }
                         break;
                     case MessageProtectionOrder.EncryptBeforeSign:
                         if (!EncryptBeforeSignOrderRequirementMet)
                         {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
-                                SR.Format(SR.MessageProtectionOrderMismatch, protectionOrder)));
+                                SR.Format(SR.MessageProtectionOrderMismatch, _protectionOrder)));
                         }
                         break;
                     default:
@@ -1794,15 +1793,15 @@ namespace CoreWCF.Security
 
             public void OnProcessReferenceList()
             {
-                Fx.Assert(enforce, "OrderTracker should have 'enforce' set to true.");
-                if (referenceListCount > 0)
+                Fx.Assert(_enforce, "OrderTracker should have 'enforce' set to true.");
+                if (_referenceListCount > 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
                         SR.AtMostOneReferenceListIsSupportedWithDefaultPolicyCheck));
                 }
-                referenceListCount++;
-                state = stateTransitionTableOnDecrypt[(int)state];
-                if (enforce)
+                _referenceListCount++;
+                _state = s_stateTransitionTableOnDecrypt[(int)_state];
+                if (_enforce)
                 {
                     EnforceProtectionOrder();
                 }
@@ -1810,18 +1809,18 @@ namespace CoreWCF.Security
 
             public void OnProcessSignature(bool isEncrypted)
             {
-                Fx.Assert(enforce, "OrderTracker should have 'enforce' set to true.");
-                if (signatureCount > 0)
+                Fx.Assert(_enforce, "OrderTracker should have 'enforce' set to true.");
+                if (_signatureCount > 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.AtMostOneSignatureIsSupportedWithDefaultPolicyCheck));
                 }
-                signatureCount++;
+                _signatureCount++;
                 if (!isEncrypted)
                 {
-                    unencryptedSignatureCount++;
+                    _unencryptedSignatureCount++;
                 }
-                state = stateTransitionTableOnVerify[(int)state];
-                if (enforce)
+                _state = s_stateTransitionTableOnVerify[(int)_state];
+                if (_enforce)
                 {
                     EnforceProtectionOrder();
                 }
@@ -1829,20 +1828,20 @@ namespace CoreWCF.Security
 
             public void OnEncryptedKey()
             {
-                Fx.Assert(enforce, "OrderTracker should have 'enforce' set to true.");
+                Fx.Assert(_enforce, "OrderTracker should have 'enforce' set to true.");
 
-                if (numWrappedKeys == MaxAllowedWrappedKeys)
+                if (_numWrappedKeys == MaxAllowedWrappedKeys)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.WrappedKeyLimitExceeded, numWrappedKeys)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.WrappedKeyLimitExceeded, _numWrappedKeys)));
                 }
 
-                numWrappedKeys++;
+                _numWrappedKeys++;
             }
 
             public void SetRequiredProtectionOrder(MessageProtectionOrder protectionOrder)
             {
-                this.protectionOrder = protectionOrder;
-                enforce = true;
+                _protectionOrder = protectionOrder;
+                _enforce = true;
             }
 
             private enum ReceiverProcessingOrder : int
@@ -1858,13 +1857,13 @@ namespace CoreWCF.Security
 
         private struct OperationTracker
         {
-            private bool isDerivedToken;
+            private bool _isDerivedToken;
 
             public MessagePartSpecification Parts { get; set; }
 
             public SecurityToken Token { get; private set; }
 
-            public bool IsDerivedToken => isDerivedToken;
+            public bool IsDerivedToken => _isDerivedToken;
 
             public void RecordToken(SecurityToken token)
             {
@@ -1884,7 +1883,7 @@ namespace CoreWCF.Security
                 if (derivedKeyToken != null)
                 {
                     Token = derivedKeyToken.TokenToDerive;
-                    isDerivedToken = true;
+                    _isDerivedToken = true;
                 }
             }
         }
@@ -1898,7 +1897,7 @@ namespace CoreWCF.Security
         public bool IsEncrypted;
         public bool IsEndorsing;
         public bool AlreadyReadEndorsingSignature;
-        private bool allowFirstTokenMismatch;
+        private bool _allowFirstTokenMismatch;
         public SupportingTokenAuthenticatorSpecification spec;
 
         public TokenTracker(SupportingTokenAuthenticatorSpecification spec)
@@ -1910,7 +1909,7 @@ namespace CoreWCF.Security
         {
             this.spec = spec;
             this.token = token;
-            this.allowFirstTokenMismatch = allowFirstTokenMismatch;
+            _allowFirstTokenMismatch = allowFirstTokenMismatch;
         }
 
         public void RecordToken(SecurityToken token)
@@ -1919,14 +1918,14 @@ namespace CoreWCF.Security
             {
                 this.token = token;
             }
-            else if (allowFirstTokenMismatch)
+            else if (_allowFirstTokenMismatch)
             {
                 if (!AreTokensEqual(this.token, token))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.MismatchInSecurityOperationToken));
                 }
                 this.token = token;
-                allowFirstTokenMismatch = false;
+                _allowFirstTokenMismatch = false;
             }
             else if (!object.ReferenceEquals(this.token, token))
             {
@@ -1953,7 +1952,7 @@ namespace CoreWCF.Security
 
     internal class AggregateSecurityHeaderTokenResolver : CoreWCF.IdentityModel.Tokens.AggregateTokenResolver
     {
-        private readonly SecurityHeaderTokenResolver tokenResolver;
+        private readonly SecurityHeaderTokenResolver _tokenResolver;
 
         public AggregateSecurityHeaderTokenResolver(SecurityHeaderTokenResolver tokenResolver, ReadOnlyCollection<SecurityTokenResolver> outOfBandTokenResolvers) :
             base(outOfBandTokenResolvers)
@@ -1963,7 +1962,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenResolver));
             }
 
-            this.tokenResolver = tokenResolver;
+            _tokenResolver = tokenResolver;
         }
 
         protected override bool TryResolveSecurityKeyCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityKey key)
@@ -1971,7 +1970,7 @@ namespace CoreWCF.Security
             bool resolved = false;
             key = null;
 
-            resolved = tokenResolver.TryResolveSecurityKey(keyIdentifierClause, false, out key);
+            resolved = _tokenResolver.TryResolveSecurityKey(keyIdentifierClause, false, out key);
 
             if (!resolved)
             {
@@ -1991,7 +1990,7 @@ namespace CoreWCF.Security
             bool resolved = false;
             token = null;
 
-            resolved = tokenResolver.TryResolveToken(keyIdentifier, false, false, out token);
+            resolved = _tokenResolver.TryResolveToken(keyIdentifier, false, false, out token);
 
             if (!resolved)
             {
@@ -2044,7 +2043,7 @@ namespace CoreWCF.Security
             bool resolved = false;
             token = null;
 
-            resolved = tokenResolver.TryResolveToken(keyIdentifierClause, false, false, out token);
+            resolved = _tokenResolver.TryResolveToken(keyIdentifierClause, false, false, out token);
 
             if (!resolved)
             {

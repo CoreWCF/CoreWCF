@@ -10,33 +10,33 @@ namespace CoreWCF.Channels
 {
     public class SslStreamSecurityBindingElement : StreamUpgradeBindingElement
     {
-        private IdentityVerifier identityVerifier;
-        private SslProtocols sslProtocols;
+        private IdentityVerifier _identityVerifier;
+        private SslProtocols _sslProtocols;
 
         public SslStreamSecurityBindingElement()
         {
             RequireClientCertificate = TransportDefaults.RequireClientCertificate;
-            sslProtocols = TransportDefaults.SslProtocols;
+            _sslProtocols = TransportDefaults.SslProtocols;
         }
 
         protected SslStreamSecurityBindingElement(SslStreamSecurityBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
-            identityVerifier = elementToBeCloned.identityVerifier;
+            _identityVerifier = elementToBeCloned._identityVerifier;
             RequireClientCertificate = elementToBeCloned.RequireClientCertificate;
-            sslProtocols = elementToBeCloned.sslProtocols;
+            _sslProtocols = elementToBeCloned._sslProtocols;
         }
 
         internal IdentityVerifier IdentityVerifier
         {
             get
             {
-                if (identityVerifier == null)
+                if (_identityVerifier == null)
                 {
-                    identityVerifier = IdentityVerifier.CreateDefault();
+                    _identityVerifier = IdentityVerifier.CreateDefault();
                 }
 
-                return identityVerifier;
+                return _identityVerifier;
             }
             set
             {
@@ -45,7 +45,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
-                identityVerifier = value;
+                _identityVerifier = value;
             }
         }
 
@@ -57,12 +57,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return sslProtocols;
+                return _sslProtocols;
             }
             set
             {
                 SslProtocolsHelper.Validate(value);
-                sslProtocols = value;
+                _sslProtocols = value;
             }
         }
 
@@ -109,7 +109,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            return RequireClientCertificate == ssl.RequireClientCertificate && sslProtocols == ssl.sslProtocols;
+            return RequireClientCertificate == ssl.RequireClientCertificate && _sslProtocols == ssl._sslProtocols;
         }
     }
 }

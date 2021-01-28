@@ -16,31 +16,31 @@ namespace CoreWCF.Dispatcher
     // This class has been kept to enable using existing behaviors.
     public class ChannelDispatcher : ChannelDispatcherBase
     {
-        private readonly ThreadSafeMessageFilterTable<EndpointAddress> addressTable;
-        private EndpointDispatcherCollection endpointDispatchers;
-        private ServiceHostBase host;
+        private readonly ThreadSafeMessageFilterTable<EndpointAddress> _addressTable;
+        private EndpointDispatcherCollection _endpointDispatchers;
+        private ServiceHostBase _host;
 
         //bool isTransactedReceive;
         //bool asynchronousTransactedAcceptEnabled;
         //int maxTransactedBatchSize;
-        private MessageVersion messageVersion;
-        private bool receiveSynchronously;
-        private bool sendAsynchronously;
-        private int maxPendingReceives;
-        private bool includeExceptionDetailInFaults;
+        private MessageVersion _messageVersion;
+        private bool _receiveSynchronously;
+        private bool _sendAsynchronously;
+        private int _maxPendingReceives;
+        private bool _includeExceptionDetailInFaults;
 
         //ServiceThrottle serviceThrottle;
-        private readonly bool session;
-        private SharedRuntimeState shared;
-        private readonly IDefaultCommunicationTimeouts timeouts;
+        private readonly bool _session;
+        private SharedRuntimeState _shared;
+        private readonly IDefaultCommunicationTimeouts _timeouts;
 
         //IsolationLevel transactionIsolationLevel = ServiceBehaviorAttribute.DefaultIsolationLevel;
         //bool transactionIsolationLevelSet;
-        private TimeSpan transactionTimeout;
-        private readonly bool performDefaultCloseInput;
+        private TimeSpan _transactionTimeout;
+        private readonly bool _performDefaultCloseInput;
 
         //EventTraceActivity eventTraceActivity;
-        private ErrorBehavior errorBehavior;
+        private ErrorBehavior _errorBehavior;
 
         internal ChannelDispatcher(SharedRuntimeState shared)
         {
@@ -53,25 +53,25 @@ namespace CoreWCF.Dispatcher
             Binding = binding;
             ListenUri = listenUri;
             SupportedChannelTypes = supportedChannelTypes;
-            this.timeouts = new ImmutableCommunicationTimeouts(timeouts);
+            _timeouts = new ImmutableCommunicationTimeouts(timeouts);
             Initialize(new SharedRuntimeState(true));
         }
 
         private void Initialize(SharedRuntimeState shared)
         {
-            this.shared = shared;
-            endpointDispatchers = new EndpointDispatcherCollection(this);
+            _shared = shared;
+            _endpointDispatchers = new EndpointDispatcherCollection(this);
             ChannelInitializers = NewBehaviorCollection<IChannelInitializer>();
             Channels = new CommunicationObjectManager<IChannel>(ThisLock);
             PendingChannels = new SynchronizedChannelCollection<IChannel>(ThisLock);
             ErrorHandlers = new Collection<IErrorHandler>();
             //this.isTransactedReceive = false;
             //this.asynchronousTransactedAcceptEnabled = false;
-            receiveSynchronously = false;
-            sendAsynchronously = true;
+            _receiveSynchronously = false;
+            _sendAsynchronously = true;
             //this.serviceThrottle = null;
             //transactionTimeout = TimeSpan.Zero;
-            maxPendingReceives = 1;
+            _maxPendingReceives = 1;
         }
 
         public string BindingName { get; }
@@ -83,9 +83,9 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (timeouts != null)
+                if (_timeouts != null)
                 {
-                    return timeouts.CloseTimeout;
+                    return _timeouts.CloseTimeout;
                 }
                 else
                 {
@@ -98,9 +98,9 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (timeouts != null)
+                if (_timeouts != null)
                 {
-                    return timeouts.OpenTimeout;
+                    return _timeouts.OpenTimeout;
                 }
                 else
                 {
@@ -115,33 +115,33 @@ namespace CoreWCF.Dispatcher
 
         public SynchronizedCollection<EndpointDispatcher> Endpoints
         {
-            get { return endpointDispatchers; }
+            get { return _endpointDispatchers; }
         }
 
         public Collection<IErrorHandler> ErrorHandlers { get; private set; }
 
         public MessageVersion MessageVersion
         {
-            get { return messageVersion; }
+            get { return _messageVersion; }
             set
             {
-                messageVersion = value;
+                _messageVersion = value;
                 ThrowIfDisposedOrImmutable();
             }
         }
 
         public override ServiceHostBase Host
         {
-            get { return host; }
+            get { return _host; }
         }
 
         internal bool EnableFaults
         {
-            get { return shared.EnableFaults; }
+            get { return _shared.EnableFaults; }
             set
             {
                 ThrowIfDisposedOrImmutable();
-                shared.EnableFaults = value;
+                _shared.EnableFaults = value;
             }
         }
 
@@ -160,11 +160,11 @@ namespace CoreWCF.Dispatcher
 
         public bool ManualAddressing
         {
-            get { return shared.ManualAddressing; }
+            get { return _shared.ManualAddressing; }
             set
             {
                 ThrowIfDisposedOrImmutable();
-                shared.ManualAddressing = value;
+                _shared.ManualAddressing = value;
             }
         }
 
@@ -174,7 +174,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return receiveSynchronously;
+                return _receiveSynchronously;
             }
             set
             {
@@ -184,7 +184,7 @@ namespace CoreWCF.Dispatcher
                     throw new ArgumentException("Only false supported", nameof(ReceiveSynchronously));
                 }
 
-                receiveSynchronously = value;
+                _receiveSynchronously = value;
             }
         }
 
@@ -192,7 +192,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return sendAsynchronously;
+                return _sendAsynchronously;
             }
             set
             {
@@ -202,9 +202,8 @@ namespace CoreWCF.Dispatcher
                     throw new ArgumentException("Only true supported", nameof(ReceiveSynchronously));
                 }
 
-                sendAsynchronously = value;
+                _sendAsynchronously = value;
             }
-
         }
 
         // TODO: Do we need to worry about this?
@@ -212,24 +211,24 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return maxPendingReceives;
+                return _maxPendingReceives;
             }
             set
             {
                 ThrowIfDisposedOrImmutable();
-                maxPendingReceives = value;
+                _maxPendingReceives = value;
             }
         }
 
         public bool IncludeExceptionDetailInFaults
         {
-            get { return includeExceptionDetailInFaults; }
+            get { return _includeExceptionDetailInFaults; }
             set
             {
                 lock (ThisLock)
                 {
                     ThrowIfDisposedOrImmutable();
-                    includeExceptionDetailInFaults = value;
+                    _includeExceptionDetailInFaults = value;
                 }
             }
         }
@@ -252,9 +251,9 @@ namespace CoreWCF.Dispatcher
 
             lock (ThisLock)
             {
-                if (errorBehavior != null)
+                if (_errorBehavior != null)
                 {
-                    behavior = errorBehavior;
+                    behavior = _errorBehavior;
                 }
                 else
                 {
@@ -294,12 +293,12 @@ namespace CoreWCF.Dispatcher
 
         internal void Init()
         {
-            errorBehavior = new ErrorBehavior(this);
+            _errorBehavior = new ErrorBehavior(this);
 
             EndpointDispatcherTable = new EndpointDispatcherTable(ThisLock);
-            for (int i = 0; i < endpointDispatchers.Count; i++)
+            for (int i = 0; i < _endpointDispatchers.Count; i++)
             {
-                EndpointDispatcher endpoint = endpointDispatchers[i];
+                EndpointDispatcher endpoint = _endpointDispatchers[i];
 
                 // Force a build of the runtime to catch any unexpected errors before we are done opening.
                 endpoint.DispatchRuntime.GetRuntime();
@@ -308,9 +307,9 @@ namespace CoreWCF.Dispatcher
 
                 EndpointDispatcherTable.AddEndpoint(endpoint);
 
-                if ((addressTable != null) && (endpoint.OriginalAddress != null))
+                if ((_addressTable != null) && (endpoint.OriginalAddress != null))
                 {
-                    addressTable.Add(endpoint.AddressFilter, endpoint.OriginalAddress, endpoint.FilterPriority);
+                    _addressTable.Add(endpoint.AddressFilter, endpoint.OriginalAddress, endpoint.FilterPriority);
                 }
 
                 //if (DiagnosticUtility.ShouldTraceInformation)
@@ -348,9 +347,9 @@ namespace CoreWCF.Dispatcher
 
                 if (State == CommunicationState.Opened)
                 {
-                    if (addressTable != null)
+                    if (_addressTable != null)
                     {
-                        addressTable.Add(endpoint.AddressFilter, endpoint.EndpointAddress, endpoint.FilterPriority);
+                        _addressTable.Add(endpoint.AddressFilter, endpoint.EndpointAddress, endpoint.FilterPriority);
                     }
 
                     EndpointDispatcherTable.AddEndpoint(endpoint);
@@ -366,9 +365,9 @@ namespace CoreWCF.Dispatcher
                 {
                     EndpointDispatcherTable.RemoveEndpoint(endpoint);
 
-                    if (addressTable != null)
+                    if (_addressTable != null)
                     {
-                        addressTable.Remove(endpoint.AddressFilter);
+                        _addressTable.Remove(endpoint.AddressFilter);
                     }
                 }
 
@@ -398,9 +397,9 @@ namespace CoreWCF.Dispatcher
 
             lock (ThisLock)
             {
-                if (errorBehavior != null)
+                if (_errorBehavior != null)
                 {
-                    behavior = errorBehavior;
+                    behavior = _errorBehavior;
                 }
                 else
                 {
@@ -422,13 +421,13 @@ namespace CoreWCF.Dispatcher
 
             ThrowIfDisposedOrImmutable();
 
-            if (this.host != null)
+            if (_host != null)
             {
                 Exception error = new InvalidOperationException(SR.SFxChannelDispatcherMultipleHost0);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
             }
 
-            this.host = serviceHost;
+            _host = serviceHost;
         }
 
         protected override void Detach(ServiceHostBase host)
@@ -438,7 +437,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
             }
 
-            if (this.host != host)
+            if (_host != host)
             {
                 Exception error = new InvalidOperationException(SR.SFxChannelDispatcherDifferentHost0);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
@@ -446,24 +445,24 @@ namespace CoreWCF.Dispatcher
 
             ThrowIfDisposedOrImmutable();
 
-            this.host = null;
+            _host = null;
         }
 
         private class EndpointDispatcherCollection : SynchronizedCollection<EndpointDispatcher>
         {
-            private readonly ChannelDispatcher owner;
+            private readonly ChannelDispatcher _owner;
 
             internal EndpointDispatcherCollection(ChannelDispatcher owner)
                 : base(owner.ThisLock)
             {
-                this.owner = owner;
+                _owner = owner;
             }
 
             protected override void ClearItems()
             {
                 foreach (EndpointDispatcher item in Items)
                 {
-                    owner.OnRemoveEndpoint(item);
+                    _owner.OnRemoveEndpoint(item);
                 }
                 base.ClearItems();
             }
@@ -475,7 +474,7 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                owner.OnAddEndpoint(item);
+                _owner.OnAddEndpoint(item);
                 base.InsertItem(index, item);
             }
 
@@ -483,7 +482,7 @@ namespace CoreWCF.Dispatcher
             {
                 EndpointDispatcher item = Items[index];
                 base.RemoveItem(index);
-                owner.OnRemoveEndpoint(item);
+                _owner.OnRemoveEndpoint(item);
             }
 
             protected override void SetItem(int index, EndpointDispatcher item)
@@ -495,17 +494,17 @@ namespace CoreWCF.Dispatcher
 
         private class ChannelDispatcherBehaviorCollection<T> : SynchronizedCollection<T>
         {
-            private readonly ChannelDispatcher outer;
+            private readonly ChannelDispatcher _outer;
 
             internal ChannelDispatcherBehaviorCollection(ChannelDispatcher outer)
                 : base(outer.ThisLock)
             {
-                this.outer = outer;
+                _outer = outer;
             }
 
             protected override void ClearItems()
             {
-                outer.ThrowIfDisposedOrImmutable();
+                _outer.ThrowIfDisposedOrImmutable();
                 base.ClearItems();
             }
 
@@ -516,13 +515,13 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                outer.ThrowIfDisposedOrImmutable();
+                _outer.ThrowIfDisposedOrImmutable();
                 base.InsertItem(index, item);
             }
 
             protected override void RemoveItem(int index)
             {
-                outer.ThrowIfDisposedOrImmutable();
+                _outer.ThrowIfDisposedOrImmutable();
                 base.RemoveItem(index);
             }
 
@@ -533,10 +532,9 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
                 }
 
-                outer.ThrowIfDisposedOrImmutable();
+                _outer.ThrowIfDisposedOrImmutable();
                 base.SetItem(index, item);
             }
         }
     }
-
 }

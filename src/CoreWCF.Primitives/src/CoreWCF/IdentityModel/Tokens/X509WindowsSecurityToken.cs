@@ -9,8 +9,8 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal class X509WindowsSecurityToken : X509SecurityToken
     {
-        private WindowsIdentity windowsIdentity;
-        private bool disposed = false;
+        private WindowsIdentity _windowsIdentity;
+        private bool _disposed = false;
 
         public X509WindowsSecurityToken(X509Certificate2 certificate, WindowsIdentity windowsIdentity)
             : this(certificate, windowsIdentity, null, true)
@@ -41,7 +41,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             AuthenticationType = authenticationType;
-            this.windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
+            _windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
         }
 
 
@@ -50,7 +50,7 @@ namespace CoreWCF.IdentityModel.Tokens
             get
             {
                 ThrowIfDisposed();
-                return windowsIdentity;
+                return _windowsIdentity;
             }
         }
 
@@ -60,11 +60,11 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             try
             {
-                if (!disposed)
+                if (!_disposed)
                 {
-                    disposed = true;
-                    windowsIdentity.Dispose();
-                    windowsIdentity = null;
+                    _disposed = true;
+                    _windowsIdentity.Dispose();
+                    _windowsIdentity = null;
                 }
             }
             finally
@@ -73,5 +73,4 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
     }
-
 }

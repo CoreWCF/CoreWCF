@@ -13,10 +13,10 @@ namespace CoreWCF.Channels
         where TItem : class
     {
         private const int HopperSize = 128;
-        private volatile HopperCache lookupCache; // cache matches, for lookup speed
-        private readonly SegmentHierarchyNode<TItem> root;
-        private readonly bool useWeakReferences;
-        private readonly bool includePortInComparison;
+        private volatile HopperCache _lookupCache; // cache matches, for lookup speed
+        private readonly SegmentHierarchyNode<TItem> _root;
+        private readonly bool _useWeakReferences;
+        private readonly bool _includePortInComparison;
 
         public UriPrefixTable()
             : this(false)
@@ -30,14 +30,14 @@ namespace CoreWCF.Channels
 
         public UriPrefixTable(bool includePortInComparison, bool useWeakReferences)
         {
-            this.includePortInComparison = includePortInComparison;
-            this.useWeakReferences = useWeakReferences;
-            root = new SegmentHierarchyNode<TItem>(null, useWeakReferences);
-            lookupCache = new HopperCache(HopperSize, useWeakReferences);
+            _includePortInComparison = includePortInComparison;
+            _useWeakReferences = useWeakReferences;
+            _root = new SegmentHierarchyNode<TItem>(null, useWeakReferences);
+            _lookupCache = new HopperCache(HopperSize, useWeakReferences);
         }
 
         internal UriPrefixTable(UriPrefixTable<TItem> objectToClone)
-            : this(objectToClone.includePortInComparison, objectToClone.useWeakReferences)
+            : this(objectToClone._includePortInComparison, objectToClone._useWeakReferences)
         {
             if (objectToClone.Count > 0)
             {
@@ -69,7 +69,7 @@ namespace CoreWCF.Channels
 
             // don't need to normalize path since SegmentHierarchyNode is 
             // already OrdinalIgnoreCase
-            string[] paths = UriSegmenter.ToPath(uri, key.HostNameComparisonMode, includePortInComparison);
+            string[] paths = UriSegmenter.ToPath(uri, key.HostNameComparisonMode, _includePortInComparison);
             bool exactMatch;
             SegmentHierarchyNode<TItem> node;
             using (AsyncLock.TakeLock())
@@ -84,14 +84,14 @@ namespace CoreWCF.Channels
             using (AsyncLock.TakeLock())
             {
                 List<KeyValuePair<BaseUriWithWildcard, TItem>> result = new List<KeyValuePair<BaseUriWithWildcard, TItem>>();
-                root.Collect(result);
+                _root.Collect(result);
                 return result;
             }
         }
 
         private bool TryCacheLookup(BaseUriWithWildcard key, out TItem item)
         {
-            object value = lookupCache.GetValue(ThisLock, key);
+            object value = _lookupCache.GetValue(ThisLock, key);
 
             // We might return null and true in the case of DBNull (cached negative result).
             // When TItem is object, the cast isn't sufficient to weed out DBNulls, so we need an explicit check.
@@ -105,12 +105,12 @@ namespace CoreWCF.Channels
             Fx.Assert(item != DBNull.Value, "Can't add DBNull to UriPrefixTable.");
 
             // HopperCache uses null as 'doesn't exist', so use DBNull as a stand-in for null.
-            lookupCache.Add(key, item ?? (object)DBNull.Value);
+            _lookupCache.Add(key, item ?? (object)DBNull.Value);
         }
 
         private void ClearCache()
         {
-            lookupCache = new HopperCache(HopperSize, useWeakReferences);
+            _lookupCache = new HopperCache(HopperSize, _useWeakReferences);
         }
 
         public bool TryLookupUri(Uri uri, HostNameComparisonMode hostNameComparisonMode, out TItem item)
@@ -126,7 +126,7 @@ namespace CoreWCF.Channels
                 // exact match failed, perform the full lookup (which will also
                 // catch case-insensitive variations that aren't yet in our cache)
                 SegmentHierarchyNode<TItem> node = FindDataNode(
-                    UriSegmenter.ToPath(key.BaseAddress, hostNameComparisonMode, includePortInComparison), out bool dummy);
+                    UriSegmenter.ToPath(key.BaseAddress, hostNameComparisonMode, _includePortInComparison), out bool dummy);
                 if (node != null)
                 {
                     item = node.Data;
@@ -165,15 +165,15 @@ namespace CoreWCF.Channels
                 // Since every removed Uri could alter what Prefixes should have matched, we
                 // should clear the cache of any existing results and start over
                 ClearCache();
-                string[] path = UriSegmenter.ToPath(uri, hostNameComparisonMode, includePortInComparison);
+                string[] path = UriSegmenter.ToPath(uri, hostNameComparisonMode, _includePortInComparison);
                 // Never remove the root
                 if (path.Length == 0)
                 {
-                    root.RemoveData();
+                    _root.RemoveData();
                 }
                 else
                 {
-                    root.RemovePath(path, 0);
+                    _root.RemovePath(path, 0);
                 }
                 Count--;
             }
@@ -184,7 +184,7 @@ namespace CoreWCF.Channels
             Fx.Assert(path != null, "FindDataNode: path is null");
 
             exactMatch = false;
-            SegmentHierarchyNode<TItem> current = root;
+            SegmentHierarchyNode<TItem> current = _root;
             SegmentHierarchyNode<TItem> result = null;
             for (int i = 0; i < path.Length; ++i)
             {
@@ -206,13 +206,13 @@ namespace CoreWCF.Channels
         {
             Fx.Assert(baseUri != null, "FindOrCreateNode: baseUri is null");
 
-            string[] path = UriSegmenter.ToPath(baseUri.BaseAddress, baseUri.HostNameComparisonMode, includePortInComparison);
-            SegmentHierarchyNode<TItem> current = root;
+            string[] path = UriSegmenter.ToPath(baseUri.BaseAddress, baseUri.HostNameComparisonMode, _includePortInComparison);
+            SegmentHierarchyNode<TItem> current = _root;
             for (int i = 0; i < path.Length; ++i)
             {
                 if (!current.TryGetChild(path[i], out SegmentHierarchyNode<TItem> next))
                 {
-                    next = new SegmentHierarchyNode<TItem>(path[i], useWeakReferences);
+                    next = new SegmentHierarchyNode<TItem>(path[i], _useWeakReferences);
                     current.SetChildNode(path[i], next);
                 }
                 current = next;
@@ -235,28 +235,28 @@ namespace CoreWCF.Channels
 
             private struct UriSegmentEnum
             {
-                private string segment;
-                private int segmentStartAt;
-                private int segmentLength;
-                private UriSegmentType type;
-                private readonly Uri uri;
+                private string _segment;
+                private int _segmentStartAt;
+                private int _segmentLength;
+                private UriSegmentType _type;
+                private readonly Uri _uri;
 
                 internal UriSegmentEnum(Uri uri)
                 {
                     Fx.Assert(null != uri, "UreSegmentEnum: null uri");
-                    this.uri = uri;
-                    type = UriSegmentType.Unknown;
-                    segment = null;
-                    segmentStartAt = 0;
-                    segmentLength = 0;
+                    _uri = uri;
+                    _type = UriSegmentType.Unknown;
+                    _segment = null;
+                    _segmentStartAt = 0;
+                    _segmentLength = 0;
                 }
 
                 private void ClearSegment()
                 {
-                    type = UriSegmentType.None;
-                    segment = string.Empty;
-                    segmentStartAt = 0;
-                    segmentLength = 0;
+                    _type = UriSegmentType.None;
+                    _segment = string.Empty;
+                    _segmentStartAt = 0;
+                    _segmentLength = 0;
                 }
 
                 public string[] GetSegments(HostNameComparisonMode hostNameComparisonMode,
@@ -265,10 +265,10 @@ namespace CoreWCF.Channels
                     List<string> segments = new List<string>();
                     while (Next())
                     {
-                        switch (type)
+                        switch (_type)
                         {
                             case UriSegmentType.Path:
-                                segments.Add(segment.Substring(segmentStartAt, segmentLength));
+                                segments.Add(_segment.Substring(_segmentStartAt, _segmentLength));
                                 break;
 
                             case UriSegmentType.Host:
@@ -278,7 +278,7 @@ namespace CoreWCF.Channels
                                 }
                                 else if (hostNameComparisonMode == HostNameComparisonMode.Exact)
                                 {
-                                    segments.Add(segment);
+                                    segments.Add(_segment);
                                 }
                                 else
                                 {
@@ -289,12 +289,12 @@ namespace CoreWCF.Channels
                             case UriSegmentType.Port:
                                 if (includePortInComparison || hostNameComparisonMode == HostNameComparisonMode.Exact)
                                 {
-                                    segments.Add(segment);
+                                    segments.Add(_segment);
                                 }
                                 break;
 
                             default:
-                                segments.Add(segment);
+                                segments.Add(_segment);
                                 break;
                         }
                     }
@@ -305,18 +305,18 @@ namespace CoreWCF.Channels
                 {
                     while (true)
                     {
-                        switch (type)
+                        switch (_type)
                         {
                             case UriSegmentType.Unknown:
-                                type = UriSegmentType.Scheme;
-                                SetSegment(uri.Scheme);
+                                _type = UriSegmentType.Scheme;
+                                SetSegment(_uri.Scheme);
                                 return true;
 
                             case UriSegmentType.Scheme:
-                                type = UriSegmentType.Host;
-                                string host = uri.Host;
+                                _type = UriSegmentType.Host;
+                                string host = _uri.Host;
                                 // The userName+password also accompany...
-                                string userInfo = uri.UserInfo;
+                                string userInfo = _uri.UserInfo;
                                 if (null != userInfo && userInfo.Length > 0)
                                 {
                                     host = userInfo + '@' + host;
@@ -325,23 +325,23 @@ namespace CoreWCF.Channels
                                 return true;
 
                             case UriSegmentType.Host:
-                                type = UriSegmentType.Port;
-                                int port = uri.Port;
+                                _type = UriSegmentType.Port;
+                                int port = _uri.Port;
                                 SetSegment(port.ToString(CultureInfo.InvariantCulture));
                                 return true;
 
                             case UriSegmentType.Port:
-                                type = UriSegmentType.Path;
-                                string absPath = uri.AbsolutePath;
+                                _type = UriSegmentType.Path;
+                                string absPath = _uri.AbsolutePath;
                                 Fx.Assert(null != absPath, "Next: nill absPath");
                                 if (0 == absPath.Length)
                                 {
                                     ClearSegment();
                                     return false;
                                 }
-                                segment = absPath;
-                                segmentStartAt = 0;
-                                segmentLength = 0;
+                                _segment = absPath;
+                                _segmentStartAt = 0;
+                                _segmentLength = 0;
                                 return NextPathSegment();
 
                             case UriSegmentType.Path:
@@ -359,22 +359,22 @@ namespace CoreWCF.Channels
 
                 public bool NextPathSegment()
                 {
-                    segmentStartAt += segmentLength;
-                    while (segmentStartAt < segment.Length && segment[segmentStartAt] == '/')
+                    _segmentStartAt += _segmentLength;
+                    while (_segmentStartAt < _segment.Length && _segment[_segmentStartAt] == '/')
                     {
-                        segmentStartAt++;
+                        _segmentStartAt++;
                     }
 
-                    if (segmentStartAt < segment.Length)
+                    if (_segmentStartAt < _segment.Length)
                     {
-                        int next = segment.IndexOf('/', segmentStartAt);
+                        int next = _segment.IndexOf('/', _segmentStartAt);
                         if (-1 == next)
                         {
-                            segmentLength = segment.Length - segmentStartAt;
+                            _segmentLength = _segment.Length - _segmentStartAt;
                         }
                         else
                         {
-                            segmentLength = next - segmentStartAt;
+                            _segmentLength = next - _segmentStartAt;
                         }
                         return true;
                     }
@@ -384,9 +384,9 @@ namespace CoreWCF.Channels
 
                 private void SetSegment(string segment)
                 {
-                    this.segment = segment;
-                    segmentStartAt = 0;
-                    segmentLength = segment.Length;
+                    _segment = segment;
+                    _segmentStartAt = 0;
+                    _segmentLength = segment.Length;
                 }
 
                 private enum UriSegmentType
@@ -405,65 +405,65 @@ namespace CoreWCF.Channels
     internal class SegmentHierarchyNode<TData>
         where TData : class
     {
-        private BaseUriWithWildcard path;
-        private TData data;
-        private readonly string name;
-        private readonly Dictionary<string, SegmentHierarchyNode<TData>> children;
-        private WeakReference weakData;
-        private readonly bool useWeakReferences;
+        private BaseUriWithWildcard _path;
+        private TData _data;
+        private readonly string _name;
+        private readonly Dictionary<string, SegmentHierarchyNode<TData>> _children;
+        private WeakReference _weakData;
+        private readonly bool _useWeakReferences;
 
         public SegmentHierarchyNode(string name, bool useWeakReferences)
         {
-            this.name = name;
-            this.useWeakReferences = useWeakReferences;
-            children = new Dictionary<string, SegmentHierarchyNode<TData>>(StringComparer.OrdinalIgnoreCase);
+            _name = name;
+            _useWeakReferences = useWeakReferences;
+            _children = new Dictionary<string, SegmentHierarchyNode<TData>>(StringComparer.OrdinalIgnoreCase);
         }
 
         public TData Data
         {
             get
             {
-                if (useWeakReferences)
+                if (_useWeakReferences)
                 {
-                    if (weakData == null)
+                    if (_weakData == null)
                     {
                         return null;
                     }
                     else
                     {
-                        return weakData.Target as TData;
+                        return _weakData.Target as TData;
                     }
                 }
                 else
                 {
-                    return data;
+                    return _data;
                 }
             }
         }
 
         public void SetData(TData data, BaseUriWithWildcard path)
         {
-            this.path = path;
-            if (useWeakReferences)
+            _path = path;
+            if (_useWeakReferences)
             {
                 if (data == null)
                 {
-                    weakData = null;
+                    _weakData = null;
                 }
                 else
                 {
-                    weakData = new WeakReference(data);
+                    _weakData = new WeakReference(data);
                 }
             }
             else
             {
-                this.data = data;
+                _data = data;
             }
         }
 
         public void SetChildNode(string name, SegmentHierarchyNode<TData> node)
         {
-            children[name] = node;
+            _children[name] = node;
         }
 
         public void Collect(List<KeyValuePair<BaseUriWithWildcard, TData>> result)
@@ -471,10 +471,10 @@ namespace CoreWCF.Channels
             TData localData = Data;
             if (localData != null)
             {
-                result.Add(new KeyValuePair<BaseUriWithWildcard, TData>(path, localData));
+                result.Add(new KeyValuePair<BaseUriWithWildcard, TData>(_path, localData));
             }
 
-            foreach (SegmentHierarchyNode<TData> child in children.Values)
+            foreach (SegmentHierarchyNode<TData> child in _children.Values)
             {
                 child.Collect(result);
             }
@@ -482,7 +482,7 @@ namespace CoreWCF.Channels
 
         public bool TryGetChild(string segment, out SegmentHierarchyNode<TData> value)
         {
-            return children.TryGetValue(segment, out value);
+            return _children.TryGetValue(segment, out value);
         }
 
         public void RemoveData()
@@ -496,18 +496,18 @@ namespace CoreWCF.Channels
             if (seg == path.Length)
             {
                 RemoveData();
-                return children.Count == 0;
+                return _children.Count == 0;
             }
 
             if (!TryGetChild(path[seg], out SegmentHierarchyNode<TData> node))
             {
-                return (children.Count == 0 && Data == null);
+                return (_children.Count == 0 && Data == null);
             }
 
             if (node.RemovePath(path, seg + 1))
             {
-                children.Remove(path[seg]);
-                return (children.Count == 0 && Data == null);
+                _children.Remove(path[seg]);
+                return (_children.Count == 0 && Data == null);
             }
             else
             {
@@ -515,5 +515,4 @@ namespace CoreWCF.Channels
             }
         }
     }
-
 }

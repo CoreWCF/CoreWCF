@@ -14,13 +14,13 @@ namespace CoreWCF.Security
     {
         internal const MessageProtectionOrder defaultMessageProtectionOrder = MessageProtectionOrder.SignBeforeEncrypt;
         internal const bool defaultDoRequestSignatureConfirmation = false;
-        private bool applyIntegrity = true;
-        private bool applyConfidentiality = true;
-        private bool doRequestSignatureConfirmation = defaultDoRequestSignatureConfirmation;
-        private IdentityVerifier identityVerifier;
-        private MessageProtectionOrder messageProtectionOrder = defaultMessageProtectionOrder;
-        private bool requireIntegrity = true;
-        private bool requireConfidentiality = true;
+        private bool _applyIntegrity = true;
+        private bool _applyConfidentiality = true;
+        private bool _doRequestSignatureConfirmation = defaultDoRequestSignatureConfirmation;
+        private IdentityVerifier _identityVerifier;
+        private MessageProtectionOrder _messageProtectionOrder = defaultMessageProtectionOrder;
+        private bool _requireIntegrity = true;
+        private bool _requireConfidentiality = true;
 
         protected MessageSecurityProtocolFactory()
         {
@@ -34,26 +34,26 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(factory));
             }
 
-            applyIntegrity = factory.applyIntegrity;
-            applyConfidentiality = factory.applyConfidentiality;
-            identityVerifier = factory.identityVerifier;
+            _applyIntegrity = factory._applyIntegrity;
+            _applyConfidentiality = factory._applyConfidentiality;
+            _identityVerifier = factory._identityVerifier;
             ProtectionRequirements = new ChannelProtectionRequirements(factory.ProtectionRequirements);
-            messageProtectionOrder = factory.messageProtectionOrder;
-            requireIntegrity = factory.requireIntegrity;
-            requireConfidentiality = factory.requireConfidentiality;
-            doRequestSignatureConfirmation = factory.doRequestSignatureConfirmation;
+            _messageProtectionOrder = factory._messageProtectionOrder;
+            _requireIntegrity = factory._requireIntegrity;
+            _requireConfidentiality = factory._requireConfidentiality;
+            _doRequestSignatureConfirmation = factory._doRequestSignatureConfirmation;
         }
 
         public bool ApplyConfidentiality
         {
             get
             {
-                return applyConfidentiality;
+                return _applyConfidentiality;
             }
             set
             {
                 ThrowIfImmutable();
-                applyConfidentiality = value;
+                _applyConfidentiality = value;
             }
         }
 
@@ -61,12 +61,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return applyIntegrity;
+                return _applyIntegrity;
             }
             set
             {
                 ThrowIfImmutable();
-                applyIntegrity = value;
+                _applyIntegrity = value;
             }
         }
 
@@ -74,12 +74,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return doRequestSignatureConfirmation;
+                return _doRequestSignatureConfirmation;
             }
             set
             {
                 ThrowIfImmutable();
-                doRequestSignatureConfirmation = value;
+                _doRequestSignatureConfirmation = value;
             }
         }
 
@@ -87,12 +87,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return identityVerifier;
+                return _identityVerifier;
             }
             set
             {
                 ThrowIfImmutable();
-                identityVerifier = value;
+                _identityVerifier = value;
             }
         }
 
@@ -102,12 +102,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return messageProtectionOrder;
+                return _messageProtectionOrder;
             }
             set
             {
                 ThrowIfImmutable();
-                messageProtectionOrder = value;
+                _messageProtectionOrder = value;
             }
         }
 
@@ -115,12 +115,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return requireIntegrity;
+                return _requireIntegrity;
             }
             set
             {
                 ThrowIfImmutable();
-                requireIntegrity = value;
+                _requireIntegrity = value;
             }
         }
 
@@ -128,12 +128,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return requireConfidentiality;
+                return _requireConfidentiality;
             }
             set
             {
                 ThrowIfImmutable();
-                requireConfidentiality = value;
+                _requireConfidentiality = value;
             }
         }
 
@@ -186,7 +186,6 @@ namespace CoreWCF.Security
         private static MessagePartSpecification ExtractMessageParts(string action,
             ScopedMessagePartSpecification scopedParts, bool isForSignature)
         {
-
             if (scopedParts.TryGetParts(action, out MessagePartSpecification parts))
             {
                 return parts;

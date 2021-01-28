@@ -12,10 +12,10 @@ namespace CoreWCF.Description
 {
     public class DataContractSerializerOperationBehavior : IOperationBehavior //, IWsdlExportExtension
     {
-        private readonly OperationDescription operation;
+        private readonly OperationDescription _operation;
         internal bool ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
         internal int maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
-        private DataContractResolver dataContractResolver;
+        private DataContractResolver _dataContractResolver;
 
         public DataContractFormatAttribute DataContractFormatAttribute { get; }
 
@@ -27,7 +27,7 @@ namespace CoreWCF.Description
         public DataContractSerializerOperationBehavior(OperationDescription operation, DataContractFormatAttribute dataContractFormatAttribute)
         {
             DataContractFormatAttribute = dataContractFormatAttribute ?? new DataContractFormatAttribute();
-            this.operation = operation;
+            _operation = operation;
         }
 
         public DataContractSerializerOperationBehavior(OperationDescription operation,
@@ -65,8 +65,8 @@ namespace CoreWCF.Description
 
         public DataContractResolver DataContractResolver
         {
-            get { return dataContractResolver; }
-            set { dataContractResolver = value; }
+            get { return _dataContractResolver; }
+            set { _dataContractResolver = value; }
         }
 
         public virtual XmlObjectSerializer CreateSerializer(Type type, string name, string ns, IList<Type> knownTypes)

@@ -12,7 +12,7 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     internal class CustomUserNameSecurityTokenAuthenticator : UserNameSecurityTokenAuthenticator
     {
-        private readonly UserNamePasswordValidator validator;
+        private readonly UserNamePasswordValidator _validator;
 
         public CustomUserNameSecurityTokenAuthenticator(UserNamePasswordValidator validator)
         {
@@ -21,13 +21,13 @@ namespace CoreWCF.IdentityModel.Selectors
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
             }
 
-            this.validator = validator;
+            _validator = validator;
         }
 
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateUserNamePasswordCore(string userName, string password)
         {
-            validator.Validate(userName, password);
-            return SecurityUtils.CreateAuthorizationPolicies(new UserNameClaimSet(userName, validator.GetType().Name));
+            _validator.Validate(userName, password);
+            return SecurityUtils.CreateAuthorizationPolicies(new UserNameClaimSet(userName, _validator.GetType().Name));
         }
 
         private class UserNameClaimSet : DefaultClaimSet, IIdentityInfo

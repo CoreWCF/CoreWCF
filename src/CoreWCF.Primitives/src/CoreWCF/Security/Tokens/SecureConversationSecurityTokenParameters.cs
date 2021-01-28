@@ -15,14 +15,14 @@ namespace CoreWCF.Security.Tokens
     {
         internal const bool defaultRequireCancellation = true;
         internal const bool defaultCanRenewSession = true;
-        private bool canRenewSession = defaultCanRenewSession;
-        private BindingContext issuerBindingContext;
+        private bool _canRenewSession = defaultCanRenewSession;
+        private BindingContext _issuerBindingContext;
 
         protected SecureConversationSecurityTokenParameters(SecureConversationSecurityTokenParameters other)
             : base(other)
         {
             RequireCancellation = other.RequireCancellation;
-            canRenewSession = other.canRenewSession;
+            _canRenewSession = other._canRenewSession;
             if (other.BootstrapSecurityBindingElement != null)
             {
                 BootstrapSecurityBindingElement = (SecurityBindingElement)other.BootstrapSecurityBindingElement.Clone();
@@ -33,9 +33,9 @@ namespace CoreWCF.Security.Tokens
                 BootstrapProtectionRequirements = new ChannelProtectionRequirements(other.BootstrapProtectionRequirements);
             }
 
-            if (other.issuerBindingContext != null)
+            if (other._issuerBindingContext != null)
             {
-                issuerBindingContext = other.issuerBindingContext.Clone();
+                _issuerBindingContext = other._issuerBindingContext.Clone();
             }
         }
 
@@ -73,7 +73,7 @@ namespace CoreWCF.Security.Tokens
             : base()
         {
             BootstrapSecurityBindingElement = bootstrapSecurityBindingElement;
-            this.canRenewSession = canRenewSession;
+            _canRenewSession = canRenewSession;
             if (bootstrapProtectionRequirements != null)
             {
                 BootstrapProtectionRequirements = new ChannelProtectionRequirements(bootstrapProtectionRequirements);
@@ -99,7 +99,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return issuerBindingContext;
+                return _issuerBindingContext;
             }
             set
             {
@@ -107,7 +107,7 @@ namespace CoreWCF.Security.Tokens
                 {
                     value = value.Clone();
                 }
-                issuerBindingContext = value;
+                _issuerBindingContext = value;
             }
         }
 
@@ -119,11 +119,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return canRenewSession;
+                return _canRenewSession;
             }
             set
             {
-                canRenewSession = value;
+                _canRenewSession = value;
             }
         }
 

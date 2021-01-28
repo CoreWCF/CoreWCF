@@ -11,13 +11,13 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509SecurityToken : SecurityToken, IDisposable
     {
-        private readonly string id;
-        private readonly X509Certificate2 certificate;
-        private ReadOnlyCollection<SecurityKey> securityKeys;
-        private DateTime effectiveTime = SecurityUtils.MaxUtcDateTime;
-        private DateTime expirationTime = SecurityUtils.MinUtcDateTime;
-        private bool disposed = false;
-        private readonly bool disposable;
+        private readonly string _id;
+        private readonly X509Certificate2 _certificate;
+        private ReadOnlyCollection<SecurityKey> _securityKeys;
+        private DateTime _effectiveTime = SecurityUtils.MaxUtcDateTime;
+        private DateTime _expirationTime = SecurityUtils.MinUtcDateTime;
+        private bool _disposed = false;
+        private readonly bool _disposable;
 
         public X509SecurityToken(X509Certificate2 certificate)
             : this(certificate, SecurityUniqueId.Create().Value)
@@ -56,15 +56,15 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             }
 
-            this.id = id;
-            this.certificate = clone ? new X509Certificate2(certificate) : certificate;
+            _id = id;
+            _certificate = clone ? new X509Certificate2(certificate) : certificate;
             // if the cert needs to be cloned then the token owns the clone and should dispose it
-            this.disposable = clone || disposable;
+            _disposable = clone || disposable;
         }
 
         public override string Id
         {
-            get { return id; }
+            get { return _id; }
         }
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys
@@ -72,13 +72,13 @@ namespace CoreWCF.IdentityModel.Tokens
             get
             {
                 ThrowIfDisposed();
-                if (securityKeys == null)
+                if (_securityKeys == null)
                 {
                     List<SecurityKey> temp = new List<SecurityKey>(1);
-                    temp.Add(new X509AsymmetricSecurityKey(certificate));
-                    securityKeys = temp.AsReadOnly();
+                    temp.Add(new X509AsymmetricSecurityKey(_certificate));
+                    _securityKeys = temp.AsReadOnly();
                 }
-                return securityKeys;
+                return _securityKeys;
             }
         }
 
@@ -87,12 +87,12 @@ namespace CoreWCF.IdentityModel.Tokens
             get
             {
                 ThrowIfDisposed();
-                if (effectiveTime == SecurityUtils.MaxUtcDateTime)
+                if (_effectiveTime == SecurityUtils.MaxUtcDateTime)
                 {
-                    effectiveTime = certificate.NotBefore.ToUniversalTime();
+                    _effectiveTime = _certificate.NotBefore.ToUniversalTime();
                 }
 
-                return effectiveTime;
+                return _effectiveTime;
             }
         }
 
@@ -101,12 +101,12 @@ namespace CoreWCF.IdentityModel.Tokens
             get
             {
                 ThrowIfDisposed();
-                if (expirationTime == SecurityUtils.MinUtcDateTime)
+                if (_expirationTime == SecurityUtils.MinUtcDateTime)
                 {
-                    expirationTime = certificate.NotAfter.ToUniversalTime();
+                    _expirationTime = _certificate.NotAfter.ToUniversalTime();
                 }
 
-                return expirationTime;
+                return _expirationTime;
             }
         }
 
@@ -115,26 +115,25 @@ namespace CoreWCF.IdentityModel.Tokens
             get
             {
                 ThrowIfDisposed();
-                return certificate;
+                return _certificate;
             }
         }
 
         public virtual void Dispose()
         {
-            if (disposable && !disposed)
+            if (_disposable && !_disposed)
             {
-                disposed = true;
-                certificate.Reset();
+                _disposed = true;
+                _certificate.Reset();
             }
         }
 
         protected void ThrowIfDisposed()
         {
-            if (disposed)
+            if (_disposed)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().FullName));
             }
         }
     }
-
 }

@@ -9,18 +9,18 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class MessageOperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
-        private static MessageOperationFormatter instance;
+        private static MessageOperationFormatter s_instance;
 
         internal static MessageOperationFormatter Instance
         {
             get
             {
-                if (instance == null)
+                if (s_instance == null)
                 {
-                    instance = new MessageOperationFormatter();
+                    s_instance = new MessageOperationFormatter();
                 }
 
-                return instance;
+                return s_instance;
             }
         }
 
@@ -66,7 +66,6 @@ namespace CoreWCF.Dispatcher
 
         public MessageFault SerializeFault(Exception error)
         {
-
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxMessageOperationFormatterCannotSerializeFault));
         }
 
@@ -100,5 +99,4 @@ namespace CoreWCF.Dispatcher
             return (Message)parameters[0];
         }
     }
-
 }

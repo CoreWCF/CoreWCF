@@ -9,9 +9,9 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.OperationContract, AllowMultiple = true, Inherited = false)]
     public sealed class FaultContractAttribute : Attribute
     {
-        private string action;
-        private string name;
-        private string ns;
+        private string _action;
+        private string _name;
+        private string _ns;
 
         public FaultContractAttribute(Type detailType)
         {
@@ -27,7 +27,7 @@ namespace CoreWCF
 
         public string Action
         {
-            get { return action; }
+            get { return _action; }
             set
             {
                 if (value == null)
@@ -35,13 +35,13 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
 
-                action = value;
+                _action = value;
             }
         }
 
         public string Name
         {
-            get { return name; }
+            get { return _name; }
             set
             {
                 if (value == null)
@@ -55,13 +55,13 @@ namespace CoreWCF
                         SR.SFxNameCannotBeEmpty));
                 }
 
-                name = value;
+                _name = value;
             }
         }
 
         public string Namespace
         {
-            get { return ns; }
+            get { return _ns; }
             set
             {
                 if (!string.IsNullOrEmpty(value))
@@ -69,7 +69,7 @@ namespace CoreWCF
                     NamingHelper.CheckUriProperty(value, "Namespace");
                 }
 
-                ns = value;
+                _ns = value;
             }
         }
     }

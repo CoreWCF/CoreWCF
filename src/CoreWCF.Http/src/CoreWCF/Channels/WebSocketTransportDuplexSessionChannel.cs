@@ -462,7 +462,6 @@ namespace CoreWCF.Channels
                     {
                         try
                         {
-
                             //if (TD.WebSocketAsyncReadStartIsEnabled())
                             //{
                             //    TD.WebSocketAsyncReadStart(this.webSocket.GetHashCode());
@@ -507,7 +506,6 @@ namespace CoreWCF.Channels
                         {
                             WebSocketHelper.ThrowCorrectException(ex, TimeSpan.MaxValue, WebSocketHelper.ReceiveOperation);
                         }
-
                     }
                     while (!endOfMessage && !_closureReceived);
 

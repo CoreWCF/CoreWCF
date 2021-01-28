@@ -56,5 +56,4 @@ namespace CoreWCF.Runtime
             return checked(firstTicks + secondTicks);
         }
     }
-
 }

@@ -45,5 +45,4 @@ namespace CoreWCF.IdentityModel
             }
         }
     }
-
 }

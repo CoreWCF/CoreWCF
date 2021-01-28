@@ -7,10 +7,10 @@ namespace CoreWCF.Dispatcher
 {
     internal class ImmutableCommunicationTimeouts : IDefaultCommunicationTimeouts
     {
-        private TimeSpan close;
-        private TimeSpan open;
-        private TimeSpan receive;
-        private TimeSpan send;
+        private TimeSpan _close;
+        private TimeSpan _open;
+        private TimeSpan _receive;
+        private TimeSpan _send;
 
         internal ImmutableCommunicationTimeouts()
             : this(null)
@@ -21,38 +21,38 @@ namespace CoreWCF.Dispatcher
         {
             if (timeouts == null)
             {
-                close = ServiceDefaults.CloseTimeout;
-                open = ServiceDefaults.OpenTimeout;
-                receive = ServiceDefaults.ReceiveTimeout;
-                send = ServiceDefaults.SendTimeout;
+                _close = ServiceDefaults.CloseTimeout;
+                _open = ServiceDefaults.OpenTimeout;
+                _receive = ServiceDefaults.ReceiveTimeout;
+                _send = ServiceDefaults.SendTimeout;
             }
             else
             {
-                close = timeouts.CloseTimeout;
-                open = timeouts.OpenTimeout;
-                receive = timeouts.ReceiveTimeout;
-                send = timeouts.SendTimeout;
+                _close = timeouts.CloseTimeout;
+                _open = timeouts.OpenTimeout;
+                _receive = timeouts.ReceiveTimeout;
+                _send = timeouts.SendTimeout;
             }
         }
 
         TimeSpan IDefaultCommunicationTimeouts.CloseTimeout
         {
-            get { return close; }
+            get { return _close; }
         }
 
         TimeSpan IDefaultCommunicationTimeouts.OpenTimeout
         {
-            get { return open; }
+            get { return _open; }
         }
 
         TimeSpan IDefaultCommunicationTimeouts.ReceiveTimeout
         {
-            get { return receive; }
+            get { return _receive; }
         }
 
         TimeSpan IDefaultCommunicationTimeouts.SendTimeout
         {
-            get { return send; }
+            get { return _send; }
         }
     }
 }

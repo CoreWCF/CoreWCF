@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.Serialization;
+
 namespace CoreWCF.IdentityModel.Tokens
 {
     [Serializable]

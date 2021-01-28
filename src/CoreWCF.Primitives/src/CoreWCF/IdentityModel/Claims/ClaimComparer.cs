@@ -324,10 +324,10 @@ namespace CoreWCF.IdentityModel.Claims
 
         private class X500DistinguishedNameObjectComparer : IEqualityComparer
         {
-            private readonly IEqualityComparer binaryComparer;
+            private readonly IEqualityComparer _binaryComparer;
             public X500DistinguishedNameObjectComparer()
             {
-                binaryComparer = new BinaryObjectComparer();
+                _binaryComparer = new BinaryObjectComparer();
             }
 
             bool IEqualityComparer.Equals(object obj1, object obj2)
@@ -352,7 +352,7 @@ namespace CoreWCF.IdentityModel.Claims
 
                 // 2) Raw byte compare.  Note: we assume the rawbyte is in the same order 
                 // (default = X500DistinguishedNameFlags.Reversed). 
-                return binaryComparer.Equals(dn1.RawData, dn2.RawData);
+                return _binaryComparer.Equals(dn1.RawData, dn2.RawData);
             }
 
             int IEqualityComparer.GetHashCode(object obj)
@@ -363,7 +363,7 @@ namespace CoreWCF.IdentityModel.Claims
                     return 0;
                 }
 
-                return binaryComparer.GetHashCode(dn.RawData);
+                return _binaryComparer.GetHashCode(dn.RawData);
             }
         }
 

@@ -8,12 +8,12 @@ namespace CoreWCF.Dispatcher
 {
     public class ChannelDispatcherCollection : SynchronizedCollection<ChannelDispatcherBase>
     {
-        private readonly ServiceHostBase service;
+        private readonly ServiceHostBase _service;
 
         internal ChannelDispatcherCollection(ServiceHostBase service, object syncRoot)
             : base(syncRoot)
         {
-            this.service = service ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(service));
+            _service = service ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(service));
         }
 
         protected override void ClearItems()
@@ -22,25 +22,25 @@ namespace CoreWCF.Dispatcher
             CopyTo(array, 0);
             base.ClearItems();
 
-            if (service != null)
+            if (_service != null)
             {
                 foreach (ChannelDispatcherBase channelDispatcher in array)
                 {
-                    service.OnRemoveChannelDispatcher(channelDispatcher);
+                    _service.OnRemoveChannelDispatcher(channelDispatcher);
                 }
             }
         }
 
         protected override void InsertItem(int index, ChannelDispatcherBase item)
         {
-            if (service != null)
+            if (_service != null)
             {
-                if (service.State == CommunicationState.Closed)
+                if (_service.State == CommunicationState.Closed)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(service.GetType().ToString()));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(_service.GetType().ToString()));
                 }
 
-                service.OnAddChannelDispatcher(item);
+                _service.OnAddChannelDispatcher(item);
             }
 
             base.InsertItem(index, item);
@@ -50,25 +50,25 @@ namespace CoreWCF.Dispatcher
         {
             ChannelDispatcherBase channelDispatcher = Items[index];
             base.RemoveItem(index);
-            if (service != null)
+            if (_service != null)
             {
-                service.OnRemoveChannelDispatcher(channelDispatcher);
+                _service.OnRemoveChannelDispatcher(channelDispatcher);
             }
         }
 
         protected override void SetItem(int index, ChannelDispatcherBase item)
         {
-            if (service != null)
+            if (_service != null)
             {
-                if (service.State == CommunicationState.Closed)
+                if (_service.State == CommunicationState.Closed)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(service.GetType().ToString()));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(_service.GetType().ToString()));
                 }
             }
 
-            if (service != null)
+            if (_service != null)
             {
-                service.OnAddChannelDispatcher(item);
+                _service.OnAddChannelDispatcher(item);
             }
 
             ChannelDispatcherBase old;
@@ -79,9 +79,9 @@ namespace CoreWCF.Dispatcher
                 base.SetItem(index, item);
             }
 
-            if (service != null)
+            if (_service != null)
             {
-                service.OnRemoveChannelDispatcher(old);
+                _service.OnRemoveChannelDispatcher(old);
             }
         }
     }

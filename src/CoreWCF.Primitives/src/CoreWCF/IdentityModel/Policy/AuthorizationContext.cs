@@ -21,5 +21,4 @@ namespace CoreWCF.IdentityModel.Policy
             return SecurityUtils.CreateDefaultAuthorizationContext(authorizationPolicies);
         }
     }
-
 }

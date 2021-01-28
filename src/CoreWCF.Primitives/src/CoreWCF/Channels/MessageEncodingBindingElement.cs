@@ -73,6 +73,5 @@ namespace CoreWCF.Channels
 
             return true;
         }
-
     }
 }

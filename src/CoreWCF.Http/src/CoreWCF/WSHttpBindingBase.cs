@@ -134,5 +134,4 @@ namespace CoreWCF
         protected abstract TransportBindingElement GetTransport();
         protected abstract SecurityBindingElement CreateMessageSecurity();
     }
-
 }

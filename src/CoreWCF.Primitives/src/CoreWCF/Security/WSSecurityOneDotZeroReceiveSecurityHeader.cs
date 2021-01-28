@@ -141,7 +141,6 @@ namespace CoreWCF.Security
             {
                 XmlReader xmlReader = XmlReader.Create(strReader);
                 securityKeyIdentifier = StandardsManager.SecurityTokenSerializer.ReadKeyIdentifier(xmlReader);
-
             }
             if (securityKeyIdentifier == null)
             {
@@ -223,8 +222,6 @@ namespace CoreWCF.Security
                         throw new Exception("Signature not valid.");
                     }
                 }
-
-
             }
             // this.pendingSignature = signedXml;
 
@@ -325,5 +322,4 @@ namespace CoreWCF.Security
             throw new NotImplementedException();
         }
     }
-
 }

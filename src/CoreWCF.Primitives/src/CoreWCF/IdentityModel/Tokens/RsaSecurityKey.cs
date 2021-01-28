@@ -9,8 +9,8 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public sealed class RsaSecurityKey : AsymmetricSecurityKey
     {
-        private PrivateKeyStatus privateKeyStatus = PrivateKeyStatus.AvailabilityNotDetermined;
-        private readonly RSA rsa;
+        private PrivateKeyStatus _privateKeyStatus = PrivateKeyStatus.AvailabilityNotDetermined;
+        private readonly RSA _rsa;
 
         public RsaSecurityKey(RSA rsa)
         {
@@ -19,12 +19,12 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
             }
 
-            this.rsa = rsa;
+            _rsa = rsa;
         }
 
         public override int KeySize
         {
-            get { return rsa.KeySize; }
+            get { return _rsa.KeySize; }
         }
 
         public override byte[] DecryptKey(string algorithm, byte[] keyData)
@@ -32,13 +32,13 @@ namespace CoreWCF.IdentityModel.Tokens
             switch (algorithm)
             {
                 case SecurityAlgorithms.RsaV15KeyWrap:
-                    return EncryptedXml.DecryptKey(keyData, rsa, false);
+                    return EncryptedXml.DecryptKey(keyData, _rsa, false);
                 case SecurityAlgorithms.RsaOaepKeyWrap:
-                    return EncryptedXml.DecryptKey(keyData, rsa, true);
+                    return EncryptedXml.DecryptKey(keyData, _rsa, true);
                 default:
                     if (IsSupportedAlgorithm(algorithm))
                     {
-                        return EncryptedXml.DecryptKey(keyData, rsa, false);
+                        return EncryptedXml.DecryptKey(keyData, _rsa, false);
                     }
 
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format("c",
@@ -51,13 +51,13 @@ namespace CoreWCF.IdentityModel.Tokens
             switch (algorithm)
             {
                 case SecurityAlgorithms.RsaV15KeyWrap:
-                    return EncryptedXml.EncryptKey(keyData, rsa, false);
+                    return EncryptedXml.EncryptKey(keyData, _rsa, false);
                 case SecurityAlgorithms.RsaOaepKeyWrap:
-                    return EncryptedXml.EncryptKey(keyData, rsa, true);
+                    return EncryptedXml.EncryptKey(keyData, _rsa, true);
                 default:
                     if (IsSupportedAlgorithm(algorithm))
                     {
-                        return EncryptedXml.EncryptKey(keyData, rsa, false);
+                        return EncryptedXml.EncryptKey(keyData, _rsa, false);
                     }
 
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
@@ -72,7 +72,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.NoPrivateKeyAvailable));
             }
 
-            return rsa;
+            return _rsa;
         }
 
         public override HashAlgorithm GetHashAlgorithmForSignature(string algorithm)
@@ -127,7 +127,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 SignatureDescription description = algorithmObject as SignatureDescription;
                 if (description != null)
                 {
-                    return description.CreateDeformatter(rsa);
+                    return description.CreateDeformatter(_rsa);
                 }
 
                 try
@@ -135,7 +135,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     AsymmetricSignatureDeformatter asymmetricSignatureDeformatter = algorithmObject as AsymmetricSignatureDeformatter;
                     if (asymmetricSignatureDeformatter != null)
                     {
-                        asymmetricSignatureDeformatter.SetKey(rsa);
+                        asymmetricSignatureDeformatter.SetKey(_rsa);
                         return asymmetricSignatureDeformatter;
                     }
                 }
@@ -152,7 +152,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 case SecurityAlgorithms.RsaSha1Signature:
                 case SecurityAlgorithms.RsaSha256Signature:
-                    return new RSAPKCS1SignatureDeformatter(rsa);
+                    return new RSAPKCS1SignatureDeformatter(_rsa);
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
                         algorithm, "GetSignatureDeformatter")));
@@ -172,7 +172,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 SignatureDescription description = algorithmObject as SignatureDescription;
                 if (description != null)
                 {
-                    return description.CreateFormatter(rsa);
+                    return description.CreateFormatter(_rsa);
                 }
 
                 try
@@ -181,7 +181,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
                     if (asymmetricSignatureFormatter != null)
                     {
-                        asymmetricSignatureFormatter.SetKey(rsa);
+                        asymmetricSignatureFormatter.SetKey(_rsa);
                         return asymmetricSignatureFormatter;
                     }
                 }
@@ -199,7 +199,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 case SecurityAlgorithms.RsaSha1Signature:
                 case SecurityAlgorithms.RsaSha256Signature:
                     // Ensure that we have an RSA algorithm object.
-                    return new RSAPKCS1SignatureFormatter(rsa);
+                    return new RSAPKCS1SignatureFormatter(_rsa);
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException(SR.Format(SR.UnsupportedAlgorithmForCryptoOperation,
                         algorithm, "GetSignatureFormatter")));
@@ -208,28 +208,28 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public override bool HasPrivateKey()
         {
-            if (privateKeyStatus == PrivateKeyStatus.AvailabilityNotDetermined)
+            if (_privateKeyStatus == PrivateKeyStatus.AvailabilityNotDetermined)
             {
-                RSACryptoServiceProvider rsaCryptoServiceProvider = rsa as RSACryptoServiceProvider;
+                RSACryptoServiceProvider rsaCryptoServiceProvider = _rsa as RSACryptoServiceProvider;
                 if (rsaCryptoServiceProvider != null)
                 {
-                    privateKeyStatus = rsaCryptoServiceProvider.PublicOnly ? PrivateKeyStatus.DoesNotHavePrivateKey : PrivateKeyStatus.HasPrivateKey;
+                    _privateKeyStatus = rsaCryptoServiceProvider.PublicOnly ? PrivateKeyStatus.DoesNotHavePrivateKey : PrivateKeyStatus.HasPrivateKey;
                 }
                 else
                 {
                     try
                     {
                         byte[] hash = new byte[20];
-                        rsa.DecryptValue(hash); // imitate signing
-                        privateKeyStatus = PrivateKeyStatus.HasPrivateKey;
+                        _rsa.DecryptValue(hash); // imitate signing
+                        _privateKeyStatus = PrivateKeyStatus.HasPrivateKey;
                     }
                     catch (CryptographicException)
                     {
-                        privateKeyStatus = PrivateKeyStatus.DoesNotHavePrivateKey;
+                        _privateKeyStatus = PrivateKeyStatus.DoesNotHavePrivateKey;
                     }
                 }
             }
-            return privateKeyStatus == PrivateKeyStatus.HasPrivateKey;
+            return _privateKeyStatus == PrivateKeyStatus.HasPrivateKey;
         }
 
         public override bool IsSupportedAlgorithm(string algorithm)

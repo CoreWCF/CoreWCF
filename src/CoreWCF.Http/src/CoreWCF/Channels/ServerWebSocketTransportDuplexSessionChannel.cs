@@ -18,8 +18,8 @@ namespace CoreWCF.Channels
         private readonly HttpContext _httpContext;
         private readonly IHttpTransportFactorySettings _transportSettings;
         private readonly IServiceProvider _serviceProvider;
-        private WebSocketMessageSource webSocketMessageSource;
-        private SessionOpenNotification sessionOpenNotification;
+        private WebSocketMessageSource _webSocketMessageSource;
+        private SessionOpenNotification _sessionOpenNotification;
 
         public ServerWebSocketTransportDuplexSessionChannel(HttpContext httpContext, WebSocketContext webSocketContext, HttpTransportSettings settings, Uri localVia, IServiceProvider serviceProvider)
             : base(settings, new EndpointAddress(localVia), localVia)
@@ -39,12 +39,12 @@ namespace CoreWCF.Channels
         {
             if (typeof(T) == typeof(SessionOpenNotification))
             {
-                if (sessionOpenNotification == null)
+                if (_sessionOpenNotification == null)
                 {
-                    sessionOpenNotification = new SessionOpenNotificationHelper(this);
+                    _sessionOpenNotification = new SessionOpenNotificationHelper(this);
                 }
 
-                return (T)(object)sessionOpenNotification;
+                return (T)(object)_sessionOpenNotification;
             }
 
             T service = _serviceProvider.GetService<T>();
@@ -69,7 +69,7 @@ namespace CoreWCF.Channels
             }
 
             bool inputUseStreaming = TransferModeHelper.IsRequestStreamed(TransferMode);
-            webSocketMessageSource = new WebSocketMessageSource(
+            _webSocketMessageSource = new WebSocketMessageSource(
                             this,
                             _webSocketContext,
                             inputUseStreaming,
@@ -77,7 +77,7 @@ namespace CoreWCF.Channels
                             this,
                             httpContext);
 
-            SetMessageSource(webSocketMessageSource);
+            SetMessageSource(_webSocketMessageSource);
         }
 
         protected override void OnClosed()
@@ -125,24 +125,24 @@ namespace CoreWCF.Channels
 
         private class SessionOpenNotificationHelper : SessionOpenNotification
         {
-            private readonly ServerWebSocketTransportDuplexSessionChannel channel;
+            private readonly ServerWebSocketTransportDuplexSessionChannel _channel;
 
             public SessionOpenNotificationHelper(ServerWebSocketTransportDuplexSessionChannel channel)
             {
-                this.channel = channel;
+                _channel = channel;
             }
 
             public override bool IsEnabled
             {
                 get
                 {
-                    return channel.WebSocketSettings.CreateNotificationOnConnection;
+                    return _channel.WebSocketSettings.CreateNotificationOnConnection;
                 }
             }
 
             public override void UpdateMessageProperties(MessageProperties inboundMessageProperties)
             {
-                channel.webSocketMessageSource.UpdateOpenNotificationMessageProperties(inboundMessageProperties);
+                _channel._webSocketMessageSource.UpdateOpenNotificationMessageProperties(inboundMessageProperties);
             }
         }
     }

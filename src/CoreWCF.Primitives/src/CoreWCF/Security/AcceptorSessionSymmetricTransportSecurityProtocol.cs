@@ -16,13 +16,13 @@ namespace CoreWCF.Security
 {
     internal sealed class AcceptorSessionSymmetricTransportSecurityProtocol : TransportSecurityProtocol, IAcceptorSecuritySessionProtocol
     {
-        private SecurityToken outgoingSessionToken;
-        private SecurityTokenAuthenticator sessionTokenAuthenticator;
-        private SecurityTokenResolver sessionTokenResolver;
-        private ReadOnlyCollection<SecurityTokenResolver> sessionTokenResolverList;
-        private UniqueId sessionId;
-        private Collection<SupportingTokenAuthenticatorSpecification> sessionTokenAuthenticatorSpecificationList;
-        private readonly bool requireDerivedKeys;
+        private SecurityToken _outgoingSessionToken;
+        private SecurityTokenAuthenticator _sessionTokenAuthenticator;
+        private SecurityTokenResolver _sessionTokenResolver;
+        private ReadOnlyCollection<SecurityTokenResolver> _sessionTokenResolverList;
+        private UniqueId _sessionId;
+        private Collection<SupportingTokenAuthenticatorSpecification> _sessionTokenAuthenticatorSpecificationList;
+        private readonly bool _requireDerivedKeys;
 
         public AcceptorSessionSymmetricTransportSecurityProtocol(SessionSymmetricTransportSecurityProtocolFactory factory) : base(factory, null, null)
         {
@@ -31,7 +31,7 @@ namespace CoreWCF.Security
                 Fx.Assert("This protocol can only be used at the recipient.");
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ProtocolMustBeRecipient, GetType().ToString())));
             }
-            requireDerivedKeys = factory.SecurityTokenParameters.RequireDerivedKeys;
+            _requireDerivedKeys = factory.SecurityTokenParameters.RequireDerivedKeys;
         }
 
         private SessionSymmetricTransportSecurityProtocolFactory Factory
@@ -53,20 +53,20 @@ namespace CoreWCF.Security
         public void SetSessionTokenAuthenticator(UniqueId sessionId, SecurityTokenAuthenticator sessionTokenAuthenticator, SecurityTokenResolver sessionTokenResolver)
         {
             CommunicationObject.ThrowIfDisposedOrImmutable();
-            this.sessionId = sessionId;
-            this.sessionTokenResolver = sessionTokenResolver;
+            _sessionId = sessionId;
+            _sessionTokenResolver = sessionTokenResolver;
             Collection<SecurityTokenResolver> tmp = new Collection<SecurityTokenResolver>();
-            tmp.Add(this.sessionTokenResolver);
-            sessionTokenResolverList = new ReadOnlyCollection<SecurityTokenResolver>(tmp);
-            this.sessionTokenAuthenticator = sessionTokenAuthenticator;
-            SupportingTokenAuthenticatorSpecification spec = new SupportingTokenAuthenticatorSpecification(this.sessionTokenAuthenticator, this.sessionTokenResolver, SecurityTokenAttachmentMode.Endorsing, Factory.SecurityTokenParameters);
-            sessionTokenAuthenticatorSpecificationList = new Collection<SupportingTokenAuthenticatorSpecification>();
-            sessionTokenAuthenticatorSpecificationList.Add(spec);
+            tmp.Add(_sessionTokenResolver);
+            _sessionTokenResolverList = new ReadOnlyCollection<SecurityTokenResolver>(tmp);
+            _sessionTokenAuthenticator = sessionTokenAuthenticator;
+            SupportingTokenAuthenticatorSpecification spec = new SupportingTokenAuthenticatorSpecification(_sessionTokenAuthenticator, _sessionTokenResolver, SecurityTokenAttachmentMode.Endorsing, Factory.SecurityTokenParameters);
+            _sessionTokenAuthenticatorSpecificationList = new Collection<SupportingTokenAuthenticatorSpecification>();
+            _sessionTokenAuthenticatorSpecificationList.Add(spec);
         }
 
         public SecurityToken GetOutgoingSessionToken()
         {
-            return outgoingSessionToken;
+            return _outgoingSessionToken;
         }
 
         public void SetOutgoingSessionToken(SecurityToken token)
@@ -75,7 +75,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
-            outgoingSessionToken = token;
+            _outgoingSessionToken = token;
         }
 
         protected override void VerifyIncomingMessageCore(ref Message message, TimeSpan timeout)
@@ -86,15 +86,15 @@ namespace CoreWCF.Security
             securityHeader.RequireMessageProtection = false;
             securityHeader.ReaderQuotas = Factory.SecurityBindingElement.ReaderQuotas;
             IList<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = GetSupportingTokenAuthenticatorsAndSetExpectationFlags(Factory, message, securityHeader);
-            ReadOnlyCollection<SecurityTokenResolver> mergedTokenResolvers = MergeOutOfBandResolvers(supportingAuthenticators, sessionTokenResolverList);
+            ReadOnlyCollection<SecurityTokenResolver> mergedTokenResolvers = MergeOutOfBandResolvers(supportingAuthenticators, _sessionTokenResolverList);
             if (supportingAuthenticators != null && supportingAuthenticators.Count > 0)
             {
                 supportingAuthenticators = new List<SupportingTokenAuthenticatorSpecification>(supportingAuthenticators);
-                supportingAuthenticators.Insert(0, sessionTokenAuthenticatorSpecificationList[0]);
+                supportingAuthenticators.Insert(0, _sessionTokenAuthenticatorSpecificationList[0]);
             }
             else
             {
-                supportingAuthenticators = sessionTokenAuthenticatorSpecificationList;
+                supportingAuthenticators = _sessionTokenAuthenticatorSpecificationList;
             }
             securityHeader.ConfigureTransportBindingServerReceiveHeader(supportingAuthenticators);
             securityHeader.ConfigureOutOfBandTokenResolver(mergedTokenResolvers);
@@ -116,7 +116,7 @@ namespace CoreWCF.Security
                 for (int i = 0; i < securityHeader.EndorsingSupportingTokens.Count; ++i)
                 {
                     SecurityContextSecurityToken signingSct = (securityHeader.EndorsingSupportingTokens[i] as SecurityContextSecurityToken);
-                    if (signingSct != null && signingSct.ContextId == sessionId)
+                    if (signingSct != null && signingSct.ContextId == _sessionId)
                     {
                         didSessionSctEndorse = true;
                         break;

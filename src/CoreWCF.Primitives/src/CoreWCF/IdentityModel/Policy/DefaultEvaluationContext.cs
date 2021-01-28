@@ -11,43 +11,43 @@ namespace CoreWCF.IdentityModel.Policy
 {
     internal class DefaultEvaluationContext : EvaluationContext
     {
-        private List<ClaimSet> claimSets;
-        private readonly Dictionary<string, object> properties;
-        private int generation;
-        private ReadOnlyCollection<ClaimSet> readOnlyClaimSets;
+        private List<ClaimSet> _claimSets;
+        private readonly Dictionary<string, object> _properties;
+        private int _generation;
+        private ReadOnlyCollection<ClaimSet> _readOnlyClaimSets;
 
         public DefaultEvaluationContext()
         {
-            properties = new Dictionary<string, object>();
-            generation = 0;
+            _properties = new Dictionary<string, object>();
+            _generation = 0;
         }
 
         public override int Generation
         {
-            get { return generation; }
+            get { return _generation; }
         }
 
         public override ReadOnlyCollection<ClaimSet> ClaimSets
         {
             get
             {
-                if (claimSets == null)
+                if (_claimSets == null)
                 {
                     return EmptyReadOnlyCollection<ClaimSet>.Instance;
                 }
 
-                if (readOnlyClaimSets == null)
+                if (_readOnlyClaimSets == null)
                 {
-                    readOnlyClaimSets = new ReadOnlyCollection<ClaimSet>(claimSets);
+                    _readOnlyClaimSets = new ReadOnlyCollection<ClaimSet>(_claimSets);
                 }
 
-                return readOnlyClaimSets;
+                return _readOnlyClaimSets;
             }
         }
 
         public override IDictionary<string, object> Properties
         {
-            get { return properties; }
+            get { return _properties; }
         }
 
         public DateTime ExpirationTime { get; private set; } = SecurityUtils.MaxUtcDateTime;
@@ -59,13 +59,13 @@ namespace CoreWCF.IdentityModel.Policy
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claimSet");
             }
 
-            if (claimSets == null)
+            if (_claimSets == null)
             {
-                claimSets = new List<ClaimSet>();
+                _claimSets = new List<ClaimSet>();
             }
 
-            claimSets.Add(claimSet);
-            ++generation;
+            _claimSets.Add(claimSet);
+            ++_generation;
         }
 
         public override void RecordExpirationTime(DateTime expirationTime)

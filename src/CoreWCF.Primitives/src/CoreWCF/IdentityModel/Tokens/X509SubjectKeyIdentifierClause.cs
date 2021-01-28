@@ -72,7 +72,5 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             return null != GetSkiRawData(certificate);
         }
-
-
     }
 }

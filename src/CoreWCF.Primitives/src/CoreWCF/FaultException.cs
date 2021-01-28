@@ -291,8 +291,8 @@ namespace CoreWCF
         internal class FaultCodeData
         {
 #pragma warning disable IDE1006 // Naming Styles - class is Serializable so can't change field names
-            private string name;
-            private string ns;
+            private string _name;
+            private string _ns;
 #pragma warning restore IDE1006 // Naming Styles
 
             internal static FaultCode Construct(FaultCodeData[] nodes)
@@ -301,7 +301,7 @@ namespace CoreWCF
 
                 for (int i = nodes.Length - 1; i >= 0; i--)
                 {
-                    code = new FaultCode(nodes[i].name, nodes[i].ns, code);
+                    code = new FaultCode(nodes[i]._name, nodes[i]._ns, code);
                 }
 
                 return code;
@@ -314,8 +314,8 @@ namespace CoreWCF
                 for (int i = 0; i < array.Length; i++)
                 {
                     array[i] = new FaultCodeData();
-                    array[i].name = code.Name;
-                    array[i].ns = code.Namespace;
+                    array[i]._name = code.Name;
+                    array[i]._ns = code.Namespace;
                     code = code.SubCode;
                 }
 
@@ -344,8 +344,8 @@ namespace CoreWCF
         internal class FaultReasonData
         {
 #pragma warning disable IDE1006 // Naming Styles - class is Serializable so can't change field names
-            private string xmlLang;
-            private string text;
+            private string _xmlLang;
+            private string _text;
 #pragma warning restore IDE1006 // Naming Styles
 
             internal static FaultReason Construct(FaultReasonData[] nodes)
@@ -354,7 +354,7 @@ namespace CoreWCF
 
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    reasons[i] = new FaultReasonText(nodes[i].text, nodes[i].xmlLang);
+                    reasons[i] = new FaultReasonText(nodes[i]._text, nodes[i]._xmlLang);
                 }
 
                 return new FaultReason(reasons);
@@ -368,8 +368,8 @@ namespace CoreWCF
                 for (int i = 0; i < translations.Count; i++)
                 {
                     array[i] = new FaultReasonData();
-                    array[i].xmlLang = translations[i].XmlLang;
-                    array[i].text = translations[i].Text;
+                    array[i]._xmlLang = translations[i].XmlLang;
+                    array[i]._text = translations[i].Text;
                 }
 
                 return array;

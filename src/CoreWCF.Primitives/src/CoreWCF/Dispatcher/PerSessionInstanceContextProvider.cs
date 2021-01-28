@@ -9,7 +9,6 @@ namespace CoreWCF.Dispatcher
 {
     internal class PerSessionInstanceContextProvider : InstanceContextProviderBase
     {
-
         internal PerSessionInstanceContextProvider(DispatchRuntime dispatchRuntime)
             : base(dispatchRuntime)
         {
@@ -51,5 +50,4 @@ namespace CoreWCF.Dispatcher
             //no-op
         }
     }
-
 }

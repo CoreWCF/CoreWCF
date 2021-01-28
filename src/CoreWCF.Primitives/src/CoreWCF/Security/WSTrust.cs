@@ -44,34 +44,33 @@ namespace CoreWCF.Security
 
         private class BinarySecretTokenEntry : TokenEntry
         {
-            private readonly WSTrust parent;
-            private readonly TrustDictionary otherDictionary;
+            private readonly WSTrust _parent;
+            private readonly TrustDictionary _otherDictionary;
 
             public BinarySecretTokenEntry(WSTrust parent)
             {
-                this.parent = parent;
-                otherDictionary = null;
+                _parent = parent;
+                _otherDictionary = null;
 
                 if (parent.SerializerDictionary is TrustDec2005Dictionary)
                 {
-                    otherDictionary = CoreWCF.XD.TrustFeb2005Dictionary;
+                    _otherDictionary = CoreWCF.XD.TrustFeb2005Dictionary;
                 }
 
                 if (parent.SerializerDictionary is TrustFeb2005Dictionary)
                 {
-
-                    otherDictionary = DXD.TrustDec2005Dictionary;
+                    _otherDictionary = DXD.TrustDec2005Dictionary;
                 }
 
                 // always set it, so we don't have to worry about null
-                if (otherDictionary == null)
+                if (_otherDictionary == null)
                 {
-                    otherDictionary = this.parent.SerializerDictionary;
+                    _otherDictionary = _parent.SerializerDictionary;
                 }
             }
 
-            protected override XmlDictionaryString LocalName => parent.SerializerDictionary.BinarySecret;
-            protected override XmlDictionaryString NamespaceUri => parent.SerializerDictionary.Namespace;
+            protected override XmlDictionaryString LocalName => _parent.SerializerDictionary.BinarySecret;
+            protected override XmlDictionaryString NamespaceUri => _parent.SerializerDictionary.Namespace;
             protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(BinarySecretSecurityToken) }; }
             public override string TokenTypeUri => null;
             protected override string ValueTypeUri => null;
@@ -85,12 +84,12 @@ namespace CoreWCF.Security
                     valueTypeUri = element.GetAttribute(SecurityJan2004Strings.ValueType, null);
                 }
 
-                return element.LocalName == LocalName.Value && (element.NamespaceURI == NamespaceUri.Value || element.NamespaceURI == otherDictionary.Namespace.Value) && valueTypeUri == ValueTypeUri;
+                return element.LocalName == LocalName.Value && (element.NamespaceURI == NamespaceUri.Value || element.NamespaceURI == _otherDictionary.Namespace.Value) && valueTypeUri == ValueTypeUri;
             }
 
             public override bool CanReadTokenCore(XmlDictionaryReader reader)
             {
-                return (reader.IsStartElement(LocalName, NamespaceUri) || reader.IsStartElement(LocalName, otherDictionary.Namespace)) &&
+                return (reader.IsStartElement(LocalName, NamespaceUri) || reader.IsStartElement(LocalName, _otherDictionary.Namespace)) &&
                        reader.GetAttribute(CoreWCF.XD.SecurityJan2004Dictionary.ValueType, null) == ValueTypeUri;
             }
 
@@ -120,13 +119,13 @@ namespace CoreWCF.Security
 
                 if (secretType != null && secretType.Length > 0)
                 {
-                    if (secretType == parent.SerializerDictionary.NonceBinarySecret.Value || secretType == otherDictionary.NonceBinarySecret.Value)
+                    if (secretType == _parent.SerializerDictionary.NonceBinarySecret.Value || secretType == _otherDictionary.NonceBinarySecret.Value)
                     {
                         isNonce = true;
                     }
-                    else if (secretType != parent.SerializerDictionary.SymmetricKeyBinarySecret.Value && secretType != otherDictionary.SymmetricKeyBinarySecret.Value)
+                    else if (secretType != _parent.SerializerDictionary.SymmetricKeyBinarySecret.Value && secretType != _otherDictionary.SymmetricKeyBinarySecret.Value)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.UnexpectedBinarySecretType, parent.SerializerDictionary.SymmetricKeyBinarySecret.Value, secretType)));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.UnexpectedBinarySecretType, _parent.SerializerDictionary.SymmetricKeyBinarySecret.Value, secretType)));
                     }
                 }
 
@@ -145,32 +144,31 @@ namespace CoreWCF.Security
             {
                 BinarySecretSecurityToken simpleToken = token as BinarySecretSecurityToken;
                 byte[] secret = simpleToken.GetKeyBytes();
-                writer.WriteStartElement(parent.SerializerDictionary.Prefix.Value, parent.SerializerDictionary.BinarySecret, parent.SerializerDictionary.Namespace);
+                writer.WriteStartElement(_parent.SerializerDictionary.Prefix.Value, _parent.SerializerDictionary.BinarySecret, _parent.SerializerDictionary.Namespace);
                 if (simpleToken.Id != null)
                 {
                     writer.WriteAttributeString(CoreWCF.XD.UtilityDictionary.Prefix.Value, CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace, simpleToken.Id);
                 }
                 if (token is NonceToken)
                 {
-                    writer.WriteAttributeString(CoreWCF.XD.SecurityJan2004Dictionary.TypeAttribute, null, parent.SerializerDictionary.NonceBinarySecret.Value);
+                    writer.WriteAttributeString(CoreWCF.XD.SecurityJan2004Dictionary.TypeAttribute, null, _parent.SerializerDictionary.NonceBinarySecret.Value);
                 }
                 writer.WriteBase64(secret, 0, secret.Length);
                 writer.WriteEndElement();
             }
-
         }
 
         public abstract class Driver : TrustDriver
         {
-            private static readonly string base64Uri = SecurityJan2004Strings.EncodingTypeValueBase64Binary;
-            private static readonly string hexBinaryUri = SecurityJan2004Strings.EncodingTypeValueHexBinary;
-            private readonly SecurityStandardsManager standardsManager;
-            private readonly List<SecurityTokenAuthenticator> entropyAuthenticators;
+            private static readonly string s_base64Uri = SecurityJan2004Strings.EncodingTypeValueBase64Binary;
+            private static readonly string s_hexBinaryUri = SecurityJan2004Strings.EncodingTypeValueHexBinary;
+            private readonly SecurityStandardsManager _standardsManager;
+            private readonly List<SecurityTokenAuthenticator> _entropyAuthenticators;
 
             public Driver(SecurityStandardsManager standardsManager)
             {
-                this.standardsManager = standardsManager;
-                entropyAuthenticators = new List<SecurityTokenAuthenticator>(2);
+                _standardsManager = standardsManager;
+                _entropyAuthenticators = new List<SecurityTokenAuthenticator>(2);
             }
 
             public abstract TrustDictionary DriverDictionary
@@ -186,7 +184,7 @@ namespace CoreWCF.Security
 
             public override string ComputedKeyAlgorithm => DriverDictionary.Psha1ComputedKeyUri.Value;
 
-            public override SecurityStandardsManager StandardsManager => standardsManager;
+            public override SecurityStandardsManager StandardsManager => _standardsManager;
 
             public override XmlDictionaryString Namespace => DriverDictionary.Namespace;
 
@@ -230,7 +228,7 @@ namespace CoreWCF.Security
 
                 ReadTargets(rstXml, out SecurityKeyIdentifierClause renewTarget, out SecurityKeyIdentifierClause closeTarget);
 
-                RequestSecurityToken rst = new RequestSecurityToken(standardsManager, rstXml, context, tokenTypeUri, requestType, keySize, renewTarget, closeTarget);
+                RequestSecurityToken rst = new RequestSecurityToken(_standardsManager, rstXml, context, tokenTypeUri, requestType, keySize, renewTarget, closeTarget);
                 return rst;
             }
 
@@ -355,7 +353,7 @@ namespace CoreWCF.Security
                 isRequestedTokenClosed = ReadRequestedTokenClosed(rstrXml);
                 ReadReferences(rstrXml, out SecurityKeyIdentifierClause requestedAttachedReference, out SecurityKeyIdentifierClause requestedUnattachedReference);
 
-                return new RequestSecurityTokenResponse(standardsManager, rstrXml, context, tokenTypeUri, keySize, requestedAttachedReference, requestedUnattachedReference,
+                return new RequestSecurityTokenResponse(_standardsManager, rstrXml, context, tokenTypeUri, keySize, requestedAttachedReference, requestedUnattachedReference,
                                                         computeKey, created, expires, isRequestedTokenClosed, issuedTokenBuffer);
             }
 
@@ -584,7 +582,7 @@ namespace CoreWCF.Security
                                 valueTypeUri = null;
                             }
 
-                            return standardsManager.SecurityTokenSerializer.ReadToken(new XmlNodeReader(tokenXml), resolver);
+                            return _standardsManager.SecurityTokenSerializer.ReadToken(new XmlNodeReader(tokenXml), resolver);
                         }
                     }
                 }
@@ -635,7 +633,6 @@ namespace CoreWCF.Security
             public override GenericXmlSecurityToken GetIssuedToken(RequestSecurityTokenResponse rstr, SecurityTokenResolver resolver, IList<SecurityTokenAuthenticator> allowedAuthenticators, SecurityKeyEntropyMode keyEntropyMode, byte[] requestorEntropy, string expectedTokenType,
                 ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, int defaultKeySize, bool isBearerKeyType)
             {
-
                 SecurityKeyEntropyModeHelper.Validate(keyEntropyMode);
 
                 if (defaultKeySize < 0)
@@ -717,7 +714,7 @@ namespace CoreWCF.Security
                         valueTypeUri = null;
                     }
 
-                    proofToken = standardsManager.SecurityTokenSerializer.ReadToken(new XmlNodeReader(proofXml), resolver);
+                    proofToken = _standardsManager.SecurityTokenSerializer.ReadToken(new XmlNodeReader(proofXml), resolver);
                 }
                 else
                 {
@@ -855,7 +852,7 @@ namespace CoreWCF.Security
                         if (attr.LocalName == SecurityJan2004Strings.EncodingType && attr.NamespaceURI.Length == 0)
                         {
                             encodingUri = attr.Value;
-                            if (encodingUri != base64Uri && encodingUri != hexBinaryUri)
+                            if (encodingUri != s_base64Uri && encodingUri != s_hexBinaryUri)
                             {
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.UnsupportedBinaryEncoding, encodingUri)));
                             }
@@ -876,7 +873,7 @@ namespace CoreWCF.Security
                     XmlHelper.OnRequiredAttributeMissing("ValueType", elem.Name);
                 }
                 string encodedBlob = XmlHelper.ReadTextElementAsTrimmedString(elem);
-                if (encodingUri == base64Uri)
+                if (encodingUri == s_base64Uri)
                 {
                     negotiationData = Convert.FromBase64String(encodedBlob);
                 }
@@ -913,12 +910,12 @@ namespace CoreWCF.Security
 
                 if (issuedTokenXml != null)
                 {
-                    requestedAttachedReference = standardsManager.CreateKeyIdentifierClauseFromTokenXml(issuedTokenXml, SecurityTokenReferenceStyle.Internal);
+                    requestedAttachedReference = _standardsManager.CreateKeyIdentifierClauseFromTokenXml(issuedTokenXml, SecurityTokenReferenceStyle.Internal);
                     if (requestedUnattachedReference == null)
                     {
                         try
                         {
-                            requestedUnattachedReference = standardsManager.CreateKeyIdentifierClauseFromTokenXml(issuedTokenXml, SecurityTokenReferenceStyle.External);
+                            requestedUnattachedReference = _standardsManager.CreateKeyIdentifierClauseFromTokenXml(issuedTokenXml, SecurityTokenReferenceStyle.External);
                         }
                         catch (XmlException)
                         {
@@ -934,7 +931,7 @@ namespace CoreWCF.Security
 
                 try
                 {
-                    keyIdentifierClause = standardsManager.SecurityTokenSerializer.ReadKeyIdentifierClause(reader);
+                    keyIdentifierClause = _standardsManager.SecurityTokenSerializer.ReadKeyIdentifierClause(reader);
                 }
                 catch (XmlException e)
                 {
@@ -1072,7 +1069,7 @@ namespace CoreWCF.Security
                 if (entropyToken != null)
                 {
                     writer.WriteStartElement(DriverDictionary.Prefix.Value, DriverDictionary.Entropy, DriverDictionary.Namespace);
-                    standardsManager.SecurityTokenSerializer.WriteToken(writer, entropyToken);
+                    _standardsManager.SecurityTokenSerializer.WriteToken(writer, entropyToken);
                     writer.WriteEndElement();
                 }
 
@@ -1113,7 +1110,7 @@ namespace CoreWCF.Security
                 if (rstr.RequestedUnattachedReference != null)
                 {
                     writer.WriteStartElement(DriverDictionary.Prefix.Value, DriverDictionary.RequestedTokenReference, DriverDictionary.Namespace);
-                    standardsManager.SecurityTokenSerializer.WriteKeyIdentifierClause(writer, rstr.RequestedUnattachedReference);
+                    _standardsManager.SecurityTokenSerializer.WriteKeyIdentifierClause(writer, rstr.RequestedUnattachedReference);
                     writer.WriteEndElement();
                 }
             }
@@ -1157,7 +1154,7 @@ namespace CoreWCF.Security
                 if (rstr.RequestedSecurityToken != null)
                 {
                     writer.WriteStartElement(DriverDictionary.Prefix.Value, DriverDictionary.RequestedSecurityToken, DriverDictionary.Namespace);
-                    standardsManager.SecurityTokenSerializer.WriteToken(writer, rstr.RequestedSecurityToken);
+                    _standardsManager.SecurityTokenSerializer.WriteToken(writer, rstr.RequestedSecurityToken);
                     writer.WriteEndElement();
                 }
 
@@ -1177,7 +1174,7 @@ namespace CoreWCF.Security
                     }
                     else
                     {
-                        standardsManager.SecurityTokenSerializer.WriteToken(writer, rstr.RequestedProofToken);
+                        _standardsManager.SecurityTokenSerializer.WriteToken(writer, rstr.RequestedProofToken);
                     }
                     writer.WriteEndElement();
                 }
@@ -1186,7 +1183,7 @@ namespace CoreWCF.Security
                 if (entropyToken != null)
                 {
                     writer.WriteStartElement(DriverDictionary.Prefix.Value, DriverDictionary.Entropy, DriverDictionary.Namespace);
-                    standardsManager.SecurityTokenSerializer.WriteToken(writer, entropyToken);
+                    _standardsManager.SecurityTokenSerializer.WriteToken(writer, entropyToken);
                     writer.WriteEndElement();
                 }
 
@@ -1356,7 +1353,6 @@ namespace CoreWCF.Security
 
                 keyType = SecurityKeyType.SymmetricKey;
                 return false;
-
             }
 
             public bool TryParseSymmetricKeyElement(XmlElement element)
@@ -1682,7 +1678,6 @@ namespace CoreWCF.Security
                     }
                 }
             }
-
         }
 
         protected static bool CheckElement(XmlElement element, string name, string ns, out string value)

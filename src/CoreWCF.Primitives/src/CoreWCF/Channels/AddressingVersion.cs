@@ -9,14 +9,14 @@ namespace CoreWCF.Channels
     public sealed class AddressingVersion
     {
         /*MessagePartSpecification signedMessageParts;*/
-        private readonly string toStringFormat;
+        private readonly string _toStringFormat;
 
         private AddressingVersion(string ns, XmlDictionaryString dictionaryNs, string toStringFormat,
             /*MessagePartSpecification signedMessageParts,*/ string anonymous, XmlDictionaryString dictionaryAnonymous, string none, string faultAction, string defaultFaultAction)
         {
             Namespace = ns;
             DictionaryNamespace = dictionaryNs;
-            this.toStringFormat = toStringFormat;
+            _toStringFormat = toStringFormat;
             /*this.signedMessageParts = signedMessageParts;*/
             Anonymous = anonymous;
             DictionaryAnonymous = dictionaryAnonymous;
@@ -66,7 +66,7 @@ namespace CoreWCF.Channels
 
         public override string ToString()
         {
-            return SR.Format(toStringFormat, Namespace);
+            return SR.Format(_toStringFormat, Namespace);
         }
     }
 }

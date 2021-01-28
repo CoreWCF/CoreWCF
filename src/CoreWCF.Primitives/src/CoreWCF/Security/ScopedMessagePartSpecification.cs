@@ -10,20 +10,20 @@ namespace CoreWCF.Security
 {
     internal class ScopedMessagePartSpecification
     {
-        private readonly Dictionary<string, MessagePartSpecification> actionParts;
-        private Dictionary<string, MessagePartSpecification> readOnlyNormalizedActionParts;
+        private readonly Dictionary<string, MessagePartSpecification> _actionParts;
+        private Dictionary<string, MessagePartSpecification> _readOnlyNormalizedActionParts;
 
         public ScopedMessagePartSpecification()
         {
             ChannelParts = new MessagePartSpecification();
-            actionParts = new Dictionary<string, MessagePartSpecification>();
+            _actionParts = new Dictionary<string, MessagePartSpecification>();
         }
 
         public ICollection<string> Actions
         {
             get
             {
-                return actionParts.Keys;
+                return _actionParts.Keys;
             }
         }
 
@@ -40,13 +40,13 @@ namespace CoreWCF.Security
             }
 
             ChannelParts.Union(other.ChannelParts);
-            if (other.actionParts != null)
+            if (other._actionParts != null)
             {
-                foreach (string action in other.actionParts.Keys)
+                foreach (string action in other._actionParts.Keys)
                 {
                     MessagePartSpecification p = new MessagePartSpecification();
-                    p.Union(other.actionParts[action]);
-                    actionParts[action] = p;
+                    p.Union(other._actionParts[action]);
+                    _actionParts[action] = p;
                 }
             }
         }
@@ -55,9 +55,9 @@ namespace CoreWCF.Security
             : this(other)
         {
             ChannelParts.IsBodyIncluded = newIncludeBody;
-            foreach (string action in actionParts.Keys)
+            foreach (string action in _actionParts.Keys)
             {
-                actionParts[action].IsBodyIncluded = newIncludeBody;
+                _actionParts[action].IsBodyIncluded = newIncludeBody;
             }
         }
 
@@ -87,12 +87,12 @@ namespace CoreWCF.Security
 
             ThrowIfReadOnly();
 
-            if (!actionParts.ContainsKey(action))
+            if (!_actionParts.ContainsKey(action))
             {
-                actionParts[action] = new MessagePartSpecification();
+                _actionParts[action] = new MessagePartSpecification();
             }
 
-            actionParts[action].Union(parts);
+            _actionParts[action].Union(parts);
         }
 
         internal void AddParts(MessagePartSpecification parts, XmlDictionaryString action)
@@ -142,22 +142,22 @@ namespace CoreWCF.Security
 
             if (IsReadOnly)
             {
-                if (readOnlyNormalizedActionParts.ContainsKey(action))
+                if (_readOnlyNormalizedActionParts.ContainsKey(action))
                 {
                     if (excludeChannelScope)
                     {
-                        parts = actionParts[action];
+                        parts = _actionParts[action];
                     }
                     else
                     {
-                        parts = readOnlyNormalizedActionParts[action];
+                        parts = _readOnlyNormalizedActionParts[action];
                     }
                 }
             }
-            else if (actionParts.ContainsKey(action))
+            else if (_actionParts.ContainsKey(action))
             {
                 MessagePartSpecification p = new MessagePartSpecification();
-                p.Union(actionParts[action]);
+                p.Union(_actionParts[action]);
                 if (!excludeChannelScope)
                 {
                     p.Union(ChannelParts);
@@ -183,9 +183,9 @@ namespace CoreWCF.Security
                     target.ChannelParts.HeaderTypes.Add(headerType);
                 }
             }
-            foreach (string action in actionParts.Keys)
+            foreach (string action in _actionParts.Keys)
             {
-                target.AddParts(actionParts[action], action);
+                target.AddParts(_actionParts[action], action);
             }
         }
 
@@ -198,14 +198,14 @@ namespace CoreWCF.Security
         {
             if (!IsReadOnly)
             {
-                readOnlyNormalizedActionParts = new Dictionary<string, MessagePartSpecification>();
-                foreach (string action in actionParts.Keys)
+                _readOnlyNormalizedActionParts = new Dictionary<string, MessagePartSpecification>();
+                foreach (string action in _actionParts.Keys)
                 {
                     MessagePartSpecification p = new MessagePartSpecification();
-                    p.Union(actionParts[action]);
+                    p.Union(_actionParts[action]);
                     p.Union(ChannelParts);
                     p.MakeReadOnly();
-                    readOnlyNormalizedActionParts[action] = p;
+                    _readOnlyNormalizedActionParts[action] = p;
                 }
                 IsReadOnly = true;
             }
@@ -219,5 +219,4 @@ namespace CoreWCF.Security
             }
         }
     }
-
 }

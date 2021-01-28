@@ -11,7 +11,7 @@ namespace CoreWCF
     public sealed partial class NetTcpSecurity
     {
         internal const SecurityMode DefaultMode = SecurityMode.Transport;
-        private SecurityMode mode;
+        private SecurityMode _mode;
 
         public NetTcpSecurity()
             : this(DefaultMode, new TcpTransportSecurity())
@@ -22,21 +22,21 @@ namespace CoreWCF
         {
             Fx.Assert(SecurityModeHelper.IsDefined(mode), string.Format("Invalid SecurityMode value: {0}.", mode.ToString()));
 
-            this.mode = mode;
+            _mode = mode;
             Transport = transportSecurity == null ? new TcpTransportSecurity() : transportSecurity;
         }
 
         [DefaultValue(DefaultMode)]
         public SecurityMode Mode
         {
-            get { return mode; }
+            get { return _mode; }
             set
             {
                 if (!SecurityModeHelper.IsDefined(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
                 }
-                mode = value;
+                _mode = value;
             }
         }
 
@@ -44,12 +44,12 @@ namespace CoreWCF
 
         internal BindingElement CreateTransportSecurity()
         {
-            if (mode == SecurityMode.TransportWithMessageCredential)
+            if (_mode == SecurityMode.TransportWithMessageCredential)
             {
                 throw new PlatformNotSupportedException("TransportWithMessageCredential");
                 //return this.transportSecurity.CreateTransportProtectionOnly();
             }
-            else if (mode == SecurityMode.Transport)
+            else if (_mode == SecurityMode.Transport)
             {
                 return Transport.CreateTransportProtectionAndAuthentication();
             }

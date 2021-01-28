@@ -11,7 +11,7 @@ namespace CoreWCF.Channels.Framing
 {
     internal class StreamDuplexPipe : IDuplexPipe
     {
-        private static readonly int MinAllocBufferSize = 4096;
+        private static readonly int s_minAllocBufferSize = 4096;
 
         private readonly IDuplexPipe _transport;
         private readonly Stream _stream;
@@ -139,8 +139,7 @@ namespace CoreWCF.Channels.Framing
 
                 while (true)
                 {
-
-                    var outputBuffer = Input.Writer.GetMemory(MinAllocBufferSize);
+                    var outputBuffer = Input.Writer.GetMemory(s_minAllocBufferSize);
 
                     if (!MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>)outputBuffer, out var segment))
                     {

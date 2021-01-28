@@ -14,20 +14,20 @@ namespace CoreWCF
     public abstract class ServiceHostBase : CommunicationObject, IExtensibleObject<ServiceHostBase>, IDisposable
     {
         internal static readonly Uri EmptyUri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
-        private bool initializeDescriptionHasFinished;
-        private readonly ChannelDispatcherCollection channelDispatchers;
-        private TimeSpan closeTimeout = ServiceDefaults.ServiceHostCloseTimeout;
-        private readonly ExtensionCollection<ServiceHostBase> extensions;
-        private ReadOnlyCollection<Uri> externalBaseAddresses;
-        private IDictionary<string, ContractDescription> implementedContracts;
-        private readonly IInstanceContextManager instances;
-        private TimeSpan openTimeout = ServiceDefaults.OpenTimeout;
-        private readonly ServiceCredentials readOnlyCredentials;
-        private readonly ServiceAuthorizationBehavior readOnlyAuthorization;
+        private bool _initializeDescriptionHasFinished;
+        private readonly ChannelDispatcherCollection _channelDispatchers;
+        private TimeSpan _closeTimeout = ServiceDefaults.ServiceHostCloseTimeout;
+        private readonly ExtensionCollection<ServiceHostBase> _extensions;
+        private ReadOnlyCollection<Uri> _externalBaseAddresses;
+        private IDictionary<string, ContractDescription> _implementedContracts;
+        private readonly IInstanceContextManager _instances;
+        private TimeSpan _openTimeout = ServiceDefaults.OpenTimeout;
+        private readonly ServiceCredentials _readOnlyCredentials;
+        private readonly ServiceAuthorizationBehavior _readOnlyAuthorization;
 
         //ServiceAuthenticationBehavior readOnlyAuthentication;
-        private readonly Dictionary<DispatcherBuilder.ListenUriInfo, Collection<ServiceEndpoint>> endpointsByListenUriInfo;
-        private readonly int busyCount;
+        private readonly Dictionary<DispatcherBuilder.ListenUriInfo, Collection<ServiceEndpoint>> _endpointsByListenUriInfo;
+        private readonly int _busyCount;
         //EventTraceActivity eventTraceActivity;
 
         public event EventHandler<UnknownMessageReceivedEventArgs> UnknownMessageReceived;
@@ -35,9 +35,9 @@ namespace CoreWCF
         protected ServiceHostBase()
         {
             InternalBaseAddresses = new UriSchemeKeyedCollection(ThisLock);
-            channelDispatchers = new ChannelDispatcherCollection(this, ThisLock);
-            extensions = new ExtensionCollection<ServiceHostBase>(this, ThisLock);
-            instances = new InstanceContextManager(ThisLock);
+            _channelDispatchers = new ChannelDispatcherCollection(this, ThisLock);
+            _extensions = new ExtensionCollection<ServiceHostBase>(this, ThisLock);
+            _instances = new InstanceContextManager(ThisLock);
         }
 
         public ServiceAuthorizationBehavior Authorization
@@ -54,7 +54,7 @@ namespace CoreWCF
                 }
                 else
                 {
-                    return readOnlyAuthorization;
+                    return _readOnlyAuthorization;
                 }
             }
         }
@@ -83,19 +83,19 @@ namespace CoreWCF
         {
             get
             {
-                externalBaseAddresses = new ReadOnlyCollection<Uri>(new List<Uri>(InternalBaseAddresses));
-                return externalBaseAddresses;
+                _externalBaseAddresses = new ReadOnlyCollection<Uri>(new List<Uri>(InternalBaseAddresses));
+                return _externalBaseAddresses;
             }
         }
 
         public ChannelDispatcherCollection ChannelDispatchers
         {
-            get { return channelDispatchers; }
+            get { return _channelDispatchers; }
         }
 
         public TimeSpan CloseTimeout
         {
-            get { return closeTimeout; }
+            get { return _closeTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
@@ -111,7 +111,7 @@ namespace CoreWCF
                 lock (ThisLock)
                 {
                     ThrowIfClosedOrOpened();
-                    closeTimeout = value;
+                    _closeTimeout = value;
                 }
             }
         }
@@ -130,7 +130,7 @@ namespace CoreWCF
                 }
                 else
                 {
-                    return readOnlyCredentials;
+                    return _readOnlyCredentials;
                 }
             }
         }
@@ -149,12 +149,12 @@ namespace CoreWCF
 
         public IExtensionCollection<ServiceHostBase> Extensions
         {
-            get { return extensions; }
+            get { return _extensions; }
         }
 
         protected internal IDictionary<string, ContractDescription> ImplementedContracts
         {
-            get { return implementedContracts; }
+            get { return _implementedContracts; }
         }
 
         internal UriSchemeKeyedCollection InternalBaseAddresses { get; }
@@ -167,7 +167,7 @@ namespace CoreWCF
 
         public TimeSpan OpenTimeout
         {
-            get { return openTimeout; }
+            get { return _openTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
@@ -183,7 +183,7 @@ namespace CoreWCF
                 lock (ThisLock)
                 {
                     ThrowIfClosedOrOpened();
-                    openTimeout = value;
+                    _openTimeout = value;
                 }
             }
         }
@@ -198,7 +198,7 @@ namespace CoreWCF
 
         protected void AddBaseAddress(Uri baseAddress)
         {
-            if (initializeDescriptionHasFinished)
+            if (_initializeDescriptionHasFinished)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.SFxCannotCallAddBaseAddress));
@@ -248,7 +248,7 @@ namespace CoreWCF
 
         internal virtual void BindInstance(InstanceContext instance)
         {
-            instances.Add(instance);
+            _instances.Add(instance);
             //if (null != this.servicePerformanceCounters)
             //{
             //    lock (this.ThisLock)
@@ -326,9 +326,9 @@ namespace CoreWCF
                 InternalBaseAddresses.Add(baseAddress);
             }
 
-            Description = CreateDescription(out implementedContracts);
+            Description = CreateDescription(out _implementedContracts);
             ApplyConfiguration();
-            initializeDescriptionHasFinished = true;
+            _initializeDescriptionHasFinished = true;
         }
 
         // Configuration
@@ -368,7 +368,7 @@ namespace CoreWCF
 
         internal virtual void UnbindInstance(InstanceContext instance)
         {
-            instances.Remove(instance);
+            _instances.Remove(instance);
             //if (null != this.servicePerformanceCounters)
             //{
             //    lock (this.ThisLock)
@@ -383,34 +383,34 @@ namespace CoreWCF
 
         private class ImplementedContractsContractResolver : IContractResolver
         {
-            private readonly IDictionary<string, ContractDescription> implementedContracts;
+            private readonly IDictionary<string, ContractDescription> _implementedContracts;
 
             public ImplementedContractsContractResolver(IDictionary<string, ContractDescription> implementedContracts)
             {
-                this.implementedContracts = implementedContracts;
+                _implementedContracts = implementedContracts;
             }
 
             public ContractDescription ResolveContract(string contractName)
             {
-                return implementedContracts != null && implementedContracts.ContainsKey(contractName) ? implementedContracts[contractName] : null;
+                return _implementedContracts != null && _implementedContracts.ContainsKey(contractName) ? _implementedContracts[contractName] : null;
             }
         }
 
         internal class ServiceAndBehaviorsContractResolver : IContractResolver
         {
-            private readonly IContractResolver serviceResolver;
+            private readonly IContractResolver _serviceResolver;
 
             public Dictionary<string, ContractDescription> BehaviorContracts { get; }
 
             public ServiceAndBehaviorsContractResolver(IContractResolver serviceResolver)
             {
-                this.serviceResolver = serviceResolver;
+                _serviceResolver = serviceResolver;
                 BehaviorContracts = new Dictionary<string, ContractDescription>();
             }
 
             public ContractDescription ResolveContract(string contractName)
             {
-                ContractDescription contract = serviceResolver.ResolveContract(contractName);
+                ContractDescription contract = _serviceResolver.ResolveContract(contractName);
 
                 if (contract == null)
                 {

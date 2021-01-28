@@ -9,10 +9,10 @@ namespace CoreWCF.Security
 {
     internal sealed class MessageSecurityTokenVersion : SecurityTokenVersion
     {
-        private readonly string toString;
-        private readonly ReadOnlyCollection<string> supportedSpecs;
+        private readonly string _toString;
+        private readonly ReadOnlyCollection<string> _supportedSpecs;
         private const string bsp10ns = @"http://ws-i.org/profiles/basic-security/core/1.0";
-        private static readonly MessageSecurityTokenVersion wss10bsp10 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion s_wss10bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity10,
             TrustVersion.WSTrustFeb2005,
             SecureConversationVersion.WSSecureConversationFeb2005,
@@ -22,7 +22,7 @@ namespace CoreWCF.Security
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value,
             bsp10ns);
-        private static readonly MessageSecurityTokenVersion wss11bsp10 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion s_wss11bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrustFeb2005,
             SecureConversationVersion.WSSecureConversationFeb2005,
@@ -32,7 +32,7 @@ namespace CoreWCF.Security
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value,
             bsp10ns);
-        private static readonly MessageSecurityTokenVersion wss10oasisdec2005bsp10 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion s_wss10oasisdec2005bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity10,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -42,7 +42,7 @@ namespace CoreWCF.Security
             DXD.TrustDec2005Dictionary.Namespace.Value,
             DXD.SecureConversationDec2005Dictionary.Namespace.Value
             );
-        private static readonly MessageSecurityTokenVersion wss11oasisdec2005 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion s_wss11oasisdec2005 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -52,7 +52,7 @@ namespace CoreWCF.Security
             DXD.TrustDec2005Dictionary.Namespace.Value,
             DXD.SecureConversationDec2005Dictionary.Namespace.Value
             );
-        private static readonly MessageSecurityTokenVersion wss11oasisdec2005bsp10 = new MessageSecurityTokenVersion(
+        private static readonly MessageSecurityTokenVersion s_wss11oasisdec2005bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity11,
             TrustVersion.WSTrust13,
             SecureConversationVersion.WSSecureConversation13,
@@ -77,7 +77,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return wss11bsp10;
+                return s_wss11bsp10;
             }
         }
 
@@ -85,7 +85,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return wss10bsp10;
+                return s_wss10bsp10;
             }
         }
 
@@ -93,7 +93,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return wss10oasisdec2005bsp10;
+                return s_wss10oasisdec2005bsp10;
             }
         }
 
@@ -101,7 +101,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return wss11oasisdec2005;
+                return s_wss11oasisdec2005;
             }
         }
 
@@ -109,7 +109,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return wss11oasisdec2005bsp10;
+                return s_wss11oasisdec2005bsp10;
             }
         }
 
@@ -147,8 +147,8 @@ namespace CoreWCF.Security
             : base()
         {
             EmitBspRequiredAttributes = emitBspRequiredAttributes;
-            this.supportedSpecs = new ReadOnlyCollection<string>(supportedSpecs);
-            this.toString = toString;
+            _supportedSpecs = new ReadOnlyCollection<string>(supportedSpecs);
+            _toString = toString;
             SecurityVersion = securityVersion;
             TrustVersion = trustVersion;
             SecureConversationVersion = secureConversationVersion;
@@ -164,12 +164,12 @@ namespace CoreWCF.Security
 
         public override ReadOnlyCollection<string> GetSecuritySpecifications()
         {
-            return supportedSpecs;
+            return _supportedSpecs;
         }
 
         public override string ToString()
         {
-            return toString;
+            return _toString;
         }
     }
 }

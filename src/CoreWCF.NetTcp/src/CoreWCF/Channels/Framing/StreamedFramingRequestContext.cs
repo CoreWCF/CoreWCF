@@ -14,7 +14,7 @@ namespace CoreWCF.Channels.Framing
         private readonly FramingConnection _connection;
         private readonly Message _requestMessage;
         private readonly Stream _inputStream;
-        private bool isClosed;
+        private bool _isClosed;
         private readonly TaskCompletionSource<object> _tcs;
 
         public StreamedFramingRequestContext(FramingConnection connection, Message requestMessage, Stream inputStream)
@@ -36,12 +36,12 @@ namespace CoreWCF.Channels.Framing
         {
             lock (ThisLock)
             {
-                if (isClosed)
+                if (_isClosed)
                 {
                     return;
                 }
 
-                isClosed = true;
+                _isClosed = true;
             }
 
             bool success = false;

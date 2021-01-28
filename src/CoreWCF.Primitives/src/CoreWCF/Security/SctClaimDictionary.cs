@@ -8,7 +8,7 @@ namespace CoreWCF.Security
 {
     internal sealed class SctClaimDictionary : XmlDictionary
     {
-        private readonly XmlDictionaryString emptyString;
+        private readonly XmlDictionaryString _emptyString;
 
         private SctClaimDictionary()
         {
@@ -64,7 +64,7 @@ namespace CoreWCF.Security
             InternalTokenReference = Add("InternalTokenReference");
             ExternalTokenReference = Add("ExternalTokenReference");
             TokenXml = Add("TokenXml");
-            emptyString = Add(String.Empty);
+            _emptyString = Add(String.Empty);
         }
 
         public static SctClaimDictionary Instance { get; } = new SctClaimDictionary();
@@ -161,7 +161,7 @@ namespace CoreWCF.Security
 
         public XmlDictionaryString ExternalTokenReference { get; }
 
-        public XmlDictionaryString EmptyString => emptyString;
+        public XmlDictionaryString EmptyString => _emptyString;
 
         public XmlDictionaryString KeyGeneration { get; }
 

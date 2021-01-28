@@ -8,16 +8,16 @@ namespace CoreWCF.Configuration
 {
     internal class ServiceConfigurationDelegateHolder<TService> where TService : class
     {
-        private readonly List<Action<ServiceHostBase>> configDelegates = new List<Action<ServiceHostBase>>();
+        private readonly List<Action<ServiceHostBase>> _configDelegates = new List<Action<ServiceHostBase>>();
 
         public void AddConfigDelegate(Action<ServiceHostBase> func)
         {
-            configDelegates.Add(func);
+            _configDelegates.Add(func);
         }
 
         public void Configure(ServiceHostBase host)
         {
-            foreach (var del in configDelegates)
+            foreach (var del in _configDelegates)
             {
                 del(host);
             }

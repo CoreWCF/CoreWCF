@@ -105,5 +105,4 @@ namespace CoreWCF.Dispatcher
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotImplementedException());
         }
     }
-
 }

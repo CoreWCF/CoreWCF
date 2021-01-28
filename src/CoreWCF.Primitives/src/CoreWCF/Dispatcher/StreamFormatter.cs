@@ -14,11 +14,11 @@ namespace CoreWCF.Dispatcher
 {
     internal class StreamFormatter
     {
-        private string wrapperNS;
-        private readonly string partNS;
-        private readonly int streamIndex;
-        private readonly bool isRequest;
-        private readonly string operationName;
+        private string _wrapperNS;
+        private readonly string _partNS;
+        private readonly int _streamIndex;
+        private readonly bool _isRequest;
+        private readonly string _operationName;
         private const int returnValueIndex = -1;
 
         internal static StreamFormatter Create(MessageDescription messageDescription, string operationName, bool isRequest)
@@ -36,19 +36,19 @@ namespace CoreWCF.Dispatcher
         {
             if ((object)streamPart == (object)messageDescription.Body.ReturnValue)
             {
-                streamIndex = returnValueIndex;
+                _streamIndex = returnValueIndex;
             }
             else
             {
-                streamIndex = streamPart.Index;
+                _streamIndex = streamPart.Index;
             }
 
             WrapperName = messageDescription.Body.WrapperName;
-            wrapperNS = messageDescription.Body.WrapperNamespace;
+            _wrapperNS = messageDescription.Body.WrapperNamespace;
             PartName = streamPart.Name;
-            partNS = streamPart.Namespace;
-            this.isRequest = isRequest;
-            this.operationName = operationName;
+            _partNS = streamPart.Namespace;
+            _isRequest = isRequest;
+            _operationName = operationName;
         }
 
         internal void Serialize(XmlDictionaryWriter writer, object[] parameters, object returnValue)
@@ -110,43 +110,43 @@ namespace CoreWCF.Dispatcher
 
         internal void Deserialize(object[] parameters, ref object retVal, Message message)
         {
-            SetStreamValue(parameters, ref retVal, new MessageBodyStream(message, WrapperName, WrapperNamespace, PartName, PartNamespace, isRequest));
+            SetStreamValue(parameters, ref retVal, new MessageBodyStream(message, WrapperName, WrapperNamespace, PartName, PartNamespace, _isRequest));
         }
 
         internal string WrapperName { get; set; }
 
         internal string WrapperNamespace
         {
-            get { return wrapperNS; }
-            set { wrapperNS = value; }
+            get { return _wrapperNS; }
+            set { _wrapperNS = value; }
         }
 
         internal string PartName { get; }
 
         internal string PartNamespace
         {
-            get { return partNS; }
+            get { return _partNS; }
         }
 
         private Stream GetStreamValue(object[] parameters, object returnValue)
         {
-            if (streamIndex == returnValueIndex)
+            if (_streamIndex == returnValueIndex)
             {
                 return (Stream)returnValue;
             }
 
-            return (Stream)parameters[streamIndex];
+            return (Stream)parameters[_streamIndex];
         }
 
         private void SetStreamValue(object[] parameters, ref object returnValue, Stream streamValue)
         {
-            if (streamIndex == returnValueIndex)
+            if (_streamIndex == returnValueIndex)
             {
                 returnValue = streamValue;
             }
             else
             {
-                parameters[streamIndex] = streamValue;
+                parameters[_streamIndex] = streamValue;
             }
         }
 
@@ -225,21 +225,21 @@ namespace CoreWCF.Dispatcher
 
         internal class MessageBodyStream : Stream
         {
-            private readonly Message message;
-            private XmlDictionaryReader reader;
-            private long position;
-            private readonly string wrapperName, wrapperNs;
-            private readonly string elementName, elementNs;
-            private readonly bool isRequest;
+            private readonly Message _message;
+            private XmlDictionaryReader _reader;
+            private long _position;
+            private readonly string _wrapperName,_wrapperNs;
+            private readonly string _elementName,_elementNs;
+            private readonly bool _isRequest;
             internal MessageBodyStream(Message message, string wrapperName, string wrapperNs, string elementName, string elementNs, bool isRequest)
             {
-                this.message = message;
-                position = 0;
-                this.wrapperName = wrapperName;
-                this.wrapperNs = wrapperNs;
-                this.elementName = elementName;
-                this.elementNs = elementNs;
-                this.isRequest = isRequest;
+                _message = message;
+                _position = 0;
+                _wrapperName = wrapperName;
+                _wrapperNs = wrapperNs;
+                _elementName = elementName;
+                _elementNs = elementNs;
+                _isRequest = isRequest;
             }
 
             public override int Read(byte[] buffer, int offset, int count)
@@ -247,55 +247,54 @@ namespace CoreWCF.Dispatcher
                 EnsureStreamIsOpen();
                 if (buffer == null)
                 {
-                    throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(buffer)), message);
+                    throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(buffer)), _message);
                 }
 
                 if (offset < 0)
                 {
                     throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset), offset,
-                                                    SR.ValueMustBeNonNegative), message);
+                                                    SR.ValueMustBeNonNegative), _message);
                 }
 
                 if (count < 0)
                 {
                     throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), count,
-                                                    SR.ValueMustBeNonNegative), message);
+                                                    SR.ValueMustBeNonNegative), _message);
                 }
 
                 if (buffer.Length - offset < count)
                 {
-                    throw TraceUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.SFxInvalidStreamOffsetLength, offset + count)), message);
+                    throw TraceUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.SFxInvalidStreamOffsetLength, offset + count)), _message);
                 }
 
                 try
                 {
-
-                    if (reader == null)
+                    if (_reader == null)
                     {
-                        reader = message.GetReaderAtBodyContents();
-                        if (wrapperName != null)
+                        _reader = _message.GetReaderAtBodyContents();
+                        if (_wrapperName != null)
                         {
-                            reader.MoveToContent();
-                            reader.ReadStartElement(wrapperName, wrapperNs);
+                            _reader.MoveToContent();
+                            _reader.ReadStartElement(_wrapperName, _wrapperNs);
                         }
-                        reader.MoveToContent();
-                        if (reader.NodeType == XmlNodeType.EndElement)
+                        _reader.MoveToContent();
+                        if (_reader.NodeType == XmlNodeType.EndElement)
                         {
                             return 0;
                         }
 
-                        reader.ReadStartElement(elementName, elementNs);
+                        _reader.ReadStartElement(_elementName, _elementNs);
                     }
-                    if (reader.MoveToContent() != XmlNodeType.Text)
+                    if (_reader.MoveToContent() != XmlNodeType.Text)
                     {
-                        Exhaust(reader);
+                        Exhaust(_reader);
                         return 0;
                     }
-                    int bytesRead = reader.ReadContentAsBase64(buffer, offset, count);
-                    position += bytesRead;
+                    int bytesRead = _reader.ReadContentAsBase64(buffer, offset, count);
+                    _position += bytesRead;
                     if (bytesRead == 0)
                     {
-                        Exhaust(reader);
+                        Exhaust(_reader);
                     }
                     return bytesRead;
                 }
@@ -312,10 +311,10 @@ namespace CoreWCF.Dispatcher
 
             private void EnsureStreamIsOpen()
             {
-                if (message.State == MessageState.Closed)
+                if (_message.State == MessageState.Closed)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(
-                        isRequest ? SR.SFxStreamRequestMessageClosed : SR.SFxStreamResponseMessageClosed));
+                        _isRequest ? SR.SFxStreamRequestMessageClosed : SR.SFxStreamResponseMessageClosed));
                 }
             }
 
@@ -335,50 +334,50 @@ namespace CoreWCF.Dispatcher
                 get
                 {
                     EnsureStreamIsOpen();
-                    return position;
+                    return _position;
                 }
-                set { throw TraceUtility.ThrowHelperError(new NotSupportedException(), message); }
+                set { throw TraceUtility.ThrowHelperError(new NotSupportedException(), _message); }
             }
 
             protected override void Dispose(bool isDisposing)
             {
-                message.Close();
-                if (reader != null)
+                _message.Close();
+                if (_reader != null)
                 {
-                    reader.Dispose();
-                    reader = null;
+                    _reader.Dispose();
+                    _reader = null;
                 }
                 base.Dispose(isDisposing);
             }
 
-            public override bool CanRead { get { return message.State != MessageState.Closed; } }
+            public override bool CanRead { get { return _message.State != MessageState.Closed; } }
             public override bool CanSeek { get { return false; } }
             public override bool CanWrite { get { return false; } }
             public override long Length
             {
                 get
                 {
-                    throw TraceUtility.ThrowHelperError(new NotSupportedException(), message);
+                    throw TraceUtility.ThrowHelperError(new NotSupportedException(), _message);
                 }
             }
-            public override void Flush() { throw TraceUtility.ThrowHelperError(new NotSupportedException(), message); }
-            public override long Seek(long offset, SeekOrigin origin) { throw TraceUtility.ThrowHelperError(new NotSupportedException(), message); }
-            public override void SetLength(long value) { throw TraceUtility.ThrowHelperError(new NotSupportedException(), message); }
-            public override void Write(byte[] buffer, int offset, int count) { throw TraceUtility.ThrowHelperError(new NotSupportedException(), message); }
+            public override void Flush() { throw TraceUtility.ThrowHelperError(new NotSupportedException(), _message); }
+            public override long Seek(long offset, SeekOrigin origin) { throw TraceUtility.ThrowHelperError(new NotSupportedException(), _message); }
+            public override void SetLength(long value) { throw TraceUtility.ThrowHelperError(new NotSupportedException(), _message); }
+            public override void Write(byte[] buffer, int offset, int count) { throw TraceUtility.ThrowHelperError(new NotSupportedException(), _message); }
         }
 
         internal class OperationStreamProvider //: IStreamProvider
         {
-            private readonly Stream stream;
+            private readonly Stream _stream;
 
             internal OperationStreamProvider(Stream stream)
             {
-                this.stream = stream;
+                _stream = stream;
             }
 
             public Stream GetStream()
             {
-                return stream;
+                return _stream;
             }
             public void ReleaseStream(Stream stream)
             {
@@ -467,7 +466,5 @@ namespace CoreWCF.Dispatcher
                 value.ReleaseStream(stream);
             }
         }
-
     }
-
 }

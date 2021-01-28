@@ -10,22 +10,22 @@ namespace CoreWCF.Security
 {
     internal class SecurityListenerSettingsLifetimeManager
     {
-        private readonly SecurityProtocolFactory securityProtocolFactory;
-        private readonly SecuritySessionServerSettings sessionSettings;
-        private readonly bool sessionMode;
-        private int referenceCount;
+        private readonly SecurityProtocolFactory _securityProtocolFactory;
+        private readonly SecuritySessionServerSettings _sessionSettings;
+        private readonly bool _sessionMode;
+        private int _referenceCount;
 
         public SecurityListenerSettingsLifetimeManager(SecurityProtocolFactory securityProtocolFactory, SecuritySessionServerSettings sessionSettings, bool sessionMode)
         {
-            this.securityProtocolFactory = securityProtocolFactory;
-            this.sessionSettings = sessionSettings;
-            this.sessionMode = sessionMode;
-            referenceCount = 1;
+            _securityProtocolFactory = securityProtocolFactory;
+            _sessionSettings = sessionSettings;
+            _sessionMode = sessionMode;
+            _referenceCount = 1;
         }
 
         public void Abort()
         {
-            if (Interlocked.Decrement(ref referenceCount) == 0)
+            if (Interlocked.Decrement(ref _referenceCount) == 0)
             {
                 AbortCore();
             }
@@ -33,15 +33,15 @@ namespace CoreWCF.Security
 
         public void AddReference()
         {
-            Interlocked.Increment(ref referenceCount);
+            Interlocked.Increment(ref _referenceCount);
         }
 
         public Task OpenAsync(TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            if (sessionMode && sessionSettings != null)
+            if (_sessionMode && _sessionSettings != null)
             {
-                sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
+                _sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
             }
 
             /* if (this.securityProtocolFactory != null)
@@ -55,7 +55,6 @@ namespace CoreWCF.Security
 
         private void SetBufferManager()
         {
-
             /* TODO
                 ITransportFactorySettings transportSettings = this.innerListener.GetProperty<ITransportFactorySettings>();
                 if (transportSettings == null)
@@ -79,19 +78,19 @@ namespace CoreWCF.Security
 
         public Task CloseAsync(TimeSpan timeout)
         {
-            if (Interlocked.Decrement(ref referenceCount) == 0)
+            if (Interlocked.Decrement(ref _referenceCount) == 0)
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 bool throwing = true;
                 try
                 {
-                    if (securityProtocolFactory != null)
+                    if (_securityProtocolFactory != null)
                     {
-                        securityProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
+                        _securityProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
                     }
-                    if (sessionMode && sessionSettings != null)
+                    if (_sessionMode && _sessionSettings != null)
                     {
-                        sessionSettings.CloseAsync(timeoutHelper.RemainingTime());
+                        _sessionSettings.CloseAsync(timeoutHelper.RemainingTime());
                     }
                     throwing = false;
                 }
@@ -108,15 +107,14 @@ namespace CoreWCF.Security
 
         private void AbortCore()
         {
-            if (securityProtocolFactory != null)
+            if (_securityProtocolFactory != null)
             {
-                securityProtocolFactory.OnCloseAsync(TimeSpan.Zero);
+                _securityProtocolFactory.OnCloseAsync(TimeSpan.Zero);
             }
-            if (sessionMode && sessionSettings != null)
+            if (_sessionMode && _sessionSettings != null)
             {
-                sessionSettings.Abort();
+                _sessionSettings.Abort();
             }
         }
-
     }
 }

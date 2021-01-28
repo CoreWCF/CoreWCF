@@ -371,10 +371,10 @@ namespace CoreWCF.Description
         internal static readonly Type taskTResultType = typeof(Task<>);
         internal static readonly Type CancellationTokenType = typeof(CancellationToken);
         internal static readonly Type IProgressType = typeof(IProgress<>);
-        private static readonly Type asyncCallbackType = typeof(AsyncCallback);
-        private static readonly Type asyncResultType = typeof(IAsyncResult);
-        private static readonly Type objectType = typeof(object);
-        private static readonly Type OperationContractAttributeType = typeof(OperationContractAttribute);
+        private static readonly Type s_asyncCallbackType = typeof(AsyncCallback);
+        private static readonly Type s_asyncResultType = typeof(IAsyncResult);
+        private static readonly Type s_objectType = typeof(object);
+        private static readonly Type s_operationContractAttributeType = typeof(OperationContractAttribute);
         internal const string SMServiceContractAttributeFullName = "System.ServiceModel.ServiceContractAttribute";
         internal const string SMOperationContractAttributeFullName = "System.ServiceModel.OperationContractAttribute";
         internal const string SMMessageContractAttributeFullName = "System.ServiceModel.MessageContractAttribute";
@@ -392,7 +392,7 @@ namespace CoreWCF.Description
         {
             if (GetSingleAttribute<OperationContractAttribute>(method) != null)
             {
-                return OperationContractAttributeType;
+                return s_operationContractAttributeType;
             }
 
             IOperationContractAttributeProvider provider = GetFirstAttribute<IOperationContractAttributeProvider>(method);
@@ -446,7 +446,7 @@ namespace CoreWCF.Description
                 foreach (MethodInfo method in GetMethodsInternal<TService>())
                 {
                     Type operationContractProviderType = GetOperationContractProviderType(method);
-                    if (operationContractProviderType == OperationContractAttributeType)
+                    if (operationContractProviderType == s_operationContractAttributeType)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ServicesWithoutAServiceContractAttributeCan2, operationContractProviderType.Name, method.Name, typeof(TService).FullName)));
                     }
@@ -544,7 +544,6 @@ namespace CoreWCF.Description
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.Format(SR.SFxErrorReflectingOnMethod3,
                                      attrType.Name, method.Name, method.ReflectedType.Name), e));
-
                 }
                 else if (param != null)
                 {
@@ -916,9 +915,9 @@ namespace CoreWCF.Description
             ParameterInfo[] parameters = method.GetParameters();
             if (!method.Name.StartsWith(BeginMethodNamePrefix, StringComparison.Ordinal) ||
                 parameters.Length < 2 ||
-                parameters[parameters.Length - 2].ParameterType != asyncCallbackType ||
-                parameters[parameters.Length - 1].ParameterType != objectType ||
-                method.ReturnType != asyncResultType)
+                parameters[parameters.Length - 2].ParameterType != s_asyncCallbackType ||
+                parameters[parameters.Length - 1].ParameterType != s_objectType ||
+                method.ReturnType != s_asyncResultType)
             {
                 return false;
             }
@@ -976,7 +975,7 @@ namespace CoreWCF.Description
             ParameterInfo[] parameters = method.GetParameters();
             if (!method.Name.StartsWith(EndMethodNamePrefix, StringComparison.Ordinal) ||
                 parameters.Length < 1 ||
-                parameters[parameters.Length - 1].ParameterType != asyncResultType)
+                parameters[parameters.Length - 1].ParameterType != s_asyncResultType)
             {
                 return false;
             }

@@ -88,7 +88,5 @@ namespace CoreWCF.Dispatcher
                 }
             }
         }
-
     }
-
 }

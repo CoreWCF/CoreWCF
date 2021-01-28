@@ -5,7 +5,6 @@ using System.Xml;
 
 namespace CoreWCF
 {
-
     internal static class XmlReaderExtensions
     {
         internal static string ReadElementString(this XmlReader reader)

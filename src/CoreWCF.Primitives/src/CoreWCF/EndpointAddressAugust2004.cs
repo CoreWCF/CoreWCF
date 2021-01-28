@@ -14,18 +14,18 @@ namespace CoreWCF
     [XmlRoot(AddressingStrings.EndpointReference, Namespace = Addressing200408Strings.Namespace)]
     public class EndpointAddressAugust2004 : IXmlSerializable
     {
-        private static XmlQualifiedName eprType;
-        private EndpointAddress address;
+        private static XmlQualifiedName s_eprType;
+        private EndpointAddress _address;
 
         // for IXmlSerializable
         private EndpointAddressAugust2004()
         {
-            address = null;
+            _address = null;
         }
 
         private EndpointAddressAugust2004(EndpointAddress address)
         {
-            this.address = address;
+            _address = address;
         }
 
         public static EndpointAddressAugust2004 FromEndpointAddress(EndpointAddress address)
@@ -39,29 +39,29 @@ namespace CoreWCF
 
         public EndpointAddress ToEndpointAddress()
         {
-            return address;
+            return _address;
         }
 
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressingAugust2004, XmlDictionaryReader.CreateDictionaryReader(reader));
+            _address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressingAugust2004, XmlDictionaryReader.CreateDictionaryReader(reader));
         }
 
         void IXmlSerializable.WriteXml(XmlWriter writer)
         {
-            address.WriteContentsTo(AddressingVersion.WSAddressingAugust2004, XmlDictionaryWriter.CreateDictionaryWriter(writer));
+            _address.WriteContentsTo(AddressingVersion.WSAddressingAugust2004, XmlDictionaryWriter.CreateDictionaryWriter(writer));
         }
 
         private static XmlQualifiedName EprType
         {
             get
             {
-                if (eprType == null)
+                if (s_eprType == null)
                 {
-                    eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing200408Strings.Namespace);
+                    s_eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing200408Strings.Namespace);
                 }
 
-                return eprType;
+                return s_eprType;
             }
         }
 

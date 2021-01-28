@@ -15,23 +15,23 @@ namespace CoreWCF.Security
         internal const bool DefaultAllowNtlm = true;
         internal const bool DefaultExtractWindowsGroupClaims = true;
         internal const bool DefaultAllowUnauthenticatedCallers = false;
-        private readonly SspiSecurityToken token;
+        private readonly SspiSecurityToken _token;
 
         // client side ctor
         public SspiSecurityTokenProvider(NetworkCredential credential, bool allowNtlm, TokenImpersonationLevel impersonationLevel)
         {
-            token = new SspiSecurityToken(impersonationLevel, allowNtlm, credential);
+            _token = new SspiSecurityToken(impersonationLevel, allowNtlm, credential);
         }
 
         // service side ctor
         public SspiSecurityTokenProvider(NetworkCredential credential, bool extractGroupsForWindowsAccounts, bool allowUnauthenticatedCallers)
         {
-            token = new SspiSecurityToken(credential, extractGroupsForWindowsAccounts, allowUnauthenticatedCallers);
+            _token = new SspiSecurityToken(credential, extractGroupsForWindowsAccounts, allowUnauthenticatedCallers);
         }
 
         protected override SecurityToken GetTokenCore(TimeSpan timeout)
         {
-            return token;
+            return _token;
         }
     }
 }

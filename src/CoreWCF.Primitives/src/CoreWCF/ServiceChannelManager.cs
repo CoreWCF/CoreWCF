@@ -14,13 +14,13 @@ namespace CoreWCF
 
     internal class ServiceChannelManager : LifetimeManager
     {
-        private ICommunicationWaiter activityWaiter;
-        private int activityWaiterCount;
-        private readonly Action<InstanceContext> emptyCallback;
-        private IChannel firstIncomingChannel;
-        private ChannelCollection incomingChannels;
-        private ChannelCollection outgoingChannels;
-        private readonly InstanceContext instanceContext;
+        private ICommunicationWaiter _activityWaiter;
+        private int _activityWaiterCount;
+        private readonly Action<InstanceContext> _emptyCallback;
+        private IChannel _firstIncomingChannel;
+        private ChannelCollection _incomingChannels;
+        private ChannelCollection _outgoingChannels;
+        private readonly InstanceContext _instanceContext;
 
         public ServiceChannelManager(InstanceContext instanceContext)
             : this(instanceContext, null)
@@ -30,8 +30,8 @@ namespace CoreWCF
         public ServiceChannelManager(InstanceContext instanceContext, Action<InstanceContext> emptyCallback)
             : base(instanceContext.ThisLock)
         {
-            this.instanceContext = instanceContext;
-            this.emptyCallback = emptyCallback;
+            _instanceContext = instanceContext;
+            _emptyCallback = emptyCallback;
         }
 
         public int ActivityCount { get; private set; }
@@ -41,7 +41,7 @@ namespace CoreWCF
             get
             {
                 EnsureIncomingChannelCollection();
-                return (ICollection<IChannel>)incomingChannels;
+                return (ICollection<IChannel>)_incomingChannels;
             }
         }
 
@@ -49,17 +49,17 @@ namespace CoreWCF
         {
             get
             {
-                if (outgoingChannels == null)
+                if (_outgoingChannels == null)
                 {
                     lock (ThisLock)
                     {
-                        if (outgoingChannels == null)
+                        if (_outgoingChannels == null)
                         {
-                            outgoingChannels = new ChannelCollection(this, ThisLock);
+                            _outgoingChannels = new ChannelCollection(this, ThisLock);
                         }
                     }
                 }
-                return outgoingChannels;
+                return _outgoingChannels;
             }
         }
 
@@ -77,7 +77,7 @@ namespace CoreWCF
                     return true;
                 }
 
-                ICollection<IChannel> outgoing = outgoingChannels;
+                ICollection<IChannel> outgoing = _outgoingChannels;
                 if ((outgoing != null) && (outgoing.Count > 0))
                 {
                     return true;
@@ -95,32 +95,32 @@ namespace CoreWCF
             {
                 if (State == LifetimeState.Opened)
                 {
-                    if (firstIncomingChannel == null)
+                    if (_firstIncomingChannel == null)
                     {
-                        if (incomingChannels == null)
+                        if (_incomingChannels == null)
                         {
-                            firstIncomingChannel = channel;
+                            _firstIncomingChannel = channel;
                             ChannelAdded(channel);
                         }
                         else
                         {
-                            if (incomingChannels.Contains(channel))
+                            if (_incomingChannels.Contains(channel))
                             {
                                 return;
                             }
 
-                            incomingChannels.Add(channel);
+                            _incomingChannels.Add(channel);
                         }
                     }
                     else
                     {
                         EnsureIncomingChannelCollection();
-                        if (incomingChannels.Contains(channel))
+                        if (_incomingChannels.Contains(channel))
                         {
                             return;
                         }
 
-                        incomingChannels.Add(channel);
+                        _incomingChannels.Add(channel);
                     }
                     added = true;
                 }
@@ -154,22 +154,22 @@ namespace CoreWCF
                 if (ActivityCount > 0)
                 {
                     activityWaiter = new AsyncCommunicationWaiter(ThisLock);
-                    if (!(this.activityWaiter == null))
+                    if (!(_activityWaiter == null))
                     {
                         Fx.Assert("ServiceChannelManager.CloseInput: (this.activityWaiter == null)");
                     }
-                    this.activityWaiter = activityWaiter;
-                    Interlocked.Increment(ref activityWaiterCount);
+                    _activityWaiter = activityWaiter;
+                    Interlocked.Increment(ref _activityWaiterCount);
                 }
             }
 
             if (activityWaiter != null)
             {
                 CommunicationWaitResult result = await activityWaiter.WaitAsync(false, token);
-                if (Interlocked.Decrement(ref activityWaiterCount) == 0)
+                if (Interlocked.Decrement(ref _activityWaiterCount) == 0)
                 {
                     activityWaiter.Dispose();
-                    this.activityWaiter = null;
+                    _activityWaiter = null;
                 }
 
                 switch (result)
@@ -195,10 +195,10 @@ namespace CoreWCF
                 }
                 if (--ActivityCount == 0)
                 {
-                    if (this.activityWaiter != null)
+                    if (_activityWaiter != null)
                     {
-                        activityWaiter = this.activityWaiter;
-                        Interlocked.Increment(ref activityWaiterCount);
+                        activityWaiter = _activityWaiter;
+                        Interlocked.Increment(ref _activityWaiterCount);
                     }
                     if (BusyCount == 0)
                     {
@@ -210,10 +210,10 @@ namespace CoreWCF
             if (activityWaiter != null)
             {
                 activityWaiter.Signal();
-                if (Interlocked.Decrement(ref activityWaiterCount) == 0)
+                if (Interlocked.Decrement(ref _activityWaiterCount) == 0)
                 {
                     activityWaiter.Dispose();
-                    this.activityWaiter = null;
+                    _activityWaiter = null;
                 }
             }
 
@@ -227,14 +227,14 @@ namespace CoreWCF
         {
             lock (ThisLock)
             {
-                if (incomingChannels == null)
+                if (_incomingChannels == null)
                 {
-                    incomingChannels = new ChannelCollection(this, ThisLock);
-                    if (firstIncomingChannel != null)
+                    _incomingChannels = new ChannelCollection(this, ThisLock);
+                    if (_firstIncomingChannel != null)
                     {
-                        incomingChannels.Add(firstIncomingChannel);
-                        ChannelRemoved(firstIncomingChannel); // Adding to collection called ChannelAdded, so call ChannelRemoved to balance
-                        firstIncomingChannel = null;
+                        _incomingChannels.Add(_firstIncomingChannel);
+                        ChannelRemoved(_firstIncomingChannel); // Adding to collection called ChannelAdded, so call ChannelRemoved to balance
+                        _firstIncomingChannel = null;
                     }
                 }
             }
@@ -270,20 +270,20 @@ namespace CoreWCF
 
             lock (ThisLock)
             {
-                if (this.activityWaiter != null)
+                if (_activityWaiter != null)
                 {
-                    activityWaiter = this.activityWaiter;
-                    Interlocked.Increment(ref activityWaiterCount);
+                    activityWaiter = _activityWaiter;
+                    Interlocked.Increment(ref _activityWaiterCount);
                 }
             }
 
             if (activityWaiter != null)
             {
                 activityWaiter.Signal();
-                if (Interlocked.Decrement(ref activityWaiterCount) == 0)
+                if (Interlocked.Decrement(ref _activityWaiterCount) == 0)
                 {
                     activityWaiter.Dispose();
-                    this.activityWaiter = null;
+                    _activityWaiter = null;
                 }
             }
 
@@ -298,9 +298,9 @@ namespace CoreWCF
 
         protected override void OnEmpty()
         {
-            if (emptyCallback != null)
+            if (_emptyCallback != null)
             {
-                emptyCallback(instanceContext);
+                _emptyCallback(_instanceContext);
             }
         }
 
@@ -313,20 +313,20 @@ namespace CoreWCF
         {
             lock (ThisLock)
             {
-                if (firstIncomingChannel == channel)
+                if (_firstIncomingChannel == channel)
                 {
-                    firstIncomingChannel = null;
+                    _firstIncomingChannel = null;
                     ChannelRemoved(channel);
                     return true;
                 }
-                else if (incomingChannels != null && incomingChannels.Contains(channel))
+                else if (_incomingChannels != null && _incomingChannels.Contains(channel))
                 {
-                    incomingChannels.Remove(channel);
+                    _incomingChannels.Remove(channel);
                     return true;
                 }
-                else if (outgoingChannels != null && outgoingChannels.Contains(channel))
+                else if (_outgoingChannels != null && _outgoingChannels.Contains(channel))
                 {
-                    outgoingChannels.Remove(channel);
+                    _outgoingChannels.Remove(channel);
                     return true;
                 }
             }
@@ -338,27 +338,27 @@ namespace CoreWCF
         {
             lock (ThisLock)
             {
-                int outgoingCount = (outgoingChannels != null ? outgoingChannels.Count : 0);
+                int outgoingCount = (_outgoingChannels != null ? _outgoingChannels.Count : 0);
 
-                if (firstIncomingChannel != null)
+                if (_firstIncomingChannel != null)
                 {
                     IChannel[] channels = new IChannel[1 + outgoingCount];
-                    channels[0] = firstIncomingChannel;
+                    channels[0] = _firstIncomingChannel;
                     if (outgoingCount > 0)
                     {
-                        outgoingChannels.CopyTo(channels, 1);
+                        _outgoingChannels.CopyTo(channels, 1);
                     }
 
                     return channels;
                 }
 
-                if (incomingChannels != null)
+                if (_incomingChannels != null)
                 {
-                    IChannel[] channels = new IChannel[incomingChannels.Count + outgoingCount];
-                    incomingChannels.CopyTo(channels, 0);
+                    IChannel[] channels = new IChannel[_incomingChannels.Count + outgoingCount];
+                    _incomingChannels.CopyTo(channels, 0);
                     if (outgoingCount > 0)
                     {
-                        outgoingChannels.CopyTo(channels, incomingChannels.Count);
+                        _outgoingChannels.CopyTo(channels, _incomingChannels.Count);
                     }
 
                     return channels;
@@ -367,7 +367,7 @@ namespace CoreWCF
                 if (outgoingCount > 0)
                 {
                     IChannel[] channels = new IChannel[outgoingCount];
-                    outgoingChannels.CopyTo(channels, 0);
+                    _outgoingChannels.CopyTo(channels, 0);
                     return channels;
                 }
             }
@@ -376,9 +376,9 @@ namespace CoreWCF
 
         private class ChannelCollection : ICollection<IChannel>
         {
-            private readonly ServiceChannelManager channelManager;
-            private readonly object syncRoot;
-            private readonly HashSet<IChannel> hashSet = new HashSet<IChannel>();
+            private readonly ServiceChannelManager _channelManager;
+            private readonly object _syncRoot;
+            private readonly HashSet<IChannel> _hashSet = new HashSet<IChannel>();
 
             public bool IsReadOnly
             {
@@ -389,9 +389,9 @@ namespace CoreWCF
             {
                 get
                 {
-                    lock (syncRoot)
+                    lock (_syncRoot)
                     {
-                        return hashSet.Count;
+                        return _hashSet.Count;
                     }
                 }
             }
@@ -403,41 +403,41 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
                 }
 
-                this.channelManager = channelManager;
-                this.syncRoot = syncRoot;
+                _channelManager = channelManager;
+                _syncRoot = syncRoot;
             }
 
             public void Add(IChannel channel)
             {
-                lock (syncRoot)
+                lock (_syncRoot)
                 {
-                    if (hashSet.Add(channel))
+                    if (_hashSet.Add(channel))
                     {
-                        channelManager.ChannelAdded(channel);
+                        _channelManager.ChannelAdded(channel);
                     }
                 }
             }
 
             public void Clear()
             {
-                lock (syncRoot)
+                lock (_syncRoot)
                 {
-                    foreach (IChannel channel in hashSet)
+                    foreach (IChannel channel in _hashSet)
                     {
-                        channelManager.ChannelRemoved(channel);
+                        _channelManager.ChannelRemoved(channel);
                     }
 
-                    hashSet.Clear();
+                    _hashSet.Clear();
                 }
             }
 
             public bool Contains(IChannel channel)
             {
-                lock (syncRoot)
+                lock (_syncRoot)
                 {
                     if (channel != null)
                     {
-                        return hashSet.Contains(channel);
+                        return _hashSet.Contains(channel);
                     }
                     return false;
                 }
@@ -445,23 +445,23 @@ namespace CoreWCF
 
             public void CopyTo(IChannel[] array, int arrayIndex)
             {
-                lock (syncRoot)
+                lock (_syncRoot)
                 {
-                    hashSet.CopyTo(array, arrayIndex);
+                    _hashSet.CopyTo(array, arrayIndex);
                 }
             }
 
             public bool Remove(IChannel channel)
             {
-                lock (syncRoot)
+                lock (_syncRoot)
                 {
                     bool ret = false;
                     if (channel != null)
                     {
-                        ret = hashSet.Remove(channel);
+                        ret = _hashSet.Remove(channel);
                         if (ret)
                         {
-                            channelManager.ChannelRemoved(channel);
+                            _channelManager.ChannelRemoved(channel);
                         }
                     }
                     return ret;
@@ -470,20 +470,19 @@ namespace CoreWCF
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
-                lock (syncRoot)
+                lock (_syncRoot)
                 {
-                    return hashSet.GetEnumerator();
+                    return _hashSet.GetEnumerator();
                 }
             }
 
             IEnumerator<IChannel> IEnumerable<IChannel>.GetEnumerator()
             {
-                lock (syncRoot)
+                lock (_syncRoot)
                 {
-                    return hashSet.GetEnumerator();
+                    return _hashSet.GetEnumerator();
                 }
             }
         }
     }
-
 }

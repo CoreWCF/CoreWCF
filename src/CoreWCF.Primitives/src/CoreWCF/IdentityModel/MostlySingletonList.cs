@@ -8,21 +8,21 @@ namespace CoreWCF.IdentityModel
 {
     internal struct MostlySingletonList<T> where T : class
     {
-        private T singleton;
-        private List<T> list;
+        private T _singleton;
+        private List<T> _list;
 
         public T this[int index]
         {
             get
             {
-                if (list == null)
+                if (_list == null)
                 {
                     EnsureValidSingletonIndex(index);
-                    return singleton;
+                    return _singleton;
                 }
                 else
                 {
-                    return list[index];
+                    return _list[index];
                 }
             }
         }
@@ -31,19 +31,19 @@ namespace CoreWCF.IdentityModel
 
         public void Add(T item)
         {
-            if (list == null)
+            if (_list == null)
             {
                 if (Count == 0)
                 {
-                    singleton = item;
+                    _singleton = item;
                     Count = 1;
                     return;
                 }
-                list = new List<T>();
-                list.Add(singleton);
-                singleton = null;
+                _list = new List<T>();
+                _list.Add(_singleton);
+                _singleton = null;
             }
-            list.Add(item);
+            _list.Add(item);
             Count++;
         }
 
@@ -68,33 +68,32 @@ namespace CoreWCF.IdentityModel
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("index", SR.Format("ValueMustBeZero")));
             }
-
         }
 
         private bool MatchesSingleton(T item)
         {
-            return Count == 1 && Compare(singleton, item);
+            return Count == 1 && Compare(_singleton, item);
         }
 
         public int IndexOf(T item)
         {
-            if (list == null)
+            if (_list == null)
             {
                 return MatchesSingleton(item) ? 0 : -1;
             }
             else
             {
-                return list.IndexOf(item);
+                return _list.IndexOf(item);
             }
         }
 
         public bool Remove(T item)
         {
-            if (list == null)
+            if (_list == null)
             {
                 if (MatchesSingleton(item))
                 {
-                    singleton = null;
+                    _singleton = null;
                     Count = 0;
                     return true;
                 }
@@ -105,7 +104,7 @@ namespace CoreWCF.IdentityModel
             }
             else
             {
-                bool result = list.Remove(item);
+                bool result = _list.Remove(item);
                 if (result)
                 {
                     Count--;
@@ -116,15 +115,15 @@ namespace CoreWCF.IdentityModel
 
         public void RemoveAt(int index)
         {
-            if (list == null)
+            if (_list == null)
             {
                 EnsureValidSingletonIndex(index);
-                singleton = null;
+                _singleton = null;
                 Count = 0;
             }
             else
             {
-                list.RemoveAt(index);
+                _list.RemoveAt(index);
                 Count--;
             }
         }

@@ -245,5 +245,4 @@ namespace CoreWCF.IdentityModel.Claims
             throw new PlatformNotSupportedException("CreateWindowsSidClaim is not yet supported");
         }
     }
-
 }

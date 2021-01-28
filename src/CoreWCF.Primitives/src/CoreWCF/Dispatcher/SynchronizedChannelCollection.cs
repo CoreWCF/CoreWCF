@@ -11,26 +11,26 @@ namespace CoreWCF.Dispatcher
     internal class SynchronizedChannelCollection<TChannel> : SynchronizedCollection<TChannel>
         where TChannel : IChannel
     {
-        private readonly EventHandler onChannelClosed;
-        private readonly EventHandler onChannelFaulted;
+        private readonly EventHandler _onChannelClosed;
+        private readonly EventHandler _onChannelFaulted;
 
         internal SynchronizedChannelCollection(object syncRoot)
             : base(syncRoot)
         {
-            onChannelClosed = new EventHandler(OnChannelClosed);
-            onChannelFaulted = new EventHandler(OnChannelFaulted);
+            _onChannelClosed = new EventHandler(OnChannelClosed);
+            _onChannelFaulted = new EventHandler(OnChannelFaulted);
         }
 
         private void AddingChannel(TChannel channel)
         {
-            channel.Faulted += onChannelFaulted;
-            channel.Closed += onChannelClosed;
+            channel.Faulted += _onChannelFaulted;
+            channel.Closed += _onChannelClosed;
         }
 
         private void RemovingChannel(TChannel channel)
         {
-            channel.Faulted -= onChannelFaulted;
-            channel.Closed -= onChannelClosed;
+            channel.Faulted -= _onChannelFaulted;
+            channel.Closed -= _onChannelClosed;
         }
 
         private void OnChannelClosed(object sender, EventArgs args)
@@ -80,5 +80,4 @@ namespace CoreWCF.Dispatcher
             RemovingChannel(oldItem);
         }
     }
-
 }

@@ -471,6 +471,5 @@ namespace CoreWCF.Channels
                 return Channel.CloseOutputSessionAsync(token);
             }
         }
-
     }
 }

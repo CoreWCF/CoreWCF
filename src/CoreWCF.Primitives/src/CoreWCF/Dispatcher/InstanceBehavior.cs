@@ -13,22 +13,22 @@ namespace CoreWCF.Dispatcher
     internal class InstanceBehavior
     {
         private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
-        private readonly IInstanceContextInitializer[] initializers;
-        private readonly IInstanceProvider provider;
-        private readonly InstanceContext singleton;
-        private readonly bool isSynchronized;
-        private readonly ImmutableDispatchRuntime immutableRuntime;
+        private readonly IInstanceContextInitializer[] _initializers;
+        private readonly IInstanceProvider _provider;
+        private readonly InstanceContext _singleton;
+        private readonly bool _isSynchronized;
+        private readonly ImmutableDispatchRuntime _immutableRuntime;
 
         internal InstanceBehavior(DispatchRuntime dispatch, ImmutableDispatchRuntime immutableRuntime)
         {
-            this.immutableRuntime = immutableRuntime;
-            initializers = EmptyArray<IInstanceContextInitializer>.ToArray(dispatch.InstanceContextInitializers);
-            provider = dispatch.InstanceProvider;
-            singleton = dispatch.SingletonInstanceContext;
-            isSynchronized = (dispatch.ConcurrencyMode != ConcurrencyMode.Multiple);
+            _immutableRuntime = immutableRuntime;
+            _initializers = EmptyArray<IInstanceContextInitializer>.ToArray(dispatch.InstanceContextInitializers);
+            _provider = dispatch.InstanceProvider;
+            _singleton = dispatch.SingletonInstanceContext;
+            _isSynchronized = (dispatch.ConcurrencyMode != ConcurrencyMode.Multiple);
             InstanceContextProvider = dispatch.InstanceContextProvider;
 
-            if (provider == null)
+            if (_provider == null)
             {
                 ConstructorInfo constructor = null;
                 if (dispatch.Type != null)
@@ -36,7 +36,7 @@ namespace CoreWCF.Dispatcher
                     constructor = InstanceBehavior.GetConstructor(dispatch.Type);
                 }
 
-                if (singleton == null)
+                if (_singleton == null)
                 {
                     if (dispatch.Type != null && (dispatch.Type.GetTypeInfo().IsAbstract || dispatch.Type.GetTypeInfo().IsInterface))
                     {
@@ -51,18 +51,18 @@ namespace CoreWCF.Dispatcher
 
                 if (constructor != null)
                 {
-                    if (singleton == null || !singleton.IsWellKnown)
+                    if (_singleton == null || !_singleton.IsWellKnown)
                     {
                         InvokerUtil util = new InvokerUtil();
                         CreateInstanceDelegate creator = util.GenerateCreateInstanceDelegate(dispatch.Type, constructor);
-                        provider = new InstanceProvider(creator);
+                        _provider = new InstanceProvider(creator);
                     }
                 }
             }
 
-            if (singleton != null)
+            if (_singleton != null)
             {
-                singleton.Behavior = this;
+                _singleton.Behavior = this;
             }
         }
 
@@ -177,22 +177,22 @@ namespace CoreWCF.Dispatcher
 
         internal object GetInstance(InstanceContext instanceContext)
         {
-            if (provider == null)
+            if (_provider == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor));
             }
 
-            return provider.GetInstance(instanceContext);
+            return _provider.GetInstance(instanceContext);
         }
 
         internal object GetInstance(InstanceContext instanceContext, Message request)
         {
-            if (provider == null)
+            if (_provider == null)
             {
                 throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor), request);
             }
 
-            return provider.GetInstance(instanceContext, request);
+            return _provider.GetInstance(instanceContext, request);
         }
 
         internal void Initialize(InstanceContext instanceContext)
@@ -206,9 +206,9 @@ namespace CoreWCF.Dispatcher
                 InstanceContextProvider.InitializeInstanceContext(instanceContext, message, transparentProxy);
             }
 
-            for (int i = 0; i < initializers.Length; i++)
+            for (int i = 0; i < _initializers.Length; i++)
             {
-                initializers[i].Initialize(instanceContext, message);
+                _initializers[i].Initialize(instanceContext, message);
             }
         }
 
@@ -234,11 +234,11 @@ namespace CoreWCF.Dispatcher
 
         internal void ReleaseInstance(InstanceContext instanceContext, object instance)
         {
-            if (provider != null)
+            if (_provider != null)
             {
                 try
                 {
-                    provider.ReleaseInstance(instanceContext, instance);
+                    _provider.ReleaseInstance(instanceContext, instance);
                 }
                 catch (Exception e)
                 {
@@ -246,7 +246,7 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    immutableRuntime.ErrorBehavior.HandleError(e);
+                    _immutableRuntime.ErrorBehavior.HandleError(e);
                 }
             }
         }
@@ -254,7 +254,7 @@ namespace CoreWCF.Dispatcher
 
     internal class InstanceProvider : IInstanceProvider
     {
-        private readonly CreateInstanceDelegate creator;
+        private readonly CreateInstanceDelegate _creator;
 
         internal InstanceProvider(CreateInstanceDelegate creator)
         {
@@ -263,17 +263,17 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(creator));
             }
 
-            this.creator = creator;
+            _creator = creator;
         }
 
         public object GetInstance(InstanceContext instanceContext)
         {
-            return creator();
+            return _creator();
         }
 
         public object GetInstance(InstanceContext instanceContext, Message message)
         {
-            return creator();
+            return _creator();
         }
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
@@ -285,5 +285,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

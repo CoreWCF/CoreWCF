@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
 {
     public sealed class AddressHeaderCollection : System.Collections.ObjectModel.ReadOnlyCollection<AddressHeader>
     {
-        private static readonly AddressHeaderCollection emptyHeaderCollection = new AddressHeaderCollection();
+        private static readonly AddressHeaderCollection s_emptyHeaderCollection = new AddressHeaderCollection();
 
         public AddressHeaderCollection()
             : base(new List<AddressHeader>())
@@ -50,7 +50,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (this == (object)emptyHeaderCollection)
+                if (this == (object)s_emptyHeaderCollection)
                 {
                     return 0;
                 }

@@ -7,13 +7,12 @@ namespace CoreWCF.Description
 {
     public class MessageHeaderDescription : MessagePartDescription
     {
-        private bool relay;
-        private bool isUnknownHeader;
+        private bool _relay;
+        private bool _isUnknownHeader;
 
         public MessageHeaderDescription(string name, string ns)
             : base(name, ns)
         {
-
         }
 
         internal MessageHeaderDescription(MessageHeaderDescription other)
@@ -37,8 +36,8 @@ namespace CoreWCF.Description
 
         public bool Relay
         {
-            get { return relay; }
-            set { relay = value; }
+            get { return _relay; }
+            set { _relay = value; }
         }
 
         public bool TypedHeader { get; set; }
@@ -47,11 +46,11 @@ namespace CoreWCF.Description
         {
             get
             {
-                return isUnknownHeader || Multiple && (Type == typeof(XmlElement));
+                return _isUnknownHeader || Multiple && (Type == typeof(XmlElement));
             }
             set
             {
-                isUnknownHeader = value;
+                _isUnknownHeader = value;
             }
         }
     }

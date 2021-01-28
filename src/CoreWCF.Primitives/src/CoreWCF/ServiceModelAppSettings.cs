@@ -23,15 +23,15 @@ namespace CoreWCF
         private const bool DefaultUseLegacyCertificateUsagePolicy = false;
         private const bool DefaultDisableOperationContextAsyncFlow = true;
         private const bool DefaultDeferSslStreamServerCertificateCleanup = false;
-        private static bool useLegacyCertificateUsagePolicy;
-        private static bool httpTransportPerFactoryConnectionPool;
-        private static bool ensureUniquePerformanceCounterInstanceNames;
-        private static bool useConfiguredTransportSecurityHeaderLayout;
-        private static bool useBestMatchNamedPipeUri;
-        private static bool disableOperationContextAsyncFlow;
-        private static bool deferSslStreamServerCertificateCleanup;
-        private static volatile bool settingsInitalized = false;
-        private static readonly object appSettingsLock = new object();
+        private static bool s_useLegacyCertificateUsagePolicy;
+        private static bool s_httpTransportPerFactoryConnectionPool;
+        private static bool s_ensureUniquePerformanceCounterInstanceNames;
+        private static bool s_useConfiguredTransportSecurityHeaderLayout;
+        private static bool s_useBestMatchNamedPipeUri;
+        private static bool s_disableOperationContextAsyncFlow;
+        private static bool s_deferSslStreamServerCertificateCleanup;
+        private static volatile bool s_settingsInitalized = false;
+        private static readonly object s_appSettingsLock = new object();
 
         internal static bool UseLegacyCertificateUsagePolicy
         {
@@ -39,7 +39,7 @@ namespace CoreWCF
             {
                 EnsureSettingsLoaded();
 
-                return useLegacyCertificateUsagePolicy;
+                return s_useLegacyCertificateUsagePolicy;
             }
         }
 
@@ -49,7 +49,7 @@ namespace CoreWCF
             {
                 EnsureSettingsLoaded();
 
-                return httpTransportPerFactoryConnectionPool;
+                return s_httpTransportPerFactoryConnectionPool;
             }
         }
 
@@ -59,7 +59,7 @@ namespace CoreWCF
             {
                 EnsureSettingsLoaded();
 
-                return ensureUniquePerformanceCounterInstanceNames;
+                return s_ensureUniquePerformanceCounterInstanceNames;
             }
         }
 
@@ -68,7 +68,7 @@ namespace CoreWCF
             get
             {
                 EnsureSettingsLoaded();
-                return disableOperationContextAsyncFlow;
+                return s_disableOperationContextAsyncFlow;
             }
         }
 
@@ -78,7 +78,7 @@ namespace CoreWCF
             {
                 EnsureSettingsLoaded();
 
-                return useConfiguredTransportSecurityHeaderLayout;
+                return s_useConfiguredTransportSecurityHeaderLayout;
             }
         }
 
@@ -88,7 +88,7 @@ namespace CoreWCF
             {
                 EnsureSettingsLoaded();
 
-                return useBestMatchNamedPipeUri;
+                return s_useBestMatchNamedPipeUri;
             }
         }
 
@@ -98,17 +98,17 @@ namespace CoreWCF
             {
                 EnsureSettingsLoaded();
 
-                return deferSslStreamServerCertificateCleanup;
+                return s_deferSslStreamServerCertificateCleanup;
             }
         }
 
         private static void EnsureSettingsLoaded()
         {
-            if (!settingsInitalized)
+            if (!s_settingsInitalized)
             {
-                lock (appSettingsLock)
+                lock (s_appSettingsLock)
                 {
-                    if (!settingsInitalized)
+                    if (!s_settingsInitalized)
                     {
                         NameValueCollection appSettingsSection = null;
                         try
@@ -120,42 +120,42 @@ namespace CoreWCF
                         }
                         finally
                         {
-                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[UseLegacyCertificateUsagePolicyString], out useLegacyCertificateUsagePolicy))
+                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[UseLegacyCertificateUsagePolicyString], out s_useLegacyCertificateUsagePolicy))
                             {
-                                useLegacyCertificateUsagePolicy = DefaultUseLegacyCertificateUsagePolicy;
+                                s_useLegacyCertificateUsagePolicy = DefaultUseLegacyCertificateUsagePolicy;
                             }
 
-                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[HttpTransportPerFactoryConnectionPoolString], out httpTransportPerFactoryConnectionPool))
+                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[HttpTransportPerFactoryConnectionPoolString], out s_httpTransportPerFactoryConnectionPool))
                             {
-                                httpTransportPerFactoryConnectionPool = DefaultHttpTransportPerFactoryConnectionPool;
+                                s_httpTransportPerFactoryConnectionPool = DefaultHttpTransportPerFactoryConnectionPool;
                             }
 
-                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[EnsureUniquePerformanceCounterInstanceNamesString], out ensureUniquePerformanceCounterInstanceNames))
+                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[EnsureUniquePerformanceCounterInstanceNamesString], out s_ensureUniquePerformanceCounterInstanceNames))
                             {
-                                ensureUniquePerformanceCounterInstanceNames = DefaultEnsureUniquePerformanceCounterInstanceNames;
+                                s_ensureUniquePerformanceCounterInstanceNames = DefaultEnsureUniquePerformanceCounterInstanceNames;
                             }
 
-                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[DisableOperationContextAsyncFlowString], out disableOperationContextAsyncFlow))
+                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[DisableOperationContextAsyncFlowString], out s_disableOperationContextAsyncFlow))
                             {
-                                disableOperationContextAsyncFlow = DefaultDisableOperationContextAsyncFlow;
+                                s_disableOperationContextAsyncFlow = DefaultDisableOperationContextAsyncFlow;
                             }
 
-                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[UseConfiguredTransportSecurityHeaderLayoutString], out useConfiguredTransportSecurityHeaderLayout))
+                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[UseConfiguredTransportSecurityHeaderLayoutString], out s_useConfiguredTransportSecurityHeaderLayout))
                             {
-                                useConfiguredTransportSecurityHeaderLayout = DefaultUseConfiguredTransportSecurityHeaderLayout;
+                                s_useConfiguredTransportSecurityHeaderLayout = DefaultUseConfiguredTransportSecurityHeaderLayout;
                             }
 
-                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[UseBestMatchNamedPipeUriString], out useBestMatchNamedPipeUri))
+                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[UseBestMatchNamedPipeUriString], out s_useBestMatchNamedPipeUri))
                             {
-                                useBestMatchNamedPipeUri = DefaultUseBestMatchNamedPipeUri;
+                                s_useBestMatchNamedPipeUri = DefaultUseBestMatchNamedPipeUri;
                             }
 
-                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[DeferSslStreamServerCertificateCleanupString], out deferSslStreamServerCertificateCleanup))
+                            if ((appSettingsSection == null) || !bool.TryParse(appSettingsSection[DeferSslStreamServerCertificateCleanupString], out s_deferSslStreamServerCertificateCleanup))
                             {
-                                deferSslStreamServerCertificateCleanup = DefaultDeferSslStreamServerCertificateCleanup;
+                                s_deferSslStreamServerCertificateCleanup = DefaultDeferSslStreamServerCertificateCleanup;
                             }
 
-                            settingsInitalized = true;
+                            s_settingsInitalized = true;
                         }
                     }
                 }

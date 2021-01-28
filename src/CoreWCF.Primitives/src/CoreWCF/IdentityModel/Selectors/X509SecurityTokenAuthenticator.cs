@@ -13,9 +13,9 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     public class X509SecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
-        private readonly X509CertificateValidator validator;
-        private readonly bool includeWindowsGroups;
-        private readonly bool cloneHandle;
+        private readonly X509CertificateValidator _validator;
+        private readonly bool _includeWindowsGroups;
+        private readonly bool _cloneHandle;
 
         public X509SecurityTokenAuthenticator()
             : this(X509CertificateValidator.ChainTrust)
@@ -44,10 +44,10 @@ namespace CoreWCF.IdentityModel.Selectors
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
             }
 
-            this.validator = validator;
+            _validator = validator;
             MapCertificateToWindowsAccount = mapToWindows;
-            this.includeWindowsGroups = includeWindowsGroups;
-            this.cloneHandle = cloneHandle;
+            _includeWindowsGroups = includeWindowsGroups;
+            _cloneHandle = cloneHandle;
         }
 
         public bool MapCertificateToWindowsAccount { get; }
@@ -60,9 +60,9 @@ namespace CoreWCF.IdentityModel.Selectors
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
         {
             X509SecurityToken x509Token = (X509SecurityToken)token;
-            validator.Validate(x509Token.Certificate);
+            _validator.Validate(x509Token.Certificate);
 
-            X509CertificateClaimSet x509ClaimSet = new X509CertificateClaimSet(x509Token.Certificate, cloneHandle);
+            X509CertificateClaimSet x509ClaimSet = new X509CertificateClaimSet(x509Token.Certificate, _cloneHandle);
             if (!MapCertificateToWindowsAccount)
             {
                 return SecurityUtils.CreateAuthorizationPolicies(x509ClaimSet, x509Token.ValidTo);
@@ -71,7 +71,7 @@ namespace CoreWCF.IdentityModel.Selectors
             WindowsClaimSet windowsClaimSet;
             if (token is X509WindowsSecurityToken)
             {
-                windowsClaimSet = new WindowsClaimSet(((X509WindowsSecurityToken)token).WindowsIdentity, SecurityUtils.AuthTypeCertMap, includeWindowsGroups, cloneHandle);
+                windowsClaimSet = new WindowsClaimSet(((X509WindowsSecurityToken)token).WindowsIdentity, SecurityUtils.AuthTypeCertMap, _includeWindowsGroups, _cloneHandle);
             }
             else
             {

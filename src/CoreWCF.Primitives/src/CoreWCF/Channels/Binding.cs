@@ -10,18 +10,18 @@ namespace CoreWCF.Channels
 {
     public abstract class Binding : IDefaultCommunicationTimeouts
     {
-        private TimeSpan closeTimeout = ServiceDefaults.CloseTimeout;
-        private string name;
-        private string namespaceIdentifier;
-        private TimeSpan openTimeout = ServiceDefaults.OpenTimeout;
-        private TimeSpan receiveTimeout = ServiceDefaults.ReceiveTimeout;
-        private TimeSpan sendTimeout = ServiceDefaults.SendTimeout;
+        private TimeSpan _closeTimeout = ServiceDefaults.CloseTimeout;
+        private string _name;
+        private string _namespaceIdentifier;
+        private TimeSpan _openTimeout = ServiceDefaults.OpenTimeout;
+        private TimeSpan _receiveTimeout = ServiceDefaults.ReceiveTimeout;
+        private TimeSpan _sendTimeout = ServiceDefaults.SendTimeout;
         internal const string DefaultNamespace = NamingHelper.DefaultNamespace;
 
         protected Binding()
         {
-            name = null;
-            namespaceIdentifier = DefaultNamespace;
+            _name = null;
+            _namespaceIdentifier = DefaultNamespace;
         }
 
         protected Binding(string name, string ns)
@@ -40,13 +40,13 @@ namespace CoreWCF.Channels
                 NamingHelper.CheckUriParameter(ns, "ns");
             }
 
-            this.name = name;
-            namespaceIdentifier = ns;
+            _name = name;
+            _namespaceIdentifier = ns;
         }
 
         public TimeSpan CloseTimeout
         {
-            get { return closeTimeout; }
+            get { return _closeTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
@@ -58,7 +58,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value, SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                closeTimeout = value;
+                _closeTimeout = value;
             }
         }
 
@@ -66,12 +66,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (name == null)
+                if (_name == null)
                 {
-                    name = GetType().Name;
+                    _name = GetType().Name;
                 }
 
-                return name;
+                return _name;
             }
             set
             {
@@ -80,13 +80,13 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("value", SR.SFXBindingNameCannotBeNullOrEmpty);
                 }
 
-                name = value;
+                _name = value;
             }
         }
 
         public string Namespace
         {
-            get { return namespaceIdentifier; }
+            get { return _namespaceIdentifier; }
             set
             {
                 if (value == null)
@@ -98,13 +98,13 @@ namespace CoreWCF.Channels
                 {
                     NamingHelper.CheckUriProperty(value, "Namespace");
                 }
-                namespaceIdentifier = value;
+                _namespaceIdentifier = value;
             }
         }
 
         public TimeSpan OpenTimeout
         {
-            get { return openTimeout; }
+            get { return _openTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
@@ -116,13 +116,13 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value, SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                openTimeout = value;
+                _openTimeout = value;
             }
         }
 
         public TimeSpan ReceiveTimeout
         {
-            get { return receiveTimeout; }
+            get { return _receiveTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
@@ -134,7 +134,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value, SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                receiveTimeout = value;
+                _receiveTimeout = value;
             }
         }
 
@@ -150,7 +150,7 @@ namespace CoreWCF.Channels
 
         public TimeSpan SendTimeout
         {
-            get { return sendTimeout; }
+            get { return _sendTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
@@ -162,7 +162,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value, SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                sendTimeout = value;
+                _sendTimeout = value;
             }
         }
 
@@ -273,6 +273,5 @@ where TChannel : class, IChannel
                     SR.Format(SR.MessageVersionMissingFromBinding, Name)));
             }
         }
-
     }
 }

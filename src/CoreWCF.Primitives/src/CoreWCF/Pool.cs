@@ -5,11 +5,11 @@ namespace CoreWCF
 {
     internal class Pool<T> where T : class
     {
-        private readonly T[] items;
+        private readonly T[] _items;
 
         public Pool(int maxCount)
         {
-            items = new T[maxCount];
+            _items = new T[maxCount];
         }
 
         public int Count { get; private set; }
@@ -18,8 +18,8 @@ namespace CoreWCF
         {
             if (Count > 0)
             {
-                T item = items[--Count];
-                items[Count] = null;
+                T item = _items[--Count];
+                _items[Count] = null;
                 return item;
             }
             else
@@ -30,9 +30,9 @@ namespace CoreWCF
 
         public bool Return(T item)
         {
-            if (Count < items.Length)
+            if (Count < _items.Length)
             {
-                items[Count++] = item;
+                _items[Count++] = item;
                 return true;
             }
             else
@@ -45,7 +45,7 @@ namespace CoreWCF
         {
             for (int i = 0; i < Count; i++)
             {
-                items[i] = null;
+                _items[i] = null;
             }
 
             Count = 0;

@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
     internal class CorrelationDataMessageProperty : IMessageProperty
     {
         private const string PropertyName = "CorrelationDataMessageProperty";
-        private Dictionary<string, DataProviderEntry> dataProviders;
+        private Dictionary<string, DataProviderEntry> _dataProviders;
 
         public CorrelationDataMessageProperty()
         {
@@ -20,7 +20,7 @@ namespace CoreWCF.Channels
         {
             if (dataProviders != null && dataProviders.Count > 0)
             {
-                this.dataProviders = new Dictionary<string, DataProviderEntry>(dataProviders);
+                _dataProviders = new Dictionary<string, DataProviderEntry>(dataProviders);
             }
         }
 
@@ -41,18 +41,18 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dataProvider));
             }
 
-            if (dataProviders == null)
+            if (_dataProviders == null)
             {
-                dataProviders = new Dictionary<string, DataProviderEntry>();
+                _dataProviders = new Dictionary<string, DataProviderEntry>();
             }
-            dataProviders.Add(name, new DataProviderEntry(dataProvider));
+            _dataProviders.Add(name, new DataProviderEntry(dataProvider));
         }
 
         public bool Remove(string name)
         {
-            if (dataProviders != null)
+            if (_dataProviders != null)
             {
-                return dataProviders.Remove(name);
+                return _dataProviders.Remove(name);
             }
             else
             {
@@ -62,7 +62,7 @@ namespace CoreWCF.Channels
 
         public bool TryGetValue(string name, out string value)
         {
-            if (dataProviders != null && dataProviders.TryGetValue(name, out DataProviderEntry entry))
+            if (_dataProviders != null && _dataProviders.TryGetValue(name, out DataProviderEntry entry))
             {
                 value = entry.Data;
                 return true;
@@ -131,35 +131,34 @@ namespace CoreWCF.Channels
 
         public IMessageProperty CreateCopy()
         {
-            return new CorrelationDataMessageProperty(dataProviders);
+            return new CorrelationDataMessageProperty(_dataProviders);
         }
 
         private class DataProviderEntry
         {
-            private string resolvedData;
-            private Func<string> dataProvider;
+            private string _resolvedData;
+            private Func<string> _dataProvider;
 
             public DataProviderEntry(Func<string> dataProvider)
             {
                 Fx.Assert(dataProvider != null, "dataProvider required");
-                this.dataProvider = dataProvider;
-                resolvedData = null;
+                _dataProvider = dataProvider;
+                _resolvedData = null;
             }
 
             public string Data
             {
                 get
                 {
-                    if (dataProvider != null)
+                    if (_dataProvider != null)
                     {
-                        resolvedData = dataProvider();
-                        dataProvider = null;
+                        _resolvedData = _dataProvider();
+                        _dataProvider = null;
                     }
 
-                    return resolvedData;
+                    return _resolvedData;
                 }
             }
         }
     }
-
 }

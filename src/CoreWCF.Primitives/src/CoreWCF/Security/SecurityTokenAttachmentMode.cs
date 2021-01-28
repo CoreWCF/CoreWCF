@@ -36,7 +36,6 @@ namespace CoreWCF.Security
         internal static void Categorize(SecurityTokenAttachmentMode value,
             out bool isBasic, out bool isSignedButNotBasic, out ReceiveSecurityHeaderBindingModes mode)
         {
-
             SecurityTokenAttachmentModeHelper.Validate(value);
 
             switch (value)

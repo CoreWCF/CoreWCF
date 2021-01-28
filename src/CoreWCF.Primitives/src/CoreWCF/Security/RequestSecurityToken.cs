@@ -20,24 +20,24 @@ namespace CoreWCF.Security
 {
     internal class RequestSecurityToken : BodyWriter
     {
-        private string context;
-        private string tokenType;
-        private string requestType;
-        private SecurityToken entropyToken;
-        private BinaryNegotiation negotiationData;
-        private readonly XmlElement rstXml;
-        private IList<XmlElement> requestProperties;
-        private byte[] cachedWriteBuffer;
-        private int cachedWriteBufferLength;
-        private int keySize;
-        private SecurityKeyIdentifierClause renewTarget;
-        private SecurityKeyIdentifierClause closeTarget;
-        private OnGetBinaryNegotiationCallback onGetBinaryNegotiation;
-        private SecurityStandardsManager standardsManager;
-        private bool isReadOnly;
-        private object appliesTo;
-        private DataContractSerializer appliesToSerializer;
-        private Type appliesToType;
+        private string _context;
+        private string _tokenType;
+        private string _requestType;
+        private SecurityToken _entropyToken;
+        private BinaryNegotiation _negotiationData;
+        private readonly XmlElement _rstXml;
+        private IList<XmlElement> _requestProperties;
+        private byte[] _cachedWriteBuffer;
+        private int _cachedWriteBufferLength;
+        private int _keySize;
+        private SecurityKeyIdentifierClause _renewTarget;
+        private SecurityKeyIdentifierClause _closeTarget;
+        private OnGetBinaryNegotiationCallback _onGetBinaryNegotiation;
+        private SecurityStandardsManager _standardsManager;
+        private bool _isReadOnly;
+        private object _appliesTo;
+        private DataContractSerializer _appliesToSerializer;
+        private Type _appliesToType;
 
         public RequestSecurityToken()
             : this(SecurityStandardsManager.DefaultInstance)
@@ -101,21 +101,21 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("standardsManager"));
             }
-            this.standardsManager = standardsManager;
+            _standardsManager = standardsManager;
             if (rstXml == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("rstXml");
             }
 
-            this.rstXml = rstXml;
-            this.context = context;
-            this.tokenType = tokenType;
-            this.keySize = keySize;
-            this.requestType = requestType;
-            this.renewTarget = renewTarget;
-            this.closeTarget = closeTarget;
+            _rstXml = rstXml;
+            _context = context;
+            _tokenType = tokenType;
+            _keySize = keySize;
+            _requestType = requestType;
+            _renewTarget = renewTarget;
+            _closeTarget = closeTarget;
             IsReceiver = true;
-            isReadOnly = true;
+            _isReadOnly = true;
         }
 
         internal RequestSecurityToken(SecurityStandardsManager standardsManager)
@@ -131,11 +131,11 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("standardsManager"));
             }
-            this.standardsManager = standardsManager;
-            requestType = this.standardsManager.TrustDriver.RequestTypeIssue;
-            requestProperties = null;
+            _standardsManager = standardsManager;
+            _requestType = _standardsManager.TrustDriver.RequestTypeIssue;
+            _requestProperties = null;
             IsReceiver = false;
-            isReadOnly = false;
+            _isReadOnly = false;
         }
 
         public ChannelBinding GetChannelBinding()
@@ -165,7 +165,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return context;
+                return _context;
             }
             set
             {
@@ -174,7 +174,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 }
 
-                context = value;
+                _context = value;
             }
         }
 
@@ -182,7 +182,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return tokenType;
+                return _tokenType;
             }
             set
             {
@@ -191,7 +191,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 }
 
-                tokenType = value;
+                _tokenType = value;
             }
         }
 
@@ -199,7 +199,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return keySize;
+                return _keySize;
             }
             set
             {
@@ -213,7 +213,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.ValueMustBeNonNegative));
                 }
 
-                keySize = value;
+                _keySize = value;
             }
         }
 
@@ -221,7 +221,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return isReadOnly;
+                return _isReadOnly;
             }
         }
 
@@ -230,7 +230,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return onGetBinaryNegotiation;
+                return _onGetBinaryNegotiation;
             }
             set
             {
@@ -238,7 +238,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 }
-                onGetBinaryNegotiation = value;
+                _onGetBinaryNegotiation = value;
             }
         }
 
@@ -252,7 +252,7 @@ namespace CoreWCF.Security
 #pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "RequestProperties")));
                 }
-                return requestProperties;
+                return _requestProperties;
             }
             set
             {
@@ -275,11 +275,11 @@ namespace CoreWCF.Security
                         coll.Add(property);
                         ++index;
                     }
-                    requestProperties = coll;
+                    _requestProperties = coll;
                 }
                 else
                 {
-                    requestProperties = null;
+                    _requestProperties = null;
                 }
             }
         }
@@ -288,7 +288,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return requestType;
+                return _requestType;
             }
             set
             {
@@ -302,7 +302,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
                 }
 
-                requestType = value;
+                _requestType = value;
             }
         }
 
@@ -310,7 +310,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return renewTarget;
+                return _renewTarget;
             }
             set
             {
@@ -319,7 +319,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 }
 
-                renewTarget = value;
+                _renewTarget = value;
             }
         }
 
@@ -327,7 +327,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return closeTarget;
+                return _closeTarget;
             }
             set
             {
@@ -336,7 +336,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 }
 
-                closeTarget = value;
+                _closeTarget = value;
             }
         }
 
@@ -350,7 +350,7 @@ namespace CoreWCF.Security
 #pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTOnly, "RequestSecurityTokenXml")));
                 }
-                return rstXml;
+                return _rstXml;
             }
         }
 
@@ -358,7 +358,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return standardsManager;
+                return _standardsManager;
             }
             set
             {
@@ -371,7 +371,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
                 }
-                standardsManager = value;
+                _standardsManager = value;
             }
         }
 
@@ -387,7 +387,7 @@ namespace CoreWCF.Security
 #pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesTo")));
                 }
-                return appliesTo;
+                return _appliesTo;
             }
         }
 
@@ -401,7 +401,7 @@ namespace CoreWCF.Security
 #pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesToSerializer")));
                 }
-                return appliesToSerializer;
+                return _appliesToSerializer;
             }
         }
 
@@ -415,7 +415,7 @@ namespace CoreWCF.Security
 #pragma warning suppress 56503
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesToType")));
                 }
-                return appliesToType;
+                return _appliesToType;
             }
         }
 
@@ -433,20 +433,20 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
             }
 
-            negotiationData = negotiation;
+            _negotiationData = negotiation;
         }
 
         internal BinaryNegotiation GetBinaryNegotiation()
         {
             if (IsReceiver)
             {
-                return standardsManager.TrustDriver.GetBinaryNegotiation(this);
+                return _standardsManager.TrustDriver.GetBinaryNegotiation(this);
             }
-            else if (negotiationData == null && onGetBinaryNegotiation != null)
+            else if (_negotiationData == null && _onGetBinaryNegotiation != null)
             {
-                onGetBinaryNegotiation(GetChannelBinding());
+                _onGetBinaryNegotiation(GetChannelBinding());
             }
-            return negotiationData;
+            return _negotiationData;
         }
 
         public SecurityToken GetRequestorEntropy()
@@ -458,11 +458,11 @@ namespace CoreWCF.Security
         {
             if (IsReceiver)
             {
-                return standardsManager.TrustDriver.GetEntropy(this, resolver);
+                return _standardsManager.TrustDriver.GetEntropy(this, resolver);
             }
             else
             {
-                return entropyToken;
+                return _entropyToken;
             }
         }
 
@@ -480,7 +480,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
             }
 
-            this.entropyToken = entropyToken;
+            _entropyToken = entropyToken;
         }
 
         public void SetAppliesTo<T>(T appliesTo, DataContractSerializer serializer)
@@ -494,9 +494,9 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
             }
-            this.appliesTo = appliesTo;
-            appliesToSerializer = serializer;
-            appliesToType = typeof(T);
+            _appliesTo = appliesTo;
+            _appliesToSerializer = serializer;
+            _appliesToType = typeof(T);
         }
 
         public void GetAppliesToQName(out string localName, out string namespaceUri)
@@ -506,7 +506,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTOnly, "MatchesAppliesTo")));
             }
 
-            standardsManager.TrustDriver.GetAppliesToQName(this, out localName, out namespaceUri);
+            _standardsManager.TrustDriver.GetAppliesToQName(this, out localName, out namespaceUri);
         }
 
         public T GetAppliesTo<T>()
@@ -522,11 +522,11 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
                 }
-                return standardsManager.TrustDriver.GetAppliesTo<T>(this, serializer);
+                return _standardsManager.TrustDriver.GetAppliesTo<T>(this, serializer);
             }
             else
             {
-                return (T)appliesTo;
+                return (T)_appliesTo;
             }
         }
 
@@ -534,11 +534,11 @@ namespace CoreWCF.Security
         {
             if (IsReceiver)
             {
-                rstXml.WriteTo(writer);
+                _rstXml.WriteTo(writer);
             }
             else
             {
-                standardsManager.TrustDriver.WriteRequestSecurityToken(this, writer);
+                _standardsManager.TrustDriver.WriteRequestSecurityToken(this, writer);
             }
         }
 
@@ -552,7 +552,7 @@ namespace CoreWCF.Security
             if (IsReadOnly)
             {
                 // cache the serialized bytes to ensure repeatability
-                if (cachedWriteBuffer == null)
+                if (_cachedWriteBuffer == null)
                 {
                     MemoryStream stream = new MemoryStream();
                     using (XmlDictionaryWriter binaryWriter = XmlDictionaryWriter.CreateBinaryWriter(stream, XD.Dictionary))
@@ -561,11 +561,11 @@ namespace CoreWCF.Security
                         binaryWriter.Flush();
                         stream.Flush();
                         stream.Seek(0, SeekOrigin.Begin);
-                        cachedWriteBuffer = stream.GetBuffer();
-                        cachedWriteBufferLength = (int)stream.Length;
+                        _cachedWriteBuffer = stream.GetBuffer();
+                        _cachedWriteBufferLength = (int)stream.Length;
                     }
                 }
-                writer.WriteNode(XmlDictionaryReader.CreateBinaryReader(cachedWriteBuffer, 0, cachedWriteBufferLength, XD.Dictionary, XmlDictionaryReaderQuotas.Max), false);
+                writer.WriteNode(XmlDictionaryReader.CreateBinaryReader(_cachedWriteBuffer, 0, _cachedWriteBufferLength, XD.Dictionary, XmlDictionaryReaderQuotas.Max), false);
             }
             else
             {
@@ -590,12 +590,12 @@ namespace CoreWCF.Security
 
         public void MakeReadOnly()
         {
-            if (!isReadOnly)
+            if (!_isReadOnly)
             {
-                isReadOnly = true;
-                if (requestProperties != null)
+                _isReadOnly = true;
+                if (_requestProperties != null)
                 {
-                    requestProperties = new ReadOnlyCollection<XmlElement>(requestProperties);
+                    _requestProperties = new ReadOnlyCollection<XmlElement>(_requestProperties);
                 }
                 OnMakeReadOnly();
             }

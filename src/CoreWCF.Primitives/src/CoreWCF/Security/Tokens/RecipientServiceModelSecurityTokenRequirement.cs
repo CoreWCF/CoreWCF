@@ -66,5 +66,4 @@ namespace CoreWCF.Security.Tokens
             return InternalToString();
         }
     }
-
 }

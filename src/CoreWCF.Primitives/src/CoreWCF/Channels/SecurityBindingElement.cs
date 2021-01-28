@@ -22,31 +22,31 @@ namespace CoreWCF.Channels
         internal const bool defaultRequireSignatureConfirmation = false;
         internal const bool defaultEnableUnsecuredResponse = false;
         internal const bool defaultProtectTokens = false;
-        private SecurityAlgorithmSuite defaultAlgorithmSuite;
-        private readonly SupportingTokenParameters optionalEndpointSupportingTokenParameters;
-        private SecurityKeyEntropyMode keyEntropyMode;
-        private readonly Dictionary<string, SupportingTokenParameters> operationSupportingTokenParameters;
-        private readonly Dictionary<string, SupportingTokenParameters> optionalOperationSupportingTokenParameters;
-        private MessageSecurityVersion messageSecurityVersion;
-        private SecurityHeaderLayout securityHeaderLayout;
-        private bool protectTokens = defaultProtectTokens;
+        private SecurityAlgorithmSuite _defaultAlgorithmSuite;
+        private readonly SupportingTokenParameters _optionalEndpointSupportingTokenParameters;
+        private SecurityKeyEntropyMode _keyEntropyMode;
+        private readonly Dictionary<string, SupportingTokenParameters> _operationSupportingTokenParameters;
+        private readonly Dictionary<string, SupportingTokenParameters> _optionalOperationSupportingTokenParameters;
+        private MessageSecurityVersion _messageSecurityVersion;
+        private SecurityHeaderLayout _securityHeaderLayout;
+        private bool _protectTokens = defaultProtectTokens;
 
         internal SecurityBindingElement()
             : base()
         {
-            messageSecurityVersion = MessageSecurityVersion.Default;
-            keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy; // AcceleratedTokenProvider.defaultKeyEntropyMode;
+            _messageSecurityVersion = MessageSecurityVersion.Default;
+            _keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy; // AcceleratedTokenProvider.defaultKeyEntropyMode;
             IncludeTimestamp = defaultIncludeTimestamp;
-            defaultAlgorithmSuite = defaultDefaultAlgorithmSuite;
+            _defaultAlgorithmSuite = defaultDefaultAlgorithmSuite;
             LocalServiceSettings = new LocalServiceSecuritySettings();
             EndpointSupportingTokenParameters = new SupportingTokenParameters();
-            optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
-            operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
-            optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
-            securityHeaderLayout = SecurityHeaderLayout.Strict; // SecurityProtocolFactory.defaultSecurityHeaderLayout;
+            _optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
+            _operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            _optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            _securityHeaderLayout = SecurityHeaderLayout.Strict; // SecurityProtocolFactory.defaultSecurityHeaderLayout;
             AllowInsecureTransport = defaultAllowInsecureTransport;
             EnableUnsecuredResponse = defaultEnableUnsecuredResponse;
-            protectTokens = defaultProtectTokens;
+            _protectTokens = defaultProtectTokens;
         }
 
         internal SecurityBindingElement(SecurityBindingElement elementToBeCloned)
@@ -57,22 +57,22 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementToBeCloned");
             }
 
-            defaultAlgorithmSuite = elementToBeCloned.defaultAlgorithmSuite;
+            _defaultAlgorithmSuite = elementToBeCloned._defaultAlgorithmSuite;
             IncludeTimestamp = elementToBeCloned.IncludeTimestamp;
-            keyEntropyMode = elementToBeCloned.keyEntropyMode;
-            messageSecurityVersion = elementToBeCloned.messageSecurityVersion;
-            securityHeaderLayout = elementToBeCloned.securityHeaderLayout;
+            _keyEntropyMode = elementToBeCloned._keyEntropyMode;
+            _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
+            _securityHeaderLayout = elementToBeCloned._securityHeaderLayout;
             EndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.EndpointSupportingTokenParameters.Clone();
-            optionalEndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.optionalEndpointSupportingTokenParameters.Clone();
-            operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
-            foreach (string key in elementToBeCloned.operationSupportingTokenParameters.Keys)
+            _optionalEndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned._optionalEndpointSupportingTokenParameters.Clone();
+            _operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            foreach (string key in elementToBeCloned._operationSupportingTokenParameters.Keys)
             {
-                operationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned.operationSupportingTokenParameters[key].Clone();
+                _operationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned._operationSupportingTokenParameters[key].Clone();
             }
-            optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
-            foreach (string key in elementToBeCloned.optionalOperationSupportingTokenParameters.Keys)
+            _optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            foreach (string key in elementToBeCloned._optionalOperationSupportingTokenParameters.Keys)
             {
-                optionalOperationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned.optionalOperationSupportingTokenParameters[key].Clone();
+                _optionalOperationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned._optionalOperationSupportingTokenParameters[key].Clone();
             }
             LocalServiceSettings = (LocalServiceSecuritySettings)elementToBeCloned.LocalServiceSettings.Clone();
             // this.internalDuplexBindingElement = elementToBeCloned.internalDuplexBindingElement;
@@ -82,7 +82,7 @@ namespace CoreWCF.Channels
             AllowInsecureTransport = elementToBeCloned.AllowInsecureTransport;
             EnableUnsecuredResponse = elementToBeCloned.EnableUnsecuredResponse;
             SupportsExtendedProtectionPolicy = elementToBeCloned.SupportsExtendedProtectionPolicy;
-            protectTokens = elementToBeCloned.protectTokens;
+            _protectTokens = elementToBeCloned._protectTokens;
         }
 
         internal bool SupportsExtendedProtectionPolicy { get; set; }
@@ -93,7 +93,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return optionalEndpointSupportingTokenParameters;
+                return _optionalEndpointSupportingTokenParameters;
             }
         }
 
@@ -101,7 +101,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return operationSupportingTokenParameters;
+                return _operationSupportingTokenParameters;
             }
         }
 
@@ -109,7 +109,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return optionalOperationSupportingTokenParameters;
+                return _optionalOperationSupportingTokenParameters;
             }
         }
 
@@ -117,7 +117,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return securityHeaderLayout;
+                return _securityHeaderLayout;
             }
             set
             {
@@ -126,7 +126,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
                 }
 
-                securityHeaderLayout = value;
+                _securityHeaderLayout = value;
             }
         }
 
@@ -134,7 +134,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return messageSecurityVersion;
+                return _messageSecurityVersion;
             }
             set
             {
@@ -143,7 +143,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
                 }
 
-                messageSecurityVersion = value;
+                _messageSecurityVersion = value;
             }
         }
 
@@ -157,7 +157,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return defaultAlgorithmSuite;
+                return _defaultAlgorithmSuite;
             }
             set
             {
@@ -166,7 +166,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
                 }
 
-                defaultAlgorithmSuite = value;
+                _defaultAlgorithmSuite = value;
             }
         }
 
@@ -174,11 +174,11 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return protectTokens;
+                return _protectTokens;
             }
             set
             {
-                protectTokens = value;
+                _protectTokens = value;
             }
         }
 
@@ -188,7 +188,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return keyEntropyMode;
+                return _keyEntropyMode;
             }
             set
             {
@@ -196,7 +196,7 @@ namespace CoreWCF.Channels
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
-                keyEntropyMode = value;
+                _keyEntropyMode = value;
             }
         }
 
@@ -470,8 +470,8 @@ namespace CoreWCF.Channels
             factory.SecurityBindingElement = (SecurityBindingElement)Clone();
             factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
             factory.SecurityTokenManager = credentialsManager.CreateSecurityTokenManager();
-            SecurityTokenSerializer tokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(messageSecurityVersion.SecurityTokenVersion);
-            factory.StandardsManager = new SecurityStandardsManager(messageSecurityVersion, tokenSerializer);
+            SecurityTokenSerializer tokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(_messageSecurityVersion.SecurityTokenVersion);
+            factory.StandardsManager = new SecurityStandardsManager(_messageSecurityVersion, tokenSerializer);
         }
 
         internal abstract SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager,

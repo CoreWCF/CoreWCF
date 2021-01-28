@@ -62,17 +62,17 @@ namespace CoreWCF.Dispatcher
 
     internal class DataContractSerializerOperationFormatter : OperationFormatter
     {
-        private static readonly Type typeOfIQueryable = typeof(IQueryable);
-        private static readonly Type typeOfIQueryableGeneric = typeof(IQueryable<>);
-        private static readonly Type typeOfIEnumerable = typeof(IEnumerable);
-        private static readonly Type typeOfIEnumerableGeneric = typeof(IEnumerable<>);
+        private static readonly Type s_typeOfIQueryable = typeof(IQueryable);
+        private static readonly Type s_typeOfIQueryableGeneric = typeof(IQueryable<>);
+        private static readonly Type s_typeOfIEnumerable = typeof(IEnumerable);
+        private static readonly Type s_typeOfIEnumerableGeneric = typeof(IEnumerable<>);
 
         protected MessageInfo requestMessageInfo;
         protected MessageInfo replyMessageInfo;
-        private readonly IList<Type> knownTypes;
+        private readonly IList<Type> _knownTypes;
 
         //XsdDataContractExporter dataContractExporter;
-        private readonly DataContractSerializerOperationBehavior serializerFactory;
+        private readonly DataContractSerializerOperationBehavior _serializerFactory;
 
         public DataContractSerializerOperationFormatter(OperationDescription description, DataContractFormatAttribute dataContractFormatAttribute,
             DataContractSerializerOperationBehavior serializerFactory)
@@ -83,12 +83,12 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
             }
 
-            this.serializerFactory = serializerFactory ?? new DataContractSerializerOperationBehavior(description);
+            _serializerFactory = serializerFactory ?? new DataContractSerializerOperationBehavior(description);
             foreach (Type type in description.KnownTypes)
             {
-                if (knownTypes == null)
+                if (_knownTypes == null)
                 {
-                    knownTypes = new List<Type>();
+                    _knownTypes = new List<Type>();
                 }
 
                 if (type == null)
@@ -97,12 +97,12 @@ namespace CoreWCF.Dispatcher
                 }
 
                 ValidateDataContractType(type);
-                knownTypes.Add(type);
+                _knownTypes.Add(type);
             }
-            requestMessageInfo = CreateMessageInfo(dataContractFormatAttribute, RequestDescription, this.serializerFactory);
+            requestMessageInfo = CreateMessageInfo(dataContractFormatAttribute, RequestDescription, _serializerFactory);
             if (ReplyDescription != null)
             {
-                replyMessageInfo = CreateMessageInfo(dataContractFormatAttribute, ReplyDescription, this.serializerFactory);
+                replyMessageInfo = CreateMessageInfo(dataContractFormatAttribute, ReplyDescription, _serializerFactory);
             }
         }
 
@@ -172,7 +172,7 @@ namespace CoreWCF.Dispatcher
         private PartInfo CreatePartInfo(MessagePartDescription part, OperationFormatStyle style, DataContractSerializerOperationBehavior serializerFactory)
         {
             string ns = (style == OperationFormatStyle.Rpc || part.Namespace == null) ? string.Empty : part.Namespace;
-            PartInfo partInfo = new PartInfo(part, AddToDictionary(part.Name), AddToDictionary(ns), knownTypes, serializerFactory);
+            PartInfo partInfo = new PartInfo(part, AddToDictionary(part.Name), AddToDictionary(ns), _knownTypes, serializerFactory);
             ValidateDataContractType(partInfo.ContractType);
             return partInfo;
         }
@@ -414,7 +414,7 @@ namespace CoreWCF.Dispatcher
         private object DeserializeHeaderContents(XmlDictionaryReader reader, MessageDescription messageDescription, MessageHeaderDescription headerDescription)
         {
             Type dataContractType = DataContractSerializerOperationFormatter.GetSubstituteDataContractType(headerDescription.Type, out bool isQueryable);
-            XmlObjectSerializer serializerLocal = serializerFactory.CreateSerializer(dataContractType, headerDescription.Name, headerDescription.Namespace, knownTypes);
+            XmlObjectSerializer serializerLocal = _serializerFactory.CreateSerializer(dataContractType, headerDescription.Name, headerDescription.Namespace, _knownTypes);
             object val = serializerLocal.ReadObject(reader);
             if (isQueryable && val != null)
             {
@@ -566,17 +566,17 @@ namespace CoreWCF.Dispatcher
 
         internal static Type GetSubstituteDataContractType(Type type, out bool isQueryable)
         {
-            if (type == typeOfIQueryable)
+            if (type == s_typeOfIQueryable)
             {
                 isQueryable = true;
-                return typeOfIEnumerable;
+                return s_typeOfIEnumerable;
             }
 
             if (type.GetTypeInfo().IsGenericType &&
-                type.GetGenericTypeDefinition() == typeOfIQueryableGeneric)
+                type.GetGenericTypeDefinition() == s_typeOfIQueryableGeneric)
             {
                 isQueryable = true;
-                return typeOfIEnumerableGeneric.MakeGenericType(type.GetGenericArguments());
+                return s_typeOfIEnumerableGeneric.MakeGenericType(type.GetGenericArguments());
             }
 
             isQueryable = false;
@@ -585,19 +585,19 @@ namespace CoreWCF.Dispatcher
 
         private class DataContractSerializerMessageHeader : XmlObjectSerializerHeader
         {
-            private readonly PartInfo headerPart;
+            private readonly PartInfo _headerPart;
 
             public DataContractSerializerMessageHeader(PartInfo headerPart, object headerValue, bool mustUnderstand, string actor, bool relay)
                 : base(headerPart.DictionaryName.Value, headerPart.DictionaryNamespace.Value, headerValue, headerPart.Serializer, mustUnderstand, actor ?? string.Empty, relay)
             {
-                this.headerPart = headerPart;
+                _headerPart = headerPart;
             }
 
             protected override void OnWriteStartHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
                 //Prefix needed since there may be xsi:type attribute at toplevel with qname value where ns = ""
                 string prefix = (Namespace == null || Namespace.Length == 0) ? string.Empty : "h";
-                writer.WriteStartElement(prefix, headerPart.DictionaryName, headerPart.DictionaryNamespace);
+                writer.WriteStartElement(prefix, _headerPart.DictionaryName, _headerPart.DictionaryNamespace);
                 WriteHeaderAttributes(writer, messageVersion);
             }
         }
@@ -617,22 +617,22 @@ namespace CoreWCF.Dispatcher
 
         protected class PartInfo
         {
-            private readonly XmlDictionaryString dictionaryNamespace;
-            private XmlObjectSerializer serializer;
-            private readonly IList<Type> knownTypes;
-            private readonly DataContractSerializerOperationBehavior serializerFactory;
-            private readonly bool isQueryable;
+            private readonly XmlDictionaryString _dictionaryNamespace;
+            private XmlObjectSerializer _serializer;
+            private readonly IList<Type> _knownTypes;
+            private readonly DataContractSerializerOperationBehavior _serializerFactory;
+            private readonly bool _isQueryable;
 
             public PartInfo(MessagePartDescription description, XmlDictionaryString dictionaryName, XmlDictionaryString dictionaryNamespace,
                 IList<Type> knownTypes, DataContractSerializerOperationBehavior behavior)
             {
                 DictionaryName = dictionaryName;
-                this.dictionaryNamespace = dictionaryNamespace;
+                _dictionaryNamespace = dictionaryNamespace;
                 Description = description;
-                this.knownTypes = knownTypes;
-                serializerFactory = behavior;
+                _knownTypes = knownTypes;
+                _serializerFactory = behavior;
 
-                ContractType = DataContractSerializerOperationFormatter.GetSubstituteDataContractType(description.Type, out isQueryable);
+                ContractType = DataContractSerializerOperationFormatter.GetSubstituteDataContractType(description.Type, out _isQueryable);
             }
 
             public Type ContractType { get; }
@@ -643,18 +643,18 @@ namespace CoreWCF.Dispatcher
 
             public XmlDictionaryString DictionaryNamespace
             {
-                get { return dictionaryNamespace; }
+                get { return _dictionaryNamespace; }
             }
 
             public XmlObjectSerializer Serializer
             {
                 get
                 {
-                    if (serializer == null)
+                    if (_serializer == null)
                     {
-                        serializer = serializerFactory.CreateSerializer(ContractType, DictionaryName, DictionaryNamespace, knownTypes);
+                        _serializer = _serializerFactory.CreateSerializer(ContractType, DictionaryName, DictionaryNamespace, _knownTypes);
                     }
-                    return serializer;
+                    return _serializer;
                 }
             }
 
@@ -665,8 +665,8 @@ namespace CoreWCF.Dispatcher
 
             public object ReadObject(XmlDictionaryReader reader, XmlObjectSerializer serializer)
             {
-                object val = this.serializer.ReadObject(reader, false /* verifyObjectName */);
-                if (isQueryable && val != null)
+                object val = _serializer.ReadObject(reader, false /* verifyObjectName */);
+                if (_isQueryable && val != null)
                 {
                     return Queryable.AsQueryable((IEnumerable)val);
                 }
@@ -674,6 +674,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
-
 }

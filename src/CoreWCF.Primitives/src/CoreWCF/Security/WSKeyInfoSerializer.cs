@@ -169,7 +169,7 @@ namespace CoreWCF.Security
 
             protected class SecurityContextTokenEntry : SecurityTokenSerializer.TokenEntry
             {
-                private Type[] tokenTypes;
+                private Type[] _tokenTypes;
 
                 public SecurityContextTokenEntry(WSSecureConversation parent)
                 {
@@ -182,23 +182,22 @@ namespace CoreWCF.Security
                 protected override XmlDictionaryString NamespaceUri => Parent.SerializerDictionary.Namespace;
                 protected override Type[] GetTokenTypesCore()
                 {
-                    if (tokenTypes == null)
+                    if (_tokenTypes == null)
                     {
-                        tokenTypes = new Type[] { typeof(SecurityContextSecurityToken) };
+                        _tokenTypes = new Type[] { typeof(SecurityContextSecurityToken) };
                     }
 
-                    return tokenTypes;
+                    return _tokenTypes;
                 }
                 public override string TokenTypeUri => Parent.SerializerDictionary.SecurityContextTokenType.Value;
                 protected override string ValueTypeUri => null;
-
             }
 
             protected class DerivedKeyTokenEntry : SecurityTokenSerializer.TokenEntry
             {
                 public const string DefaultLabel = "WS-SecureConversation";
-                private readonly WSSecureConversation parent;
-                private Type[] tokenTypes;
+                private readonly WSSecureConversation _parent;
+                private Type[] _tokenTypes;
 
                 public DerivedKeyTokenEntry(WSSecureConversation parent)
                 {
@@ -206,22 +205,22 @@ namespace CoreWCF.Security
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parent");
                     }
-                    this.parent = parent;
+                    _parent = parent;
                 }
 
-                protected override XmlDictionaryString LocalName => parent.SerializerDictionary.DerivedKeyToken;
-                protected override XmlDictionaryString NamespaceUri => parent.SerializerDictionary.Namespace;
+                protected override XmlDictionaryString LocalName => _parent.SerializerDictionary.DerivedKeyToken;
+                protected override XmlDictionaryString NamespaceUri => _parent.SerializerDictionary.Namespace;
                 protected override Type[] GetTokenTypesCore()
                 {
-                    if (tokenTypes == null)
+                    if (_tokenTypes == null)
                     {
-                        tokenTypes = new Type[] { typeof(DerivedKeySecurityToken) };
+                        _tokenTypes = new Type[] { typeof(DerivedKeySecurityToken) };
                     }
 
-                    return tokenTypes;
+                    return _tokenTypes;
                 }
 
-                public override string TokenTypeUri => parent.SerializerDictionary.DerivedKeyTokenType.Value;
+                public override string TokenTypeUri => _parent.SerializerDictionary.DerivedKeyTokenType.Value;
                 protected override string ValueTypeUri => null;
             }
         }
@@ -313,7 +312,6 @@ namespace CoreWCF.Security
                     }
                 }
             }
-
         }
 
         #endregion

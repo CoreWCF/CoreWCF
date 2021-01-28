@@ -123,5 +123,4 @@ namespace CoreWCF
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxCannotSetExtensionsByIndex));
         }
     }
-
 }

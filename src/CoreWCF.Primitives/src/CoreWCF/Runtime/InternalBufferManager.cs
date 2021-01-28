@@ -34,24 +34,24 @@ namespace CoreWCF.Runtime
             private const int minBufferSize = 128;
             private const int maxMissesBeforeTuning = 8;
             private const int initialBufferCount = 1;
-            private readonly object tuningLock;
-            private readonly int[] bufferSizes;
-            private readonly BufferPool[] bufferPools;
-            private readonly long memoryLimit;
-            private long remainingMemory;
-            private bool areQuotasBeingTuned;
-            private int totalMisses;
+            private readonly object _tuningLock;
+            private readonly int[] _bufferSizes;
+            private readonly BufferPool[] _bufferPools;
+            private readonly long _memoryLimit;
+            private long _remainingMemory;
+            private bool _areQuotasBeingTuned;
+            private int _totalMisses;
 
             public PooledBufferManager(long maxMemoryToPool, int maxBufferSize)
             {
-                tuningLock = new object();
-                memoryLimit = maxMemoryToPool;
-                remainingMemory = maxMemoryToPool;
+                _tuningLock = new object();
+                _memoryLimit = maxMemoryToPool;
+                _remainingMemory = maxMemoryToPool;
                 List<BufferPool> bufferPoolList = new List<BufferPool>();
 
                 for (int bufferSize = minBufferSize; ;)
                 {
-                    long bufferCountLong = remainingMemory / bufferSize;
+                    long bufferCountLong = _remainingMemory / bufferSize;
 
                     int bufferCount = bufferCountLong > int.MaxValue ? int.MaxValue : (int)bufferCountLong;
 
@@ -62,7 +62,7 @@ namespace CoreWCF.Runtime
 
                     bufferPoolList.Add(BufferPool.CreatePool(bufferSize, bufferCount));
 
-                    remainingMemory -= (long)bufferCount * bufferSize;
+                    _remainingMemory -= (long)bufferCount * bufferSize;
 
                     if (bufferSize >= maxBufferSize)
                     {
@@ -81,27 +81,25 @@ namespace CoreWCF.Runtime
                     }
                 }
 
-                bufferPools = bufferPoolList.ToArray();
-                bufferSizes = new int[bufferPools.Length];
-                for (int i = 0; i < bufferPools.Length; i++)
+                _bufferPools = bufferPoolList.ToArray();
+                _bufferSizes = new int[_bufferPools.Length];
+                for (int i = 0; i < _bufferPools.Length; i++)
                 {
-                    bufferSizes[i] = bufferPools[i].BufferSize;
+                    _bufferSizes[i] = _bufferPools[i].BufferSize;
                 }
             }
 
             public override void Clear()
             {
-
-                for (int i = 0; i < bufferPools.Length; i++)
+                for (int i = 0; i < _bufferPools.Length; i++)
                 {
-                    BufferPool bufferPool = bufferPools[i];
+                    BufferPool bufferPool = _bufferPools[i];
                     bufferPool.Clear();
                 }
             }
 
             private void ChangeQuota(ref BufferPool bufferPool, int delta)
             {
-
                 //if (TraceCore.BufferPoolChangeQuotaIsEnabled(Fx.Trace))
                 //{
                 //    TraceCore.BufferPoolChangeQuota(Fx.Trace, bufferPool.BufferSize, delta);
@@ -120,7 +118,7 @@ namespace CoreWCF.Runtime
                     newBufferPool.Return(buffer);
                     newBufferPool.IncrementCount();
                 }
-                remainingMemory -= oldBufferPool.BufferSize * delta;
+                _remainingMemory -= oldBufferPool.BufferSize * delta;
                 bufferPool = newBufferPool;
             }
 
@@ -134,9 +132,9 @@ namespace CoreWCF.Runtime
                 long maxBytesInExcess = 0;
                 int index = -1;
 
-                for (int i = 0; i < bufferPools.Length; i++)
+                for (int i = 0; i < _bufferPools.Length; i++)
                 {
-                    BufferPool bufferPool = bufferPools[i];
+                    BufferPool bufferPool = _bufferPools[i];
 
                     if (bufferPool.Peak < bufferPool.Limit)
                     {
@@ -158,9 +156,9 @@ namespace CoreWCF.Runtime
                 long maxBytesMissed = 0;
                 int index = -1;
 
-                for (int i = 0; i < bufferPools.Length; i++)
+                for (int i = 0; i < _bufferPools.Length; i++)
                 {
-                    BufferPool bufferPool = bufferPools[i];
+                    BufferPool bufferPool = _bufferPools[i];
 
                     if (bufferPool.Peak == bufferPool.Limit)
                     {
@@ -179,11 +177,11 @@ namespace CoreWCF.Runtime
 
             private BufferPool FindPool(int desiredBufferSize)
             {
-                for (int i = 0; i < bufferSizes.Length; i++)
+                for (int i = 0; i < _bufferSizes.Length; i++)
                 {
-                    if (desiredBufferSize <= bufferSizes[i])
+                    if (desiredBufferSize <= _bufferSizes[i])
                     {
-                        return bufferPools[i];
+                        return _bufferPools[i];
                     }
                 }
 
@@ -232,7 +230,7 @@ namespace CoreWCF.Runtime
                         if (bufferPool.Peak == bufferPool.Limit)
                         {
                             bufferPool.Misses++;
-                            if (++totalMisses >= maxMissesBeforeTuning)
+                            if (++_totalMisses >= maxMissesBeforeTuning)
                             {
                                 TuneQuotas();
                             }
@@ -261,7 +259,7 @@ namespace CoreWCF.Runtime
 
             private void TuneQuotas()
             {
-                if (areQuotasBeingTuned)
+                if (_areQuotasBeingTuned)
                 {
                     return;
                 }
@@ -269,21 +267,21 @@ namespace CoreWCF.Runtime
                 bool lockHeld = false;
                 try
                 {
-                    Monitor.TryEnter(tuningLock, ref lockHeld);
+                    Monitor.TryEnter(_tuningLock, ref lockHeld);
 
                     // Don't bother if another thread already has the lock
-                    if (!lockHeld || areQuotasBeingTuned)
+                    if (!lockHeld || _areQuotasBeingTuned)
                     {
                         return;
                     }
 
-                    areQuotasBeingTuned = true;
+                    _areQuotasBeingTuned = true;
                 }
                 finally
                 {
                     if (lockHeld)
                     {
-                        Monitor.Exit(tuningLock);
+                        Monitor.Exit(_tuningLock);
                     }
                 }
 
@@ -291,41 +289,41 @@ namespace CoreWCF.Runtime
                 int starvedIndex = FindMostStarvedPool();
                 if (starvedIndex >= 0)
                 {
-                    BufferPool starvedBufferPool = bufferPools[starvedIndex];
+                    BufferPool starvedBufferPool = _bufferPools[starvedIndex];
 
-                    if (remainingMemory < starvedBufferPool.BufferSize)
+                    if (_remainingMemory < starvedBufferPool.BufferSize)
                     {
                         // find the "richest" pool
                         int excessiveIndex = FindMostExcessivePool();
                         if (excessiveIndex >= 0)
                         {
                             // steal from the richest
-                            DecreaseQuota(ref bufferPools[excessiveIndex]);
+                            DecreaseQuota(ref _bufferPools[excessiveIndex]);
                         }
                     }
 
-                    if (remainingMemory >= starvedBufferPool.BufferSize)
+                    if (_remainingMemory >= starvedBufferPool.BufferSize)
                     {
                         // give to the poorest
-                        IncreaseQuota(ref bufferPools[starvedIndex]);
+                        IncreaseQuota(ref _bufferPools[starvedIndex]);
                     }
                 }
 
                 // reset statistics
-                for (int i = 0; i < bufferPools.Length; i++)
+                for (int i = 0; i < _bufferPools.Length; i++)
                 {
-                    BufferPool bufferPool = bufferPools[i];
+                    BufferPool bufferPool = _bufferPools[i];
                     bufferPool.Misses = 0;
                 }
 
-                totalMisses = 0;
-                areQuotasBeingTuned = false;
+                _totalMisses = 0;
+                _areQuotasBeingTuned = false;
             }
 
             private abstract class BufferPool
             {
-                private int count;
-                private int peak;
+                private int _count;
+                private int _peak;
 
                 public BufferPool(int bufferSize, int limit)
                 {
@@ -341,33 +339,33 @@ namespace CoreWCF.Runtime
 
                 public int Peak
                 {
-                    get { return peak; }
+                    get { return _peak; }
                 }
 
                 public void Clear()
                 {
                     OnClear();
-                    count = 0;
+                    _count = 0;
                 }
 
                 public void DecrementCount()
                 {
-                    int newValue = count - 1;
+                    int newValue = _count - 1;
                     if (newValue >= 0)
                     {
-                        count = newValue;
+                        _count = newValue;
                     }
                 }
 
                 public void IncrementCount()
                 {
-                    int newValue = count + 1;
+                    int newValue = _count + 1;
                     if (newValue <= Limit)
                     {
-                        count = newValue;
-                        if (newValue > peak)
+                        _count = newValue;
+                        if (newValue > _peak)
                         {
-                            peak = newValue;
+                            _peak = newValue;
                         }
                     }
                 }
@@ -395,45 +393,45 @@ namespace CoreWCF.Runtime
 
                 private class SynchronizedBufferPool : BufferPool
                 {
-                    private readonly SynchronizedPool<byte[]> innerPool;
+                    private readonly SynchronizedPool<byte[]> _innerPool;
 
                     internal SynchronizedBufferPool(int bufferSize, int limit)
                         : base(bufferSize, limit)
                     {
-                        innerPool = new SynchronizedPool<byte[]>(limit);
+                        _innerPool = new SynchronizedPool<byte[]>(limit);
                     }
 
                     internal override void OnClear()
                     {
-                        innerPool.Clear();
+                        _innerPool.Clear();
                     }
 
                     internal override byte[] Take()
                     {
-                        return innerPool.Take();
+                        return _innerPool.Take();
                     }
 
                     internal override bool Return(byte[] buffer)
                     {
-                        return innerPool.Return(buffer);
+                        return _innerPool.Return(buffer);
                     }
                 }
 
                 private class LargeBufferPool : BufferPool
                 {
-                    private readonly Stack<byte[]> items;
+                    private readonly Stack<byte[]> _items;
 
                     internal LargeBufferPool(int bufferSize, int limit)
                         : base(bufferSize, limit)
                     {
-                        items = new Stack<byte[]>(limit);
+                        _items = new Stack<byte[]>(limit);
                     }
 
                     private object ThisLock
                     {
                         get
                         {
-                            return items;
+                            return _items;
                         }
                     }
 
@@ -441,7 +439,7 @@ namespace CoreWCF.Runtime
                     {
                         lock (ThisLock)
                         {
-                            items.Clear();
+                            _items.Clear();
                         }
                     }
 
@@ -449,9 +447,9 @@ namespace CoreWCF.Runtime
                     {
                         lock (ThisLock)
                         {
-                            if (items.Count > 0)
+                            if (_items.Count > 0)
                             {
-                                return items.Pop();
+                                return _items.Pop();
                             }
                         }
 
@@ -462,9 +460,9 @@ namespace CoreWCF.Runtime
                     {
                         lock (ThisLock)
                         {
-                            if (items.Count < Limit)
+                            if (_items.Count < Limit)
                             {
-                                items.Push(buffer);
+                                _items.Push(buffer);
                                 return true;
                             }
                         }
@@ -498,5 +496,4 @@ namespace CoreWCF.Runtime
             }
         }
     }
-
 }

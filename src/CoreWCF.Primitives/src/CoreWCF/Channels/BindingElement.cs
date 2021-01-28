@@ -56,6 +56,5 @@ namespace CoreWCF.Channels
 
             return context.CanBuildNextServiceDispatcher<TChannel>();
         }
-
     }
 }

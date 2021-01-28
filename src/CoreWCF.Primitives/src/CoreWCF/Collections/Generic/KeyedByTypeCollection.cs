@@ -7,7 +7,6 @@ using System.Collections.ObjectModel;
 
 namespace CoreWCF.Collections.Generic
 {
-
     public class KeyedByTypeCollection<TItem> : KeyedCollection<Type, TItem>
     {
         public KeyedByTypeCollection()

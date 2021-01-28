@@ -372,5 +372,4 @@ namespace CoreWCF.Channels.Framing
             (byte)FramingRecordType.UpgradeResponse
         };
     }
-
 }

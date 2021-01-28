@@ -8,7 +8,7 @@ namespace CoreWCF.Channels
 {
     internal class HttpAnonymousUriPrefixMatcher : IAnonymousUriPrefixMatcher
     {
-        private UriPrefixTable<Uri> anonymousUriPrefixes;
+        private UriPrefixTable<Uri> _anonymousUriPrefixes;
 
         internal HttpAnonymousUriPrefixMatcher()
         {
@@ -17,9 +17,9 @@ namespace CoreWCF.Channels
         internal HttpAnonymousUriPrefixMatcher(HttpAnonymousUriPrefixMatcher objectToClone)
             : this()
         {
-            if (objectToClone.anonymousUriPrefixes != null)
+            if (objectToClone._anonymousUriPrefixes != null)
             {
-                anonymousUriPrefixes = new UriPrefixTable<Uri>(objectToClone.anonymousUriPrefixes);
+                _anonymousUriPrefixes = new UriPrefixTable<Uri>(objectToClone._anonymousUriPrefixes);
             }
         }
 
@@ -35,14 +35,14 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(anonymousUriPrefix), SR.UriMustBeAbsolute);
             }
 
-            if (anonymousUriPrefixes == null)
+            if (_anonymousUriPrefixes == null)
             {
-                anonymousUriPrefixes = new UriPrefixTable<Uri>(true);
+                _anonymousUriPrefixes = new UriPrefixTable<Uri>(true);
             }
 
-            if (!anonymousUriPrefixes.IsRegistered(new BaseUriWithWildcard(anonymousUriPrefix, HostNameComparisonMode.Exact)))
+            if (!_anonymousUriPrefixes.IsRegistered(new BaseUriWithWildcard(anonymousUriPrefix, HostNameComparisonMode.Exact)))
             {
-                anonymousUriPrefixes.RegisterUri(anonymousUriPrefix, HostNameComparisonMode.Exact, anonymousUriPrefix);
+                _anonymousUriPrefixes.RegisterUri(anonymousUriPrefix, HostNameComparisonMode.Exact, anonymousUriPrefix);
             }
         }
 
@@ -50,12 +50,12 @@ namespace CoreWCF.Channels
         {
             Fx.Assert(to == null || to.IsAbsoluteUri, SR.UriMustBeAbsolute);
 
-            if (anonymousUriPrefixes == null)
+            if (_anonymousUriPrefixes == null)
             {
                 return false;
             }
 
-            return anonymousUriPrefixes.TryLookupUri(to, HostNameComparisonMode.Exact, out Uri returnValue);
+            return _anonymousUriPrefixes.TryLookupUri(to, HostNameComparisonMode.Exact, out Uri returnValue);
         }
     }
 }

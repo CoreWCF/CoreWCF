@@ -189,17 +189,17 @@ namespace CoreWCF
 
         private class ReflectedAndBehaviorContractCollection
         {
-            private readonly ReflectedContractCollection reflectedContracts;
-            private readonly KeyedByTypeCollection<IServiceBehavior> behaviors;
+            private readonly ReflectedContractCollection _reflectedContracts;
+            private readonly KeyedByTypeCollection<IServiceBehavior> _behaviors;
             public ReflectedAndBehaviorContractCollection(ReflectedContractCollection reflectedContracts, KeyedByTypeCollection<IServiceBehavior> behaviors)
             {
-                this.reflectedContracts = reflectedContracts;
-                this.behaviors = behaviors;
+                _reflectedContracts = reflectedContracts;
+                _behaviors = behaviors;
             }
 
             internal bool Contains(Type implementedContract)
             {
-                if (reflectedContracts.Contains(implementedContract))
+                if (_reflectedContracts.Contains(implementedContract))
                 {
                     return true;
                 }
@@ -214,9 +214,9 @@ namespace CoreWCF
 
             internal string GetConfigKey(Type implementedContract)
             {
-                if (reflectedContracts.Contains(implementedContract))
+                if (_reflectedContracts.Contains(implementedContract))
                 {
-                    return ReflectedContractCollection.GetConfigKey(reflectedContracts[implementedContract]);
+                    return ReflectedContractCollection.GetConfigKey(_reflectedContracts[implementedContract]);
                 }
 
                 //if (this.behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
@@ -225,7 +225,6 @@ namespace CoreWCF
                 //}
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SfxReflectedContractKeyNotFound2, implementedContract.FullName, string.Empty)));
-
             }
         }
 

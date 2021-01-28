@@ -22,7 +22,7 @@ namespace CoreWCF
         private ConcurrencyInstanceContextFacet _concurrency;
         private ExtensionCollection<InstanceContext> _extensions;
         private readonly ServiceHostBase _host;
-        private ServiceThrottle serviceThrottle;
+        private ServiceThrottle _serviceThrottle;
         private readonly object _serviceInstanceLock = new object();
         private SynchronizationContext _synchronizationContext;
         private object _userObject;
@@ -210,11 +210,11 @@ namespace CoreWCF
 
         internal ServiceThrottle ServiceThrottle
         {
-            get { return serviceThrottle; }
+            get { return _serviceThrottle; }
             set
             {
                 ThrowIfDisposed();
-                serviceThrottle = value;
+                _serviceThrottle = value;
             }
         }
 
@@ -429,7 +429,7 @@ namespace CoreWCF
         protected override void OnClosed()
         {
             base.OnClosed();
-            serviceThrottle?.DeactivateInstanceContext();
+            _serviceThrottle?.DeactivateInstanceContext();
         }
 
         protected override void OnFaulted()

@@ -174,5 +174,4 @@ namespace CoreWCF.Description
             base.SetItem(index, item);
         }
     }
-
 }

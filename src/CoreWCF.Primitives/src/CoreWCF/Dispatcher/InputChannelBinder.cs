@@ -18,7 +18,6 @@ namespace CoreWCF.Dispatcher
 
         public InputChannelBinder()
         {
-
         }
 
         internal void Init(IInputChannel channel, Uri listenUri)
@@ -113,12 +112,12 @@ namespace CoreWCF.Dispatcher
 
         private class InputRequestContext : RequestContextBase
         {
-            private readonly InputChannelBinder binder;
+            private readonly InputChannelBinder _binder;
 
             internal InputRequestContext(Message request, InputChannelBinder binder)
                 : base(request, TimeSpan.Zero, TimeSpan.Zero)
             {
-                this.binder = binder;
+                _binder = binder;
             }
 
             protected override void OnAbort()

@@ -9,8 +9,8 @@ namespace CoreWCF.Channels
 {
     internal class UriGenerator
     {
-        private long id;
-        private readonly string prefix;
+        private long _id;
+        private readonly string _prefix;
 
         public UriGenerator()
             : this("uuid")
@@ -34,13 +34,13 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.UriGeneratorSchemeMustNotBeEmpty, "scheme"));
             }
 
-            prefix = string.Concat(scheme, ":", Guid.NewGuid().ToString(), delimiter, "id=");
+            _prefix = string.Concat(scheme, ":", Guid.NewGuid().ToString(), delimiter, "id=");
         }
 
         public string Next()
         {
-            long nextId = Interlocked.Increment(ref id);
-            return prefix + nextId.ToString(CultureInfo.InvariantCulture);
+            long nextId = Interlocked.Increment(ref _id);
+            return _prefix + nextId.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

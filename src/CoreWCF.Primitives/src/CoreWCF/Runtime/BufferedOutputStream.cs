@@ -10,22 +10,22 @@ namespace CoreWCF.Runtime
 {
     internal class BufferedOutputStream : Stream
     {
-        private InternalBufferManager bufferManager;
-        private byte[][] chunks;
-        private int chunkCount;
-        private byte[] currentChunk;
-        private int currentChunkSize;
-        private int maxSize;
-        private int maxSizeQuota;
-        private int totalSize;
-        private bool callerReturnsBuffer;
-        private bool bufferReturned;
-        private bool initialized;
+        private InternalBufferManager _bufferManager;
+        private byte[][] _chunks;
+        private int _chunkCount;
+        private byte[] _currentChunk;
+        private int _currentChunkSize;
+        private int _maxSize;
+        private int _maxSizeQuota;
+        private int _totalSize;
+        private bool _callerReturnsBuffer;
+        private bool _bufferReturned;
+        private bool _initialized;
 
         // requires an explicit call to Init() by the caller
         public BufferedOutputStream()
         {
-            chunks = new byte[4][];
+            _chunks = new byte[4][];
         }
 
         public BufferedOutputStream(int initialSize, int maxSize, InternalBufferManager bufferManager)
@@ -67,7 +67,7 @@ namespace CoreWCF.Runtime
         {
             get
             {
-                return totalSize;
+                return _totalSize;
             }
         }
 
@@ -90,43 +90,43 @@ namespace CoreWCF.Runtime
 
         public void Reinitialize(int initialSize, int maxSizeQuota, int effectiveMaxSize, InternalBufferManager bufferManager)
         {
-            Fx.Assert(!initialized, "Clear must be called before re-initializing stream");
-            this.maxSizeQuota = maxSizeQuota;
-            maxSize = effectiveMaxSize;
-            this.bufferManager = bufferManager;
-            currentChunk = bufferManager.TakeBuffer(initialSize);
-            currentChunkSize = 0;
-            totalSize = 0;
-            chunkCount = 1;
-            chunks[0] = currentChunk;
-            initialized = true;
+            Fx.Assert(!_initialized, "Clear must be called before re-initializing stream");
+            _maxSizeQuota = maxSizeQuota;
+            _maxSize = effectiveMaxSize;
+            _bufferManager = bufferManager;
+            _currentChunk = bufferManager.TakeBuffer(initialSize);
+            _currentChunkSize = 0;
+            _totalSize = 0;
+            _chunkCount = 1;
+            _chunks[0] = _currentChunk;
+            _initialized = true;
         }
 
         private void AllocNextChunk(int minimumChunkSize)
         {
             int newChunkSize;
-            if (currentChunk.Length > (int.MaxValue / 2))
+            if (_currentChunk.Length > (int.MaxValue / 2))
             {
                 newChunkSize = int.MaxValue;
             }
             else
             {
-                newChunkSize = currentChunk.Length * 2;
+                newChunkSize = _currentChunk.Length * 2;
             }
             if (minimumChunkSize > newChunkSize)
             {
                 newChunkSize = minimumChunkSize;
             }
-            byte[] newChunk = bufferManager.TakeBuffer(newChunkSize);
-            if (chunkCount == chunks.Length)
+            byte[] newChunk = _bufferManager.TakeBuffer(newChunkSize);
+            if (_chunkCount == _chunks.Length)
             {
-                byte[][] newChunks = new byte[chunks.Length * 2][];
-                Array.Copy(chunks, newChunks, chunks.Length);
-                chunks = newChunks;
+                byte[][] newChunks = new byte[_chunks.Length * 2][];
+                Array.Copy(_chunks, newChunks, _chunks.Length);
+                _chunks = newChunks;
             }
-            chunks[chunkCount++] = newChunk;
-            currentChunk = newChunk;
-            currentChunkSize = 0;
+            _chunks[_chunkCount++] = newChunk;
+            _currentChunk = newChunk;
+            _currentChunkSize = 0;
         }
 
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -163,20 +163,20 @@ namespace CoreWCF.Runtime
 
         public void Clear()
         {
-            if (!callerReturnsBuffer)
+            if (!_callerReturnsBuffer)
             {
-                for (int i = 0; i < chunkCount; i++)
+                for (int i = 0; i < _chunkCount; i++)
                 {
-                    bufferManager.ReturnBuffer(chunks[i]);
-                    chunks[i] = null;
+                    _bufferManager.ReturnBuffer(_chunks[i]);
+                    _chunks[i] = null;
                 }
             }
 
-            callerReturnsBuffer = false;
-            initialized = false;
-            bufferReturned = false;
-            chunkCount = 0;
-            currentChunk = null;
+            _callerReturnsBuffer = false;
+            _initialized = false;
+            _bufferReturned = false;
+            _chunkCount = 0;
+            _currentChunk = null;
         }
 
         //public override void Close()
@@ -215,32 +215,32 @@ namespace CoreWCF.Runtime
 
         public byte[] ToArray(out int bufferSize)
         {
-            Fx.Assert(initialized, "No data to return from uninitialized stream");
-            Fx.Assert(!bufferReturned, "ToArray cannot be called more than once");
+            Fx.Assert(_initialized, "No data to return from uninitialized stream");
+            Fx.Assert(!_bufferReturned, "ToArray cannot be called more than once");
 
             byte[] buffer;
-            if (chunkCount == 1)
+            if (_chunkCount == 1)
             {
-                buffer = currentChunk;
-                bufferSize = currentChunkSize;
-                callerReturnsBuffer = true;
+                buffer = _currentChunk;
+                bufferSize = _currentChunkSize;
+                _callerReturnsBuffer = true;
             }
             else
             {
-                buffer = bufferManager.TakeBuffer(totalSize);
+                buffer = _bufferManager.TakeBuffer(_totalSize);
                 int offset = 0;
-                int count = chunkCount - 1;
+                int count = _chunkCount - 1;
                 for (int i = 0; i < count; i++)
                 {
-                    byte[] chunk = chunks[i];
+                    byte[] chunk = _chunks[i];
                     Buffer.BlockCopy(chunk, 0, buffer, offset, chunk.Length);
                     offset += chunk.Length;
                 }
-                Buffer.BlockCopy(currentChunk, 0, buffer, offset, currentChunkSize);
-                bufferSize = totalSize;
+                Buffer.BlockCopy(_currentChunk, 0, buffer, offset, _currentChunkSize);
+                bufferSize = _totalSize;
             }
 
-            bufferReturned = true;
+            _bufferReturned = true;
             return buffer;
         }
 
@@ -261,35 +261,35 @@ namespace CoreWCF.Runtime
 
         private void WriteCore(byte[] buffer, int offset, int size)
         {
-            Fx.Assert(initialized, "Cannot write to uninitialized stream");
-            Fx.Assert(!bufferReturned, "Cannot write to stream once ToArray has been called.");
+            Fx.Assert(_initialized, "Cannot write to uninitialized stream");
+            Fx.Assert(!_bufferReturned, "Cannot write to stream once ToArray has been called.");
 
             if (size < 0)
             {
                 throw Fx.Exception.ArgumentOutOfRange("size", size, SR.ValueMustBeNonNegative);
             }
 
-            if ((int.MaxValue - size) < totalSize)
+            if ((int.MaxValue - size) < _totalSize)
             {
-                throw Fx.Exception.AsError(CreateQuotaExceededException(maxSizeQuota));
+                throw Fx.Exception.AsError(CreateQuotaExceededException(_maxSizeQuota));
             }
 
-            int newTotalSize = totalSize + size;
-            if (newTotalSize > maxSize)
+            int newTotalSize = _totalSize + size;
+            if (newTotalSize > _maxSize)
             {
-                throw Fx.Exception.AsError(CreateQuotaExceededException(maxSizeQuota));
+                throw Fx.Exception.AsError(CreateQuotaExceededException(_maxSizeQuota));
             }
 
-            int remainingSizeInChunk = currentChunk.Length - currentChunkSize;
+            int remainingSizeInChunk = _currentChunk.Length - _currentChunkSize;
             if (size > remainingSizeInChunk)
             {
                 if (remainingSizeInChunk > 0)
                 {
                     if (buffer != null)
                     {
-                        Buffer.BlockCopy(buffer, offset, currentChunk, currentChunkSize, remainingSizeInChunk);
+                        Buffer.BlockCopy(buffer, offset, _currentChunk, _currentChunkSize, remainingSizeInChunk);
                     }
-                    currentChunkSize = currentChunk.Length;
+                    _currentChunkSize = _currentChunk.Length;
                     offset += remainingSizeInChunk;
                     size -= remainingSizeInChunk;
                 }
@@ -298,27 +298,26 @@ namespace CoreWCF.Runtime
 
             if (buffer != null)
             {
-                Buffer.BlockCopy(buffer, offset, currentChunk, currentChunkSize, size);
+                Buffer.BlockCopy(buffer, offset, _currentChunk, _currentChunkSize, size);
             }
-            totalSize = newTotalSize;
-            currentChunkSize += size;
+            _totalSize = newTotalSize;
+            _currentChunkSize += size;
         }
 
         public override void WriteByte(byte value)
         {
-            Fx.Assert(initialized, "Cannot write to uninitialized stream");
-            Fx.Assert(!bufferReturned, "Cannot write to stream once ToArray has been called.");
+            Fx.Assert(_initialized, "Cannot write to uninitialized stream");
+            Fx.Assert(!_bufferReturned, "Cannot write to stream once ToArray has been called.");
 
-            if (totalSize == maxSize)
+            if (_totalSize == _maxSize)
             {
-                throw Fx.Exception.AsError(CreateQuotaExceededException(maxSize));
+                throw Fx.Exception.AsError(CreateQuotaExceededException(_maxSize));
             }
-            if (currentChunkSize == currentChunk.Length)
+            if (_currentChunkSize == _currentChunk.Length)
             {
                 AllocNextChunk(1);
             }
-            currentChunk[currentChunkSize++] = value;
+            _currentChunk[_currentChunkSize++] = value;
         }
     }
-
 }

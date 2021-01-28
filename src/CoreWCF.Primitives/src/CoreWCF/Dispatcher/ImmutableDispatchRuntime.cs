@@ -960,27 +960,27 @@ namespace CoreWCF.Dispatcher
 
         private class ActionDemuxer : IDemuxer
         {
-            private readonly HybridDictionary map;
-            private DispatchOperationRuntime unhandled;
+            private readonly HybridDictionary _map;
+            private DispatchOperationRuntime _unhandled;
 
             internal ActionDemuxer()
             {
-                map = new HybridDictionary();
+                _map = new HybridDictionary();
             }
 
             internal void Add(string action, DispatchOperationRuntime operation)
             {
-                if (map.Contains(action))
+                if (_map.Contains(action))
                 {
-                    DispatchOperationRuntime existingOperation = (DispatchOperationRuntime)map[action];
+                    DispatchOperationRuntime existingOperation = (DispatchOperationRuntime)_map[action];
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxActionDemuxerDuplicate, existingOperation.Name, operation.Name, action)));
                 }
-                map.Add(action, operation);
+                _map.Add(action, operation);
             }
 
             internal void SetUnhandled(DispatchOperationRuntime operation)
             {
-                unhandled = operation;
+                _unhandled = operation;
             }
 
             public DispatchOperationRuntime GetOperation(ref Message request)
@@ -990,13 +990,13 @@ namespace CoreWCF.Dispatcher
                 {
                     action = MessageHeaders.WildcardAction;
                 }
-                DispatchOperationRuntime operation = (DispatchOperationRuntime)map[action];
+                DispatchOperationRuntime operation = (DispatchOperationRuntime)_map[action];
                 if (operation != null)
                 {
                     return operation;
                 }
 
-                return unhandled;
+                return _unhandled;
             }
         }
 

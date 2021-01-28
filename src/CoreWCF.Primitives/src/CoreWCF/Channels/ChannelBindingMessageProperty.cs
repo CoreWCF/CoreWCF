@@ -9,17 +9,17 @@ namespace CoreWCF.Channels
     public sealed class ChannelBindingMessageProperty : IDisposable, IMessageProperty
     {
         internal const string PropertyName = "ChannelBindingMessageProperty";
-        private readonly ChannelBinding channelBinding;
-        private readonly object thisLock;
-        private readonly bool ownsCleanup;
-        private int refCount;
+        private readonly ChannelBinding _channelBinding;
+        private readonly object _thisLock;
+        private readonly bool _ownsCleanup;
+        private int _refCount;
 
         public ChannelBindingMessageProperty(ChannelBinding channelBinding, bool ownsCleanup)
         {
-            this.channelBinding = channelBinding ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelBinding));
-            refCount = 1;
-            thisLock = new object();
-            this.ownsCleanup = ownsCleanup;
+            _channelBinding = channelBinding ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelBinding));
+            _refCount = 1;
+            _thisLock = new object();
+            _ownsCleanup = ownsCleanup;
         }
 
         public static string Name { get { return PropertyName; } }
@@ -28,7 +28,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return refCount <= 0;
+                return _refCount <= 0;
             }
         }
 
@@ -37,7 +37,7 @@ namespace CoreWCF.Channels
             get
             {
                 ThrowIfDisposed();
-                return channelBinding;
+                return _channelBinding;
             }
         }
 
@@ -70,10 +70,10 @@ namespace CoreWCF.Channels
         }
         IMessageProperty IMessageProperty.CreateCopy()
         {
-            lock (thisLock)
+            lock (_thisLock)
             {
                 ThrowIfDisposed();
-                refCount++;
+                _refCount++;
                 return this;
             }
         }
@@ -82,14 +82,14 @@ namespace CoreWCF.Channels
         {
             if (!IsDisposed)
             {
-                lock (thisLock)
+                lock (_thisLock)
                 {
-                    if (!IsDisposed && --refCount == 0)
+                    if (!IsDisposed && --_refCount == 0)
                     {
-                        if (ownsCleanup)
+                        if (_ownsCleanup)
                         {
                             // Accessing via IDisposable to avoid Security check (functionally the same)
-                            ((IDisposable)channelBinding).Dispose();
+                            ((IDisposable)_channelBinding).Dispose();
                         }
                     }
                 }

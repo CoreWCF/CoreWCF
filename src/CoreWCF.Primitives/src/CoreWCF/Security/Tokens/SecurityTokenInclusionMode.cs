@@ -32,6 +32,5 @@ namespace CoreWCF.Security.Tokens
                     typeof(SecurityTokenInclusionMode)));
             }
         }
-
     }
 }

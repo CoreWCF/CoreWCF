@@ -360,6 +360,5 @@ namespace CoreWCF.Channels
 
             return null;
         }
-
     }
 }

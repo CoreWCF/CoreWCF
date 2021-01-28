@@ -15,48 +15,48 @@ namespace CoreWCF.Security
         internal const X509CertificateValidationMode DefaultCertificateValidationMode = X509CertificateValidationMode.ChainTrust;
         internal const X509RevocationMode DefaultRevocationMode = X509RevocationMode.Online;
         internal const StoreLocation DefaultTrustedStoreLocation = StoreLocation.LocalMachine;
-        private readonly List<string> allowedAudienceUris;
-        private AudienceUriMode audienceUriMode = DefaultAudienceUriMode;
-        private readonly List<X509Certificate2> knownCertificates;
-        private SamlSerializer samlSerializer;
-        private X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
-        private X509RevocationMode revocationMode = DefaultRevocationMode;
-        private StoreLocation trustedStoreLocation = DefaultTrustedStoreLocation;
-        private X509CertificateValidator customCertificateValidator = null;
-        private bool allowUntrustedRsaIssuers = DefaultAllowUntrustedRsaIssuers;
-        private bool isReadOnly;
+        private readonly List<string> _allowedAudienceUris;
+        private AudienceUriMode _audienceUriMode = DefaultAudienceUriMode;
+        private readonly List<X509Certificate2> _knownCertificates;
+        private SamlSerializer _samlSerializer;
+        private X509CertificateValidationMode _certificateValidationMode = DefaultCertificateValidationMode;
+        private X509RevocationMode _revocationMode = DefaultRevocationMode;
+        private StoreLocation _trustedStoreLocation = DefaultTrustedStoreLocation;
+        private X509CertificateValidator _customCertificateValidator = null;
+        private bool _allowUntrustedRsaIssuers = DefaultAllowUntrustedRsaIssuers;
+        private bool _isReadOnly;
 
         internal IssuedTokenServiceCredential()
         {
-            allowedAudienceUris = new List<string>();
-            knownCertificates = new List<X509Certificate2>();
+            _allowedAudienceUris = new List<string>();
+            _knownCertificates = new List<X509Certificate2>();
         }
 
         internal IssuedTokenServiceCredential(IssuedTokenServiceCredential other)
         {
-            audienceUriMode = other.audienceUriMode;
-            allowedAudienceUris = new List<string>(other.allowedAudienceUris);
-            samlSerializer = other.samlSerializer;
-            knownCertificates = new List<X509Certificate2>(other.knownCertificates);
-            certificateValidationMode = other.certificateValidationMode;
-            customCertificateValidator = other.customCertificateValidator;
-            trustedStoreLocation = other.trustedStoreLocation;
-            revocationMode = other.revocationMode;
-            allowUntrustedRsaIssuers = other.allowUntrustedRsaIssuers;
-            isReadOnly = other.isReadOnly;
+            _audienceUriMode = other._audienceUriMode;
+            _allowedAudienceUris = new List<string>(other._allowedAudienceUris);
+            _samlSerializer = other._samlSerializer;
+            _knownCertificates = new List<X509Certificate2>(other._knownCertificates);
+            _certificateValidationMode = other._certificateValidationMode;
+            _customCertificateValidator = other._customCertificateValidator;
+            _trustedStoreLocation = other._trustedStoreLocation;
+            _revocationMode = other._revocationMode;
+            _allowUntrustedRsaIssuers = other._allowUntrustedRsaIssuers;
+            _isReadOnly = other._isReadOnly;
         }
 
         public IList<string> AllowedAudienceUris
         {
             get
             {
-                if (isReadOnly)
+                if (_isReadOnly)
                 {
-                    return allowedAudienceUris.AsReadOnly();
+                    return _allowedAudienceUris.AsReadOnly();
                 }
                 else
                 {
-                    return allowedAudienceUris;
+                    return _allowedAudienceUris;
                 }
             }
         }
@@ -65,13 +65,13 @@ namespace CoreWCF.Security
         {
             get
             {
-                return audienceUriMode;
+                return _audienceUriMode;
             }
             set
             {
                 ThrowIfImmutable();
-                AudienceUriModeValidationHelper.Validate(audienceUriMode);
-                audienceUriMode = value;
+                AudienceUriModeValidationHelper.Validate(_audienceUriMode);
+                _audienceUriMode = value;
             }
         }
 
@@ -80,13 +80,13 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (isReadOnly)
+                if (_isReadOnly)
                 {
-                    return knownCertificates.AsReadOnly();
+                    return _knownCertificates.AsReadOnly();
                 }
                 else
                 {
-                    return knownCertificates;
+                    return _knownCertificates;
                 }
             }
         }
@@ -95,12 +95,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return samlSerializer;
+                return _samlSerializer;
             }
             set
             {
                 ThrowIfImmutable();
-                samlSerializer = value;
+                _samlSerializer = value;
             }
         }
 
@@ -108,13 +108,13 @@ namespace CoreWCF.Security
         {
             get
             {
-                return certificateValidationMode;
+                return _certificateValidationMode;
             }
             set
             {
                 X509CertificateValidationModeHelper.Validate(value);
                 ThrowIfImmutable();
-                certificateValidationMode = value;
+                _certificateValidationMode = value;
             }
         }
 
@@ -122,12 +122,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return revocationMode;
+                return _revocationMode;
             }
             set
             {
                 ThrowIfImmutable();
-                revocationMode = value;
+                _revocationMode = value;
             }
         }
 
@@ -135,12 +135,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return trustedStoreLocation;
+                return _trustedStoreLocation;
             }
             set
             {
                 ThrowIfImmutable();
-                trustedStoreLocation = value;
+                _trustedStoreLocation = value;
             }
         }
 
@@ -148,12 +148,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return customCertificateValidator;
+                return _customCertificateValidator;
             }
             set
             {
                 ThrowIfImmutable();
-                customCertificateValidator = value;
+                _customCertificateValidator = value;
             }
         }
 
@@ -161,39 +161,39 @@ namespace CoreWCF.Security
         {
             get
             {
-                return allowUntrustedRsaIssuers;
+                return _allowUntrustedRsaIssuers;
             }
             set
             {
                 ThrowIfImmutable();
-                allowUntrustedRsaIssuers = value;
+                _allowUntrustedRsaIssuers = value;
             }
         }
 
         internal X509CertificateValidator GetCertificateValidator()
         {
-            if (certificateValidationMode == X509CertificateValidationMode.None)
+            if (_certificateValidationMode == X509CertificateValidationMode.None)
             {
                 return X509CertificateValidator.None;
             }
-            else if (certificateValidationMode == X509CertificateValidationMode.PeerTrust)
+            else if (_certificateValidationMode == X509CertificateValidationMode.PeerTrust)
             {
                 return X509CertificateValidator.PeerTrust;
             }
-            else if (certificateValidationMode == X509CertificateValidationMode.Custom)
+            else if (_certificateValidationMode == X509CertificateValidationMode.Custom)
             {
-                if (customCertificateValidator == null)
+                if (_customCertificateValidator == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.MissingCustomCertificateValidator)));
                 }
-                return customCertificateValidator;
+                return _customCertificateValidator;
             }
             else
             {
-                bool useMachineContext = trustedStoreLocation == StoreLocation.LocalMachine;
+                bool useMachineContext = _trustedStoreLocation == StoreLocation.LocalMachine;
                 X509ChainPolicy chainPolicy = new X509ChainPolicy();
-                chainPolicy.RevocationMode = revocationMode;
-                if (certificateValidationMode == X509CertificateValidationMode.ChainTrust)
+                chainPolicy.RevocationMode = _revocationMode;
+                if (_certificateValidationMode == X509CertificateValidationMode.ChainTrust)
                 {
                     return X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
                 }
@@ -206,12 +206,12 @@ namespace CoreWCF.Security
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
         }
 
         private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
             }

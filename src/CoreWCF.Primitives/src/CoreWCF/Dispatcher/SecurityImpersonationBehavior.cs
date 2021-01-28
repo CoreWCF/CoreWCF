@@ -21,15 +21,15 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class SecurityImpersonationBehavior
     {
-        private readonly PrincipalPermissionMode principalPermissionMode;
-        private readonly object roleProvider;
-        private readonly bool impersonateCallerForAllOperations;
-        private readonly Dictionary<string, string> ncNameMap;
+        private readonly PrincipalPermissionMode _principalPermissionMode;
+        private readonly object _roleProvider;
+        private readonly bool _impersonateCallerForAllOperations;
+        private readonly Dictionary<string, string> _ncNameMap;
 
         //Dictionary<string, string> domainNameMap;
-        private Random random;
+        private Random _random;
         private const int maxDomainNameMapSize = 5;
-        private static WindowsPrincipal anonymousWindowsPrincipal;
+        private static WindowsPrincipal s_anonymousWindowsPrincipal;
         private static string s_directoryServerName = null;
 
         //AuditLevel auditLevel = ServiceSecurityAuditBehavior.defaultMessageAuthenticationAuditLevel;
@@ -38,12 +38,12 @@ namespace CoreWCF.Dispatcher
 
         private SecurityImpersonationBehavior(DispatchRuntime dispatch)
         {
-            principalPermissionMode = dispatch.PrincipalPermissionMode;
-            impersonateCallerForAllOperations = dispatch.ImpersonateCallerForAllOperations;
+            _principalPermissionMode = dispatch.PrincipalPermissionMode;
+            _impersonateCallerForAllOperations = dispatch.ImpersonateCallerForAllOperations;
             //this.auditLevel = dispatch.MessageAuthenticationAuditLevel;
             //this.auditLogLocation = dispatch.SecurityAuditLogLocation;
             //this.suppressAuditFailure = dispatch.SuppressAuditFailure;
-            ncNameMap = new Dictionary<string, string>(maxDomainNameMapSize, StringComparer.OrdinalIgnoreCase);
+            _ncNameMap = new Dictionary<string, string>(maxDomainNameMapSize, StringComparer.OrdinalIgnoreCase);
         }
 
         public static SecurityImpersonationBehavior CreateIfNecessary(DispatchRuntime dispatch)
@@ -62,12 +62,12 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (anonymousWindowsPrincipal == null)
+                if (s_anonymousWindowsPrincipal == null)
                 {
-                    anonymousWindowsPrincipal = new WindowsPrincipal(WindowsIdentity.GetAnonymous());
+                    s_anonymousWindowsPrincipal = new WindowsPrincipal(WindowsIdentity.GetAnonymous());
                 }
 
-                return anonymousWindowsPrincipal;
+                return s_anonymousWindowsPrincipal;
             }
         }
 
@@ -108,7 +108,7 @@ namespace CoreWCF.Dispatcher
 
             ClaimsPrincipal claimsPrincipal = OperationContext.Current.ClaimsPrincipal;
 
-            if (principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
+            if (_principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
             {
                 if (claimsPrincipal is WindowsPrincipal)
                 {
@@ -123,11 +123,11 @@ namespace CoreWCF.Dispatcher
                     principal = GetWindowsPrincipal(securityContext);
                 }
             }
-            else if (principalPermissionMode == PrincipalPermissionMode.Custom)
+            else if (_principalPermissionMode == PrincipalPermissionMode.Custom)
             {
                 principal = GetCustomPrincipal(securityContext);
             }
-            else if (principalPermissionMode == PrincipalPermissionMode.Always)
+            else if (_principalPermissionMode == PrincipalPermissionMode.Always)
             {
                 principal = claimsPrincipal ?? new ClaimsPrincipal(new ClaimsIdentity());
             }
@@ -162,13 +162,13 @@ namespace CoreWCF.Dispatcher
         internal bool IsSecurityContextImpersonationRequired(MessageRpc rpc)
         {
             return ((rpc.Operation.Impersonation == ImpersonationOption.Required)
-                || ((rpc.Operation.Impersonation == ImpersonationOption.Allowed) && impersonateCallerForAllOperations));
+                || ((rpc.Operation.Impersonation == ImpersonationOption.Allowed) && _impersonateCallerForAllOperations));
         }
 
         internal bool IsImpersonationEnabledOnCurrentOperation(MessageRpc rpc)
         {
             return IsSecurityContextImpersonationRequired(rpc) ||
-                    principalPermissionMode != PrincipalPermissionMode.None;
+                    _principalPermissionMode != PrincipalPermissionMode.None;
         }
 
         public T RunImpersonated<T>(MessageRpc rpc, Func<T> func)
@@ -177,7 +177,7 @@ namespace CoreWCF.Dispatcher
             IPrincipal originalPrincipal = null;
             bool isThreadPrincipalSet = false;
             ServiceSecurityContext securityContext;
-            bool setThreadPrincipal = principalPermissionMode != PrincipalPermissionMode.None;
+            bool setThreadPrincipal = _principalPermissionMode != PrincipalPermissionMode.None;
             bool isSecurityContextImpersonationOn = IsSecurityContextImpersonationRequired(rpc);
             if (setThreadPrincipal || isSecurityContextImpersonationOn)
             {
@@ -381,9 +381,9 @@ namespace CoreWCF.Dispatcher
             bool found;
 
             // 1) Read from cache
-            lock (ncNameMap)
+            lock (_ncNameMap)
             {
-                found = ncNameMap.TryGetValue(shortDomainName, out ncName);
+                found = _ncNameMap.TryGetValue(shortDomainName, out ncName);
             }
 
             // 2) Not found, do expensive look up
@@ -419,26 +419,26 @@ namespace CoreWCF.Dispatcher
                         ncName = forestPartition.Properties["ncname"][0].ToString();
 
                         // Save in cache (remove a random item if cache is full)
-                        lock (ncNameMap)
+                        lock (_ncNameMap)
                         {
-                            if (ncNameMap.Count >= maxDomainNameMapSize)
+                            if (_ncNameMap.Count >= maxDomainNameMapSize)
                             {
-                                if (random == null)
+                                if (_random == null)
                                 {
-                                    random = new Random(unchecked((int)DateTime.Now.Ticks));
+                                    _random = new Random(unchecked((int)DateTime.Now.Ticks));
                                 }
-                                int victim = random.Next() % ncNameMap.Count;
-                                foreach (string key in ncNameMap.Keys)
+                                int victim = _random.Next() % _ncNameMap.Count;
+                                foreach (string key in _ncNameMap.Keys)
                                 {
                                     if (victim <= 0)
                                     {
-                                        ncNameMap.Remove(key);
+                                        _ncNameMap.Remove(key);
                                         break;
                                     }
                                     --victim;
                                 }
                             }
-                            ncNameMap[shortDomainName] = ncName;
+                            _ncNameMap[shortDomainName] = ncName;
                         }
                     }
                 }
@@ -466,18 +466,18 @@ namespace CoreWCF.Dispatcher
 
         private class WindowsSidPrincipal : IPrincipal
         {
-            private readonly WindowsSidIdentity identity;
-            private readonly ServiceSecurityContext securityContext;
+            private readonly WindowsSidIdentity _identity;
+            private readonly ServiceSecurityContext _securityContext;
 
             public WindowsSidPrincipal(WindowsSidIdentity identity, ServiceSecurityContext securityContext)
             {
-                this.identity = identity;
-                this.securityContext = securityContext;
+                _identity = identity;
+                _securityContext = securityContext;
             }
 
             public IIdentity Identity
             {
-                get { return identity; }
+                get { return _identity; }
             }
 
             public bool IsInRole(string role)
@@ -489,7 +489,7 @@ namespace CoreWCF.Dispatcher
 
                 NTAccount account = new NTAccount(role);
                 Claim claim = Claim.CreateWindowsSidClaim((SecurityIdentifier)account.Translate(typeof(SecurityIdentifier)));
-                AuthorizationContext authContext = securityContext.AuthorizationContext;
+                AuthorizationContext authContext = _securityContext.AuthorizationContext;
                 for (int i = 0; i < authContext.ClaimSets.Count; i++)
                 {
                     ClaimSet claimSet = authContext.ClaimSets[i];

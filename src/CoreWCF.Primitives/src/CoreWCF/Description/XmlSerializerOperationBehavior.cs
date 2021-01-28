@@ -18,7 +18,7 @@ namespace CoreWCF.Description
 {
     internal class XmlSerializerOperationBehavior : IOperationBehavior
     {
-        private readonly bool builtInOperationBehavior;
+        private readonly bool _builtInOperationBehavior;
 
         public XmlSerializerOperationBehavior(OperationDescription operation)
             : this(operation, null)
@@ -47,14 +47,14 @@ namespace CoreWCF.Description
         {
             Fx.Assert(reflector != null, "");
             OperationReflector = reflector;
-            this.builtInOperationBehavior = builtInOperationBehavior;
+            _builtInOperationBehavior = builtInOperationBehavior;
         }
 
         internal Reflector.OperationReflector OperationReflector { get; }
 
         internal bool IsBuiltInOperationBehavior
         {
-            get { return builtInOperationBehavior; }
+            get { return _builtInOperationBehavior; }
         }
 
         public XmlSerializerFormatAttribute XmlSerializerFormatAttribute
@@ -91,7 +91,6 @@ namespace CoreWCF.Description
 
             foreach (OperationDescription operation in contract.Operations)
             {
-
                 Reflector.OperationReflector operationReflector = reflector.ReflectOperation(operation);
                 if (operationReflector != null)
                 {
@@ -213,22 +212,22 @@ namespace CoreWCF.Description
         // helper for reflecting operations
         internal class Reflector
         {
-            private readonly XmlSerializerImporter importer;
-            private readonly SerializerGenerationContext generation;
-            private readonly Collection<OperationReflector> operationReflectors = new Collection<OperationReflector>();
-            private readonly object thisLock = new object();
+            private readonly XmlSerializerImporter _importer;
+            private readonly SerializerGenerationContext _generation;
+            private readonly Collection<OperationReflector> _operationReflectors = new Collection<OperationReflector>();
+            private readonly object _thisLock = new object();
 
             internal Reflector(string defaultNs, Type type)
             {
-                importer = new XmlSerializerImporter(defaultNs);
-                generation = new SerializerGenerationContext(type);
+                _importer = new XmlSerializerImporter(defaultNs);
+                _generation = new SerializerGenerationContext(type);
             }
 
             internal void EnsureMessageInfos()
             {
-                lock (thisLock)
+                lock (_thisLock)
                 {
-                    foreach (OperationReflector operationReflector in operationReflectors)
+                    foreach (OperationReflector operationReflector in _operationReflectors)
                     {
                         operationReflector.EnsureMessageInfos();
                     }
@@ -258,14 +257,14 @@ namespace CoreWCF.Description
             internal OperationReflector ReflectOperation(OperationDescription operation, XmlSerializerFormatAttribute attrOverride)
             {
                 OperationReflector operationReflector = new OperationReflector(this, operation, attrOverride, true/*reflectOnDemand*/);
-                operationReflectors.Add(operationReflector);
+                _operationReflectors.Add(operationReflector);
 
                 return operationReflector;
             }
 
             internal class OperationReflector
             {
-                private readonly Reflector parent;
+                private readonly Reflector _parent;
 
                 internal readonly OperationDescription Operation;
                 internal readonly XmlSerializerFormatAttribute Attribute;
@@ -275,10 +274,10 @@ namespace CoreWCF.Description
                 internal readonly bool IsOneWay;
                 internal readonly bool RequestRequiresSerialization;
                 internal readonly bool ReplyRequiresSerialization;
-                private readonly string keyBase;
-                private MessageInfo request;
-                private MessageInfo reply;
-                private SynchronizedCollection<XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos;
+                private readonly string _keyBase;
+                private MessageInfo _request;
+                private MessageInfo _reply;
+                private SynchronizedCollection<XmlSerializerFaultContractInfo> _xmlSerializerFaultContractInfos;
 
                 internal OperationReflector(Reflector parent, OperationDescription operation, XmlSerializerFormatAttribute attr, bool reflectOnDemand)
                 {
@@ -288,7 +287,7 @@ namespace CoreWCF.Description
 
                     OperationFormatter.Validate(operation, attr.Style == OperationFormatStyle.Rpc, attr.IsEncoded);
 
-                    this.parent = parent;
+                    _parent = parent;
 
                     Operation = operation;
                     Attribute = attr;
@@ -304,16 +303,16 @@ namespace CoreWCF.Description
                     if (methodInfo == null)
                     {
                         // keyBase needs to be unique within the scope of the parent reflector
-                        keyBase = string.Empty;
+                        _keyBase = string.Empty;
                         if (operation.DeclaringContract != null)
                         {
-                            keyBase = operation.DeclaringContract.Name + "," + operation.DeclaringContract.Namespace + ":";
+                            _keyBase = operation.DeclaringContract.Name + "," + operation.DeclaringContract.Namespace + ":";
                         }
-                        keyBase = keyBase + operation.Name;
+                        _keyBase = _keyBase + operation.Name;
                     }
                     else
                     {
-                        keyBase = methodInfo.DeclaringType.FullName + ":" + methodInfo.ToString();
+                        _keyBase = methodInfo.DeclaringType.FullName + ":" + methodInfo.ToString();
                     }
 
                     foreach (MessageDescription message in operation.Messages)
@@ -379,8 +378,8 @@ namespace CoreWCF.Description
                 {
                     get
                     {
-                        parent.EnsureMessageInfos();
-                        return request;
+                        _parent.EnsureMessageInfos();
+                        return _request;
                     }
                 }
 
@@ -388,8 +387,8 @@ namespace CoreWCF.Description
                 {
                     get
                     {
-                        parent.EnsureMessageInfos();
-                        return reply;
+                        _parent.EnsureMessageInfos();
+                        return _reply;
                     }
                 }
 
@@ -397,14 +396,14 @@ namespace CoreWCF.Description
                 {
                     get
                     {
-                        parent.EnsureMessageInfos();
-                        return xmlSerializerFaultContractInfos;
+                        _parent.EnsureMessageInfos();
+                        return _xmlSerializerFaultContractInfos;
                     }
                 }
 
                 internal void EnsureMessageInfos()
                 {
-                    if (request == null)
+                    if (_request == null)
                     {
                         foreach (Type knownType in Operation.KnownTypes)
                         {
@@ -413,21 +412,21 @@ namespace CoreWCF.Description
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeNull, Operation.Name)));
                             }
 
-                            parent.importer.IncludeType(knownType, IsEncoded);
+                            _parent._importer.IncludeType(knownType, IsEncoded);
                         }
-                        request = CreateMessageInfo(Operation.Messages[0], ":Request");
-                        if (request != null && IsRpc && Operation.IsValidateRpcWrapperName && request.BodyMapping.XsdElementName != Operation.Name)
+                        _request = CreateMessageInfo(Operation.Messages[0], ":Request");
+                        if (_request != null && IsRpc && Operation.IsValidateRpcWrapperName && _request.BodyMapping.XsdElementName != Operation.Name)
                         {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxRpcMessageBodyPartNameInvalid, Operation.Name, Operation.Messages[0].MessageName, request.BodyMapping.XsdElementName, Operation.Name)));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxRpcMessageBodyPartNameInvalid, Operation.Name, Operation.Messages[0].MessageName, _request.BodyMapping.XsdElementName, Operation.Name)));
                         }
 
                         if (!IsOneWay)
                         {
-                            reply = CreateMessageInfo(Operation.Messages[1], ":Response");
+                            _reply = CreateMessageInfo(Operation.Messages[1], ":Response");
                             XmlName responseName = TypeLoader.GetBodyWrapperResponseName(Operation.Name);
-                            if (reply != null && IsRpc && Operation.IsValidateRpcWrapperName && reply.BodyMapping.XsdElementName != responseName.EncodedName)
+                            if (_reply != null && IsRpc && Operation.IsValidateRpcWrapperName && _reply.BodyMapping.XsdElementName != responseName.EncodedName)
                             {
-                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxRpcMessageBodyPartNameInvalid, Operation.Name, Operation.Messages[1].MessageName, reply.BodyMapping.XsdElementName, responseName.EncodedName)));
+                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxRpcMessageBodyPartNameInvalid, Operation.Name, Operation.Messages[1].MessageName, _reply.BodyMapping.XsdElementName, responseName.EncodedName)));
                             }
                         }
                         if (Attribute.SupportFaults)
@@ -447,10 +446,10 @@ namespace CoreWCF.Description
 
                         XmlMembersMapping xmlMembersMapping = ImportFaultElement(fault, out XmlQualifiedName elementName);
 
-                        SerializerStub serializerStub = parent.generation.AddSerializer(xmlMembersMapping);
+                        SerializerStub serializerStub = _parent._generation.AddSerializer(xmlMembersMapping);
                         faultInfos.Add(new XmlSerializerFaultContractInfo(faultContractInfo, serializerStub, elementName));
                     }
-                    xmlSerializerFaultContractInfos = faultInfos;
+                    _xmlSerializerFaultContractInfos = faultInfos;
                 }
 
                 private MessageInfo CreateMessageInfo(MessageDescription message, string key)
@@ -467,8 +466,8 @@ namespace CoreWCF.Description
                     }
 
                     XmlMembersMapping headersMapping = LoadHeadersMapping(message, key + ":Headers");
-                    info.SetHeaders(parent.generation.AddSerializer(headersMapping));
-                    info.SetBody(parent.generation.AddSerializer(LoadBodyMapping(message, key, out MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts)), rpcEncodedTypedMessageBodyParts);
+                    info.SetHeaders(_parent._generation.AddSerializer(headersMapping));
+                    info.SetBody(_parent._generation.AddSerializer(LoadBodyMapping(message, key, out MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts)), rpcEncodedTypedMessageBodyParts);
                     CreateHeaderDescriptionTable(message, info, headersMapping);
                     return info;
                 }
@@ -671,8 +670,8 @@ namespace CoreWCF.Description
 
                 internal XmlMembersMapping ImportMembersMapping(string elementName, string ns, XmlReflectionMember[] members, bool hasWrapperElement, bool rpc, string mappingKey)
                 {
-                    string key = mappingKey.StartsWith(":", StringComparison.Ordinal) ? keyBase + mappingKey : mappingKey;
-                    return parent.importer.ImportMembersMapping(new XmlName(elementName, true /*isEncoded*/), ns, members, hasWrapperElement, rpc, IsEncoded, key);
+                    string key = mappingKey.StartsWith(":", StringComparison.Ordinal) ? _keyBase + mappingKey : mappingKey;
+                    return _parent._importer.ImportMembersMapping(new XmlName(elementName, true /*isEncoded*/), ns, members, hasWrapperElement, rpc, IsEncoded, key);
                 }
 
                 internal XmlMembersMapping ImportFaultElement(FaultDescription fault, out XmlQualifiedName elementName)
@@ -684,7 +683,7 @@ namespace CoreWCF.Description
                     string faultNamespace = fault.Namespace;
                     if (faultElementName == null)
                     {
-                        XmlTypeMapping mapping = parent.importer.ImportTypeMapping(fault.DetailType, IsEncoded);
+                        XmlTypeMapping mapping = _parent._importer.ImportTypeMapping(fault.DetailType, IsEncoded);
                         faultElementName = new XmlName(mapping.ElementName, IsEncoded);
                         faultNamespace = mapping.Namespace;
                         if (faultElementName == null)
@@ -705,17 +704,17 @@ namespace CoreWCF.Description
 
             private class XmlSerializerImporter
             {
-                private readonly string defaultNs;
-                private XmlReflectionImporter xmlImporter;
+                private readonly string _defaultNs;
+                private XmlReflectionImporter _xmlImporter;
 
                 // TODO: Available in 1.7
                 //SoapReflectionImporter soapImporter;
-                private Dictionary<string, XmlMembersMapping> xmlMappings;
+                private Dictionary<string, XmlMembersMapping> _xmlMappings;
 
                 internal XmlSerializerImporter(string defaultNs)
                 {
-                    this.defaultNs = defaultNs;
-                    xmlImporter = null;
+                    _defaultNs = defaultNs;
+                    _xmlImporter = null;
                     //this.soapImporter = null;
                 }
 
@@ -735,11 +734,11 @@ namespace CoreWCF.Description
                 {
                     get
                     {
-                        if (xmlImporter == null)
+                        if (_xmlImporter == null)
                         {
-                            xmlImporter = new XmlReflectionImporter(defaultNs);
+                            _xmlImporter = new XmlReflectionImporter(_defaultNs);
                         }
-                        return xmlImporter;
+                        return _xmlImporter;
                     }
                 }
 
@@ -747,11 +746,11 @@ namespace CoreWCF.Description
                 {
                     get
                     {
-                        if (xmlMappings == null)
+                        if (_xmlMappings == null)
                         {
-                            xmlMappings = new Dictionary<string, XmlMembersMapping>();
+                            _xmlMappings = new Dictionary<string, XmlMembersMapping>();
                         }
-                        return xmlMappings;
+                        return _xmlMappings;
                     }
                 }
 
@@ -807,14 +806,14 @@ namespace CoreWCF.Description
 
             internal class SerializerGenerationContext
             {
-                private readonly List<XmlMembersMapping> Mappings = new List<XmlMembersMapping>();
-                private XmlSerializer[] serializers = null;
-                private readonly Type type;
-                private readonly object thisLock = new object();
+                private readonly List<XmlMembersMapping> _mappings = new List<XmlMembersMapping>();
+                private XmlSerializer[] _serializers = null;
+                private readonly Type _type;
+                private readonly object _thisLock = new object();
 
                 internal SerializerGenerationContext(Type type)
                 {
-                    this.type = type;
+                    _type = type;
                 }
 
                 // returns a stub to a serializer
@@ -823,7 +822,7 @@ namespace CoreWCF.Description
                     int handle = -1;
                     if (mapping != null)
                     {
-                        handle = ((IList)Mappings).Add(mapping);
+                        handle = ((IList)_mappings).Add(mapping);
                     }
 
                     return new SerializerStub(this, mapping, handle);
@@ -836,17 +835,17 @@ namespace CoreWCF.Description
                         return null;
                     }
 
-                    if (serializers == null)
+                    if (_serializers == null)
                     {
-                        lock (thisLock)
+                        lock (_thisLock)
                         {
-                            if (serializers == null)
+                            if (_serializers == null)
                             {
-                                serializers = GenerateSerializers();
+                                _serializers = GenerateSerializers();
                             }
                         }
                     }
-                    return serializers[handle];
+                    return _serializers[handle];
                 }
 
                 private XmlSerializer[] GenerateSerializers()
@@ -854,10 +853,10 @@ namespace CoreWCF.Description
                     //this.Mappings may have duplicate mappings (for e.g. same message contract is used by more than one operation)
                     //XmlSerializer.FromMappings require unique mappings. The following code uniquifies, calls FromMappings and deuniquifies
                     List<XmlMembersMapping> uniqueMappings = new List<XmlMembersMapping>();
-                    int[] uniqueIndexes = new int[Mappings.Count];
-                    for (int srcIndex = 0; srcIndex < Mappings.Count; srcIndex++)
+                    int[] uniqueIndexes = new int[_mappings.Count];
+                    for (int srcIndex = 0; srcIndex < _mappings.Count; srcIndex++)
                     {
-                        XmlMembersMapping mapping = Mappings[srcIndex];
+                        XmlMembersMapping mapping = _mappings[srcIndex];
                         int uniqueIndex = uniqueMappings.IndexOf(mapping);
                         if (uniqueIndex < 0)
                         {
@@ -866,14 +865,14 @@ namespace CoreWCF.Description
                         }
                         uniqueIndexes[srcIndex] = uniqueIndex;
                     }
-                    XmlSerializer[] uniqueSerializers = CreateSerializersFromMappings(uniqueMappings.ToArray(), type);
-                    if (uniqueMappings.Count == Mappings.Count)
+                    XmlSerializer[] uniqueSerializers = CreateSerializersFromMappings(uniqueMappings.ToArray(), _type);
+                    if (uniqueMappings.Count == _mappings.Count)
                     {
                         return uniqueSerializers;
                     }
 
-                    XmlSerializer[] serializers = new XmlSerializer[Mappings.Count];
-                    for (int i = 0; i < Mappings.Count; i++)
+                    XmlSerializer[] serializers = new XmlSerializer[_mappings.Count];
+                    for (int i = 0; i < _mappings.Count; i++)
                     {
                         serializers[i] = uniqueSerializers[uniqueIndexes[i]];
                     }
@@ -888,28 +887,28 @@ namespace CoreWCF.Description
 
             internal struct SerializerStub
             {
-                private readonly SerializerGenerationContext context;
+                private readonly SerializerGenerationContext _context;
 
                 internal readonly XmlMembersMapping Mapping;
                 internal readonly int Handle;
 
                 internal SerializerStub(SerializerGenerationContext context, XmlMembersMapping mapping, int handle)
                 {
-                    this.context = context;
+                    _context = context;
                     Mapping = mapping;
                     Handle = handle;
                 }
 
                 internal XmlSerializer GetSerializer()
                 {
-                    return context.GetSerializer(Handle);
+                    return _context.GetSerializer(Handle);
                 }
             }
 
             internal class XmlSerializerFaultContractInfo
             {
-                private readonly SerializerStub serializerStub;
-                private XmlSerializerObjectSerializer serializer;
+                private readonly SerializerStub _serializerStub;
+                private XmlSerializerObjectSerializer _serializer;
 
                 internal XmlSerializerFaultContractInfo(FaultContractInfo faultContractInfo, SerializerStub serializerStub,
                     XmlQualifiedName faultContractElementName)
@@ -923,7 +922,7 @@ namespace CoreWCF.Description
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultContractElementName));
                     }
                     FaultContractInfo = faultContractInfo;
-                    this.serializerStub = serializerStub;
+                    _serializerStub = serializerStub;
                     FaultContractElementName = faultContractElementName;
                 }
 
@@ -935,80 +934,79 @@ namespace CoreWCF.Description
                 {
                     get
                     {
-                        if (serializer == null)
+                        if (_serializer == null)
                         {
-                            serializer = new XmlSerializerObjectSerializer(FaultContractInfo.Detail, FaultContractElementName, serializerStub.GetSerializer());
+                            _serializer = new XmlSerializerObjectSerializer(FaultContractInfo.Detail, FaultContractElementName, _serializerStub.GetSerializer());
                         }
 
-                        return serializer;
+                        return _serializer;
                     }
                 }
             }
 
             internal class MessageInfo : XmlSerializerOperationFormatter.MessageInfo
             {
-                private SerializerStub headers;
-                private SerializerStub body;
-                private OperationFormatter.MessageHeaderDescriptionTable headerDescriptionTable;
-                private MessageHeaderDescription unknownHeaderDescription;
-                private MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts;
+                private SerializerStub _headers;
+                private SerializerStub _body;
+                private OperationFormatter.MessageHeaderDescriptionTable _headerDescriptionTable;
+                private MessageHeaderDescription _unknownHeaderDescription;
+                private MessagePartDescriptionCollection _rpcEncodedTypedMessageBodyParts;
 
                 internal XmlMembersMapping BodyMapping
                 {
-                    get { return body.Mapping; }
+                    get { return _body.Mapping; }
                 }
 
                 internal override XmlSerializer BodySerializer
                 {
-                    get { return body.GetSerializer(); }
+                    get { return _body.GetSerializer(); }
                 }
 
                 internal XmlMembersMapping HeadersMapping
                 {
-                    get { return headers.Mapping; }
+                    get { return _headers.Mapping; }
                 }
 
                 internal override XmlSerializer HeaderSerializer
                 {
-                    get { return headers.GetSerializer(); }
+                    get { return _headers.GetSerializer(); }
                 }
 
                 internal override OperationFormatter.MessageHeaderDescriptionTable HeaderDescriptionTable
                 {
-                    get { return headerDescriptionTable; }
+                    get { return _headerDescriptionTable; }
                 }
 
                 internal override MessageHeaderDescription UnknownHeaderDescription
                 {
-                    get { return unknownHeaderDescription; }
+                    get { return _unknownHeaderDescription; }
                 }
 
                 internal override MessagePartDescriptionCollection RpcEncodedTypedMessageBodyParts
                 {
-                    get { return rpcEncodedTypedMessageBodyParts; }
+                    get { return _rpcEncodedTypedMessageBodyParts; }
                 }
 
                 internal void SetBody(SerializerStub body, MessagePartDescriptionCollection rpcEncodedTypedMessageBodyParts)
                 {
-                    this.body = body;
-                    this.rpcEncodedTypedMessageBodyParts = rpcEncodedTypedMessageBodyParts;
+                    _body = body;
+                    _rpcEncodedTypedMessageBodyParts = rpcEncodedTypedMessageBodyParts;
                 }
 
                 internal void SetHeaders(SerializerStub headers)
                 {
-                    this.headers = headers;
+                    _headers = headers;
                 }
 
                 internal void SetHeaderDescriptionTable(OperationFormatter.MessageHeaderDescriptionTable headerDescriptionTable)
                 {
-                    this.headerDescriptionTable = headerDescriptionTable;
+                    _headerDescriptionTable = headerDescriptionTable;
                 }
 
                 internal void SetUnknownHeaderDescription(MessageHeaderDescription unknownHeaderDescription)
                 {
-                    this.unknownHeaderDescription = unknownHeaderDescription;
+                    _unknownHeaderDescription = unknownHeaderDescription;
                 }
-
             }
         }
     }

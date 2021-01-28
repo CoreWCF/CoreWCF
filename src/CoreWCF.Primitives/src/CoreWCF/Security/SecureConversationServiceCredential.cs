@@ -8,38 +8,38 @@ namespace CoreWCF.Security
 {
     public sealed class SecureConversationServiceCredential
     {
-        private static readonly SecurityStateEncoder defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
-        private SecurityStateEncoder securityStateEncoder;
-        private bool isReadOnly;
+        private static readonly SecurityStateEncoder s_defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
+        private SecurityStateEncoder _securityStateEncoder;
+        private bool _isReadOnly;
 
         internal SecureConversationServiceCredential()
         {
-            securityStateEncoder = defaultSecurityStateEncoder;
+            _securityStateEncoder = s_defaultSecurityStateEncoder;
             SecurityContextClaimTypes = new Collection<Type>();
             // SamlAssertion.AddSamlClaimTypes(securityContextClaimTypes);
         }
 
         internal SecureConversationServiceCredential(SecureConversationServiceCredential other)
         {
-            securityStateEncoder = other.securityStateEncoder;
+            _securityStateEncoder = other._securityStateEncoder;
             SecurityContextClaimTypes = new Collection<Type>();
             for (int i = 0; i < other.SecurityContextClaimTypes.Count; ++i)
             {
                 SecurityContextClaimTypes.Add(other.SecurityContextClaimTypes[i]);
             }
-            isReadOnly = other.isReadOnly;
+            _isReadOnly = other._isReadOnly;
         }
 
         public SecurityStateEncoder SecurityStateEncoder
         {
             get
             {
-                return securityStateEncoder;
+                return _securityStateEncoder;
             }
             set
             {
                 ThrowIfImmutable();
-                securityStateEncoder = value;
+                _securityStateEncoder = value;
             }
         }
 
@@ -47,12 +47,12 @@ namespace CoreWCF.Security
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
         }
 
         private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }

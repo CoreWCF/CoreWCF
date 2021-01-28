@@ -9,8 +9,8 @@ namespace CoreWCF.Security
 {
     internal class SessionSymmetricTransportSecurityProtocolFactory : TransportSecurityProtocolFactory
     {
-        private SecurityTokenParameters securityTokenParameters;
-        private SessionDerivedKeySecurityTokenParameters derivedKeyTokenParameters;
+        private SecurityTokenParameters _securityTokenParameters;
+        private SessionDerivedKeySecurityTokenParameters _derivedKeyTokenParameters;
 
         public SessionSymmetricTransportSecurityProtocolFactory() : base()
         {
@@ -22,12 +22,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return securityTokenParameters;
+                return _securityTokenParameters;
             }
             set
             {
                 ThrowIfImmutable();
-                securityTokenParameters = value;
+                _securityTokenParameters = value;
             }
         }
 
@@ -40,10 +40,9 @@ namespace CoreWCF.Security
             if (SecurityTokenParameters.RequireDerivedKeys)
             {
                 ExpectKeyDerivation = true;
-                derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
+                _derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
             }
             return new AcceptorSessionSymmetricTransportSecurityProtocol(this);
-
         }
 
         public override Task OnOpenAsync(TimeSpan timeout)
@@ -56,20 +55,20 @@ namespace CoreWCF.Security
             if (SecurityTokenParameters.RequireDerivedKeys)
             {
                 ExpectKeyDerivation = true;
-                derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
+                _derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
             }
             return Task.CompletedTask;
         }
 
         internal SecurityTokenParameters GetTokenParameters()
         {
-            if (derivedKeyTokenParameters != null)
+            if (_derivedKeyTokenParameters != null)
             {
-                return derivedKeyTokenParameters;
+                return _derivedKeyTokenParameters;
             }
             else
             {
-                return securityTokenParameters;
+                return _securityTokenParameters;
             }
         }
     }

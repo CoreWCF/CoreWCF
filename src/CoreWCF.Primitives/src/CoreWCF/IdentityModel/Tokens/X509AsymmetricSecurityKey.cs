@@ -422,6 +422,5 @@ namespace CoreWCF.IdentityModel.Tokens
                     return false;
             }
         }
-
     }
 }

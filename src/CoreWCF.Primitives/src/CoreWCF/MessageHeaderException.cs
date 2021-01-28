@@ -10,9 +10,8 @@ namespace CoreWCF
     //[Serializable]
     public class MessageHeaderException : ProtocolException
     {
-
         //[NonSerialized]
-        private readonly bool isDuplicate;
+        private readonly bool _isDuplicate;
 
         public MessageHeaderException(string message)
             : this(message, null, null)
@@ -43,7 +42,7 @@ namespace CoreWCF
         {
             HeaderName = headerName;
             HeaderNamespace = ns;
-            this.isDuplicate = isDuplicate;
+            _isDuplicate = isDuplicate;
         }
 
         public string HeaderName { get; }
@@ -51,7 +50,7 @@ namespace CoreWCF
         public string HeaderNamespace { get; }
 
         // IsDuplicate==true means there was more than one; IsDuplicate==false means there were zero
-        public bool IsDuplicate { get { return isDuplicate; } }
+        public bool IsDuplicate { get { return _isDuplicate; } }
 
         internal Message ProvideFault(MessageVersion messageVersion)
         {
@@ -66,5 +65,4 @@ namespace CoreWCF
         public MessageHeaderException() { }
         //protected MessageHeaderException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
-
 }

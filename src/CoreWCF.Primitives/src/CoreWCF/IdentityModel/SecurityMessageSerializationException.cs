@@ -27,6 +27,5 @@ namespace CoreWCF.IdentityModel
             : base(info, context)
         {
         }
-
     }
 }

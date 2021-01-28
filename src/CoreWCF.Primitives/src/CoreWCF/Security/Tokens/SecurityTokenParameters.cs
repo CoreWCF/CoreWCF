@@ -17,8 +17,8 @@ namespace CoreWCF.Security.Tokens
         internal const SecurityTokenInclusionMode defaultInclusionMode = SecurityTokenInclusionMode.AlwaysToRecipient;
         internal const SecurityTokenReferenceStyle defaultReferenceStyle = SecurityTokenReferenceStyle.Internal;
         internal const bool defaultRequireDerivedKeys = true;
-        private SecurityTokenInclusionMode inclusionMode = defaultInclusionMode;
-        private SecurityTokenReferenceStyle referenceStyle = defaultReferenceStyle;
+        private SecurityTokenInclusionMode _inclusionMode = defaultInclusionMode;
+        private SecurityTokenReferenceStyle _referenceStyle = defaultReferenceStyle;
 
         protected SecurityTokenParameters(SecurityTokenParameters other)
         {
@@ -28,8 +28,8 @@ namespace CoreWCF.Security.Tokens
             }
 
             RequireDerivedKeys = other.RequireDerivedKeys;
-            inclusionMode = other.inclusionMode;
-            referenceStyle = other.referenceStyle;
+            _inclusionMode = other._inclusionMode;
+            _referenceStyle = other._referenceStyle;
         }
 
         protected SecurityTokenParameters()
@@ -43,12 +43,12 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return inclusionMode;
+                return _inclusionMode;
             }
             set
             {
                 SecurityTokenInclusionModeHelper.Validate(value);
-                inclusionMode = value;
+                _inclusionMode = value;
             }
         }
 
@@ -56,12 +56,12 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return referenceStyle;
+                return _referenceStyle;
             }
             set
             {
                 TokenReferenceStyleHelper.Validate(value);
-                referenceStyle = value;
+                _referenceStyle = value;
             }
         }
 
@@ -209,8 +209,8 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "{0}:", GetType().ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "InclusionMode: {0}", inclusionMode.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "ReferenceStyle: {0}", referenceStyle.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "InclusionMode: {0}", _inclusionMode.ToString()));
+            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "ReferenceStyle: {0}", _referenceStyle.ToString()));
             sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireDerivedKeys: {0}", RequireDerivedKeys.ToString()));
 
             return sb.ToString();

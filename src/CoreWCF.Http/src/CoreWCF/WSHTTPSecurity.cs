@@ -10,9 +10,9 @@ namespace CoreWCF
     public sealed class WSHTTPSecurity
     {
         internal const SecurityMode DefaultMode = SecurityMode.Message;
-        private SecurityMode mode;
-        private HttpTransportSecurity transportSecurity;
-        private NonDualMessageSecurityOverHttp messageSecurity;
+        private SecurityMode _mode;
+        private HttpTransportSecurity _transportSecurity;
+        private NonDualMessageSecurityOverHttp _messageSecurity;
 
         public WSHTTPSecurity()
             : this(DefaultMode, GetDefaultHttpTransportSecurity(), new NonDualMessageSecurityOverHttp())
@@ -21,9 +21,9 @@ namespace CoreWCF
 
         internal WSHTTPSecurity(SecurityMode mode, HttpTransportSecurity transportSecurity, NonDualMessageSecurityOverHttp messageSecurity)
         {
-            this.mode = mode;
-            this.transportSecurity = transportSecurity == null ? GetDefaultHttpTransportSecurity() : transportSecurity;
-            this.messageSecurity = messageSecurity == null ? new NonDualMessageSecurityOverHttp() : messageSecurity;
+            _mode = mode;
+            _transportSecurity = transportSecurity == null ? GetDefaultHttpTransportSecurity() : transportSecurity;
+            _messageSecurity = messageSecurity == null ? new NonDualMessageSecurityOverHttp() : messageSecurity;
         }
 
         internal static HttpTransportSecurity GetDefaultHttpTransportSecurity()
@@ -35,52 +35,52 @@ namespace CoreWCF
 
         public SecurityMode Mode
         {
-            get { return mode; }
+            get { return _mode; }
             set
             {
                 if (!SecurityModeHelper.IsDefined(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
                 }
-                mode = value;
+                _mode = value;
             }
         }
 
         public HttpTransportSecurity Transport
         {
-            get { return transportSecurity; }
+            get { return _transportSecurity; }
             set
             {
                 if (value == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
                 }
-                transportSecurity = value;
+                _transportSecurity = value;
             }
         }
 
         public NonDualMessageSecurityOverHttp Message
         {
-            get { return messageSecurity; }
+            get { return _messageSecurity; }
             set
             {
                 if (value == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
                 }
-                messageSecurity = value;
+                _messageSecurity = value;
             }
         }
 
         internal void ApplyTransportSecurity(HttpsTransportBindingElement https)
         {
-            if (mode == SecurityMode.TransportWithMessageCredential)
+            if (_mode == SecurityMode.TransportWithMessageCredential)
             {
-                transportSecurity.ConfigureTransportProtectionOnly(https);
+                _transportSecurity.ConfigureTransportProtectionOnly(https);
             }
             else
             {
-                transportSecurity.ConfigureTransportProtectionAndAuthentication(https);
+                _transportSecurity.ConfigureTransportProtectionAndAuthentication(https);
             }
         }
 
@@ -91,9 +91,9 @@ namespace CoreWCF
 
         internal SecurityBindingElement CreateMessageSecurity(bool isReliableSessionEnabled, MessageSecurityVersion version)
         {
-            if (mode == SecurityMode.Message || mode == SecurityMode.TransportWithMessageCredential)
+            if (_mode == SecurityMode.Message || _mode == SecurityMode.TransportWithMessageCredential)
             {
-                return messageSecurity.CreateSecurityBindingElement(Mode == SecurityMode.TransportWithMessageCredential, isReliableSessionEnabled, version);
+                return _messageSecurity.CreateSecurityBindingElement(Mode == SecurityMode.TransportWithMessageCredential, isReliableSessionEnabled, version);
             }
             else
             {
@@ -131,6 +131,5 @@ namespace CoreWCF
         {
             return Mode != DefaultMode;
         }
-
     }
 }

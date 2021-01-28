@@ -233,5 +233,4 @@ namespace CoreWCF.Security.Tokens
             return sb.ToString().Trim();
         }
     }
-
 }

@@ -76,5 +76,4 @@ namespace CoreWCF.Dispatcher
             return new FaultException(faultReason, faultCode);
         }
     }
-
 }

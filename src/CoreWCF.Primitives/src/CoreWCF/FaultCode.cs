@@ -8,8 +8,8 @@ namespace CoreWCF
 {
     public class FaultCode
     {
-        private readonly string ns;
-        private readonly EnvelopeVersion version;
+        private readonly string _ns;
+        private readonly EnvelopeVersion _version;
 
         public FaultCode(string name)
             : this(name, "", null)
@@ -44,24 +44,24 @@ namespace CoreWCF
             }
 
             Name = name;
-            this.ns = ns;
+            _ns = ns;
             SubCode = subCode;
 
             if (ns == Message12Strings.Namespace)
             {
-                version = EnvelopeVersion.Soap12;
+                _version = EnvelopeVersion.Soap12;
             }
             else if (ns == Message11Strings.Namespace)
             {
-                version = EnvelopeVersion.Soap11;
+                _version = EnvelopeVersion.Soap11;
             }
             else if (ns == MessageStrings.Namespace)
             {
-                version = EnvelopeVersion.None;
+                _version = EnvelopeVersion.None;
             }
             else
             {
-                version = null;
+                _version = null;
             }
         }
 
@@ -69,7 +69,7 @@ namespace CoreWCF
         {
             get
             {
-                return ns.Length == 0 || version != null;
+                return _ns.Length == 0 || _version != null;
             }
         }
 
@@ -79,7 +79,7 @@ namespace CoreWCF
             {
                 if (IsPredefinedFault)
                 {
-                    return Name == (version ?? EnvelopeVersion.Soap12).SenderFaultName;
+                    return Name == (_version ?? EnvelopeVersion.Soap12).SenderFaultName;
                 }
 
                 return false;
@@ -92,7 +92,7 @@ namespace CoreWCF
             {
                 if (IsPredefinedFault)
                 {
-                    return Name == (version ?? EnvelopeVersion.Soap12).ReceiverFaultName;
+                    return Name == (_version ?? EnvelopeVersion.Soap12).ReceiverFaultName;
                 }
 
                 return false;
@@ -103,7 +103,7 @@ namespace CoreWCF
         {
             get
             {
-                return ns;
+                return _ns;
             }
         }
 

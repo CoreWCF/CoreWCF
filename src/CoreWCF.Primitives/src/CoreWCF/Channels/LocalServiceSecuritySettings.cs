@@ -14,35 +14,35 @@ namespace CoreWCF.Channels
         internal const string defaultServerIssuedTokenLifetimeString = "10:00:00";
         internal const string defaultServerIssuedTransitionTokenLifetimeString = "00:15:00";
         internal const int defaultServerMaxActiveNegotiations = 128;
-        private int replayCacheSize;
-        private TimeSpan replayWindow;
-        private TimeSpan maxClockSkew;
-        private TimeSpan issuedCookieLifetime;
-        private int maxStatefulNegotiations;
-        private TimeSpan negotiationTimeout;
-        private int maxCachedCookies;
-        private int maxPendingSessions;
-        private TimeSpan inactivityTimeout;
-        private TimeSpan sessionKeyRenewalInterval;
-        private TimeSpan sessionKeyRolloverInterval;
-        private TimeSpan timestampValidityDuration;
+        private int _replayCacheSize;
+        private TimeSpan _replayWindow;
+        private TimeSpan _maxClockSkew;
+        private TimeSpan _issuedCookieLifetime;
+        private int _maxStatefulNegotiations;
+        private TimeSpan _negotiationTimeout;
+        private int _maxCachedCookies;
+        private int _maxPendingSessions;
+        private TimeSpan _inactivityTimeout;
+        private TimeSpan _sessionKeyRenewalInterval;
+        private TimeSpan _sessionKeyRolloverInterval;
+        private TimeSpan _timestampValidityDuration;
 
         private LocalServiceSecuritySettings(LocalServiceSecuritySettings other)
         {
             DetectReplays = other.DetectReplays;
-            replayCacheSize = other.replayCacheSize;
-            replayWindow = other.replayWindow;
-            maxClockSkew = other.maxClockSkew;
-            issuedCookieLifetime = other.issuedCookieLifetime;
-            maxStatefulNegotiations = other.maxStatefulNegotiations;
-            negotiationTimeout = other.negotiationTimeout;
-            maxPendingSessions = other.maxPendingSessions;
-            inactivityTimeout = other.inactivityTimeout;
-            sessionKeyRenewalInterval = other.sessionKeyRenewalInterval;
-            sessionKeyRolloverInterval = other.sessionKeyRolloverInterval;
+            _replayCacheSize = other._replayCacheSize;
+            _replayWindow = other._replayWindow;
+            _maxClockSkew = other._maxClockSkew;
+            _issuedCookieLifetime = other._issuedCookieLifetime;
+            _maxStatefulNegotiations = other._maxStatefulNegotiations;
+            _negotiationTimeout = other._negotiationTimeout;
+            _maxPendingSessions = other._maxPendingSessions;
+            _inactivityTimeout = other._inactivityTimeout;
+            _sessionKeyRenewalInterval = other._sessionKeyRenewalInterval;
+            _sessionKeyRolloverInterval = other._sessionKeyRolloverInterval;
             ReconnectTransportOnFailure = other.ReconnectTransportOnFailure;
-            timestampValidityDuration = other.timestampValidityDuration;
-            maxCachedCookies = other.maxCachedCookies;
+            _timestampValidityDuration = other._timestampValidityDuration;
+            _maxCachedCookies = other._maxCachedCookies;
             NonceCache = other.NonceCache;
         }
 
@@ -52,7 +52,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return replayCacheSize;
+                return _replayCacheSize;
             }
             set
             {
@@ -61,7 +61,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBeNonNegative));
                 }
-                replayCacheSize = value;
+                _replayCacheSize = value;
             }
         }
 
@@ -69,7 +69,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return replayWindow;
+                return _replayWindow;
             }
             set
             {
@@ -85,7 +85,7 @@ namespace CoreWCF.Channels
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                replayWindow = value;
+                _replayWindow = value;
             }
         }
 
@@ -93,7 +93,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxClockSkew;
+                return _maxClockSkew;
             }
             set
             {
@@ -109,7 +109,7 @@ namespace CoreWCF.Channels
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                maxClockSkew = value;
+                _maxClockSkew = value;
             }
         }
 
@@ -119,7 +119,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return issuedCookieLifetime;
+                return _issuedCookieLifetime;
             }
             set
             {
@@ -135,7 +135,7 @@ namespace CoreWCF.Channels
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                issuedCookieLifetime = value;
+                _issuedCookieLifetime = value;
             }
         }
 
@@ -143,7 +143,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxStatefulNegotiations;
+                return _maxStatefulNegotiations;
             }
             set
             {
@@ -152,7 +152,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBeNonNegative));
                 }
-                maxStatefulNegotiations = value;
+                _maxStatefulNegotiations = value;
             }
         }
 
@@ -160,7 +160,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return negotiationTimeout;
+                return _negotiationTimeout;
             }
             set
             {
@@ -176,7 +176,7 @@ namespace CoreWCF.Channels
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                negotiationTimeout = value;
+                _negotiationTimeout = value;
             }
         }
 
@@ -184,7 +184,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxPendingSessions;
+                return _maxPendingSessions;
             }
             set
             {
@@ -193,7 +193,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBeNonNegative));
                 }
-                maxPendingSessions = value;
+                _maxPendingSessions = value;
             }
         }
 
@@ -201,7 +201,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return inactivityTimeout;
+                return _inactivityTimeout;
             }
             set
             {
@@ -217,7 +217,7 @@ namespace CoreWCF.Channels
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                inactivityTimeout = value;
+                _inactivityTimeout = value;
             }
         }
 
@@ -225,7 +225,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return sessionKeyRenewalInterval;
+                return _sessionKeyRenewalInterval;
             }
             set
             {
@@ -241,7 +241,7 @@ namespace CoreWCF.Channels
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                sessionKeyRenewalInterval = value;
+                _sessionKeyRenewalInterval = value;
             }
         }
 
@@ -249,7 +249,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return sessionKeyRolloverInterval;
+                return _sessionKeyRolloverInterval;
             }
             set
             {
@@ -265,7 +265,7 @@ namespace CoreWCF.Channels
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                sessionKeyRolloverInterval = value;
+                _sessionKeyRolloverInterval = value;
             }
         }
 
@@ -275,7 +275,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return timestampValidityDuration;
+                return _timestampValidityDuration;
             }
             set
             {
@@ -291,7 +291,7 @@ namespace CoreWCF.Channels
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                timestampValidityDuration = value;
+                _timestampValidityDuration = value;
             }
         }
 
@@ -299,7 +299,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxCachedCookies;
+                return _maxCachedCookies;
             }
             set
             {
@@ -308,7 +308,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBeNonNegative));
                 }
-                maxCachedCookies = value;
+                _maxCachedCookies = value;
             }
         }
 
@@ -322,13 +322,13 @@ namespace CoreWCF.Channels
             IssuedCookieLifetime = TimeSpan.FromHours(10);
             MaxStatefulNegotiations = 128; //NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxActiveNegotiations;
             NegotiationTimeout = TimeSpan.FromMinutes(1);// NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxNegotiationLifetime;
-            maxPendingSessions = SecuritySessionServerSettings.defaultMaximumPendingSessions;
-            inactivityTimeout = SecuritySessionServerSettings.defaultInactivityTimeout;
-            sessionKeyRenewalInterval = SecuritySessionServerSettings.defaultKeyRenewalInterval;
-            sessionKeyRolloverInterval = SecuritySessionServerSettings.defaultKeyRolloverInterval;
+            _maxPendingSessions = SecuritySessionServerSettings.defaultMaximumPendingSessions;
+            _inactivityTimeout = SecuritySessionServerSettings.defaultInactivityTimeout;
+            _sessionKeyRenewalInterval = SecuritySessionServerSettings.defaultKeyRenewalInterval;
+            _sessionKeyRolloverInterval = SecuritySessionServerSettings.defaultKeyRolloverInterval;
             ReconnectTransportOnFailure = SecuritySessionServerSettings.defaultTolerateTransportFailures;
             TimestampValidityDuration = SecurityProtocolFactory.defaultTimestampValidityDuration;
-            maxCachedCookies = 1000; // NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxCachedTokens;
+            _maxCachedCookies = 1000; // NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxCachedTokens;
             NonceCache = null;
         }
 

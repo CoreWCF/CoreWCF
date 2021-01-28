@@ -10,35 +10,35 @@ namespace CoreWCF.Dispatcher
 {
     internal class ImmutableClientRuntime
     {
-        private readonly IChannelInitializer[] channelInitializers;
-        private readonly IClientMessageInspector[] messageInspectors;
-        private readonly Dictionary<string, ProxyOperationRuntime> operations;
-        private readonly bool useSynchronizationContext;
+        private readonly IChannelInitializer[] _channelInitializers;
+        private readonly IClientMessageInspector[] _messageInspectors;
+        private readonly Dictionary<string, ProxyOperationRuntime> _operations;
+        private readonly bool _useSynchronizationContext;
 
         internal ImmutableClientRuntime(ClientRuntime behavior)
         {
-            channelInitializers = EmptyArray<IChannelInitializer>.ToArray(behavior.ChannelInitializers);
+            _channelInitializers = EmptyArray<IChannelInitializer>.ToArray(behavior.ChannelInitializers);
             //this.interactiveChannelInitializers = EmptyArray<IInteractiveChannelInitializer>.ToArray(behavior.InteractiveChannelInitializers);
-            messageInspectors = EmptyArray<IClientMessageInspector>.ToArray(behavior.MessageInspectors);
+            _messageInspectors = EmptyArray<IClientMessageInspector>.ToArray(behavior.MessageInspectors);
 
             OperationSelector = behavior.OperationSelector;
-            useSynchronizationContext = behavior.UseSynchronizationContext;
+            _useSynchronizationContext = behavior.UseSynchronizationContext;
             ValidateMustUnderstand = behavior.ValidateMustUnderstand;
 
             UnhandledProxyOperation = new ProxyOperationRuntime(behavior.UnhandledClientOperation, this);
 
             //this.addTransactionFlowProperties = behavior.AddTransactionFlowProperties;
 
-            operations = new Dictionary<string, ProxyOperationRuntime>();
+            _operations = new Dictionary<string, ProxyOperationRuntime>();
 
             for (int i = 0; i < behavior.Operations.Count; i++)
             {
                 ClientOperation operation = behavior.Operations[i];
                 ProxyOperationRuntime operationRuntime = new ProxyOperationRuntime(operation, this);
-                operations.Add(operation.Name, operationRuntime);
+                _operations.Add(operation.Name, operationRuntime);
             }
 
-            CorrelationCount = messageInspectors.Length + behavior.MaxParameterInspectors;
+            CorrelationCount = _messageInspectors.Length + behavior.MaxParameterInspectors;
         }
 
         internal int MessageInspectorCorrelationOffset
@@ -48,7 +48,7 @@ namespace CoreWCF.Dispatcher
 
         internal int ParameterInspectorCorrelationOffset
         {
-            get { return messageInspectors.Length; }
+            get { return _messageInspectors.Length; }
         }
 
         internal int CorrelationCount { get; }
@@ -59,7 +59,7 @@ namespace CoreWCF.Dispatcher
 
         internal bool UseSynchronizationContext
         {
-            get { return useSynchronizationContext; }
+            get { return _useSynchronizationContext; }
         }
 
         internal bool ValidateMustUnderstand { get; set; }
@@ -69,9 +69,9 @@ namespace CoreWCF.Dispatcher
             int offset = MessageInspectorCorrelationOffset;
             try
             {
-                for (int i = 0; i < messageInspectors.Length; i++)
+                for (int i = 0; i < _messageInspectors.Length; i++)
                 {
-                    messageInspectors[i].AfterReceiveReply(ref rpc.Reply, rpc.Correlation[offset + i]);
+                    _messageInspectors[i].AfterReceiveReply(ref rpc.Reply, rpc.Correlation[offset + i]);
                     //if (TD.ClientMessageInspectorAfterReceiveInvokedIsEnabled())
                     //{
                     //    TD.ClientMessageInspectorAfterReceiveInvoked(rpc.EventTraceActivity, this.messageInspectors[i].GetType().FullName);
@@ -97,9 +97,9 @@ namespace CoreWCF.Dispatcher
             int offset = MessageInspectorCorrelationOffset;
             try
             {
-                for (int i = 0; i < messageInspectors.Length; i++)
+                for (int i = 0; i < _messageInspectors.Length; i++)
                 {
-                    rpc.Correlation[offset + i] = messageInspectors[i].BeforeSendRequest(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy);
+                    rpc.Correlation[offset + i] = _messageInspectors[i].BeforeSendRequest(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy);
                     //if (TD.ClientMessageInspectorBeforeSendInvokedIsEnabled())
                     //{
                     //    TD.ClientMessageInspectorBeforeSendInvoked(rpc.EventTraceActivity, this.messageInspectors[i].GetType().FullName);
@@ -137,9 +137,9 @@ namespace CoreWCF.Dispatcher
         {
             try
             {
-                for (int i = 0; i < channelInitializers.Length; ++i)
+                for (int i = 0; i < _channelInitializers.Length; ++i)
                 {
-                    channelInitializers[i].Initialize(channel);
+                    _channelInitializers[i].Initialize(channel);
                 }
             }
             catch (Exception e)
@@ -177,7 +177,7 @@ namespace CoreWCF.Dispatcher
                     canCacheResult = true;
                 }
                 string operationName = OperationSelector.SelectOperation(methodBase, args);
-                if ((operationName != null) && operations.TryGetValue(operationName, out ProxyOperationRuntime operation))
+                if ((operationName != null) && _operations.TryGetValue(operationName, out ProxyOperationRuntime operation))
                 {
                     return operation;
                 }
@@ -204,7 +204,7 @@ namespace CoreWCF.Dispatcher
 
         internal ProxyOperationRuntime GetOperationByName(string operationName)
         {
-            if (operations.TryGetValue(operationName, out ProxyOperationRuntime operation))
+            if (_operations.TryGetValue(operationName, out ProxyOperationRuntime operation))
             {
                 return operation;
             }

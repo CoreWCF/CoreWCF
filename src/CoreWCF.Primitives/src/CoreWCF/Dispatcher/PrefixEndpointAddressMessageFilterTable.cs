@@ -9,8 +9,8 @@ namespace CoreWCF.Dispatcher
 {
     internal class PrefixEndpointAddressMessageFilterTable<TFilterData> : EndpointAddressMessageFilterTable<TFilterData>
     {
-        private UriPrefixTable<CandidateSet> toHostTable;
-        private UriPrefixTable<CandidateSet> toNoHostTable;
+        private UriPrefixTable<CandidateSet> _toHostTable;
+        private UriPrefixTable<CandidateSet> _toNoHostTable;
 
         public PrefixEndpointAddressMessageFilterTable()
             : base()
@@ -19,8 +19,8 @@ namespace CoreWCF.Dispatcher
 
         protected override void InitializeLookupTables()
         {
-            toHostTable = new UriPrefixTable<CandidateSet>();
-            toNoHostTable = new UriPrefixTable<CandidateSet>();
+            _toHostTable = new UriPrefixTable<CandidateSet>();
+            _toNoHostTable = new UriPrefixTable<CandidateSet>();
         }
 
         public override void Add(MessageFilter filter, TFilterData data)
@@ -77,7 +77,7 @@ namespace CoreWCF.Dispatcher
 
         private UriPrefixTable<CandidateSet> GetAddressTable(bool includeHostNameInComparison)
         {
-            return includeHostNameInComparison ? toHostTable : toNoHostTable;
+            return includeHostNameInComparison ? _toHostTable : _toNoHostTable;
         }
 
         internal override bool TryMatchCandidateSet(Uri to, bool includeHostNameInComparison, out CandidateSet cset)
@@ -87,8 +87,8 @@ namespace CoreWCF.Dispatcher
 
         protected override void ClearLookupTables()
         {
-            toHostTable = new UriPrefixTable<EndpointAddressMessageFilterTable<TFilterData>.CandidateSet>();
-            toNoHostTable = new UriPrefixTable<EndpointAddressMessageFilterTable<TFilterData>.CandidateSet>();
+            _toHostTable = new UriPrefixTable<EndpointAddressMessageFilterTable<TFilterData>.CandidateSet>();
+            _toNoHostTable = new UriPrefixTable<EndpointAddressMessageFilterTable<TFilterData>.CandidateSet>();
         }
 
         public override bool Remove(MessageFilter filter)
@@ -153,5 +153,4 @@ namespace CoreWCF.Dispatcher
             return true;
         }
     }
-
 }

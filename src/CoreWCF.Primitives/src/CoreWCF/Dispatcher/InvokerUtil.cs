@@ -18,22 +18,22 @@ namespace CoreWCF.Dispatcher
 
     internal sealed class InvokerUtil
     {
-        private readonly CriticalHelper helper;
+        private readonly CriticalHelper _helper;
 
         public InvokerUtil()
         {
-            helper = new CriticalHelper();
+            _helper = new CriticalHelper();
         }
 
         internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
         {
-            return helper.GenerateCreateInstanceDelegate(type, constructor);
+            return _helper.GenerateCreateInstanceDelegate(type, constructor);
         }
 
         internal InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount,
             out int outputParameterCount)
         {
-            return helper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
+            return _helper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
         }
 
         //internal InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
@@ -50,7 +50,6 @@ namespace CoreWCF.Dispatcher
         {
             internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
             {
-
                 if (type.GetTypeInfo().IsValueType)
                 {
                     MethodInfo method = typeof(CriticalHelper).GetMethod(nameof(CreateInstanceOfStruct),

@@ -708,5 +708,4 @@ namespace CoreWCF.Channels
         public IServiceChannelDispatcher ChannelDispatcher { get => ((IChannel)_serviceChannel).ChannelDispatcher; set => ((IChannel)_serviceChannel).ChannelDispatcher = value; }
         #endregion // Channel interfaces
     }
-
 }

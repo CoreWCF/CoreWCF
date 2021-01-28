@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
 {
     internal class TextMessageEncoderFactory : MessageEncoderFactory
     {
-        private readonly TextMessageEncoder messageEncoder;
+        private readonly TextMessageEncoder _messageEncoder;
         //internal static ContentEncoding[] Soap11Content = GetContentEncodingMap(MessageVersion.Soap11WSAddressing10);
         // I believe replacing Soap11WSAddressing10 with Soap11 should work
         internal static ContentEncoding[] Soap11Content = GetContentEncodingMap(MessageVersion.Soap11);
@@ -28,27 +28,27 @@ namespace CoreWCF.Channels
 
         public TextMessageEncoderFactory(MessageVersion version, Encoding writeEncoding, int maxReadPoolSize, int maxWritePoolSize, XmlDictionaryReaderQuotas quotas)
         {
-            messageEncoder = new TextMessageEncoder(version, writeEncoding, maxReadPoolSize, maxWritePoolSize, quotas);
+            _messageEncoder = new TextMessageEncoder(version, writeEncoding, maxReadPoolSize, maxWritePoolSize, quotas);
         }
 
         public override MessageEncoder Encoder
         {
-            get { return messageEncoder; }
+            get { return _messageEncoder; }
         }
 
         public override MessageVersion MessageVersion
         {
-            get { return messageEncoder.MessageVersion; }
+            get { return _messageEncoder.MessageVersion; }
         }
 
         public int MaxWritePoolSize
         {
-            get { return messageEncoder.MaxWritePoolSize; }
+            get { return _messageEncoder.MaxWritePoolSize; }
         }
 
         public int MaxReadPoolSize
         {
-            get { return messageEncoder.MaxReadPoolSize; }
+            get { return _messageEncoder.MaxReadPoolSize; }
         }
 
         public static Encoding[] GetSupportedEncodings()
@@ -63,7 +63,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return messageEncoder.ReaderQuotas;
+                return _messageEncoder.ReaderQuotas;
             }
         }
 
@@ -248,23 +248,23 @@ namespace CoreWCF.Channels
 
         private class TextMessageEncoder : MessageEncoder
         {
-            private readonly int maxWritePoolSize;
+            private readonly int _maxWritePoolSize;
 
             // Double-checked locking pattern requires volatile for read/write synchronization
-            private volatile SynchronizedPool<XmlDictionaryWriter> streamedWriterPool;
-            private volatile SynchronizedPool<XmlDictionaryReader> streamedReaderPool;
-            private volatile SynchronizedPool<UTF8BufferedMessageData> bufferedReaderPool;
-            private volatile SynchronizedPool<TextBufferedMessageWriter> bufferedWriterPool;
-            private volatile SynchronizedPool<RecycledMessageState> recycledStatePool;
-            private readonly string contentType;
-            private readonly string mediaType;
-            private readonly Encoding writeEncoding;
-            private readonly MessageVersion version;
-            private readonly bool optimizeWriteForUTF8;
+            private volatile SynchronizedPool<XmlDictionaryWriter> _streamedWriterPool;
+            private volatile SynchronizedPool<XmlDictionaryReader> _streamedReaderPool;
+            private volatile SynchronizedPool<UTF8BufferedMessageData> _bufferedReaderPool;
+            private volatile SynchronizedPool<TextBufferedMessageWriter> _bufferedWriterPool;
+            private volatile SynchronizedPool<RecycledMessageState> _recycledStatePool;
+            private readonly string _contentType;
+            private readonly string _mediaType;
+            private readonly Encoding _writeEncoding;
+            private readonly MessageVersion _version;
+            private readonly bool _optimizeWriteForUTF8;
             private const int maxPooledXmlReadersPerMessage = 2;
-            private readonly XmlDictionaryReaderQuotas bufferedReadReaderQuotas;
-            private readonly OnXmlDictionaryReaderClose onStreamedReaderClose;
-            private readonly ContentEncoding[] contentEncodingMap;
+            private readonly XmlDictionaryReaderQuotas _bufferedReadReaderQuotas;
+            private readonly OnXmlDictionaryReaderClose _onStreamedReaderClose;
+            private readonly ContentEncoding[] _contentEncodingMap;
 
             public TextMessageEncoder(MessageVersion version, Encoding writeEncoding, int maxReadPoolSize, int maxWritePoolSize, XmlDictionaryReaderQuotas quotas)
             {
@@ -279,35 +279,35 @@ namespace CoreWCF.Channels
                 }
 
                 TextEncoderDefaults.ValidateEncoding(writeEncoding);
-                this.writeEncoding = writeEncoding;
-                optimizeWriteForUTF8 = IsUTF8Encoding(writeEncoding);
+                _writeEncoding = writeEncoding;
+                _optimizeWriteForUTF8 = IsUTF8Encoding(writeEncoding);
 
                 ThisLock = new object();
 
-                this.version = version;
+                _version = version;
                 MaxReadPoolSize = maxReadPoolSize;
-                this.maxWritePoolSize = maxWritePoolSize;
+                _maxWritePoolSize = maxWritePoolSize;
 
                 ReaderQuotas = new XmlDictionaryReaderQuotas();
                 quotas.CopyTo(ReaderQuotas);
 
-                bufferedReadReaderQuotas = EncoderHelpers.GetBufferedReadQuotas(ReaderQuotas);
+                _bufferedReadReaderQuotas = EncoderHelpers.GetBufferedReadQuotas(ReaderQuotas);
 
-                onStreamedReaderClose = new OnXmlDictionaryReaderClose(ReturnStreamedReader);
+                _onStreamedReaderClose = new OnXmlDictionaryReaderClose(ReturnStreamedReader);
 
-                mediaType = TextMessageEncoderFactory.GetMediaType(version);
-                contentType = TextMessageEncoderFactory.GetContentType(mediaType, writeEncoding);
+                _mediaType = TextMessageEncoderFactory.GetMediaType(version);
+                _contentType = TextMessageEncoderFactory.GetContentType(_mediaType, writeEncoding);
                 if (version.Envelope == EnvelopeVersion.Soap12)
                 {
-                    contentEncodingMap = TextMessageEncoderFactory.Soap12Content;
+                    _contentEncodingMap = TextMessageEncoderFactory.Soap12Content;
                 }
                 else if (version.Envelope == EnvelopeVersion.Soap11)
                 {
-                    contentEncodingMap = TextMessageEncoderFactory.Soap11Content;
+                    _contentEncodingMap = TextMessageEncoderFactory.Soap11Content;
                 }
                 else if (version.Envelope == EnvelopeVersion.None)
                 {
-                    contentEncodingMap = TextMessageEncoderFactory.SoapNoneContent;
+                    _contentEncodingMap = TextMessageEncoderFactory.SoapNoneContent;
                 }
                 else
                 {
@@ -323,12 +323,12 @@ namespace CoreWCF.Channels
 
             public override string ContentType
             {
-                get { return contentType; }
+                get { return _contentType; }
             }
 
             public int MaxWritePoolSize
             {
-                get { return maxWritePoolSize; }
+                get { return _maxWritePoolSize; }
             }
 
             public int MaxReadPoolSize { get; }
@@ -337,12 +337,12 @@ namespace CoreWCF.Channels
 
             public override string MediaType
             {
-                get { return mediaType; }
+                get { return _mediaType; }
             }
 
             public override MessageVersion MessageVersion
             {
-                get { return version; }
+                get { return _version; }
             }
 
             private object ThisLock { get; }
@@ -405,7 +405,7 @@ namespace CoreWCF.Channels
                 Message message;
 
                 UTF8BufferedMessageData messageData = TakeBufferedReader();
-                messageData.Encoding = GetEncodingFromContentType(contentType, contentEncodingMap);
+                messageData.Encoding = GetEncodingFromContentType(contentType, _contentEncodingMap);
                 messageData.Open(buffer, bufferManager);
                 RecycledMessageState messageState = messageData.TakeMessageState();
                 if (messageState == null)
@@ -427,8 +427,8 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(stream)));
                 }
 
-                XmlReader reader = TakeStreamedReader(stream, GetEncodingFromContentType(contentType, contentEncodingMap));
-                Message message = Message.CreateMessage(reader, maxSizeOfHeaders, version);
+                XmlReader reader = TakeStreamedReader(stream, GetEncodingFromContentType(contentType, _contentEncodingMap));
+                Message message = Message.CreateMessage(reader, maxSizeOfHeaders, _version);
                 message.Properties.Encoder = this;
 
                 return Task.FromResult(message);
@@ -484,7 +484,7 @@ namespace CoreWCF.Channels
 
                 message.Properties.Encoder = this;
                 XmlDictionaryWriter xmlWriter = TakeStreamedWriter(stream);
-                if (optimizeWriteForUTF8)
+                if (_optimizeWriteForUTF8)
                 {
                     await message.WriteMessageAsync(xmlWriter);
                 }
@@ -502,20 +502,20 @@ namespace CoreWCF.Channels
 
             private XmlDictionaryWriter TakeStreamedWriter(Stream stream)
             {
-                if (streamedWriterPool == null)
+                if (_streamedWriterPool == null)
                 {
                     lock (ThisLock)
                     {
-                        if (streamedWriterPool == null)
+                        if (_streamedWriterPool == null)
                         {
-                            streamedWriterPool = new SynchronizedPool<XmlDictionaryWriter>(maxWritePoolSize);
+                            _streamedWriterPool = new SynchronizedPool<XmlDictionaryWriter>(_maxWritePoolSize);
                         }
                     }
                 }
-                XmlDictionaryWriter xmlWriter = streamedWriterPool.Take();
+                XmlDictionaryWriter xmlWriter = _streamedWriterPool.Take();
                 if (xmlWriter == null)
                 {
-                    xmlWriter = XmlDictionaryWriter.CreateTextWriter(stream, writeEncoding, false);
+                    xmlWriter = XmlDictionaryWriter.CreateTextWriter(stream, _writeEncoding, false);
                 }
                 // TODO: Use the reinitialization API's once moved to .Net Standard 2.0
                 //else
@@ -534,18 +534,18 @@ namespace CoreWCF.Channels
 
             private TextBufferedMessageWriter TakeBufferedWriter()
             {
-                if (bufferedWriterPool == null)
+                if (_bufferedWriterPool == null)
                 {
                     lock (ThisLock)
                     {
-                        if (bufferedWriterPool == null)
+                        if (_bufferedWriterPool == null)
                         {
-                            bufferedWriterPool = new SynchronizedPool<TextBufferedMessageWriter>(maxWritePoolSize);
+                            _bufferedWriterPool = new SynchronizedPool<TextBufferedMessageWriter>(_maxWritePoolSize);
                         }
                     }
                 }
 
-                TextBufferedMessageWriter messageWriter = bufferedWriterPool.Take();
+                TextBufferedMessageWriter messageWriter = _bufferedWriterPool.Take();
                 if (messageWriter == null)
                 {
                     messageWriter = new TextBufferedMessageWriter(this);
@@ -555,22 +555,22 @@ namespace CoreWCF.Channels
 
             private void ReturnMessageWriter(TextBufferedMessageWriter messageWriter)
             {
-                bufferedWriterPool.Return(messageWriter);
+                _bufferedWriterPool.Return(messageWriter);
             }
 
             private XmlReader TakeStreamedReader(Stream stream, Encoding enc)
             {
-                if (streamedReaderPool == null)
+                if (_streamedReaderPool == null)
                 {
                     lock (ThisLock)
                     {
-                        if (streamedReaderPool == null)
+                        if (_streamedReaderPool == null)
                         {
-                            streamedReaderPool = new SynchronizedPool<XmlDictionaryReader>(MaxReadPoolSize);
+                            _streamedReaderPool = new SynchronizedPool<XmlDictionaryReader>(MaxReadPoolSize);
                         }
                     }
                 }
-                XmlDictionaryReader xmlReader = streamedReaderPool.Take();
+                XmlDictionaryReader xmlReader = _streamedReaderPool.Take();
                 if (xmlReader == null)
                 {
                     xmlReader = XmlDictionaryReader.CreateTextReader(stream, enc, ReaderQuotas, null);
@@ -585,27 +585,27 @@ namespace CoreWCF.Channels
 
             private void ReturnStreamedReader(XmlDictionaryReader xmlReader)
             {
-                streamedReaderPool.Return(xmlReader);
+                _streamedReaderPool.Return(xmlReader);
             }
 
             private XmlDictionaryWriter CreateWriter(Stream stream)
             {
-                return XmlDictionaryWriter.CreateTextWriter(stream, writeEncoding, false);
+                return XmlDictionaryWriter.CreateTextWriter(stream, _writeEncoding, false);
             }
 
             private UTF8BufferedMessageData TakeBufferedReader()
             {
-                if (bufferedReaderPool == null)
+                if (_bufferedReaderPool == null)
                 {
                     lock (ThisLock)
                     {
-                        if (bufferedReaderPool == null)
+                        if (_bufferedReaderPool == null)
                         {
-                            bufferedReaderPool = new SynchronizedPool<UTF8BufferedMessageData>(MaxReadPoolSize);
+                            _bufferedReaderPool = new SynchronizedPool<UTF8BufferedMessageData>(MaxReadPoolSize);
                         }
                     }
                 }
-                UTF8BufferedMessageData messageData = bufferedReaderPool.Take();
+                UTF8BufferedMessageData messageData = _bufferedReaderPool.Take();
                 if (messageData == null)
                 {
                     messageData = new UTF8BufferedMessageData(this, maxPooledXmlReadersPerMessage);
@@ -615,75 +615,75 @@ namespace CoreWCF.Channels
 
             private void ReturnBufferedData(UTF8BufferedMessageData messageData)
             {
-                bufferedReaderPool.Return(messageData);
+                _bufferedReaderPool.Return(messageData);
             }
 
             private SynchronizedPool<RecycledMessageState> RecycledStatePool
             {
                 get
                 {
-                    if (recycledStatePool == null)
+                    if (_recycledStatePool == null)
                     {
                         lock (ThisLock)
                         {
-                            if (recycledStatePool == null)
+                            if (_recycledStatePool == null)
                             {
-                                recycledStatePool = new SynchronizedPool<RecycledMessageState>(MaxReadPoolSize);
+                                _recycledStatePool = new SynchronizedPool<RecycledMessageState>(MaxReadPoolSize);
                             }
                         }
                     }
-                    return recycledStatePool;
+                    return _recycledStatePool;
                 }
             }
 
-            private static readonly byte[] xmlDeclarationStartText = { (byte)'<', (byte)'?', (byte)'x', (byte)'m', (byte)'l' };
-            private static readonly byte[] version10Text = { (byte)'v', (byte)'e', (byte)'r', (byte)'s', (byte)'i', (byte)'o', (byte)'n', (byte)'=', (byte)'"', (byte)'1', (byte)'.', (byte)'0', (byte)'"' };
-            private static readonly byte[] encodingText = { (byte)'e', (byte)'n', (byte)'c', (byte)'o', (byte)'d', (byte)'i', (byte)'n', (byte)'g', (byte)'=' };
+            private static readonly byte[] s_xmlDeclarationStartText = { (byte)'<', (byte)'?', (byte)'x', (byte)'m', (byte)'l' };
+            private static readonly byte[] s_version10Text = { (byte)'v', (byte)'e', (byte)'r', (byte)'s', (byte)'i', (byte)'o', (byte)'n', (byte)'=', (byte)'"', (byte)'1', (byte)'.', (byte)'0', (byte)'"' };
+            private static readonly byte[] s_encodingText = { (byte)'e', (byte)'n', (byte)'c', (byte)'o', (byte)'d', (byte)'i', (byte)'n', (byte)'g', (byte)'=' };
 
             private class UTF8BufferedMessageData : BufferedMessageData
             {
-                private readonly TextMessageEncoder messageEncoder;
-                private readonly Pool<XmlDictionaryReader> readerPool;
-                private readonly OnXmlDictionaryReaderClose onClose;
-                private Encoding encoding;
+                private readonly TextMessageEncoder _messageEncoder;
+                private readonly Pool<XmlDictionaryReader> _readerPool;
+                private readonly OnXmlDictionaryReaderClose _onClose;
+                private Encoding _encoding;
                 private const int additionalNodeSpace = 1024;
 
                 public UTF8BufferedMessageData(TextMessageEncoder messageEncoder, int maxReaderPoolSize)
                     : base(messageEncoder.RecycledStatePool)
                 {
-                    this.messageEncoder = messageEncoder;
-                    readerPool = new Pool<XmlDictionaryReader>(maxReaderPoolSize);
-                    onClose = new OnXmlDictionaryReaderClose(OnXmlReaderClosed);
+                    _messageEncoder = messageEncoder;
+                    _readerPool = new Pool<XmlDictionaryReader>(maxReaderPoolSize);
+                    _onClose = new OnXmlDictionaryReaderClose(OnXmlReaderClosed);
                 }
 
                 internal Encoding Encoding
                 {
                     set
                     {
-                        encoding = value;
+                        _encoding = value;
                     }
                 }
 
                 public override MessageEncoder MessageEncoder
                 {
-                    get { return messageEncoder; }
+                    get { return _messageEncoder; }
                 }
 
                 public override XmlDictionaryReaderQuotas Quotas
                 {
-                    get { return messageEncoder.bufferedReadReaderQuotas; }
+                    get { return _messageEncoder._bufferedReadReaderQuotas; }
                 }
 
                 protected override void OnClosed()
                 {
-                    messageEncoder.ReturnBufferedData(this);
+                    _messageEncoder.ReturnBufferedData(this);
                 }
 
                 protected override XmlDictionaryReader TakeXmlReader()
                 {
                     ArraySegment<byte> buffer = Buffer;
 
-                    XmlDictionaryReader xmlReader = readerPool.Take();
+                    XmlDictionaryReader xmlReader = _readerPool.Take();
                     if (xmlReader == null)
                     {
                         // TODO: Use the reinitialization API's once moved to .Net Standard 2.0
@@ -702,24 +702,24 @@ namespace CoreWCF.Channels
                 {
                     if (xmlReader != null)
                     {
-                        readerPool.Return(xmlReader);
+                        _readerPool.Return(xmlReader);
                     }
                 }
             }
 
             private class TextBufferedMessageWriter : BufferedMessageWriter
             {
-                private readonly TextMessageEncoder messageEncoder;
+                private readonly TextMessageEncoder _messageEncoder;
                 //XmlDictionaryWriter writer;
 
                 public TextBufferedMessageWriter(TextMessageEncoder messageEncoder)
                 {
-                    this.messageEncoder = messageEncoder;
+                    _messageEncoder = messageEncoder;
                 }
 
                 protected override void OnWriteStartMessage(XmlDictionaryWriter writer)
                 {
-                    if (!messageEncoder.optimizeWriteForUTF8)
+                    if (!_messageEncoder._optimizeWriteForUTF8)
                     {
                         writer.WriteStartDocument();
                     }
@@ -727,7 +727,7 @@ namespace CoreWCF.Channels
 
                 protected override void OnWriteEndMessage(XmlDictionaryWriter writer)
                 {
-                    if (!messageEncoder.optimizeWriteForUTF8)
+                    if (!_messageEncoder._optimizeWriteForUTF8)
                     {
                         writer.WriteEndDocument();
                     }
@@ -735,7 +735,7 @@ namespace CoreWCF.Channels
 
                 protected override XmlDictionaryWriter TakeXmlWriter(Stream stream)
                 {
-                    if (messageEncoder.optimizeWriteForUTF8)
+                    if (_messageEncoder._optimizeWriteForUTF8)
                     {
                         //XmlDictionaryWriter returnedWriter = writer;
                         //if (returnedWriter == null)
@@ -749,11 +749,11 @@ namespace CoreWCF.Channels
                         //}
                         //return returnedWriter;
                         // TODO: Use IXmlTextWriterInitializer when moved to .Net Standard 2.0
-                        return XmlDictionaryWriter.CreateTextWriter(stream, messageEncoder.writeEncoding, false);
+                        return XmlDictionaryWriter.CreateTextWriter(stream, _messageEncoder._writeEncoding, false);
                     }
                     else
                     {
-                        return messageEncoder.CreateWriter(stream);
+                        return _messageEncoder.CreateWriter(stream);
                     }
                 }
 
@@ -773,5 +773,4 @@ namespace CoreWCF.Channels
             }
         }
     }
-
 }

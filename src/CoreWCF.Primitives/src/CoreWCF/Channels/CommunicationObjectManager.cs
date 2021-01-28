@@ -98,5 +98,4 @@ namespace CoreWCF.Channels
             }
         }
     }
-
 }

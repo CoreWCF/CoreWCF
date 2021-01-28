@@ -10,8 +10,8 @@ namespace CoreWCF.Security
 {
     internal class SecurityTokenParametersEnumerable : IEnumerable<SecurityTokenParameters>
     {
-        private readonly SecurityBindingElement sbe;
-        private readonly bool clientTokensOnly;
+        private readonly SecurityBindingElement _sbe;
+        private readonly bool _clientTokensOnly;
 
         public SecurityTokenParametersEnumerable(SecurityBindingElement sbe)
             : this(sbe, false) { }
@@ -23,16 +23,16 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("sbe");
             }
 
-            this.sbe = sbe;
-            this.clientTokensOnly = clientTokensOnly;
+            _sbe = sbe;
+            _clientTokensOnly = clientTokensOnly;
         }
 
         public IEnumerator<SecurityTokenParameters> GetEnumerator()
         {
-            if (sbe is SymmetricSecurityBindingElement)
+            if (_sbe is SymmetricSecurityBindingElement)
             {
-                SymmetricSecurityBindingElement ssbe = (SymmetricSecurityBindingElement)sbe;
-                if (ssbe.ProtectionTokenParameters != null && (!clientTokensOnly || !ssbe.ProtectionTokenParameters.HasAsymmetricKey))
+                SymmetricSecurityBindingElement ssbe = (SymmetricSecurityBindingElement)_sbe;
+                if (ssbe.ProtectionTokenParameters != null && (!_clientTokensOnly || !ssbe.ProtectionTokenParameters.HasAsymmetricKey))
                 {
                     yield return ssbe.ProtectionTokenParameters;
                 }
@@ -46,7 +46,7 @@ namespace CoreWCF.Security
                  if (asbe.RecipientTokenParameters != null && !this.clientTokensOnly)
                      yield return asbe.RecipientTokenParameters;
              }*/
-            foreach (SecurityTokenParameters stp in sbe.EndpointSupportingTokenParameters.Endorsing)
+            foreach (SecurityTokenParameters stp in _sbe.EndpointSupportingTokenParameters.Endorsing)
             {
                 if (stp != null)
                 {
@@ -54,7 +54,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            foreach (SecurityTokenParameters stp in sbe.EndpointSupportingTokenParameters.SignedEncrypted)
+            foreach (SecurityTokenParameters stp in _sbe.EndpointSupportingTokenParameters.SignedEncrypted)
             {
                 if (stp != null)
                 {
@@ -62,7 +62,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            foreach (SecurityTokenParameters stp in sbe.EndpointSupportingTokenParameters.SignedEndorsing)
+            foreach (SecurityTokenParameters stp in _sbe.EndpointSupportingTokenParameters.SignedEndorsing)
             {
                 if (stp != null)
                 {
@@ -70,7 +70,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            foreach (SecurityTokenParameters stp in sbe.EndpointSupportingTokenParameters.Signed)
+            foreach (SecurityTokenParameters stp in _sbe.EndpointSupportingTokenParameters.Signed)
             {
                 if (stp != null)
                 {
@@ -78,7 +78,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            foreach (SupportingTokenParameters str in sbe.OperationSupportingTokenParameters.Values)
+            foreach (SupportingTokenParameters str in _sbe.OperationSupportingTokenParameters.Values)
             {
                 if (str != null)
                 {

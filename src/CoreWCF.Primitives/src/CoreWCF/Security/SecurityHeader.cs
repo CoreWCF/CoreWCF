@@ -10,15 +10,15 @@ namespace CoreWCF.Security
 {
     internal abstract class SecurityHeader : MessageHeader
     {
-        private readonly string actor;
-        private bool encryptedKeyContainsReferenceList = true;
-        private readonly bool mustUnderstand;
-        private readonly bool relay;
-        private bool requireMessageProtection = true;
-        private bool processingStarted;
-        private bool maintainSignatureConfirmationState;
-        private readonly MessageDirection transferDirection;
-        private SecurityHeaderLayout layout = SecurityHeaderLayout.Strict;
+        private readonly string _actor;
+        private bool _encryptedKeyContainsReferenceList = true;
+        private readonly bool _mustUnderstand;
+        private readonly bool _relay;
+        private bool _requireMessageProtection = true;
+        private bool _processingStarted;
+        private bool _maintainSignatureConfirmationState;
+        private readonly MessageDirection _transferDirection;
+        private SecurityHeaderLayout _layout = SecurityHeaderLayout.Strict;
 
         public SecurityHeader(Message message,
             string actor, bool mustUnderstand, bool relay,
@@ -44,81 +44,81 @@ namespace CoreWCF.Security
             }
 
             Message = message;
-            this.actor = actor;
-            this.mustUnderstand = mustUnderstand;
-            this.relay = relay;
+            _actor = actor;
+            _mustUnderstand = mustUnderstand;
+            _relay = relay;
             StandardsManager = standardsManager;
             AlgorithmSuite = algorithmSuite;
-            this.transferDirection = transferDirection;
+            _transferDirection = transferDirection;
         }
 
-        public override string Actor => actor;
+        public override string Actor => _actor;
 
         public SecurityAlgorithmSuite AlgorithmSuite { get; }
 
         public bool EncryptedKeyContainsReferenceList
         {
-            get { return encryptedKeyContainsReferenceList; }
+            get { return _encryptedKeyContainsReferenceList; }
             set
             {
                 ThrowIfProcessingStarted();
-                encryptedKeyContainsReferenceList = value;
+                _encryptedKeyContainsReferenceList = value;
             }
         }
 
         public bool RequireMessageProtection
         {
-            get { return requireMessageProtection; }
+            get { return _requireMessageProtection; }
             set
             {
                 ThrowIfProcessingStarted();
-                requireMessageProtection = value;
+                _requireMessageProtection = value;
             }
         }
 
         public bool MaintainSignatureConfirmationState
         {
-            get { return maintainSignatureConfirmationState; }
+            get { return _maintainSignatureConfirmationState; }
             set
             {
                 ThrowIfProcessingStarted();
-                maintainSignatureConfirmationState = value;
+                _maintainSignatureConfirmationState = value;
             }
         }
 
         protected Message Message { get; set; }
 
-        public override bool MustUnderstand => mustUnderstand;
+        public override bool MustUnderstand => _mustUnderstand;
 
-        public override bool Relay => relay;
+        public override bool Relay => _relay;
 
         public SecurityHeaderLayout Layout
         {
             get
             {
-                return layout;
+                return _layout;
             }
             set
             {
                 ThrowIfProcessingStarted();
-                layout = value;
+                _layout = value;
             }
         }
 
         public SecurityStandardsManager StandardsManager { get; }
 
-        public MessageDirection MessageDirection => transferDirection;
+        public MessageDirection MessageDirection => _transferDirection;
 
         protected MessageVersion Version => Message.Version;
 
         protected void SetProcessingStarted()
         {
-            processingStarted = true;
+            _processingStarted = true;
         }
 
         protected void ThrowIfProcessingStarted()
         {
-            if (processingStarted)
+            if (_processingStarted)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.OperationCannotBeDoneAfterProcessingIsStarted));
             }

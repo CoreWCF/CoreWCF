@@ -64,6 +64,5 @@ namespace CoreWCF.Security
                 return 1;
             }
         }
-
     }
 }

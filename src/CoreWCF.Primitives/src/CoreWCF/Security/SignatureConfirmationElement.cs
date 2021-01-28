@@ -9,8 +9,8 @@ namespace CoreWCF.Security
 {
     internal class SignatureConfirmationElement : ISignatureValueSecurityElement
     {
-        private readonly SecurityVersion version;
-        private readonly byte[] signatureValue;
+        private readonly SecurityVersion _version;
+        private readonly byte[] _signatureValue;
 
         public SignatureConfirmationElement(string id, byte[] signatureValue, SecurityVersion version)
         {
@@ -23,8 +23,8 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(signatureValue));
             }
             Id = id;
-            this.signatureValue = signatureValue;
-            this.version = version;
+            _signatureValue = signatureValue;
+            _version = version;
         }
 
         public bool HasId => true;
@@ -33,12 +33,12 @@ namespace CoreWCF.Security
 
         public byte[] GetSignatureValue()
         {
-            return signatureValue;
+            return _signatureValue;
         }
 
         public void WriteTo(XmlDictionaryWriter writer, DictionaryManager dictionaryManager)
         {
-            version.WriteSignatureConfirmation(writer, Id, signatureValue);
+            _version.WriteSignatureConfirmation(writer, Id, _signatureValue);
         }
     }
 }

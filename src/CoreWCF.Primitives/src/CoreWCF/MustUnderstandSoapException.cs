@@ -11,27 +11,27 @@ namespace CoreWCF
     //[Serializable]
     internal class MustUnderstandSoapException : CommunicationException
     {
-        private readonly EnvelopeVersion envelopeVersion;
+        private readonly EnvelopeVersion _envelopeVersion;
 
         public MustUnderstandSoapException(Collection<MessageHeaderInfo> notUnderstoodHeaders, EnvelopeVersion envelopeVersion)
         {
             NotUnderstoodHeaders = notUnderstoodHeaders;
-            this.envelopeVersion = envelopeVersion;
+            _envelopeVersion = envelopeVersion;
         }
 
         public Collection<MessageHeaderInfo> NotUnderstoodHeaders { get; }
-        public EnvelopeVersion EnvelopeVersion { get { return envelopeVersion; } }
+        public EnvelopeVersion EnvelopeVersion { get { return _envelopeVersion; } }
 
         internal Message ProvideFault(MessageVersion messageVersion)
         {
             string name = NotUnderstoodHeaders[0].Name;
             string ns = NotUnderstoodHeaders[0].Namespace;
-            FaultCode code = new FaultCode(MessageStrings.MustUnderstandFault, envelopeVersion.Namespace);
+            FaultCode code = new FaultCode(MessageStrings.MustUnderstandFault, _envelopeVersion.Namespace);
             FaultReason reason = new FaultReason(SR.Format(SR.SFxHeaderNotUnderstood, name, ns), CultureInfo.CurrentCulture);
             MessageFault fault = MessageFault.CreateFault(code, reason);
             string faultAction = messageVersion.Addressing.DefaultFaultAction;
             Message message = CoreWCF.Channels.Message.CreateMessage(messageVersion, fault, faultAction);
-            if (envelopeVersion == EnvelopeVersion.Soap12)
+            if (_envelopeVersion == EnvelopeVersion.Soap12)
             {
                 AddNotUnderstoodHeaders(message.Headers);
             }
@@ -48,13 +48,13 @@ namespace CoreWCF
 
         private class NotUnderstoodHeader : MessageHeader
         {
-            private readonly string notUnderstoodName;
-            private readonly string notUnderstoodNs;
+            private readonly string _notUnderstoodName;
+            private readonly string _notUnderstoodNs;
 
             public NotUnderstoodHeader(string name, string ns)
             {
-                notUnderstoodName = name;
-                notUnderstoodNs = ns;
+                _notUnderstoodName = name;
+                _notUnderstoodNs = ns;
             }
 
             public override string Name
@@ -70,9 +70,9 @@ namespace CoreWCF
             protected override void OnWriteStartHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
                 writer.WriteStartElement(Name, Namespace);
-                writer.WriteXmlnsAttribute(null, notUnderstoodNs);
+                writer.WriteXmlnsAttribute(null, _notUnderstoodNs);
                 writer.WriteStartAttribute(Message12Strings.QName);
-                writer.WriteQualifiedName(notUnderstoodName, notUnderstoodNs);
+                writer.WriteQualifiedName(_notUnderstoodName, _notUnderstoodNs);
                 writer.WriteEndAttribute();
             }
 
@@ -82,5 +82,4 @@ namespace CoreWCF
             }
         }
     }
-
 }

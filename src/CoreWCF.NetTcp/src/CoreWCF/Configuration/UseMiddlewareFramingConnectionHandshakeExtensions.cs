@@ -18,7 +18,7 @@ namespace CoreWCF.Configuration
     {
         internal const string OnConnectedAsyncMethodName = "OnConnectedAsync";
 
-        private static readonly MethodInfo GetServiceInfo = typeof(UseMiddlewareFramingConnectionHandshakeExtensions).GetMethod(nameof(GetService), BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly MethodInfo s_getServiceInfo = typeof(UseMiddlewareFramingConnectionHandshakeExtensions).GetMethod(nameof(GetService), BindingFlags.NonPublic | BindingFlags.Static);
 
         /// <summary>
         /// Adds a middleware type to the connection handshake pipeline.
@@ -152,7 +152,7 @@ namespace CoreWCF.Configuration
                     Expression.Constant(methodInfo.DeclaringType, typeof(Type))
                 };
 
-                var getServiceCall = Expression.Call(GetServiceInfo, parameterTypeExpression);
+                var getServiceCall = Expression.Call(s_getServiceInfo, parameterTypeExpression);
                 methodArguments[i] = Expression.Convert(getServiceCall, parameterType);
             }
 

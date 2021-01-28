@@ -8,11 +8,11 @@ namespace CoreWCF.Channels
 {
     internal sealed class UnderstoodHeaders : IEnumerable<MessageHeaderInfo>
     {
-        private readonly MessageHeaders messageHeaders;
+        private readonly MessageHeaders _messageHeaders;
 
         internal UnderstoodHeaders(MessageHeaders messageHeaders, bool modified)
         {
-            this.messageHeaders = messageHeaders;
+            _messageHeaders = messageHeaders;
             Modified = modified;
         }
 
@@ -20,13 +20,13 @@ namespace CoreWCF.Channels
 
         public void Add(MessageHeaderInfo headerInfo)
         {
-            messageHeaders.AddUnderstood(headerInfo);
+            _messageHeaders.AddUnderstood(headerInfo);
             Modified = true;
         }
 
         public bool Contains(MessageHeaderInfo headerInfo)
         {
-            return messageHeaders.IsUnderstood(headerInfo);
+            return _messageHeaders.IsUnderstood(headerInfo);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -36,12 +36,12 @@ namespace CoreWCF.Channels
 
         public IEnumerator<MessageHeaderInfo> GetEnumerator()
         {
-            return messageHeaders.GetUnderstoodEnumerator();
+            return _messageHeaders.GetUnderstoodEnumerator();
         }
 
         public void Remove(MessageHeaderInfo headerInfo)
         {
-            messageHeaders.RemoveUnderstood(headerInfo);
+            _messageHeaders.RemoveUnderstood(headerInfo);
             Modified = true;
         }
     }

@@ -11,7 +11,7 @@ namespace CoreWCF
 {
     public class MessageHeader<T>
     {
-        private bool relay;
+        private bool _relay;
 
         public MessageHeader()
         {
@@ -27,7 +27,7 @@ namespace CoreWCF
             Content = content;
             MustUnderstand = mustUnderstand;
             Actor = actor;
-            this.relay = relay;
+            _relay = relay;
         }
 
         public string Actor { get; set; }
@@ -38,8 +38,8 @@ namespace CoreWCF
 
         public bool Relay
         {
-            get { return relay; }
-            set { relay = value; }
+            get { return _relay; }
+            set { _relay = value; }
         }
 
         internal Type GetGenericArgument()
@@ -49,7 +49,7 @@ namespace CoreWCF
 
         public MessageHeader GetUntypedHeader(string name, string ns)
         {
-            return MessageHeader.CreateHeader(name, ns, Content, MustUnderstand, Actor, relay);
+            return MessageHeader.CreateHeader(name, ns, Content, MustUnderstand, Actor, _relay);
         }
     }
 
@@ -62,9 +62,9 @@ namespace CoreWCF
     // you'd still have the creation problem...).  the issue with that is you now have a new public interface
     internal abstract class TypedHeaderManager
     {
-        private static readonly Dictionary<Type, TypedHeaderManager> cache = new Dictionary<Type, TypedHeaderManager>();
-        private static readonly ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
-        private static readonly Type GenericAdapterType = typeof(GenericAdapter<>);
+        private static readonly Dictionary<Type, TypedHeaderManager> s_cache = new Dictionary<Type, TypedHeaderManager>();
+        private static readonly ReaderWriterLockSlim s_cacheLock = new ReaderWriterLockSlim();
+        private static readonly Type s_genericAdapterType = typeof(GenericAdapter<>);
 
         internal static object Create(Type t, object content, bool mustUnderstand, bool relay, string actor)
         {
@@ -103,17 +103,17 @@ namespace CoreWCF
                 }
                 finally
                 {
-                    cacheLock.TryEnterUpgradeableReadLock(Timeout.Infinite);
+                    s_cacheLock.TryEnterUpgradeableReadLock(Timeout.Infinite);
                     readerLockHeld = true;
                 }
-                if (!cache.TryGetValue(t, out result))
+                if (!s_cache.TryGetValue(t, out result))
                 {
-                    cacheLock.TryEnterWriteLock(Timeout.Infinite);
+                    s_cacheLock.TryEnterWriteLock(Timeout.Infinite);
                     writerLockHeld = true;
-                    if (!cache.TryGetValue(t, out result))
+                    if (!s_cache.TryGetValue(t, out result))
                     {
-                        result = (TypedHeaderManager)Activator.CreateInstance(GenericAdapterType.MakeGenericType(t));
-                        cache.Add(t, result);
+                        result = (TypedHeaderManager)Activator.CreateInstance(s_genericAdapterType.MakeGenericType(t));
+                        s_cache.Add(t, result);
                     }
                 }
             }
@@ -121,11 +121,11 @@ namespace CoreWCF
             {
                 if (writerLockHeld)
                 {
-                    cacheLock.ExitWriteLock();
+                    s_cacheLock.ExitWriteLock();
                 }
                 if (readerLockHeld)
                 {
-                    cacheLock.ExitUpgradeableReadLock();
+                    s_cacheLock.ExitUpgradeableReadLock();
                 }
             }
 
@@ -176,5 +176,4 @@ namespace CoreWCF
             }
         }
     }
-
 }

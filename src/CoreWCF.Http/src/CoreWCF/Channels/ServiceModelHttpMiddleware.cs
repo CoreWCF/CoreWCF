@@ -123,7 +123,6 @@ namespace CoreWCF.Channels
                         {
                             if (binding.CanBuildServiceDispatcher<IDuplexChannel>(parameters))
                             {
-
                                 serviceDispatcher = binding.BuildServiceDispatcher<IDuplexChannel>(parameters, dispatcher);
                                 supportedChannelType = typeof(IDuplexChannel);
                             }

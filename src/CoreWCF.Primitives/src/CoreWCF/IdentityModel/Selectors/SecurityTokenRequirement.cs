@@ -22,11 +22,11 @@ namespace CoreWCF.IdentityModel.Selectors
         private const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
         private const int defaultKeySize = 0;
         private const bool defaultIsOptionalToken = false;
-        private readonly Dictionary<string, object> properties;
+        private readonly Dictionary<string, object> _properties;
 
         public SecurityTokenRequirement()
         {
-            properties = new Dictionary<string, object>();
+            _properties = new Dictionary<string, object>();
             Initialize();
         }
 
@@ -46,7 +46,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
             set
             {
-                properties[TokenTypeProperty] = value;
+                _properties[TokenTypeProperty] = value;
             }
         }
 
@@ -58,7 +58,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
             set
             {
-                properties[IsOptionalTokenProperty] = value;
+                _properties[IsOptionalTokenProperty] = value;
             }
         }
 
@@ -70,7 +70,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
             set
             {
-                properties[RequireCryptographicTokenProperty] = (object)value;
+                _properties[RequireCryptographicTokenProperty] = (object)value;
             }
         }
 
@@ -83,7 +83,7 @@ namespace CoreWCF.IdentityModel.Selectors
             set
             {
                 SecurityKeyUsageHelper.Validate(value);
-                properties[KeyUsageProperty] = (object)value;
+                _properties[KeyUsageProperty] = (object)value;
             }
         }
 
@@ -96,7 +96,7 @@ namespace CoreWCF.IdentityModel.Selectors
             set
             {
                 SecurityKeyTypeHelper.Validate(value);
-                properties[KeyTypeProperty] = (object)value;
+                _properties[KeyTypeProperty] = (object)value;
             }
         }
 
@@ -120,7 +120,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                return properties;
+                return _properties;
             }
         }
 
@@ -156,6 +156,5 @@ namespace CoreWCF.IdentityModel.Selectors
             result = (TValue)dictionaryValue;
             return true;
         }
-
     }
 }

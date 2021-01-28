@@ -61,7 +61,6 @@ namespace CoreWCF.Security
         internal int FindIndexOfSecurityHeader(Message message, string[] actors)
         {
             return message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, actors);
-
         }
 
         internal virtual bool IsReaderAtSignatureConfirmation(XmlDictionaryReader reader)

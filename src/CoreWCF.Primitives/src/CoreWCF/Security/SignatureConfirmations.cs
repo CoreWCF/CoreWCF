@@ -7,7 +7,7 @@ namespace CoreWCF.Security
 {
     internal class SignatureConfirmations
     {
-        private SignatureConfirmation[] confirmations;
+        private SignatureConfirmation[] _confirmations;
 
         private struct SignatureConfirmation
         {
@@ -21,7 +21,7 @@ namespace CoreWCF.Security
 
         public SignatureConfirmations()
         {
-            confirmations = new SignatureConfirmation[1];
+            _confirmations = new SignatureConfirmation[1];
             Count = 0;
         }
 
@@ -29,13 +29,13 @@ namespace CoreWCF.Security
 
         public void AddConfirmation(byte[] value, bool encrypted)
         {
-            if (confirmations.Length == Count)
+            if (_confirmations.Length == Count)
             {
                 SignatureConfirmation[] newConfirmations = new SignatureConfirmation[Count * 2];
-                Array.Copy(confirmations, 0, newConfirmations, 0, Count);
-                confirmations = newConfirmations;
+                Array.Copy(_confirmations, 0, newConfirmations, 0, Count);
+                _confirmations = newConfirmations;
             }
-            confirmations[Count] = new SignatureConfirmation(value);
+            _confirmations[Count] = new SignatureConfirmation(value);
             ++Count;
             IsMarkedForEncryption |= encrypted;
         }
@@ -47,7 +47,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), SR.Format(SR.ValueMustBeInRange, 0, Count)));
             }
 
-            value = confirmations[index].value;
+            value = _confirmations[index].value;
             encrypted = IsMarkedForEncryption;
         }
 

@@ -12,26 +12,26 @@ namespace CoreWCF
     {
         internal const MessageCredentialType DefaultClientCredentialType = MessageCredentialType.Windows;
         internal const bool DefaultNegotiateServiceCredential = true;
-        private MessageCredentialType clientCredentialType;
-        private SecurityAlgorithmSuite algorithmSuite;
-        private static readonly TimeSpan defaultServerIssuedTransitionTokenLifetime = TimeSpan.FromMinutes(15);
+        private MessageCredentialType _clientCredentialType;
+        private SecurityAlgorithmSuite _algorithmSuite;
+        private static readonly TimeSpan s_defaultServerIssuedTransitionTokenLifetime = TimeSpan.FromMinutes(15);
         public MessageSecurityOverHttp()
         {
-            clientCredentialType = DefaultClientCredentialType;
+            _clientCredentialType = DefaultClientCredentialType;
             NegotiateServiceCredential = DefaultNegotiateServiceCredential;
-            algorithmSuite = SecurityAlgorithmSuite.Default;
+            _algorithmSuite = SecurityAlgorithmSuite.Default;
         }
 
         public MessageCredentialType ClientCredentialType
         {
-            get { return clientCredentialType; }
+            get { return _clientCredentialType; }
             set
             {
                 if (!MessageCredentialTypeHelper.IsDefined(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
                 }
-                clientCredentialType = value;
+                _clientCredentialType = value;
             }
         }
 
@@ -39,14 +39,14 @@ namespace CoreWCF
 
         public SecurityAlgorithmSuite AlgorithmSuite
         {
-            get { return algorithmSuite; }
+            get { return _algorithmSuite; }
             set
             {
                 if (value == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
                 }
-                algorithmSuite = value;
+                _algorithmSuite = value;
                 WasAlgorithmSuiteSet = true;
             }
         }
@@ -72,7 +72,7 @@ namespace CoreWCF
             bool emitBspAttributes = true;
             if (isSecureTransportMode)
             {
-                switch (clientCredentialType)
+                switch (_clientCredentialType)
                 {
                     case MessageCredentialType.None:
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ClientCredentialTypeMustBeSpecifiedForMixedMode)));
@@ -188,7 +188,7 @@ namespace CoreWCF
 
             if (IsSecureConversationEnabled())
             {
-                oneShotSecurity.LocalServiceSettings.IssuedCookieLifetime = defaultServerIssuedTransitionTokenLifetime;
+                oneShotSecurity.LocalServiceSettings.IssuedCookieLifetime = s_defaultServerIssuedTransitionTokenLifetime;
                 //TODO SpNego when port, remove above and enable below.
                 // issue the transition SCT for a short duration only
                 // oneShotSecurity.LocalServiceSettings.IssuedCookieLifetime = SpnegoTokenAuthenticator.defaultServerIssuedTransitionTokenLifetime;
@@ -196,6 +196,5 @@ namespace CoreWCF
 
             return result;
         }
-
     }
 }

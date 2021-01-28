@@ -10,11 +10,11 @@ namespace CoreWCF.Dispatcher
 {
     internal class XmlSerializerObjectSerializer : XmlObjectSerializer
     {
-        private XmlSerializer serializer;
-        private Type rootType;
-        private string rootName;
-        private string rootNamespace;
-        private bool isSerializerSetExplicit = false;
+        private XmlSerializer _serializer;
+        private Type _rootType;
+        private string _rootName;
+        private string _rootNamespace;
+        private bool _isSerializerSetExplicit = false;
 
         internal XmlSerializerObjectSerializer(Type type)
         {
@@ -36,48 +36,48 @@ namespace CoreWCF.Dispatcher
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(type));
             }
-            rootType = type;
-            this.rootName = rootName;
-            this.rootNamespace = rootNamespace == null ? string.Empty : rootNamespace;
-            serializer = xmlSerializer;
+            _rootType = type;
+            _rootName = rootName;
+            _rootNamespace = rootNamespace == null ? string.Empty : rootNamespace;
+            _serializer = xmlSerializer;
 
-            if (serializer == null)
+            if (_serializer == null)
             {
-                if (this.rootName == null)
+                if (_rootName == null)
                 {
-                    serializer = new XmlSerializer(type);
+                    _serializer = new XmlSerializer(type);
                 }
                 else
                 {
                     XmlRootAttribute xmlRoot = new XmlRootAttribute();
-                    xmlRoot.ElementName = this.rootName;
-                    xmlRoot.Namespace = this.rootNamespace;
-                    serializer = new XmlSerializer(type, xmlRoot);
+                    xmlRoot.ElementName = _rootName;
+                    xmlRoot.Namespace = _rootNamespace;
+                    _serializer = new XmlSerializer(type, xmlRoot);
                 }
             }
             else
             {
-                isSerializerSetExplicit = true;
+                _isSerializerSetExplicit = true;
             }
 
             //try to get rootName and rootNamespace from type since root name not set explicitly
-            if (this.rootName == null)
+            if (_rootName == null)
             {
-                XmlTypeMapping mapping = new XmlReflectionImporter().ImportTypeMapping(rootType);
-                this.rootName = mapping.ElementName;
-                this.rootNamespace = mapping.Namespace;
+                XmlTypeMapping mapping = new XmlReflectionImporter().ImportTypeMapping(_rootType);
+                _rootName = mapping.ElementName;
+                _rootNamespace = mapping.Namespace;
             }
         }
 
         public override void WriteObject(XmlDictionaryWriter writer, object graph)
         {
-            if (isSerializerSetExplicit)
+            if (_isSerializerSetExplicit)
             {
-                serializer.Serialize(writer, new object[] { graph });
+                _serializer.Serialize(writer, new object[] { graph });
             }
             else
             {
-                serializer.Serialize(writer, graph);
+                _serializer.Serialize(writer, graph);
             }
         }
 
@@ -98,9 +98,9 @@ namespace CoreWCF.Dispatcher
 
         public override object ReadObject(XmlDictionaryReader reader, bool verifyObjectName)
         {
-            if (isSerializerSetExplicit)
+            if (_isSerializerSetExplicit)
             {
-                object[] deserializedObjects = (object[])serializer.Deserialize(reader);
+                object[] deserializedObjects = (object[])_serializer.Deserialize(reader);
                 if (deserializedObjects != null && deserializedObjects.Length > 0)
                 {
                     return deserializedObjects[0];
@@ -112,7 +112,7 @@ namespace CoreWCF.Dispatcher
             }
             else
             {
-                return serializer.Deserialize(reader);
+                return _serializer.Deserialize(reader);
             }
         }
 
@@ -125,9 +125,9 @@ namespace CoreWCF.Dispatcher
 
             reader.MoveToElement();
 
-            if (rootName != null)
+            if (_rootName != null)
             {
-                return reader.IsStartElement(rootName, rootNamespace);
+                return reader.IsStartElement(_rootName, _rootNamespace);
             }
             else
             {
@@ -135,5 +135,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

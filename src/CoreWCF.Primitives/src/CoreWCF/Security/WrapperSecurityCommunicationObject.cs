@@ -151,7 +151,6 @@ namespace CoreWCF.Security
 
         public void OnAbort()
         {
-
         }
 
         public void OnClosed()

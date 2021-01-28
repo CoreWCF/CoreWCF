@@ -11,19 +11,19 @@ namespace CoreWCF.Dispatcher
 {
     internal class ConcurrencyBehavior
     {
-        private readonly ConcurrencyMode concurrencyMode;
-        private readonly bool enforceOrderedReceive;
+        private readonly ConcurrencyMode _concurrencyMode;
+        private readonly bool _enforceOrderedReceive;
 
         internal ConcurrencyBehavior(DispatchRuntime runtime)
         {
-            concurrencyMode = runtime.ConcurrencyMode;
-            enforceOrderedReceive = runtime.EnsureOrderedDispatch;
+            _concurrencyMode = runtime.ConcurrencyMode;
+            _enforceOrderedReceive = runtime.EnsureOrderedDispatch;
             //this.supportsTransactedBatch = ConcurrencyBehavior.SupportsTransactedBatch(runtime.ChannelDispatcher);
         }
 
         internal bool IsConcurrent(MessageRpc rpc)
         {
-            return IsConcurrent(concurrencyMode, enforceOrderedReceive, rpc.Channel.HasSession/*, this.supportsTransactedBatch*/);
+            return IsConcurrent(_concurrencyMode, _enforceOrderedReceive, rpc.Channel.HasSession/*, this.supportsTransactedBatch*/);
         }
 
         internal static bool IsConcurrent(ConcurrencyMode concurrencyMode, bool ensureOrderedDispatch, bool hasSession /*, bool supportsTransactedBatch*/)
@@ -88,7 +88,7 @@ namespace CoreWCF.Dispatcher
 
         internal async Task LockInstanceAsync(MessageRpc rpc)
         {
-            if (concurrencyMode != ConcurrencyMode.Multiple)
+            if (_concurrencyMode != ConcurrencyMode.Multiple)
             {
                 ConcurrencyInstanceContextFacet resource = rpc.InstanceContext.Concurrency;
                 Task waiter = null;
@@ -110,7 +110,7 @@ namespace CoreWCF.Dispatcher
                 }
 
                 // TODO: Throw this on setup
-                if (concurrencyMode == ConcurrencyMode.Reentrant)
+                if (_concurrencyMode == ConcurrencyMode.Reentrant)
                 {
                     throw new NotSupportedException(nameof(ConcurrencyMode.Reentrant));
                 }
@@ -119,7 +119,7 @@ namespace CoreWCF.Dispatcher
 
         internal void UnlockInstance(ref MessageRpc rpc)
         {
-            if (concurrencyMode != ConcurrencyMode.Multiple)
+            if (_concurrencyMode != ConcurrencyMode.Multiple)
             {
                 ConcurrencyBehavior.UnlockInstance(rpc.InstanceContext);
             }
@@ -187,18 +187,18 @@ namespace CoreWCF.Dispatcher
 
         private class MessageRpcWaiter : IWaiter
         {
-            private readonly IResumeMessageRpc resume;
+            private readonly IResumeMessageRpc _resume;
 
             internal MessageRpcWaiter(IResumeMessageRpc resume)
             {
-                this.resume = resume;
+                _resume = resume;
             }
 
             void IWaiter.Signal()
             {
                 try
                 {
-                    resume.Resume(out bool alreadyResumedNoLock);
+                    _resume.Resume(out bool alreadyResumedNoLock);
 
                     if (alreadyResumedNoLock)
                     {
@@ -218,17 +218,17 @@ namespace CoreWCF.Dispatcher
 
         private class ThreadWaiter : IWaiter
         {
-            private readonly ManualResetEvent wait = new ManualResetEvent(false);
+            private readonly ManualResetEvent _wait = new ManualResetEvent(false);
 
             void IWaiter.Signal()
             {
-                wait.Set();
+                _wait.Set();
             }
 
             internal void Wait()
             {
-                wait.WaitOne();
-                wait.Dispose();
+                _wait.WaitOne();
+                _wait.Dispose();
             }
         }
     }
@@ -236,15 +236,15 @@ namespace CoreWCF.Dispatcher
     internal class ConcurrencyInstanceContextFacet
     {
         internal bool Locked;
-        private Queue<TaskCompletionSource<object>> calloutMessageQueue;
-        private Queue<TaskCompletionSource<object>> newMessageQueue;
+        private Queue<TaskCompletionSource<object>> _calloutMessageQueue;
+        private Queue<TaskCompletionSource<object>> _newMessageQueue;
 
         internal bool HasWaiters
         {
             get
             {
-                return (((calloutMessageQueue != null) && (calloutMessageQueue.Count > 0)) ||
-                        ((newMessageQueue != null) && (newMessageQueue.Count > 0)));
+                return (((_calloutMessageQueue != null) && (_calloutMessageQueue.Count > 0)) ||
+                        ((_newMessageQueue != null) && (_newMessageQueue.Count > 0)));
             }
         }
 
@@ -263,13 +263,13 @@ namespace CoreWCF.Dispatcher
         internal void DequeueWaiter()
         {
             TaskCompletionSource<object> waiter;
-            if ((calloutMessageQueue != null) && (calloutMessageQueue.Count > 0))
+            if ((_calloutMessageQueue != null) && (_calloutMessageQueue.Count > 0))
             {
-                waiter = DequeueFrom(calloutMessageQueue);
+                waiter = DequeueFrom(_calloutMessageQueue);
             }
             else
             {
-                waiter = DequeueFrom(newMessageQueue);
+                waiter = DequeueFrom(_newMessageQueue);
             }
 
             waiter.TrySetResult(null);
@@ -277,27 +277,26 @@ namespace CoreWCF.Dispatcher
 
         internal Task EnqueueNewMessage()
         {
-            if (newMessageQueue == null)
+            if (_newMessageQueue == null)
             {
-                newMessageQueue = new Queue<TaskCompletionSource<object>>();
+                _newMessageQueue = new Queue<TaskCompletionSource<object>>();
             }
             // Prevent release of waiter from running the waiter on the releasing thread by using RunContinuationsAsynchronously
             var waiter = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
-            newMessageQueue.Enqueue(waiter);
+            _newMessageQueue.Enqueue(waiter);
             return waiter.Task;
         }
 
         internal Task EnqueueCalloutMessage()
         {
-            if (calloutMessageQueue == null)
+            if (_calloutMessageQueue == null)
             {
-                calloutMessageQueue = new Queue<TaskCompletionSource<object>>();
+                _calloutMessageQueue = new Queue<TaskCompletionSource<object>>();
             }
             // Prevent release of waiter from running the waiter on the releasing thread by using RunContinuationsAsynchronously
             var waiter = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
-            calloutMessageQueue.Enqueue(waiter);
+            _calloutMessageQueue.Enqueue(waiter);
             return waiter.Task;
         }
     }
-
 }

@@ -24,6 +24,5 @@ namespace CoreWCF
                 _order = value;
             }
         }
-
     }
 }

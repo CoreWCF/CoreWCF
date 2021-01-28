@@ -322,5 +322,4 @@ namespace CoreWCF.Channels
             public string Scheme;
         }
     }
-
 }

@@ -77,6 +77,5 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             return new HexBinary(_identificationData).ToString();
         }
-
     }
 }

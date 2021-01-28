@@ -13,5 +13,4 @@ namespace CoreWCF.Security.Tokens
         IssuedSecurityTokenHandler IssuedSecurityTokenHandler { get; set; }
         RenewedSecurityTokenHandler RenewedSecurityTokenHandler { get; set; }
     }
-
 }

@@ -12,18 +12,18 @@ namespace CoreWCF.Security
     public class SecurityMessageProperty : IMessageProperty, IDisposable
     {
         // This is the list of outgoing supporting tokens
-        private Collection<SupportingTokenSpecification> outgoingSupportingTokens;
-        private Collection<SupportingTokenSpecification> incomingSupportingTokens;
-        private SecurityTokenSpecification transportToken;
-        private SecurityTokenSpecification protectionToken;
-        private SecurityTokenSpecification initiatorToken;
-        private SecurityTokenSpecification recipientToken;
-        private ServiceSecurityContext securityContext;
-        private bool disposed = false;
+        private Collection<SupportingTokenSpecification> _outgoingSupportingTokens;
+        private Collection<SupportingTokenSpecification> _incomingSupportingTokens;
+        private SecurityTokenSpecification _transportToken;
+        private SecurityTokenSpecification _protectionToken;
+        private SecurityTokenSpecification _initiatorToken;
+        private SecurityTokenSpecification _recipientToken;
+        private ServiceSecurityContext _securityContext;
+        private bool _disposed = false;
 
         public SecurityMessageProperty()
         {
-            securityContext = ServiceSecurityContext.Anonymous;
+            _securityContext = ServiceSecurityContext.Anonymous;
         }
 
         public ServiceSecurityContext ServiceSecurityContext
@@ -31,12 +31,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return securityContext;
+                return _securityContext;
             }
             set
             {
                 ThrowIfDisposed();
-                securityContext = value;
+                _securityContext = value;
             }
         }
 
@@ -47,12 +47,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return protectionToken;
+                return _protectionToken;
             }
             set
             {
                 ThrowIfDisposed();
-                protectionToken = value;
+                _protectionToken = value;
             }
         }
 
@@ -61,12 +61,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return initiatorToken;
+                return _initiatorToken;
             }
             set
             {
                 ThrowIfDisposed();
-                initiatorToken = value;
+                _initiatorToken = value;
             }
         }
 
@@ -75,12 +75,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return recipientToken;
+                return _recipientToken;
             }
             set
             {
                 ThrowIfDisposed();
-                recipientToken = value;
+                _recipientToken = value;
             }
         }
 
@@ -89,12 +89,12 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return transportToken;
+                return _transportToken;
             }
             set
             {
                 ThrowIfDisposed();
-                transportToken = value;
+                _transportToken = value;
             }
         }
 
@@ -106,7 +106,7 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                return ((incomingSupportingTokens != null) && (incomingSupportingTokens.Count > 0));
+                return ((_incomingSupportingTokens != null) && (_incomingSupportingTokens.Count > 0));
             }
         }
 
@@ -115,11 +115,11 @@ namespace CoreWCF.Security
             get
             {
                 ThrowIfDisposed();
-                if (incomingSupportingTokens == null)
+                if (_incomingSupportingTokens == null)
                 {
-                    incomingSupportingTokens = new Collection<SupportingTokenSpecification>();
+                    _incomingSupportingTokens = new Collection<SupportingTokenSpecification>();
                 }
-                return incomingSupportingTokens;
+                return _incomingSupportingTokens;
             }
         }
 
@@ -127,11 +127,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (outgoingSupportingTokens == null)
+                if (_outgoingSupportingTokens == null)
                 {
-                    outgoingSupportingTokens = new Collection<SupportingTokenSpecification>();
+                    _outgoingSupportingTokens = new Collection<SupportingTokenSpecification>();
                 }
-                return outgoingSupportingTokens;
+                return _outgoingSupportingTokens;
             }
         }
 
@@ -139,7 +139,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return ((outgoingSupportingTokens != null) && (outgoingSupportingTokens.Count > 0));
+                return ((_outgoingSupportingTokens != null) && (_outgoingSupportingTokens.Count > 0));
             }
         }
 
@@ -150,28 +150,28 @@ namespace CoreWCF.Security
 
             if (HasOutgoingSupportingTokens)
             {
-                for (int i = 0; i < outgoingSupportingTokens.Count; ++i)
+                for (int i = 0; i < _outgoingSupportingTokens.Count; ++i)
                 {
-                    result.OutgoingSupportingTokens.Add(outgoingSupportingTokens[i]);
+                    result.OutgoingSupportingTokens.Add(_outgoingSupportingTokens[i]);
                 }
             }
 
             if (HasIncomingSupportingTokens)
             {
-                for (int i = 0; i < incomingSupportingTokens.Count; ++i)
+                for (int i = 0; i < _incomingSupportingTokens.Count; ++i)
                 {
-                    result.IncomingSupportingTokens.Add(incomingSupportingTokens[i]);
+                    result.IncomingSupportingTokens.Add(_incomingSupportingTokens[i]);
                 }
             }
 
-            result.securityContext = securityContext;
+            result._securityContext = _securityContext;
             result.ExternalAuthorizationPolicies = ExternalAuthorizationPolicies;
             result.SenderIdPrefix = SenderIdPrefix;
 
-            result.protectionToken = protectionToken;
-            result.initiatorToken = initiatorToken;
-            result.recipientToken = recipientToken;
-            result.transportToken = transportToken;
+            result._protectionToken = _protectionToken;
+            result._initiatorToken = _initiatorToken;
+            result._recipientToken = _recipientToken;
+            result._transportToken = _transportToken;
 
             return result;
         }
@@ -224,47 +224,47 @@ namespace CoreWCF.Security
             // fast path
             if (!HasIncomingSupportingTokens)
             {
-                if (transportToken != null && initiatorToken == null && protectionToken == null)
+                if (_transportToken != null && _initiatorToken == null && _protectionToken == null)
                 {
-                    if (includeTransportToken && transportToken.SecurityTokenPolicies != null)
+                    if (includeTransportToken && _transportToken.SecurityTokenPolicies != null)
                     {
-                        return transportToken.SecurityTokenPolicies;
+                        return _transportToken.SecurityTokenPolicies;
                     }
                     else
                     {
                         return EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
                     }
                 }
-                else if (transportToken == null && initiatorToken != null && protectionToken == null)
+                else if (_transportToken == null && _initiatorToken != null && _protectionToken == null)
                 {
-                    return initiatorToken.SecurityTokenPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
+                    return _initiatorToken.SecurityTokenPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
                 }
-                else if (transportToken == null && initiatorToken == null && protectionToken != null)
+                else if (_transportToken == null && _initiatorToken == null && _protectionToken != null)
                 {
-                    return protectionToken.SecurityTokenPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
+                    return _protectionToken.SecurityTokenPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
                 }
             }
 
             Collection<IAuthorizationPolicy> policies = new Collection<IAuthorizationPolicy>();
             if (includeTransportToken)
             {
-                AddAuthorizationPolicies(transportToken, policies);
+                AddAuthorizationPolicies(_transportToken, policies);
             }
-            AddAuthorizationPolicies(initiatorToken, policies);
-            AddAuthorizationPolicies(protectionToken, policies);
+            AddAuthorizationPolicies(_initiatorToken, policies);
+            AddAuthorizationPolicies(_protectionToken, policies);
             if (HasIncomingSupportingTokens)
             {
-                for (int i = 0; i < incomingSupportingTokens.Count; ++i)
+                for (int i = 0; i < _incomingSupportingTokens.Count; ++i)
                 {
                     if (supportingSessionTokenToExclude != null)
                     {
-                        SecurityContextSecurityToken sct = incomingSupportingTokens[i].SecurityToken as SecurityContextSecurityToken;
+                        SecurityContextSecurityToken sct = _incomingSupportingTokens[i].SecurityToken as SecurityContextSecurityToken;
                         if (sct != null && sct.ContextId == supportingSessionTokenToExclude.ContextId)
                         {
                             continue;
                         }
                     }
-                    SecurityTokenAttachmentMode attachmentMode = incomingSupportingTokens[i].SecurityTokenAttachmentMode;
+                    SecurityTokenAttachmentMode attachmentMode = _incomingSupportingTokens[i].SecurityTokenAttachmentMode;
                     // a safety net in case more attachment modes get added to the product without 
                     // reviewing this code.
                     if (attachmentMode == SecurityTokenAttachmentMode.Endorsing
@@ -272,7 +272,7 @@ namespace CoreWCF.Security
                         || attachmentMode == SecurityTokenAttachmentMode.SignedEncrypted
                         || attachmentMode == SecurityTokenAttachmentMode.SignedEndorsing)
                     {
-                        AddAuthorizationPolicies(incomingSupportingTokens[i], policies);
+                        AddAuthorizationPolicies(_incomingSupportingTokens[i], policies);
                     }
                 }
             }
@@ -282,19 +282,18 @@ namespace CoreWCF.Security
         public void Dispose()
         {
             // do no-op for future V2
-            if (!disposed)
+            if (!_disposed)
             {
-                disposed = true;
+                _disposed = true;
             }
         }
 
         private void ThrowIfDisposed()
         {
-            if (disposed)
+            if (_disposed)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().FullName));
             }
         }
     }
-
 }

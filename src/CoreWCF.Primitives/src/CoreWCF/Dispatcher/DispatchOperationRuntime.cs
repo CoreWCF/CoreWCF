@@ -13,13 +13,13 @@ namespace CoreWCF.Dispatcher
 {
     internal class DispatchOperationRuntime
     {
-        private readonly bool isSessionOpenNotificationEnabled;
-        private readonly bool releaseInstanceBeforeCall;
+        private readonly bool _isSessionOpenNotificationEnabled;
+        private readonly bool _releaseInstanceBeforeCall;
 
         //readonly bool transactionAutoComplete;
         //readonly bool transactionRequired;
-        private readonly bool deserializeRequest;
-        private readonly bool disposeParameters;
+        private readonly bool _deserializeRequest;
+        private readonly bool _disposeParameters;
 
         //readonly bool isInsideTransactedReceiveScope;
 
@@ -38,27 +38,27 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.RuntimeRequiresInvoker0));
             }
 
-            disposeParameters = ((operation.AutoDisposeParameters) && (!operation.HasNoDisposableParameters));
+            _disposeParameters = ((operation.AutoDisposeParameters) && (!operation.HasNoDisposableParameters));
             Parent = parent;
             CallContextInitializers = EmptyArray<ICallContextInitializer>.ToArray(operation.CallContextInitializers);
             ParameterInspectors = EmptyArray<IParameterInspector>.ToArray(operation.ParameterInspectors);
             FaultFormatter = operation.FaultFormatter;
             Impersonation = operation.Impersonation;
-            deserializeRequest = operation.DeserializeRequest;
+            _deserializeRequest = operation.DeserializeRequest;
             SerializeReply = operation.SerializeReply;
             Formatter = operation.Formatter;
             Invoker = operation.Invoker;
             IsTerminating = operation.IsTerminating;
-            isSessionOpenNotificationEnabled = operation.IsSessionOpenNotificationEnabled;
+            _isSessionOpenNotificationEnabled = operation.IsSessionOpenNotificationEnabled;
             Action = operation.Action;
             Name = operation.Name;
             ReleaseInstanceAfterCall = operation.ReleaseInstanceAfterCall;
-            releaseInstanceBeforeCall = operation.ReleaseInstanceBeforeCall;
+            _releaseInstanceBeforeCall = operation.ReleaseInstanceBeforeCall;
             ReplyAction = operation.ReplyAction;
             IsOneWay = operation.IsOneWay;
             ReceiveContextAcknowledgementMode = operation.ReceiveContextAcknowledgementMode;
 
-            if (Formatter == null && (deserializeRequest || SerializeReply))
+            if (Formatter == null && (_deserializeRequest || SerializeReply))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.DispatchRuntimeRequiresFormatter0, Name)));
             }
@@ -92,7 +92,7 @@ namespace CoreWCF.Dispatcher
 
         internal bool DisposeParameters
         {
-            get { return disposeParameters; }
+            get { return _disposeParameters; }
         }
 
         internal bool HasDefaultUnhandledActionInvoker
@@ -126,7 +126,7 @@ namespace CoreWCF.Dispatcher
 
         internal bool ReleaseInstanceBeforeCall
         {
-            get { return releaseInstanceBeforeCall; }
+            get { return _releaseInstanceBeforeCall; }
         }
 
         internal string ReplyAction { get; }
@@ -172,9 +172,9 @@ namespace CoreWCF.Dispatcher
                     // If the field is true, then this operation is to be invoked at the time the service 
                     // channel is opened. The incoming message is created at ChannelHandler level with no 
                     // content, so we don't need to deserialize the message.
-                    if (!isSessionOpenNotificationEnabled)
+                    if (!_isSessionOpenNotificationEnabled)
                     {
-                        if (deserializeRequest)
+                        if (_deserializeRequest)
                         {
                             //if (TD.DispatchFormatterDeserializeRequestStartIsEnabled())
                             //{
@@ -542,5 +542,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

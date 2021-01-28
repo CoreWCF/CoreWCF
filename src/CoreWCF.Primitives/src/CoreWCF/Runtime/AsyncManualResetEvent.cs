@@ -40,7 +40,6 @@ namespace CoreWCF.Runtime
                 CheckDisposed();
                 return await await Task.WhenAny(localTcs.Task, tcs.Task);
             }
-
         }
 
         private static void TokenCancelledCallback(object obj)

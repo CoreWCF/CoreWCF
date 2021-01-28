@@ -6,7 +6,7 @@ namespace CoreWCF.Security.Tokens
     public class ClaimTypeRequirement
     {
         internal const bool DefaultIsOptional = false;
-        private readonly bool isOptional;
+        private readonly bool _isOptional;
 
         public ClaimTypeRequirement(string claimType)
             : this(claimType, DefaultIsOptional)
@@ -25,14 +25,14 @@ namespace CoreWCF.Security.Tokens
             }
 
             ClaimType = claimType;
-            this.isOptional = isOptional;
+            _isOptional = isOptional;
         }
 
         public string ClaimType { get; }
 
         public bool IsOptional
         {
-            get { return isOptional; }
+            get { return _isOptional; }
         }
     }
 }

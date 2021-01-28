@@ -11,11 +11,11 @@ namespace CoreWCF.Channels
 {
     internal class RequestReplyCorrelator : IRequestReplyCorrelator
     {
-        private readonly IDictionary<Key, object> states;
+        private readonly IDictionary<Key, object> _states;
 
         internal RequestReplyCorrelator()
         {
-            states = new Dictionary<Key, object>();
+            _states = new Dictionary<Key, object>();
         }
 
         void IRequestReplyCorrelator.Add<T>(Message request, T state)
@@ -32,9 +32,9 @@ namespace CoreWCF.Channels
                 value.RequestCorrelatorKey = key;
             }
 
-            lock (states)
+            lock (_states)
             {
-                states.Add(key, state);
+                _states.Add(key, state);
             }
         }
 
@@ -45,13 +45,13 @@ namespace CoreWCF.Channels
             Key key = new Key(relatesTo, stateType);
             T value;
 
-            lock (states)
+            lock (_states)
             {
-                value = (T)states[key];
+                value = (T)_states[key];
 
                 if (remove)
                 {
-                    states.Remove(key);
+                    _states.Remove(key);
                 }
             }
 
@@ -66,9 +66,9 @@ namespace CoreWCF.Channels
             Fx.Assert(request != null, "request cannot be null");
             if (request.RequestCorrelatorKey != null)
             {
-                lock (states)
+                lock (_states)
                 {
-                    states.Remove(request.RequestCorrelatorKey);
+                    _states.Remove(request.RequestCorrelatorKey);
                 }
             }
         }

@@ -29,6 +29,5 @@ namespace CoreWCF.Security
                     typeof(UserNamePasswordValidationMode)));
             }
         }
-
     }
 }

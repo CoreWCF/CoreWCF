@@ -266,6 +266,5 @@ namespace CoreWCF
                 }
             }
         }
-
     }
 }

@@ -322,5 +322,4 @@ namespace CoreWCF.Collections.Generic
             base.SetItem(index, item);
         }
     }
-
 }

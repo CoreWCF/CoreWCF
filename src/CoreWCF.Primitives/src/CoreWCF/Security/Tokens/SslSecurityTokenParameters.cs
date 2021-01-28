@@ -15,17 +15,17 @@ namespace CoreWCF.Security.Tokens
     {
         internal const bool defaultRequireClientCertificate = false;
         internal const bool defaultRequireCancellation = false;
-        private bool requireClientCertificate;
-        private BindingContext issuerBindingContext;
+        private bool _requireClientCertificate;
+        private BindingContext _issuerBindingContext;
 
         protected SslSecurityTokenParameters(SslSecurityTokenParameters other)
             : base(other)
         {
-            requireClientCertificate = other.requireClientCertificate;
+            _requireClientCertificate = other._requireClientCertificate;
             RequireCancellation = other.RequireCancellation;
-            if (other.issuerBindingContext != null)
+            if (other._issuerBindingContext != null)
             {
-                issuerBindingContext = other.issuerBindingContext.Clone();
+                _issuerBindingContext = other._issuerBindingContext.Clone();
             }
         }
 
@@ -44,7 +44,7 @@ namespace CoreWCF.Security.Tokens
         public SslSecurityTokenParameters(bool requireClientCertificate, bool requireCancellation)
             : base()
         {
-            this.requireClientCertificate = requireClientCertificate;
+            _requireClientCertificate = requireClientCertificate;
             RequireCancellation = requireCancellation;
         }
 
@@ -56,11 +56,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return requireClientCertificate;
+                return _requireClientCertificate;
             }
             set
             {
-                requireClientCertificate = value;
+                _requireClientCertificate = value;
             }
         }
 
@@ -68,7 +68,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return issuerBindingContext;
+                return _issuerBindingContext;
             }
             set
             {
@@ -76,13 +76,13 @@ namespace CoreWCF.Security.Tokens
                 {
                     value = value.Clone();
                 }
-                issuerBindingContext = value;
+                _issuerBindingContext = value;
             }
         }
 
-        internal protected override bool SupportsClientAuthentication { get { return requireClientCertificate; } }
+        internal protected override bool SupportsClientAuthentication { get { return _requireClientCertificate; } }
         internal protected override bool SupportsServerAuthentication { get { return true; } }
-        internal protected override bool SupportsClientWindowsIdentity { get { return requireClientCertificate; } }
+        internal protected override bool SupportsClientWindowsIdentity { get { return _requireClientCertificate; } }
 
         protected override SecurityTokenParameters CloneCore()
         {

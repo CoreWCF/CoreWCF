@@ -13,7 +13,7 @@ namespace CoreWCF.Security
     {
         private List<XmlQualifiedName> _headerTypes;
         private bool _isBodyIncluded;
-        private static MessagePartSpecification _noParts;
+        private static MessagePartSpecification s_noParts;
 
         public ICollection<XmlQualifiedName> HeaderTypes
         {
@@ -63,13 +63,13 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (_noParts == null)
+                if (s_noParts == null)
                 {
                     MessagePartSpecification parts = new MessagePartSpecification();
                     parts.MakeReadOnly();
-                    _noParts = parts;
+                    s_noParts = parts;
                 }
-                return _noParts;
+                return s_noParts;
             }
         }
 

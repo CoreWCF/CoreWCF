@@ -8,31 +8,31 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = false, AllowMultiple = false)]
     public sealed class XmlSerializerFormatAttribute : Attribute
     {
-        private OperationFormatStyle style;
-        private bool isStyleSet;
-        private OperationFormatUse use;
+        private OperationFormatStyle _style;
+        private bool _isStyleSet;
+        private OperationFormatUse _use;
 
         public bool SupportFaults { get; set; } = false;
 
         public OperationFormatStyle Style
         {
-            get { return style; }
+            get { return _style; }
             set
             {
                 ValidateOperationFormatStyle(value);
-                style = value;
-                isStyleSet = true;
+                _style = value;
+                _isStyleSet = true;
             }
         }
 
         public OperationFormatUse Use
         {
-            get { return use; }
+            get { return _use; }
             set
             {
                 ValidateOperationFormatUse(value);
-                use = value;
-                if (!isStyleSet && IsEncoded)
+                _use = value;
+                if (!_isStyleSet && IsEncoded)
                 {
                     Style = OperationFormatStyle.Rpc;
                 }
@@ -41,8 +41,8 @@ namespace CoreWCF
 
         internal bool IsEncoded
         {
-            get { return use == OperationFormatUse.Encoded; }
-            set { use = value ? OperationFormatUse.Encoded : OperationFormatUse.Literal; }
+            get { return _use == OperationFormatUse.Encoded; }
+            set { _use = value ? OperationFormatUse.Encoded : OperationFormatUse.Literal; }
         }
 
         static internal void ValidateOperationFormatStyle(OperationFormatStyle value)
@@ -61,5 +61,4 @@ namespace CoreWCF
             }
         }
     }
-
 }

@@ -8,34 +8,34 @@ namespace CoreWCF.Runtime
 {
     internal sealed class BackoffTimeoutHelper
     {
-        private static readonly int maxSkewMilliseconds = 15;
-        private static readonly long maxDriftTicks = maxSkewMilliseconds * 2 * TimeSpan.TicksPerMillisecond;
-        private static readonly TimeSpan defaultInitialWaitTime = TimeSpan.FromMilliseconds(1);
-        private static readonly TimeSpan defaultMaxWaitTime = TimeSpan.FromMinutes(1);
-        private DateTime deadline;
-        private TimeSpan maxWaitTime;
-        private TimeSpan waitTime;
-        private IOThreadTimer backoffTimer;
-        private Action<object> backoffCallback;
-        private object backoffState;
-        private readonly Random random;
-        private TimeSpan originalTimeout;
+        private static readonly int s_maxSkewMilliseconds = 15;
+        private static readonly long s_maxDriftTicks = s_maxSkewMilliseconds * 2 * TimeSpan.TicksPerMillisecond;
+        private static readonly TimeSpan s_defaultInitialWaitTime = TimeSpan.FromMilliseconds(1);
+        private static readonly TimeSpan s_defaultMaxWaitTime = TimeSpan.FromMinutes(1);
+        private DateTime _deadline;
+        private TimeSpan _maxWaitTime;
+        private TimeSpan _waitTime;
+        private IOThreadTimer _backoffTimer;
+        private Action<object> _backoffCallback;
+        private object _backoffState;
+        private readonly Random _random;
+        private TimeSpan _originalTimeout;
 
         internal BackoffTimeoutHelper(TimeSpan timeout)
-            : this(timeout, BackoffTimeoutHelper.defaultMaxWaitTime)
+            : this(timeout, BackoffTimeoutHelper.s_defaultMaxWaitTime)
         {
         }
 
         internal BackoffTimeoutHelper(TimeSpan timeout, TimeSpan maxWaitTime)
-            : this(timeout, maxWaitTime, BackoffTimeoutHelper.defaultInitialWaitTime)
+            : this(timeout, maxWaitTime, BackoffTimeoutHelper.s_defaultInitialWaitTime)
         {
         }
 
         internal BackoffTimeoutHelper(TimeSpan timeout, TimeSpan maxWaitTime, TimeSpan initialWaitTime)
         {
-            random = new Random(GetHashCode());
-            this.maxWaitTime = maxWaitTime;
-            originalTimeout = timeout;
+            _random = new Random(GetHashCode());
+            _maxWaitTime = maxWaitTime;
+            _originalTimeout = timeout;
             Reset(timeout, initialWaitTime);
         }
 
@@ -43,7 +43,7 @@ namespace CoreWCF.Runtime
         {
             get
             {
-                return originalTimeout;
+                return _originalTimeout;
             }
         }
 
@@ -51,43 +51,43 @@ namespace CoreWCF.Runtime
         {
             if (timeout == TimeSpan.MaxValue)
             {
-                deadline = DateTime.MaxValue;
+                _deadline = DateTime.MaxValue;
             }
             else
             {
-                deadline = DateTime.UtcNow + timeout;
+                _deadline = DateTime.UtcNow + timeout;
             }
-            waitTime = initialWaitTime;
+            _waitTime = initialWaitTime;
         }
 
         public bool IsExpired()
         {
-            if (deadline == DateTime.MaxValue)
+            if (_deadline == DateTime.MaxValue)
             {
                 return false;
             }
             else
             {
-                return (DateTime.UtcNow >= deadline);
+                return (DateTime.UtcNow >= _deadline);
             }
         }
 
         public void WaitAndBackoff(Action<object> callback, object state)
         {
-            if (backoffCallback != callback || backoffState != state)
+            if (_backoffCallback != callback || _backoffState != state)
             {
-                if (backoffTimer != null)
+                if (_backoffTimer != null)
                 {
-                    backoffTimer.Cancel();
+                    _backoffTimer.Cancel();
                 }
-                backoffCallback = callback;
-                backoffState = state;
-                backoffTimer = new IOThreadTimer(callback, state, false, BackoffTimeoutHelper.maxSkewMilliseconds);
+                _backoffCallback = callback;
+                _backoffState = state;
+                _backoffTimer = new IOThreadTimer(callback, state, false, BackoffTimeoutHelper.s_maxSkewMilliseconds);
             }
 
             TimeSpan backoffTime = WaitTimeWithDrift();
             Backoff();
-            backoffTimer.Set(backoffTime);
+            _backoffTimer.Set(backoffTime);
         }
 
         // TODO: Consider making Async
@@ -100,35 +100,34 @@ namespace CoreWCF.Runtime
         private TimeSpan WaitTimeWithDrift()
         {
             return Ticks.ToTimeSpan(Math.Max(
-                Ticks.FromTimeSpan(BackoffTimeoutHelper.defaultInitialWaitTime),
-                Ticks.Add(Ticks.FromTimeSpan(waitTime),
-                    (long)(uint)random.Next() % (2 * BackoffTimeoutHelper.maxDriftTicks + 1) - BackoffTimeoutHelper.maxDriftTicks)));
+                Ticks.FromTimeSpan(BackoffTimeoutHelper.s_defaultInitialWaitTime),
+                Ticks.Add(Ticks.FromTimeSpan(_waitTime),
+                    (long)(uint)_random.Next() % (2 * BackoffTimeoutHelper.s_maxDriftTicks + 1) - BackoffTimeoutHelper.s_maxDriftTicks)));
         }
 
         private void Backoff()
         {
-            if (waitTime.Ticks >= (maxWaitTime.Ticks / 2))
+            if (_waitTime.Ticks >= (_maxWaitTime.Ticks / 2))
             {
-                waitTime = maxWaitTime;
+                _waitTime = _maxWaitTime;
             }
             else
             {
-                waitTime = TimeSpan.FromTicks(waitTime.Ticks * 2);
+                _waitTime = TimeSpan.FromTicks(_waitTime.Ticks * 2);
             }
 
-            if (deadline != DateTime.MaxValue)
+            if (_deadline != DateTime.MaxValue)
             {
-                TimeSpan remainingTime = deadline - DateTime.UtcNow;
-                if (waitTime > remainingTime)
+                TimeSpan remainingTime = _deadline - DateTime.UtcNow;
+                if (_waitTime > remainingTime)
                 {
-                    waitTime = remainingTime;
-                    if (waitTime < TimeSpan.Zero)
+                    _waitTime = remainingTime;
+                    if (_waitTime < TimeSpan.Zero)
                     {
-                        waitTime = TimeSpan.Zero;
+                        _waitTime = TimeSpan.Zero;
                     }
                 }
             }
         }
     }
-
 }

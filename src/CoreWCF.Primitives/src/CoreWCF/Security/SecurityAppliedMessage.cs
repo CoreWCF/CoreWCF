@@ -17,24 +17,24 @@ namespace CoreWCF.Security
 {
     internal sealed class SecurityAppliedMessage : DelegatingMessage
     {
-        private bool bodyIdInserted;
-        private string bodyPrefix = MessageStrings.Prefix;
-        private XmlBuffer fullBodyBuffer;
-        private ISecurityElement encryptedBodyContent;
-        private XmlAttributeHolder[] bodyAttributes;
-        private bool delayedApplicationHandled;
-        private BodyState state = BodyState.Created;
-        private readonly SendSecurityHeader securityHeader;
-        private MemoryStream startBodyFragment;
-        private MemoryStream endBodyFragment;
-        private byte[] fullBodyFragment;
-        private int fullBodyFragmentLength;
+        private bool _bodyIdInserted;
+        private string _bodyPrefix = MessageStrings.Prefix;
+        private XmlBuffer _fullBodyBuffer;
+        private ISecurityElement _encryptedBodyContent;
+        private XmlAttributeHolder[] _bodyAttributes;
+        private bool _delayedApplicationHandled;
+        private BodyState _state = BodyState.Created;
+        private readonly SendSecurityHeader _securityHeader;
+        private MemoryStream _startBodyFragment;
+        private MemoryStream _endBodyFragment;
+        private byte[] _fullBodyFragment;
+        private int _fullBodyFragmentLength;
 
         public SecurityAppliedMessage(Message messageToProcess, SendSecurityHeader securityHeader, bool signBody, bool encryptBody)
             : base(messageToProcess)
         {
             Fx.Assert(!(messageToProcess is SecurityAppliedMessage), "SecurityAppliedMessage should not be wrapped");
-            this.securityHeader = securityHeader;
+            _securityHeader = securityHeader;
             BodyProtectionMode = MessagePartProtectionModeHelper.GetProtectionMode(signBody, encryptBody, securityHeader.SignThenEncrypt);
         }
 
@@ -42,26 +42,26 @@ namespace CoreWCF.Security
 
         public MessagePartProtectionMode BodyProtectionMode { get; }
 
-        internal byte[] PrimarySignatureValue => securityHeader.PrimarySignatureValue;
+        internal byte[] PrimarySignatureValue => _securityHeader.PrimarySignatureValue;
 
         private Exception CreateBadStateException(string operation)
         {
             return new InvalidOperationException(SR.Format(SR.MessageBodyOperationNotValidInBodyState,
-                operation, state));
+                operation, _state));
         }
 
         private void EnsureUniqueSecurityApplication()
         {
-            if (delayedApplicationHandled)
+            if (_delayedApplicationHandled)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.DelayedSecurityApplicationAlreadyCompleted)));
             }
-            delayedApplicationHandled = true;
+            _delayedApplicationHandled = true;
         }
 
         protected override void OnBodyToString(XmlDictionaryWriter writer)
         {
-            if (state == BodyState.Created || fullBodyFragment != null)
+            if (_state == BodyState.Created || _fullBodyFragment != null)
             {
                 base.OnBodyToString(writer);
             }
@@ -79,22 +79,22 @@ namespace CoreWCF.Security
             }
             finally
             {
-                fullBodyBuffer = null;
-                bodyAttributes = null;
-                encryptedBodyContent = null;
-                state = BodyState.Disposed;
+                _fullBodyBuffer = null;
+                _bodyAttributes = null;
+                _encryptedBodyContent = null;
+                _state = BodyState.Disposed;
             }
         }
 
         protected override void OnWriteStartBody(XmlDictionaryWriter writer)
         {
-            if (startBodyFragment != null || fullBodyFragment != null)
+            if (_startBodyFragment != null || _fullBodyFragment != null)
             {
                 WriteStartInnerMessageWithId(writer);
                 return;
             }
 
-            switch (state)
+            switch (_state)
             {
                 case BodyState.Created:
                 case BodyState.Encrypted:
@@ -102,16 +102,16 @@ namespace CoreWCF.Security
                     return;
                 case BodyState.Signed:
                 case BodyState.EncryptedThenSigned:
-                    XmlDictionaryReader reader = fullBodyBuffer.GetReader(0);
+                    XmlDictionaryReader reader = _fullBodyBuffer.GetReader(0);
                     writer.WriteStartElement(reader.Prefix, reader.LocalName, reader.NamespaceURI);
                     writer.WriteAttributes(reader, false);
                     reader.Close();
                     return;
                 case BodyState.SignedThenEncrypted:
-                    writer.WriteStartElement(bodyPrefix, XD.MessageDictionary.Body, Version.Envelope.DictionaryNamespace);
-                    if (bodyAttributes != null)
+                    writer.WriteStartElement(_bodyPrefix, XD.MessageDictionary.Body, Version.Envelope.DictionaryNamespace);
+                    if (_bodyAttributes != null)
                     {
-                        XmlAttributeHolder.WriteAttributes(bodyAttributes, writer);
+                        XmlAttributeHolder.WriteAttributes(_bodyAttributes, writer);
                     }
                     return;
                 default:
@@ -121,14 +121,14 @@ namespace CoreWCF.Security
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            switch (state)
+            switch (_state)
             {
                 case BodyState.Created:
                     InnerMessage.WriteBodyContents(writer);
                     return;
                 case BodyState.Signed:
                 case BodyState.EncryptedThenSigned:
-                    XmlDictionaryReader reader = fullBodyBuffer.GetReader(0);
+                    XmlDictionaryReader reader = _fullBodyBuffer.GetReader(0);
                     reader.ReadStartElement();
                     while (reader.NodeType != XmlNodeType.EndElement)
                     {
@@ -140,7 +140,7 @@ namespace CoreWCF.Security
                     return;
                 case BodyState.Encrypted:
                 case BodyState.SignedThenEncrypted:
-                    encryptedBodyContent.WriteTo(writer, ServiceModelDictionaryManager.Instance);
+                    _encryptedBodyContent.WriteTo(writer, ServiceModelDictionaryManager.Instance);
                     break;
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBadStateException(nameof(OnWriteBodyContents)));
@@ -157,34 +157,34 @@ namespace CoreWCF.Security
             EnsureUniqueSecurityApplication();
 
             MessagePrefixGenerator prefixGenerator = new MessagePrefixGenerator(writer);
-            securityHeader.StartSecurityApplication();
+            _securityHeader.StartSecurityApplication();
 
-            Headers.Add(securityHeader);
+            Headers.Add(_securityHeader);
 
             InnerMessage.WriteStartEnvelope(writer);
 
             Headers.RemoveAt(Headers.Count - 1);
 
-            securityHeader.ApplyBodySecurity(writer, prefixGenerator);
+            _securityHeader.ApplyBodySecurity(writer, prefixGenerator);
 
             InnerMessage.WriteStartHeaders(writer);
-            securityHeader.ApplySecurityAndWriteHeaders(Headers, writer, prefixGenerator);
+            _securityHeader.ApplySecurityAndWriteHeaders(Headers, writer, prefixGenerator);
 
-            securityHeader.RemoveSignatureEncryptionIfAppropriate();
+            _securityHeader.RemoveSignatureEncryptionIfAppropriate();
 
-            securityHeader.CompleteSecurityApplication();
-            securityHeader.WriteHeader(writer, Version);
+            _securityHeader.CompleteSecurityApplication();
+            _securityHeader.WriteHeader(writer, Version);
             writer.WriteEndElement();
 
-            if (fullBodyFragment != null)
+            if (_fullBodyFragment != null)
             {
-                ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(fullBodyFragment, 0, fullBodyFragmentLength);
+                ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_fullBodyFragment, 0, _fullBodyFragmentLength);
             }
             else
             {
-                if (startBodyFragment != null)
+                if (_startBodyFragment != null)
                 {
-                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(startBodyFragment.GetBuffer(), 0, (int)startBodyFragment.Length);
+                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_startBodyFragment.GetBuffer(), 0, (int)_startBodyFragment.Length);
                 }
                 else
                 {
@@ -193,9 +193,9 @@ namespace CoreWCF.Security
 
                 OnWriteBodyContents(writer);
 
-                if (endBodyFragment != null)
+                if (_endBodyFragment != null)
                 {
-                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(endBodyFragment.GetBuffer(), 0, (int)endBodyFragment.Length);
+                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_endBodyFragment.GetBuffer(), 0, (int)_endBodyFragment.Length);
                 }
                 else
                 {
@@ -212,9 +212,9 @@ namespace CoreWCF.Security
 
             if (cbmp != null)
             {
-                if (securityHeader.ElementContainer != null && securityHeader.ElementContainer.EndorsingSupportingTokens != null)
+                if (_securityHeader.ElementContainer != null && _securityHeader.ElementContainer.EndorsingSupportingTokens != null)
                 {
-                    foreach (SecurityToken token in securityHeader.ElementContainer.EndorsingSupportingTokens)
+                    foreach (SecurityToken token in _securityHeader.ElementContainer.EndorsingSupportingTokens)
                     {
                         ProviderBackedSecurityToken pbst = token as ProviderBackedSecurityToken;
                         if (pbst != null)
@@ -230,30 +230,30 @@ namespace CoreWCF.Security
         {
             BodyId = InnerMessage.GetBodyAttribute(
                 UtilityStrings.IdAttribute,
-                securityHeader.StandardsManager.IdManager.DefaultIdNamespaceUri);
+                _securityHeader.StandardsManager.IdManager.DefaultIdNamespaceUri);
             if (BodyId == null)
             {
-                BodyId = securityHeader.GenerateId();
-                bodyIdInserted = true;
+                BodyId = _securityHeader.GenerateId();
+                _bodyIdInserted = true;
             }
         }
 
         public void WriteBodyToEncrypt(EncryptedData encryptedData, SymmetricAlgorithm algorithm)
         {
-            encryptedData.Id = securityHeader.GenerateId();
+            encryptedData.Id = _securityHeader.GenerateId();
 
             BodyContentHelper helper = new BodyContentHelper();
             XmlDictionaryWriter encryptingWriter = helper.CreateWriter();
             InnerMessage.WriteBodyContents(encryptingWriter);
             encryptedData.SetUpEncryption(algorithm, helper.ExtractResult());
-            encryptedBodyContent = encryptedData;
+            _encryptedBodyContent = encryptedData;
 
-            state = BodyState.Encrypted;
+            _state = BodyState.Encrypted;
         }
 
         public void WriteBodyToEncryptThenSign(Stream canonicalStream, EncryptedData encryptedData, SymmetricAlgorithm algorithm)
         {
-            encryptedData.Id = securityHeader.GenerateId();
+            encryptedData.Id = _securityHeader.GenerateId();
             SetBodyId();
 
             XmlDictionaryWriter encryptingWriter = XmlDictionaryWriter.CreateTextWriter(Stream.Null);
@@ -271,8 +271,8 @@ namespace CoreWCF.Security
             ms.Flush();
             encryptedData.SetUpEncryption(algorithm, new ArraySegment<byte>(ms.GetBuffer(), 0, (int)ms.Length));
 
-            fullBodyBuffer = new XmlBuffer(int.MaxValue);
-            XmlDictionaryWriter canonicalWriter = fullBodyBuffer.OpenSection(XmlDictionaryReaderQuotas.Max);
+            _fullBodyBuffer = new XmlBuffer(int.MaxValue);
+            XmlDictionaryWriter canonicalWriter = _fullBodyBuffer.OpenSection(XmlDictionaryReaderQuotas.Max);
 
             canonicalWriter.StartCanonicalization(canonicalStream, false, null);
             WriteStartInnerMessageWithId(canonicalWriter);
@@ -281,26 +281,26 @@ namespace CoreWCF.Security
             canonicalWriter.EndCanonicalization();
             canonicalWriter.Flush();
 
-            fullBodyBuffer.CloseSection();
-            fullBodyBuffer.Close();
+            _fullBodyBuffer.CloseSection();
+            _fullBodyBuffer.Close();
 
-            state = BodyState.EncryptedThenSigned;
+            _state = BodyState.EncryptedThenSigned;
         }
 
         public void WriteBodyToSign(Stream canonicalStream)
         {
             SetBodyId();
 
-            fullBodyBuffer = new XmlBuffer(int.MaxValue);
-            XmlDictionaryWriter canonicalWriter = fullBodyBuffer.OpenSection(XmlDictionaryReaderQuotas.Max);
+            _fullBodyBuffer = new XmlBuffer(int.MaxValue);
+            XmlDictionaryWriter canonicalWriter = _fullBodyBuffer.OpenSection(XmlDictionaryReaderQuotas.Max);
             canonicalWriter.StartCanonicalization(canonicalStream, false, null);
             WriteInnerMessageWithId(canonicalWriter);
             canonicalWriter.EndCanonicalization();
             canonicalWriter.Flush();
-            fullBodyBuffer.CloseSection();
-            fullBodyBuffer.Close();
+            _fullBodyBuffer.CloseSection();
+            _fullBodyBuffer.Close();
 
-            state = BodyState.Signed;
+            _state = BodyState.Signed;
         }
 
         public void WriteBodyToSignThenEncrypt(Stream canonicalStream, EncryptedData encryptedData, SymmetricAlgorithm algorithm)
@@ -308,20 +308,20 @@ namespace CoreWCF.Security
             XmlBuffer buffer = new XmlBuffer(int.MaxValue);
             XmlDictionaryWriter fragmentingWriter = buffer.OpenSection(XmlDictionaryReaderQuotas.Max);
             WriteBodyToSignThenEncryptWithFragments(canonicalStream, false, null, encryptedData, algorithm, fragmentingWriter);
-            ((IFragmentCapableXmlDictionaryWriter)fragmentingWriter).WriteFragment(startBodyFragment.GetBuffer(), 0, (int)startBodyFragment.Length);
-            ((IFragmentCapableXmlDictionaryWriter)fragmentingWriter).WriteFragment(endBodyFragment.GetBuffer(), 0, (int)endBodyFragment.Length);
+            ((IFragmentCapableXmlDictionaryWriter)fragmentingWriter).WriteFragment(_startBodyFragment.GetBuffer(), 0, (int)_startBodyFragment.Length);
+            ((IFragmentCapableXmlDictionaryWriter)fragmentingWriter).WriteFragment(_endBodyFragment.GetBuffer(), 0, (int)_endBodyFragment.Length);
             buffer.CloseSection();
             buffer.Close();
 
-            startBodyFragment = null;
-            endBodyFragment = null;
+            _startBodyFragment = null;
+            _endBodyFragment = null;
 
             XmlDictionaryReader reader = buffer.GetReader(0);
             reader.MoveToContent();
-            bodyPrefix = reader.Prefix;
+            _bodyPrefix = reader.Prefix;
             if (reader.HasAttributes)
             {
-                bodyAttributes = XmlAttributeHolder.ReadAttributes(reader);
+                _bodyAttributes = XmlAttributeHolder.ReadAttributes(reader);
             }
             reader.Close();
         }
@@ -333,15 +333,15 @@ namespace CoreWCF.Security
             IFragmentCapableXmlDictionaryWriter fragmentingWriter = (IFragmentCapableXmlDictionaryWriter)writer;
 
             SetBodyId();
-            encryptedData.Id = securityHeader.GenerateId();
+            encryptedData.Id = _securityHeader.GenerateId();
 
-            startBodyFragment = new MemoryStream();
-            BufferedOutputStream bodyContentFragment = new BufferManagerOutputStream(SR.XmlBufferQuotaExceeded, 1024, int.MaxValue, securityHeader.StreamBufferManager);
-            endBodyFragment = new MemoryStream();
+            _startBodyFragment = new MemoryStream();
+            BufferedOutputStream bodyContentFragment = new BufferManagerOutputStream(SR.XmlBufferQuotaExceeded, 1024, int.MaxValue, _securityHeader.StreamBufferManager);
+            _endBodyFragment = new MemoryStream();
 
             writer.StartCanonicalization(stream, includeComments, inclusivePrefixes);
 
-            fragmentingWriter.StartFragment(startBodyFragment, false);
+            fragmentingWriter.StartFragment(_startBodyFragment, false);
             WriteStartInnerMessageWithId(writer);
             fragmentingWriter.EndFragment();
 
@@ -349,7 +349,7 @@ namespace CoreWCF.Security
             InnerMessage.WriteBodyContents(writer);
             fragmentingWriter.EndFragment();
 
-            fragmentingWriter.StartFragment(endBodyFragment, false);
+            fragmentingWriter.StartFragment(_endBodyFragment, false);
             writer.WriteEndElement();
             fragmentingWriter.EndFragment();
 
@@ -358,9 +358,9 @@ namespace CoreWCF.Security
             byte[] bodyBuffer = bodyContentFragment.ToArray(out int bodyLength);
 
             encryptedData.SetUpEncryption(algorithm, new ArraySegment<byte>(bodyBuffer, 0, bodyLength));
-            encryptedBodyContent = encryptedData;
+            _encryptedBodyContent = encryptedData;
 
-            state = BodyState.SignedThenEncrypted;
+            _state = BodyState.SignedThenEncrypted;
         }
 
         public void WriteBodyToSignWithFragments(Stream stream, bool includeComments, string[] inclusivePrefixes, XmlDictionaryWriter writer)
@@ -368,7 +368,7 @@ namespace CoreWCF.Security
             IFragmentCapableXmlDictionaryWriter fragmentingWriter = (IFragmentCapableXmlDictionaryWriter)writer;
 
             SetBodyId();
-            BufferedOutputStream fullBodyFragment = new BufferManagerOutputStream(SR.XmlBufferQuotaExceeded, 1024, int.MaxValue, securityHeader.StreamBufferManager);
+            BufferedOutputStream fullBodyFragment = new BufferManagerOutputStream(SR.XmlBufferQuotaExceeded, 1024, int.MaxValue, _securityHeader.StreamBufferManager);
             writer.StartCanonicalization(stream, includeComments, inclusivePrefixes);
             fragmentingWriter.StartFragment(fullBodyFragment, false);
             WriteStartInnerMessageWithId(writer);
@@ -377,9 +377,9 @@ namespace CoreWCF.Security
             fragmentingWriter.EndFragment();
             writer.EndCanonicalization();
 
-            this.fullBodyFragment = fullBodyFragment.ToArray(out fullBodyFragmentLength);
+            _fullBodyFragment = fullBodyFragment.ToArray(out _fullBodyFragmentLength);
 
-            state = BodyState.Signed;
+            _state = BodyState.Signed;
         }
 
         private void WriteInnerMessageWithId(XmlDictionaryWriter writer)
@@ -392,9 +392,9 @@ namespace CoreWCF.Security
         private void WriteStartInnerMessageWithId(XmlDictionaryWriter writer)
         {
             InnerMessage.WriteStartBody(writer);
-            if (bodyIdInserted)
+            if (_bodyIdInserted)
             {
-                securityHeader.StandardsManager.IdManager.WriteIdAttribute(writer, BodyId);
+                _securityHeader.StandardsManager.IdManager.WriteIdAttribute(writer, BodyId);
             }
         }
 
@@ -410,35 +410,35 @@ namespace CoreWCF.Security
 
         private struct BodyContentHelper
         {
-            private MemoryStream stream;
-            private XmlDictionaryWriter writer;
+            private MemoryStream _stream;
+            private XmlDictionaryWriter _writer;
 
             public XmlDictionaryWriter CreateWriter()
             {
-                stream = new MemoryStream();
-                writer = XmlDictionaryWriter.CreateTextWriter(stream);
-                return writer;
+                _stream = new MemoryStream();
+                _writer = XmlDictionaryWriter.CreateTextWriter(_stream);
+                return _writer;
             }
 
             public ArraySegment<byte> ExtractResult()
             {
-                writer.Flush();
-                return new ArraySegment<byte>(stream.GetBuffer(), 0, (int)stream.Length);
+                _writer.Flush();
+                return new ArraySegment<byte>(_stream.GetBuffer(), 0, (int)_stream.Length);
             }
         }
 
         private sealed class MessagePrefixGenerator : IPrefixGenerator
         {
-            private readonly XmlWriter writer;
+            private readonly XmlWriter _writer;
 
             public MessagePrefixGenerator(XmlWriter writer)
             {
-                this.writer = writer;
+                _writer = writer;
             }
 
             public string GetPrefix(string namespaceUri, int depth, bool isForAttribute)
             {
-                return writer.LookupPrefix(namespaceUri);
+                return _writer.LookupPrefix(namespaceUri);
             }
         }
     }

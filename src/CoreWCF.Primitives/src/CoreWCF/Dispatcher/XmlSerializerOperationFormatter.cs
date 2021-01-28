@@ -17,9 +17,9 @@ namespace CoreWCF.Dispatcher
     {
         private const string soap11Encoding = "http://schemas.xmlsoap.org/soap/encoding/";
         private const string soap12Encoding = "http://www.w3.org/2003/05/soap-encoding";
-        private readonly bool isEncoded;
-        private readonly MessageInfo requestMessageInfo;
-        private readonly MessageInfo replyMessageInfo;
+        private readonly bool _isEncoded;
+        private readonly MessageInfo _requestMessageInfo;
+        private readonly MessageInfo _replyMessageInfo;
 
         public XmlSerializerOperationFormatter(OperationDescription description, XmlSerializerFormatAttribute xmlSerializerFormatAttribute,
             MessageInfo requestMessageInfo, MessageInfo replyMessageInfo) :
@@ -30,10 +30,10 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxDocEncodedNotSupported, description.Name)));
             }
 
-            isEncoded = xmlSerializerFormatAttribute.IsEncoded;
+            _isEncoded = xmlSerializerFormatAttribute.IsEncoded;
 
-            this.requestMessageInfo = requestMessageInfo;
-            this.replyMessageInfo = replyMessageInfo;
+            _requestMessageInfo = requestMessageInfo;
+            _replyMessageInfo = replyMessageInfo;
         }
 
         protected override void AddHeadersToMessage(Message message, MessageDescription messageDescription, object[] parameters, bool isRequest)
@@ -48,15 +48,15 @@ namespace CoreWCF.Dispatcher
             {
                 if (isRequest)
                 {
-                    serializer = requestMessageInfo.HeaderSerializer;
-                    headerDescriptionTable = requestMessageInfo.HeaderDescriptionTable;
-                    unknownHeaderDescription = requestMessageInfo.UnknownHeaderDescription;
+                    serializer = _requestMessageInfo.HeaderSerializer;
+                    headerDescriptionTable = _requestMessageInfo.HeaderDescriptionTable;
+                    unknownHeaderDescription = _requestMessageInfo.UnknownHeaderDescription;
                 }
                 else
                 {
-                    serializer = replyMessageInfo.HeaderSerializer;
-                    headerDescriptionTable = replyMessageInfo.HeaderDescriptionTable;
-                    unknownHeaderDescription = replyMessageInfo.UnknownHeaderDescription;
+                    serializer = _replyMessageInfo.HeaderSerializer;
+                    headerDescriptionTable = _replyMessageInfo.HeaderDescriptionTable;
+                    unknownHeaderDescription = _replyMessageInfo.UnknownHeaderDescription;
                 }
                 if (serializer != null)
                 {
@@ -127,7 +127,6 @@ namespace CoreWCF.Dispatcher
                 {
                     foreach (object unknownHeader in (IEnumerable)parameters[unknownHeaderDescription.Index])
                     {
-
                         XmlElement element = (XmlElement)GetContentOfMessageHeaderOfT(unknownHeaderDescription, unknownHeader, out mustUnderstand, out relay, out actor);
                         if (element != null)
                         {
@@ -153,15 +152,15 @@ namespace CoreWCF.Dispatcher
                 MessageHeaderDescription unknownHeaderDescription;
                 if (isRequest)
                 {
-                    serializer = requestMessageInfo.HeaderSerializer;
-                    headerDescriptionTable = requestMessageInfo.HeaderDescriptionTable;
-                    unknownHeaderDescription = requestMessageInfo.UnknownHeaderDescription;
+                    serializer = _requestMessageInfo.HeaderSerializer;
+                    headerDescriptionTable = _requestMessageInfo.HeaderDescriptionTable;
+                    unknownHeaderDescription = _requestMessageInfo.UnknownHeaderDescription;
                 }
                 else
                 {
-                    serializer = replyMessageInfo.HeaderSerializer;
-                    headerDescriptionTable = replyMessageInfo.HeaderDescriptionTable;
-                    unknownHeaderDescription = replyMessageInfo.UnknownHeaderDescription;
+                    serializer = _replyMessageInfo.HeaderSerializer;
+                    headerDescriptionTable = _replyMessageInfo.HeaderDescriptionTable;
+                    unknownHeaderDescription = _replyMessageInfo.UnknownHeaderDescription;
                 }
                 MessageHeaders headers = message.Headers;
                 ArrayList unknownHeaders = null;
@@ -212,7 +211,6 @@ namespace CoreWCF.Dispatcher
 
                             messageHeaderOfTHelper.SetHeaderAttributes(matchingHeaderDescription, header.MustUnderstand, header.Relay, header.Actor);
                         }
-
                     }
                     if (matchingHeaderDescription == null && unknownHeaderDescription != null)
                     {
@@ -295,7 +293,7 @@ namespace CoreWCF.Dispatcher
 
         protected override void WriteBodyAttributes(XmlDictionaryWriter writer, MessageVersion version)
         {
-            if (isEncoded && version.Envelope == EnvelopeVersion.Soap11)
+            if (_isEncoded && version.Envelope == EnvelopeVersion.Soap11)
             {
                 string encoding = GetEncoding(version.Envelope);
                 writer.WriteAttributeString("encodingStyle", version.Envelope.Namespace, encoding);
@@ -321,11 +319,11 @@ namespace CoreWCF.Dispatcher
                 MessageInfo messageInfo;
                 if (isRequest)
                 {
-                    messageInfo = requestMessageInfo;
+                    messageInfo = _requestMessageInfo;
                 }
                 else
                 {
-                    messageInfo = replyMessageInfo;
+                    messageInfo = _replyMessageInfo;
                 }
 
                 if (messageInfo.RpcEncodedTypedMessageBodyParts == null)
@@ -400,11 +398,11 @@ namespace CoreWCF.Dispatcher
             MessageInfo messageInfo;
             if (isRequest)
             {
-                messageInfo = requestMessageInfo;
+                messageInfo = _requestMessageInfo;
             }
             else
             {
-                messageInfo = replyMessageInfo;
+                messageInfo = _replyMessageInfo;
             }
 
             if (messageInfo.RpcEncodedTypedMessageBodyParts == null)
@@ -516,10 +514,10 @@ namespace CoreWCF.Dispatcher
 
         private class MessageHeaderOfTHelper
         {
-            private readonly object[] attributes;
+            private readonly object[] _attributes;
             internal MessageHeaderOfTHelper(int parameterCount)
             {
-                attributes = new object[parameterCount];
+                _attributes = new object[parameterCount];
             }
             internal object GetContentAndSaveHeaderAttributes(object parameterValue, MessageHeaderDescription headerDescription)
             {
@@ -541,16 +539,15 @@ namespace CoreWCF.Dispatcher
                         tArray.SetValue(GetContentOfMessageHeaderOfT(headerDescription, messageHeaderOfTArray[i], out mustUnderstand, out relay, out actor), i);
                         messageHeaderOfTAttributes[i] = new MessageHeader<object>(null, mustUnderstand, actor, relay);
                     }
-                    attributes[headerDescription.Index] = messageHeaderOfTAttributes;
+                    _attributes[headerDescription.Index] = messageHeaderOfTAttributes;
                     return tArray;
                 }
                 else
                 {
                     object content = GetContentOfMessageHeaderOfT(headerDescription, parameterValue, out mustUnderstand, out relay, out actor);
-                    attributes[headerDescription.Index] = new MessageHeader<object>(null, mustUnderstand, actor, relay);
+                    _attributes[headerDescription.Index] = new MessageHeader<object>(null, mustUnderstand, actor, relay);
                     return content;
                 }
-
             }
 
             internal void GetHeaderAttributes(MessageHeaderDescription headerDescription, out bool mustUnderstand, out bool relay, out string actor)
@@ -558,7 +555,7 @@ namespace CoreWCF.Dispatcher
                 MessageHeader<object> matchingMessageHeaderOfTAttribute = null;
                 if (headerDescription.Multiple)
                 {
-                    MessageHeader<object>[] messageHeaderOfTAttributes = (MessageHeader<object>[])attributes[headerDescription.Index];
+                    MessageHeader<object>[] messageHeaderOfTAttributes = (MessageHeader<object>[])_attributes[headerDescription.Index];
                     for (int i = 0; i < messageHeaderOfTAttributes.Length; i++)
                     {
                         if (messageHeaderOfTAttributes[i] != null)
@@ -573,7 +570,7 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    matchingMessageHeaderOfTAttribute = (MessageHeader<object>)attributes[headerDescription.Index];
+                    matchingMessageHeaderOfTAttribute = (MessageHeader<object>)_attributes[headerDescription.Index];
                 }
 
                 mustUnderstand = matchingMessageHeaderOfTAttribute.MustUnderstand;
@@ -585,21 +582,21 @@ namespace CoreWCF.Dispatcher
             {
                 if (headerDescription.Multiple)
                 {
-                    if (attributes[headerDescription.Index] == null)
+                    if (_attributes[headerDescription.Index] == null)
                     {
-                        attributes[headerDescription.Index] = new List<MessageHeader<object>>();
-                    } ((List<MessageHeader<object>>)attributes[headerDescription.Index]).Add(new MessageHeader<object>(null, mustUnderstand, actor, relay));
+                        _attributes[headerDescription.Index] = new List<MessageHeader<object>>();
+                    } ((List<MessageHeader<object>>)_attributes[headerDescription.Index]).Add(new MessageHeader<object>(null, mustUnderstand, actor, relay));
                 }
                 else
                 {
-                    attributes[headerDescription.Index] = new MessageHeader<object>(null, mustUnderstand, actor, relay);
+                    _attributes[headerDescription.Index] = new MessageHeader<object>(null, mustUnderstand, actor, relay);
                 }
             }
             internal object CreateMessageHeader(MessageHeaderDescription headerDescription, object headerValue)
             {
                 if (headerDescription.Multiple)
                 {
-                    IList<MessageHeader<object>> messageHeaderOfTAttributes = (IList<MessageHeader<object>>)attributes[headerDescription.Index];
+                    IList<MessageHeader<object>> messageHeaderOfTAttributes = (IList<MessageHeader<object>>)_attributes[headerDescription.Index];
                     object[] messageHeaderOfTArray = (object[])Array.CreateInstance(TypedHeaderManager.GetMessageHeaderType(headerDescription.Type), messageHeaderOfTAttributes.Count);
                     Array headerValues = (Array)headerValue;
                     for (int i = 0; i < messageHeaderOfTArray.Length; i++)
@@ -612,10 +609,9 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    MessageHeader<object> messageHeaderOfTAttribute = (MessageHeader<object>)attributes[headerDescription.Index];
+                    MessageHeader<object> messageHeaderOfTAttribute = (MessageHeader<object>)_attributes[headerDescription.Index];
                     return TypedHeaderManager.Create(headerDescription.Type, headerValue,
                                                                   messageHeaderOfTAttribute.MustUnderstand, messageHeaderOfTAttribute.Relay, messageHeaderOfTAttribute.Actor);
-
                 }
             }
         }

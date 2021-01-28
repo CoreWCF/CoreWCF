@@ -153,7 +153,6 @@ namespace CoreWCF.Security
 
             public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
             {
-
                 WriteBinaryCore(token, out string id, out byte[] rawData);
 
                 if (rawData == null)
@@ -265,7 +264,6 @@ namespace CoreWCF.Security
 
             public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
             {
-
                 ParseToken(reader, out string id, out string userName, out string password);
 
                 if (id == null)

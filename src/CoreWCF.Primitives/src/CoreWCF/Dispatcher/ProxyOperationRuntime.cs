@@ -141,7 +141,6 @@ namespace CoreWCF.Dispatcher
                     //{
                     //    TD.ClientFormatterDeserializeReplyStop(rpc.EventTraceActivity);
                     //}
-
                 }
                 else
                 {
@@ -222,8 +221,6 @@ namespace CoreWCF.Dispatcher
                 //}
 
                 rpc.Request = _formatter.SerializeRequest(rpc.MessageVersion, rpc.InputParameters);
-
-
 
                 //if (TD.ClientFormatterSerializeRequestStopIsEnabled())
                 //{
@@ -392,5 +389,4 @@ namespace CoreWCF.Dispatcher
             return (string.CompareOrdinal(message.Headers.Action, action) == 0);
         }
     }
-
 }

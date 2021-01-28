@@ -9,19 +9,19 @@ namespace CoreWCF
 {
     internal class WSAddressing10ProblemHeaderQNameFault : MessageFault
     {
-        private readonly FaultCode code;
-        private readonly FaultReason reason;
-        private readonly string actor;
-        private readonly string node;
-        private readonly string invalidHeaderName;
+        private readonly FaultCode _code;
+        private readonly FaultReason _reason;
+        private readonly string _actor;
+        private readonly string _node;
+        private readonly string _invalidHeaderName;
 
         public WSAddressing10ProblemHeaderQNameFault(MessageHeaderException e)
         {
-            invalidHeaderName = e.HeaderName;
+            _invalidHeaderName = e.HeaderName;
 
             if (e.IsDuplicate)
             {
-                code = FaultCode.CreateSenderFaultCode(
+                _code = FaultCode.CreateSenderFaultCode(
                     new FaultCode(Addressing10Strings.InvalidAddressingHeader,
                                   AddressingVersion.WSAddressing10.Namespace,
                                   new FaultCode(Addressing10Strings.InvalidCardinality,
@@ -29,31 +29,31 @@ namespace CoreWCF
             }
             else
             {
-                code = FaultCode.CreateSenderFaultCode(
+                _code = FaultCode.CreateSenderFaultCode(
                     new FaultCode(Addressing10Strings.MessageAddressingHeaderRequired,
                                   AddressingVersion.WSAddressing10.Namespace));
             }
 
-            reason = new FaultReason(e.Message, CultureInfo.CurrentCulture);
-            actor = "";
-            node = "";
+            _reason = new FaultReason(e.Message, CultureInfo.CurrentCulture);
+            _actor = "";
+            _node = "";
         }
 
         public WSAddressing10ProblemHeaderQNameFault(ActionMismatchAddressingException e)
         {
-            invalidHeaderName = AddressingStrings.Action;
-            code = FaultCode.CreateSenderFaultCode(
+            _invalidHeaderName = AddressingStrings.Action;
+            _code = FaultCode.CreateSenderFaultCode(
                 new FaultCode(Addressing10Strings.ActionMismatch, AddressingVersion.WSAddressing10.Namespace));
-            reason = new FaultReason(e.Message, CultureInfo.CurrentCulture);
-            actor = "";
-            node = "";
+            _reason = new FaultReason(e.Message, CultureInfo.CurrentCulture);
+            _actor = "";
+            _node = "";
         }
 
         public override string Actor
         {
             get
             {
-                return actor;
+                return _actor;
             }
         }
 
@@ -61,7 +61,7 @@ namespace CoreWCF
         {
             get
             {
-                return code;
+                return _code;
             }
         }
 
@@ -77,7 +77,7 @@ namespace CoreWCF
         {
             get
             {
-                return node;
+                return _node;
             }
         }
 
@@ -85,7 +85,7 @@ namespace CoreWCF
         {
             get
             {
-                return reason;
+                return _reason;
             }
         }
 
@@ -102,7 +102,7 @@ namespace CoreWCF
         protected override void OnWriteDetailContents(XmlDictionaryWriter writer)
         {
             writer.WriteStartElement(Addressing10Strings.ProblemHeaderQName, AddressingVersion.WSAddressing10.Namespace);
-            writer.WriteQualifiedName(invalidHeaderName, AddressingVersion.WSAddressing10.Namespace);
+            writer.WriteQualifiedName(_invalidHeaderName, AddressingVersion.WSAddressing10.Namespace);
             writer.WriteEndElement();
         }
 
@@ -110,17 +110,17 @@ namespace CoreWCF
         {
             if (headers.MessageVersion.Envelope == EnvelopeVersion.Soap11)
             {
-                headers.Add(new WSAddressing10ProblemHeaderQNameHeader(invalidHeaderName));
+                headers.Add(new WSAddressing10ProblemHeaderQNameHeader(_invalidHeaderName));
             }
         }
 
         private class WSAddressing10ProblemHeaderQNameHeader : MessageHeader
         {
-            private readonly string invalidHeaderName;
+            private readonly string _invalidHeaderName;
 
             public WSAddressing10ProblemHeaderQNameHeader(string invalidHeaderName)
             {
-                this.invalidHeaderName = invalidHeaderName;
+                _invalidHeaderName = invalidHeaderName;
             }
 
             public override string Name
@@ -141,10 +141,9 @@ namespace CoreWCF
             protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
                 writer.WriteStartElement(Addressing10Strings.ProblemHeaderQName, Namespace);
-                writer.WriteQualifiedName(invalidHeaderName, Namespace);
+                writer.WriteQualifiedName(_invalidHeaderName, Namespace);
                 writer.WriteEndElement();
             }
         }
     }
-
 }

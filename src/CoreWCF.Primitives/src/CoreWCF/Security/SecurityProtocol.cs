@@ -332,7 +332,6 @@ namespace CoreWCF.Security
         {
             if (SecurityProtocolFactory.ActAsInitiator)
             {
-
                 foreach (SupportingTokenProviderSpecification spec in ChannelSupportingTokenProviderSpecification)
                 {
                     SecurityUtils.AbortTokenProviderIfRequired(spec.TokenProvider);
@@ -606,7 +605,6 @@ namespace CoreWCF.Security
         protected IList<SupportingTokenAuthenticatorSpecification> GetSupportingTokenAuthenticatorsAndSetExpectationFlags(SecurityProtocolFactory factory, Message message,
     ReceiveSecurityHeader securityHeader)
         {
-
             if (message == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");

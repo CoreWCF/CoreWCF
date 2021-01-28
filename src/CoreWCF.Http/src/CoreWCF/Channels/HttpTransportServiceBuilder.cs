@@ -31,7 +31,6 @@ namespace CoreWCF.Channels
                         _configured = true;
                         _configuredTime = DateTime.UtcNow;
                     }
-
                 }
             }
         }

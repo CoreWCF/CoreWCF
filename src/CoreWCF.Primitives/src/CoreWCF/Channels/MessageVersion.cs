@@ -9,20 +9,20 @@ namespace CoreWCF.Channels
 {
     public sealed class MessageVersion
     {
-        private readonly AddressingVersion addressing;
-        private static readonly MessageVersion soap12Addressing10;
+        private readonly AddressingVersion _addressing;
+        private static readonly MessageVersion s_soap12Addressing10;
 
         static MessageVersion()
         {
             None = new MessageVersion(EnvelopeVersion.None, AddressingVersion.None);
             Soap11 = new MessageVersion(EnvelopeVersion.Soap11, AddressingVersion.None);
-            soap12Addressing10 = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.WSAddressing10);
+            s_soap12Addressing10 = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.WSAddressing10);
         }
 
         private MessageVersion(EnvelopeVersion envelopeVersion, AddressingVersion addressingVersion)
         {
             Envelope = envelopeVersion;
-            addressing = addressingVersion;
+            _addressing = addressingVersion;
         }
 
         public static MessageVersion CreateVersion(EnvelopeVersion envelopeVersion)
@@ -46,7 +46,7 @@ namespace CoreWCF.Channels
             {
                 if (addressingVersion == AddressingVersion.WSAddressing10)
                 {
-                    return soap12Addressing10;
+                    return s_soap12Addressing10;
                 }
                 else
                 {
@@ -87,12 +87,12 @@ namespace CoreWCF.Channels
 
         public AddressingVersion Addressing
         {
-            get { return addressing; }
+            get { return _addressing; }
         }
 
         public static MessageVersion Default
         {
-            get { return soap12Addressing10; }
+            get { return s_soap12Addressing10; }
         }
 
         public EnvelopeVersion Envelope { get; }
@@ -117,14 +117,14 @@ namespace CoreWCF.Channels
 
         public static MessageVersion Soap12WSAddressing10
         {
-            get { return soap12Addressing10; }
+            get { return s_soap12Addressing10; }
         }
 
         public static MessageVersion Soap11 { get; private set; }
 
         public override string ToString()
         {
-            return SR.Format(SR.MessageVersionToStringFormat, Envelope.ToString(), addressing.ToString());
+            return SR.Format(SR.MessageVersionToStringFormat, Envelope.ToString(), _addressing.ToString());
         }
 
         internal bool IsMatch(MessageVersion messageVersion)
@@ -134,7 +134,7 @@ namespace CoreWCF.Channels
                 Fx.Assert("Invalid (null) messageVersion value");
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
             }
-            if (addressing == null)
+            if (_addressing == null)
             {
                 Fx.Assert("Invalid (null) addressing value");
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "MessageVersion.Addressing cannot be null")));
@@ -145,7 +145,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            if (addressing.Namespace != messageVersion.Addressing.Namespace)
+            if (_addressing.Namespace != messageVersion.Addressing.Namespace)
             {
                 return false;
             }

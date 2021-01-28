@@ -12,54 +12,54 @@ namespace CoreWCF.Channels
 {
     internal abstract class RequestContextBase : RequestContext
     {
-        private TimeSpan defaultSendTimeout;
-        private TimeSpan defaultCloseTimeout;
-        private CommunicationState state = CommunicationState.Opened;
-        private Message requestMessage;
-        private Exception requestMessageException;
-        private bool replySent;
-        private bool aborted;
+        private TimeSpan _defaultSendTimeout;
+        private TimeSpan _defaultCloseTimeout;
+        private CommunicationState _state = CommunicationState.Opened;
+        private Message _requestMessage;
+        private Exception _requestMessageException;
+        private bool _replySent;
+        private bool _aborted;
 
         protected RequestContextBase(Message requestMessage, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
         {
-            this.defaultSendTimeout = defaultSendTimeout;
-            this.defaultCloseTimeout = defaultCloseTimeout;
-            this.requestMessage = requestMessage;
+            _defaultSendTimeout = defaultSendTimeout;
+            _defaultCloseTimeout = defaultCloseTimeout;
+            _requestMessage = requestMessage;
         }
 
         public void ReInitialize(Message requestMessage)
         {
-            state = CommunicationState.Opened;
-            requestMessageException = null;
-            replySent = false;
+            _state = CommunicationState.Opened;
+            _requestMessageException = null;
+            _replySent = false;
             ReplyInitiated = false;
-            aborted = false;
-            this.requestMessage = requestMessage;
+            _aborted = false;
+            _requestMessage = requestMessage;
         }
 
         public override Message RequestMessage
         {
             get
             {
-                if (requestMessageException != null)
+                if (_requestMessageException != null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(requestMessageException);
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(_requestMessageException);
                 }
 
-                return requestMessage;
+                return _requestMessage;
             }
         }
 
         protected void SetRequestMessage(Message requestMessage)
         {
-            Fx.Assert(requestMessageException == null, "Cannot have both a requestMessage and a requestException.");
-            this.requestMessage = requestMessage;
+            Fx.Assert(_requestMessageException == null, "Cannot have both a requestMessage and a requestException.");
+            _requestMessage = requestMessage;
         }
 
         protected void SetRequestMessage(Exception requestMessageException)
         {
-            Fx.Assert(requestMessage == null, "Cannot have both a requestMessage and a requestException.");
-            this.requestMessageException = requestMessageException;
+            Fx.Assert(_requestMessage == null, "Cannot have both a requestMessage and a requestException.");
+            _requestMessageException = requestMessageException;
         }
 
         protected bool ReplyInitiated { get; private set; }
@@ -70,32 +70,32 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return aborted;
+                return _aborted;
             }
         }
 
         public TimeSpan DefaultCloseTimeout
         {
-            get { return defaultCloseTimeout; }
+            get { return _defaultCloseTimeout; }
         }
 
         public TimeSpan DefaultSendTimeout
         {
-            get { return defaultSendTimeout; }
+            get { return _defaultSendTimeout; }
         }
 
         public override void Abort()
         {
             lock (ThisLock)
             {
-                if (state == CommunicationState.Closed)
+                if (_state == CommunicationState.Closed)
                 {
                     return;
                 }
 
-                state = CommunicationState.Closing;
+                _state = CommunicationState.Closing;
 
-                aborted = true;
+                _aborted = true;
             }
 
             //if (DiagnosticUtility.ShouldTraceWarning)
@@ -110,13 +110,13 @@ namespace CoreWCF.Channels
             }
             finally
             {
-                state = CommunicationState.Closed;
+                _state = CommunicationState.Closed;
             }
         }
 
         public override Task CloseAsync()
         {
-            var helper = new TimeoutHelper(defaultCloseTimeout);
+            var helper = new TimeoutHelper(_defaultCloseTimeout);
             return CloseAsync(helper.GetCancellationToken());
         }
 
@@ -125,7 +125,7 @@ namespace CoreWCF.Channels
             bool sendAck = false;
             lock (ThisLock)
             {
-                if (state != CommunicationState.Opened)
+                if (_state != CommunicationState.Opened)
                 {
                     return;
                 }
@@ -135,7 +135,7 @@ namespace CoreWCF.Channels
                     sendAck = true;
                 }
 
-                state = CommunicationState.Closing;
+                _state = CommunicationState.Closing;
             }
 
             bool throwing = true;
@@ -148,7 +148,7 @@ namespace CoreWCF.Channels
                 }
 
                 await OnCloseAsync(token);
-                state = CommunicationState.Closed;
+                _state = CommunicationState.Closed;
                 throwing = false;
             }
             finally
@@ -169,7 +169,7 @@ namespace CoreWCF.Channels
                 return;
             }
 
-            if (replySent)
+            if (_replySent)
             {
                 CloseAsync().GetAwaiter().GetResult();
             }
@@ -185,9 +185,9 @@ namespace CoreWCF.Channels
 
         protected void ThrowIfInvalidReply()
         {
-            if (state == CommunicationState.Closed || state == CommunicationState.Closing)
+            if (_state == CommunicationState.Closed || _state == CommunicationState.Closing)
             {
-                if (aborted)
+                if (_aborted)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationObjectAbortedException(SR.RequestContextAborted));
                 }
@@ -211,7 +211,7 @@ namespace CoreWCF.Channels
         {
             lock (ThisLock)
             {
-                if ((state != CommunicationState.Opened) || ReplyInitiated)
+                if ((_state != CommunicationState.Opened) || ReplyInitiated)
                 {
                     return false;
                 }
@@ -225,7 +225,7 @@ namespace CoreWCF.Channels
 
         public override Task ReplyAsync(Message message)
         {
-            var helper = new TimeoutHelper(defaultSendTimeout);
+            var helper = new TimeoutHelper(_defaultSendTimeout);
             return ReplyAsync(message, helper.GetCancellationToken());
         }
 
@@ -239,7 +239,7 @@ namespace CoreWCF.Channels
             }
 
             await OnReplyAsync(message, token);
-            replySent = true;
+            _replySent = true;
         }
 
         // This method is designed for WebSocket only, and will only be used once the WebSocket response was sent.
@@ -255,18 +255,18 @@ namespace CoreWCF.Channels
                 ReplyInitiated = true;
             }
 
-            replySent = true;
+            _replySent = true;
         }
     }
 
     internal class RequestContextMessageProperty : IDisposable
     {
-        private RequestContext context;
-        private readonly object thisLock = new object();
+        private RequestContext _context;
+        private readonly object _thisLock = new object();
 
         public RequestContextMessageProperty(RequestContext context)
         {
-            this.context = context;
+            _context = context;
         }
 
         public static string Name
@@ -279,15 +279,15 @@ namespace CoreWCF.Channels
             bool success = false;
             RequestContext thisContext;
 
-            lock (thisLock)
+            lock (_thisLock)
             {
-                if (context == null)
+                if (_context == null)
                 {
                     return;
                 }
 
-                thisContext = context;
-                context = null;
+                thisContext = _context;
+                _context = null;
             }
 
             try
@@ -316,5 +316,4 @@ namespace CoreWCF.Channels
             }
         }
     }
-
 }

@@ -14,15 +14,15 @@ namespace CoreWCF.Security.Tokens
     public class SspiSecurityTokenParameters : SecurityTokenParameters
     {
         internal const bool defaultRequireCancellation = false;
-        private BindingContext issuerBindingContext;
+        private BindingContext _issuerBindingContext;
 
         protected SspiSecurityTokenParameters(SspiSecurityTokenParameters other)
             : base(other)
         {
             RequireCancellation = other.RequireCancellation;
-            if (other.issuerBindingContext != null)
+            if (other._issuerBindingContext != null)
             {
-                issuerBindingContext = other.issuerBindingContext.Clone();
+                _issuerBindingContext = other._issuerBindingContext.Clone();
             }
         }
 
@@ -47,7 +47,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return issuerBindingContext;
+                return _issuerBindingContext;
             }
             set
             {
@@ -55,7 +55,7 @@ namespace CoreWCF.Security.Tokens
                 {
                     value = value.Clone();
                 }
-                issuerBindingContext = value;
+                _issuerBindingContext = value;
             }
         }
 

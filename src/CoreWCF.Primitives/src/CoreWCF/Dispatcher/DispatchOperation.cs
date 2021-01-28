@@ -8,26 +8,26 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchOperation
     {
-        private readonly SynchronizedCollection<FaultContractInfo> faultContractInfos;
-        private IDispatchFaultFormatter faultFormatter;
-        private ImpersonationOption impersonation;
-        private bool isTerminating;
-        private bool isSessionOpenNotificationEnabled;
-        private bool releaseInstanceAfterCall;
-        private bool releaseInstanceBeforeCall;
-        private bool deserializeRequest = true;
-        private bool serializeReply = true;
-        private bool autoDisposeParameters = true;
+        private readonly SynchronizedCollection<FaultContractInfo> _faultContractInfos;
+        private IDispatchFaultFormatter _faultFormatter;
+        private ImpersonationOption _impersonation;
+        private bool _isTerminating;
+        private bool _isSessionOpenNotificationEnabled;
+        private bool _releaseInstanceAfterCall;
+        private bool _releaseInstanceBeforeCall;
+        private bool _deserializeRequest = true;
+        private bool _serializeReply = true;
+        private bool _autoDisposeParameters = true;
 
         public DispatchOperation(DispatchRuntime parent, string name, string action)
         {
             Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             Name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             Action = action;
-            impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
+            _impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
             // Not necessary for basic functionality
             CallContextInitializers = parent.NewBehaviorCollection<ICallContextInitializer>();
-            faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
+            _faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
             ParameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
             IsOneWay = true;
         }
@@ -44,7 +44,7 @@ namespace CoreWCF.Dispatcher
 
         internal SynchronizedCollection<FaultContractInfo> FaultContractInfos
         {
-            get { return faultContractInfos; }
+            get { return _faultContractInfos; }
         }
 
         internal IDispatchMessageFormatter Formatter
@@ -64,18 +64,18 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (faultFormatter == null)
+                if (_faultFormatter == null)
                 {
-                    faultFormatter = new DataContractSerializerFaultFormatter(faultContractInfos);
+                    _faultFormatter = new DataContractSerializerFaultFormatter(_faultContractInfos);
                 }
-                return faultFormatter;
+                return _faultFormatter;
             }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    faultFormatter = value;
+                    _faultFormatter = value;
                     IsFaultFormatterSetExplicit = true;
                 }
             }
@@ -85,27 +85,27 @@ namespace CoreWCF.Dispatcher
 
         public bool AutoDisposeParameters
         {
-            get { return autoDisposeParameters; }
+            get { return _autoDisposeParameters; }
 
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    autoDisposeParameters = value;
+                    _autoDisposeParameters = value;
                 }
             }
         }
 
         public bool DeserializeRequest
         {
-            get { return deserializeRequest; }
+            get { return _deserializeRequest; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    deserializeRequest = value;
+                    _deserializeRequest = value;
                 }
             }
         }
@@ -114,13 +114,13 @@ namespace CoreWCF.Dispatcher
 
         public ImpersonationOption Impersonation
         {
-            get { return impersonation; }
+            get { return _impersonation; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    impersonation = value;
+                    _impersonation = value;
                 }
             }
         }
@@ -146,26 +146,26 @@ namespace CoreWCF.Dispatcher
 
         internal bool IsTerminating
         {
-            get { return isTerminating; }
+            get { return _isTerminating; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    isTerminating = value;
+                    _isTerminating = value;
                 }
             }
         }
 
         internal bool IsSessionOpenNotificationEnabled
         {
-            get { return isSessionOpenNotificationEnabled; }
+            get { return _isSessionOpenNotificationEnabled; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    isSessionOpenNotificationEnabled = value;
+                    _isSessionOpenNotificationEnabled = value;
                 }
             }
         }
@@ -180,26 +180,26 @@ namespace CoreWCF.Dispatcher
 
         internal bool ReleaseInstanceAfterCall
         {
-            get { return releaseInstanceAfterCall; }
+            get { return _releaseInstanceAfterCall; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    releaseInstanceAfterCall = value;
+                    _releaseInstanceAfterCall = value;
                 }
             }
         }
 
         internal bool ReleaseInstanceBeforeCall
         {
-            get { return releaseInstanceBeforeCall; }
+            get { return _releaseInstanceBeforeCall; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    releaseInstanceBeforeCall = value;
+                    _releaseInstanceBeforeCall = value;
                 }
             }
         }
@@ -208,13 +208,13 @@ namespace CoreWCF.Dispatcher
 
         public bool SerializeReply
         {
-            get { return serializeReply; }
+            get { return _serializeReply; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    serializeReply = value;
+                    _serializeReply = value;
                 }
             }
         }

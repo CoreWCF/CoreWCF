@@ -12,26 +12,26 @@ namespace CoreWCF
     {
         internal const HttpClientCredentialType DefaultClientCredentialType = HttpClientCredentialType.None;
         internal const string DefaultRealm = CoreWCF.Channels.HttpTransportDefaults.Realm;
-        private HttpClientCredentialType clientCredentialType;
-        private ExtendedProtectionPolicy extendedProtectionPolicy;
+        private HttpClientCredentialType _clientCredentialType;
+        private ExtendedProtectionPolicy _extendedProtectionPolicy;
 
         public HttpTransportSecurity()
         {
-            clientCredentialType = DefaultClientCredentialType;
+            _clientCredentialType = DefaultClientCredentialType;
             Realm = DefaultRealm;
-            extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
+            _extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
 
         public HttpClientCredentialType ClientCredentialType
         {
-            get { return clientCredentialType; }
+            get { return _clientCredentialType; }
             set
             {
                 if (!HttpClientCredentialTypeHelper.IsDefined(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
                 }
-                clientCredentialType = value;
+                _clientCredentialType = value;
             }
         }
 
@@ -41,7 +41,7 @@ namespace CoreWCF
         {
             get
             {
-                return extendedProtectionPolicy;
+                return _extendedProtectionPolicy;
             }
             set
             {
@@ -57,7 +57,7 @@ namespace CoreWCF
                         new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported));
                 }
 
-                extendedProtectionPolicy = value;
+                _extendedProtectionPolicy = value;
             }
         }
 
@@ -69,16 +69,16 @@ namespace CoreWCF
 
         private void ConfigureAuthentication(HttpTransportBindingElement http)
         {
-            http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(clientCredentialType);
+            http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(_clientCredentialType);
             http.Realm = Realm;
-            http.ExtendedProtectionPolicy = extendedProtectionPolicy;
+            http.ExtendedProtectionPolicy = _extendedProtectionPolicy;
         }
 
         private static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
         {
-            transportSecurity.clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
+            transportSecurity._clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
             transportSecurity.Realm = http.Realm;
-            transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
+            transportSecurity._extendedProtectionPolicy = http.ExtendedProtectionPolicy;
         }
 
         private void DisableAuthentication(HttpTransportBindingElement http)
@@ -98,7 +98,7 @@ namespace CoreWCF
         internal void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https)
         {
             ConfigureAuthentication(https);
-            https.RequireClientCertificate = (clientCredentialType == HttpClientCredentialType.Certificate);
+            https.RequireClientCertificate = (_clientCredentialType == HttpClientCredentialType.Certificate);
         }
 
         internal static void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https, HttpTransportSecurity transportSecurity)
@@ -112,7 +112,7 @@ namespace CoreWCF
 
         internal void ConfigureTransportAuthentication(HttpTransportBindingElement http)
         {
-            if (clientCredentialType == HttpClientCredentialType.Certificate)
+            if (_clientCredentialType == HttpClientCredentialType.Certificate)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.CertificateUnsupportedForHttpTransportCredentialOnly));
             }

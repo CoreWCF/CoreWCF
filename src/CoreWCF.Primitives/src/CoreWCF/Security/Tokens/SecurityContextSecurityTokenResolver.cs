@@ -12,9 +12,9 @@ namespace CoreWCF.Security.Tokens
 {
     public class SecurityContextSecurityTokenResolver : SecurityTokenResolver, ISecurityContextSecurityTokenCache
     {
-        private readonly SecurityContextTokenCache tokenCache;
-        private readonly int capacity;
-        private TimeSpan clockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
+        private readonly SecurityContextTokenCache _tokenCache;
+        private readonly int _capacity;
+        private TimeSpan _clockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
 
         public SecurityContextSecurityTokenResolver(int securityContextCacheCapacity, bool removeOldestTokensOnCacheFull)
             : this(securityContextCacheCapacity, removeOldestTokensOnCacheFull, SecurityProtocolFactory.defaultMaxClockSkew)
@@ -33,17 +33,17 @@ namespace CoreWCF.Security.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(clockSkew), SR.TimeSpanCannotBeLessThanTimeSpanZero));
             }
 
-            capacity = securityContextCacheCapacity;
+            _capacity = securityContextCacheCapacity;
             RemoveOldestTokensOnCacheFull = removeOldestTokensOnCacheFull;
-            this.clockSkew = clockSkew;
-            tokenCache = new SecurityContextTokenCache(capacity, RemoveOldestTokensOnCacheFull, clockSkew);
+            _clockSkew = clockSkew;
+            _tokenCache = new SecurityContextTokenCache(_capacity, RemoveOldestTokensOnCacheFull, clockSkew);
         }
 
         public int SecurityContextTokenCacheCapacity
         {
             get
             {
-                return capacity;
+                return _capacity;
             }
         }
 
@@ -51,7 +51,7 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                return clockSkew;
+                return _clockSkew;
             }
         }
 
@@ -59,43 +59,43 @@ namespace CoreWCF.Security.Tokens
 
         public void AddContext(SecurityContextSecurityToken token)
         {
-            tokenCache.AddContext(token);
+            _tokenCache.AddContext(token);
         }
 
         public bool TryAddContext(SecurityContextSecurityToken token)
         {
-            return tokenCache.TryAddContext(token);
+            return _tokenCache.TryAddContext(token);
         }
 
 
         public void ClearContexts()
         {
-            tokenCache.ClearContexts();
+            _tokenCache.ClearContexts();
         }
 
         public void RemoveContext(UniqueId contextId, UniqueId generation)
         {
-            tokenCache.RemoveContext(contextId, generation, false);
+            _tokenCache.RemoveContext(contextId, generation, false);
         }
 
         public void RemoveAllContexts(UniqueId contextId)
         {
-            tokenCache.RemoveAllContexts(contextId);
+            _tokenCache.RemoveAllContexts(contextId);
         }
 
         public SecurityContextSecurityToken GetContext(UniqueId contextId, UniqueId generation)
         {
-            return tokenCache.GetContext(contextId, generation);
+            return _tokenCache.GetContext(contextId, generation);
         }
 
         public Collection<SecurityContextSecurityToken> GetAllContexts(UniqueId contextId)
         {
-            return tokenCache.GetAllContexts(contextId);
+            return _tokenCache.GetAllContexts(contextId);
         }
 
         public void UpdateContextCachingTime(SecurityContextSecurityToken context, DateTime expirationTime)
         {
-            tokenCache.UpdateContextCachingTime(context, expirationTime);
+            _tokenCache.UpdateContextCachingTime(context, expirationTime);
         }
 
         protected override bool TryResolveTokenCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token)
@@ -103,7 +103,7 @@ namespace CoreWCF.Security.Tokens
             SecurityContextKeyIdentifierClause sctSkiClause = keyIdentifierClause as SecurityContextKeyIdentifierClause;
             if (sctSkiClause != null)
             {
-                token = tokenCache.GetContext(sctSkiClause.ContextId, sctSkiClause.Generation);
+                token = _tokenCache.GetContext(sctSkiClause.ContextId, sctSkiClause.Generation);
             }
             else
             {

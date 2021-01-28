@@ -9,9 +9,9 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     internal class USerNameSecurityToken : SecurityToken
     {
-        private readonly string id;
-        private readonly string userName;
-        private readonly DateTime effectiveTime;
+        private readonly string _id;
+        private readonly string _userName;
+        private readonly DateTime _effectiveTime;
 
         public USerNameSecurityToken(string userName, string password)
             : this(userName, password, SecurityUniqueId.Create().Value)
@@ -30,15 +30,15 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.UserNameCannotBeEmpty);
             }
 
-            this.userName = userName;
+            _userName = userName;
             Password = password;
-            this.id = id;
-            effectiveTime = DateTime.UtcNow;
+            _id = id;
+            _effectiveTime = DateTime.UtcNow;
         }
 
         public override string Id
         {
-            get { return id; }
+            get { return _id; }
         }
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys
@@ -48,7 +48,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public override DateTime ValidFrom
         {
-            get { return effectiveTime; }
+            get { return _effectiveTime; }
         }
 
         public override DateTime ValidTo
@@ -59,10 +59,9 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public string UserName
         {
-            get { return userName; }
+            get { return _userName; }
         }
 
         public string Password { get; }
     }
-
 }

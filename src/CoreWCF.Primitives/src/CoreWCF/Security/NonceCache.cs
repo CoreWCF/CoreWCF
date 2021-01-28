@@ -8,8 +8,8 @@ namespace CoreWCF.Security
 {
     public abstract class NonceCache
     {
-        private TimeSpan cachingTime;
-        private int maxCachedNonces;
+        private TimeSpan _cachingTime;
+        private int _maxCachedNonces;
 
         /// <summary>
         /// TThe max timespan after which a Nonce is deleted from the NonceCache. This value should be atleast twice the maxclock Skew added to the replayWindow size.
@@ -18,7 +18,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return cachingTime;
+                return _cachingTime;
             }
             set
             {
@@ -34,7 +34,7 @@ namespace CoreWCF.Security
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                cachingTime = value;
+                _cachingTime = value;
             }
         }
 
@@ -45,7 +45,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return maxCachedNonces;
+                return _maxCachedNonces;
             }
             set
             {
@@ -54,8 +54,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBeNonNegative));
                 }
-                maxCachedNonces = value;
-
+                _maxCachedNonces = value;
             }
         }
 

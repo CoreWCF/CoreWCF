@@ -13,16 +13,16 @@ namespace CoreWCF
 {
     public sealed class OperationContext : IExtensibleObject<OperationContext>
     {
-        private static readonly AsyncLocal<Holder> currentContext = new AsyncLocal<Holder>();
-        private Message clientReply;
-        private bool closeClientReply;
-        private ExtensionCollection<OperationContext> extensions;
-        private Message request;
-        private bool isServiceReentrant = false;
+        private static readonly AsyncLocal<Holder> s_currentContext = new AsyncLocal<Holder>();
+        private Message _clientReply;
+        private bool _closeClientReply;
+        private ExtensionCollection<OperationContext> _extensions;
+        private Message _request;
+        private bool _isServiceReentrant = false;
         internal IPrincipal threadPrincipal;
-        private MessageProperties outgoingMessageProperties;
-        private MessageHeaders outgoingMessageHeaders;
-        private EndpointDispatcher endpointDispatcher;
+        private MessageProperties _outgoingMessageProperties;
+        private MessageHeaders _outgoingMessageHeaders;
+        private EndpointDispatcher _endpointDispatcher;
 
         public event EventHandler OperationCompleted;
 
@@ -73,7 +73,7 @@ namespace CoreWCF
             InternalServiceChannel = channel;
             Host = host;
             RequestContext = requestContext;
-            this.request = request;
+            _request = request;
             OutgoingMessageVersion = channel.MessageVersion;
         }
 
@@ -100,11 +100,11 @@ namespace CoreWCF
         {
             get
             {
-                Holder holder = OperationContext.currentContext.Value;
+                Holder holder = OperationContext.s_currentContext.Value;
                 if (holder == null)
                 {
                     holder = new Holder();
-                    OperationContext.currentContext.Value = holder;
+                    OperationContext.s_currentContext.Value = holder;
                 }
                 return holder;
             }
@@ -116,18 +116,18 @@ namespace CoreWCF
         {
             get
             {
-                return endpointDispatcher;
+                return _endpointDispatcher;
             }
             set
             {
-                endpointDispatcher = value;
+                _endpointDispatcher = value;
             }
         }
         public bool IsUserContext
         {
             get
             {
-                return (request == null);
+                return (_request == null);
             }
         }
 
@@ -135,60 +135,60 @@ namespace CoreWCF
         {
             get
             {
-                if (extensions == null)
+                if (_extensions == null)
                 {
-                    extensions = new ExtensionCollection<OperationContext>(this);
+                    _extensions = new ExtensionCollection<OperationContext>(this);
                 }
-                return extensions;
+                return _extensions;
             }
         }
 
         internal bool IsServiceReentrant
         {
-            get { return isServiceReentrant; }
-            set { isServiceReentrant = value; }
+            get { return _isServiceReentrant; }
+            set { _isServiceReentrant = value; }
         }
 
         internal Message IncomingMessage
         {
-            get { return clientReply ?? request; }
+            get { return _clientReply ?? _request; }
         }
 
         internal ServiceChannel InternalServiceChannel { get; set; }
 
         internal bool HasOutgoingMessageHeaders
         {
-            get { return (outgoingMessageHeaders != null); }
+            get { return (_outgoingMessageHeaders != null); }
         }
 
         public MessageHeaders OutgoingMessageHeaders
         {
             get
             {
-                if (outgoingMessageHeaders == null)
+                if (_outgoingMessageHeaders == null)
                 {
-                    outgoingMessageHeaders = new MessageHeaders(OutgoingMessageVersion);
+                    _outgoingMessageHeaders = new MessageHeaders(OutgoingMessageVersion);
                 }
 
-                return outgoingMessageHeaders;
+                return _outgoingMessageHeaders;
             }
         }
 
         internal bool HasOutgoingMessageProperties
         {
-            get { return (outgoingMessageProperties != null); }
+            get { return (_outgoingMessageProperties != null); }
         }
 
         public MessageProperties OutgoingMessageProperties
         {
             get
             {
-                if (outgoingMessageProperties == null)
+                if (_outgoingMessageProperties == null)
                 {
-                    outgoingMessageProperties = new MessageProperties();
+                    _outgoingMessageProperties = new MessageProperties();
                 }
 
-                return outgoingMessageProperties;
+                return _outgoingMessageProperties;
             }
         }
 
@@ -198,7 +198,7 @@ namespace CoreWCF
         {
             get
             {
-                Message message = clientReply ?? request;
+                Message message = _clientReply ?? _request;
                 if (message != null)
                 {
                     return message.Headers;
@@ -214,7 +214,7 @@ namespace CoreWCF
         {
             get
             {
-                Message message = clientReply ?? request;
+                Message message = _clientReply ?? _request;
                 if (message != null)
                 {
                     return message.Properties;
@@ -230,7 +230,7 @@ namespace CoreWCF
         {
             get
             {
-                Message message = clientReply ?? request;
+                Message message = _clientReply ?? _request;
                 if (message != null)
                 {
                     return message.Version;
@@ -273,7 +273,7 @@ namespace CoreWCF
 
         internal void ClearClientReplyNoThrow()
         {
-            clientReply = null;
+            _clientReply = null;
         }
 
         internal void FireOperationCompleted()
@@ -313,15 +313,15 @@ namespace CoreWCF
         internal void ReInit(RequestContext requestContext, Message request, ServiceChannel channel)
         {
             RequestContext = requestContext;
-            this.request = request;
+            _request = request;
             InternalServiceChannel = channel;
         }
 
         internal void Recycle()
         {
             RequestContext = null;
-            request = null;
-            extensions = null;
+            _request = null;
+            _extensions = null;
             InstanceContext = null;
             threadPrincipal = null;
             SetClientReply(null, false);
@@ -331,17 +331,17 @@ namespace CoreWCF
         {
             Message oldClientReply = null;
 
-            if (!object.Equals(message, clientReply))
+            if (!object.Equals(message, _clientReply))
             {
-                if (closeClientReply && (clientReply != null))
+                if (_closeClientReply && (_clientReply != null))
                 {
-                    oldClientReply = clientReply;
+                    oldClientReply = _clientReply;
                 }
 
-                clientReply = message;
+                _clientReply = message;
             }
 
-            closeClientReply = closeMessage;
+            _closeClientReply = closeMessage;
 
             if (oldClientReply != null)
             {

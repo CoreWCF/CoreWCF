@@ -29,7 +29,5 @@ namespace CoreWCF.IdentityModel.Tokens
                     typeof(SecurityKeyType)));
             }
         }
-
-
     }
 }

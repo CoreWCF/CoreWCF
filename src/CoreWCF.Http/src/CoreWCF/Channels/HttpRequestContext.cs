@@ -17,9 +17,9 @@ namespace CoreWCF.Channels
 {
     internal abstract class HttpRequestContext : RequestContextBase
     {
-        private HttpOutput httpOutput;
-        private bool errorGettingHttpInput;
-        private SecurityMessageProperty securityProperty;
+        private HttpOutput _httpOutput;
+        private bool _errorGettingHttpInput;
+        private SecurityMessageProperty _securityProperty;
         private readonly TaskCompletionSource<object> _replySentTcs;
         //EventTraceActivity eventTraceActivity;
         //ServerWebSocketTransportDuplexSessionChannel webSocketChannel;
@@ -72,16 +72,16 @@ namespace CoreWCF.Channels
         public HttpInput GetHttpInput(bool throwOnError)
         {
             HttpInput httpInput = null;
-            if (throwOnError || !errorGettingHttpInput)
+            if (throwOnError || !_errorGettingHttpInput)
             {
                 try
                 {
                     httpInput = GetHttpInput();
-                    errorGettingHttpInput = false;
+                    _errorGettingHttpInput = false;
                 }
                 catch (Exception e)
                 {
-                    errorGettingHttpInput = true;
+                    _errorGettingHttpInput = true;
                     if (throwOnError || Fx.IsFatal(e))
                     {
                         throw;
@@ -107,9 +107,9 @@ namespace CoreWCF.Channels
 
         public HttpOutput GetHttpOutputCore(Message message)
         {
-            if (httpOutput != null)
+            if (_httpOutput != null)
             {
-                return httpOutput;
+                return _httpOutput;
             }
 
             return GetHttpOutput(message);
@@ -117,9 +117,9 @@ namespace CoreWCF.Channels
 
         protected override void OnAbort()
         {
-            if (httpOutput != null)
+            if (_httpOutput != null)
             {
-                httpOutput.Abort(HttpAbortReason.Aborted);
+                _httpOutput.Abort(HttpAbortReason.Aborted);
             }
 
             Cleanup();
@@ -130,9 +130,9 @@ namespace CoreWCF.Channels
         {
             try
             {
-                if (httpOutput != null)
+                if (_httpOutput != null)
                 {
-                    await httpOutput.CloseAsync(); ;
+                    await _httpOutput.CloseAsync(); ;
                 }
             }
             finally
@@ -144,7 +144,6 @@ namespace CoreWCF.Channels
 
         protected virtual void Cleanup()
         {
-
         }
 
         internal void SetMessage(Message message, Exception requestException)
@@ -165,7 +164,7 @@ namespace CoreWCF.Channels
             }
             else
             {
-                message.Properties.Security = (securityProperty != null) ? (SecurityMessageProperty)securityProperty.CreateCopy() : null;
+                message.Properties.Security = (_securityProperty != null) ? (SecurityMessageProperty)_securityProperty.CreateCopy() : null;
                 base.SetRequestMessage(message);
             }
         }
@@ -219,7 +218,7 @@ namespace CoreWCF.Channels
             }
 
             message.Properties.AllowOutputBatching = false;
-            httpOutput = GetHttpOutputCore(message);
+            _httpOutput = GetHttpOutputCore(message);
 
             return closeOnReceivedEof;
         }
@@ -231,11 +230,11 @@ namespace CoreWCF.Channels
             try
             {
                 bool closeOutputAfterReply = PrepareReply(ref responseMessage);
-                await httpOutput.SendAsync(token);
+                await _httpOutput.SendAsync(token);
 
                 if (closeOutputAfterReply)
                 {
-                    await httpOutput.CloseAsync();
+                    await _httpOutput.CloseAsync();
                 }
             }
             finally
@@ -260,7 +259,7 @@ namespace CoreWCF.Channels
                 statusCode = HttpStatusCode.Forbidden;
                 try
                 {
-                    securityProperty = OnProcessAuthentication();
+                    _securityProperty = OnProcessAuthentication();
                     authenticationSucceeded = true;
                     return true;
                 }
@@ -410,8 +409,8 @@ namespace CoreWCF.Channels
             private class AspNetCoreHttpInput : HttpInput
             {
                 private readonly AspNetCoreHttpContext _aspNetCoreHttpContext;
-                private string cachedContentType; // accessing the header in System.Net involves a native transition
-                private readonly byte[] preReadBuffer;
+                private string _cachedContentType; // accessing the header in System.Net involves a native transition
+                private readonly byte[] _preReadBuffer;
 
                 // TODO: ChannelBindingSupport
                 public AspNetCoreHttpInput(AspNetCoreHttpContext aspNetCoreHttpContext)
@@ -421,10 +420,10 @@ namespace CoreWCF.Channels
                     if (!_aspNetCoreHttpContext._aspNetContext.Request.ContentLength.HasValue)
                     {
                         // TODO: Look into useing PipeReader with look-ahead
-                        preReadBuffer = new byte[1];
-                        if (_aspNetCoreHttpContext._aspNetContext.Request.Body.Read(preReadBuffer, 0, 1) == 0)
+                        _preReadBuffer = new byte[1];
+                        if (_aspNetCoreHttpContext._aspNetContext.Request.Body.Read(_preReadBuffer, 0, 1) == 0)
                         {
-                            preReadBuffer = null;
+                            _preReadBuffer = null;
                         }
                     }
                 }
@@ -436,16 +435,16 @@ namespace CoreWCF.Channels
                 {
                     get
                     {
-                        if (cachedContentType == null)
+                        if (_cachedContentType == null)
                         {
-                            cachedContentType = _aspNetCoreHttpContext._aspNetContext.Request.ContentType;
+                            _cachedContentType = _aspNetCoreHttpContext._aspNetContext.Request.ContentType;
                         }
 
-                        return cachedContentType;
+                        return _cachedContentType;
                     }
                 }
 
-                protected override bool HasContent => preReadBuffer != null || ContentLength > 0;
+                protected override bool HasContent => _preReadBuffer != null || ContentLength > 0;
 
                 protected override string SoapActionHeader => _aspNetCoreHttpContext._aspNetContext.Request.Headers["SOAPAction"];
 
@@ -479,9 +478,9 @@ namespace CoreWCF.Channels
 
                 protected override Stream GetInputStream()
                 {
-                    if (preReadBuffer != null)
+                    if (_preReadBuffer != null)
                     {
-                        return new AspNetCoreInputStream(_aspNetCoreHttpContext, preReadBuffer);
+                        return new AspNetCoreInputStream(_aspNetCoreHttpContext, _preReadBuffer);
                     }
                     else
                     {

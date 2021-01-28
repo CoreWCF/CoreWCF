@@ -24,7 +24,7 @@ namespace CoreWCF.Security
     {
         private HashStream _hashStream;
         private SignedXml _signedXml;
-        private readonly ReferenceList referenceList;
+        private readonly ReferenceList _referenceList;
         private KeyedHashAlgorithm _signingKey;
         private MessagePartSpecification _effectiveSignatureParts;
 
@@ -640,7 +640,7 @@ namespace CoreWCF.Security
 
         protected override ISecurityElement CompleteEncryptionCore(SendSecurityHeaderElement primarySignature, SendSecurityHeaderElement[] basicTokens, SendSecurityHeaderElement[] signatureConfirmations, SendSecurityHeaderElement[] endorsingSignatures)
         {
-            if (referenceList == null)
+            if (_referenceList == null)
             {
                 return null;
             }

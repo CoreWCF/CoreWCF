@@ -10,23 +10,22 @@ using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-
     [XmlSchemaProvider("GetSchema")]
     [XmlRoot(AddressingStrings.EndpointReference, Namespace = Addressing10Strings.Namespace)]
     public class EndpointAddress10 : IXmlSerializable
     {
-        private static XmlQualifiedName eprType;
-        private EndpointAddress address;
+        private static XmlQualifiedName s_eprType;
+        private EndpointAddress _address;
 
         // for IXmlSerializable
         private EndpointAddress10()
         {
-            address = null;
+            _address = null;
         }
 
         private EndpointAddress10(EndpointAddress address)
         {
-            this.address = address;
+            _address = address;
         }
 
         public static EndpointAddress10 FromEndpointAddress(EndpointAddress address)
@@ -40,29 +39,29 @@ namespace CoreWCF
 
         public EndpointAddress ToEndpointAddress()
         {
-            return address;
+            return _address;
         }
 
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressing10, XmlDictionaryReader.CreateDictionaryReader(reader));
+            _address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressing10, XmlDictionaryReader.CreateDictionaryReader(reader));
         }
 
         void IXmlSerializable.WriteXml(XmlWriter writer)
         {
-            address.WriteContentsTo(AddressingVersion.WSAddressing10, XmlDictionaryWriter.CreateDictionaryWriter(writer));
+            _address.WriteContentsTo(AddressingVersion.WSAddressing10, XmlDictionaryWriter.CreateDictionaryWriter(writer));
         }
 
         private static XmlQualifiedName EprType
         {
             get
             {
-                if (eprType == null)
+                if (s_eprType == null)
                 {
-                    eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing10Strings.Namespace);
+                    s_eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing10Strings.Namespace);
                 }
 
-                return eprType;
+                return s_eprType;
             }
         }
 
@@ -72,7 +71,6 @@ namespace CoreWCF
             {
                 return XmlSchema.Read(reader, null);
             }
-
         }
 
         public static XmlQualifiedName GetSchema(XmlSchemaSet xmlSchemaSet)

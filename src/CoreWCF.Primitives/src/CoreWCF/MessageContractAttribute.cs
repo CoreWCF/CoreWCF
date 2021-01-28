@@ -9,8 +9,8 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.MessageContract, AllowMultiple = false)]
     public sealed class MessageContractAttribute : Attribute
     {
-        private string wrappedName;
-        private string wrappedNs;
+        private string _wrappedName;
+        private string _wrappedNs;
         //ProtectionLevel protectionLevel = ProtectionLevel.None;
         //bool hasProtectionLevel = false;
 
@@ -41,7 +41,7 @@ namespace CoreWCF
         {
             get
             {
-                return wrappedName;
+                return _wrappedName;
             }
             set
             {
@@ -56,7 +56,7 @@ namespace CoreWCF
                         SR.SFxWrapperNameCannotBeEmpty));
                 }
 
-                wrappedName = value;
+                _wrappedName = value;
             }
         }
 
@@ -64,7 +64,7 @@ namespace CoreWCF
         {
             get
             {
-                return wrappedNs;
+                return _wrappedNs;
             }
             set
             {
@@ -73,9 +73,8 @@ namespace CoreWCF
                     NamingHelper.CheckUriProperty(value, "WrapperNamespace");
                 }
 
-                wrappedNs = value;
+                _wrappedNs = value;
             }
         }
     }
-
 }

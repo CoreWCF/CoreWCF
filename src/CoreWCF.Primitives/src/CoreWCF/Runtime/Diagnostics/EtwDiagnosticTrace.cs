@@ -72,6 +72,5 @@ namespace CoreWCF.Runtime.Diagnostics
             //#pragma warning restore 618
             //            }
         }
-
     }
 }

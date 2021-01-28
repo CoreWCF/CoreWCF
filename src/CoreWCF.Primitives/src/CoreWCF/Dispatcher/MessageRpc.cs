@@ -64,8 +64,8 @@ namespace CoreWCF.Dispatcher
         //internal MessageRpcInvokeNotification InvokeNotification;
         //internal EventTraceActivity EventTraceActivity;
         internal bool _processCallReturned;
-        private bool isInstanceContextSingleton;
-        private SignalGate<IAsyncResult> invokeContinueGate;
+        private bool _isInstanceContextSingleton;
+        private SignalGate<IAsyncResult> _invokeContinueGate;
 
         internal MessageRpc(RequestContext requestContext, Message request, DispatchOperationRuntime operation,
             ServiceChannel channel, ServiceHostBase host, ChannelHandler channelHandler, bool cleanThread,
@@ -113,8 +113,8 @@ namespace CoreWCF.Dispatcher
             InputParameters = null;
             OutputParameters = null;
             ReturnParameter = null;
-            isInstanceContextSingleton = InstanceContextProviderBase.IsProviderSingleton(Channel.DispatchRuntime.InstanceContextProvider);
-            invokeContinueGate = null;
+            _isInstanceContextSingleton = InstanceContextProviderBase.IsProviderSingleton(Channel.DispatchRuntime.InstanceContextProvider);
+            _invokeContinueGate = null;
 
             if (!operation.IsOneWay && !operation.Parent.ManualAddressing)
             {
@@ -158,7 +158,7 @@ namespace CoreWCF.Dispatcher
         {
             set
             {
-                isInstanceContextSingleton = value;
+                _isInstanceContextSingleton = value;
             }
         }
 
@@ -302,7 +302,7 @@ namespace CoreWCF.Dispatcher
 
         internal void AbortInstanceContext()
         {
-            if (InstanceContext != null && !isInstanceContextSingleton)
+            if (InstanceContext != null && !_isInstanceContextSingleton)
             {
                 try
                 {
@@ -523,17 +523,16 @@ namespace CoreWCF.Dispatcher
         {
             IsPaused = false;
             DecrementBusyCount();
-
         }
 
         internal bool UnlockInvokeContinueGate(out IAsyncResult result)
         {
-            return invokeContinueGate.Unlock(out result);
+            return _invokeContinueGate.Unlock(out result);
         }
 
         internal void PrepareInvokeContinueGate()
         {
-            invokeContinueGate = new SignalGate<IAsyncResult>();
+            _invokeContinueGate = new SignalGate<IAsyncResult>();
         }
 
         private void IncrementBusyCount()

@@ -6,18 +6,18 @@ namespace CoreWCF.IdentityModel.Selectors
     // TODO: Either consider moving this back to System.IdentityModel.Selectors and/or move to ServiceModel and make async
     public abstract class UserNamePasswordValidator
     {
-        private static UserNamePasswordValidator none;
+        private static UserNamePasswordValidator s_none;
 
         public static UserNamePasswordValidator None
         {
             get
             {
-                if (none == null)
+                if (s_none == null)
                 {
-                    none = new NoneUserNamePasswordValidator();
+                    s_none = new NoneUserNamePasswordValidator();
                 }
 
-                return none;
+                return s_none;
             }
         }
 

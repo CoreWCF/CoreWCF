@@ -29,36 +29,36 @@ namespace CoreWCF.Security
         internal const bool defaultTolerateTransportFailures = true;
         internal const int defaultMaximumPendingSessions = 128;
         internal static readonly TimeSpan defaultInactivityTimeout = TimeSpan.FromMinutes(2);
-        private int maximumPendingSessions;
-        private Dictionary<UniqueId, SecurityContextSecurityToken> pendingSessions1;
-        private Dictionary<UniqueId, SecurityContextSecurityToken> pendingSessions2;
-        private Dictionary<UniqueId, MessageFilter> sessionFilters;
-        private IOThreadTimer inactivityTimer;
-        private TimeSpan inactivityTimeout;
-        private bool tolerateTransportFailures;
-        private TimeSpan maximumKeyRenewalInterval;
-        private TimeSpan keyRolloverInterval;
-        private int maximumPendingKeysPerSession;
-        private SecurityProtocolFactory sessionProtocolFactory;
-        private readonly Dictionary<UniqueId, IServerSecuritySessionChannel> activeSessions;
-        private SecurityServiceDispatcher securityServiceDispatcher;
-        private ChannelBuilder channelBuilder;
-        private SecurityStandardsManager standardsManager;
-        private SecurityTokenParameters issuedTokenParameters;
-        private SecurityTokenResolver sessionTokenResolver;
-        private bool acceptNewWork;
-        private Uri listenUri;
-        private SecurityListenerSettingsLifetimeManager settingsLifetimeManager;
+        private int _maximumPendingSessions;
+        private Dictionary<UniqueId, SecurityContextSecurityToken> _pendingSessions1;
+        private Dictionary<UniqueId, SecurityContextSecurityToken> _pendingSessions2;
+        private Dictionary<UniqueId, MessageFilter> _sessionFilters;
+        private IOThreadTimer _inactivityTimer;
+        private TimeSpan _inactivityTimeout;
+        private bool _tolerateTransportFailures;
+        private TimeSpan _maximumKeyRenewalInterval;
+        private TimeSpan _keyRolloverInterval;
+        private int _maximumPendingKeysPerSession;
+        private SecurityProtocolFactory _sessionProtocolFactory;
+        private readonly Dictionary<UniqueId, IServerSecuritySessionChannel> _activeSessions;
+        private SecurityServiceDispatcher _securityServiceDispatcher;
+        private ChannelBuilder _channelBuilder;
+        private SecurityStandardsManager _standardsManager;
+        private SecurityTokenParameters _issuedTokenParameters;
+        private SecurityTokenResolver _sessionTokenResolver;
+        private bool _acceptNewWork;
+        private Uri _listenUri;
+        private SecurityListenerSettingsLifetimeManager _settingsLifetimeManager;
 
         public SecuritySessionServerSettings()
         {
-            activeSessions = new Dictionary<UniqueId, IServerSecuritySessionChannel>();
-            maximumKeyRenewalInterval = defaultKeyRenewalInterval;
-            maximumPendingKeysPerSession = 5;
-            keyRolloverInterval = defaultKeyRolloverInterval;
-            inactivityTimeout = defaultInactivityTimeout;
-            tolerateTransportFailures = defaultTolerateTransportFailures;
-            maximumPendingSessions = defaultMaximumPendingSessions;
+            _activeSessions = new Dictionary<UniqueId, IServerSecuritySessionChannel>();
+            _maximumKeyRenewalInterval = defaultKeyRenewalInterval;
+            _maximumPendingKeysPerSession = 5;
+            _keyRolloverInterval = defaultKeyRolloverInterval;
+            _inactivityTimeout = defaultInactivityTimeout;
+            _tolerateTransportFailures = defaultTolerateTransportFailures;
+            _maximumPendingSessions = defaultMaximumPendingSessions;
             WrapperCommunicationObj = new WrapperSecurityCommunicationObject(this);
         }
 
@@ -66,12 +66,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return channelBuilder;
+                return _channelBuilder;
             }
             set
             {
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                channelBuilder = value;
+                _channelBuilder = value;
             }
         }
 
@@ -81,12 +81,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return settingsLifetimeManager;
+                return _settingsLifetimeManager;
             }
             set
             {
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                settingsLifetimeManager = value;
+                _settingsLifetimeManager = value;
             }
         }
 
@@ -94,12 +94,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return securityServiceDispatcher;
+                return _securityServiceDispatcher;
             }
             set
             {
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                securityServiceDispatcher = value;
+                _securityServiceDispatcher = value;
             }
         }
 
@@ -113,7 +113,7 @@ namespace CoreWCF.Security
             get
             {
                 WrapperCommunicationObj.ThrowIfNotOpened();
-                return listenUri;
+                return _listenUri;
             }
         }
 
@@ -123,18 +123,18 @@ namespace CoreWCF.Security
 
         public ISecurityContextSecurityTokenCache SessionTokenCache { get; private set; }
 
-        public SecurityTokenResolver SessionTokenResolver => sessionTokenResolver;
+        public SecurityTokenResolver SessionTokenResolver => _sessionTokenResolver;
 
         public SecurityTokenParameters IssuedSecurityTokenParameters
         {
             get
             {
-                return issuedTokenParameters;
+                return _issuedTokenParameters;
             }
             set
             {
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                issuedTokenParameters = value;
+                _issuedTokenParameters = value;
             }
         }
 
@@ -142,12 +142,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return standardsManager;
+                return _standardsManager;
             }
             set
             {
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                standardsManager = value;
+                _standardsManager = value;
             }
         }
 
@@ -155,12 +155,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return tolerateTransportFailures;
+                return _tolerateTransportFailures;
             }
             set
             {
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                tolerateTransportFailures = value;
+                _tolerateTransportFailures = value;
             }
         }
 
@@ -170,7 +170,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return maximumPendingSessions;
+                return _maximumPendingSessions;
             }
             set
             {
@@ -180,7 +180,7 @@ namespace CoreWCF.Security
                 }
 
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                maximumPendingSessions = value;
+                _maximumPendingSessions = value;
             }
         }
 
@@ -188,7 +188,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return inactivityTimeout;
+                return _inactivityTimeout;
             }
             set
             {
@@ -198,7 +198,7 @@ namespace CoreWCF.Security
                 }
 
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                inactivityTimeout = value;
+                _inactivityTimeout = value;
             }
         }
 
@@ -206,7 +206,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return maximumKeyRenewalInterval;
+                return _maximumKeyRenewalInterval;
             }
             set
             {
@@ -215,7 +215,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                maximumKeyRenewalInterval = value;
+                _maximumKeyRenewalInterval = value;
             }
         }
 
@@ -223,7 +223,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return keyRolloverInterval;
+                return _keyRolloverInterval;
             }
             set
             {
@@ -232,7 +232,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                keyRolloverInterval = value;
+                _keyRolloverInterval = value;
             }
         }
 
@@ -240,7 +240,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return maximumPendingKeysPerSession;
+                return _maximumPendingKeysPerSession;
             }
             set
             {
@@ -249,7 +249,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeGreaterThanZero));
                 }
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                maximumPendingKeysPerSession = value;
+                _maximumPendingKeysPerSession = value;
             }
         }
 
@@ -257,12 +257,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return sessionProtocolFactory;
+                return _sessionProtocolFactory;
             }
             set
             {
                 WrapperCommunicationObj.ThrowIfDisposedOrImmutable();
-                sessionProtocolFactory = value;
+                _sessionProtocolFactory = value;
             }
         }
 
@@ -302,13 +302,13 @@ namespace CoreWCF.Security
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             ClearPendingSessions();
             ClosePendingChannels(timeoutHelper.GetCancellationToken());
-            if (inactivityTimer != null)
+            if (_inactivityTimer != null)
             {
-                inactivityTimer.Cancel();
+                _inactivityTimer.Cancel();
             }
-            if (sessionProtocolFactory != null)
+            if (_sessionProtocolFactory != null)
             {
-                sessionProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
+                _sessionProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
             }
             if (SessionTokenAuthenticator != null)
             {
@@ -318,13 +318,13 @@ namespace CoreWCF.Security
 
         private void OnAbortCore()
         {
-            if (inactivityTimer != null)
+            if (_inactivityTimer != null)
             {
-                inactivityTimer.Cancel();
+                _inactivityTimer.Cancel();
             }
-            if (sessionProtocolFactory != null)
+            if (_sessionProtocolFactory != null)
             {
-                sessionProtocolFactory.OnCloseAsync(TimeSpan.Zero);
+                _sessionProtocolFactory.OnCloseAsync(TimeSpan.Zero);
             }
             if (SessionTokenAuthenticator != null)
             {
@@ -335,42 +335,42 @@ namespace CoreWCF.Security
         private Task SetupSessionTokenAuthenticatorAsync()
         {
             RecipientServiceModelSecurityTokenRequirement requirement = new RecipientServiceModelSecurityTokenRequirement();
-            issuedTokenParameters.InitializeSecurityTokenRequirement(requirement);
+            _issuedTokenParameters.InitializeSecurityTokenRequirement(requirement);
             requirement.KeyUsage = SecurityKeyUsage.Signature;
-            requirement.ListenUri = listenUri;
-            requirement.SecurityBindingElement = sessionProtocolFactory.SecurityBindingElement;
-            requirement.SecurityAlgorithmSuite = sessionProtocolFactory.IncomingAlgorithmSuite;
+            requirement.ListenUri = _listenUri;
+            requirement.SecurityBindingElement = _sessionProtocolFactory.SecurityBindingElement;
+            requirement.SecurityAlgorithmSuite = _sessionProtocolFactory.IncomingAlgorithmSuite;
             requirement.SupportSecurityContextCancellation = true;
-            requirement.MessageSecurityVersion = sessionProtocolFactory.MessageSecurityVersion.SecurityTokenVersion;
+            requirement.MessageSecurityVersion = _sessionProtocolFactory.MessageSecurityVersion.SecurityTokenVersion;
             // requirement.AuditLogLocation = sessionProtocolFactory.AuditLogLocation;
             // requirement.SuppressAuditFailure = sessionProtocolFactory.SuppressAuditFailure;
             // requirement.MessageAuthenticationAuditLevel = sessionProtocolFactory.MessageAuthenticationAuditLevel;
             requirement.Properties[ServiceModelSecurityTokenRequirement.MessageDirectionProperty] = MessageDirection.Input;
-            if (sessionProtocolFactory.EndpointFilterTable != null)
+            if (_sessionProtocolFactory.EndpointFilterTable != null)
             {
-                requirement.Properties[ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty] = sessionProtocolFactory.EndpointFilterTable;
+                requirement.Properties[ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty] = _sessionProtocolFactory.EndpointFilterTable;
             }
-            SessionTokenAuthenticator = sessionProtocolFactory.SecurityTokenManager.CreateSecurityTokenAuthenticator(requirement, out sessionTokenResolver);
+            SessionTokenAuthenticator = _sessionProtocolFactory.SecurityTokenManager.CreateSecurityTokenAuthenticator(requirement, out _sessionTokenResolver);
             if (!(SessionTokenAuthenticator is IIssuanceSecurityTokenAuthenticator))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecuritySessionRequiresIssuanceAuthenticator, typeof(IIssuanceSecurityTokenAuthenticator), SessionTokenAuthenticator.GetType())));
             }
-            if (sessionTokenResolver == null || (!(sessionTokenResolver is ISecurityContextSecurityTokenCache)))
+            if (_sessionTokenResolver == null || (!(_sessionTokenResolver is ISecurityContextSecurityTokenCache)))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecuritySessionRequiresSecurityContextTokenCache, sessionTokenResolver.GetType(), typeof(ISecurityContextSecurityTokenCache))));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecuritySessionRequiresSecurityContextTokenCache, _sessionTokenResolver.GetType(), typeof(ISecurityContextSecurityTokenCache))));
             }
-            SessionTokenCache = (ISecurityContextSecurityTokenCache)sessionTokenResolver;
+            SessionTokenCache = (ISecurityContextSecurityTokenCache)_sessionTokenResolver;
             return Task.CompletedTask;
         }
 
         public void StopAcceptingNewWork()
         {
-            acceptNewWork = false;
+            _acceptNewWork = false;
         }
 
         private int GetPendingSessionCount()
         {
-            return pendingSessions1.Count + pendingSessions2.Count;
+            return _pendingSessions1.Count + _pendingSessions2.Count;
         }
 
         private void AbortPendingChannels(CancellationToken token)
@@ -380,13 +380,13 @@ namespace CoreWCF.Security
 
         private async void ClosePendingChannels(CancellationToken token)
         {
-            var tasks = new Task[activeSessions.Count];
+            var tasks = new Task[_activeSessions.Count];
             lock (ThisGlobalLock)
             {
                 int index = 0;
                 if (typeof(IReplyChannel).Equals(AcceptorChannelType))
                 {
-                    foreach (ServerSecuritySimplexSessionChannel securitySessionSimplexChannel in activeSessions.Values)
+                    foreach (ServerSecuritySimplexSessionChannel securitySessionSimplexChannel in _activeSessions.Values)
                     {
                         tasks[index] = securitySessionSimplexChannel.CloseAsync(token);
                         index++;
@@ -447,9 +447,9 @@ namespace CoreWCF.Security
             //    messagePf.SecurityTokenParameters = this.IssuedSecurityTokenParameters;
             //}
             //else
-            if (sessionProtocolFactory is SessionSymmetricTransportSecurityProtocolFactory)
+            if (_sessionProtocolFactory is SessionSymmetricTransportSecurityProtocolFactory)
             {
-                SessionSymmetricTransportSecurityProtocolFactory transportPf = (SessionSymmetricTransportSecurityProtocolFactory)sessionProtocolFactory;
+                SessionSymmetricTransportSecurityProtocolFactory transportPf = (SessionSymmetricTransportSecurityProtocolFactory)_sessionProtocolFactory;
                 transportPf.AddTimestamp = true;
                 transportPf.SecurityTokenParameters = IssuedSecurityTokenParameters;
                 transportPf.SecurityTokenParameters.RequireDerivedKeys = false;
@@ -463,7 +463,7 @@ namespace CoreWCF.Security
         private void OnTokenRenewed(SecurityToken newToken, SecurityToken oldToken)
         {
             WrapperCommunicationObj.ThrowIfClosed();
-            if (!acceptNewWork)
+            if (!_acceptNewWork)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new EndpointNotFoundException(SR.SecurityListenerClosing));
             }
@@ -496,7 +496,7 @@ namespace CoreWCF.Security
         {
             lock (ThisGlobalLock)
             {
-                MessageFilter sctFilter = new SecuritySessionFilter(sessionToken.ContextId, sessionProtocolFactory.StandardsManager, (sessionProtocolFactory.SecurityHeaderLayout == SecurityHeaderLayout.Strict), SecurityStandardsManager.SecureConversationDriver.RenewAction.Value, SecurityStandardsManager.SecureConversationDriver.RenewResponseAction.Value);
+                MessageFilter sctFilter = new SecuritySessionFilter(sessionToken.ContextId, _sessionProtocolFactory.StandardsManager, (_sessionProtocolFactory.SecurityHeaderLayout == SecurityHeaderLayout.Strict), SecurityStandardsManager.SecureConversationDriver.RenewAction.Value, SecurityStandardsManager.SecureConversationDriver.RenewResponseAction.Value);
                 SessionInitiationMessageServiceDispatcher sessionServiceDispatcher
                  = new SessionInitiationMessageServiceDispatcher(this, sessionToken, sctFilter, remoteAddress);
                 //logic to separate for Duplex
@@ -512,7 +512,7 @@ namespace CoreWCF.Security
         private void OnTokenIssued(SecurityToken issuedToken, EndpointAddress tokenRequestor)
         {
             WrapperCommunicationObj.ThrowIfClosed(); //TODO mark open
-            if (!acceptNewWork)
+            if (!_acceptNewWork)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new EndpointNotFoundException(SR.SecurityListenerClosing));
             }
@@ -527,14 +527,14 @@ namespace CoreWCF.Security
 
         internal SecurityContextSecurityToken GetSecurityContextSecurityToken(UniqueId sessionId)
         {
-            if (pendingSessions1 != null && pendingSessions1.ContainsKey(sessionId))
+            if (_pendingSessions1 != null && _pendingSessions1.ContainsKey(sessionId))
             {
-                return pendingSessions1[sessionId];
+                return _pendingSessions1[sessionId];
             }
 
-            if (pendingSessions2 != null && pendingSessions2.ContainsKey(sessionId))
+            if (_pendingSessions2 != null && _pendingSessions2.ContainsKey(sessionId))
             {
-                return pendingSessions2[sessionId];
+                return _pendingSessions2[sessionId];
             }
 
             return null;
@@ -564,7 +564,7 @@ namespace CoreWCF.Security
                     && WrapperCommunicationObj.State != CommunicationState.Closing
                     && WrapperCommunicationObj.State != CommunicationState.Faulted)
                 {
-                    inactivityTimer.Set(inactivityTimeout);
+                    _inactivityTimer.Set(_inactivityTimeout);
                 }
             }
         }
@@ -577,12 +577,12 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new QuotaExceededException(SR.SecuritySessionLimitReached));
                 }
-                if (pendingSessions1.ContainsKey(sessionId) || pendingSessions2.ContainsKey(sessionId))
+                if (_pendingSessions1.ContainsKey(sessionId) || _pendingSessions2.ContainsKey(sessionId))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SecuritySessionAlreadyPending, sessionId)));
                 }
-                pendingSessions1.Add(sessionId, securityToken);
-                sessionFilters.Add(sessionId, filter);
+                _pendingSessions1.Add(sessionId, securityToken);
+                _sessionFilters.Add(sessionId, filter);
             }
             //SecurityTraceRecordHelper.TracePendingSessionAdded(sessionId, this.Uri);
             //if (TD.SecuritySessionRatioIsEnabled())
@@ -595,17 +595,17 @@ namespace CoreWCF.Security
         {
             lock (ThisGlobalLock)
             {
-                if (pendingSessions1.Count == 0 && pendingSessions2.Count == 0)
+                if (_pendingSessions1.Count == 0 && _pendingSessions2.Count == 0)
                 {
                     return;
                 }
-                foreach (UniqueId sessionId in pendingSessions2.Keys)
+                foreach (UniqueId sessionId in _pendingSessions2.Keys)
                 {
-                    SecurityContextSecurityToken token = pendingSessions2[sessionId];
+                    SecurityContextSecurityToken token = _pendingSessions2[sessionId];
                     try
                     {
                         //TryCloseBinder(channelBinder, this.CloseTimeout); // Replacing this line with below (being proactive rather reactive(in WCF))
-                        ChannelBuilder.RemoveServiceDispatcher<IReplyChannel>(sessionFilters[sessionId]);
+                        ChannelBuilder.RemoveServiceDispatcher<IReplyChannel>(_sessionFilters[sessionId]);
                         SessionTokenCache.RemoveAllContexts(sessionId);
                     }
                     catch (CommunicationException e)
@@ -626,10 +626,10 @@ namespace CoreWCF.Security
                     }
                     // SecurityTraceRecordHelper.TracePendingSessionClosed(sessionId, this.Uri);
                 }
-                pendingSessions2.Clear();
-                Dictionary<UniqueId, SecurityContextSecurityToken> temp = pendingSessions2;
-                pendingSessions2 = pendingSessions1;
-                pendingSessions1 = temp;
+                _pendingSessions2.Clear();
+                Dictionary<UniqueId, SecurityContextSecurityToken> temp = _pendingSessions2;
+                _pendingSessions2 = _pendingSessions1;
+                _pendingSessions1 = temp;
             }
         }
 
@@ -638,14 +638,14 @@ namespace CoreWCF.Security
             bool result;
             lock (ThisGlobalLock)
             {
-                if (pendingSessions1.ContainsKey(sessionId))
+                if (_pendingSessions1.ContainsKey(sessionId))
                 {
-                    pendingSessions1.Remove(sessionId);
+                    _pendingSessions1.Remove(sessionId);
                     result = true;
                 }
-                else if (pendingSessions2.ContainsKey(sessionId))
+                else if (_pendingSessions2.ContainsKey(sessionId))
                 {
-                    pendingSessions2.Remove(sessionId);
+                    _pendingSessions2.Remove(sessionId);
                     result = true;
                 }
                 else
@@ -669,7 +669,7 @@ namespace CoreWCF.Security
             IServerSecuritySessionChannel result;
             lock (ThisGlobalLock)
             {
-                activeSessions.TryGetValue(sessionId, out result);
+                _activeSessions.TryGetValue(sessionId, out result);
             }
             return result;
         }
@@ -678,7 +678,7 @@ namespace CoreWCF.Security
         {
             lock (ThisGlobalLock)
             {
-                activeSessions.Add(sessionId, channel);
+                _activeSessions.Add(sessionId, channel);
             }
         }
 
@@ -691,9 +691,9 @@ namespace CoreWCF.Security
         {
             lock (ThisGlobalLock)
             {
-                ChannelBuilder.RemoveServiceDispatcher<IReplyChannel>(sessionFilters[sessionId]);
-                activeSessions.Remove(sessionId);
-                sessionFilters.Remove(sessionId);
+                ChannelBuilder.RemoveServiceDispatcher<IReplyChannel>(_sessionFilters[sessionId]);
+                _activeSessions.Remove(sessionId);
+                _sessionFilters.Remove(sessionId);
             }
             //SecurityTraceRecordHelper.TraceActiveSessionRemoved(sessionId, this.Uri);
         }
@@ -714,43 +714,43 @@ namespace CoreWCF.Security
         }
         public Task OnOpenAsync(TimeSpan timeout)
         {
-            if (sessionProtocolFactory == null)
+            if (_sessionProtocolFactory == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SecuritySessionProtocolFactoryShouldBeSetBeforeThisOperation));
             }
-            if (standardsManager == null)
+            if (_standardsManager == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityStandardsManagerNotSet, GetType())));
             }
-            if (issuedTokenParameters == null)
+            if (_issuedTokenParameters == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.IssuedSecurityTokenParametersNotSet, GetType())));
             }
-            if (maximumKeyRenewalInterval < keyRolloverInterval)
+            if (_maximumKeyRenewalInterval < _keyRolloverInterval)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.KeyRolloverGreaterThanKeyRenewal));
             }
-            if (securityServiceDispatcher == null)
+            if (_securityServiceDispatcher == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityChannelListenerNotSet, GetType())));
             }
-            if (settingsLifetimeManager == null)
+            if (_settingsLifetimeManager == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecuritySettingsLifetimeManagerNotSet, GetType())));
             }
-            MessageVersion = channelBuilder.Binding.MessageVersion;
-            listenUri = securityServiceDispatcher.BaseAddress;
+            MessageVersion = _channelBuilder.Binding.MessageVersion;
+            _listenUri = _securityServiceDispatcher.BaseAddress;
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            pendingSessions1 = new Dictionary<UniqueId, SecurityContextSecurityToken>();
-            pendingSessions2 = new Dictionary<UniqueId, SecurityContextSecurityToken>();
-            sessionFilters = new Dictionary<UniqueId, MessageFilter>();
-            if (inactivityTimeout < TimeSpan.MaxValue)
+            _pendingSessions1 = new Dictionary<UniqueId, SecurityContextSecurityToken>();
+            _pendingSessions2 = new Dictionary<UniqueId, SecurityContextSecurityToken>();
+            _sessionFilters = new Dictionary<UniqueId, MessageFilter>();
+            if (_inactivityTimeout < TimeSpan.MaxValue)
             {
-                inactivityTimer = new IOThreadTimer(new Action<object>(OnTimer), this, false);
-                inactivityTimer.Set(inactivityTimeout);
+                _inactivityTimer = new IOThreadTimer(new Action<object>(OnTimer), this, false);
+                _inactivityTimer.Set(_inactivityTimeout);
             }
             ConfigureSessionSecurityProtocolFactory();
-            sessionProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
+            _sessionProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
             SetupSessionTokenAuthenticatorAsync();
             ((IIssuanceSecurityTokenAuthenticator)SessionTokenAuthenticator).IssuedSecurityTokenHandler = OnTokenIssued;
             ((IIssuanceSecurityTokenAuthenticator)SessionTokenAuthenticator).RenewedSecurityTokenHandler = OnTokenRenewed;
@@ -759,7 +759,7 @@ namespace CoreWCF.Security
                 ((SecuritySessionSecurityTokenAuthenticator)SessionTokenAuthenticator).
                     SecurityServiceDispatcher = SecurityServiceDispatcher;
             }
-            acceptNewWork = true;
+            _acceptNewWork = true;
             SecurityUtils.OpenTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, timeoutHelper.GetCancellationToken());
             SecuritySessionSecurityTokenAuthenticator securityAuth = (SecuritySessionSecurityTokenAuthenticator)SessionTokenAuthenticator;
             return Task.CompletedTask;
@@ -779,18 +779,18 @@ namespace CoreWCF.Security
         //
         internal class SessionInitiationMessageServiceDispatcher : IServiceDispatcher
         {
-            private readonly SecuritySessionServerSettings settings;
-            private readonly SecurityContextSecurityToken sessionToken;
-            private volatile IServiceChannelDispatcher sessionChannelDispatcher;
-            private readonly MessageFilter messageFilter;
-            private readonly EndpointAddress remoteAddress;
+            private readonly SecuritySessionServerSettings _settings;
+            private readonly SecurityContextSecurityToken _sessionToken;
+            private volatile IServiceChannelDispatcher _sessionChannelDispatcher;
+            private readonly MessageFilter _messageFilter;
+            private readonly EndpointAddress _remoteAddress;
 
             public SessionInitiationMessageServiceDispatcher(/*IServerReliableChannelBinder channelBinder,*/ SecuritySessionServerSettings settings, SecurityContextSecurityToken sessionToken, MessageFilter filter, EndpointAddress address)
             {
-                this.settings = settings;
-                this.sessionToken = sessionToken;
-                messageFilter = filter;
-                remoteAddress = address;
+                _settings = settings;
+                _sessionToken = sessionToken;
+                _messageFilter = filter;
+                _remoteAddress = address;
             }
 
             public Uri BaseAddress => throw new NotImplementedException();
@@ -809,17 +809,17 @@ namespace CoreWCF.Security
             /// <returns></returns>
             public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
             {
-                if (sessionChannelDispatcher == null)
+                if (_sessionChannelDispatcher == null)
                 {
                     using (await AsyncLock.TakeLockAsync())
                     {
-                        if (sessionChannelDispatcher == null)
+                        if (_sessionChannelDispatcher == null)
                         {
-                            if (!settings.RemovePendingSession(sessionToken.ContextId))
+                            if (!_settings.RemovePendingSession(_sessionToken.ContextId))
                             {
-                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new CommunicationException(SR.Format(SR.SecuritySessionNotPending, sessionToken.ContextId)));
+                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new CommunicationException(SR.Format(SR.SecuritySessionNotPending, _sessionToken.ContextId)));
                             }
-                            if (settings.AcceptorChannelType is IDuplexChannel)
+                            if (_settings.AcceptorChannelType is IDuplexChannel)
                             {
                                 throw new PlatformNotSupportedException();
                             }
@@ -827,18 +827,17 @@ namespace CoreWCF.Security
                             {
                                 ServerSecuritySimplexSessionChannel.SecurityReplySessionServiceChannelDispatcher
                                     replySessionChannelDispatcher = new ServerSecuritySimplexSessionChannel.
-                                    SecurityReplySessionServiceChannelDispatcher(settings, sessionToken,
-                                    null, settings.SettingsLifetimeManager, channel, remoteAddress);
+                                    SecurityReplySessionServiceChannelDispatcher(_settings, _sessionToken,
+                                    null, _settings.SettingsLifetimeManager, channel, _remoteAddress);
                                 await replySessionChannelDispatcher.OpenAsync(ServiceDefaults.OpenTimeout);
-                                sessionChannelDispatcher = replySessionChannelDispatcher;
-                                settings.AddSessionChannel(sessionToken.ContextId, replySessionChannelDispatcher, messageFilter);
+                                _sessionChannelDispatcher = replySessionChannelDispatcher;
+                                _settings.AddSessionChannel(_sessionToken.ContextId, replySessionChannelDispatcher, _messageFilter);
                             }
                         }
                     }
                 }
-                return sessionChannelDispatcher;
+                return _sessionChannelDispatcher;
             }
-
         }
 
         private interface IServerSecuritySessionChannel
@@ -848,27 +847,27 @@ namespace CoreWCF.Security
 
         private abstract class ServerSecuritySessionChannel : /*ChannelBase,*/ IServerSecuritySessionChannel
         {
-            private FaultCode renewFaultCode;
-            private FaultReason renewFaultReason;
-            private FaultCode sessionAbortedFaultCode;
-            private FaultReason sessionAbortedFaultReason;
+            private FaultCode _renewFaultCode;
+            private FaultReason _renewFaultReason;
+            private FaultCode _sessionAbortedFaultCode;
+            private FaultReason _sessionAbortedFaultReason;
 
             // Double-checked locking pattern requires volatile for read/write synchronization
-            private bool areFaultCodesInitialized;
-            private readonly IServerReliableChannelBinder channelBinder;
-            private readonly SecurityProtocol securityProtocol;
+            private bool _areFaultCodesInitialized;
+            private readonly IServerReliableChannelBinder _channelBinder;
+            private readonly SecurityProtocol _securityProtocol;
 
             // This is used to sign outgoing messages
-            private SecurityContextSecurityToken currentSessionToken;
-            private readonly UniqueId sessionId;
+            private SecurityContextSecurityToken _currentSessionToken;
+            private readonly UniqueId _sessionId;
 
             // These are renewed tokens that have not been used as yet
-            private readonly List<SecurityContextSecurityToken> futureSessionTokens;
-            private RequestContext initialRequestContext;
-            private bool isInputClosed;
-            private readonly MessageVersion messageVersion;
-            private readonly SecurityListenerSettingsLifetimeManager settingsLifetimeManager;
-            private bool hasSecurityStateReference;
+            private readonly List<SecurityContextSecurityToken> _futureSessionTokens;
+            private RequestContext _initialRequestContext;
+            private bool _isInputClosed;
+            private readonly MessageVersion _messageVersion;
+            private readonly SecurityListenerSettingsLifetimeManager _settingsLifetimeManager;
+            private bool _hasSecurityStateReference;
 
             protected ServerSecuritySessionChannel(SecuritySessionServerSettings settings,
                 SecurityContextSecurityToken sessionToken,
@@ -876,20 +875,20 @@ namespace CoreWCF.Security
                 SecurityListenerSettingsLifetimeManager settingsLifetimeManager, EndpointAddress address)
             {
                 Settings = settings;
-                messageVersion = settings.MessageVersion;
+                _messageVersion = settings.MessageVersion;
                 // this.channelBinder.Faulted += this.OnInnerFaulted;
-                securityProtocol = Settings.SessionProtocolFactory.CreateSecurityProtocol(null, null, true, TimeSpan.Zero);
-                if (!(securityProtocol is IAcceptorSecuritySessionProtocol))
+                _securityProtocol = Settings.SessionProtocolFactory.CreateSecurityProtocol(null, null, true, TimeSpan.Zero);
+                if (!(_securityProtocol is IAcceptorSecuritySessionProtocol))
                 {
                     Fx.Assert("Security protocol must be IAcceptorSecuritySessionProtocol.");
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ProtocolMisMatch, "IAcceptorSecuritySessionProtocol", GetType().ToString())));
                 }
-                currentSessionToken = sessionToken;
-                sessionId = sessionToken.ContextId;
-                futureSessionTokens = new List<SecurityContextSecurityToken>(1);
-                ((IAcceptorSecuritySessionProtocol)securityProtocol).SetOutgoingSessionToken(sessionToken);
-                ((IAcceptorSecuritySessionProtocol)securityProtocol).SetSessionTokenAuthenticator(sessionId, Settings.SessionTokenAuthenticator, Settings.SessionTokenResolver);
-                this.settingsLifetimeManager = settingsLifetimeManager;
+                _currentSessionToken = sessionToken;
+                _sessionId = sessionToken.ContextId;
+                _futureSessionTokens = new List<SecurityContextSecurityToken>(1);
+                ((IAcceptorSecuritySessionProtocol)_securityProtocol).SetOutgoingSessionToken(sessionToken);
+                ((IAcceptorSecuritySessionProtocol)_securityProtocol).SetSessionTokenAuthenticator(_sessionId, Settings.SessionTokenAuthenticator, Settings.SessionTokenResolver);
+                _settingsLifetimeManager = settingsLifetimeManager;
                 LocalAddress = address;
                 LocalLock = new object();
             }
@@ -908,41 +907,40 @@ namespace CoreWCF.Security
 
             public virtual Task OpenAsync(TimeSpan timeout)
             {
-                securityProtocol.OpenAsync(timeout);
+                _securityProtocol.OpenAsync(timeout);
                 if (CanDoSecurityCorrelation)
                 {
-                    ((IAcceptorSecuritySessionProtocol)securityProtocol).ReturnCorrelationState = true;
-
+                    ((IAcceptorSecuritySessionProtocol)_securityProtocol).ReturnCorrelationState = true;
                 } // if an abort happened concurrently with the open, then return
                 if (State == CommunicationState.Closed || State == CommunicationState.Closing)
                 {
                     return Task.CompletedTask;
                 }
-                settingsLifetimeManager.AddReference();
-                hasSecurityStateReference = true;
+                _settingsLifetimeManager.AddReference();
+                _hasSecurityStateReference = true;
                 return Task.CompletedTask;
             }
 
             protected virtual void AbortCore()
             {
-                if (securityProtocol != null)
+                if (_securityProtocol != null)
                 {
                     TimeoutHelper timeout = new TimeoutHelper(ServiceDefaults.CloseTimeout);
-                    securityProtocol.CloseAsync(true, timeout.RemainingTime());
+                    _securityProtocol.CloseAsync(true, timeout.RemainingTime());
                 }
-                Settings.SessionTokenCache.RemoveAllContexts(currentSessionToken.ContextId);
+                Settings.SessionTokenCache.RemoveAllContexts(_currentSessionToken.ContextId);
                 bool abortLifetimeManager = false;
                 lock (LocalLock)
                 {
-                    if (hasSecurityStateReference)
+                    if (_hasSecurityStateReference)
                     {
                         abortLifetimeManager = true;
-                        hasSecurityStateReference = false;
+                        _hasSecurityStateReference = false;
                     }
                 }
                 if (abortLifetimeManager)
                 {
-                    settingsLifetimeManager.Abort();
+                    _settingsLifetimeManager.Abort();
                 }
             }
 
@@ -951,22 +949,22 @@ namespace CoreWCF.Security
                 try
                 {
                     TimeoutHelper helper = new TimeoutHelper(ServiceDefaults.CloseTimeout);
-                    if (securityProtocol != null)
+                    if (_securityProtocol != null)
                     {
-                        securityProtocol.CloseAsync(false, helper.RemainingTime()); ;
+                        _securityProtocol.CloseAsync(false, helper.RemainingTime()); ;
                     }
                     bool closeLifetimeManager = false;
                     lock (LocalLock)
                     {
-                        if (hasSecurityStateReference)
+                        if (_hasSecurityStateReference)
                         {
                             closeLifetimeManager = true;
-                            hasSecurityStateReference = false;
+                            _hasSecurityStateReference = false;
                         }
                     }
                     if (closeLifetimeManager)
                     {
-                        settingsLifetimeManager.CloseAsync(helper.RemainingTime());
+                        _settingsLifetimeManager.CloseAsync(helper.RemainingTime());
                     }
                 }
                 catch (CommunicationObjectAbortedException)
@@ -977,7 +975,7 @@ namespace CoreWCF.Security
                     }
                     // a parallel thread aborted the channel. Ignore the exception
                 }
-                Settings.SessionTokenCache.RemoveAllContexts(currentSessionToken.ContextId);
+                Settings.SessionTokenCache.RemoveAllContexts(_currentSessionToken.ContextId);
             }
 
             protected abstract void OnCloseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token);
@@ -990,28 +988,28 @@ namespace CoreWCF.Security
                 // enforce that the token being renewed is the current session token
                 lock (LocalLock)
                 {
-                    if (supportingToken.ContextId != currentSessionToken.ContextId || supportingToken.KeyGeneration != currentSessionToken.KeyGeneration)
+                    if (supportingToken.ContextId != _currentSessionToken.ContextId || supportingToken.KeyGeneration != _currentSessionToken.KeyGeneration)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.CurrentSessionTokenNotRenewed, supportingToken.KeyGeneration, currentSessionToken.KeyGeneration)));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.CurrentSessionTokenNotRenewed, supportingToken.KeyGeneration, _currentSessionToken.KeyGeneration)));
                     }
-                    if (futureSessionTokens.Count == Settings.MaximumPendingKeysPerSession)
+                    if (_futureSessionTokens.Count == Settings.MaximumPendingKeysPerSession)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.TooManyPendingSessionKeys));
                     }
-                    futureSessionTokens.Add(newToken);
+                    _futureSessionTokens.Add(newToken);
                 }
                 // SecurityTraceRecordHelper.TraceNewServerSessionKeyIssued(newToken, supportingToken, GetLocalUri());
             }
 
             protected Uri GetLocalUri()
             {
-                if (channelBinder.LocalAddress == null)
+                if (_channelBinder.LocalAddress == null)
                 {
                     return null;
                 }
                 else
                 {
-                    return channelBinder.LocalAddress.Uri;
+                    return _channelBinder.LocalAddress.Uri;
                 }
             }
 
@@ -1023,7 +1021,7 @@ namespace CoreWCF.Security
             private SecurityContextSecurityToken GetSessionToken(SecurityMessageProperty securityProperty)
             {
                 SecurityContextSecurityToken sct = (securityProperty.ProtectionToken != null) ? securityProperty.ProtectionToken.SecurityToken as SecurityContextSecurityToken : null;
-                if (sct != null && sct.ContextId == sessionId)
+                if (sct != null && sct.ContextId == _sessionId)
                 {
                     return sct;
                 }
@@ -1034,7 +1032,7 @@ namespace CoreWCF.Security
                         if (securityProperty.IncomingSupportingTokens[i].SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.Endorsing)
                         {
                             sct = (securityProperty.IncomingSupportingTokens[i].SecurityToken as SecurityContextSecurityToken);
-                            if (sct != null && sct.ContextId == sessionId)
+                            if (sct != null && sct.ContextId == _sessionId)
                             {
                                 return sct;
                             }
@@ -1073,19 +1071,19 @@ namespace CoreWCF.Security
                 // session token.
                 lock (LocalLock)
                 {
-                    if (futureSessionTokens.Count > 0 && incomingToken.KeyGeneration != currentSessionToken.KeyGeneration)
+                    if (_futureSessionTokens.Count > 0 && incomingToken.KeyGeneration != _currentSessionToken.KeyGeneration)
                     {
                         bool changedCurrentSessionToken = false;
-                        for (int i = 0; i < futureSessionTokens.Count; ++i)
+                        for (int i = 0; i < _futureSessionTokens.Count; ++i)
                         {
-                            if (futureSessionTokens[i].KeyGeneration == incomingToken.KeyGeneration)
+                            if (_futureSessionTokens[i].KeyGeneration == incomingToken.KeyGeneration)
                             {
                                 // let the current token expire after KeyRollover time interval
                                 DateTime keyRolloverTime = TimeoutHelper.Add(DateTime.UtcNow, Settings.KeyRolloverInterval);
-                                Settings.SessionTokenCache.UpdateContextCachingTime(currentSessionToken, keyRolloverTime);
-                                currentSessionToken = futureSessionTokens[i];
-                                futureSessionTokens.RemoveAt(i);
-                                ((IAcceptorSecuritySessionProtocol)securityProtocol).SetOutgoingSessionToken(currentSessionToken);
+                                Settings.SessionTokenCache.UpdateContextCachingTime(_currentSessionToken, keyRolloverTime);
+                                _currentSessionToken = _futureSessionTokens[i];
+                                _futureSessionTokens.RemoveAt(i);
+                                ((IAcceptorSecuritySessionProtocol)_securityProtocol).SetOutgoingSessionToken(_currentSessionToken);
                                 changedCurrentSessionToken = true;
                                 break;
                             }
@@ -1094,11 +1092,11 @@ namespace CoreWCF.Security
                         {
                             // SecurityTraceRecordHelper.TraceServerSessionKeyUpdated(this.currentSessionToken, GetLocalUri());
                             // remove all renewed tokens that will never be used.
-                            for (int i = 0; i < futureSessionTokens.Count; ++i)
+                            for (int i = 0; i < _futureSessionTokens.Count; ++i)
                             {
-                                Settings.SessionTokenCache.RemoveContext(futureSessionTokens[i].ContextId, futureSessionTokens[i].KeyGeneration);
+                                Settings.SessionTokenCache.RemoveContext(_futureSessionTokens[i].ContextId, _futureSessionTokens[i].KeyGeneration);
                             }
-                            futureSessionTokens.Clear();
+                            _futureSessionTokens.Clear();
                         }
                     }
                 }
@@ -1113,7 +1111,7 @@ namespace CoreWCF.Security
 
             public RequestContext ReceiveRequest(TimeSpan timeout, RequestContext initialRequestContext)
             {
-                this.initialRequestContext = initialRequestContext;
+                _initialRequestContext = initialRequestContext;
                 if (TryReceiveRequest(timeout, out RequestContext requestContext))
                 {
                     return requestContext;
@@ -1130,7 +1128,7 @@ namespace CoreWCF.Security
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 while (true)
                 {
-                    if (isInputClosed || State == CommunicationState.Faulted)
+                    if (_isInputClosed || State == CommunicationState.Faulted)
                     {
                         break;
                     }
@@ -1141,10 +1139,10 @@ namespace CoreWCF.Security
                     }
 
                     RequestContext innerRequestContext;
-                    if (initialRequestContext != null)
+                    if (_initialRequestContext != null)
                     {
-                        innerRequestContext = initialRequestContext;
-                        initialRequestContext = null;
+                        innerRequestContext = _initialRequestContext;
+                        _initialRequestContext = null;
                     }
                     else
                     {
@@ -1156,7 +1154,7 @@ namespace CoreWCF.Security
                         // the channel could have been aborted or closed
                         break;
                     }
-                    if (isInputClosed && innerRequestContext.RequestMessage != null)
+                    if (_isInputClosed && innerRequestContext.RequestMessage != null)
                     {
                         Message message = innerRequestContext.RequestMessage;
                         try
@@ -1207,7 +1205,7 @@ namespace CoreWCF.Security
             {
                 try
                 {
-                    MessageFault fault = SecurityUtils.CreateSecurityMessageFault(e, securityProtocol.SecurityProtocolFactory.StandardsManager);
+                    MessageFault fault = SecurityUtils.CreateSecurityMessageFault(e, _securityProtocol.SecurityProtocolFactory.StandardsManager);
                     if (fault == null)
                     {
                         return;
@@ -1291,7 +1289,7 @@ namespace CoreWCF.Security
                         if (message.Headers.Action == Settings.SecurityStandardsManager.SecureConversationDriver.CloseAction.Value)
                         {
                             //  SecurityTraceRecordHelper.TraceServerSessionCloseReceived(this.currentSessionToken, GetLocalUri());
-                            isInputClosed = true;
+                            _isInputClosed = true;
                             // OnCloseMessageReceived is responsible for closing the message and requestContext if required.
                             OnCloseMessageReceived(requestContext, message, correlationState, timeoutHelper.GetCancellationToken());
                             correlationState = null;
@@ -1299,7 +1297,7 @@ namespace CoreWCF.Security
                         else if (message.Headers.Action == Settings.SecurityStandardsManager.SecureConversationDriver.CloseResponseAction.Value)
                         {
                             // SecurityTraceRecordHelper.TraceServerSessionCloseResponseReceived(this.currentSessionToken, GetLocalUri());
-                            isInputClosed = true;
+                            _isInputClosed = true;
                             // OnCloseResponseMessageReceived is responsible for closing the message and requestContext if required.
                             OnCloseResponseMessageReceived(requestContext, message, correlationState, timeoutHelper.RemainingTime());
                             correlationState = null;
@@ -1338,7 +1336,7 @@ namespace CoreWCF.Security
             {
                 lock (LocalLock)
                 {
-                    if (currentSessionToken.KeyExpirationTime < DateTime.UtcNow)
+                    if (_currentSessionToken.KeyExpirationTime < DateTime.UtcNow)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new Exception(SR.SecuritySessionKeyIsStale));
                     }
@@ -1350,7 +1348,7 @@ namespace CoreWCF.Security
                 ThrowIfFaulted();
                 ThrowIfClosedOrNotOpen();
                 CheckOutgoingToken();
-                message = securityProtocol.SecureOutgoingMessage(message, token);
+                message = _securityProtocol.SecureOutgoingMessage(message, token);
             }
 
             private void ThrowIfClosedOrNotOpen()
@@ -1360,7 +1358,7 @@ namespace CoreWCF.Security
 
             internal SecurityProtocolCorrelationState VerifyIncomingMessage(ref Message message, TimeSpan timeout)
             {
-                return securityProtocol.VerifyIncomingMessage(ref message, timeout, null);
+                return _securityProtocol.VerifyIncomingMessage(ref message, timeout, null);
             }
 
             private void PrepareReply(Message request, Message reply)
@@ -1386,19 +1384,19 @@ namespace CoreWCF.Security
 
             protected void InitializeFaultCodesIfRequired()
             {
-                if (!areFaultCodesInitialized)
+                if (!_areFaultCodesInitialized)
                 {
                     lock (LocalLock)
                     {
-                        if (!areFaultCodesInitialized)
+                        if (!_areFaultCodesInitialized)
                         {
-                            SecurityStandardsManager standardsManager = securityProtocol.SecurityProtocolFactory.StandardsManager;
+                            SecurityStandardsManager standardsManager = _securityProtocol.SecurityProtocolFactory.StandardsManager;
                             SecureConversationDriver scDriver = standardsManager.SecureConversationDriver;
-                            renewFaultCode = FaultCode.CreateSenderFaultCode(scDriver.RenewNeededFaultCode.Value, scDriver.Namespace.Value);
-                            renewFaultReason = new FaultReason(SR.SecurityRenewFaultReason, System.Globalization.CultureInfo.InvariantCulture);
-                            sessionAbortedFaultCode = FaultCode.CreateSenderFaultCode(DotNetSecurityStrings.SecuritySessionAbortedFault, DotNetSecurityStrings.Namespace);
-                            sessionAbortedFaultReason = new FaultReason(SR.SecuritySessionAbortedFaultReason, System.Globalization.CultureInfo.InvariantCulture);
-                            areFaultCodesInitialized = true;
+                            _renewFaultCode = FaultCode.CreateSenderFaultCode(scDriver.RenewNeededFaultCode.Value, scDriver.Namespace.Value);
+                            _renewFaultReason = new FaultReason(SR.SecurityRenewFaultReason, System.Globalization.CultureInfo.InvariantCulture);
+                            _sessionAbortedFaultCode = FaultCode.CreateSenderFaultCode(DotNetSecurityStrings.SecuritySessionAbortedFault, DotNetSecurityStrings.Namespace);
+                            _sessionAbortedFaultReason = new FaultReason(SR.SecuritySessionAbortedFaultReason, System.Globalization.CultureInfo.InvariantCulture);
+                            _areFaultCodesInitialized = true;
                         }
                     }
                 }
@@ -1410,7 +1408,7 @@ namespace CoreWCF.Security
                 try
                 {
                     InitializeFaultCodesIfRequired();
-                    MessageFault renewFault = MessageFault.CreateFault(renewFaultCode, renewFaultReason);
+                    MessageFault renewFault = MessageFault.CreateFault(_renewFaultCode, _renewFaultReason);
                     Message response;
                     if (message.Headers.MessageId != null)
                     {
@@ -1425,7 +1423,7 @@ namespace CoreWCF.Security
                     {
                         PrepareReply(message, response);
                         TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-                        response = securityProtocol.SecureOutgoingMessage(response, timeoutHelper.GetCancellationToken());
+                        response = _securityProtocol.SecureOutgoingMessage(response, timeoutHelper.GetCancellationToken());
                         response.Properties.AllowOutputBatching = false;
                         SendMessage(requestContext, response, timeoutHelper.GetCancellationToken());
                     }
@@ -1489,7 +1487,7 @@ namespace CoreWCF.Security
                 using (message)
                 {
                     Message response = ProcessCloseRequest(message);
-                    response = securityProtocol.SecureOutgoingMessage(response, token);
+                    response = _securityProtocol.SecureOutgoingMessage(response, token);
                     response.Properties.AllowOutputBatching = false;
                     return response;
                 }
@@ -1541,9 +1539,9 @@ namespace CoreWCF.Security
             {
                 RequestSecurityToken rst = new RequestSecurityToken(Settings.SecurityStandardsManager);
                 rst.RequestType = Settings.SecurityStandardsManager.TrustDriver.RequestTypeClose;
-                rst.CloseTarget = Settings.IssuedSecurityTokenParameters.CreateKeyIdentifierClause(currentSessionToken, SecurityTokenReferenceStyle.External);
+                rst.CloseTarget = Settings.IssuedSecurityTokenParameters.CreateKeyIdentifierClause(_currentSessionToken, SecurityTokenReferenceStyle.External);
                 rst.MakeReadOnly();
-                Message closeMessage = Message.CreateMessage(messageVersion, ActionHeader.Create(Settings.SecurityStandardsManager.SecureConversationDriver.CloseAction, messageVersion.Addressing), rst);
+                Message closeMessage = Message.CreateMessage(_messageVersion, ActionHeader.Create(Settings.SecurityStandardsManager.SecureConversationDriver.CloseAction, _messageVersion.Addressing), rst);
                 RequestReplyCorrelator.PrepareRequest(closeMessage);
                 if (LocalAddress != null)
                 {
@@ -1565,7 +1563,7 @@ namespace CoreWCF.Security
                             new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, closeMessage.Version.Addressing)));
                     }
                 }
-                securityProtocol.SecureOutgoingMessage(closeMessage, token);
+                _securityProtocol.SecureOutgoingMessage(closeMessage, token);
                 closeMessage.Properties.AllowOutputBatching = false;
                 return closeMessage;
             }
@@ -1594,7 +1592,6 @@ namespace CoreWCF.Security
 
             protected void SendMessage(RequestContext requestContext, Message message, CancellationToken token)
             {
-
                 if (requestContext != null)
                 {
                     requestContext.ReplyAsync(message, token);
@@ -1610,12 +1607,12 @@ namespace CoreWCF.Security
 
         private abstract class ServerSecuritySimplexSessionChannel : ServerSecuritySessionChannel
         {
-            private readonly SoapSecurityInputSession session;
-            private bool receivedClose;
-            private bool canSendCloseResponse;
-            private bool sentCloseResponse;
-            private RequestContext closeRequestContext;
-            private Message closeResponse;
+            private readonly SoapSecurityInputSession _session;
+            private bool _receivedClose;
+            private bool _canSendCloseResponse;
+            private bool _sentCloseResponse;
+            private RequestContext _closeRequestContext;
+            private Message _closeResponse;
 
             public ServerSecuritySimplexSessionChannel(
                 SecuritySessionServerSettings settings,
@@ -1623,24 +1620,24 @@ namespace CoreWCF.Security
                 object listenerSecurityState, SecurityListenerSettingsLifetimeManager settingsLifetimeManager, EndpointAddress address)
                 : base(settings, sessionToken, listenerSecurityState, settingsLifetimeManager, address)
             {
-                session = new SoapSecurityInputSession(sessionToken, settings, this);
+                _session = new SoapSecurityInputSession(sessionToken, settings, this);
             }
 
-            public IInputSession Session => session;
+            public IInputSession Session => _session;
 
             private void CleanupPendingCloseState()
             {
                 lock (LocalLock)
                 {
-                    if (closeResponse != null)
+                    if (_closeResponse != null)
                     {
-                        closeResponse.Close();
-                        closeResponse = null;
+                        _closeResponse.Close();
+                        _closeResponse = null;
                     }
-                    if (closeRequestContext != null)
+                    if (_closeRequestContext != null)
                     {
-                        closeRequestContext.Abort();
-                        closeRequestContext = null;
+                        _closeRequestContext.Abort();
+                        _closeRequestContext = null;
                     }
                 }
             }
@@ -1648,14 +1645,14 @@ namespace CoreWCF.Security
             protected override void AbortCore()
             {
                 base.AbortCore();
-                Settings.RemoveSessionChannel(session.Id);
+                Settings.RemoveSessionChannel(_session.Id);
                 CleanupPendingCloseState();
             }
 
             protected override void CloseCore(CancellationToken token)
             {
                 base.CloseCore(token);
-                Settings.RemoveSessionChannel(session.Id);
+                Settings.RemoveSessionChannel(_session.Id);
             }
 
             public virtual Task CloseAsync(CancellationToken token)
@@ -1679,19 +1676,19 @@ namespace CoreWCF.Security
                 bool sendCloseResponse = false;
                 lock (LocalLock)
                 {
-                    canSendCloseResponse = true;
-                    if (!sentCloseResponse && receivedClose && closeResponse != null)
+                    _canSendCloseResponse = true;
+                    if (!_sentCloseResponse && _receivedClose && _closeResponse != null)
                     {
-                        sentCloseResponse = true;
+                        _sentCloseResponse = true;
                         sendCloseResponse = true;
-                        pendingCloseRequestContext = closeRequestContext;
-                        pendingCloseResponse = closeResponse;
-                        closeResponse = null;
-                        closeRequestContext = null;
+                        pendingCloseRequestContext = _closeRequestContext;
+                        pendingCloseResponse = _closeResponse;
+                        _closeResponse = null;
+                        _closeRequestContext = null;
                     }
                     else
                     {
-                        canSendCloseResponse = false;
+                        _canSendCloseResponse = false;
                         pendingCloseRequestContext = null;
                         pendingCloseResponse = null;
                     }
@@ -1777,20 +1774,20 @@ namespace CoreWCF.Security
                     Message localCloseResponse = null;
                     lock (LocalLock)
                     {
-                        if (!receivedClose)
+                        if (!_receivedClose)
                         {
-                            receivedClose = true;
+                            _receivedClose = true;
                             localCloseResponse = CreateCloseResponse(message, correlationState, token);
-                            if (canSendCloseResponse)
+                            if (_canSendCloseResponse)
                             {
-                                sentCloseResponse = true;
+                                _sentCloseResponse = true;
                                 sendCloseResponse = true;
                             }
                             else
                             {
                                 // save the close requestContext to reply later
-                                closeRequestContext = requestContext;
-                                closeResponse = localCloseResponse;
+                                _closeRequestContext = requestContext;
+                                _closeResponse = localCloseResponse;
                                 cleanupContext = false;
                             }
                         }
@@ -1823,50 +1820,50 @@ namespace CoreWCF.Security
 
             protected class SoapSecurityInputSession : ISecureConversationSession, IInputSession
             {
-                private readonly ServerSecuritySessionChannel channel;
-                private readonly UniqueId securityContextTokenId;
-                private readonly SecurityKeyIdentifierClause sessionTokenIdentifier;
-                private readonly SecurityStandardsManager standardsManager;
+                private readonly ServerSecuritySessionChannel _channel;
+                private readonly UniqueId _securityContextTokenId;
+                private readonly SecurityKeyIdentifierClause _sessionTokenIdentifier;
+                private readonly SecurityStandardsManager _standardsManager;
 
                 public SoapSecurityInputSession(SecurityContextSecurityToken sessionToken,
                     SecuritySessionServerSettings settings, ServerSecuritySessionChannel channel)
                 {
-                    this.channel = channel;
-                    securityContextTokenId = sessionToken.ContextId;
+                    _channel = channel;
+                    _securityContextTokenId = sessionToken.ContextId;
                     Claim identityClaim = SecurityUtils.GetPrimaryIdentityClaim(sessionToken.AuthorizationPolicies);
                     if (identityClaim != null)
                     {
                         RemoteIdentity = EndpointIdentity.CreateIdentity(identityClaim);
                     }
-                    sessionTokenIdentifier = settings.IssuedSecurityTokenParameters.CreateKeyIdentifierClause(sessionToken, SecurityTokenReferenceStyle.External);
-                    standardsManager = settings.SessionProtocolFactory.StandardsManager;
+                    _sessionTokenIdentifier = settings.IssuedSecurityTokenParameters.CreateKeyIdentifierClause(sessionToken, SecurityTokenReferenceStyle.External);
+                    _standardsManager = settings.SessionProtocolFactory.StandardsManager;
                 }
 
-                public string Id => securityContextTokenId.ToString();
+                public string Id => _securityContextTokenId.ToString();
 
                 public EndpointIdentity RemoteIdentity { get; }
 
                 public void WriteSessionTokenIdentifier(XmlDictionaryWriter writer)
                 {
-                    standardsManager.SecurityTokenSerializer.WriteKeyIdentifierClause(writer, sessionTokenIdentifier);
+                    _standardsManager.SecurityTokenSerializer.WriteKeyIdentifierClause(writer, _sessionTokenIdentifier);
                 }
 
                 public bool TryReadSessionTokenIdentifier(XmlReader reader)
                 {
-                    if (!standardsManager.SecurityTokenSerializer.CanReadKeyIdentifierClause(reader))
+                    if (!_standardsManager.SecurityTokenSerializer.CanReadKeyIdentifierClause(reader))
                     {
                         return false;
                     }
-                    SecurityContextKeyIdentifierClause incomingTokenIdentifier = standardsManager.SecurityTokenSerializer.ReadKeyIdentifierClause(reader) as SecurityContextKeyIdentifierClause;
-                    return incomingTokenIdentifier != null && incomingTokenIdentifier.Matches(securityContextTokenId, null);
+                    SecurityContextKeyIdentifierClause incomingTokenIdentifier = _standardsManager.SecurityTokenSerializer.ReadKeyIdentifierClause(reader) as SecurityContextKeyIdentifierClause;
+                    return incomingTokenIdentifier != null && incomingTokenIdentifier.Matches(_securityContextTokenId, null);
                 }
             }
 
             //Renamed SecurityReplySessionChannel => SecurityReplySessionServiceChannelDispatcher (implementd IServiceChannelDispatcher)
             public class SecurityReplySessionServiceChannelDispatcher : ServerSecuritySimplexSessionChannel, IServiceChannelDispatcher, IReplySessionChannel
             {
-                private readonly IServiceProvider serviceProvider;
-                private volatile IServiceChannelDispatcher channelDispatcher;
+                private readonly IServiceProvider _serviceProvider;
+                private volatile IServiceChannelDispatcher _channelDispatcher;
                 public SecurityReplySessionServiceChannelDispatcher(
                     SecuritySessionServerSettings settings,
                     SecurityContextSecurityToken sessionToken,
@@ -1878,7 +1875,7 @@ namespace CoreWCF.Security
                     IncomingChannel = (IReplyChannel)channel;
                     // this.defaultBinder = new ReplyChannelBinder();
                     // this.idleManager = new ServiceChannel.SessionIdleManager();
-                    serviceProvider = IncomingChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
+                    _serviceProvider = IncomingChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
                 }
 
                 public IReplyChannel IncomingChannel { get; set; }
@@ -1913,7 +1910,7 @@ namespace CoreWCF.Security
                 public Task DispatchAsync(RequestContext context)
                 {
                     RequestContext securityRequestContext = base.ReceiveRequest(context);
-                    return channelDispatcher.DispatchAsync(securityRequestContext);
+                    return _channelDispatcher.DispatchAsync(securityRequestContext);
                 }
 
                 public Task DispatchAsync(Message message)
@@ -1923,7 +1920,7 @@ namespace CoreWCF.Security
 
                 public T GetProperty<T>() where T : class
                 {
-                    var tObj = serviceProvider.GetService<T>();
+                    var tObj = _serviceProvider.GetService<T>();
                     if (tObj == null)
                     {
                         return IncomingChannel.GetProperty<T>();
@@ -1942,7 +1939,7 @@ namespace CoreWCF.Security
                 public async override Task OpenAsync(TimeSpan timeout)
                 {
                     await base.OpenAsync(timeout);
-                    channelDispatcher = await Settings.SecurityServiceDispatcher.
+                    _channelDispatcher = await Settings.SecurityServiceDispatcher.
                         GetInnerServiceChannelDispatcher(this);
                 }
 
@@ -1955,35 +1952,35 @@ namespace CoreWCF.Security
 
         private class SecuritySessionRequestContext : RequestContextBase
         {
-            private readonly RequestContext requestContext;
-            private readonly ServerSecuritySessionChannel channel;
-            private readonly SecurityProtocolCorrelationState correlationState;
+            private readonly RequestContext _requestContext;
+            private readonly ServerSecuritySessionChannel _channel;
+            private readonly SecurityProtocolCorrelationState _correlationState;
 
             public SecuritySessionRequestContext(RequestContext requestContext, Message requestMessage, SecurityProtocolCorrelationState correlationState, ServerSecuritySessionChannel channel)
                 : base(requestMessage, ServiceDefaults.CloseTimeout, ServiceDefaults.SendTimeout)
             {
-                this.requestContext = requestContext;
-                this.correlationState = correlationState;
-                this.channel = channel;
+                _requestContext = requestContext;
+                _correlationState = correlationState;
+                _channel = channel;
             }
 
             protected override void OnAbort()
             {
-                requestContext.Abort();
+                _requestContext.Abort();
             }
 
             protected override Task OnCloseAsync(CancellationToken token)
             {
-                return requestContext.CloseAsync(token);
+                return _requestContext.CloseAsync(token);
             }
 
             protected override Task OnReplyAsync(Message message, CancellationToken token)
             {
                 if (message != null)
                 {
-                    channel.SecureApplicationMessage(ref message, token, correlationState);
+                    _channel.SecureApplicationMessage(ref message, token, _correlationState);
                     //this.securityProtocol.SecureOutgoingMessageAsync(message);
-                    return requestContext.ReplyAsync(message);
+                    return _requestContext.ReplyAsync(message);
                 }
                 else
                 {

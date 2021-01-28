@@ -43,7 +43,6 @@ namespace CoreWCF.IdentityModel.Tokens
 
         protected void Initialize(string id, string authenticationType, DateTime effectiveTime, DateTime expirationTime, WindowsIdentity windowsIdentity, bool clone)
         {
-
             if (windowsIdentity == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));

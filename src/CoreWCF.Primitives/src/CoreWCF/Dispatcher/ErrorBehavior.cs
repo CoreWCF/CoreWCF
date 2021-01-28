@@ -10,9 +10,9 @@ namespace CoreWCF.Dispatcher
 {
     internal class ErrorBehavior
     {
-        private readonly bool debug;
-        private readonly bool isOnServer;
-        private readonly MessageVersion messageVersion;
+        private readonly bool _debug;
+        private readonly bool _isOnServer;
+        private readonly MessageVersion _messageVersion;
 
         internal ErrorBehavior(ChannelDispatcher channelDispatcher)
         {
@@ -24,10 +24,10 @@ namespace CoreWCF.Dispatcher
             {
                 Handlers = EmptyArray<IErrorHandler>.ToArray(channelDispatcher.ErrorHandlers);
             }
-            debug = channelDispatcher.IncludeExceptionDetailInFaults;
+            _debug = channelDispatcher.IncludeExceptionDetailInFaults;
             //isOnServer = channelDispatcher.IsOnServer;
-            isOnServer = true;
-            messageVersion = channelDispatcher.MessageVersion;
+            _isOnServer = true;
+            _messageVersion = channelDispatcher.MessageVersion;
         }
 
         private void InitializeFault(MessageRpc rpc)
@@ -61,7 +61,7 @@ namespace CoreWCF.Dispatcher
 
         private void ProvideMessageFaultCore(MessageRpc rpc)
         {
-            if (messageVersion != rpc.RequestVersion)
+            if (_messageVersion != rpc.RequestVersion)
             {
                 Fx.Assert("CoreWCF.Dispatcher.ErrorBehavior.ProvideMessageFaultCore(): (this.messageVersion != rpc.RequestVersion)");
             }
@@ -81,18 +81,18 @@ namespace CoreWCF.Dispatcher
                 code = FaultCode.CreateReceiverFaultCode(code);
                 string action = FaultCodeConstants.Actions.NetDispatcher;
                 MessageFault fault;
-                if (debug)
+                if (_debug)
                 {
                     faultInfo.DefaultFaultAction = action;
                     fault = MessageFault.CreateFault(code, new FaultReason(error.Message), new ExceptionDetail(error));
                 }
                 else
                 {
-                    string reason = isOnServer ? SR.SFxInternalServerError : SR.SFxInternalCallbackError;
+                    string reason = _isOnServer ? SR.SFxInternalServerError : SR.SFxInternalCallbackError;
                     fault = MessageFault.CreateFault(code, new FaultReason(reason));
                 }
                 faultInfo.IsConsideredUnhandled = true;
-                faultInfo.Fault = Message.CreateMessage(messageVersion, fault, action);
+                faultInfo.Fault = Message.CreateMessage(_messageVersion, fault, action);
             }
             //if this is an InternalServiceFault coming from another service dispatcher we should treat it as unhandled so that the channels are cleaned up
             else if (error != null)
@@ -129,7 +129,7 @@ namespace CoreWCF.Dispatcher
             for (int i = 0; i < Handlers.Length; i++)
             {
                 Message m = faultInfo.Fault;
-                Handlers[i].ProvideFault(e, messageVersion, ref m);
+                Handlers[i].ProvideFault(e, _messageVersion, ref m);
                 faultInfo.Fault = m;
                 //if (TD.FaultProviderInvokedIsEnabled())
                 //{
@@ -149,14 +149,14 @@ namespace CoreWCF.Dispatcher
             else if (e is NetDispatcherFaultException)
             {
                 NetDispatcherFaultException ndfe = e as NetDispatcherFaultException;
-                if (debug)
+                if (_debug)
                 {
                     ExceptionDetail detail = new ExceptionDetail(ndfe);
-                    faultInfo.Fault = Message.CreateMessage(messageVersion, MessageFault.CreateFault(ndfe.Code, ndfe.Reason, detail), ndfe.Action);
+                    faultInfo.Fault = Message.CreateMessage(_messageVersion, MessageFault.CreateFault(ndfe.Code, ndfe.Reason, detail), ndfe.Action);
                 }
                 else
                 {
-                    faultInfo.Fault = Message.CreateMessage(messageVersion, ndfe.CreateMessageFault(), ndfe.Action);
+                    faultInfo.Fault = Message.CreateMessage(_messageVersion, ndfe.CreateMessageFault(), ndfe.Action);
                 }
             }
         }
@@ -220,7 +220,7 @@ namespace CoreWCF.Dispatcher
 
         internal bool HandleError(Exception error)
         {
-            ErrorHandlerFaultInfo faultInfo = new ErrorHandlerFaultInfo(messageVersion.Addressing.DefaultFaultAction);
+            ErrorHandlerFaultInfo faultInfo = new ErrorHandlerFaultInfo(_messageVersion.Addressing.DefaultFaultAction);
             return HandleError(error, ref faultInfo);
         }
 
@@ -282,5 +282,4 @@ namespace CoreWCF.Dispatcher
             ThrowAndCatch(e, null);
         }
     }
-
 }

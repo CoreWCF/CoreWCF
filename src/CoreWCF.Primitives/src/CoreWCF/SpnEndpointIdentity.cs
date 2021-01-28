@@ -23,7 +23,7 @@ namespace CoreWCF
         private static readonly object s_typeLock = new object();
 
         // Double-checked locking pattern requires volatile for read/write synchronization
-        private static DirectoryEntry directoryEntry;
+        private static DirectoryEntry s_directoryEntry;
 
         public static TimeSpan SpnLookupTime
         {
@@ -89,7 +89,6 @@ namespace CoreWCF
                         string spn = null;
                         try
                         {
-
                             if (ClaimTypes.Dns.Equals(IdentityClaim.ClaimType))
                             {
                                 spn = "host/" + (string)IdentityClaim.Resource;
@@ -151,20 +150,19 @@ namespace CoreWCF
 
         private static DirectoryEntry GetDirectoryEntry()
         {
-            if (directoryEntry == null)
+            if (s_directoryEntry == null)
             {
                 lock (s_typeLock)
                 {
-                    if (directoryEntry == null)
+                    if (s_directoryEntry == null)
                     {
                         DirectoryEntry tmp = new DirectoryEntry(@"LDAP://" + SecurityUtils.GetPrimaryDomain());
                         tmp.RefreshCache(new string[] { "name" });
-                        directoryEntry = tmp;
+                        s_directoryEntry = tmp;
                     }
                 }
             }
-            return directoryEntry;
+            return s_directoryEntry;
         }
     }
-
 }

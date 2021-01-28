@@ -9,11 +9,11 @@ namespace CoreWCF.Dispatcher
 {
     public class EndpointDispatcher
     {
-        private MessageFilter addressFilter;
-        private MessageFilter contractFilter;
-        private readonly string contractNamespace;
-        private MessageFilter endpointFilter;
-        private readonly EndpointAddress originalAddress;
+        private MessageFilter _addressFilter;
+        private MessageFilter _contractFilter;
+        private readonly string _contractNamespace;
+        private MessageFilter _endpointFilter;
+        private readonly EndpointAddress _originalAddress;
 
         internal EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, string id, bool isSystemEndpoint)
             : this(address, contractName, contractNamespace)
@@ -29,20 +29,20 @@ namespace CoreWCF.Dispatcher
 
         public EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, bool isSystemEndpoint)
         {
-            originalAddress = address;
+            _originalAddress = address;
             ContractName = contractName;
-            this.contractNamespace = contractNamespace;
+            _contractNamespace = contractNamespace;
 
             if (address != null)
             {
-                addressFilter = new EndpointAddressMessageFilter(address);
+                _addressFilter = new EndpointAddressMessageFilter(address);
             }
             else
             {
-                addressFilter = new MatchAllMessageFilter();
+                _addressFilter = new MatchAllMessageFilter();
             }
 
-            contractFilter = new MatchAllMessageFilter();
+            _contractFilter = new MatchAllMessageFilter();
             DispatchRuntime = new DispatchRuntime(this);
             FilterPriority = 0;
             IsSystemEndpoint = isSystemEndpoint;
@@ -57,15 +57,15 @@ namespace CoreWCF.Dispatcher
             }
             EndpointAddress address = builder.ToEndpointAddress();
 
-            addressFilter = new EndpointAddressMessageFilter(address);
+            _addressFilter = new EndpointAddressMessageFilter(address);
             // channelDispatcher is Attached
-            contractFilter = baseEndpoint.ContractFilter;
+            _contractFilter = baseEndpoint.ContractFilter;
             ContractName = baseEndpoint.ContractName;
-            contractNamespace = baseEndpoint.ContractNamespace;
+            _contractNamespace = baseEndpoint.ContractNamespace;
             DispatchRuntime = baseEndpoint.DispatchRuntime;
             // endpointFilter is lazy
             FilterPriority = baseEndpoint.FilterPriority + 1;
-            originalAddress = address;
+            _originalAddress = address;
             //if (PerformanceCounters.PerformanceCountersEnabled)
             //{
             //    this.perfCounterId = baseEndpoint.perfCounterId;
@@ -76,7 +76,7 @@ namespace CoreWCF.Dispatcher
 
         public MessageFilter AddressFilter
         {
-            get { return addressFilter; }
+            get { return _addressFilter; }
             set
             {
                 if (value == null)
@@ -84,7 +84,7 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 ThrowIfDisposedOrImmutable();
-                addressFilter = value;
+                _addressFilter = value;
                 AddressFilterSetExplicit = true;
             }
         }
@@ -95,7 +95,7 @@ namespace CoreWCF.Dispatcher
 
         internal MessageFilter ContractFilter
         {
-            get { return contractFilter; }
+            get { return _contractFilter; }
             set
             {
                 if (value == null)
@@ -103,7 +103,7 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 ThrowIfDisposedOrImmutable();
-                contractFilter = value;
+                _contractFilter = value;
             }
         }
 
@@ -111,7 +111,7 @@ namespace CoreWCF.Dispatcher
 
         public string ContractNamespace
         {
-            get { return contractNamespace; }
+            get { return _contractNamespace; }
         }
 
         internal ServiceChannel DatagramChannel { get; set; }
@@ -122,7 +122,7 @@ namespace CoreWCF.Dispatcher
 
         internal EndpointAddress OriginalAddress
         {
-            get { return originalAddress; }
+            get { return _originalAddress; }
         }
 
         public EndpointAddress EndpointAddress
@@ -131,23 +131,23 @@ namespace CoreWCF.Dispatcher
             {
                 if (ChannelDispatcher == null)
                 {
-                    return originalAddress;
+                    return _originalAddress;
                 }
 
-                if ((originalAddress != null) && (originalAddress.Identity != null))
+                if ((_originalAddress != null) && (_originalAddress.Identity != null))
                 {
-                    return originalAddress;
+                    return _originalAddress;
                 }
 
-                if (originalAddress != null)
+                if (_originalAddress != null)
                 {
-                    return originalAddress;
+                    return _originalAddress;
                 }
 
                 EndpointAddressBuilder builder;
-                if (originalAddress != null)
+                if (_originalAddress != null)
                 {
-                    builder = new EndpointAddressBuilder(originalAddress);
+                    builder = new EndpointAddressBuilder(_originalAddress);
                     return builder.ToEndpointAddress();
                 }
                 else
@@ -163,24 +163,24 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (endpointFilter == null)
+                if (_endpointFilter == null)
                 {
-                    MessageFilter addressFilter = this.addressFilter;
-                    MessageFilter contractFilter = this.contractFilter;
+                    MessageFilter addressFilter = _addressFilter;
+                    MessageFilter contractFilter = _contractFilter;
 
                     // Can't optimize addressFilter similarly.
                     // AndMessageFilter tracks when the address filter matched so the correct
                     // fault can be sent back.
                     if (contractFilter is MatchAllMessageFilter)
                     {
-                        endpointFilter = addressFilter;
+                        _endpointFilter = addressFilter;
                     }
                     else
                     {
-                        endpointFilter = new AndMessageFilter(addressFilter, contractFilter);
+                        _endpointFilter = new AndMessageFilter(addressFilter, contractFilter);
                     }
                 }
-                return endpointFilter;
+                return _endpointFilter;
             }
         }
 
@@ -289,5 +289,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

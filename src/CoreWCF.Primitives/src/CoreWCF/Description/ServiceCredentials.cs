@@ -12,21 +12,21 @@ namespace CoreWCF.Description
 {
     public class ServiceCredentials : SecurityCredentialsManager, IServiceBehavior
     {
-        private readonly X509CertificateRecipientServiceCredential serviceCertificate;
-        private readonly bool useIdentityConfiguration = false;
-        private bool isReadOnly = false;
-        private readonly bool saveBootstrapTokenInSession = true;
-        private ExceptionMapper exceptionMapper;
+        private readonly X509CertificateRecipientServiceCredential _serviceCertificate;
+        private readonly bool _useIdentityConfiguration = false;
+        private bool _isReadOnly = false;
+        private readonly bool _saveBootstrapTokenInSession = true;
+        private ExceptionMapper _exceptionMapper;
 
         public ServiceCredentials()
         {
             UserNameAuthentication = new UserNamePasswordServiceCredential();
             ClientCertificate = new X509CertificateInitiatorServiceCredential();
-            serviceCertificate = new X509CertificateRecipientServiceCredential();
+            _serviceCertificate = new X509CertificateRecipientServiceCredential();
             WindowsAuthentication = new WindowsServiceCredential();
             IssuedTokenAuthentication = new IssuedTokenServiceCredential();
             SecureConversationAuthentication = new SecureConversationServiceCredential();
-            exceptionMapper = new ExceptionMapper();
+            _exceptionMapper = new ExceptionMapper();
         }
 
         protected ServiceCredentials(ServiceCredentials other)
@@ -37,12 +37,12 @@ namespace CoreWCF.Description
             }
             UserNameAuthentication = new UserNamePasswordServiceCredential(other.UserNameAuthentication);
             ClientCertificate = new X509CertificateInitiatorServiceCredential(other.ClientCertificate);
-            serviceCertificate = new X509CertificateRecipientServiceCredential(other.serviceCertificate);
+            _serviceCertificate = new X509CertificateRecipientServiceCredential(other._serviceCertificate);
             WindowsAuthentication = new WindowsServiceCredential(other.WindowsAuthentication);
             IssuedTokenAuthentication = new IssuedTokenServiceCredential(other.IssuedTokenAuthentication);
             SecureConversationAuthentication = new SecureConversationServiceCredential(other.SecureConversationAuthentication);
-            saveBootstrapTokenInSession = other.saveBootstrapTokenInSession;
-            exceptionMapper = other.exceptionMapper;
+            _saveBootstrapTokenInSession = other._saveBootstrapTokenInSession;
+            _exceptionMapper = other._exceptionMapper;
         }
 
         public UserNamePasswordServiceCredential UserNameAuthentication { get; }
@@ -53,7 +53,7 @@ namespace CoreWCF.Description
         {
             get
             {
-                return serviceCertificate;
+                return _serviceCertificate;
             }
         }
 
@@ -70,7 +70,7 @@ namespace CoreWCF.Description
         {
             get
             {
-                return exceptionMapper;
+                return _exceptionMapper;
             }
             set
             {
@@ -79,7 +79,7 @@ namespace CoreWCF.Description
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
-                exceptionMapper = value;
+                _exceptionMapper = value;
             }
         }
 
@@ -146,7 +146,7 @@ namespace CoreWCF.Description
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
             ClientCertificate.MakeReadOnly();
             IssuedTokenAuthentication.MakeReadOnly();
             SecureConversationAuthentication.MakeReadOnly();
@@ -157,11 +157,10 @@ namespace CoreWCF.Description
 
         private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
         }
-
     }
 }

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Xml;
+
 namespace CoreWCF
 {
     // NOTE: This is a dynamic dictionary of XmlDictionaryStrings for the Binary Encoder to dynamically encode should
@@ -10,7 +11,7 @@ namespace CoreWCF
     // When adding or removing memebers please keep the capacity of the XmlDictionary field current.
     internal static class DXD
     {
-        private static readonly Wsrm11Dictionary wsrm11Dictionary;
+        private static readonly Wsrm11Dictionary s_wsrm11Dictionary;
 
         static DXD()
         {
@@ -28,7 +29,7 @@ namespace CoreWCF
             TrustDec2005Dictionary = new TrustDec2005Dictionary(dictionary);
             TrustDec2005Dictionary.PopulateDec2005DictionaryStrings();
             TrustDec2005Dictionary.PopulateFeb2005DictionaryString();
-            wsrm11Dictionary = new Wsrm11Dictionary(dictionary);
+            s_wsrm11Dictionary = new Wsrm11Dictionary(dictionary);
         }
 
         public static AtomicTransactionExternal11Dictionary AtomicTransactionExternal11Dictionary { get; private set; }
@@ -43,7 +44,7 @@ namespace CoreWCF
 
         public static Wsrm11Dictionary Wsrm11Dictionary
         {
-            get { return wsrm11Dictionary; }
+            get { return s_wsrm11Dictionary; }
         }
     }
 

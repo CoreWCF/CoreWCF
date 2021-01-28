@@ -8,24 +8,24 @@ namespace CoreWCF.Dispatcher
 {
     internal class SingletonInstanceContextProvider : InstanceContextProviderBase
     {
-        private InstanceContext singleton;
-        private readonly object thisLock;
+        private InstanceContext _singleton;
+        private readonly object _thisLock;
 
         internal SingletonInstanceContextProvider(DispatchRuntime dispatchRuntime)
             : base(dispatchRuntime)
         {
-            thisLock = new object();
+            _thisLock = new object();
         }
 
         internal InstanceContext SingletonInstance
         {
             get
             {
-                if (singleton == null)
+                if (_singleton == null)
                 {
-                    lock (thisLock)
+                    lock (_thisLock)
                     {
-                        if (singleton == null)
+                        if (_singleton == null)
                         {
                             InstanceContext instanceContext = DispatchRuntime.SingletonInstanceContext;
 
@@ -53,11 +53,11 @@ namespace CoreWCF.Dispatcher
 
                             //Delay assigning the potentially newly created InstanceContext (till after its opened) to this.Singleton 
                             //to ensure that it is opened only once.
-                            singleton = instanceContext;
+                            _singleton = instanceContext;
                         }
                     }
                 }
-                return singleton;
+                return _singleton;
             }
         }
 
@@ -91,5 +91,4 @@ namespace CoreWCF.Dispatcher
 
         #endregion
     }
-
 }

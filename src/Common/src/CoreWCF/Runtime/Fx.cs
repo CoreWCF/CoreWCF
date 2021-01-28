@@ -403,11 +403,11 @@ namespace CoreWCF.Runtime
         // This can't derive from Thunk since T would be unsafe.
         private sealed unsafe class IOCompletionThunk
         {
-            private readonly IOCompletionCallback callback;
+            private readonly IOCompletionCallback _callback;
 
             public IOCompletionThunk(IOCompletionCallback callback)
             {
-                this.callback = callback;
+                _callback = callback;
             }
 
             public IOCompletionCallback ThunkFrame
@@ -423,7 +423,7 @@ namespace CoreWCF.Runtime
                 RuntimeHelpers.PrepareConstrainedRegions();
                 try
                 {
-                    callback(error, bytesRead, nativeOverlapped);
+                    _callback(error, bytesRead, nativeOverlapped);
                 }
                 catch (Exception exception)
                 {

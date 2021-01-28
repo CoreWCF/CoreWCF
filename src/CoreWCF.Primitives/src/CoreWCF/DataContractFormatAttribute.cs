@@ -8,16 +8,15 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = false, AllowMultiple = false)]
     public sealed class DataContractFormatAttribute : Attribute
     {
-        private OperationFormatStyle style;
+        private OperationFormatStyle _style;
         public OperationFormatStyle Style
         {
-            get { return style; }
+            get { return _style; }
             set
             {
-                XmlSerializerFormatAttribute.ValidateOperationFormatStyle(style);
-                style = value;
+                XmlSerializerFormatAttribute.ValidateOperationFormatStyle(_style);
+                _style = value;
             }
         }
-
     }
 }

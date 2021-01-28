@@ -8,11 +8,11 @@ namespace CoreWCF.Channels
 {
     public sealed class RemoteEndpointMessageProperty
     {
-        private string address;
-        private int port;
-        private IPEndPoint remoteEndPoint;
-        private IRemoteEndpointProvider remoteEndpointProvider;
-        private InitializationState state;
+        private string _address;
+        private int _port;
+        private IPEndPoint _remoteEndPoint;
+        private IRemoteEndpointProvider _remoteEndpointProvider;
+        private InitializationState _state;
 
         public RemoteEndpointMessageProperty(string address, int port)
         {
@@ -27,19 +27,19 @@ namespace CoreWCF.Channels
                     SR.Format(SR.ValueMustBeInRange, IPEndPoint.MinPort, IPEndPoint.MaxPort));
             }
 
-            this.port = port;
-            this.address = address;
-            state = InitializationState.All;
+            _port = port;
+            _address = address;
+            _state = InitializationState.All;
         }
 
         internal RemoteEndpointMessageProperty(IRemoteEndpointProvider remoteEndpointProvider)
         {
-            this.remoteEndpointProvider = remoteEndpointProvider;
+            _remoteEndpointProvider = remoteEndpointProvider;
         }
 
         public RemoteEndpointMessageProperty(IPEndPoint remoteEndPoint)
         {
-            this.remoteEndPoint = remoteEndPoint;
+            _remoteEndPoint = remoteEndPoint;
         }
 
         public static string Name
@@ -51,17 +51,17 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if ((state & InitializationState.Address) != InitializationState.Address)
+                if ((_state & InitializationState.Address) != InitializationState.Address)
                 {
                     lock (ThisLock)
                     {
-                        if ((state & InitializationState.Address) != InitializationState.Address)
+                        if ((_state & InitializationState.Address) != InitializationState.Address)
                         {
                             Initialize(false);
                         }
                     }
                 }
-                return address;
+                return _address;
             }
         }
 
@@ -69,17 +69,17 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if ((state & InitializationState.Port) != InitializationState.Port)
+                if ((_state & InitializationState.Port) != InitializationState.Port)
                 {
                     lock (ThisLock)
                     {
-                        if ((state & InitializationState.Port) != InitializationState.Port)
+                        if ((_state & InitializationState.Port) != InitializationState.Port)
                         {
                             Initialize(true);
                         }
                     }
                 }
-                return port;
+                return _port;
             }
         }
 
@@ -87,26 +87,26 @@ namespace CoreWCF.Channels
 
         private void Initialize(bool getHostedPort)
         {
-            if (remoteEndPoint != null)
+            if (_remoteEndPoint != null)
             {
-                address = remoteEndPoint.Address.ToString();
-                port = remoteEndPoint.Port;
-                state = InitializationState.All;
-                remoteEndPoint = null;
+                _address = _remoteEndPoint.Address.ToString();
+                _port = _remoteEndPoint.Port;
+                _state = InitializationState.All;
+                _remoteEndPoint = null;
             }
             else
             {
-                if ((state & InitializationState.Address) != InitializationState.Address)
+                if ((_state & InitializationState.Address) != InitializationState.Address)
                 {
-                    address = remoteEndpointProvider.GetAddress();
-                    state |= InitializationState.Address;
+                    _address = _remoteEndpointProvider.GetAddress();
+                    _state |= InitializationState.Address;
                 }
 
                 if (getHostedPort)
                 {
-                    port = remoteEndpointProvider.GetPort();
-                    state |= InitializationState.Port;
-                    remoteEndpointProvider = null;
+                    _port = _remoteEndpointProvider.GetPort();
+                    _state |= InitializationState.Port;
+                    _remoteEndpointProvider = null;
                 }
             }
         }

@@ -120,47 +120,47 @@ namespace CoreWCF.Channels
 
         private class DictionaryActionHeader : ActionHeader
         {
-            private readonly XmlDictionaryString dictionaryAction;
+            private readonly XmlDictionaryString _dictionaryAction;
 
             public DictionaryActionHeader(XmlDictionaryString dictionaryAction, AddressingVersion version)
                 : base(dictionaryAction.Value, version)
             {
-                this.dictionaryAction = dictionaryAction;
+                _dictionaryAction = dictionaryAction;
             }
 
             protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
-                writer.WriteString(dictionaryAction);
+                writer.WriteString(_dictionaryAction);
             }
         }
 
         private class FullActionHeader : ActionHeader
         {
-            private readonly string actor;
-            private readonly bool mustUnderstand;
-            private readonly bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullActionHeader(string action, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(action, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
@@ -230,31 +230,31 @@ namespace CoreWCF.Channels
 
         private class FullFromHeader : FromHeader
         {
-            private readonly string actor;
-            private readonly bool mustUnderstand;
-            private readonly bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullFromHeader(EndpointAddress from, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(from, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
@@ -324,31 +324,31 @@ namespace CoreWCF.Channels
 
         private class FullFaultToHeader : FaultToHeader
         {
-            private readonly string actor;
-            private readonly bool mustUnderstand;
-            private readonly bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullFaultToHeader(EndpointAddress faultTo, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(faultTo, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
@@ -357,7 +357,7 @@ namespace CoreWCF.Channels
     public class ToHeader : AddressingHeader
     {
         private const bool mustUnderstandValue = true;
-        private static ToHeader anonymousToHeader10;
+        private static ToHeader s_anonymousToHeader10;
         //static ToHeader anonymousToHeader200408;
 
         protected ToHeader(Uri to, AddressingVersion version)
@@ -370,12 +370,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (anonymousToHeader10 == null)
+                if (s_anonymousToHeader10 == null)
                 {
-                    anonymousToHeader10 = new AnonymousToHeader(AddressingVersion.WSAddressing10);
+                    s_anonymousToHeader10 = new AnonymousToHeader(AddressingVersion.WSAddressing10);
                 }
 
-                return anonymousToHeader10;
+                return s_anonymousToHeader10;
             }
         }
 
@@ -524,47 +524,47 @@ namespace CoreWCF.Channels
 
         private class DictionaryToHeader : ToHeader
         {
-            private readonly XmlDictionaryString dictionaryTo;
+            private readonly XmlDictionaryString _dictionaryTo;
 
             public DictionaryToHeader(Uri to, XmlDictionaryString dictionaryTo, AddressingVersion version)
                 : base(to, version)
             {
-                this.dictionaryTo = dictionaryTo;
+                _dictionaryTo = dictionaryTo;
             }
 
             protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
-                writer.WriteString(dictionaryTo);
+                writer.WriteString(_dictionaryTo);
             }
         }
 
         private class FullToHeader : ToHeader
         {
-            private readonly string actor;
-            private readonly bool mustUnderstand;
-            private readonly bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullToHeader(Uri to, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(to, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
@@ -572,7 +572,7 @@ namespace CoreWCF.Channels
     internal class ReplyToHeader : AddressingHeader
     {
         private const bool mustUnderstandValue = false;
-        private static ReplyToHeader anonymousReplyToHeader10;
+        private static ReplyToHeader s_anonymousReplyToHeader10;
 
         private ReplyToHeader(EndpointAddress replyTo, AddressingVersion version)
             : base(version)
@@ -596,12 +596,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (anonymousReplyToHeader10 == null)
+                if (s_anonymousReplyToHeader10 == null)
                 {
-                    anonymousReplyToHeader10 = new ReplyToHeader(EndpointAddress.AnonymousAddress, AddressingVersion.WSAddressing10);
+                    s_anonymousReplyToHeader10 = new ReplyToHeader(EndpointAddress.AnonymousAddress, AddressingVersion.WSAddressing10);
                 }
 
-                return anonymousReplyToHeader10;
+                return s_anonymousReplyToHeader10;
             }
         }
 
@@ -670,31 +670,31 @@ namespace CoreWCF.Channels
 
         private class FullReplyToHeader : ReplyToHeader
         {
-            private readonly string actor;
-            private readonly bool mustUnderstand;
-            private readonly bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullReplyToHeader(EndpointAddress replyTo, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(replyTo, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
@@ -764,31 +764,31 @@ namespace CoreWCF.Channels
 
         private class FullMessageIDHeader : MessageIDHeader
         {
-            private readonly string actor;
-            private readonly bool mustUnderstand;
-            private readonly bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullMessageIDHeader(UniqueId messageId, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(messageId, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
@@ -906,28 +906,28 @@ namespace CoreWCF.Channels
 
         private class FullRelatesToHeader : RelatesToHeader
         {
-            private readonly string actor;
-            private readonly bool mustUnderstand;
-            private readonly bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
             //Uri relationship;
 
             public FullRelatesToHeader(UniqueId messageId, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(messageId, version)
             {
                 //this.relationship = relationship;
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             /*
@@ -939,7 +939,7 @@ namespace CoreWCF.Channels
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
 
             protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
@@ -957,5 +957,4 @@ namespace CoreWCF.Channels
             }
         }
     }
-
 }

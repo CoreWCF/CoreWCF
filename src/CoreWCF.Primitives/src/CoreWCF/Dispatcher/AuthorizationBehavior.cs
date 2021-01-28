@@ -13,9 +13,9 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class AuthorizationBehavior
     {
-        private static readonly ServiceAuthorizationManager DefaultServiceAuthorizationManager = new ServiceAuthorizationManager();
-        private ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
-        private ServiceAuthorizationManager serviceAuthorizationManager;
+        private static readonly ServiceAuthorizationManager s_defaultServiceAuthorizationManager = new ServiceAuthorizationManager();
+        private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
+        private ServiceAuthorizationManager _serviceAuthorizationManager;
 
         private AuthorizationBehavior() { }
 
@@ -23,9 +23,9 @@ namespace CoreWCF.Dispatcher
         {
             // TODO: Events 
             SecurityMessageProperty security = SecurityMessageProperty.GetOrCreate(rpc.Request);
-            security.ExternalAuthorizationPolicies = externalAuthorizationPolicies;
+            security.ExternalAuthorizationPolicies = _externalAuthorizationPolicies;
 
-            ServiceAuthorizationManager serviceAuthorizationManager = this.serviceAuthorizationManager ?? DefaultServiceAuthorizationManager;
+            ServiceAuthorizationManager serviceAuthorizationManager = _serviceAuthorizationManager ?? s_defaultServiceAuthorizationManager;
             try
             {
                 if (!serviceAuthorizationManager.CheckAccess(rpc.OperationContext, ref rpc.Request))
@@ -51,8 +51,8 @@ namespace CoreWCF.Dispatcher
         private static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
         {
             AuthorizationBehavior behavior = new AuthorizationBehavior();
-            behavior.externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies;
-            behavior.serviceAuthorizationManager = dispatch.ServiceAuthorizationManager;
+            behavior._externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies;
+            behavior._serviceAuthorizationManager = dispatch.ServiceAuthorizationManager;
             return behavior;
         }
 

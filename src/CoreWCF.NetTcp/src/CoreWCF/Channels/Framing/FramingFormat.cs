@@ -177,5 +177,4 @@ namespace CoreWCF.Channels.Framing
         public const int Major = 0x1;
         public const int Minor = 0x0;
     }
-
 }

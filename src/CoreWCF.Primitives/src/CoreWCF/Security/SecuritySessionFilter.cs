@@ -15,10 +15,10 @@ namespace CoreWCF.Security
 {
     internal sealed class SecuritySessionFilter : HeaderFilter
     {
-        private static readonly string SessionContextIdsProperty = String.Format(CultureInfo.InvariantCulture, "{0}/SecuritySessionContextIds", DotNetSecurityStrings.Namespace);
-        private readonly SecurityStandardsManager standardsManager;
-        private readonly string[] excludedActions;
-        private readonly bool isStrictMode;
+        private static readonly string s_sessionContextIdsProperty = String.Format(CultureInfo.InvariantCulture, "{0}/SecuritySessionContextIds", DotNetSecurityStrings.Namespace);
+        private readonly SecurityStandardsManager _standardsManager;
+        private readonly string[] _excludedActions;
+        private readonly bool _isStrictMode;
 
         public SecuritySessionFilter(UniqueId securityContextTokenId, SecurityStandardsManager standardsManager, bool isStrictMode, params string[] excludedActions)
         {
@@ -27,10 +27,10 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(securityContextTokenId)));
             }
 
-            this.excludedActions = excludedActions;
+            _excludedActions = excludedActions;
             SecurityContextTokenId = securityContextTokenId;
-            this.standardsManager = standardsManager;
-            this.isStrictMode = isStrictMode;
+            _standardsManager = standardsManager;
+            _isStrictMode = isStrictMode;
         }
 
         public UniqueId SecurityContextTokenId { get; }
@@ -65,17 +65,17 @@ namespace CoreWCF.Security
 
         public override bool Match(Message message)
         {
-            if (ShouldExcludeMessage(message, excludedActions))
+            if (ShouldExcludeMessage(message, _excludedActions))
             {
                 return false;
             }
             List<UniqueId> contextIds;
-            if (!message.Properties.TryGetValue(SessionContextIdsProperty, out object propertyValue))
+            if (!message.Properties.TryGetValue(s_sessionContextIdsProperty, out object propertyValue))
             {
                 contextIds = new List<UniqueId>(1);
                 try
                 {
-                    if (!standardsManager.TryGetSecurityContextIds(message, message.Version.Envelope.UltimateDestinationActorValues, isStrictMode, contextIds))
+                    if (!_standardsManager.TryGetSecurityContextIds(message, message.Version.Envelope.UltimateDestinationActorValues, _isStrictMode, contextIds))
                     {
                         return false;
                     }
@@ -89,7 +89,7 @@ namespace CoreWCF.Security
 
                     return false;
                 }
-                message.Properties.Add(SessionContextIdsProperty, contextIds);
+                message.Properties.Add(s_sessionContextIdsProperty, contextIds);
             }
             else
             {
@@ -103,7 +103,7 @@ namespace CoreWCF.Security
             {
                 if (contextIds[i] == SecurityContextTokenId)
                 {
-                    message.Properties.Remove(SessionContextIdsProperty);
+                    message.Properties.Remove(s_sessionContextIdsProperty);
                     return true;
                 }
             }
@@ -120,16 +120,16 @@ namespace CoreWCF.Security
 
         protected internal override IMessageFilterTable<FilterData> CreateFilterTable<FilterData>()
         {
-            return new SecuritySessionFilterTable<FilterData>(standardsManager, isStrictMode, excludedActions);
+            return new SecuritySessionFilterTable<FilterData>(_standardsManager, _isStrictMode, _excludedActions);
         }
 
         private class SecuritySessionFilterTable<FilterData> : IMessageFilterTable<FilterData>
         {
-            private readonly Dictionary<UniqueId, KeyValuePair<MessageFilter, FilterData>> contextMappings;
-            private readonly Dictionary<MessageFilter, FilterData> filterMappings;
-            private readonly SecurityStandardsManager standardsManager;
-            private readonly string[] excludedActions;
-            private readonly bool isStrictMode;
+            private readonly Dictionary<UniqueId, KeyValuePair<MessageFilter, FilterData>> _contextMappings;
+            private readonly Dictionary<MessageFilter, FilterData> _filterMappings;
+            private readonly SecurityStandardsManager _standardsManager;
+            private readonly string[] _excludedActions;
+            private readonly bool _isStrictMode;
 
             public SecuritySessionFilterTable(SecurityStandardsManager standardsManager, bool isStrictMode, string[] excludedActions)
             {
@@ -141,19 +141,19 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(excludedActions));
                 }
-                this.standardsManager = standardsManager;
-                this.excludedActions = new string[excludedActions.Length];
-                excludedActions.CopyTo(this.excludedActions, 0);
-                this.isStrictMode = isStrictMode;
-                contextMappings = new Dictionary<UniqueId, KeyValuePair<MessageFilter, FilterData>>();
-                filterMappings = new Dictionary<MessageFilter, FilterData>();
+                _standardsManager = standardsManager;
+                _excludedActions = new string[excludedActions.Length];
+                excludedActions.CopyTo(_excludedActions, 0);
+                _isStrictMode = isStrictMode;
+                _contextMappings = new Dictionary<UniqueId, KeyValuePair<MessageFilter, FilterData>>();
+                _filterMappings = new Dictionary<MessageFilter, FilterData>();
             }
 
             public ICollection<MessageFilter> Keys
             {
                 get
                 {
-                    return filterMappings.Keys;
+                    return _filterMappings.Keys;
                 }
             }
 
@@ -161,7 +161,7 @@ namespace CoreWCF.Security
             {
                 get
                 {
-                    return filterMappings.Values;
+                    return _filterMappings.Values;
                 }
             }
 
@@ -169,11 +169,11 @@ namespace CoreWCF.Security
             {
                 get
                 {
-                    return filterMappings[filter];
+                    return _filterMappings[filter];
                 }
                 set
                 {
-                    if (filterMappings.ContainsKey(filter))
+                    if (_filterMappings.ContainsKey(filter))
                     {
                         Remove(filter);
                     }
@@ -183,7 +183,7 @@ namespace CoreWCF.Security
 
             public int Count
             {
-                get { return filterMappings.Count; }
+                get { return _filterMappings.Count; }
             }
 
             public bool IsReadOnly
@@ -198,8 +198,8 @@ namespace CoreWCF.Security
 
             public void Clear()
             {
-                filterMappings.Clear();
-                contextMappings.Clear();
+                _filterMappings.Clear();
+                _contextMappings.Clear();
             }
 
             public bool Contains(KeyValuePair<MessageFilter, FilterData> item)
@@ -210,7 +210,7 @@ namespace CoreWCF.Security
             public void CopyTo(KeyValuePair<MessageFilter, FilterData>[] array, int arrayIndex)
             {
                 int pos = arrayIndex;
-                foreach (KeyValuePair<MessageFilter, FilterData> entry in contextMappings.Values)
+                foreach (KeyValuePair<MessageFilter, FilterData> entry in _contextMappings.Values)
                 {
                     array[pos] = entry;
                     ++pos;
@@ -229,7 +229,7 @@ namespace CoreWCF.Security
 
             public IEnumerator<KeyValuePair<MessageFilter, FilterData>> GetEnumerator()
             {
-                return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)contextMappings.Values).GetEnumerator();
+                return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_contextMappings.Values).GetEnumerator();
             }
 
             public void Add(MessageFilter filter, FilterData data)
@@ -240,28 +240,28 @@ namespace CoreWCF.Security
                     Fx.Assert(String.Format(CultureInfo.InvariantCulture, "Unknown filter type {0}", filter.GetType()));
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnknownFilterType, filter.GetType())));
                 }
-                if (sessionFilter.standardsManager != standardsManager)
+                if (sessionFilter._standardsManager != _standardsManager)
                 {
                     Fx.Assert("Standards manager of filter does not match that of filter table");
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.StandardsManagerDoesNotMatch));
                 }
-                if (sessionFilter.isStrictMode != isStrictMode)
+                if (sessionFilter._isStrictMode != _isStrictMode)
                 {
                     Fx.Assert("Session filter's isStrictMode differs from filter table's isStrictMode");
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.FilterStrictModeDifferent));
                 }
-                if (contextMappings.ContainsKey(sessionFilter.SecurityContextTokenId))
+                if (_contextMappings.ContainsKey(sessionFilter.SecurityContextTokenId))
                 {
                     Fx.Assert(SR.Format(SR.SecuritySessionIdAlreadyPresentInFilterTable, sessionFilter.SecurityContextTokenId));
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecuritySessionIdAlreadyPresentInFilterTable, sessionFilter.SecurityContextTokenId)));
                 }
-                filterMappings.Add(filter, data);
-                contextMappings.Add(sessionFilter.SecurityContextTokenId, new KeyValuePair<MessageFilter, FilterData>(filter, data));
+                _filterMappings.Add(filter, data);
+                _contextMappings.Add(sessionFilter.SecurityContextTokenId, new KeyValuePair<MessageFilter, FilterData>(filter, data));
             }
 
             public bool ContainsKey(MessageFilter filter)
             {
-                return filterMappings.ContainsKey(filter);
+                return _filterMappings.ContainsKey(filter);
             }
 
             public bool Remove(MessageFilter filter)
@@ -271,26 +271,26 @@ namespace CoreWCF.Security
                 {
                     return false;
                 }
-                bool result = filterMappings.Remove(filter);
+                bool result = _filterMappings.Remove(filter);
                 if (result)
                 {
-                    contextMappings.Remove(sessionFilter.SecurityContextTokenId);
+                    _contextMappings.Remove(sessionFilter.SecurityContextTokenId);
                 }
                 return result;
             }
 
             public bool TryGetValue(MessageFilter filter, out FilterData data)
             {
-                return filterMappings.TryGetValue(filter, out data);
+                return _filterMappings.TryGetValue(filter, out data);
             }
 
             private bool TryGetContextIds(Message message, out List<UniqueId> contextIds)
             {
-                if (!message.Properties.TryGetValue(SessionContextIdsProperty, out object propertyValue))
+                if (!message.Properties.TryGetValue(s_sessionContextIdsProperty, out object propertyValue))
                 {
                     contextIds = new List<UniqueId>(1);
-                    return standardsManager.TryGetSecurityContextIds(message, message.Version.Envelope.UltimateDestinationActorValues,
-                        isStrictMode, contextIds);
+                    return _standardsManager.TryGetSecurityContextIds(message, message.Version.Envelope.UltimateDestinationActorValues,
+                        _isStrictMode, contextIds);
                 }
                 else
                 {
@@ -302,7 +302,7 @@ namespace CoreWCF.Security
             private bool TryMatchCore(Message message, out KeyValuePair<MessageFilter, FilterData> match)
             {
                 match = default(KeyValuePair<MessageFilter, FilterData>);
-                if (ShouldExcludeMessage(message, excludedActions))
+                if (ShouldExcludeMessage(message, _excludedActions))
                 {
                     return false;
                 }
@@ -325,9 +325,9 @@ namespace CoreWCF.Security
                 }
                 for (int i = 0; i < contextIds.Count; ++i)
                 {
-                    if (contextMappings.TryGetValue(contextIds[i], out match))
+                    if (_contextMappings.TryGetValue(contextIds[i], out match))
                     {
-                        message.Properties.Remove(SessionContextIdsProperty);
+                        message.Properties.Remove(s_sessionContextIdsProperty);
                         return true;
                     }
                 }

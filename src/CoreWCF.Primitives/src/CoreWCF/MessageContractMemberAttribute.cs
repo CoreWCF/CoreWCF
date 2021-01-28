@@ -83,5 +83,4 @@ namespace CoreWCF
         //    get { return this.hasProtectionLevel; }
         //}
     }
-
 }

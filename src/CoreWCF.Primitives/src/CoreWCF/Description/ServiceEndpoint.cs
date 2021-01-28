@@ -242,6 +242,5 @@ namespace CoreWCF.Description
                 }
             }
         }
-
     }
 }

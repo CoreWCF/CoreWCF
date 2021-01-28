@@ -49,5 +49,4 @@ namespace CoreWCF.Channels
             return new ArgumentException(SR.Format(SR.ChannelTypeNotSupported, type), "TChannel");
         }
     }
-
 }

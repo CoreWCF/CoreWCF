@@ -15,13 +15,13 @@ namespace CoreWCF.Security
         private const string NamespacePrefix = XmlEncryptionStrings.Prefix;
         internal static readonly XmlDictionaryString NamespaceUri = XD.XmlEncryptionDictionary.Namespace;// EncryptedType.NamespaceUri;
         internal static readonly XmlDictionaryString UriAttribute = XD.XmlEncryptionDictionary.URI;
-        private readonly List<string> referredIds = new List<string>();
+        private readonly List<string> _referredIds = new List<string>();
 
         public ReferenceList()
         {
         }
 
-        public int DataReferenceCount => referredIds.Count;
+        public int DataReferenceCount => _referredIds.Count;
 
         public bool HasId => false;
 
@@ -33,7 +33,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
             }
-            referredIds.Add(id);
+            _referredIds.Add(id);
         }
 
         public bool ContainsReferredId(string id)
@@ -42,12 +42,12 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
             }
-            return referredIds.Contains(id);
+            return _referredIds.Contains(id);
         }
 
         public string GetReferredId(int index)
         {
-            return referredIds[index];
+            return _referredIds[index];
         }
 
         public void ReadFrom(XmlDictionaryReader reader)
@@ -56,12 +56,12 @@ namespace CoreWCF.Security
             while (reader.IsStartElement())
             {
                 string id = DataReference.ReadFrom(reader);
-                if (referredIds.Contains(id))
+                if (_referredIds.Contains(id))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                         new Exception(SR.Format("InvalidDataReferenceInReferenceList", "#" + id)));
                 }
-                referredIds.Add(id);
+                _referredIds.Add(id);
             }
             reader.ReadEndElement(); // ReferenceList
             if (DataReferenceCount == 0)
@@ -76,7 +76,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
             }
-            return referredIds.Remove(id);
+            return _referredIds.Remove(id);
         }
 
         public void WriteTo(XmlDictionaryWriter writer, DictionaryManager dictionaryManager)
@@ -88,7 +88,7 @@ namespace CoreWCF.Security
             writer.WriteStartElement(NamespacePrefix, ElementName, NamespaceUri);
             for (int i = 0; i < DataReferenceCount; i++)
             {
-                DataReference.WriteTo(writer, referredIds[i]);
+                DataReference.WriteTo(writer, _referredIds[i]);
             }
             writer.WriteEndElement(); // ReferenceList
         }

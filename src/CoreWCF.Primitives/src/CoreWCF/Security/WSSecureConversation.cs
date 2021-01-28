@@ -15,7 +15,7 @@ namespace CoreWCF.Security
 {
     internal abstract class WSSecureConversation : WSSecurityTokenSerializer.SerializerEntries
     {
-        private readonly DerivedKeyTokenEntry derivedKeyEntry;
+        private readonly DerivedKeyTokenEntry _derivedKeyEntry;
 
         protected WSSecureConversation(WSSecurityTokenSerializer tokenSerializer, int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
         {
@@ -24,7 +24,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
             }
             WSSecurityTokenSerializer = tokenSerializer;
-            derivedKeyEntry = new DerivedKeyTokenEntry(this, maxKeyDerivationOffset, maxKeyDerivationLabelLength, maxKeyDerivationNonceLength);
+            _derivedKeyEntry = new DerivedKeyTokenEntry(this, maxKeyDerivationOffset, maxKeyDerivationLabelLength, maxKeyDerivationNonceLength);
         }
 
         public abstract SecureConversationDictionary SerializerDictionary
@@ -40,23 +40,23 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenEntryList));
             }
-            tokenEntryList.Add(derivedKeyEntry);
+            tokenEntryList.Add(_derivedKeyEntry);
         }
 
         public virtual bool IsAtDerivedKeyToken(XmlDictionaryReader reader)
         {
-            return derivedKeyEntry.CanReadTokenCore(reader);
+            return _derivedKeyEntry.CanReadTokenCore(reader);
         }
 
         public virtual void ReadDerivedKeyTokenParameters(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver, out string id, out string derivationAlgorithm, out string label, out int length, out byte[] nonce, out int offset, out int generation, out SecurityKeyIdentifierClause tokenToDeriveIdentifier, out SecurityToken tokenToDerive)
         {
-            derivedKeyEntry.ReadDerivedKeyTokenParameters(reader, tokenResolver, out id, out derivationAlgorithm, out label,
+            _derivedKeyEntry.ReadDerivedKeyTokenParameters(reader, tokenResolver, out id, out derivationAlgorithm, out label,
                 out length, out nonce, out offset, out generation, out tokenToDeriveIdentifier, out tokenToDerive);
         }
 
         public virtual SecurityToken CreateDerivedKeyToken(string id, string derivationAlgorithm, string label, int length, byte[] nonce, int offset, int generation, SecurityKeyIdentifierClause tokenToDeriveIdentifier, SecurityToken tokenToDerive)
         {
-            return derivedKeyEntry.CreateDerivedKeyToken(id, derivationAlgorithm, label, length, nonce, offset, generation,
+            return _derivedKeyEntry.CreateDerivedKeyToken(id, derivationAlgorithm, label, length, nonce, offset, generation,
                 tokenToDeriveIdentifier, tokenToDerive);
         }
 
@@ -65,10 +65,10 @@ namespace CoreWCF.Security
         protected class DerivedKeyTokenEntry : WSSecurityTokenSerializer.TokenEntry
         {
             public const string DefaultLabel = "WS-SecureConversation";
-            private readonly WSSecureConversation parent;
-            private readonly int maxKeyDerivationOffset;
-            private readonly int maxKeyDerivationLabelLength;
-            private readonly int maxKeyDerivationNonceLength;
+            private readonly WSSecureConversation _parent;
+            private readonly int _maxKeyDerivationOffset;
+            private readonly int _maxKeyDerivationLabelLength;
+            private readonly int _maxKeyDerivationNonceLength;
 
             public DerivedKeyTokenEntry(WSSecureConversation parent, int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
             {
@@ -76,16 +76,16 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
                 }
-                this.parent = parent;
-                this.maxKeyDerivationOffset = maxKeyDerivationOffset;
-                this.maxKeyDerivationLabelLength = maxKeyDerivationLabelLength;
-                this.maxKeyDerivationNonceLength = maxKeyDerivationNonceLength;
+                _parent = parent;
+                _maxKeyDerivationOffset = maxKeyDerivationOffset;
+                _maxKeyDerivationLabelLength = maxKeyDerivationLabelLength;
+                _maxKeyDerivationNonceLength = maxKeyDerivationNonceLength;
             }
 
-            protected override XmlDictionaryString LocalName => parent.SerializerDictionary.DerivedKeyToken;
-            protected override XmlDictionaryString NamespaceUri => parent.SerializerDictionary.Namespace;
+            protected override XmlDictionaryString LocalName => _parent.SerializerDictionary.DerivedKeyToken;
+            protected override XmlDictionaryString NamespaceUri => _parent.SerializerDictionary.Namespace;
             protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(DerivedKeySecurityToken) }; }
-            public override string TokenTypeUri => parent.SerializerDictionary.DerivedKeyTokenType.Value;
+            public override string TokenTypeUri => _parent.SerializerDictionary.DerivedKeyTokenType.Value;
             protected override string ValueTypeUri => null;
 
             public override SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXmlCore(XmlElement issuedTokenXml,
@@ -103,7 +103,6 @@ namespace CoreWCF.Security
                     default:
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("tokenReferenceStyle"));
                 }
-
             }
 
             // xml format
@@ -130,7 +129,7 @@ namespace CoreWCF.Security
                 derivationAlgorithm = reader.GetAttribute(CoreWCF.XD.XmlSignatureDictionary.Algorithm, null);
                 if (derivationAlgorithm == null)
                 {
-                    derivationAlgorithm = parent.DerivationAlgorithm;
+                    derivationAlgorithm = _parent.DerivationAlgorithm;
                 }
 
                 reader.ReadStartElement();
@@ -140,7 +139,7 @@ namespace CoreWCF.Security
 
                 if (reader.IsStartElement(CoreWCF.XD.SecurityJan2004Dictionary.SecurityTokenReference, CoreWCF.XD.SecurityJan2004Dictionary.Namespace))
                 {
-                    tokenToDeriveIdentifier = parent.WSSecurityTokenSerializer.ReadKeyIdentifierClause(reader);
+                    tokenToDeriveIdentifier = _parent.WSSecurityTokenSerializer.ReadKeyIdentifierClause(reader);
                     tokenResolver.TryResolveToken(tokenToDeriveIdentifier, out tokenToDerive);
                 }
                 else
@@ -151,7 +150,7 @@ namespace CoreWCF.Security
                 // no support for properties
 
                 generation = -1;
-                if (reader.IsStartElement(parent.SerializerDictionary.Generation, parent.SerializerDictionary.Namespace))
+                if (reader.IsStartElement(_parent.SerializerDictionary.Generation, _parent.SerializerDictionary.Namespace))
                 {
                     reader.ReadStartElement();
                     generation = reader.ReadContentAsInt();
@@ -163,7 +162,7 @@ namespace CoreWCF.Security
                 }
 
                 offset = -1;
-                if (reader.IsStartElement(parent.SerializerDictionary.Offset, parent.SerializerDictionary.Namespace))
+                if (reader.IsStartElement(_parent.SerializerDictionary.Offset, _parent.SerializerDictionary.Namespace))
                 {
                     reader.ReadStartElement();
                     offset = reader.ReadContentAsInt();
@@ -175,7 +174,7 @@ namespace CoreWCF.Security
                 }
 
                 length = DerivedKeySecurityToken.DefaultDerivedKeyLength;
-                if (reader.IsStartElement(parent.SerializerDictionary.Length, parent.SerializerDictionary.Namespace))
+                if (reader.IsStartElement(_parent.SerializerDictionary.Length, _parent.SerializerDictionary.Namespace))
                 {
                     reader.ReadStartElement();
                     length = reader.ReadContentAsInt();
@@ -188,28 +187,28 @@ namespace CoreWCF.Security
                 }
 
                 // verify that the offset is not larger than the max allowed
-                DerivedKeySecurityToken.EnsureAcceptableOffset(offset, generation, length, maxKeyDerivationOffset);
+                DerivedKeySecurityToken.EnsureAcceptableOffset(offset, generation, length, _maxKeyDerivationOffset);
 
                 label = null;
-                if (reader.IsStartElement(parent.SerializerDictionary.Label, parent.SerializerDictionary.Namespace))
+                if (reader.IsStartElement(_parent.SerializerDictionary.Label, _parent.SerializerDictionary.Namespace))
                 {
                     reader.ReadStartElement();
                     label = reader.ReadString();
                     reader.ReadEndElement();
                 }
-                if (label != null && label.Length > maxKeyDerivationLabelLength)
+                if (label != null && label.Length > _maxKeyDerivationLabelLength)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.DerivedKeyTokenLabelTooLong, label.Length, maxKeyDerivationLabelLength)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.DerivedKeyTokenLabelTooLong, label.Length, _maxKeyDerivationLabelLength)));
                 }
 
                 nonce = null;
-                reader.ReadStartElement(parent.SerializerDictionary.Nonce, parent.SerializerDictionary.Namespace);
+                reader.ReadStartElement(_parent.SerializerDictionary.Nonce, _parent.SerializerDictionary.Namespace);
                 nonce = reader.ReadContentAsBase64();
                 reader.ReadEndElement();
 
-                if (nonce != null && nonce.Length > maxKeyDerivationNonceLength)
+                if (nonce != null && nonce.Length > _maxKeyDerivationNonceLength)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.DerivedKeyTokenNonceTooLong, nonce.Length, maxKeyDerivationNonceLength)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.DerivedKeyTokenNonceTooLong, nonce.Length, _maxKeyDerivationNonceLength)));
                 }
 
                 reader.ReadEndElement();
@@ -241,18 +240,18 @@ namespace CoreWCF.Security
             public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
             {
                 DerivedKeySecurityToken derivedKeyToken = token as DerivedKeySecurityToken;
-                string serializerPrefix = parent.SerializerDictionary.Prefix.Value;
+                string serializerPrefix = _parent.SerializerDictionary.Prefix.Value;
 
-                writer.WriteStartElement(serializerPrefix, parent.SerializerDictionary.DerivedKeyToken, parent.SerializerDictionary.Namespace);
+                writer.WriteStartElement(serializerPrefix, _parent.SerializerDictionary.DerivedKeyToken, _parent.SerializerDictionary.Namespace);
                 if (derivedKeyToken.Id != null)
                 {
                     writer.WriteAttributeString(CoreWCF.XD.UtilityDictionary.Prefix.Value, CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace, derivedKeyToken.Id);
                 }
-                if (derivedKeyToken.KeyDerivationAlgorithm != parent.DerivationAlgorithm)
+                if (derivedKeyToken.KeyDerivationAlgorithm != _parent.DerivationAlgorithm)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.UnsupportedKeyDerivationAlgorithm, derivedKeyToken.KeyDerivationAlgorithm)));
                 }
-                parent.WSSecurityTokenSerializer.WriteKeyIdentifierClause(writer, derivedKeyToken.TokenToDeriveIdentifier);
+                _parent.WSSecurityTokenSerializer.WriteKeyIdentifierClause(writer, derivedKeyToken.TokenToDeriveIdentifier);
 
                 // Don't support Properties element
                 if (derivedKeyToken.Generation > 0 || derivedKeyToken.Offset > 0 || derivedKeyToken.Length != 32)
@@ -260,26 +259,26 @@ namespace CoreWCF.Security
                     // this means they're both specified (offset must be gen * length) - we'll write generation
                     if (derivedKeyToken.Generation >= 0 && derivedKeyToken.Offset >= 0)
                     {
-                        writer.WriteStartElement(serializerPrefix, parent.SerializerDictionary.Generation, parent.SerializerDictionary.Namespace);
+                        writer.WriteStartElement(serializerPrefix, _parent.SerializerDictionary.Generation, _parent.SerializerDictionary.Namespace);
                         writer.WriteValue(derivedKeyToken.Generation);
                         writer.WriteEndElement();
                     }
                     else if (derivedKeyToken.Generation != -1)
                     {
-                        writer.WriteStartElement(serializerPrefix, parent.SerializerDictionary.Generation, parent.SerializerDictionary.Namespace);
+                        writer.WriteStartElement(serializerPrefix, _parent.SerializerDictionary.Generation, _parent.SerializerDictionary.Namespace);
                         writer.WriteValue(derivedKeyToken.Generation);
                         writer.WriteEndElement();
                     }
                     else if (derivedKeyToken.Offset != -1)
                     {
-                        writer.WriteStartElement(serializerPrefix, parent.SerializerDictionary.Offset, parent.SerializerDictionary.Namespace);
+                        writer.WriteStartElement(serializerPrefix, _parent.SerializerDictionary.Offset, _parent.SerializerDictionary.Namespace);
                         writer.WriteValue(derivedKeyToken.Offset);
                         writer.WriteEndElement();
                     }
 
                     if (derivedKeyToken.Length != 32)
                     {
-                        writer.WriteStartElement(serializerPrefix, parent.SerializerDictionary.Length, parent.SerializerDictionary.Namespace);
+                        writer.WriteStartElement(serializerPrefix, _parent.SerializerDictionary.Length, _parent.SerializerDictionary.Namespace);
                         writer.WriteValue(derivedKeyToken.Length);
                         writer.WriteEndElement();
                     }
@@ -287,11 +286,11 @@ namespace CoreWCF.Security
 
                 if (derivedKeyToken.Label != null)
                 {
-                    writer.WriteStartElement(serializerPrefix, parent.SerializerDictionary.Generation, parent.SerializerDictionary.Namespace);
+                    writer.WriteStartElement(serializerPrefix, _parent.SerializerDictionary.Generation, _parent.SerializerDictionary.Namespace);
                     writer.WriteString(derivedKeyToken.Label);
                     writer.WriteEndElement();
                 }
-                writer.WriteStartElement(serializerPrefix, parent.SerializerDictionary.Nonce, parent.SerializerDictionary.Namespace);
+                writer.WriteStartElement(serializerPrefix, _parent.SerializerDictionary.Nonce, _parent.SerializerDictionary.Namespace);
                 writer.WriteBase64(derivedKeyToken.Nonce, 0, derivedKeyToken.Nonce.Length);
                 writer.WriteEndElement();
                 writer.WriteEndElement();
@@ -300,12 +299,12 @@ namespace CoreWCF.Security
 
         protected abstract class SecurityContextTokenEntry : WSSecurityTokenSerializer.TokenEntry
         {
-            private SecurityContextCookieSerializer cookieSerializer;
+            private SecurityContextCookieSerializer _cookieSerializer;
 
             public SecurityContextTokenEntry(WSSecureConversation parent, SecurityStateEncoder securityStateEncoder, IList<Type> knownClaimTypes)
             {
                 Parent = parent;
-                cookieSerializer = new SecurityContextCookieSerializer(securityStateEncoder, knownClaimTypes);
+                _cookieSerializer = new SecurityContextCookieSerializer(securityStateEncoder, knownClaimTypes);
             }
 
             protected WSSecureConversation Parent { get; }
@@ -319,7 +318,6 @@ namespace CoreWCF.Security
             public override SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXmlCore(XmlElement issuedTokenXml,
                 SecurityTokenReferenceStyle tokenReferenceStyle)
             {
-
                 TokenReferenceStyleHelper.Validate(tokenReferenceStyle);
 
                 switch (tokenReferenceStyle)
@@ -433,7 +431,7 @@ namespace CoreWCF.Security
                         encodedCookie = reader.ReadElementContentAsBase64();
                         if (encodedCookie != null)
                         {
-                            sct = cookieSerializer.CreateSecurityContextFromCookie(encodedCookie, contextId, generation, id, reader.Quotas);
+                            sct = _cookieSerializer.CreateSecurityContextFromCookie(encodedCookie, contextId, generation, id, reader.Quotas);
                             if (sctCache != null)
                             {
                                 sctCache.AddContext(sct);

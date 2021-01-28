@@ -9,7 +9,7 @@ namespace CoreWCF.Security
 {
     public class SecurityTokenSpecification
     {
-        private readonly ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies;
+        private readonly ReadOnlyCollection<IAuthorizationPolicy> _tokenPolicies;
 
         public SecurityTokenSpecification(SecurityToken token, ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies)
         {
@@ -18,14 +18,14 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenPolicies));
             }
-            this.tokenPolicies = tokenPolicies;
+            _tokenPolicies = tokenPolicies;
         }
 
         public SecurityToken SecurityToken { get; }
 
         public ReadOnlyCollection<IAuthorizationPolicy> SecurityTokenPolicies
         {
-            get { return tokenPolicies; }
+            get { return _tokenPolicies; }
         }
     }
 }

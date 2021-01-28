@@ -25,27 +25,26 @@ namespace CoreWCF.Security
 
         private class WSTrustVersionFeb2005 : TrustVersion
         {
-            private static readonly WSTrustVersionFeb2005 instance = new WSTrustVersionFeb2005();
+            private static readonly WSTrustVersionFeb2005 s_instance = new WSTrustVersionFeb2005();
 
             protected WSTrustVersionFeb2005()
                 : base(XD.TrustFeb2005Dictionary.Namespace, XD.TrustFeb2005Dictionary.Prefix)
             {
             }
 
-            public static TrustVersion Instance => instance;
+            public static TrustVersion Instance => s_instance;
         }
 
         private class WSTrustVersion13 : TrustVersion
         {
-            private static readonly WSTrustVersion13 instance = new WSTrustVersion13();
+            private static readonly WSTrustVersion13 s_instance = new WSTrustVersion13();
 
             protected WSTrustVersion13()
                 : base(DXD.TrustDec2005Dictionary.Namespace, DXD.TrustDec2005Dictionary.Prefix)
             {
             }
 
-            public static TrustVersion Instance => instance;
+            public static TrustVersion Instance => s_instance;
         }
-
     }
 }

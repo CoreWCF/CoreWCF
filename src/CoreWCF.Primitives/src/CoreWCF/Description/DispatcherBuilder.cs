@@ -590,7 +590,6 @@ namespace CoreWCF.Description
 
                 parent.UnhandledDispatchOperation = child;
             }
-
         }
 
         private static void BindOperations(ContractDescription contract, ClientRuntime proxy, DispatchRuntime dispatch)
@@ -775,34 +774,34 @@ namespace CoreWCF.Description
         #region InnerClasses
         private class EndpointInfo
         {
-            private readonly EndpointFilterProvider provider;
+            private readonly EndpointFilterProvider _provider;
 
             public EndpointInfo(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher, EndpointFilterProvider provider)
             {
                 Endpoint = endpoint;
                 EndpointDispatcher = endpointDispatcher;
-                this.provider = provider;
+                _provider = provider;
             }
             public ServiceEndpoint Endpoint { get; }
-            public EndpointFilterProvider FilterProvider { get { return provider; } }
+            public EndpointFilterProvider FilterProvider { get { return _provider; } }
             public EndpointDispatcher EndpointDispatcher { get; }
         }
 
         internal class ListenUriInfo
         {
-            private readonly ListenUriMode listenUriMode;
+            private readonly ListenUriMode _listenUriMode;
 
             public ListenUriInfo(Uri listenUri, ListenUriMode listenUriMode)
             {
                 ListenUri = listenUri;
-                this.listenUriMode = listenUriMode;
+                _listenUriMode = listenUriMode;
             }
 
             public Uri ListenUri { get; }
 
             public ListenUriMode ListenUriMode
             {
-                get { return listenUriMode; }
+                get { return _listenUriMode; }
             }
 
             // implement Equals and GetHashCode so that we can use this as a key in a dictionary
@@ -823,7 +822,7 @@ namespace CoreWCF.Description
                     return true;
                 }
 
-                return (listenUriMode == other.listenUriMode)
+                return (_listenUriMode == other._listenUriMode)
                     && EndpointAddress.UriEquals(ListenUri, other.ListenUri, true /* ignoreCase */, true /* includeHost */);
             }
 

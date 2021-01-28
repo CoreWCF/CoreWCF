@@ -9,16 +9,16 @@ namespace CoreWCF.Channels
 {
     public abstract class BodyWriter
     {
-        private bool canWrite;
-        private readonly object thisLock;
+        private bool _canWrite;
+        private readonly object _thisLock;
 
         protected BodyWriter(bool isBuffered)
         {
             IsBuffered = isBuffered;
-            canWrite = true;
+            _canWrite = true;
             if (!IsBuffered)
             {
-                thisLock = new object();
+                _thisLock = new object();
             }
         }
 
@@ -48,14 +48,14 @@ namespace CoreWCF.Channels
             }
             else
             {
-                lock (thisLock)
+                lock (_thisLock)
                 {
-                    if (!canWrite)
+                    if (!_canWrite)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.BodyWriterCanOnlyBeWrittenOnce));
                     }
 
-                    canWrite = false;
+                    _canWrite = false;
                 }
                 BodyWriter bodyWriter = OnCreateBufferedCopy(maxBufferSize);
                 if (!bodyWriter.IsBuffered)
@@ -103,14 +103,14 @@ namespace CoreWCF.Channels
 
             if (!IsBuffered)
             {
-                lock (thisLock)
+                lock (_thisLock)
                 {
-                    if (!canWrite)
+                    if (!_canWrite)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.BodyWriterCanOnlyBeWrittenOnce));
                     }
 
-                    canWrite = false;
+                    _canWrite = false;
                 }
             }
         }
@@ -129,17 +129,17 @@ namespace CoreWCF.Channels
 
         private class BufferedBodyWriter : BodyWriter
         {
-            private readonly XmlBuffer buffer;
+            private readonly XmlBuffer _buffer;
 
             public BufferedBodyWriter(XmlBuffer buffer)
                 : base(true)
             {
-                this.buffer = buffer;
+                _buffer = buffer;
             }
 
             protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
             {
-                XmlDictionaryReader reader = buffer.GetReader(0);
+                XmlDictionaryReader reader = _buffer.GetReader(0);
                 using (reader)
                 {
                     reader.ReadStartElement();

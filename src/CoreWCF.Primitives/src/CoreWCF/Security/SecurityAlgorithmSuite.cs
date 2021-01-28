@@ -11,22 +11,22 @@ namespace CoreWCF.Security
 {
     public abstract class SecurityAlgorithmSuite
     {
-        private static SecurityAlgorithmSuite basic256;
-        private static SecurityAlgorithmSuite basic192;
-        private static SecurityAlgorithmSuite basic128;
-        private static SecurityAlgorithmSuite tripleDes;
-        private static SecurityAlgorithmSuite basic256Rsa15;
-        private static SecurityAlgorithmSuite basic192Rsa15;
-        private static SecurityAlgorithmSuite basic128Rsa15;
-        private static SecurityAlgorithmSuite tripleDesRsa15;
-        private static SecurityAlgorithmSuite basic256Sha256;
-        private static SecurityAlgorithmSuite basic192Sha256;
-        private static SecurityAlgorithmSuite basic128Sha256;
-        private static SecurityAlgorithmSuite tripleDesSha256;
-        private static SecurityAlgorithmSuite basic256Sha256Rsa15;
-        private static SecurityAlgorithmSuite basic192Sha256Rsa15;
-        private static SecurityAlgorithmSuite basic128Sha256Rsa15;
-        private static SecurityAlgorithmSuite tripleDesSha256Rsa15;
+        private static SecurityAlgorithmSuite s_basic256;
+        private static SecurityAlgorithmSuite s_basic192;
+        private static SecurityAlgorithmSuite s_basic128;
+        private static SecurityAlgorithmSuite s_tripleDes;
+        private static SecurityAlgorithmSuite s_basic256Rsa15;
+        private static SecurityAlgorithmSuite s_basic192Rsa15;
+        private static SecurityAlgorithmSuite s_basic128Rsa15;
+        private static SecurityAlgorithmSuite s_tripleDesRsa15;
+        private static SecurityAlgorithmSuite s_basic256Sha256;
+        private static SecurityAlgorithmSuite s_basic192Sha256;
+        private static SecurityAlgorithmSuite s_basic128Sha256;
+        private static SecurityAlgorithmSuite s_tripleDesSha256;
+        private static SecurityAlgorithmSuite s_basic256Sha256Rsa15;
+        private static SecurityAlgorithmSuite s_basic192Sha256Rsa15;
+        private static SecurityAlgorithmSuite s_basic128Sha256Rsa15;
+        private static SecurityAlgorithmSuite s_tripleDesSha256Rsa15;
 
         static internal SecurityAlgorithmSuite KerberosDefault
         {
@@ -47,96 +47,96 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (basic256 == null)
+                if (s_basic256 == null)
                 {
-                    basic256 = new Basic256SecurityAlgorithmSuite();
+                    s_basic256 = new Basic256SecurityAlgorithmSuite();
                 }
 
-                return basic256;
+                return s_basic256;
             }
         }
         static public SecurityAlgorithmSuite Basic192
         {
             get
             {
-                if (basic192 == null)
+                if (s_basic192 == null)
                 {
-                    basic192 = new Basic192SecurityAlgorithmSuite();
+                    s_basic192 = new Basic192SecurityAlgorithmSuite();
                 }
 
-                return basic192;
+                return s_basic192;
             }
         }
         static public SecurityAlgorithmSuite Basic128
         {
             get
             {
-                if (basic128 == null)
+                if (s_basic128 == null)
                 {
-                    basic128 = new Basic128SecurityAlgorithmSuite();
+                    s_basic128 = new Basic128SecurityAlgorithmSuite();
                 }
 
-                return basic128;
+                return s_basic128;
             }
         }
         static public SecurityAlgorithmSuite TripleDes
         {
             get
             {
-                if (tripleDes == null)
+                if (s_tripleDes == null)
                 {
-                    tripleDes = new TripleDesSecurityAlgorithmSuite();
+                    s_tripleDes = new TripleDesSecurityAlgorithmSuite();
                 }
 
-                return tripleDes;
+                return s_tripleDes;
             }
         }
         static public SecurityAlgorithmSuite Basic256Rsa15
         {
             get
             {
-                if (basic256Rsa15 == null)
+                if (s_basic256Rsa15 == null)
                 {
-                    basic256Rsa15 = new Basic256Rsa15SecurityAlgorithmSuite();
+                    s_basic256Rsa15 = new Basic256Rsa15SecurityAlgorithmSuite();
                 }
 
-                return basic256Rsa15;
+                return s_basic256Rsa15;
             }
         }
         static public SecurityAlgorithmSuite Basic192Rsa15
         {
             get
             {
-                if (basic192Rsa15 == null)
+                if (s_basic192Rsa15 == null)
                 {
-                    basic192Rsa15 = new Basic192Rsa15SecurityAlgorithmSuite();
+                    s_basic192Rsa15 = new Basic192Rsa15SecurityAlgorithmSuite();
                 }
 
-                return basic192Rsa15;
+                return s_basic192Rsa15;
             }
         }
         static public SecurityAlgorithmSuite Basic128Rsa15
         {
             get
             {
-                if (basic128Rsa15 == null)
+                if (s_basic128Rsa15 == null)
                 {
-                    basic128Rsa15 = new Basic128Rsa15SecurityAlgorithmSuite();
+                    s_basic128Rsa15 = new Basic128Rsa15SecurityAlgorithmSuite();
                 }
 
-                return basic128Rsa15;
+                return s_basic128Rsa15;
             }
         }
         static public SecurityAlgorithmSuite TripleDesRsa15
         {
             get
             {
-                if (tripleDesRsa15 == null)
+                if (s_tripleDesRsa15 == null)
                 {
-                    tripleDesRsa15 = new TripleDesRsa15SecurityAlgorithmSuite();
+                    s_tripleDesRsa15 = new TripleDesRsa15SecurityAlgorithmSuite();
                 }
 
-                return tripleDesRsa15;
+                return s_tripleDesRsa15;
             }
         }
 
@@ -144,96 +144,96 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (basic256Sha256 == null)
+                if (s_basic256Sha256 == null)
                 {
-                    basic256Sha256 = new Basic256Sha256SecurityAlgorithmSuite();
+                    s_basic256Sha256 = new Basic256Sha256SecurityAlgorithmSuite();
                 }
 
-                return basic256Sha256;
+                return s_basic256Sha256;
             }
         }
         static public SecurityAlgorithmSuite Basic192Sha256
         {
             get
             {
-                if (basic192Sha256 == null)
+                if (s_basic192Sha256 == null)
                 {
-                    basic192Sha256 = new Basic192Sha256SecurityAlgorithmSuite();
+                    s_basic192Sha256 = new Basic192Sha256SecurityAlgorithmSuite();
                 }
 
-                return basic192Sha256;
+                return s_basic192Sha256;
             }
         }
         static public SecurityAlgorithmSuite Basic128Sha256
         {
             get
             {
-                if (basic128Sha256 == null)
+                if (s_basic128Sha256 == null)
                 {
-                    basic128Sha256 = new Basic128Sha256SecurityAlgorithmSuite();
+                    s_basic128Sha256 = new Basic128Sha256SecurityAlgorithmSuite();
                 }
 
-                return basic128Sha256;
+                return s_basic128Sha256;
             }
         }
         static public SecurityAlgorithmSuite TripleDesSha256
         {
             get
             {
-                if (tripleDesSha256 == null)
+                if (s_tripleDesSha256 == null)
                 {
-                    tripleDesSha256 = new TripleDesSha256SecurityAlgorithmSuite();
+                    s_tripleDesSha256 = new TripleDesSha256SecurityAlgorithmSuite();
                 }
 
-                return tripleDesSha256;
+                return s_tripleDesSha256;
             }
         }
         static public SecurityAlgorithmSuite Basic256Sha256Rsa15
         {
             get
             {
-                if (basic256Sha256Rsa15 == null)
+                if (s_basic256Sha256Rsa15 == null)
                 {
-                    basic256Sha256Rsa15 = new Basic256Sha256Rsa15SecurityAlgorithmSuite();
+                    s_basic256Sha256Rsa15 = new Basic256Sha256Rsa15SecurityAlgorithmSuite();
                 }
 
-                return basic256Sha256Rsa15;
+                return s_basic256Sha256Rsa15;
             }
         }
         static public SecurityAlgorithmSuite Basic192Sha256Rsa15
         {
             get
             {
-                if (basic192Sha256Rsa15 == null)
+                if (s_basic192Sha256Rsa15 == null)
                 {
-                    basic192Sha256Rsa15 = new Basic192Sha256Rsa15SecurityAlgorithmSuite();
+                    s_basic192Sha256Rsa15 = new Basic192Sha256Rsa15SecurityAlgorithmSuite();
                 }
 
-                return basic192Sha256Rsa15;
+                return s_basic192Sha256Rsa15;
             }
         }
         static public SecurityAlgorithmSuite Basic128Sha256Rsa15
         {
             get
             {
-                if (basic128Sha256Rsa15 == null)
+                if (s_basic128Sha256Rsa15 == null)
                 {
-                    basic128Sha256Rsa15 = new Basic128Sha256Rsa15SecurityAlgorithmSuite();
+                    s_basic128Sha256Rsa15 = new Basic128Sha256Rsa15SecurityAlgorithmSuite();
                 }
 
-                return basic128Sha256Rsa15;
+                return s_basic128Sha256Rsa15;
             }
         }
         static public SecurityAlgorithmSuite TripleDesSha256Rsa15
         {
             get
             {
-                if (tripleDesSha256Rsa15 == null)
+                if (s_tripleDesSha256Rsa15 == null)
                 {
-                    tripleDesSha256Rsa15 = new TripleDesSha256Rsa15SecurityAlgorithmSuite();
+                    s_tripleDesSha256Rsa15 = new TripleDesSha256Rsa15SecurityAlgorithmSuite();
                 }
 
-                return tripleDesSha256Rsa15;
+                return s_tripleDesSha256Rsa15;
             }
         }
 
@@ -279,7 +279,6 @@ namespace CoreWCF.Security
 
             return (suite == Basic128Sha256 || suite == Basic128Sha256Rsa15 || suite == Basic192Sha256 || suite == Basic192Sha256Rsa15 ||
                 suite == Basic256Sha256 || suite == Basic256Sha256Rsa15 || suite == TripleDesSha256 || suite == TripleDesSha256Rsa15);
-
         }
 
         internal string GetEncryptionKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
@@ -592,7 +591,6 @@ namespace CoreWCF.Security
         //            algorithm, "Digest", this)));
         //    }
         //}
-
     }
 
     public class Basic256SecurityAlgorithmSuite : SecurityAlgorithmSuite
@@ -879,5 +877,4 @@ namespace CoreWCF.Security
             return "TripleDesSha256Rsa15";
         }
     }
-
 }

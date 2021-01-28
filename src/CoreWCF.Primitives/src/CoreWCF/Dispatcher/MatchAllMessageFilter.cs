@@ -32,5 +32,4 @@ namespace CoreWCF.Dispatcher
             return true;
         }
     }
-
 }

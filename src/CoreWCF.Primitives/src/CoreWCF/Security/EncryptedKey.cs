@@ -17,7 +17,7 @@ namespace CoreWCF.Security
         internal static readonly XmlDictionaryString CarriedKeyElementName = XD.XmlEncryptionDictionary.CarriedKeyName;
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.EncryptedKey;
         internal static readonly XmlDictionaryString RecipientAttribute = XD.XmlEncryptionDictionary.Recipient;
-        private byte[] wrappedKey;
+        private byte[] _wrappedKey;
 
         public string CarriedKeyName { get; set; }
 
@@ -40,7 +40,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.BadEncryptionState));
             }
-            return wrappedKey;
+            return _wrappedKey;
         }
 
         public void SetUpKeyWrap(byte[] wrappedKey)
@@ -53,7 +53,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappedKey");
             }
-            this.wrappedKey = wrappedKey;
+            _wrappedKey = wrappedKey;
             State = EncryptionState.Encrypted;
         }
 
@@ -79,12 +79,12 @@ namespace CoreWCF.Security
 
         protected override void ReadCipherData(XmlDictionaryReader reader)
         {
-            wrappedKey = reader.ReadContentAsBase64();
+            _wrappedKey = reader.ReadContentAsBase64();
         }
 
         protected override void ReadCipherData(XmlDictionaryReader reader, long maxBufferSize)
         {
-            wrappedKey = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
+            _wrappedKey = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
         }
 
         protected override void WriteAdditionalAttributes(XmlDictionaryWriter writer, DictionaryManager dictionaryManager)
@@ -111,7 +111,7 @@ namespace CoreWCF.Security
 
         protected override void WriteCipherData(XmlDictionaryWriter writer)
         {
-            writer.WriteBase64(wrappedKey, 0, wrappedKey.Length);
+            writer.WriteBase64(_wrappedKey, 0, _wrappedKey.Length);
         }
     }
 
@@ -123,15 +123,15 @@ namespace CoreWCF.Security
         internal static readonly XmlDictionaryString TypeAttribute = XD.XmlEncryptionDictionary.Type;
         internal static readonly XmlDictionaryString CipherDataElementName = XD.XmlEncryptionDictionary.CipherData;
         internal static readonly XmlDictionaryString CipherValueElementName = XD.XmlEncryptionDictionary.CipherValue;
-        private EncryptionMethodElement encryptionMethod;
-        private string wsuId;
-        private SecurityTokenSerializer tokenSerializer;
+        private EncryptionMethodElement _encryptionMethod;
+        private string _wsuId;
+        private SecurityTokenSerializer _tokenSerializer;
 
         protected EncryptedType()
         {
-            encryptionMethod.Init();
+            _encryptionMethod.Init();
             State = EncryptionState.New;
-            tokenSerializer = new KeyInfoSerializer(false);
+            _tokenSerializer = new KeyInfoSerializer(false);
         }
 
         public string Encoding { get; set; }
@@ -140,11 +140,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                return encryptionMethod.algorithm;
+                return _encryptionMethod.algorithm;
             }
             set
             {
-                encryptionMethod.algorithm = value;
+                _encryptionMethod.algorithm = value;
             }
         }
 
@@ -152,11 +152,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                return encryptionMethod.algorithmDictionaryString;
+                return _encryptionMethod.algorithmDictionaryString;
             }
             set
             {
-                encryptionMethod.algorithmDictionaryString = value;
+                _encryptionMethod.algorithmDictionaryString = value;
             }
         }
 
@@ -179,11 +179,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                return wsuId;
+                return _wsuId;
             }
             set
             {
-                wsuId = value;
+                _wsuId = value;
             }
         }
 
@@ -204,11 +204,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                return tokenSerializer;
+                return _tokenSerializer;
             }
             set
             {
-                tokenSerializer = value ?? new KeyInfoSerializer(false);
+                _tokenSerializer = value ?? new KeyInfoSerializer(false);
             }
         }
 
@@ -246,7 +246,7 @@ namespace CoreWCF.Security
             reader.MoveToStartElement(OpeningElementName, NamespaceUri);
             Encoding = reader.GetAttribute(EncodingAttribute, null);
             Id = reader.GetAttribute(XD.XmlEncryptionDictionary.Id, null) ?? SecurityUniqueId.Create().Value;
-            wsuId = reader.GetAttribute(XD.XmlEncryptionDictionary.Id, XD.UtilityDictionary.Namespace) ?? SecurityUniqueId.Create().Value;
+            _wsuId = reader.GetAttribute(XD.XmlEncryptionDictionary.Id, XD.UtilityDictionary.Namespace) ?? SecurityUniqueId.Create().Value;
             MimeType = reader.GetAttribute(MimeTypeAttribute, null);
             Type = reader.GetAttribute(TypeAttribute, null);
             ReadAdditionalAttributes(reader);
@@ -254,10 +254,10 @@ namespace CoreWCF.Security
 
             if (reader.IsStartElement(EncryptionMethodElement.ElementName, NamespaceUri))
             {
-                encryptionMethod.ReadFrom(reader);
+                _encryptionMethod.ReadFrom(reader);
             }
 
-            if (tokenSerializer.CanReadKeyIdentifier(reader))
+            if (_tokenSerializer.CanReadKeyIdentifier(reader))
             {
                 XmlElement xml = null;
                 XmlDictionaryReader localReader;
@@ -276,7 +276,7 @@ namespace CoreWCF.Security
 
                 try
                 {
-                    KeyIdentifier = tokenSerializer.ReadKeyIdentifier(localReader);
+                    KeyIdentifier = _tokenSerializer.ReadKeyIdentifier(localReader);
                 }
                 catch (Exception e)
                 {
@@ -381,13 +381,13 @@ namespace CoreWCF.Security
                 writer.WriteAttributeString(EncodingAttribute, null, Encoding);
             }
             WriteAdditionalAttributes(writer, dictionaryManager);
-            if (encryptionMethod.algorithm != null)
+            if (_encryptionMethod.algorithm != null)
             {
-                encryptionMethod.WriteTo(writer);
+                _encryptionMethod.WriteTo(writer);
             }
             if (KeyIdentifier != null)
             {
-                tokenSerializer.WriteKeyIdentifier(writer, KeyIdentifier);
+                _tokenSerializer.WriteKeyIdentifier(writer, KeyIdentifier);
             }
 
             writer.WriteStartElement(CipherDataElementName, NamespaceUri);

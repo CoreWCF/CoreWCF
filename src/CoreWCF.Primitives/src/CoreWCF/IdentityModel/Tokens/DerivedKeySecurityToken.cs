@@ -16,7 +16,7 @@ namespace CoreWCF.Security.Tokens
 {
     internal sealed class DerivedKeySecurityToken : SecurityToken
     {
-        private static readonly byte[] DefaultLabel = new byte[]
+        private static readonly byte[] s_defaultLabel = new byte[]
             {
                 (byte)'W', (byte)'S', (byte)'-', (byte)'S', (byte)'e', (byte)'c', (byte)'u', (byte)'r', (byte)'e',
                 (byte)'C', (byte)'o', (byte)'n', (byte)'v', (byte)'e', (byte)'r', (byte)'s', (byte)'a', (byte)'t', (byte)'i', (byte)'o', (byte)'n',
@@ -26,11 +26,11 @@ namespace CoreWCF.Security.Tokens
 
         public const int DefaultNonceLength = 16;
         public const int DefaultDerivedKeyLength = 32;
-        private string id;
-        private byte[] key;
-        private string label;
-        private byte[] nonce;
-        private ReadOnlyCollection<SecurityKey> securityKeys;
+        private string _id;
+        private byte[] _key;
+        private string _label;
+        private byte[] _nonce;
+        private ReadOnlyCollection<SecurityKey> _securityKeys;
 
         // create from scratch
         public DerivedKeySecurityToken(SecurityToken tokenToDerive, SecurityKeyIdentifierClause tokenToDeriveIdentifier, int length)
@@ -73,7 +73,7 @@ namespace CoreWCF.Security.Tokens
             Initialize(id, generation, offset, length, label, nonce, tokenToDerive, tokenToDeriveIdentifier, derivationAlgorithm, false);
         }
 
-        public override string Id => id;
+        public override string Id => _id;
 
         public override DateTime ValidFrom => TokenToDerive.ValidFrom;
 
@@ -83,11 +83,11 @@ namespace CoreWCF.Security.Tokens
 
         public int Generation { get; private set; } = -1;
 
-        public string Label => label;
+        public string Label => _label;
 
         public int Length { get; private set; } = -1;
 
-        internal byte[] Nonce => nonce;
+        internal byte[] Nonce => _nonce;
 
         public int Offset { get; private set; } = -1;
 
@@ -99,27 +99,27 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                if (securityKeys == null)
+                if (_securityKeys == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.DerivedKeyNotInitialized));
                 }
-                return securityKeys;
+                return _securityKeys;
             }
         }
 
         public byte[] GetKeyBytes()
         {
-            return SecurityUtils.CloneBuffer(key);
+            return SecurityUtils.CloneBuffer(_key);
         }
 
         public byte[] GetNonce()
         {
-            return SecurityUtils.CloneBuffer(nonce);
+            return SecurityUtils.CloneBuffer(_nonce);
         }
 
         internal bool TryGetSecurityKeys(out ReadOnlyCollection<SecurityKey> keys)
         {
-            keys = securityKeys;
+            keys = _securityKeys;
             return (keys != null);
         }
 
@@ -185,9 +185,9 @@ namespace CoreWCF.Security.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.DerivedKeyPosAndGenBothSpecified);
             }
 
-            this.id = id;
-            this.label = label;
-            this.nonce = nonce;
+            _id = id;
+            _label = label;
+            _nonce = nonce;
             Length = length;
             Offset = offset;
             Generation = generation;
@@ -203,7 +203,7 @@ namespace CoreWCF.Security.Tokens
 
         internal void InitializeDerivedKey(int maxKeyLength)
         {
-            if (key != null)
+            if (_key != null)
             {
                 return;
             }
@@ -212,22 +212,22 @@ namespace CoreWCF.Security.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.DerivedKeyLengthTooLong, Length, maxKeyLength));
             }
 
-            key = SecurityUtils.GenerateDerivedKey(TokenToDerive, KeyDerivationAlgorithm,
-                (label != null ? Encoding.UTF8.GetBytes(label) : DefaultLabel), nonce, Length * 8,
+            _key = SecurityUtils.GenerateDerivedKey(TokenToDerive, KeyDerivationAlgorithm,
+                (_label != null ? Encoding.UTF8.GetBytes(_label) : s_defaultLabel), _nonce, Length * 8,
                 ((Offset >= 0) ? Offset : Generation * Length));
-            if ((key == null) || (key.Length == 0))
+            if ((_key == null) || (_key.Length == 0))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.DerivedKeyCannotDeriveFromSecret);
             }
             List<SecurityKey> temp = new List<SecurityKey>(1);
-            temp.Add(new InMemorySymmetricSecurityKey(key, false));
-            securityKeys = temp.AsReadOnly();
+            temp.Add(new InMemorySymmetricSecurityKey(_key, false));
+            _securityKeys = temp.AsReadOnly();
         }
 
         internal void InitializeDerivedKey(ReadOnlyCollection<SecurityKey> securityKeys)
         {
-            key = ((SymmetricSecurityKey)securityKeys[0]).GetSymmetricKey();
-            this.securityKeys = securityKeys;
+            _key = ((SymmetricSecurityKey)securityKeys[0]).GetSymmetricKey();
+            _securityKeys = securityKeys;
         }
 
         internal static void EnsureAcceptableOffset(int offset, int generation, int length, int maxOffset)

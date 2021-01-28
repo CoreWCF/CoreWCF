@@ -9,11 +9,11 @@ namespace CoreWCF.Dispatcher
 {
     internal class ThreadSafeMessageFilterTable<FilterData> : IMessageFilterTable<FilterData>
     {
-        private readonly MessageFilterTable<FilterData> table;
+        private readonly MessageFilterTable<FilterData> _table;
 
         internal ThreadSafeMessageFilterTable()
         {
-            table = new MessageFilterTable<FilterData>();
+            _table = new MessageFilterTable<FilterData>();
             SyncRoot = new object();
         }
 
@@ -25,14 +25,14 @@ namespace CoreWCF.Dispatcher
             {
                 lock (SyncRoot)
                 {
-                    return table.DefaultPriority;
+                    return _table.DefaultPriority;
                 }
             }
             set
             {
                 lock (SyncRoot)
                 {
-                    table.DefaultPriority = value;
+                    _table.DefaultPriority = value;
                 }
             }
         }
@@ -41,7 +41,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                table.Add(filter, data, priority);
+                _table.Add(filter, data, priority);
             }
         }
 
@@ -55,7 +55,7 @@ namespace CoreWCF.Dispatcher
             {
                 lock (SyncRoot)
                 {
-                    return table.Count;
+                    return _table.Count;
                 }
             }
         }
@@ -64,7 +64,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                table.Clear();
+                _table.Clear();
             }
         }
 
@@ -72,7 +72,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.GetMatchingValue(message, out data);
+                return _table.GetMatchingValue(message, out data);
             }
         }
 
@@ -80,7 +80,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.GetMatchingValue(buffer, out data);
+                return _table.GetMatchingValue(buffer, out data);
             }
         }
 
@@ -88,7 +88,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.GetMatchingValues(message, results);
+                return _table.GetMatchingValues(message, results);
             }
         }
 
@@ -96,7 +96,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.GetMatchingValues(buffer, results);
+                return _table.GetMatchingValues(buffer, results);
             }
         }
 
@@ -104,7 +104,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.GetMatchingFilter(message, out filter);
+                return _table.GetMatchingFilter(message, out filter);
             }
         }
 
@@ -112,7 +112,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.GetMatchingFilter(buffer, out filter);
+                return _table.GetMatchingFilter(buffer, out filter);
             }
         }
 
@@ -120,7 +120,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.GetMatchingFilters(message, results);
+                return _table.GetMatchingFilters(message, results);
             }
         }
 
@@ -128,7 +128,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.GetMatchingFilters(buffer, results);
+                return _table.GetMatchingFilters(buffer, results);
             }
         }
 
@@ -142,14 +142,14 @@ namespace CoreWCF.Dispatcher
             {
                 lock (SyncRoot)
                 {
-                    return table[key];
+                    return _table[key];
                 }
             }
             set
             {
                 lock (SyncRoot)
                 {
-                    table[key] = value;
+                    _table[key] = value;
                 }
             }
         }
@@ -160,7 +160,7 @@ namespace CoreWCF.Dispatcher
             {
                 lock (SyncRoot)
                 {
-                    return table.Keys;
+                    return _table.Keys;
                 }
             }
         }
@@ -171,7 +171,7 @@ namespace CoreWCF.Dispatcher
             {
                 lock (SyncRoot)
                 {
-                    return table.Values;
+                    return _table.Values;
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.ContainsKey(key);
+                return _table.ContainsKey(key);
             }
         }
 
@@ -188,7 +188,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                table.Add(key, value);
+                _table.Add(key, value);
             }
         }
 
@@ -196,7 +196,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.Remove(key);
+                return _table.Remove(key);
             }
         }
 
@@ -210,7 +210,7 @@ namespace CoreWCF.Dispatcher
             {
                 lock (SyncRoot)
                 {
-                    return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).IsReadOnly;
+                    return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_table).IsReadOnly;
                 }
             }
         }
@@ -219,7 +219,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).Add(item);
+                ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_table).Add(item);
             }
         }
 
@@ -227,7 +227,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).Contains(item);
+                return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_table).Contains(item);
             }
         }
 
@@ -235,7 +235,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).CopyTo(array, arrayIndex);
+                ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_table).CopyTo(array, arrayIndex);
             }
         }
 
@@ -243,7 +243,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).Remove(item);
+                return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_table).Remove(item);
             }
         }
 
@@ -259,7 +259,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)table).GetEnumerator();
+                return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_table).GetEnumerator();
             }
         }
 
@@ -267,7 +267,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (SyncRoot)
             {
-                return table.TryGetValue(filter, out data);
+                return _table.TryGetValue(filter, out data);
             }
         }
     }

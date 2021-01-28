@@ -12,12 +12,12 @@ namespace CoreWCF.Security
     {
         private const string DefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
         internal static readonly TimeSpan defaultTimeToLive = SecurityProtocolFactory.defaultTimestampValidityDuration;
-        private char[] computedCreationTimeUtc;
-        private char[] computedExpiryTimeUtc;
-        private DateTime creationTimeUtc;
-        private DateTime expiryTimeUtc;
-        private readonly string digestAlgorithm;
-        private readonly byte[] digest;
+        private char[] _computedCreationTimeUtc;
+        private char[] _computedExpiryTimeUtc;
+        private DateTime _creationTimeUtc;
+        private DateTime _expiryTimeUtc;
+        private readonly string _digestAlgorithm;
+        private readonly byte[] _digest;
 
         public SecurityTimestamp(DateTime creationTimeUtc, DateTime expiryTimeUtc, string id)
             : this(creationTimeUtc, expiryTimeUtc, id, null, null)
@@ -34,19 +34,19 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new ArgumentOutOfRangeException(nameof(expiryTimeUtc), SR.CreationTimeUtcIsAfterExpiryTime));
             }
 
-            this.creationTimeUtc = creationTimeUtc;
-            this.expiryTimeUtc = expiryTimeUtc;
+            _creationTimeUtc = creationTimeUtc;
+            _expiryTimeUtc = expiryTimeUtc;
             Id = id;
 
-            this.digestAlgorithm = digestAlgorithm;
-            this.digest = digest;
+            _digestAlgorithm = digestAlgorithm;
+            _digest = digest;
         }
 
         public DateTime CreationTimeUtc
         {
             get
             {
-                return creationTimeUtc;
+                return _creationTimeUtc;
             }
         }
 
@@ -54,7 +54,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return expiryTimeUtc;
+                return _expiryTimeUtc;
             }
         }
 
@@ -64,31 +64,31 @@ namespace CoreWCF.Security
         {
             get
             {
-                return digestAlgorithm;
+                return _digestAlgorithm;
             }
         }
 
         internal byte[] GetDigest()
         {
-            return digest;
+            return _digest;
         }
 
         internal char[] GetCreationTimeChars()
         {
-            if (computedCreationTimeUtc == null)
+            if (_computedCreationTimeUtc == null)
             {
-                computedCreationTimeUtc = ToChars(ref creationTimeUtc);
+                _computedCreationTimeUtc = ToChars(ref _creationTimeUtc);
             }
-            return computedCreationTimeUtc;
+            return _computedCreationTimeUtc;
         }
 
         internal char[] GetExpiryTimeChars()
         {
-            if (computedExpiryTimeUtc == null)
+            if (_computedExpiryTimeUtc == null)
             {
-                computedExpiryTimeUtc = ToChars(ref expiryTimeUtc);
+                _computedExpiryTimeUtc = ToChars(ref _expiryTimeUtc);
             }
-            return computedExpiryTimeUtc;
+            return _computedExpiryTimeUtc;
         }
 
         private static char[] ToChars(ref DateTime utcTime)

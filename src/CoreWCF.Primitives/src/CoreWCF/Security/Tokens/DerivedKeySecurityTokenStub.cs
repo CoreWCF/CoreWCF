@@ -10,29 +10,29 @@ namespace CoreWCF.Security.Tokens
 {
     internal sealed class DerivedKeySecurityTokenStub : SecurityToken
     {
-        private readonly string id;
-        private readonly string derivationAlgorithm;
-        private readonly string label;
-        private readonly int length;
-        private readonly byte[] nonce;
-        private readonly int offset;
-        private readonly int generation;
+        private readonly string _id;
+        private readonly string _derivationAlgorithm;
+        private readonly string _label;
+        private readonly int _length;
+        private readonly byte[] _nonce;
+        private readonly int _offset;
+        private readonly int _generation;
 
         public DerivedKeySecurityTokenStub(int generation, int offset, int length,
             string label, byte[] nonce,
             SecurityKeyIdentifierClause tokenToDeriveIdentifier, string derivationAlgorithm, string id)
         {
-            this.id = id;
-            this.generation = generation;
-            this.offset = offset;
-            this.length = length;
-            this.label = label;
-            this.nonce = nonce;
+            _id = id;
+            _generation = generation;
+            _offset = offset;
+            _length = length;
+            _label = label;
+            _nonce = nonce;
             TokenToDeriveIdentifier = tokenToDeriveIdentifier;
-            this.derivationAlgorithm = derivationAlgorithm;
+            _derivationAlgorithm = derivationAlgorithm;
         }
 
-        public override string Id => id;
+        public override string Id => _id;
 
         public override DateTime ValidFrom => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotImplementedException());
 
@@ -44,8 +44,8 @@ namespace CoreWCF.Security.Tokens
 
         public DerivedKeySecurityToken CreateToken(SecurityToken tokenToDerive, int maxKeyLength)
         {
-            DerivedKeySecurityToken result = new DerivedKeySecurityToken(generation, offset, length,
-                label, nonce, tokenToDerive, TokenToDeriveIdentifier, derivationAlgorithm, Id);
+            DerivedKeySecurityToken result = new DerivedKeySecurityToken(_generation, _offset, _length,
+                _label, _nonce, tokenToDerive, TokenToDeriveIdentifier, _derivationAlgorithm, Id);
             result.InitializeDerivedKey(maxKeyLength);
             return result;
         }

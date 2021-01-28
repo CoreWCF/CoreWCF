@@ -88,7 +88,5 @@ namespace CoreWCF.Dispatcher
         {
             get { return _helper.HeaderLookup; }
         }
-
     }
-
 }

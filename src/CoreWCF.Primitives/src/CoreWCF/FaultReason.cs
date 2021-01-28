@@ -150,7 +150,6 @@ namespace CoreWCF
             }
 
             return GetMatchingTranslation().Text;
-
         }
     }
 }

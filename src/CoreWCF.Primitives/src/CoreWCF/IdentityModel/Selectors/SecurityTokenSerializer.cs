@@ -156,7 +156,6 @@ namespace CoreWCF.IdentityModel.Selectors
 
         internal abstract class KeyIdentifierClauseEntry
         {
-
             protected abstract XmlDictionaryString LocalName { get; }
             protected abstract XmlDictionaryString NamespaceUri { get; }
 
@@ -209,7 +208,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         internal abstract class TokenEntry
         {
-            private Type[] tokenTypes = null;
+            private Type[] _tokenTypes = null;
 
             protected abstract XmlDictionaryString LocalName { get; }
             protected abstract XmlDictionaryString NamespaceUri { get; }
@@ -234,21 +233,18 @@ namespace CoreWCF.IdentityModel.Selectors
 
             public Type[] GetTokenTypes()
             {
-                if (tokenTypes == null)
+                if (_tokenTypes == null)
                 {
-                    tokenTypes = GetTokenTypesCore();
+                    _tokenTypes = GetTokenTypesCore();
                 }
 
-                return tokenTypes;
+                return _tokenTypes;
             }
 
             public virtual bool SupportsTokenTypeUri(string tokenTypeUri)
             {
                 return (TokenTypeUri == tokenTypeUri);
             }
-
         }
-
     }
-
 }

@@ -11,7 +11,7 @@ namespace CoreWCF.IdentityModel.Selectors
 {
     public class WindowsSecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
-        private readonly bool includeWindowsGroups;
+        private readonly bool _includeWindowsGroups;
 
         public WindowsSecurityTokenAuthenticator() : this(WindowsClaimSet.DefaultIncludeWindowsGroups)
         {
@@ -19,7 +19,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public WindowsSecurityTokenAuthenticator(bool includeWindowsGroups)
         {
-            this.includeWindowsGroups = includeWindowsGroups;
+            _includeWindowsGroups = includeWindowsGroups;
         }
 
         protected override bool CanValidateTokenCore(SecurityToken token)
@@ -30,7 +30,7 @@ namespace CoreWCF.IdentityModel.Selectors
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
         {
             var windowsToken = (WindowsSecurityToken)token;
-            var claimSet = new WindowsClaimSet(windowsToken.WindowsIdentity, windowsToken.AuthenticationType, includeWindowsGroups, windowsToken.ValidTo);
+            var claimSet = new WindowsClaimSet(windowsToken.WindowsIdentity, windowsToken.AuthenticationType, _includeWindowsGroups, windowsToken.ValidTo);
             return SecurityUtils.CreateAuthorizationPolicies(claimSet, windowsToken.ValidTo);
         }
     }

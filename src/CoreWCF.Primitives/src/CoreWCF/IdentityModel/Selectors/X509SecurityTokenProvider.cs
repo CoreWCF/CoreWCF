@@ -63,5 +63,4 @@ namespace CoreWCF.IdentityModel.Selectors
             SecurityUtils.ResetCertificate(Certificate);
         }
     }
-
 }

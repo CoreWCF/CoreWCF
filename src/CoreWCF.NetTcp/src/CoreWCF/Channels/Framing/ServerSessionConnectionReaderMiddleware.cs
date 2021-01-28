@@ -46,6 +46,5 @@ namespace CoreWCF.Channels.Framing
             channel.ChannelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(channel);
             await channel.StartReceivingAsync();
         }
-
     }
 }

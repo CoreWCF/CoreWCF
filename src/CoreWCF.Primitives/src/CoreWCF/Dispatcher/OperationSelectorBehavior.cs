@@ -33,11 +33,11 @@ namespace CoreWCF.Dispatcher
 
         internal class MethodInfoOperationSelector : IClientOperationSelector
         {
-            private readonly Dictionary<object, string> operationMap;
+            private readonly Dictionary<object, string> _operationMap;
 
             internal MethodInfoOperationSelector(ContractDescription description, MessageDirection directionThatRequiresClientOpSelection)
             {
-                operationMap = new Dictionary<object, string>();
+                _operationMap = new Dictionary<object, string>();
 
                 for (int i = 0; i < description.Operations.Count; i++)
                 {
@@ -46,26 +46,26 @@ namespace CoreWCF.Dispatcher
                     {
                         if (operation.SyncMethod != null)
                         {
-                            if (!operationMap.ContainsKey(operation.SyncMethod))
+                            if (!_operationMap.ContainsKey(operation.SyncMethod))
                             {
-                                operationMap.Add(operation.SyncMethod, operation.Name);
+                                _operationMap.Add(operation.SyncMethod, operation.Name);
                             }
                         }
 
                         if (operation.BeginMethod != null)
                         {
-                            if (!operationMap.ContainsKey(operation.BeginMethod))
+                            if (!_operationMap.ContainsKey(operation.BeginMethod))
                             {
-                                operationMap.Add(operation.BeginMethod, operation.Name);
-                                operationMap.Add(operation.EndMethod, operation.Name);
+                                _operationMap.Add(operation.BeginMethod, operation.Name);
+                                _operationMap.Add(operation.EndMethod, operation.Name);
                             }
                         }
 
                         if (operation.TaskMethod != null)
                         {
-                            if (!operationMap.ContainsKey(operation.TaskMethod))
+                            if (!_operationMap.ContainsKey(operation.TaskMethod))
                             {
-                                operationMap.Add(operation.TaskMethod, operation.Name);
+                                _operationMap.Add(operation.TaskMethod, operation.Name);
                             }
                         }
                     }
@@ -79,9 +79,9 @@ namespace CoreWCF.Dispatcher
 
             public string SelectOperation(MethodBase method, object[] parameters)
             {
-                if (operationMap.ContainsKey(method))
+                if (_operationMap.ContainsKey(method))
                 {
-                    return operationMap[method];
+                    return _operationMap[method];
                 }
                 else
                 {
@@ -90,5 +90,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

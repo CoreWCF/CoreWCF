@@ -377,9 +377,7 @@ namespace CoreWCF.Security
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.SecureConversation)
             {
-
                 result = CreateSecureConversationTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
-
             }
             else if ((tokenType == SecurityTokenTypes.Saml)
                 || (tokenType == SecurityXXX2005Strings.SamlTokenType)

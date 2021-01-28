@@ -17,11 +17,11 @@ namespace CoreWCF.IdentityModel.Policy
 
     internal class UnconditionalPolicy : IAuthorizationPolicy, IDisposable
     {
-        private SecurityUniqueId id;
-        private ClaimSet issuance;
-        private ReadOnlyCollection<ClaimSet> issuances;
-        private IIdentity primaryIdentity;
-        private bool disposed = false;
+        private SecurityUniqueId _id;
+        private ClaimSet _issuance;
+        private ReadOnlyCollection<ClaimSet> _issuances;
+        private IIdentity _primaryIdentity;
+        private bool _disposed = false;
 
         public UnconditionalPolicy(ClaimSet issuance)
             : this(issuance, SecurityUtils.MaxUtcDateTime)
@@ -51,32 +51,32 @@ namespace CoreWCF.IdentityModel.Policy
         internal UnconditionalPolicy(IIdentity primaryIdentity, ClaimSet issuance)
             : this(issuance)
         {
-            this.primaryIdentity = primaryIdentity;
+            _primaryIdentity = primaryIdentity;
         }
 
         internal UnconditionalPolicy(IIdentity primaryIdentity, ClaimSet issuance, DateTime expirationTime)
             : this(issuance, expirationTime)
         {
-            this.primaryIdentity = primaryIdentity;
+            _primaryIdentity = primaryIdentity;
         }
 
         internal UnconditionalPolicy(IIdentity primaryIdentity, ReadOnlyCollection<ClaimSet> issuances, DateTime expirationTime)
             : this(issuances, expirationTime)
         {
-            this.primaryIdentity = primaryIdentity;
+            _primaryIdentity = primaryIdentity;
         }
 
         private UnconditionalPolicy(UnconditionalPolicy from)
         {
             IsDisposable = from.IsDisposable;
-            primaryIdentity = from.IsDisposable ? SecurityUtils.CloneIdentityIfNecessary(from.primaryIdentity) : from.primaryIdentity;
-            if (from.issuance != null)
+            _primaryIdentity = from.IsDisposable ? SecurityUtils.CloneIdentityIfNecessary(from._primaryIdentity) : from._primaryIdentity;
+            if (from._issuance != null)
             {
-                issuance = from.IsDisposable ? SecurityUtils.CloneClaimSetIfNecessary(from.issuance) : from.issuance;
+                _issuance = from.IsDisposable ? SecurityUtils.CloneClaimSetIfNecessary(from._issuance) : from._issuance;
             }
             else
             {
-                issuances = from.IsDisposable ? SecurityUtils.CloneClaimSetsIfNecessary(from.issuances) : from.issuances;
+                _issuances = from.IsDisposable ? SecurityUtils.CloneClaimSetsIfNecessary(from._issuances) : from._issuances;
             }
             Issuer = from.Issuer;
             ExpirationTime = from.ExpirationTime;
@@ -85,8 +85,8 @@ namespace CoreWCF.IdentityModel.Policy
         private void Initialize(ClaimSet issuer, ClaimSet issuance, ReadOnlyCollection<ClaimSet> issuances, DateTime expirationTime)
         {
             Issuer = issuer;
-            this.issuance = issuance;
-            this.issuances = issuances;
+            _issuance = issuance;
+            _issuances = issuances;
             ExpirationTime = expirationTime;
             if (issuance != null)
             {
@@ -109,12 +109,12 @@ namespace CoreWCF.IdentityModel.Policy
         {
             get
             {
-                if (id == null)
+                if (_id == null)
                 {
-                    id = SecurityUniqueId.Create();
+                    _id = SecurityUniqueId.Create();
                 }
 
-                return id.Value;
+                return _id.Value;
             }
         }
 
@@ -125,21 +125,21 @@ namespace CoreWCF.IdentityModel.Policy
             get
             {
                 ThrowIfDisposed();
-                if (primaryIdentity == null)
+                if (_primaryIdentity == null)
                 {
                     IIdentity identity = null;
-                    if (issuance != null)
+                    if (_issuance != null)
                     {
-                        if (issuance is IIdentityInfo)
+                        if (_issuance is IIdentityInfo)
                         {
-                            identity = ((IIdentityInfo)issuance).Identity;
+                            identity = ((IIdentityInfo)_issuance).Identity;
                         }
                     }
                     else
                     {
-                        for (int i = 0; i < issuances.Count; ++i)
+                        for (int i = 0; i < _issuances.Count; ++i)
                         {
-                            ClaimSet issuance = issuances[i];
+                            ClaimSet issuance = _issuances[i];
                             if (issuance is IIdentityInfo)
                             {
                                 identity = ((IIdentityInfo)issuance).Identity;
@@ -151,9 +151,9 @@ namespace CoreWCF.IdentityModel.Policy
                             }
                         }
                     }
-                    primaryIdentity = identity ?? SecurityUtils.AnonymousIdentity;
+                    _primaryIdentity = identity ?? SecurityUtils.AnonymousIdentity;
                 }
-                return primaryIdentity;
+                return _primaryIdentity;
             }
         }
 
@@ -162,13 +162,13 @@ namespace CoreWCF.IdentityModel.Policy
             get
             {
                 ThrowIfDisposed();
-                if (issuances == null)
+                if (_issuances == null)
                 {
                     List<ClaimSet> issuances = new List<ClaimSet>(1);
-                    issuances.Add(issuance);
-                    this.issuances = issuances.AsReadOnly();
+                    issuances.Add(_issuance);
+                    _issuances = issuances.AsReadOnly();
                 }
-                return issuances;
+                return _issuances;
             }
         }
 
@@ -184,18 +184,18 @@ namespace CoreWCF.IdentityModel.Policy
 
         public virtual void Dispose()
         {
-            if (IsDisposable && !disposed)
+            if (IsDisposable && !_disposed)
             {
-                disposed = true;
-                SecurityUtils.DisposeIfNecessary(primaryIdentity as WindowsIdentity);
-                SecurityUtils.DisposeClaimSetIfNecessary(issuance);
-                SecurityUtils.DisposeClaimSetsIfNecessary(issuances);
+                _disposed = true;
+                SecurityUtils.DisposeIfNecessary(_primaryIdentity as WindowsIdentity);
+                SecurityUtils.DisposeClaimSetIfNecessary(_issuance);
+                SecurityUtils.DisposeClaimSetsIfNecessary(_issuances);
             }
         }
 
         private void ThrowIfDisposed()
         {
-            if (disposed)
+            if (_disposed)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().FullName));
             }
@@ -204,17 +204,17 @@ namespace CoreWCF.IdentityModel.Policy
         public virtual bool Evaluate(EvaluationContext evaluationContext, ref object state)
         {
             ThrowIfDisposed();
-            if (issuance != null)
+            if (_issuance != null)
             {
-                evaluationContext.AddClaimSet(this, issuance);
+                evaluationContext.AddClaimSet(this, _issuance);
             }
             else
             {
-                for (int i = 0; i < issuances.Count; ++i)
+                for (int i = 0; i < _issuances.Count; ++i)
                 {
-                    if (issuances[i] != null)
+                    if (_issuances[i] != null)
                     {
-                        evaluationContext.AddClaimSet(this, issuances[i]);
+                        evaluationContext.AddClaimSet(this, _issuances[i]);
                     }
                 }
             }
@@ -244,5 +244,4 @@ namespace CoreWCF.IdentityModel.Policy
             return true;
         }
     }
-
 }

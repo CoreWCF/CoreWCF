@@ -12,26 +12,26 @@ namespace CoreWCF.Security
     // NOTE: this class does minimum argument checking as it is all internal 
     internal class TimeBoundedCache
     {
-        private static Action<object> purgeCallback;
+        private static Action<object> s_purgeCallback;
 
         // if there are less than lowWaterMark entries, no purging is done
-        private readonly int lowWaterMark;
-        private DateTime nextPurgeTimeUtc;
-        private TimeSpan purgeInterval;
-        private readonly PurgingMode purgingMode;
-        private IOThreadTimer purgingTimer;
-        private readonly bool doRemoveNotification;
+        private readonly int _lowWaterMark;
+        private DateTime _nextPurgeTimeUtc;
+        private TimeSpan _purgeInterval;
+        private readonly PurgingMode _purgingMode;
+        private IOThreadTimer _purgingTimer;
+        private readonly bool _doRemoveNotification;
 
         protected TimeBoundedCache(int lowWaterMark, int maxCacheItems, IEqualityComparer keyComparer, PurgingMode purgingMode, TimeSpan purgeInterval, bool doRemoveNotification)
         {
             Entries = new Hashtable(keyComparer);
             CacheLock = new ReaderWriterLock();
-            this.lowWaterMark = lowWaterMark;
+            _lowWaterMark = lowWaterMark;
             Capacity = maxCacheItems;
-            this.purgingMode = purgingMode;
-            this.purgeInterval = purgeInterval;
-            this.doRemoveNotification = doRemoveNotification;
-            nextPurgeTimeUtc = DateTime.UtcNow.Add(this.purgeInterval);
+            _purgingMode = purgingMode;
+            _purgeInterval = purgeInterval;
+            _doRemoveNotification = doRemoveNotification;
+            _nextPurgeTimeUtc = DateTime.UtcNow.Add(_purgeInterval);
         }
 
         public int Count => Entries.Count;
@@ -40,11 +40,11 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (purgeCallback == null)
+                if (s_purgeCallback == null)
                 {
-                    purgeCallback = new Action<object>(PurgeCallbackStatic);
+                    s_purgeCallback = new Action<object>(PurgeCallbackStatic);
                 }
-                return purgeCallback;
+                return s_purgeCallback;
             }
         }
 
@@ -61,23 +61,23 @@ namespace CoreWCF.Security
 
         private void CancelTimerIfNeeded()
         {
-            if (Count == 0 && purgingTimer != null)
+            if (Count == 0 && _purgingTimer != null)
             {
-                purgingTimer.Cancel();
-                purgingTimer = null;
+                _purgingTimer.Cancel();
+                _purgingTimer = null;
             }
         }
 
         private void StartTimerIfNeeded()
         {
-            if (purgingMode != PurgingMode.TimerBasedPurge)
+            if (_purgingMode != PurgingMode.TimerBasedPurge)
             {
                 return;
             }
-            if (purgingTimer == null)
+            if (_purgingTimer == null)
             {
-                purgingTimer = new IOThreadTimer(PurgeCallback, this, false);
-                purgingTimer.Set(purgeInterval);
+                _purgingTimer = new IOThreadTimer(PurgeCallback, this, false);
+                _purgingTimer.Set(_purgeInterval);
             }
         }
 
@@ -107,7 +107,7 @@ namespace CoreWCF.Security
                 {
                     Entries[key] = item;
                 }
-                if (currentItem != null && doRemoveNotification)
+                if (currentItem != null && _doRemoveNotification)
                 {
                     OnRemove(ExtractItem(currentItem));
                 }
@@ -144,7 +144,7 @@ namespace CoreWCF.Security
                 else
                 {
                     Entries[key] = new ExpirableItem(item, expirationTime);
-                    if (currentItem != null && doRemoveNotification)
+                    if (currentItem != null && _doRemoveNotification)
                     {
                         OnRemove(ExtractItem(currentItem));
                     }
@@ -174,7 +174,7 @@ namespace CoreWCF.Security
                 }
 
                 int count = Entries.Count;
-                if (doRemoveNotification)
+                if (_doRemoveNotification)
                 {
                     foreach (IExpirableItem item in Entries.Values)
                     {
@@ -255,7 +255,7 @@ namespace CoreWCF.Security
                 if (currentItem != null)
                 {
                     Entries.Remove(key);
-                    if (doRemoveNotification)
+                    if (_doRemoveNotification)
                     {
                         OnRemove(ExtractItem(currentItem));
                     }
@@ -290,7 +290,6 @@ namespace CoreWCF.Security
                     {
                         Entries.Remove(keysToBeRemoved[i]);
                     }
-
                 }
                 CancelTimerIfNeeded();
                 if (Count >= Capacity)
@@ -325,7 +324,7 @@ namespace CoreWCF.Security
             {
                 return true;
             }
-            else if (purgingMode == PurgingMode.AccessBasedPurge && DateTime.UtcNow > nextPurgeTimeUtc && Count > lowWaterMark)
+            else if (_purgingMode == PurgingMode.AccessBasedPurge && DateTime.UtcNow > _nextPurgeTimeUtc && Count > _lowWaterMark)
             {
                 return true;
             }
@@ -376,7 +375,7 @@ namespace CoreWCF.Security
                 Entries.Remove(expiredItems[i]);
             }
             CancelTimerIfNeeded();
-            nextPurgeTimeUtc = DateTime.UtcNow.Add(purgeInterval);
+            _nextPurgeTimeUtc = DateTime.UtcNow.Add(_purgeInterval);
         }
 
         private void ThrowQuotaReachedException()
@@ -400,14 +399,14 @@ namespace CoreWCF.Security
                     lockHeld = true;
                 }
 
-                if (self.purgingTimer == null)
+                if (self._purgingTimer == null)
                 {
                     return;
                 }
                 self.PurgeStaleItems();
-                if (self.Count > 0 && self.purgingTimer != null)
+                if (self.Count > 0 && self._purgingTimer != null)
                 {
-                    self.purgingTimer.Set(self.purgeInterval);
+                    self._purgingTimer.Set(self._purgeInterval);
                 }
             }
             finally
@@ -426,17 +425,17 @@ namespace CoreWCF.Security
 
         internal class ExpirableItemComparer : IComparer<IExpirableItem>
         {
-            private static ExpirableItemComparer instance;
+            private static ExpirableItemComparer s_instance;
 
             public static ExpirableItemComparer Default
             {
                 get
                 {
-                    if (instance == null)
+                    if (s_instance == null)
                     {
-                        instance = new ExpirableItemComparer();
+                        s_instance = new ExpirableItemComparer();
                     }
-                    return instance;
+                    return s_instance;
                 }
             }
 

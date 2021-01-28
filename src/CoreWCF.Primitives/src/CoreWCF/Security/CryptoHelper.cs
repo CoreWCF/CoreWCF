@@ -11,8 +11,8 @@ namespace CoreWCF.Security
 {
     internal static class CryptoHelper
     {
-        private static byte[] emptyBuffer;
-        private static readonly RandomNumberGenerator random = new RNGCryptoServiceProvider();
+        private static byte[] s_emptyBuffer;
+        private static readonly RandomNumberGenerator s_random = new RNGCryptoServiceProvider();
 
         private enum CryptoAlgorithmType
         {
@@ -25,12 +25,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (emptyBuffer == null)
+                if (s_emptyBuffer == null)
                 {
                     byte[] tmp = new byte[0];
-                    emptyBuffer = tmp;
+                    s_emptyBuffer = tmp;
                 }
-                return emptyBuffer;
+                return s_emptyBuffer;
             }
         }
 
@@ -66,7 +66,6 @@ namespace CoreWCF.Security
                     return SHA256.Create();
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.UnsupportedCryptoAlgorithm, digestMethod)));
-
             }
         }
 
@@ -117,7 +116,6 @@ namespace CoreWCF.Security
             if (count < 0 || count > cipherText.Length)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), SR.Format(SR.ValueMustBeInRange, 0, cipherText.Length)));
-
             }
             if (offset < 0 || offset > cipherText.Length - count)
             {
@@ -144,7 +142,7 @@ namespace CoreWCF.Security
 
         internal static void FillRandomBytes(byte[] buffer)
         {
-            random.GetBytes(buffer);
+            s_random.GetBytes(buffer);
         }
 
         private static CryptoAlgorithmType GetAlgorithmType(string algorithm)
@@ -339,6 +337,5 @@ namespace CoreWCF.Security
                    SR.Format(SR.KeyLengthMustBeMultipleOfEight, keyLength)));
             }
         }
-
     }
 }

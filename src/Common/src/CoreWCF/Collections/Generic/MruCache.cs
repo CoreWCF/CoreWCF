@@ -167,5 +167,4 @@ namespace CoreWCF.Collections.Generic
             internal LinkedListNode<TKey> node;
         }
     }
-
 }

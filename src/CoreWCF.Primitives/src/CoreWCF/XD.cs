@@ -10,50 +10,50 @@ namespace CoreWCF
     {
         static public ServiceModelDictionary Dictionary { get { return ServiceModelDictionary.CurrentVersion; } }
 
-        private static ActivityIdFlowDictionary activityIdFlowDictionary;
-        private static AddressingDictionary addressingDictionary;
-        private static Addressing10Dictionary addressing10Dictionary;
-        private static Addressing200408Dictionary addressing200408Dictionary;
-        private static AddressingNoneDictionary addressingNoneDictionary;
-        private static AtomicTransactionExternalDictionary atomicTransactionExternalDictionary;
-        private static AtomicTransactionExternal10Dictionary atomicTransactionExternal10Dictionary;
-        private static CoordinationExternalDictionary coordinationExternalDictionary;
-        private static CoordinationExternal10Dictionary coordinationExternal10Dictionary;
-        private static DotNetAddressingDictionary dotNetAddressingDictionary;
-        private static DotNetAtomicTransactionExternalDictionary dotNetAtomicTransactionExternalDictionary;
-        private static DotNetOneWayDictionary dotNetOneWayDictionary;
-        private static DotNetSecurityDictionary dotNetSecurityDictionary;
-        private static ExclusiveC14NDictionary exclusiveC14NDictionary;
-        private static MessageDictionary messageDictionary;
-        private static Message11Dictionary message11Dictionary;
-        private static Message12Dictionary message12Dictionary;
-        private static OleTxTransactionExternalDictionary oleTxTransactionExternalDictionary;
-        private static PeerWireStringsDictionary peerWireStringsDictionary;
-        private static PolicyDictionary policyDictionary;
-        private static SamlDictionary samlDictionary;
-        private static SecureConversationApr2004Dictionary secureConversationApr2004Dictionary;
-        private static SecureConversationFeb2005Dictionary secureConversationFeb2005Dictionary;
-        private static SecurityAlgorithmDictionary securityAlgorithmDictionary;
-        private static SecurityJan2004Dictionary securityJan2004Dictionary;
-        private static SecurityXXX2005Dictionary securityXXX2005Dictionary;
-        private static SerializationDictionary serializationDictionary;
-        private static TrustApr2004Dictionary trustApr2004Dictionary;
-        private static TrustFeb2005Dictionary trustFeb2005Dictionary;
-        private static UtilityDictionary utilityDictionary;
-        private static WsrmFeb2005Dictionary wsrmFeb2005Dictionary;
-        private static XmlEncryptionDictionary xmlEncryptionDictionary;
-        private static XmlSignatureDictionary xmlSignatureDictionary;
+        private static ActivityIdFlowDictionary s_activityIdFlowDictionary;
+        private static AddressingDictionary s_addressingDictionary;
+        private static Addressing10Dictionary s_addressing10Dictionary;
+        private static Addressing200408Dictionary s_addressing200408Dictionary;
+        private static AddressingNoneDictionary s_addressingNoneDictionary;
+        private static AtomicTransactionExternalDictionary s_atomicTransactionExternalDictionary;
+        private static AtomicTransactionExternal10Dictionary s_atomicTransactionExternal10Dictionary;
+        private static CoordinationExternalDictionary s_coordinationExternalDictionary;
+        private static CoordinationExternal10Dictionary s_coordinationExternal10Dictionary;
+        private static DotNetAddressingDictionary s_dotNetAddressingDictionary;
+        private static DotNetAtomicTransactionExternalDictionary s_dotNetAtomicTransactionExternalDictionary;
+        private static DotNetOneWayDictionary s_dotNetOneWayDictionary;
+        private static DotNetSecurityDictionary s_dotNetSecurityDictionary;
+        private static ExclusiveC14NDictionary s_exclusiveC14NDictionary;
+        private static MessageDictionary s_messageDictionary;
+        private static Message11Dictionary s_message11Dictionary;
+        private static Message12Dictionary s_message12Dictionary;
+        private static OleTxTransactionExternalDictionary s_oleTxTransactionExternalDictionary;
+        private static PeerWireStringsDictionary s_peerWireStringsDictionary;
+        private static PolicyDictionary s_policyDictionary;
+        private static SamlDictionary s_samlDictionary;
+        private static SecureConversationApr2004Dictionary s_secureConversationApr2004Dictionary;
+        private static SecureConversationFeb2005Dictionary s_secureConversationFeb2005Dictionary;
+        private static SecurityAlgorithmDictionary s_securityAlgorithmDictionary;
+        private static SecurityJan2004Dictionary s_securityJan2004Dictionary;
+        private static SecurityXXX2005Dictionary s_securityXXX2005Dictionary;
+        private static SerializationDictionary s_serializationDictionary;
+        private static TrustApr2004Dictionary s_trustApr2004Dictionary;
+        private static TrustFeb2005Dictionary s_trustFeb2005Dictionary;
+        private static UtilityDictionary s_utilityDictionary;
+        private static WsrmFeb2005Dictionary s_wsrmFeb2005Dictionary;
+        private static XmlEncryptionDictionary s_xmlEncryptionDictionary;
+        private static XmlSignatureDictionary s_xmlSignatureDictionary;
 
         static public ActivityIdFlowDictionary ActivityIdFlowDictionary
         {
             get
             {
-                if (activityIdFlowDictionary == null)
+                if (s_activityIdFlowDictionary == null)
                 {
-                    activityIdFlowDictionary = new ActivityIdFlowDictionary(Dictionary);
+                    s_activityIdFlowDictionary = new ActivityIdFlowDictionary(Dictionary);
                 }
 
-                return activityIdFlowDictionary;
+                return s_activityIdFlowDictionary;
             }
         }
 
@@ -61,12 +61,12 @@ namespace CoreWCF
         {
             get
             {
-                if (addressingDictionary == null)
+                if (s_addressingDictionary == null)
                 {
-                    addressingDictionary = new AddressingDictionary(Dictionary);
+                    s_addressingDictionary = new AddressingDictionary(Dictionary);
                 }
 
-                return addressingDictionary;
+                return s_addressingDictionary;
             }
         }
 
@@ -74,12 +74,12 @@ namespace CoreWCF
         {
             get
             {
-                if (addressing10Dictionary == null)
+                if (s_addressing10Dictionary == null)
                 {
-                    addressing10Dictionary = new Addressing10Dictionary(Dictionary);
+                    s_addressing10Dictionary = new Addressing10Dictionary(Dictionary);
                 }
 
-                return addressing10Dictionary;
+                return s_addressing10Dictionary;
             }
         }
 
@@ -87,12 +87,12 @@ namespace CoreWCF
         {
             get
             {
-                if (addressing200408Dictionary == null)
+                if (s_addressing200408Dictionary == null)
                 {
-                    addressing200408Dictionary = new Addressing200408Dictionary(Dictionary);
+                    s_addressing200408Dictionary = new Addressing200408Dictionary(Dictionary);
                 }
 
-                return addressing200408Dictionary;
+                return s_addressing200408Dictionary;
             }
         }
 
@@ -100,12 +100,12 @@ namespace CoreWCF
         {
             get
             {
-                if (addressingNoneDictionary == null)
+                if (s_addressingNoneDictionary == null)
                 {
-                    addressingNoneDictionary = new AddressingNoneDictionary(Dictionary);
+                    s_addressingNoneDictionary = new AddressingNoneDictionary(Dictionary);
                 }
 
-                return addressingNoneDictionary;
+                return s_addressingNoneDictionary;
             }
         }
 
@@ -113,12 +113,12 @@ namespace CoreWCF
         {
             get
             {
-                if (atomicTransactionExternalDictionary == null)
+                if (s_atomicTransactionExternalDictionary == null)
                 {
-                    atomicTransactionExternalDictionary = new AtomicTransactionExternalDictionary(Dictionary);
+                    s_atomicTransactionExternalDictionary = new AtomicTransactionExternalDictionary(Dictionary);
                 }
 
-                return atomicTransactionExternalDictionary;
+                return s_atomicTransactionExternalDictionary;
             }
         }
 
@@ -126,12 +126,12 @@ namespace CoreWCF
         {
             get
             {
-                if (atomicTransactionExternal10Dictionary == null)
+                if (s_atomicTransactionExternal10Dictionary == null)
                 {
-                    atomicTransactionExternal10Dictionary = new AtomicTransactionExternal10Dictionary(Dictionary);
+                    s_atomicTransactionExternal10Dictionary = new AtomicTransactionExternal10Dictionary(Dictionary);
                 }
 
-                return atomicTransactionExternal10Dictionary;
+                return s_atomicTransactionExternal10Dictionary;
             }
         }
 
@@ -139,12 +139,12 @@ namespace CoreWCF
         {
             get
             {
-                if (coordinationExternalDictionary == null)
+                if (s_coordinationExternalDictionary == null)
                 {
-                    coordinationExternalDictionary = new CoordinationExternalDictionary(Dictionary);
+                    s_coordinationExternalDictionary = new CoordinationExternalDictionary(Dictionary);
                 }
 
-                return coordinationExternalDictionary;
+                return s_coordinationExternalDictionary;
             }
         }
 
@@ -152,12 +152,12 @@ namespace CoreWCF
         {
             get
             {
-                if (coordinationExternal10Dictionary == null)
+                if (s_coordinationExternal10Dictionary == null)
                 {
-                    coordinationExternal10Dictionary = new CoordinationExternal10Dictionary(Dictionary);
+                    s_coordinationExternal10Dictionary = new CoordinationExternal10Dictionary(Dictionary);
                 }
 
-                return coordinationExternal10Dictionary;
+                return s_coordinationExternal10Dictionary;
             }
         }
 
@@ -165,12 +165,12 @@ namespace CoreWCF
         {
             get
             {
-                if (dotNetAddressingDictionary == null)
+                if (s_dotNetAddressingDictionary == null)
                 {
-                    dotNetAddressingDictionary = new DotNetAddressingDictionary(Dictionary);
+                    s_dotNetAddressingDictionary = new DotNetAddressingDictionary(Dictionary);
                 }
 
-                return dotNetAddressingDictionary;
+                return s_dotNetAddressingDictionary;
             }
         }
 
@@ -178,12 +178,12 @@ namespace CoreWCF
         {
             get
             {
-                if (dotNetAtomicTransactionExternalDictionary == null)
+                if (s_dotNetAtomicTransactionExternalDictionary == null)
                 {
-                    dotNetAtomicTransactionExternalDictionary = new DotNetAtomicTransactionExternalDictionary(Dictionary);
+                    s_dotNetAtomicTransactionExternalDictionary = new DotNetAtomicTransactionExternalDictionary(Dictionary);
                 }
 
-                return dotNetAtomicTransactionExternalDictionary;
+                return s_dotNetAtomicTransactionExternalDictionary;
             }
         }
 
@@ -191,12 +191,12 @@ namespace CoreWCF
         {
             get
             {
-                if (dotNetOneWayDictionary == null)
+                if (s_dotNetOneWayDictionary == null)
                 {
-                    dotNetOneWayDictionary = new DotNetOneWayDictionary(Dictionary);
+                    s_dotNetOneWayDictionary = new DotNetOneWayDictionary(Dictionary);
                 }
 
-                return dotNetOneWayDictionary;
+                return s_dotNetOneWayDictionary;
             }
         }
 
@@ -204,12 +204,12 @@ namespace CoreWCF
         {
             get
             {
-                if (dotNetSecurityDictionary == null)
+                if (s_dotNetSecurityDictionary == null)
                 {
-                    dotNetSecurityDictionary = new DotNetSecurityDictionary(Dictionary);
+                    s_dotNetSecurityDictionary = new DotNetSecurityDictionary(Dictionary);
                 }
 
-                return dotNetSecurityDictionary;
+                return s_dotNetSecurityDictionary;
             }
         }
 
@@ -217,12 +217,12 @@ namespace CoreWCF
         {
             get
             {
-                if (exclusiveC14NDictionary == null)
+                if (s_exclusiveC14NDictionary == null)
                 {
-                    exclusiveC14NDictionary = new ExclusiveC14NDictionary(Dictionary);
+                    s_exclusiveC14NDictionary = new ExclusiveC14NDictionary(Dictionary);
                 }
 
-                return exclusiveC14NDictionary;
+                return s_exclusiveC14NDictionary;
             }
         }
 
@@ -230,12 +230,12 @@ namespace CoreWCF
         {
             get
             {
-                if (messageDictionary == null)
+                if (s_messageDictionary == null)
                 {
-                    messageDictionary = new MessageDictionary(Dictionary);
+                    s_messageDictionary = new MessageDictionary(Dictionary);
                 }
 
-                return messageDictionary;
+                return s_messageDictionary;
             }
         }
 
@@ -243,12 +243,12 @@ namespace CoreWCF
         {
             get
             {
-                if (message11Dictionary == null)
+                if (s_message11Dictionary == null)
                 {
-                    message11Dictionary = new Message11Dictionary(Dictionary);
+                    s_message11Dictionary = new Message11Dictionary(Dictionary);
                 }
 
-                return message11Dictionary;
+                return s_message11Dictionary;
             }
         }
 
@@ -256,12 +256,12 @@ namespace CoreWCF
         {
             get
             {
-                if (message12Dictionary == null)
+                if (s_message12Dictionary == null)
                 {
-                    message12Dictionary = new Message12Dictionary(Dictionary);
+                    s_message12Dictionary = new Message12Dictionary(Dictionary);
                 }
 
-                return message12Dictionary;
+                return s_message12Dictionary;
             }
         }
 
@@ -269,12 +269,12 @@ namespace CoreWCF
         {
             get
             {
-                if (oleTxTransactionExternalDictionary == null)
+                if (s_oleTxTransactionExternalDictionary == null)
                 {
-                    oleTxTransactionExternalDictionary = new OleTxTransactionExternalDictionary(Dictionary);
+                    s_oleTxTransactionExternalDictionary = new OleTxTransactionExternalDictionary(Dictionary);
                 }
 
-                return oleTxTransactionExternalDictionary;
+                return s_oleTxTransactionExternalDictionary;
             }
         }
 
@@ -282,12 +282,12 @@ namespace CoreWCF
         {
             get
             {
-                if (peerWireStringsDictionary == null)
+                if (s_peerWireStringsDictionary == null)
                 {
-                    peerWireStringsDictionary = new PeerWireStringsDictionary(Dictionary);
+                    s_peerWireStringsDictionary = new PeerWireStringsDictionary(Dictionary);
                 }
 
-                return peerWireStringsDictionary;
+                return s_peerWireStringsDictionary;
             }
         }
 
@@ -295,12 +295,12 @@ namespace CoreWCF
         {
             get
             {
-                if (policyDictionary == null)
+                if (s_policyDictionary == null)
                 {
-                    policyDictionary = new PolicyDictionary(Dictionary);
+                    s_policyDictionary = new PolicyDictionary(Dictionary);
                 }
 
-                return policyDictionary;
+                return s_policyDictionary;
             }
         }
 
@@ -308,12 +308,12 @@ namespace CoreWCF
         {
             get
             {
-                if (samlDictionary == null)
+                if (s_samlDictionary == null)
                 {
-                    samlDictionary = new SamlDictionary(Dictionary);
+                    s_samlDictionary = new SamlDictionary(Dictionary);
                 }
 
-                return samlDictionary;
+                return s_samlDictionary;
             }
         }
 
@@ -321,12 +321,12 @@ namespace CoreWCF
         {
             get
             {
-                if (secureConversationApr2004Dictionary == null)
+                if (s_secureConversationApr2004Dictionary == null)
                 {
-                    secureConversationApr2004Dictionary = new SecureConversationApr2004Dictionary(Dictionary);
+                    s_secureConversationApr2004Dictionary = new SecureConversationApr2004Dictionary(Dictionary);
                 }
 
-                return secureConversationApr2004Dictionary;
+                return s_secureConversationApr2004Dictionary;
             }
         }
 
@@ -334,12 +334,12 @@ namespace CoreWCF
         {
             get
             {
-                if (secureConversationFeb2005Dictionary == null)
+                if (s_secureConversationFeb2005Dictionary == null)
                 {
-                    secureConversationFeb2005Dictionary = new SecureConversationFeb2005Dictionary(Dictionary);
+                    s_secureConversationFeb2005Dictionary = new SecureConversationFeb2005Dictionary(Dictionary);
                 }
 
-                return secureConversationFeb2005Dictionary;
+                return s_secureConversationFeb2005Dictionary;
             }
         }
 
@@ -347,12 +347,12 @@ namespace CoreWCF
         {
             get
             {
-                if (securityAlgorithmDictionary == null)
+                if (s_securityAlgorithmDictionary == null)
                 {
-                    securityAlgorithmDictionary = new SecurityAlgorithmDictionary(Dictionary);
+                    s_securityAlgorithmDictionary = new SecurityAlgorithmDictionary(Dictionary);
                 }
 
-                return securityAlgorithmDictionary;
+                return s_securityAlgorithmDictionary;
             }
         }
 
@@ -360,12 +360,12 @@ namespace CoreWCF
         {
             get
             {
-                if (securityJan2004Dictionary == null)
+                if (s_securityJan2004Dictionary == null)
                 {
-                    securityJan2004Dictionary = new SecurityJan2004Dictionary(Dictionary);
+                    s_securityJan2004Dictionary = new SecurityJan2004Dictionary(Dictionary);
                 }
 
-                return securityJan2004Dictionary;
+                return s_securityJan2004Dictionary;
             }
         }
 
@@ -373,12 +373,12 @@ namespace CoreWCF
         {
             get
             {
-                if (securityXXX2005Dictionary == null)
+                if (s_securityXXX2005Dictionary == null)
                 {
-                    securityXXX2005Dictionary = new SecurityXXX2005Dictionary(Dictionary);
+                    s_securityXXX2005Dictionary = new SecurityXXX2005Dictionary(Dictionary);
                 }
 
-                return securityXXX2005Dictionary;
+                return s_securityXXX2005Dictionary;
             }
         }
 
@@ -386,12 +386,12 @@ namespace CoreWCF
         {
             get
             {
-                if (serializationDictionary == null)
+                if (s_serializationDictionary == null)
                 {
-                    serializationDictionary = new SerializationDictionary(Dictionary);
+                    s_serializationDictionary = new SerializationDictionary(Dictionary);
                 }
 
-                return serializationDictionary;
+                return s_serializationDictionary;
             }
         }
 
@@ -399,12 +399,12 @@ namespace CoreWCF
         {
             get
             {
-                if (trustApr2004Dictionary == null)
+                if (s_trustApr2004Dictionary == null)
                 {
-                    trustApr2004Dictionary = new TrustApr2004Dictionary(Dictionary);
+                    s_trustApr2004Dictionary = new TrustApr2004Dictionary(Dictionary);
                 }
 
-                return trustApr2004Dictionary;
+                return s_trustApr2004Dictionary;
             }
         }
 
@@ -412,12 +412,12 @@ namespace CoreWCF
         {
             get
             {
-                if (trustFeb2005Dictionary == null)
+                if (s_trustFeb2005Dictionary == null)
                 {
-                    trustFeb2005Dictionary = new TrustFeb2005Dictionary(Dictionary);
+                    s_trustFeb2005Dictionary = new TrustFeb2005Dictionary(Dictionary);
                 }
 
-                return trustFeb2005Dictionary;
+                return s_trustFeb2005Dictionary;
             }
         }
 
@@ -425,12 +425,12 @@ namespace CoreWCF
         {
             get
             {
-                if (utilityDictionary == null)
+                if (s_utilityDictionary == null)
                 {
-                    utilityDictionary = new UtilityDictionary(Dictionary);
+                    s_utilityDictionary = new UtilityDictionary(Dictionary);
                 }
 
-                return utilityDictionary;
+                return s_utilityDictionary;
             }
         }
 
@@ -438,12 +438,12 @@ namespace CoreWCF
         {
             get
             {
-                if (wsrmFeb2005Dictionary == null)
+                if (s_wsrmFeb2005Dictionary == null)
                 {
-                    wsrmFeb2005Dictionary = new WsrmFeb2005Dictionary(Dictionary);
+                    s_wsrmFeb2005Dictionary = new WsrmFeb2005Dictionary(Dictionary);
                 }
 
-                return wsrmFeb2005Dictionary;
+                return s_wsrmFeb2005Dictionary;
             }
         }
 
@@ -451,12 +451,12 @@ namespace CoreWCF
         {
             get
             {
-                if (xmlEncryptionDictionary == null)
+                if (s_xmlEncryptionDictionary == null)
                 {
-                    xmlEncryptionDictionary = new XmlEncryptionDictionary(Dictionary);
+                    s_xmlEncryptionDictionary = new XmlEncryptionDictionary(Dictionary);
                 }
 
-                return xmlEncryptionDictionary;
+                return s_xmlEncryptionDictionary;
             }
         }
 
@@ -464,15 +464,14 @@ namespace CoreWCF
         {
             get
             {
-                if (xmlSignatureDictionary == null)
+                if (s_xmlSignatureDictionary == null)
                 {
-                    xmlSignatureDictionary = new XmlSignatureDictionary(Dictionary);
+                    s_xmlSignatureDictionary = new XmlSignatureDictionary(Dictionary);
                 }
 
-                return xmlSignatureDictionary;
+                return s_xmlSignatureDictionary;
             }
         }
-
     }
 
     internal class ActivityIdFlowDictionary
@@ -1092,7 +1091,6 @@ namespace CoreWCF
 
     internal class SecureConversationApr2004Dictionary : SecureConversationDictionary
     {
-
         public SecureConversationApr2004Dictionary(ServiceModelDictionary dictionary)
             : base(dictionary)
         {
@@ -1117,7 +1115,6 @@ namespace CoreWCF
             RenewNeededFaultCode = dictionary.CreateString(ServiceModelStringsVersion1.String127, 127);
             BadContextTokenFaultCode = dictionary.CreateString(ServiceModelStringsVersion1.String128, 128);
         }
-
     }
 
     internal class SecureConversationFeb2005Dictionary : SecureConversationDictionary
@@ -1467,7 +1464,6 @@ namespace CoreWCF
 
     internal class TrustApr2004Dictionary : TrustDictionary
     {
-
         public TrustApr2004Dictionary(ServiceModelDictionary dictionary)
             : base(dictionary)
         {
@@ -1519,7 +1515,6 @@ namespace CoreWCF
 
     internal class TrustFeb2005Dictionary : TrustDictionary
     {
-
         public TrustFeb2005Dictionary(ServiceModelDictionary dictionary)
             : base(dictionary)
         {
@@ -2593,5 +2588,4 @@ namespace CoreWCF
         public const string X509Ski = "X509SKI";
         public const string TransformationParameters = "TransformationParameters";
     }
-
 }
