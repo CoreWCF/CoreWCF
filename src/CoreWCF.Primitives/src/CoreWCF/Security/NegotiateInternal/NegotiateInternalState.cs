@@ -10,7 +10,7 @@ using System.Security.Principal;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
-    class NegotiateInternalState : INegotiateInternalState
+   internal class NegotiateInternalState : INegotiateInternalState
     {
         // https://www.gnu.org/software/gss/reference/gss.pdf
         private const uint GSS_S_NO_CRED = 7 << 16;

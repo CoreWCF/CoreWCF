@@ -293,7 +293,6 @@ namespace CoreWCF.Channels
              }*/
         }
 
-        
         static BindingContext CreateIssuerBindingContextForNegotiation(BindingContext issuerBindingContext)
         {
             TransportBindingElement transport = issuerBindingContext.RemainingBindingElements.Find<TransportBindingElement>();
@@ -867,33 +866,6 @@ namespace CoreWCF.Channels
             result.SupportsExtendedProtectionPolicy = true;
 
             return result;
-        }
-
-        // this method reverses CreateSspiNegotiationOverTransportBindingElement() logic
-        internal static bool IsSspiNegotiationOverTransportBinding(SecurityBindingElement sbe, bool requireCancellation)
-        {
-            // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
-
-            if (!sbe.IncludeTimestamp)
-                return false;
-
-            SupportingTokenParameters parameters = sbe.EndpointSupportingTokenParameters;
-            if (parameters.Signed.Count != 0 || parameters.SignedEncrypted.Count != 0 || parameters.Endorsing.Count != 1 || parameters.SignedEndorsing.Count != 0)
-                return false;
-            SspiSecurityTokenParameters sspiParameters = parameters.Endorsing[0] as SspiSecurityTokenParameters;
-            if (sspiParameters == null)
-                return false;
-
-            if (sspiParameters.RequireDerivedKeys)
-                return false;
-
-            if (sspiParameters.RequireCancellation != requireCancellation)
-                return false;
-
-            if (!(sbe is TransportSecurityBindingElement))
-                return false;
-
-            return true;
         }
 
         //TODO other security mode

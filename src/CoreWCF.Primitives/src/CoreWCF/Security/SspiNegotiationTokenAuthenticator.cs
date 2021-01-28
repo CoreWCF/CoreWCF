@@ -176,11 +176,11 @@ namespace CoreWCF.Security
         {
             if (request == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("request");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(request));
             }
             if (requestSecurityToken == null)
             {
-                throw TraceUtility.ThrowHelperArgumentNull("requestSecurityToken", request);
+                throw TraceUtility.ThrowHelperArgumentNull(nameof(requestSecurityToken), request);
             }
             if (requestSecurityToken.RequestType != null && requestSecurityToken.RequestType != this.StandardsManager.TrustDriver.RequestTypeIssue)
             {
@@ -227,11 +227,11 @@ namespace CoreWCF.Security
         {
             if (request == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("request");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(request));
             }
             if (requestSecurityTokenResponse == null)
             {
-                throw TraceUtility.ThrowHelperArgumentNull("requestSecurityTokenResponse", request);
+                throw TraceUtility.ThrowHelperArgumentNull(nameof(requestSecurityTokenResponse), request);
             }
             if (requestSecurityTokenResponse.Context != negotiationState.Context)
             {

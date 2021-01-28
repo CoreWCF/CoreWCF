@@ -30,23 +30,6 @@ namespace CoreWCF.Security
             this.negotiateState = passedNegotiateState;
         }
 
-        //TODO incorporate
-        //public DateTime ExpirationTimeUtc
-        //{
-        //    get
-        //    {
-        //       // ThrowIfDisposed();
-        //        // if (this.LifeSpan == null)
-        //        {
-        //            return SecurityUtils.MaxUtcDateTime;
-        //        }
-        //        //  else
-        //        // {
-        //        //      return this.LifeSpan.ExpiryTimeUtc;
-        //        //  }
-        //    }
-        //}
-
         public bool IsCompleted => this.isCompleted;
 
         public bool IsValidContext => this.negotiateState.IsValidContext;
@@ -99,6 +82,7 @@ namespace CoreWCF.Security
             }
             return string.Empty;
         }
+
         public IIdentity GetIdentity()
         {
             if (IsValidContext)

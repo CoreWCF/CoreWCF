@@ -77,14 +77,9 @@ namespace CoreWCF.Security
 
         public override Task OpenAsync(CancellationToken token)
         {
-            base.OpenAsync(token);
-          //  if (this.credentialsHandle == null)
-          //  {
-          //      this.credentialsHandle = SecurityUtils.GetCredentialsHandle("Negotiate", this.serverCredential, true);
-          //  }
-          if(this.negotiateHandler ==null)
+          base.OpenAsync(token);
+          if(this.negotiateHandler == null)
                 this.negotiateHandler = (NegotiateInternal.NegotiateInternalState)new NegotiateInternal.NegotiateInternalStateFactory().CreateInstance();
-
             return Task.CompletedTask;
         }
 
@@ -143,16 +138,6 @@ namespace CoreWCF.Security
             }
             else
                 throw new Exception("Identity can't be determined.");
-            //using (SafeCloseHandle contextToken = windowsNegotiation.GetContextToken())
-            //{
-            //    WindowsIdentity windowsIdentity = new WindowsIdentity(contextToken.DangerousGetHandle(), windowsNegotiation.ProtocolName);
-            //    SecurityUtils.ValidateAnonymityConstraint(windowsIdentity, this.AllowUnauthenticatedCallers);
-
-            //    List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1);
-            //    WindowsClaimSet wic = new WindowsClaimSet(windowsIdentity, windowsNegotiation.ProtocolName, this.extractGroupsForWindowsAccounts, false);
-            //    policies.Add(new CoreWCF.IdentityModel.Policy.UnconditionalPolicy(wic, TimeoutHelper.Add(DateTime.UtcNow, base.ServiceTokenLifetime)));
-            //    return policies.AsReadOnly();
-            //}
         }
 
         ReadOnlyCollection<IAuthorizationPolicy> GetAuthorizationPolicies(IIdentity identity)

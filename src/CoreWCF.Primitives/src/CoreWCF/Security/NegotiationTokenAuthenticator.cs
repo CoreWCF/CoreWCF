@@ -119,12 +119,12 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", "TimeSpanMustbeGreaterThanTimeSpanZero"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
                 this.serviceTokenLifetime = value;
@@ -142,7 +142,7 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.Format(SR.ValueMustBeNonNegative)));
                 }
                 this.maximumCachedNegotiationState = value;
             }
@@ -159,7 +159,7 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.Format(SR.ValueMustBeNonNegative)));
                 }
                 this.maximumConcurrentNegotiations = value;
             }
@@ -176,12 +176,12 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", "TimeSpanMustbeGreaterThanTimeSpanZero"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
                 this.negotiationTimeout = value;
@@ -342,7 +342,7 @@ namespace CoreWCF.Security
                 this.CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 this.issuerBindingContext = value.Clone();
             }
@@ -684,7 +684,6 @@ namespace CoreWCF.Security
                     this.activeNegotiationChannels2 = this.activeNegotiationChannels1;
                     this.activeNegotiationChannels1 = temp;
                 }
-#pragma warning suppress 56500
                 catch (Exception e)
                 {
                     if (Fx.IsFatal(e))
@@ -714,7 +713,7 @@ namespace CoreWCF.Security
         {
             if (request == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("request");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(request));
             }
             Uri to = null;
             RequestSecurityToken rst = null;
@@ -971,7 +970,7 @@ namespace CoreWCF.Security
 
             internal void InitializeRuntime()
             {
-                
+
                 MessageFilter contractFilter = this.listenerFilter;
                 int filterPriority = Int32.MaxValue - 20;
                 List<Type> endpointChannelTypes = new List<Type> {  typeof(IReplyChannel),
@@ -987,25 +986,16 @@ namespace CoreWCF.Security
                 // channelDispatcher.ServiceThrottle = new ServiceThrottle(this);
                 // channelDispatcher.ServiceThrottle.MaxConcurrentCalls = this.authenticator.MaximumConcurrentNegotiations;
                 // channelDispatcher.ServiceThrottle.MaxConcurrentSessions = this.authenticator.MaximumConcurrentNegotiations;
-                EndpointDispatcher endpointDispatcher = null;
-                try
+                EndpointDispatcher endpointDispatcher  = new EndpointDispatcher(new EndpointAddress(this.listenUri, new AddressHeader[0]), "SecurityNegotiationContract", "http://tempuri.org/", true)
                 {
-
-
-                     endpointDispatcher = new EndpointDispatcher(new EndpointAddress(this.listenUri, new AddressHeader[0]), "SecurityNegotiationContract", "http://tempuri.org/", true)
-                    {
-                        DispatchRuntime = {
+                    DispatchRuntime = {
                     SingletonInstanceContext = new InstanceContext((ServiceHostBase) null, (object) this.authenticator, false),
                     ConcurrencyMode = ConcurrencyMode.Multiple
                     },
-                        AddressFilter = (MessageFilter)new MatchAllMessageFilter(),
-                        ContractFilter = listenerFilter,
-                        FilterPriority = filterPriority
-                    };
-                }catch(Exception ex)
-                {
-                    Console.WriteLine("Ex: -" + ex.Message);
-                }
+                    AddressFilter = (MessageFilter)new MatchAllMessageFilter(),
+                    ContractFilter = listenerFilter,
+                    FilterPriority = filterPriority
+                };
                 endpointDispatcher.DispatchRuntime.PrincipalPermissionMode = PrincipalPermissionMode.None;
                 endpointDispatcher.DispatchRuntime.InstanceContextProvider = (IInstanceContextProvider)new SingletonInstanceContextProvider(endpointDispatcher.DispatchRuntime);
                 endpointDispatcher.DispatchRuntime.SynchronizationContext = (SynchronizationContext)null;

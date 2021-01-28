@@ -8035,7 +8035,7 @@
    <data name="NoKeyInfoClausesToWrite" xml:space="preserve">
     <value>The SecurityKeyIdentifier has no key identifier clauses to write.</value>
  </data>
-  <data name = "TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
+  <data name="TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
     <value>TimeSpan must be greater than TimeSpan.Zero.</value>
   </data>
 </root>

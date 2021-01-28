@@ -558,6 +558,7 @@ namespace CoreWCF.Security
             FaultCode senderCode = FaultCode.CreateSenderFaultCode(subCode);
             return MessageFault.CreateFault(senderCode, reason);
         }
+
         internal static MessageFault CreateSecurityMessageFault(Exception e, SecurityStandardsManager standardsManager)
         {
             bool isSecurityError = false;
@@ -1335,6 +1336,7 @@ namespace CoreWCF.Security
             }
             return str.Length <= 0 ? String.Empty : str.ToString();
         }
+
         internal static void AppendIdentityName(StringBuilder str, IIdentity identity)
         {
             string name = null;

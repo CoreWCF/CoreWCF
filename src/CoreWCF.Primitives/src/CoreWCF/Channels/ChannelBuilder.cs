@@ -51,22 +51,24 @@ namespace CoreWCF.Channels
         {
             get { return channelDemuxer; }
         }
+
         public TypedChannelDemuxer GetTypedChannelDemuxer<TChannel>() where TChannel : class, IChannel
         {
             return ChannelDemuxer.GetTypedServiceDispatcher<TChannel>(context);
         }
+
         public  IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             if (!isChannelDemuxerRequired)
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, context);
+            return channelDemuxer.CreateServiceDispatcher<TChannel>(innerDispatcher, context);
         }
 
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter) where TChannel : class, IChannel
         {
             if (!isChannelDemuxerRequired)
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter, context);
+            return channelDemuxer.CreateServiceDispatcher<TChannel>(innerDispatcher, filter, context);
         }
 
         public void RemoveServiceDispatcher<TChannel>(MessageFilter filter) where TChannel : class, IChannel

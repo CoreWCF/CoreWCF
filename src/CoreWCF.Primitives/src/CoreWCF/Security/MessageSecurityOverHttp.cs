@@ -33,15 +33,17 @@ namespace CoreWCF
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
+
                 if(value is MessageCredentialType.Windows)
                 {
                     //TODO Remove this after .net 5+
-                   var frameworkDescription = RuntimeInformation.FrameworkDescription;
+                    var frameworkDescription = RuntimeInformation.FrameworkDescription;
                     if (frameworkDescription.IndexOf(NetFrameworkFrameworkName, StringComparison.Ordinal) >= 0)
                     {
-                        throw new PlatformNotSupportedException();
+                        throw new PlatformNotSupportedException("Windows auth only supported on .NET Core");
                     }
                 }
+
                 this.clientCredentialType = value;
             }
         }
@@ -88,8 +90,8 @@ namespace CoreWCF
                         oneShotSecurity = SecurityBindingElement.CreateCertificateOverTransportBindingElement();
                         break;
                     case MessageCredentialType.Windows:
-                       oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
-                       break;
+                        oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
+                        break;
                     //case MessageCredentialType.IssuedToken:
                     //    oneShotSecurity = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes: true)), this.algorithmSuite));
                     //    break;

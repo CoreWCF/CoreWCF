@@ -73,9 +73,7 @@ namespace WSHttp
             }
         }
 
-        //This test meant to be run locally.
-        //To make this test run, ensure to change the  defaultInactivityTimeout = TimeSpan.FromSeconds(5) in SecuritySessionServerSettings.
-        // [Fact, Description("Demuxer-failure")]
+        [Fact(Skip = "run locally,  change  defaultInactivityTimeout = TimeSpan.FromSeconds(5) in SecuritySessionServerSettings"), Description("Demuxer-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
@@ -233,11 +231,6 @@ namespace WSHttp
             public WSHttpTransportSecurityOnly() : base(SecurityMode.Transport, MessageCredentialType.None)
             {
             }
-
-            public override void ChangeHostBehavior(ServiceHostBase host)
-            {
-                //nothing to do
-            }
         }
 
         internal class WSHttpTransportSecurityWindowsAuth : StartupWSHttpBase
@@ -245,22 +238,12 @@ namespace WSHttp
             public WSHttpTransportSecurityWindowsAuth() : base(CoreWCF.SecurityMode.TransportWithMessageCredential, MessageCredentialType.Windows)
             {
             }
-
-            public override void ChangeHostBehavior(ServiceHostBase host)
-            {
-                //nothing to do
-            }
         }
 
         internal class WSHttpNoSecurity : StartupWSHttpBase
         {
             public WSHttpNoSecurity() : base(SecurityMode.None, MessageCredentialType.None)
             {
-            }
-
-            public override void ChangeHostBehavior(ServiceHostBase host)
-            {
-                //nothing to do
             }
         }
 
@@ -278,7 +261,10 @@ namespace WSHttp
                 services.AddServiceModelServices();
             }
 
-            public abstract void ChangeHostBehavior(ServiceHostBase host);
+            public virtual void ChangeHostBehavior(ServiceHostBase host)
+            {
+
+            }
 
             public void Configure(IApplicationBuilder app, IHostingEnvironment env)
             {

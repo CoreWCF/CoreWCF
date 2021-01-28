@@ -363,7 +363,7 @@ namespace CoreWCF.Dispatcher
         public abstract Task DispatchAsync(Message message);
     }
 
-    internal class SecurityReplyChannelDispatcher : ServerSecurityChannelDispatcher<IReplyChannel>  , IReplyChannel
+    internal class SecurityReplyChannelDispatcher : ServerSecurityChannelDispatcher<IReplyChannel>, IReplyChannel
     {
         private readonly bool _sendUnsecuredFaults;
         internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;

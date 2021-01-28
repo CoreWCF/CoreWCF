@@ -6,7 +6,6 @@ using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Security
 {
-
     sealed class NegotiationTokenAuthenticatorStateCache<T> : TimeBoundedCache
         where T : NegotiationTokenAuthenticatorState
     {

@@ -6,7 +6,6 @@ namespace CoreWCF.Security.NegotiateInternal
 {
     enum NegotiateInternalSecurityStatusErrorCode
     {
-        
         NotSet = 0,
         OK,
         ContinueNeeded,
@@ -52,6 +51,5 @@ namespace CoreWCF.Security.NegotiateInternal
         BadBinding,
         DowngradeDetected,
         ApplicationProtocolMismatch
-    
-}
+    }
 }
