@@ -212,13 +212,13 @@ namespace WSHttp
         {
             public override CoreWCF.Channels.Binding ChangeBinding(WSHttpBinding binding)
             {
-               
                CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding(binding);
                CoreWCF.Channels.SecurityBindingElement security = customBinding.Elements.Find<CoreWCF.Channels.SecurityBindingElement>();
                security.LocalServiceSettings.InactivityTimeout = TimeSpan.FromSeconds(3);
                return customBinding;
             }
         }
+
         internal class WSHttpTransportWithMessageCredentialWithUserName : StartupWSHttpBase
         {
             public WSHttpTransportWithMessageCredentialWithUserName() :
@@ -246,9 +246,7 @@ namespace WSHttp
 
         internal class WSHttpTransportSecurityWindowsAuth : StartupWSHttpBase
         {
-            public WSHttpTransportSecurityWindowsAuth() : base(CoreWCF.SecurityMode.TransportWithMessageCredential, MessageCredentialType.Windows)
-            {
-            }
+            public WSHttpTransportSecurityWindowsAuth() : base(CoreWCF.SecurityMode.TransportWithMessageCredential, MessageCredentialType.Windows) { }
         }
 
         internal class WSHttpNoSecurity : StartupWSHttpBase
