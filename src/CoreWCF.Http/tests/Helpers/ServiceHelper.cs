@@ -77,6 +77,7 @@ namespace Helpers
         //    };
         //}
 
+        public static bool useMessageSecurity = false;
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
             WebHost.CreateDefaultBuilder(new string[0])
 #if DEBUG
@@ -158,7 +159,7 @@ namespace Helpers
                 });
             })
             .UseStartup<TStartup>();
-
+    
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)
         {
             foreach (System.ServiceModel.ICommunicationObject comObj in objects)
@@ -281,5 +282,21 @@ namespace Helpers
 			Stream stream = input.stream;
 			return GetStringFrom(stream);
 		}
-	}
+	
+        public static CustomBinding GetCustomServerBinding(CompressionFormat serverCompressionFormat, TransferMode transferMode)
+        {
+            BinaryMessageEncodingBindingElement binaryMessageEncodingElement = new BinaryMessageEncodingBindingElement();
+            binaryMessageEncodingElement.CompressionFormat = serverCompressionFormat;
+            HttpTransportBindingElement tranportBE = new HttpTransportBindingElement
+            {
+                TransferMode = transferMode,
+                MaxReceivedMessageSize = int.MaxValue
+            };
+
+            var customBinding = new CustomBinding();
+            customBinding.Elements.Add(binaryMessageEncodingElement);
+            customBinding.Elements.Add(tranportBE);
+            return new CustomBinding(customBinding);
+        }
+    }
 }

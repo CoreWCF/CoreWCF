@@ -37,6 +37,68 @@ namespace CoreWCF.Http.Tests
             }
         }
 
+        [Theory]
+        [InlineData("ClientCompressionDisabled")]
+        [InlineData("ClientCompressionDisabledStreamed")]
+        [InlineData("CompressionEnabledClientAndService")]
+#if NET472
+        [InlineData("CompressionEnabledClientAndServiceStreamed")]
+#endif
+        [InlineData("ServerCompressionDisabled")]
+        public void BinaryMessageEncoderCompressionWithDiffTransferModes(string variation)
+        {
+            string testString = "hello";
+            var host = ServiceHelper.CreateWebHostBuilder<CompressionWithDifferentTransferModesStartup>(_output).Build();
+            System.ServiceModel.Channels.CustomBinding httpBinding;
+            System.ServiceModel.ChannelFactory<ClientContract.IBinaryMessageEncoderService> factory = null;
+
+            using (host)
+            {
+                host.Start();
+                switch (variation)
+                {
+                    //Enable Compression on server and disable compression on client with TransferMode Buffered
+                    case "ClientCompressionDisabled":
+                        httpBinding = ClientHelper.GetCustomClientBinding(System.ServiceModel.Channels.CompressionFormat.None, System.ServiceModel.TransferMode.Buffered);
+                        factory = new System.ServiceModel.ChannelFactory<ClientContract.IBinaryMessageEncoderService>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc/clientDisabledBuffered")));
+                        break;
+                    //Enable Compression on server and disable compression on client with TransferMode Streamed
+                    case "ClientCompressionDisabledStreamed":
+                        httpBinding = ClientHelper.GetCustomClientBinding(System.ServiceModel.Channels.CompressionFormat.None, System.ServiceModel.TransferMode.StreamedResponse);
+                        factory = new System.ServiceModel.ChannelFactory<ClientContract.IBinaryMessageEncoderService>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc/clientDisabledStreamed")));
+                        break;
+                    //Enable Compression on server and client with TransferMode Buffered
+                    case "CompressionEnabledClientAndService":
+                        httpBinding = ClientHelper.GetCustomClientBinding(System.ServiceModel.Channels.CompressionFormat.GZip, System.ServiceModel.TransferMode.Buffered);
+                        factory = new System.ServiceModel.ChannelFactory<ClientContract.IBinaryMessageEncoderService>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc/bothEnabledBuffered")));
+                        break;
+                    //Enable Compression on server and client with TransferMode Streamed
+                    case "CompressionEnabledClientAndServiceStreamed":
+                        httpBinding = ClientHelper.GetCustomClientBinding(System.ServiceModel.Channels.CompressionFormat.Deflate, System.ServiceModel.TransferMode.Streamed);
+                        factory = new System.ServiceModel.ChannelFactory<ClientContract.IBinaryMessageEncoderService>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc/bothEnabledStreamed")));
+                        break;
+                    //Enable Compression on Client and disable compression on Service with TransferMode Buffered
+                    case "ServerCompressionDisabled":
+                        httpBinding = ClientHelper.GetCustomClientBinding(System.ServiceModel.Channels.CompressionFormat.GZip, System.ServiceModel.TransferMode.Buffered);
+                        factory = new System.ServiceModel.ChannelFactory<ClientContract.IBinaryMessageEncoderService>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc/serviceDisabledBuffered")));
+                        break;
+                    default:
+                        break;
+                }
+
+                var channel = factory.CreateChannel();
+                if (variation == "ServerCompressionDisabled")
+                {
+                    Assert.Throws<System.ServiceModel.CommunicationException>(() => channel.EchoString(testString));
+                }
+                else
+                {
+                    Assert.Equal(testString, channel.EchoString(testString));
+                    Assert.NotNull(channel.GetStream());
+                }
+            }
+        }
+
         public static IEnumerable<object[]> GetTestVariations()
         {
             yield return new object[] { typeof(BinaryEncoderWithGzipStartup), BinaryEncoderWithGzipStartup.GetClientBinding() };
@@ -89,6 +151,27 @@ namespace CoreWCF.Http.Tests
             }
 
             protected abstract CompressionFormat CompressionFormat { get; }
+        }
+
+        internal class CompressionWithDifferentTransferModesStartup
+        {
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.BinaryMessageEncoderService>();
+                    builder.AddServiceEndpoint<Services.BinaryMessageEncoderService, ServiceContract.IBinaryMessageEncoderService>(ServiceHelper.GetCustomServerBinding(CompressionFormat.Deflate, TransferMode.Buffered), "/BasicWcfService/basichttp.svc/clientDisabledBuffered");
+                    builder.AddServiceEndpoint<Services.BinaryMessageEncoderService, ServiceContract.IBinaryMessageEncoderService>(ServiceHelper.GetCustomServerBinding(CompressionFormat.Deflate, TransferMode.StreamedResponse), "/BasicWcfService/basichttp.svc/clientDisabledStreamed");
+                    builder.AddServiceEndpoint<Services.BinaryMessageEncoderService, ServiceContract.IBinaryMessageEncoderService>(ServiceHelper.GetCustomServerBinding(CompressionFormat.GZip, TransferMode.Buffered), "/BasicWcfService/basichttp.svc/bothEnabledBuffered");
+                    builder.AddServiceEndpoint<Services.BinaryMessageEncoderService, ServiceContract.IBinaryMessageEncoderService>(ServiceHelper.GetCustomServerBinding(CompressionFormat.Deflate, TransferMode.Streamed), "/BasicWcfService/basichttp.svc/bothEnabledStreamed");
+                    builder.AddServiceEndpoint<Services.BinaryMessageEncoderService, ServiceContract.IBinaryMessageEncoderService>(ServiceHelper.GetCustomServerBinding(CompressionFormat.None, TransferMode.Buffered), "/BasicWcfService/basichttp.svc/serviceDisabledBuffered");
+                });
+            }
         }
     }
 }

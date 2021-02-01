@@ -8,9 +8,12 @@ using System.Text;
 
 namespace Helpers
 {
-	public static class ClientHelper
-	{
-		private static TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
+    public static class ClientHelper
+    {
+        public static bool useMessageSecurity = false;
+        public static CustomBinding clientBinding;
+
+        private static TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
         public static Binding GetBufferedModHttp1Binding()
         {
@@ -223,12 +226,28 @@ namespace Helpers
 			return GetStringFrom(stream);
 		}
 
-		public static T GetProxy<T>()
-		{
-			var httpBinding = ClientHelper.GetBufferedModeBinding();
-			ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-			T proxy = channelFactory.CreateChannel();
-			return proxy;
-		}
-	}
+        public static T GetProxy<T>()
+        {
+            var httpBinding = ClientHelper.GetBufferedModeBinding();
+            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            T proxy = channelFactory.CreateChannel();
+            return proxy;
+        }
+
+        public static CustomBinding GetCustomClientBinding(CompressionFormat clientCompressionFormat, TransferMode transferMode)
+        {
+            BinaryMessageEncodingBindingElement binaryMessageEncodingElement = new BinaryMessageEncodingBindingElement();
+            binaryMessageEncodingElement.CompressionFormat = clientCompressionFormat;
+            HttpTransportBindingElement tranportBE = new HttpTransportBindingElement
+            {
+                TransferMode = transferMode,
+                MaxReceivedMessageSize = int.MaxValue
+            };
+
+            CustomBinding customBinding = new CustomBinding();
+            customBinding.Elements.Add(binaryMessageEncodingElement);
+            customBinding.Elements.Add(tranportBE);
+            return new CustomBinding(customBinding);
+        }
+    }
 }

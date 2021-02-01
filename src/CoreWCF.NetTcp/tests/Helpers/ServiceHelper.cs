@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
+using CoreWCF.Channels;
+using CoreWCF;
 
 namespace Helpers
 {
@@ -69,6 +71,20 @@ namespace Helpers
                     comObj.Abort();
                 }
             }
+        }
+
+        public static CustomBinding GetCustomServerBinding(CompressionFormat serverCompressionFormat, TransferMode transferMode)
+        {
+            BinaryMessageEncodingBindingElement binaryMessageEncodingElement = new BinaryMessageEncodingBindingElement();
+            binaryMessageEncodingElement.CompressionFormat = serverCompressionFormat;
+            TcpTransportBindingElement tranportBE = new TcpTransportBindingElement();
+            tranportBE.TransferMode = transferMode;
+            tranportBE.MaxReceivedMessageSize = int.MaxValue;
+
+            var customBinding = new CustomBinding();
+            customBinding.Elements.Add(binaryMessageEncodingElement);
+            customBinding.Elements.Add(tranportBE);
+            return new CustomBinding(customBinding);
         }
     }
 }

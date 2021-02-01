@@ -37,5 +37,21 @@ namespace Helpers
                     binding.ReceiveTimeout = s_debugTimeout;
             }
         }
+
+        public static CustomBinding GetCustomClientBinding(CompressionFormat clientCompressionFormat, TransferMode transferMode)
+        {
+            BinaryMessageEncodingBindingElement binaryMessageEncodingElement = new BinaryMessageEncodingBindingElement();
+            binaryMessageEncodingElement.CompressionFormat = clientCompressionFormat;
+            TcpTransportBindingElement tranportBE = new TcpTransportBindingElement
+            {
+                TransferMode = transferMode,
+                MaxReceivedMessageSize = int.MaxValue
+            };
+
+            CustomBinding customBinding = new CustomBinding();
+            customBinding.Elements.Add(binaryMessageEncodingElement);
+            customBinding.Elements.Add(tranportBE);
+            return new CustomBinding(customBinding);
+        }
     }
 }
