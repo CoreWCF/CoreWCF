@@ -18,7 +18,7 @@ namespace CoreWCF.Channels
         private readonly HttpContext _httpContext;
         private readonly WebSocket _webSocket;
         private CookieCollection _cookieCollection;
-        private readonly NameValueCollection _headers;
+        private NameValueCollection _headers;
         private bool? _isLocal;
         private Uri _requestUri;
 
@@ -37,7 +37,7 @@ namespace CoreWCF.Channels
                 if (_cookieCollection == null)
                 {
                     var cookieContainer = new CookieContainer();
-                    foreach (var item in _httpContext.Request.Cookies)
+                    foreach (KeyValuePair<string, string> item in _httpContext.Request.Cookies)
                     {
                         cookieContainer.SetCookies(RequestUri, item.Value);
                     }
@@ -56,10 +56,11 @@ namespace CoreWCF.Channels
                 if (_headers == null)
                 {
                     var headers = new NameValueCollection();
-                    foreach (var header in _httpContext.Request.Headers)
+                    foreach (KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues> header in _httpContext.Request.Headers)
                     {
                         headers.Add(header.Key, header.Value);
                     }
+                    _headers = headers;
                 }
 
                 return _headers;
@@ -74,7 +75,7 @@ namespace CoreWCF.Channels
             {
                 if (!_isLocal.HasValue)
                 {
-                    var connection = _httpContext.Connection;
+                    ConnectionInfo connection = _httpContext.Connection;
                     if (connection.RemoteIpAddress != null)
                     {
                         if (connection.RemoteIpAddress.Equals(connection.LocalIpAddress))

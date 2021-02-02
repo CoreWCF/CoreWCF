@@ -11,10 +11,7 @@ namespace CoreWCF.Description
     public class OperationDescription
     {
         internal const string SessionOpenedAction = "http://schemas.microsoft.com/2011/02/session/onopen"; //Channels.WebSocketTransportSettings.ConnectionOpenedAction;
-        private bool _isSessionOpenNotificationEnabled;
         private ContractDescription _declaringContract;
-        private readonly Collection<Type> _knownTypes;
-        private MethodInfo _taskMethod;
         private bool _hasNoDisposableParameters;
 
         public OperationDescription(string name, ContractDescription declaringContract)
@@ -31,18 +28,13 @@ namespace CoreWCF.Description
             }
 
             XmlName = new XmlName(name, true /*isEncoded*/);
-            if (declaringContract == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(declaringContract));
-            }
-
-            _declaringContract = declaringContract;
+            _declaringContract = declaringContract ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(declaringContract));
             IsInitiating = true;
             IsTerminating = false;
             Faults = new FaultDescriptionCollection();
             Messages = new MessageDescriptionCollection();
             Behaviors = new KeyedByTypeCollection<IOperationBehavior>();
-            _knownTypes = new Collection<Type>();
+            KnownTypes = new Collection<Type>();
         }
 
         internal bool HasNoDisposableParameters
@@ -65,11 +57,7 @@ namespace CoreWCF.Description
 
         // Not serializable on purpose, metadata import/export cannot
         // produce it, only available when binding to runtime
-        public MethodInfo TaskMethod
-        {
-            get { return _taskMethod; }
-            set { _taskMethod = value; }
-        }
+        public MethodInfo TaskMethod { get; set; }
 
         internal MethodInfo OperationMethod
         {
@@ -111,10 +99,7 @@ namespace CoreWCF.Description
             get { return Messages.Count == 1; }
         }
 
-        public Collection<Type> KnownTypes
-        {
-            get { return _knownTypes; }
-        }
+        public Collection<Type> KnownTypes { get; }
 
         // Messages[0] is the 'request' (first of MEP), and for non-oneway MEPs, Messages[1] is the 'response' (second of MEP)
         public MessageDescriptionCollection Messages { get; }
@@ -164,10 +149,6 @@ namespace CoreWCF.Description
             set;
         }
 
-        internal bool IsSessionOpenNotificationEnabled
-        {
-            get { return _isSessionOpenNotificationEnabled; }
-            set { _isSessionOpenNotificationEnabled = value; }
-        }
+        internal bool IsSessionOpenNotificationEnabled { get; set; }
     }
 }

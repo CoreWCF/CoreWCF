@@ -30,14 +30,14 @@ namespace BasicHttp
         [Fact]
         public void InvokeTaskBaseAsycn()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestPrimitives>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/TaskPrimitives/basichttp.svc")));
-                var channel = factory.CreateChannel();
+                ITestPrimitives channel = factory.CreateChannel();
 
                 Task[] tasks = new Task[22];
                 tasks[0] = channel.GetInt();

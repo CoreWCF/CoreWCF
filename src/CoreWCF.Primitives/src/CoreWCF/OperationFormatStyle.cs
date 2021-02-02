@@ -11,7 +11,7 @@ namespace CoreWCF
 
     internal static class OperationFormatStyleHelper
     {
-        static public bool IsDefined(OperationFormatStyle x)
+        public static bool IsDefined(OperationFormatStyle x)
         {
             return
                 x == OperationFormatStyle.Document ||

@@ -215,8 +215,7 @@ namespace CoreWCF.IdentityModel.Claims
                 claims.Add(Claim.CreateUriClaim(new Uri(value)));
             }
 
-            RSA rsa = _certificate.PublicKey.Key as RSA;
-            if (rsa != null)
+            if (_certificate.PublicKey.Key is RSA rsa)
             {
                 claims.Add(Claim.CreateRsaClaim(rsa));
             }
@@ -251,7 +250,7 @@ namespace CoreWCF.IdentityModel.Claims
         public override IEnumerable<Claim> FindClaims(string claimType, string right)
         {
             ThrowIfDisposed();
-            if (!SupportedClaimType(claimType) || !ClaimSet.SupportedRight(right))
+            if (!SupportedClaimType(claimType) || !SupportedRight(right))
             {
                 yield break;
             }
@@ -270,7 +269,7 @@ namespace CoreWCF.IdentityModel.Claims
             {
                 if (right == null || Rights.PossessProperty.Equals(right))
                 {
-                    foreach (var claim in GetDnsClaims(_certificate))
+                    foreach (Claim claim in GetDnsClaims(_certificate))
                     {
                         yield return claim;
                     }
@@ -340,10 +339,12 @@ namespace CoreWCF.IdentityModel.Claims
                 }
 
                 Identity = new X509Identity(x500DistinguishedName);
-                List<Claim> claims = new List<Claim>(2);
-                claims.Add(new Claim(ClaimTypes.X500DistinguishedName, x500DistinguishedName, Rights.Identity));
-                claims.Add(Claim.CreateX500DistinguishedNameClaim(x500DistinguishedName));
-                Initialize(ClaimSet.Anonymous, claims);
+                List<Claim> claims = new List<Claim>(2)
+                {
+                    new Claim(ClaimTypes.X500DistinguishedName, x500DistinguishedName, Rights.Identity),
+                    Claim.CreateX500DistinguishedNameClaim(x500DistinguishedName)
+                };
+                Initialize(Anonymous, claims);
             }
 
             public IIdentity Identity { get; }
@@ -386,7 +387,9 @@ namespace CoreWCF.IdentityModel.Claims
                 private set;
             }
 
+
             // static initializer will run before properties are accessed
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Static constructors shouldn't throw so need to catch all exceptions")]
             static X509SubjectAlternativeNameConstants()
             {
                 // Extracted a well-known X509Extension

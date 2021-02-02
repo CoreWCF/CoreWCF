@@ -80,7 +80,7 @@ namespace CoreWCF.Dispatcher
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
-                var inputCount = parameters.Length;
+                int inputCount = parameters.Length;
                 inputParameterCount = inputCount;
 
                 var outputParamPositions = new List<int>();
@@ -92,7 +92,7 @@ namespace CoreWCF.Dispatcher
                     }
                 }
 
-                var outputPos = outputParamPositions.ToArray();
+                int[] outputPos = outputParamPositions.ToArray();
                 outputParameterCount = outputPos.Length;
 
                 // TODO: Replace with expression to remove performance cost of calling delegate.Invoke.
@@ -102,7 +102,7 @@ namespace CoreWCF.Dispatcher
                     if (inputCount > 0)
                     {
                         inputsLocal = new object[inputCount];
-                        for (var i = 0; i < inputCount; i++)
+                        for (int i = 0; i < inputCount; i++)
                         {
                             inputsLocal[i] = inputs[i];
                         }
@@ -125,7 +125,7 @@ namespace CoreWCF.Dispatcher
                         ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
                     }
 
-                    for (var i = 0; i < outputPos.Length; i++)
+                    for (int i = 0; i < outputPos.Length; i++)
                     {
                         outputs[i] = inputs[outputPos[i]];
                     }

@@ -70,11 +70,8 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
-            if (algorithm == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
-            }
-            _algorithm = algorithm;
+
+            _algorithm = algorithm ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
             State = EncryptionState.DecryptionSetup;
         }
 
@@ -84,11 +81,8 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
-            if (algorithm == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
-            }
-            _algorithm = algorithm;
+
+            _algorithm = algorithm ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
             _buffer = buffer;
             State = EncryptionState.EncryptionSetup;
         }

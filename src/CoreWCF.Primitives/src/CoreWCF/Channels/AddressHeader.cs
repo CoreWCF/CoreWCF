@@ -22,8 +22,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                BufferedAddressHeader bah = this as BufferedAddressHeader;
-                return bah != null && bah.IsReferencePropertyHeader;
+                return this is BufferedAddressHeader bah && bah.IsReferencePropertyHeader;
             }
         }
 
@@ -70,8 +69,7 @@ namespace CoreWCF.Channels
 
         public override bool Equals(object obj)
         {
-            AddressHeader hdr = obj as AddressHeader;
-            if (hdr == null)
+            if (!(obj is AddressHeader hdr))
             {
                 return false;
             }

@@ -17,7 +17,7 @@ namespace CoreWCF.Channels
 
         public void Configure(IApplicationBuilder app)
         {
-            var logger = app.ApplicationServices.GetRequiredService<ILogger<HttpTransportServiceBuilder>>();
+            ILogger<HttpTransportServiceBuilder> logger = app.ApplicationServices.GetRequiredService<ILogger<HttpTransportServiceBuilder>>();
             logger.LogDebug($"Configure called _configured:{_configured} _configuredTime:{_configuredTime}");
             if (!_configured)
             {
@@ -37,7 +37,7 @@ namespace CoreWCF.Channels
 
         private void ConfigureCore(IApplicationBuilder app)
         {
-            var logger = app.ApplicationServices.GetRequiredService<ILogger<HttpTransportServiceBuilder>>();
+            ILogger<HttpTransportServiceBuilder> logger = app.ApplicationServices.GetRequiredService<ILogger<HttpTransportServiceBuilder>>();
             logger.LogDebug("Adding ServiceModelHttpMiddleware to app builder");
             app.UseMiddleware<ServiceModelHttpMiddleware>(app);
         }

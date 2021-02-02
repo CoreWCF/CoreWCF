@@ -7,10 +7,10 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Primitives.Tests.Helpers
 {
-    public class BufferManagerTestsCommon
+    public static class BufferManagerTestsCommon
     {
-        private static readonly string SynchronizedBufferPool = "synchronizedbufferpool";
-        private static readonly string LargeBufferPool = "largebufferpool";
+        private const string SynchronizedBufferPool = "synchronizedbufferpool";
+        private const string LargeBufferPool = "largebufferpool";
         public static int TrainingCount = 64;
         public static int LargeBufferLimit = 85000;
 
@@ -19,7 +19,7 @@ namespace CoreWCF.Primitives.Tests.Helpers
             bool flag = true;
             PropertyInfo property = bufferManager.GetType().GetProperty("InternalBufferManager");
             object value = property.GetValue(bufferManager, null);
-            object obj = value.GetType().InvokeMember("bufferPools", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.GetField, null, value, null);
+            object obj = value.GetType().InvokeMember("_bufferPools", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.GetField, null, value, null);
             Array array = obj as Array;
             for (int i = 0; i < array.Length; i++)
             {

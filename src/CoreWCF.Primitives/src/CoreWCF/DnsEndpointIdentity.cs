@@ -15,7 +15,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dnsName));
             }
 
-            base.Initialize(Claim.CreateDnsClaim(dnsName));
+            Initialize(Claim.CreateDnsClaim(dnsName));
         }
 
         public DnsEndpointIdentity(Claim identity)
@@ -30,7 +30,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.UnrecognizedClaimTypeForIdentity, identity.ClaimType, ClaimTypes.Dns));
             }
 
-            base.Initialize(identity);
+            Initialize(identity);
         }
 
         internal override void WriteContentsTo(XmlDictionaryWriter writer)

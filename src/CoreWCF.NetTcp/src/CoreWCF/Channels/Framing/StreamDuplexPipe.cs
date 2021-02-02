@@ -50,8 +50,8 @@ namespace CoreWCF.Channels.Framing
         private async Task RunAsync(Stream stream)
         {
             await Task.Yield();
-            var inputTask = ReadInputAsync(stream);
-            var outputTask = WriteOutputAsync(stream);
+            Task inputTask = ReadInputAsync(stream);
+            Task outputTask = WriteOutputAsync(stream);
 
             await inputTask;
             await outputTask;
@@ -68,8 +68,8 @@ namespace CoreWCF.Channels.Framing
 
                 while (true)
                 {
-                    var result = await Output.Reader.ReadAsync();
-                    var buffer = result.Buffer;
+                    ReadResult result = await Output.Reader.ReadAsync();
+                    System.Buffers.ReadOnlySequence<byte> buffer = result.Buffer;
 
                     try
                     {
@@ -84,7 +84,7 @@ namespace CoreWCF.Channels.Framing
                         }
                         else if (buffer.IsSingleSegment)
                         {
-                            if (!MemoryMarshal.TryGetArray(buffer.First, out var segment))
+                            if (!MemoryMarshal.TryGetArray(buffer.First, out ArraySegment<byte> segment))
                             {
                                 throw new InvalidOperationException("Buffer backed by array was expected");
                             }
@@ -96,9 +96,9 @@ namespace CoreWCF.Channels.Framing
                         }
                         else
                         {
-                            foreach (var memory in buffer)
+                            foreach (ReadOnlyMemory<byte> memory in buffer)
                             {
-                                if (!MemoryMarshal.TryGetArray(memory, out var segment))
+                                if (!MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment))
                                 {
                                     throw new InvalidOperationException("Buffer backed by array was expected");
                                 }
@@ -139,13 +139,13 @@ namespace CoreWCF.Channels.Framing
 
                 while (true)
                 {
-                    var outputBuffer = Input.Writer.GetMemory(s_minAllocBufferSize);
+                    Memory<byte> outputBuffer = Input.Writer.GetMemory(s_minAllocBufferSize);
 
-                    if (!MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>)outputBuffer, out var segment))
+                    if (!MemoryMarshal.TryGetArray((ReadOnlyMemory<byte>)outputBuffer, out ArraySegment<byte> segment))
                     {
                         throw new InvalidOperationException("Buffer backed by array was expected");
                     }
-                    var bytesRead = await stream.ReadAsync(segment.Array, segment.Offset, segment.Count);
+                    int bytesRead = await stream.ReadAsync(segment.Array, segment.Offset, segment.Count);
 
                     // Once we've moved past netstandard2.0, we can replace the code with this line:
                     // var bytesRead = await stream.ReadAsync(outputBuffer);
@@ -158,7 +158,7 @@ namespace CoreWCF.Channels.Framing
                         break;
                     }
 
-                    var result = await Input.Writer.FlushAsync();
+                    FlushResult result = await Input.Writer.FlushAsync();
 
                     if (result.IsCompleted)
                     {

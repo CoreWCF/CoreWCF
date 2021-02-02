@@ -266,7 +266,7 @@ namespace CoreWCF.Runtime
 
             if (size < 0)
             {
-                throw Fx.Exception.ArgumentOutOfRange("size", size, SR.ValueMustBeNonNegative);
+                throw Fx.Exception.ArgumentOutOfRange(nameof(size), size, SR.ValueMustBeNonNegative);
             }
 
             if ((int.MaxValue - size) < _totalSize)

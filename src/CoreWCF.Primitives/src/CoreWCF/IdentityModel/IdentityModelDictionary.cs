@@ -9,7 +9,7 @@ namespace CoreWCF.IdentityModel
 {
     internal class IdentityModelDictionary : IXmlDictionary
     {
-        static public readonly IdentityModelDictionary Version1 = new IdentityModelDictionary(new IdentityModelStringsVersion1());
+        public static readonly IdentityModelDictionary Version1 = new IdentityModelDictionary(new IdentityModelStringsVersion1());
         private readonly IdentityModelStrings _strings;
         private readonly int _count;
         private XmlDictionaryString[] _dictionaryStrings;
@@ -22,7 +22,7 @@ namespace CoreWCF.IdentityModel
             _count = strings.Count;
         }
 
-        static public IdentityModelDictionary CurrentVersion
+        public static IdentityModelDictionary CurrentVersion
         {
             get
             {
@@ -39,7 +39,7 @@ namespace CoreWCF.IdentityModel
         {
             if (key == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("key"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
             }
 
             if (_dictionary == null)
@@ -87,7 +87,7 @@ namespace CoreWCF.IdentityModel
         {
             if (key == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("key"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
             }
 
             if (key.Dictionary == this)

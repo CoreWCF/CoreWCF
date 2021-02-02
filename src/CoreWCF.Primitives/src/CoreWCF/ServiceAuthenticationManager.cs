@@ -25,12 +25,7 @@ namespace CoreWCF
 
         internal SCTServiceAuthenticationManagerWrapper(ServiceAuthenticationManager wrappedServiceAuthManager)
         {
-            if (wrappedServiceAuthManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappedServiceAuthManager");
-            }
-
-            _wrappedAuthenticationManager = wrappedServiceAuthManager;
+            _wrappedAuthenticationManager = wrappedServiceAuthManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappedServiceAuthManager));
         }
 
         public override ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
@@ -61,11 +56,6 @@ namespace CoreWCF
 
         internal ServiceAuthenticationManagerWrapper(ServiceAuthenticationManager wrappedServiceAuthManager, string[] actionUriFilter)
         {
-            if (wrappedServiceAuthManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappedServiceAuthManager");
-            }
-
             if ((actionUriFilter != null) && (actionUriFilter.Length > 0))
             {
                 _filteredActionUriCollection = new string[actionUriFilter.Length];
@@ -75,7 +65,7 @@ namespace CoreWCF
                 }
             }
 
-            _wrappedAuthenticationManager = wrappedServiceAuthManager;
+            _wrappedAuthenticationManager = wrappedServiceAuthManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappedServiceAuthManager));
         }
 
         public override ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
@@ -91,7 +81,7 @@ namespace CoreWCF
                 {
                     if ((message != null) &&
                         (message.Headers != null) &&
-                        !String.IsNullOrEmpty(message.Headers.Action) &&
+                        !string.IsNullOrEmpty(message.Headers.Action) &&
                         (message.Headers.Action == _filteredActionUriCollection[i]))
                     {
                         return authPolicy;

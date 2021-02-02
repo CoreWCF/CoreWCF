@@ -19,10 +19,10 @@ namespace Extensibility
         {
             var inspector = new TestDispatchMessageInspector();
             var behavior = new TestServiceBehavior { DispatchMessageInspector = inspector };
-            var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
             factory.Open();
-            var channel = factory.CreateChannel();
-            var echo = channel.Echo("hello");
+            ISimpleService channel = factory.CreateChannel();
+            string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             Assert.True(inspector.AfterReceiveCalled);
             Assert.True(inspector.BeforeSendCalled);
@@ -39,15 +39,15 @@ namespace Extensibility
             var inspector = new MessageReplacingDispatchMessageInspector(replacementEchoString);
             var behavior = new TestServiceBehavior { DispatchMessageInspector = inspector };
             var service = new DispatcherTestService();
-            var factory = DispatcherHelper.CreateChannelFactory<DispatcherTestService, ISimpleService>(
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<DispatcherTestService, ISimpleService>(
                 (services) =>
                 {
                     services.AddSingleton<IServiceBehavior>(behavior);
                     services.AddSingleton(service);
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
-            var echo = channel.Echo("hello");
+            ISimpleService channel = factory.CreateChannel();
+            string echo = channel.Echo("hello");
             Assert.Equal(replacementEchoString, service.ReceivedEcho);
             Assert.Equal(replacementEchoString, echo);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -89,7 +89,7 @@ namespace Extensibility
 
         public object AfterReceiveRequest(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            var requestMessage = TestHelper.CreateEchoRequestMessage(_replacementEchoString);
+            Message requestMessage = TestHelper.CreateEchoRequestMessage(_replacementEchoString);
             requestMessage.Headers.To = request.Headers.To;
             request = requestMessage;
             return null;

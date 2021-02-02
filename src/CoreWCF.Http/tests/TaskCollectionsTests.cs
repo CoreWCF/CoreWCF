@@ -30,13 +30,13 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void VariousCollections()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 ClientContract.ITaskCollectionsTest collectionsTest = null;
                 System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest> channelFactory = null;
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TaskCollectionsTest.svc")));
                 collectionsTest = channelFactory.CreateChannel();

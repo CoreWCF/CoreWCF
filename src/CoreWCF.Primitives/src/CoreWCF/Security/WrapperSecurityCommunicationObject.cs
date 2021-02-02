@@ -38,7 +38,7 @@ namespace CoreWCF.Security
             base.OnFaulted();
         }
 
-        new internal void ThrowIfDisposedOrImmutable()
+        internal new void ThrowIfDisposedOrImmutable()
         {
             base.ThrowIfDisposedOrImmutable();
         }

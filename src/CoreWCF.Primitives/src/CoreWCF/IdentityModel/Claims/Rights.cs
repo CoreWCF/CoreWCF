@@ -9,7 +9,7 @@ namespace CoreWCF.IdentityModel.Claims
         private const string identity = rightNamespace + "/identity";
         private const string possessProperty = rightNamespace + "/possessproperty";
 
-        static public string Identity { get { return identity; } }
-        static public string PossessProperty { get { return possessProperty; } }
+        public static string Identity { get { return identity; } }
+        public static string PossessProperty { get { return possessProperty; } }
     }
 }

@@ -7,10 +7,10 @@ namespace CoreWCF.Runtime.Diagnostics
 {
     internal sealed class EtwDiagnosticTrace
     {
-        static readonly public Guid ImmutableDefaultEtwProviderId = new Guid("{c651f5f6-1c0d-492e-8ae1-b4efd7c9d503}");
+        public static readonly Guid ImmutableDefaultEtwProviderId = new Guid("{c651f5f6-1c0d-492e-8ae1-b4efd7c9d503}");
         private static Guid s_defaultEtwProviderId = ImmutableDefaultEtwProviderId;
 
-        static public Guid DefaultEtwProviderId
+        public static Guid DefaultEtwProviderId
         {
             get
             {

@@ -30,17 +30,13 @@ namespace CoreWCF.Security
             {
                 if (rstr == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(String.Format(CultureInfo.InvariantCulture, "rstrCollection[{0}]", index));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(string.Format(CultureInfo.InvariantCulture, "rstrCollection[{0}]", index));
                 }
 
                 ++index;
             }
             RstrCollection = rstrCollection;
-            if (standardsManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
-            }
-            _standardsManager = standardsManager;
+            _standardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
         }
 
         public IEnumerable<RequestSecurityTokenResponse> RstrCollection { get; }

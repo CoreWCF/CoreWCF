@@ -7,23 +7,15 @@ namespace CoreWCF.Security
 {
     public abstract class SecurityPolicyVersion
     {
-        private readonly String _prefix;
-
-        internal SecurityPolicyVersion(String ns, String prefix)
+        internal SecurityPolicyVersion(string ns, string prefix)
         {
             Namespace = ns;
-            _prefix = prefix;
+            Prefix = prefix;
         }
 
-        public String Namespace { get; }
+        public string Namespace { get; }
 
-        public String Prefix
-        {
-            get
-            {
-                return _prefix;
-            }
-        }
+        public string Prefix { get; }
 
         public static SecurityPolicyVersion WSSecurityPolicy11
         {
@@ -40,7 +32,7 @@ namespace CoreWCF.Security
             private static readonly WSSecurityPolicyVersion11 s_instance = new WSSecurityPolicyVersion11();
 
             protected WSSecurityPolicyVersion11()
-                : base(CoreWCF.Security.WSSecurityPolicy11.WsspNamespace, WSSecurityPolicy.WsspPrefix)
+                : base(Security.WSSecurityPolicy11.WsspNamespace, WSSecurityPolicy.WsspPrefix)
             {
             }
 
@@ -58,7 +50,7 @@ namespace CoreWCF.Security
             private static readonly WSSecurityPolicyVersion12 s_instance = new WSSecurityPolicyVersion12();
 
             protected WSSecurityPolicyVersion12()
-                : base(CoreWCF.Security.WSSecurityPolicy12.WsspNamespace, WSSecurityPolicy.WsspPrefix)
+                : base(Security.WSSecurityPolicy12.WsspNamespace, WSSecurityPolicy.WsspPrefix)
             {
             }
 

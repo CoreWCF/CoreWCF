@@ -7,33 +7,15 @@ namespace CoreWCF.Dispatcher
 {
     internal class AndMessageFilter : MessageFilter
     {
-        private readonly MessageFilter _filter2;
-
         public AndMessageFilter(MessageFilter filter1, MessageFilter filter2)
         {
-            if (filter1 == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter1));
-            }
-
-            if (filter2 == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter2));
-            }
-
-            Filter1 = filter1;
-            _filter2 = filter2;
+            Filter1 = filter1 ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter1));
+            Filter2 = filter2 ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter2));
         }
 
         public MessageFilter Filter1 { get; }
 
-        public MessageFilter Filter2
-        {
-            get
-            {
-                return _filter2;
-            }
-        }
+        public MessageFilter Filter2 { get; }
 
         protected internal override IMessageFilterTable<FilterData> CreateFilterTable<FilterData>()
         {
@@ -47,7 +29,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
-            return Filter1.Match(message) && _filter2.Match(message);
+            return Filter1.Match(message) && Filter2.Match(message);
         }
 
         internal bool Match(Message message, out bool addressMatched)
@@ -60,7 +42,7 @@ namespace CoreWCF.Dispatcher
             if (Filter1.Match(message))
             {
                 addressMatched = true;
-                return _filter2.Match(message);
+                return Filter2.Match(message);
             }
             else
             {
@@ -76,7 +58,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageBuffer));
             }
 
-            return Filter1.Match(messageBuffer) && _filter2.Match(messageBuffer);
+            return Filter1.Match(messageBuffer) && Filter2.Match(messageBuffer);
         }
     }
 }

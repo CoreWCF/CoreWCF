@@ -26,8 +26,7 @@ namespace CoreWCF.Channels
 
             // add the correlator key to the request, this will be needed for cleaning up the correlator table in case of 
             // channel aborting or faulting while there are pending requests
-            ICorrelatorKey value = state as ICorrelatorKey;
-            if (value != null)
+            if (state is ICorrelatorKey value)
             {
                 value.RequestCorrelatorKey = key;
             }
@@ -86,8 +85,8 @@ namespace CoreWCF.Channels
 
         internal static bool AddressReply(Message reply, Message request)
         {
-            ReplyToInfo info = RequestReplyCorrelator.ExtractReplyToInfo(request);
-            return RequestReplyCorrelator.AddressReply(reply, info);
+            ReplyToInfo info = ExtractReplyToInfo(request);
+            return AddressReply(reply, info);
         }
 
         internal static bool AddressReply(Message reply, ReplyToInfo info)
@@ -137,14 +136,14 @@ namespace CoreWCF.Channels
 
         internal static void PrepareReply(Message reply, UniqueId messageId)
         {
-            if (object.ReferenceEquals(messageId, null))
+            if (ReferenceEquals(messageId, null))
             {
                 throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.MissingMessageID), reply);
             }
 
             MessageHeaders replyHeaders = reply.Headers;
 
-            if (object.ReferenceEquals(replyHeaders.RelatesTo, null))
+            if (ReferenceEquals(replyHeaders.RelatesTo, null))
             {
                 replyHeaders.RelatesTo = messageId;
             }
@@ -163,7 +162,7 @@ namespace CoreWCF.Channels
             {
                 MessageHeaders replyHeaders = reply.Headers;
 
-                if (object.ReferenceEquals(replyHeaders.RelatesTo, null))
+                if (ReferenceEquals(replyHeaders.RelatesTo, null))
                 {
                     replyHeaders.RelatesTo = messageId;
                 }
@@ -232,8 +231,7 @@ namespace CoreWCF.Channels
 
             public override bool Equals(object obj)
             {
-                Key other = obj as Key;
-                if (other == null)
+                if (!(obj is Key other))
                 {
                     return false;
                 }

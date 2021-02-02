@@ -16,9 +16,7 @@ namespace CoreWCF.Channels
         internal const long MaxBufferPoolSize = 512 * 1024;
         internal const int MaxBufferSize = (int)MaxReceivedMessageSize;
 
-        internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.Tls |
-                                           System.Security.Authentication.SslProtocols.Tls11 |
-                                           System.Security.Authentication.SslProtocols.Tls12;
+        internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.None; // Let the OS decide
 
         internal static MessageEncoderFactory GetDefaultMessageEncoderFactory()
         {

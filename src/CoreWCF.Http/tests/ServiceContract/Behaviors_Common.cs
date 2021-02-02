@@ -328,8 +328,10 @@ namespace ServiceContract
 
         public static string ValidateServiceInvokedBehaviors(ServiceDescription sd, ServiceEndpoint sep, OperationDescription od)
         {
-            var CustomBehaviorsList = new SortedList(4);
-            CustomBehaviorsList.Add(BehaviorType.IServiceBehavior, sd.Behaviors.FindAll<CustomBehaviorAttribute>());
+            var CustomBehaviorsList = new SortedList(4)
+            {
+                { BehaviorType.IServiceBehavior, sd.Behaviors.FindAll<CustomBehaviorAttribute>() }
+            };
             var ebs = (CoreWCF.Collections.Generic.KeyedByTypeCollection<IEndpointBehavior>)sep.EndpointBehaviors;
             CustomBehaviorsList.Add(BehaviorType.IEndpointBehavior, ebs.FindAll<CustomBehaviorAttribute>());
             var cbs = (CoreWCF.Collections.Generic.KeyedByTypeCollection<IContractBehavior>)sep.Contract.ContractBehaviors;

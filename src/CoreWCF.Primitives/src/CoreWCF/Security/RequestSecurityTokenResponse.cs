@@ -36,17 +36,14 @@ namespace CoreWCF.Security
         private SecurityToken _entropyToken;
         private BinaryNegotiation _negotiationData;
         private readonly XmlElement _rstrXml;
-        private DateTime _expirationTime;
         private bool _isLifetimeSet;
         private byte[] _authenticator;
-        private bool _isReadOnly;
         private byte[] _cachedWriteBuffer;
         private int _cachedWriteBufferLength;
         private bool _isRequestedTokenClosed;
         private object _appliesTo;
         private XmlObjectSerializer _appliesToSerializer;
         private Type _appliesToType;
-        private readonly XmlBuffer _issuedTokenBuffer;
 
         public RequestSecurityTokenResponse()
             : this(SecurityStandardsManager.DefaultInstance)
@@ -111,17 +108,13 @@ namespace CoreWCF.Security
         internal RequestSecurityTokenResponse(SecurityStandardsManager standardsManager)
             : base(true)
         {
-            if (standardsManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
-            }
-            _standardsManager = standardsManager;
+            _standardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
             ValidFrom = SecurityUtils.MinUtcDateTime;
-            _expirationTime = SecurityUtils.MaxUtcDateTime;
+            ValidTo = SecurityUtils.MaxUtcDateTime;
             _isRequestedTokenClosed = false;
             _isLifetimeSet = false;
             IsReceiver = false;
-            _isReadOnly = false;
+            IsReadOnly = false;
         }
 
         internal RequestSecurityTokenResponse(SecurityStandardsManager standardsManager,
@@ -137,17 +130,8 @@ namespace CoreWCF.Security
                                               bool isRequestedTokenClosed)
             : base(true)
         {
-            if (standardsManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
-            }
-            _standardsManager = standardsManager;
-            if (rstrXml == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rstrXml));
-            }
-
-            _rstrXml = rstrXml;
+            _standardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
+            _rstrXml = rstrXml ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rstrXml));
             _context = context;
             _tokenType = tokenType;
             _keySize = keySize;
@@ -155,12 +139,12 @@ namespace CoreWCF.Security
             _requestedUnattachedReference = requestedUnattachedReference;
             _computeKey = computeKey;
             ValidFrom = validFrom.ToUniversalTime();
-            _expirationTime = validTo.ToUniversalTime();
+            ValidTo = validTo.ToUniversalTime();
             _isLifetimeSet = true;
             _isRequestedTokenClosed = isRequestedTokenClosed;
             // this.issuedTokenBuffer = issuedTokenBuffer;
             IsReceiver = true;
-            _isReadOnly = true;
+            IsReadOnly = true;
         }
 
         public RequestSecurityTokenResponse(SecurityStandardsManager standardsManager,
@@ -171,7 +155,7 @@ namespace CoreWCF.Security
             bool isRequestedTokenClosed, XmlBuffer issuedTokenBuffer) :
             this(standardsManager, rstrXml, context, tokenType, keySize, requestedAttachedReference, requestedUnattachedReference, computeKey, validFrom, validTo, isRequestedTokenClosed)
         {
-            _issuedTokenBuffer = issuedTokenBuffer;
+            IssuedTokenBuffer = issuedTokenBuffer;
         }
 
         public string Context
@@ -244,7 +228,7 @@ namespace CoreWCF.Security
 
         public DateTime ValidFrom { get; private set; }
 
-        public DateTime ValidTo => _expirationTime;
+        public DateTime ValidTo { get; private set; }
 
         public bool ComputeKey
         {
@@ -302,9 +286,9 @@ namespace CoreWCF.Security
             }
         }
 
-        public bool IsReadOnly => _isReadOnly;
+        public bool IsReadOnly { get; private set; }
 
-        protected Object ThisLock { get; } = new Object();
+        protected object ThisLock { get; } = new object();
 
         internal bool IsReceiver { get; }
 
@@ -321,7 +305,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
 
-                _standardsManager = (value != null ? value : SecurityStandardsManager.DefaultInstance);
+                _standardsManager = (value ?? SecurityStandardsManager.DefaultInstance);
             }
         }
 
@@ -349,7 +333,7 @@ namespace CoreWCF.Security
             }
             set
             {
-                if (_isReadOnly)
+                if (IsReadOnly)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
@@ -370,7 +354,7 @@ namespace CoreWCF.Security
             }
             set
             {
-                if (_isReadOnly)
+                if (IsReadOnly)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
                 }
@@ -439,7 +423,7 @@ namespace CoreWCF.Security
             }
         }
 
-        internal CoreWCF.XmlBuffer IssuedTokenBuffer => _issuedTokenBuffer;
+        internal CoreWCF.XmlBuffer IssuedTokenBuffer { get; }
 
         public void SetIssuerEntropy(byte[] issuerEntropy)
         {
@@ -490,7 +474,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.EffectiveGreaterThanExpiration);
             }
             ValidFrom = validFrom.ToUniversalTime();
-            _expirationTime = validTo.ToUniversalTime();
+            ValidTo = validTo.ToUniversalTime();
             _isLifetimeSet = true;
         }
 
@@ -543,17 +527,12 @@ namespace CoreWCF.Security
 
         internal void SetBinaryNegotiation(BinaryNegotiation negotiation)
         {
-            if (negotiation == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiation));
-            }
-
             if (IsReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
 
-            _negotiationData = negotiation;
+            _negotiationData = negotiation ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiation));
         }
 
         internal BinaryNegotiation GetBinaryNegotiation()
@@ -670,9 +649,9 @@ namespace CoreWCF.Security
 
         public void MakeReadOnly()
         {
-            if (!_isReadOnly)
+            if (!IsReadOnly)
             {
-                _isReadOnly = true;
+                IsReadOnly = true;
                 OnMakeReadOnly();
             }
         }
@@ -731,7 +710,7 @@ namespace CoreWCF.Security
             }
 
             Psha1DerivedKeyGenerator generator = new Psha1DerivedKeyGenerator(requestorEntropy);
-            return generator.GenerateDerivedKey(new byte[] { }, issuerEntropy, keySizeInBits, 0);
+            return generator.GenerateDerivedKey(Array.Empty<byte>(), issuerEntropy, keySizeInBits, 0);
         }
     }
 }

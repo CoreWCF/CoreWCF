@@ -30,12 +30,7 @@ namespace CoreWCF
 
         internal void Initialize(Claim identityClaim, IEqualityComparer<Claim> claimComparer)
         {
-            if (identityClaim == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(identityClaim));
-            }
-
-            _identityClaim = identityClaim;
+            _identityClaim = identityClaim ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(identityClaim));
             _claimComparer = claimComparer;
         }
 
@@ -120,8 +115,7 @@ namespace CoreWCF
                 return false;
             }
 
-            EndpointIdentity otherIdentity = obj as EndpointIdentity;
-            if (otherIdentity == null)
+            if (!(obj is EndpointIdentity otherIdentity))
             {
                 return false;
             }
@@ -157,8 +151,6 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
             }
 
-            EndpointIdentity readIdentity = null;
-
             reader.MoveToContent();
             if (reader.IsEmptyElement)
             {
@@ -167,6 +159,8 @@ namespace CoreWCF
 
             reader.ReadStartElement(XD.AddressingDictionary.Identity, XD.AddressingDictionary.IdentityExtensionNamespace);
 
+
+            EndpointIdentity readIdentity;
             //if (reader.IsStartElement(XD.AddressingDictionary.Spn, XD.AddressingDictionary.IdentityExtensionNamespace))
             //{
             //    readIdentity = new SpnEndpointIdentity(reader.ReadElementString());

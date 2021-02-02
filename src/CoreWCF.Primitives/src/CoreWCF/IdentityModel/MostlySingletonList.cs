@@ -39,8 +39,10 @@ namespace CoreWCF.IdentityModel
                     Count = 1;
                     return;
                 }
-                _list = new List<T>();
-                _list.Add(_singleton);
+                _list = new List<T>
+                {
+                    _singleton
+                };
                 _singleton = null;
             }
             _list.Add(item);
@@ -66,7 +68,7 @@ namespace CoreWCF.IdentityModel
 
             if (index != 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("index", SR.Format("ValueMustBeZero")));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), SR.Format("ValueMustBeZero")));
             }
         }
 

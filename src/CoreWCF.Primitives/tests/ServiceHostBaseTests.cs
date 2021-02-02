@@ -17,7 +17,7 @@ namespace CoreWCF.Primitives.Tests
         public static void CredentialsNotNull()
         {
             var host = new TestServiceHost();
-            var creds = host.Credentials;
+            ServiceCredentials creds = host.Credentials;
             Assert.NotNull(creds);
             Assert.IsType<ServiceCredentials>(creds);
             // Make sure same instance is returned each time
@@ -32,7 +32,7 @@ namespace CoreWCF.Primitives.Tests
             Assert.NotNull(host.Description);
             Assert.NotNull(host.Description.Behaviors);
             host.Description.Behaviors.Add(testCreds);
-            var creds = host.Credentials;
+            ServiceCredentials creds = host.Credentials;
             Assert.NotNull(creds);
             Assert.IsType<TestServiceCredentials>(creds);
             // Make sure same instance is returned each time
@@ -60,7 +60,7 @@ namespace CoreWCF.Primitives.Tests
             Assert.Equal(CommunicationState.Closed, host.State);
         }
 
-        public class TestServiceHost : ServiceHostBase
+        internal class TestServiceHost : ServiceHostBase
         {
             private readonly SimpleService _serviceInstance = new SimpleService();
             public bool OnOpenAsynCalled { get; set; }
@@ -76,8 +76,10 @@ namespace CoreWCF.Primitives.Tests
             {
                 var description = ServiceDescription.GetService(_serviceInstance);
                 var cd = ContractDescription.GetContract<SimpleService>(typeof(ISimpleService));
-                implementedContracts = new Dictionary<string, ContractDescription>();
-                implementedContracts[cd.ConfigurationName] = cd;
+                implementedContracts = new Dictionary<string, ContractDescription>
+                {
+                    [cd.ConfigurationName] = cd
+                };
                 return description;
             }
 
@@ -128,12 +130,8 @@ namespace CoreWCF.Primitives.Tests
                 base.OnOpened();
                 Assert.Equal(CommunicationState.Opened, State);
             }
-
-            protected override void ApplyConfiguration()
-            {
-            }
         }
 
-        public class TestServiceCredentials : ServiceCredentials { }
+        internal class TestServiceCredentials : ServiceCredentials { }
     }
 }

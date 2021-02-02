@@ -35,7 +35,7 @@ namespace CoreWCF.Security
         {
             if (SecurityTokenParameters == null)
             {
-                OnPropertySettingsError("SecurityTokenParameters", true);
+                OnPropertySettingsError(nameof(SecurityTokenParameters), true);
             }
             if (SecurityTokenParameters.RequireDerivedKeys)
             {
@@ -50,7 +50,7 @@ namespace CoreWCF.Security
             base.OnOpenAsync(timeout);
             if (SecurityTokenParameters == null)
             {
-                OnPropertySettingsError("SecurityTokenParameters", true);
+                OnPropertySettingsError(nameof(SecurityTokenParameters), true);
             }
             if (SecurityTokenParameters.RequireDerivedKeys)
             {

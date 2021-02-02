@@ -23,7 +23,6 @@ namespace CoreWCF.Channels
 
         //CallOnceManager autoDisplayUIManager;
         private CallOnceManager _autoOpenManager;
-        private readonly ChannelDispatcher _channelDispatcher;
         private readonly bool _closeBinder = true;
         private bool _doneReceiving;
         private EndpointDispatcher _endpointDispatcher;
@@ -44,13 +43,8 @@ namespace CoreWCF.Channels
 
         private ServiceChannel(IChannelBinder binder, Binding binding)
         {
-            if (binder == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(binder));
-            }
-
             MessageVersion = binding.MessageVersion;
-            Binder = binder;
+            Binder = binder ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(binder));
             IsReplyChannel = Binder.Channel is IReplyChannel;
 
             IChannel innerChannel = binder.Channel;
@@ -89,13 +83,8 @@ namespace CoreWCF.Channels
                                 SessionIdleManager idleManager)
             : this(binder, serviceDispatcher.Binding)
         {
-            if (endpointDispatcher == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
-            }
-
-            _channelDispatcher = serviceDispatcher.ChannelDispatcher;
-            _endpointDispatcher = endpointDispatcher;
+            ChannelDispatcher = serviceDispatcher.ChannelDispatcher;
+            _endpointDispatcher = endpointDispatcher ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
             ClientRuntime = endpointDispatcher.DispatchRuntime.CallbackClientRuntime;
 
             SetupInnerChannelFaultHandler();
@@ -205,10 +194,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal ChannelDispatcher ChannelDispatcher
-        {
-            get { return _channelDispatcher; }
-        }
+        internal ChannelDispatcher ChannelDispatcher { get; }
 
         internal EndpointDispatcher EndpointDispatcher
         {
@@ -318,7 +304,7 @@ namespace CoreWCF.Channels
             set
             {
                 _proxy = value;
-                base.EventSender = value;   // need to use "proxy" as open/close event source
+                EventSender = value;   // need to use "proxy" as open/close event source
             }
         }
 
@@ -328,14 +314,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                IOutputChannel outputChannel = InnerChannel as IOutputChannel;
-                if (outputChannel != null)
+                if (InnerChannel is IOutputChannel outputChannel)
                 {
                     return outputChannel.RemoteAddress;
                 }
 
-                IRequestChannel requestChannel = InnerChannel as IRequestChannel;
-                if (requestChannel != null)
+                if (InnerChannel is IRequestChannel requestChannel)
                 {
                     return requestChannel.RemoteAddress;
                 }
@@ -353,14 +337,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                IOutputChannel outputChannel = InnerChannel as IOutputChannel;
-                if (outputChannel != null)
+                if (InnerChannel is IOutputChannel outputChannel)
                 {
                     return outputChannel.Via;
                 }
 
-                IRequestChannel requestChannel = InnerChannel as IRequestChannel;
-                if (requestChannel != null)
+                if (InnerChannel is IRequestChannel requestChannel)
                 {
                     return requestChannel.Via;
                 }
@@ -711,7 +693,7 @@ namespace CoreWCF.Channels
 
         internal object EndCall(string action, object[] outs, IAsyncResult result)
         {
-            var rpc = result.ToApmEnd<ProxyRpc>();
+            ProxyRpc rpc = result.ToApmEnd<ProxyRpc>();
             rpc.OutputParameters = outs;
             HandleReply(rpc.Operation, ref rpc);
             return rpc.ReturnValue;
@@ -1213,8 +1195,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.channelIsNotAvailable0));
             }
 
-            ISessionChannel<IDuplexSession> duplexSessionChannel = InnerChannel as ISessionChannel<IDuplexSession>;
-            if (duplexSessionChannel == null)
+            if (!(InnerChannel is ISessionChannel<IDuplexSession> duplexSessionChannel))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.channelDoesNotHaveADuplexSession0));
             }
@@ -1266,14 +1247,12 @@ namespace CoreWCF.Channels
             {
                 if (InnerChannel != null)
                 {
-                    ISessionChannel<IInputSession> inputSession = InnerChannel as ISessionChannel<IInputSession>;
-                    if (inputSession != null)
+                    if (InnerChannel is ISessionChannel<IInputSession> inputSession)
                     {
                         return inputSession.Session;
                     }
 
-                    ISessionChannel<IDuplexSession> duplexSession = InnerChannel as ISessionChannel<IDuplexSession>;
-                    if (duplexSession != null)
+                    if (InnerChannel is ISessionChannel<IDuplexSession> duplexSession)
                     {
                         return duplexSession.Session;
                     }
@@ -1289,14 +1268,12 @@ namespace CoreWCF.Channels
             {
                 if (InnerChannel != null)
                 {
-                    ISessionChannel<IOutputSession> outputSession = InnerChannel as ISessionChannel<IOutputSession>;
-                    if (outputSession != null)
+                    if (InnerChannel is ISessionChannel<IOutputSession> outputSession)
                     {
                         return outputSession.Session;
                     }
 
-                    ISessionChannel<IDuplexSession> duplexSession = InnerChannel as ISessionChannel<IDuplexSession>;
-                    if (duplexSession != null)
+                    if (InnerChannel is ISessionChannel<IDuplexSession> duplexSession)
                     {
                         return duplexSession.Session;
                     }
@@ -1312,20 +1289,17 @@ namespace CoreWCF.Channels
             {
                 if (InnerChannel != null)
                 {
-                    ISessionChannel<IInputSession> inputSession = InnerChannel as ISessionChannel<IInputSession>;
-                    if (inputSession != null)
+                    if (InnerChannel is ISessionChannel<IInputSession> inputSession)
                     {
                         return inputSession.Session.Id;
                     }
 
-                    ISessionChannel<IOutputSession> outputSession = InnerChannel as ISessionChannel<IOutputSession>;
-                    if (outputSession != null)
+                    if (InnerChannel is ISessionChannel<IOutputSession> outputSession)
                     {
                         return outputSession.Session.Id;
                     }
 
-                    ISessionChannel<IDuplexSession> duplexSession = InnerChannel as ISessionChannel<IDuplexSession>;
-                    if (duplexSession != null)
+                    if (InnerChannel is ISessionChannel<IDuplexSession> duplexSession)
                     {
                         return duplexSession.Session.Id;
                     }
@@ -1455,11 +1429,11 @@ namespace CoreWCF.Channels
             {
                 get
                 {
-                    if (CallOpenOnce.s_instance == null)
+                    if (s_instance == null)
                     {
-                        CallOpenOnce.s_instance = new CallOpenOnce();
+                        s_instance = new CallOpenOnce();
                     }
-                    return CallOpenOnce.s_instance;
+                    return s_instance;
                 }
             }
 
@@ -1475,7 +1449,7 @@ namespace CoreWCF.Channels
             private readonly ServiceChannel _channel;
             private bool _isFirst = true;
             private Queue<IWaiter> _queue;
-            private static readonly Action<object> s_signalWaiter = CallOnceManager.SignalWaiter;
+            private static readonly Action<object> s_signalWaiter = SignalWaiter;
 
             internal CallOnceManager(ServiceChannel channel, ICallOnce callOnce)
             {
@@ -1536,7 +1510,7 @@ namespace CoreWCF.Channels
                 }
             }
 
-            static internal void SignalNextIfNonNull(CallOnceManager manager)
+            internal static void SignalNextIfNonNull(CallOnceManager manager)
             {
                 if (manager != null)
                 {
@@ -1570,7 +1544,7 @@ namespace CoreWCF.Channels
 
                 if (waiter != null)
                 {
-                    ActionItem.Schedule(CallOnceManager.s_signalWaiter, waiter);
+                    ActionItem.Schedule(s_signalWaiter, waiter);
                 }
             }
 
@@ -1730,11 +1704,11 @@ namespace CoreWCF.Channels
 
             private static Action<object> GetTimerCallback()
             {
-                if (SessionIdleManager.s_timerCallback == null)
+                if (s_timerCallback == null)
                 {
-                    SessionIdleManager.s_timerCallback = SessionIdleManager.TimerCallback;
+                    s_timerCallback = TimerCallback;
                 }
-                return SessionIdleManager.s_timerCallback;
+                return s_timerCallback;
             }
 
             private static void TimerCallback(object state)

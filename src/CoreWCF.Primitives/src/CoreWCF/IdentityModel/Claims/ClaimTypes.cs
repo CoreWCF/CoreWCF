@@ -38,38 +38,38 @@ namespace CoreWCF.IdentityModel.Claims
         private const string authentication = claimTypeNamespace + "/authentication";
         private const string authorizationdecision = claimTypeNamespace + "/authorizationdecision";
 
-        static public string Anonymous { get { return anonymous; } }
-        static public string DenyOnlySid { get { return denyOnlySid; } }
-        static public string Dns { get { return dns; } }
-        static public string Email { get { return email; } }
-        static public string Hash { get { return hash; } }
-        static public string Name { get { return name; } }
-        static public string Rsa { get { return rsa; } }
-        static public string Sid { get { return sid; } }
-        static public string Spn { get { return spn; } }
-        static public string System { get { return system; } }
-        static public string Thumbprint { get { return thumbprint; } }
-        static public string Upn { get { return upn; } }
-        static public string Uri { get { return uri; } }
-        static public string X500DistinguishedName { get { return x500DistinguishedName; } }
-        static public string NameIdentifier { get { return nameidentifier; } }
-        static public string Authentication { get { return authentication; } }
-        static public string AuthorizationDecision { get { return authorizationdecision; } }
+        public static string Anonymous { get { return anonymous; } }
+        public static string DenyOnlySid { get { return denyOnlySid; } }
+        public static string Dns { get { return dns; } }
+        public static string Email { get { return email; } }
+        public static string Hash { get { return hash; } }
+        public static string Name { get { return name; } }
+        public static string Rsa { get { return rsa; } }
+        public static string Sid { get { return sid; } }
+        public static string Spn { get { return spn; } }
+        public static string System { get { return system; } }
+        public static string Thumbprint { get { return thumbprint; } }
+        public static string Upn { get { return upn; } }
+        public static string Uri { get { return uri; } }
+        public static string X500DistinguishedName { get { return x500DistinguishedName; } }
+        public static string NameIdentifier { get { return nameidentifier; } }
+        public static string Authentication { get { return authentication; } }
+        public static string AuthorizationDecision { get { return authorizationdecision; } }
 
         // used in info card 
-        static public string GivenName { get { return givenname; } }
-        static public string Surname { get { return surname; } }
-        static public string StreetAddress { get { return streetaddress; } }
-        static public string Locality { get { return locality; } }
-        static public string StateOrProvince { get { return stateorprovince; } }
-        static public string PostalCode { get { return postalcode; } }
-        static public string Country { get { return country; } }
-        static public string HomePhone { get { return homephone; } }
-        static public string OtherPhone { get { return otherphone; } }
-        static public string MobilePhone { get { return mobilephone; } }
-        static public string DateOfBirth { get { return dateofbirth; } }
-        static public string Gender { get { return gender; } }
-        static public string PPID { get { return ppid; } }
-        static public string Webpage { get { return webpage; } }
+        public static string GivenName { get { return givenname; } }
+        public static string Surname { get { return surname; } }
+        public static string StreetAddress { get { return streetaddress; } }
+        public static string Locality { get { return locality; } }
+        public static string StateOrProvince { get { return stateorprovince; } }
+        public static string PostalCode { get { return postalcode; } }
+        public static string Country { get { return country; } }
+        public static string HomePhone { get { return homephone; } }
+        public static string OtherPhone { get { return otherphone; } }
+        public static string MobilePhone { get { return mobilephone; } }
+        public static string DateOfBirth { get { return dateofbirth; } }
+        public static string Gender { get { return gender; } }
+        public static string PPID { get { return ppid; } }
+        public static string Webpage { get { return webpage; } }
     }
 }

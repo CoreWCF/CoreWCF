@@ -38,35 +38,35 @@ namespace CoreWCF.Security
             return _sb.ToString();
         }
 
-        public static SoapHexBinary Parse(String value)
+        public static SoapHexBinary Parse(string value)
         {
             return new SoapHexBinary(ToByteArray(FilterBin64(value)));
         }
 
-        private static Byte[] ToByteArray(String value)
+        private static byte[] ToByteArray(string value)
         {
-            Char[] cA = value.ToCharArray();
+            char[] cA = value.ToCharArray();
             if (cA.Length % 2 != 0)
             {
                 throw new FormatException(SR.Format("Remoting_SOAPInteropxsdInvalid", "xsd:hexBinary", value));
             }
-            Byte[] bA = new Byte[cA.Length / 2];
+            byte[] bA = new byte[cA.Length / 2];
             for (int i = 0; i < cA.Length / 2; i++)
             {
-                bA[i] = (Byte)(ToByte(cA[i * 2], value) * 16 + ToByte(cA[i * 2 + 1], value));
+                bA[i] = (byte)(ToByte(cA[i * 2], value) * 16 + ToByte(cA[i * 2 + 1], value));
             }
 
             return bA;
         }
 
-        private static Byte ToByte(Char c, String value)
+        private static byte ToByte(char c, string value)
         {
-            Byte b = (Byte)0;
-            String s = c.ToString();
+            string s = c.ToString();
+            byte b;
             try
             {
                 s = c.ToString();
-                b = Byte.Parse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                b = byte.Parse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             }
             catch (Exception)
             {
@@ -76,7 +76,7 @@ namespace CoreWCF.Security
             return b;
         }
 
-        internal static String FilterBin64(String value)
+        internal static string FilterBin64(string value)
         {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < value.Length; i++)

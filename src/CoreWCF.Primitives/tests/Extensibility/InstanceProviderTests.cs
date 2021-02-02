@@ -19,10 +19,10 @@ namespace Extensibility
         {
             var instanceProvider = new TestInstanceProvider();
             var behavior = new TestServiceBehavior { InstanceProvider = instanceProvider };
-            var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
             factory.Open();
-            var channel = factory.CreateChannel();
-            var echo = channel.Echo("hello");
+            ISimpleService channel = factory.CreateChannel();
+            string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
             Assert.Equal(1, instanceProvider.GetInstanceCallCount);
@@ -37,11 +37,11 @@ namespace Extensibility
         {
             var instanceProvider = new TestInstanceProvider();
             var behavior = new TestServiceBehavior { InstanceProvider = instanceProvider };
-            var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
             Assert.True(instanceProvider.InstanceHashCode > 0); ;

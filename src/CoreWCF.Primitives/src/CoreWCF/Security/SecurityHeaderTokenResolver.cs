@@ -86,7 +86,7 @@ namespace CoreWCF.Security
         {
             if (keyIdentifier == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifier");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifier));
             }
             for (int i = 0; i < keyIdentifier.Count; i++)
             {
@@ -103,7 +103,7 @@ namespace CoreWCF.Security
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("keyIdentifierClause"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(keyIdentifierClause)));
             }
 
             SecurityKey securityKey;
@@ -129,8 +129,7 @@ namespace CoreWCF.Security
 
         private bool MatchDirectReference(SecurityToken token, SecurityKeyIdentifierClause keyClause)
         {
-            LocalIdKeyIdentifierClause localClause = keyClause as LocalIdKeyIdentifierClause;
-            if (localClause == null)
+            if (!(keyClause is LocalIdKeyIdentifierClause localClause))
             {
                 return false;
             }
@@ -142,7 +141,7 @@ namespace CoreWCF.Security
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
 
             SecurityToken resolvedToken = null;
@@ -214,8 +213,7 @@ namespace CoreWCF.Security
                 bool alreadyDerived = false;
                 for (int i = 0; i < _tokenCount; ++i)
                 {
-                    DerivedKeySecurityToken derivedKeyToken = _tokens[i].Token as DerivedKeySecurityToken;
-                    if (derivedKeyToken != null)
+                    if (_tokens[i].Token is DerivedKeySecurityToken derivedKeyToken)
                     {
                         if ((derivedKeyToken.Length == derivationLength) &&
                             (CryptoHelper.IsEqual(derivedKeyToken.Nonce, derivationNonce)) &&
@@ -289,7 +287,7 @@ namespace CoreWCF.Security
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
             key = ResolveSecurityKeyCore(keyIdentifierClause, createIntrinsicKeys);
             return key != null;
@@ -303,20 +301,18 @@ namespace CoreWCF.Security
 
         private struct SecurityTokenEntry
         {
-            private readonly SecurityTokenReferenceStyle _allowedReferenceStyle;
-
             public SecurityTokenEntry(SecurityToken token, SecurityTokenParameters tokenParameters, SecurityTokenReferenceStyle allowedReferenceStyle)
             {
                 Token = token;
                 TokenParameters = tokenParameters;
-                _allowedReferenceStyle = allowedReferenceStyle;
+                AllowedReferenceStyle = allowedReferenceStyle;
             }
 
             public SecurityToken Token { get; }
 
             public SecurityTokenParameters TokenParameters { get; }
 
-            public SecurityTokenReferenceStyle AllowedReferenceStyle => _allowedReferenceStyle;
+            public SecurityTokenReferenceStyle AllowedReferenceStyle { get; }
         }
     }
 }

@@ -24,14 +24,14 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void FaultContractsVaryName()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestFaultContractName1>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TestFaultContractName1.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.ITestFaultContractName1 channel = factory.CreateChannel();
 
                 string faultToThrow = "Test fault thrown from a service";
 

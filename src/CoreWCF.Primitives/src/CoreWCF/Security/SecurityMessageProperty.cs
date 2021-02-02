@@ -258,8 +258,7 @@ namespace CoreWCF.Security
                 {
                     if (supportingSessionTokenToExclude != null)
                     {
-                        SecurityContextSecurityToken sct = _incomingSupportingTokens[i].SecurityToken as SecurityContextSecurityToken;
-                        if (sct != null && sct.ContextId == supportingSessionTokenToExclude.ContextId)
+                        if (_incomingSupportingTokens[i].SecurityToken is SecurityContextSecurityToken sct && sct.ContextId == supportingSessionTokenToExclude.ContextId)
                         {
                             continue;
                         }

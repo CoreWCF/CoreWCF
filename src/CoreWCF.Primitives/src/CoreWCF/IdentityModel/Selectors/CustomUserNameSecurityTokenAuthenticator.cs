@@ -16,12 +16,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public CustomUserNameSecurityTokenAuthenticator(UserNamePasswordValidator validator)
         {
-            if (validator == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
-            }
-
-            _validator = validator;
+            _validator = validator ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
         }
 
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateUserNamePasswordCore(string userName, string password)
@@ -41,10 +36,12 @@ namespace CoreWCF.IdentityModel.Selectors
 
                 Identity = SecurityUtils.CreateIdentity(userName, authType);
 
-                List<Claim> claims = new List<Claim>(2);
-                claims.Add(new Claim(ClaimTypes.Name, userName, Rights.Identity));
-                claims.Add(Claim.CreateNameClaim(userName));
-                Initialize(ClaimSet.System, claims);
+                List<Claim> claims = new List<Claim>(2)
+                {
+                    new Claim(ClaimTypes.Name, userName, Rights.Identity),
+                    Claim.CreateNameClaim(userName)
+                };
+                Initialize(System, claims);
             }
 
             public IIdentity Identity { get; }

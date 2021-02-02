@@ -7,49 +7,27 @@ namespace CoreWCF
 {
     public class FaultReasonText
     {
-        private readonly string _text;
-
         public FaultReasonText(string text)
         {
-            if (text == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
-            }
-
-            _text = text;
+            Text = text ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
             XmlLang = CultureInfo.CurrentCulture.Name;
         }
 
         public FaultReasonText(string text, string xmlLang)
         {
-            if (text == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
-            }
-
-            if (xmlLang == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlLang));
-            }
-
-            _text = text;
-            XmlLang = xmlLang;
+            Text = text ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
+            XmlLang = xmlLang ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlLang));
         }
 
         // public on full framework
         internal FaultReasonText(string text, CultureInfo cultureInfo)
         {
-            if (text == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
-            }
-
             if (cultureInfo == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(cultureInfo));
             }
 
-            _text = text;
+            Text = text ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(text));
             XmlLang = cultureInfo.Name;
         }
 
@@ -65,6 +43,6 @@ namespace CoreWCF
 
         public string XmlLang { get; }
 
-        public string Text => _text;
+        public string Text { get; }
     }
 }

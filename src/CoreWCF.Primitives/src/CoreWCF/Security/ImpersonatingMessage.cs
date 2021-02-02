@@ -14,11 +14,7 @@ namespace CoreWCF.Security
 
         public ImpersonatingMessage(Message innerMessage)
         {
-            if (innerMessage == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerMessage));
-            }
-            _innerMessage = innerMessage;
+            _innerMessage = innerMessage ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerMessage));
         }
 
         public override bool IsEmpty

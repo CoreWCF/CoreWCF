@@ -72,7 +72,7 @@ namespace CoreWCF
                 }
             }
 
-            return default(TE);
+            return default;
         }
 
         public Collection<TE> FindAll<TE>()

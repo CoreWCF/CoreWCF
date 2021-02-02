@@ -14,8 +14,7 @@ namespace Services
 
         public void OneWayMethod(object o)
         {
-            string input = o as string;
-            if (input == null)
+            if (!(o is string input))
             {
                 throw new NullReferenceException("clientString was not in the SharedContext");
             }
@@ -53,8 +52,7 @@ namespace Services
 
         public object DataContractMethod(object o)
         {
-            MyBaseDataType data = o as MyBaseDataType;
-            if (data == null)
+            if (!(o is MyBaseDataType data))
             {
                 throw new NullReferenceException("DataContractMethod received null " + o);
             }

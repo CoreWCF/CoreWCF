@@ -12,20 +12,8 @@ namespace CoreWCF.Description
     {
         private string _configurationName;
         private XmlName _serviceName;
-        private readonly IDictionary<string, ContractDescription> _implementedContracts;
-        private readonly ReflectedContractCollection _reflectedContracts;
 
         public ServiceDescription() { }
-
-        internal ServiceDescription(string serviceName)
-        {
-            if (string.IsNullOrEmpty(serviceName))
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceName));
-            }
-
-            Name = serviceName;
-        }
 
         public ServiceDescription(IEnumerable<ServiceEndpoint> endpoints) : this()
         {
@@ -81,12 +69,7 @@ namespace CoreWCF.Description
             get { return _configurationName; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _configurationName = value;
+                _configurationName = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -124,8 +107,10 @@ namespace CoreWCF.Description
         public static ServiceDescription GetService<TService>() where TService : class
         {
             // TODO: Make ServiceDescription generic?
-            var description = new ServiceDescription();
-            description.ServiceType = typeof(TService);
+            var description = new ServiceDescription
+            {
+                ServiceType = typeof(TService)
+            };
 
             AddBehaviors<TService>(description);
             SetupSingleton(description, (TService)null);
@@ -139,13 +124,15 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceImplementation));
             }
 
-            ServiceDescription description = new ServiceDescription();
-            // TODO: What if the concrete type is different that the generic type?
-            description.ServiceType = typeof(TService); //serviceImplementation.GetType();
-
-            if (serviceImplementation is IServiceBehavior)
+            ServiceDescription description = new ServiceDescription
             {
-                description.Behaviors.Add((IServiceBehavior)serviceImplementation);
+                // TODO: What if the concrete type is different that the generic type?
+                ServiceType = typeof(TService) //serviceImplementation.GetType();
+            };
+
+            if (serviceImplementation is IServiceBehavior behavior)
+            {
+                description.Behaviors.Add(behavior);
             }
 
             AddBehaviors<TService>(description);
@@ -155,7 +142,7 @@ namespace CoreWCF.Description
 
         internal static TService CreateImplementation<TService>() where TService : class
         {
-            var constructor = typeof(TService).GetConstructor(TypeLoader.DefaultBindingFlags, null, Type.EmptyTypes, null);
+            System.Reflection.ConstructorInfo constructor = typeof(TService).GetConstructor(TypeLoader.DefaultBindingFlags, null, Type.EmptyTypes, null);
             if (constructor == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
@@ -229,7 +216,6 @@ namespace CoreWCF.Description
         private static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation) where TService : class
         {
             ServiceBehaviorAttribute serviceBehavior = EnsureBehaviorAttribute(serviceDescription);
-            Type type = serviceDescription.ServiceType;
             if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
             {
                 if (implementation == null)

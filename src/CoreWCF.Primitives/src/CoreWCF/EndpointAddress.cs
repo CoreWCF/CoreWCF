@@ -72,7 +72,7 @@ namespace CoreWCF
         private int _extensionSection;
         private int _metadataSection;
         private int _pspSection;
-        private bool _isNone;
+
         // these are the element name/namespace for the dummy wrapper element that wraps each buffer section
         internal const string DummyName = "Dummy";
         internal const string DummyNamespace = "http://Dummy";
@@ -178,7 +178,7 @@ namespace CoreWCF
         {
             if (!uri.IsAbsoluteUri)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("uri", SR.UriMustBeAbsolute);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(uri), SR.UriMustBeAbsolute);
             }
 
             _addressingVersion = version;
@@ -193,18 +193,18 @@ namespace CoreWCF
             if (version != null)
             {
                 IsAnonymous = uri == version.AnonymousUri;
-                _isNone = uri == version.NoneUri;
+                IsNone = uri == version.NoneUri;
             }
             else
             {
-                IsAnonymous = object.ReferenceEquals(uri, AnonymousUri) || uri == AnonymousUri;
-                _isNone = object.ReferenceEquals(uri, NoneUri) || uri == NoneUri;
+                IsAnonymous = ReferenceEquals(uri, AnonymousUri) || uri == AnonymousUri;
+                IsNone = ReferenceEquals(uri, NoneUri) || uri == NoneUri;
             }
             if (IsAnonymous)
             {
                 Uri = AnonymousUri;
             }
-            if (_isNone)
+            if (IsNone)
             {
                 Uri = NoneUri;
             }
@@ -269,13 +269,7 @@ namespace CoreWCF
 
         public bool IsAnonymous { get; private set; }
 
-        public bool IsNone
-        {
-            get
-            {
-                return _isNone;
-            }
-        }
+        public bool IsNone { get; private set; }
 
         public Uri Uri { get; private set; }
 
@@ -407,7 +401,7 @@ namespace CoreWCF
                 return false;
             }
 
-            if (object.ReferenceEquals(this, endpointAddress))
+            if (ReferenceEquals(this, endpointAddress))
             {
                 return true;
             }
@@ -442,7 +436,7 @@ namespace CoreWCF
 
         public override bool Equals(object obj)
         {
-            if (object.ReferenceEquals(obj, this))
+            if (ReferenceEquals(obj, this))
             {
                 return true;
             }
@@ -545,12 +539,12 @@ namespace CoreWCF
             else if (reader.NodeType != XmlNodeType.Element)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(
-                    "reader", SR.CannotDetectAddressingVersion);
+                    nameof(reader), SR.CannotDetectAddressingVersion);
             }
             else
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(
-                    "reader", SR.Format(SR.AddressingVersionNotSupported, reader.NamespaceURI));
+                    nameof(reader), SR.Format(SR.AddressingVersionNotSupported, reader.NamespaceURI));
             }
 
             EndpointAddress ea = ReadFromDriver(version, reader);
@@ -585,12 +579,12 @@ namespace CoreWCF
             else if (reader.NodeType != XmlNodeType.Element)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(
-                    "reader", SR.CannotDetectAddressingVersion);
+                    nameof(reader), SR.CannotDetectAddressingVersion);
             }
             else
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(
-                    "reader", SR.Format(SR.AddressingVersionNotSupported, reader.NamespaceURI));
+                    nameof(reader), SR.Format(SR.AddressingVersionNotSupported, reader.NamespaceURI));
             }
 
             EndpointAddress ea = ReadFromDriver(version, reader);
@@ -669,7 +663,7 @@ namespace CoreWCF
             //}
             else
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("addressingVersion",
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(addressingVersion),
                     SR.Format(SR.AddressingVersionNotSupported, addressingVersion));
             }
 
@@ -817,8 +811,7 @@ namespace CoreWCF
 
         private static XmlException CreateXmlException(XmlDictionaryReader reader, string message)
         {
-            IXmlLineInfo lineInfo = reader as IXmlLineInfo;
-            if (lineInfo != null)
+            if (reader is IXmlLineInfo lineInfo)
             {
                 return new XmlException(message, null, lineInfo.LineNumber, lineInfo.LinePosition);
             }
@@ -834,7 +827,7 @@ namespace CoreWCF
         }
 
         // copy all of reader to writer
-        static internal void Copy(XmlDictionaryWriter writer, XmlDictionaryReader reader)
+        internal static void Copy(XmlDictionaryWriter writer, XmlDictionaryReader reader)
         {
             while (!Done(reader))
             {
@@ -869,7 +862,7 @@ namespace CoreWCF
             }
             else
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("addressingVersion",
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(addressingVersion),
                     SR.Format(SR.AddressingVersionNotSupported, addressingVersion));
             }
         }
@@ -887,7 +880,7 @@ namespace CoreWCF
             {
                 writer.WriteString(XD.Addressing10Dictionary.Anonymous);
             }
-            else if (_isNone)
+            else if (IsNone)
             {
                 writer.WriteString(XD.Addressing10Dictionary.NoneAddress);
             }
@@ -938,9 +931,9 @@ namespace CoreWCF
 
         public static bool operator ==(EndpointAddress address1, EndpointAddress address2)
         {
-            if (object.ReferenceEquals(address2, null))
+            if (ReferenceEquals(address2, null))
             {
-                return (object.ReferenceEquals(address1, null));
+                return (ReferenceEquals(address1, null));
             }
 
             return address2.Equals(address1);
@@ -948,9 +941,9 @@ namespace CoreWCF
 
         public static bool operator !=(EndpointAddress address1, EndpointAddress address2)
         {
-            if (object.ReferenceEquals(address2, null))
+            if (ReferenceEquals(address2, null))
             {
-                return !object.ReferenceEquals(address1, null);
+                return !ReferenceEquals(address1, null);
             }
 
             return !address2.Equals(address1);
@@ -972,12 +965,7 @@ namespace CoreWCF
 
         public EndpointAddressBuilder(EndpointAddress address)
         {
-            if (address == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
-            }
-
-            _epr = address;
+            _epr = address ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             Uri = address.Uri;
             Identity = address.Identity;
             Headers = new Collection<AddressHeader>();
@@ -997,7 +985,7 @@ namespace CoreWCF
         {
             if (!_hasMetadata)
             {
-                return _epr == null ? null : _epr.GetReaderAtMetadata();
+                return _epr?.GetReaderAtMetadata();
             }
 
             if (_metadataBuffer == null)
@@ -1031,7 +1019,7 @@ namespace CoreWCF
         {
             if (!_hasExtension)
             {
-                return _epr == null ? null : _epr.GetReaderAtExtensions();
+                return _epr?.GetReaderAtExtensions();
             }
 
             if (_extensionBuffer == null)
@@ -1068,7 +1056,7 @@ namespace CoreWCF
                 new AddressHeaderCollection(Headers),
                 GetReaderAtMetadata(),
                 GetReaderAtExtensions(),
-                _epr == null ? null : _epr.GetReaderAtPsp());
+                _epr?.GetReaderAtPsp());
         }
     }
 }

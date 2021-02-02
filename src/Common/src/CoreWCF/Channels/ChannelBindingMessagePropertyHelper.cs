@@ -46,7 +46,7 @@ namespace CoreWCF.Channels
         internal static void AddTo(this ChannelBindingMessageProperty channelBindingProperty, MessageProperties properties)
         {
             // Throws if disposed
-            var dummy = channelBindingProperty.ChannelBinding;
+            System.Security.Authentication.ExtendedProtection.ChannelBinding dummy = channelBindingProperty.ChannelBinding;
             if (properties == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));

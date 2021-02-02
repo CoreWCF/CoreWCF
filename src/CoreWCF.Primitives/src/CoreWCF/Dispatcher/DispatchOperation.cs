@@ -8,7 +8,6 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchOperation
     {
-        private readonly SynchronizedCollection<FaultContractInfo> _faultContractInfos;
         private IDispatchFaultFormatter _faultFormatter;
         private ImpersonationOption _impersonation;
         private bool _isTerminating;
@@ -27,7 +26,7 @@ namespace CoreWCF.Dispatcher
             _impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
             // Not necessary for basic functionality
             CallContextInitializers = parent.NewBehaviorCollection<ICallContextInitializer>();
-            _faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
+            FaultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
             ParameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
             IsOneWay = true;
         }
@@ -42,10 +41,7 @@ namespace CoreWCF.Dispatcher
 
         internal SynchronizedCollection<ICallContextInitializer> CallContextInitializers { get; }
 
-        internal SynchronizedCollection<FaultContractInfo> FaultContractInfos
-        {
-            get { return _faultContractInfos; }
-        }
+        internal SynchronizedCollection<FaultContractInfo> FaultContractInfos { get; }
 
         internal IDispatchMessageFormatter Formatter
         {
@@ -66,7 +62,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (_faultFormatter == null)
                 {
-                    _faultFormatter = new DataContractSerializerFaultFormatter(_faultContractInfos);
+                    _faultFormatter = new DataContractSerializerFaultFormatter(FaultContractInfos);
                 }
                 return _faultFormatter;
             }

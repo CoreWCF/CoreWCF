@@ -14,34 +14,18 @@ namespace CoreWCF.Security
             string valueTypeUri,
             byte[] negotiationData)
         {
-            if (valueTypeUri == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(valueTypeUri));
-            }
-            if (negotiationData == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
-            }
             _valueTypeUriDictionaryString = null;
-            ValueTypeUri = valueTypeUri;
-            _negotiationData = negotiationData;
+            ValueTypeUri = valueTypeUri ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(valueTypeUri));
+            _negotiationData = negotiationData ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
         }
 
         public BinaryNegotiation(
             XmlDictionaryString valueTypeDictionaryString,
             byte[] negotiationData)
         {
-            if (valueTypeDictionaryString == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(valueTypeDictionaryString));
-            }
-            if (negotiationData == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
-            }
-            _valueTypeUriDictionaryString = valueTypeDictionaryString;
+            _valueTypeUriDictionaryString = valueTypeDictionaryString ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(valueTypeDictionaryString));
             ValueTypeUri = valueTypeDictionaryString.Value;
-            _negotiationData = negotiationData;
+            _negotiationData = negotiationData ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiationData));
         }
 
         public void Validate(XmlDictionaryString valueTypeUriDictionaryString)

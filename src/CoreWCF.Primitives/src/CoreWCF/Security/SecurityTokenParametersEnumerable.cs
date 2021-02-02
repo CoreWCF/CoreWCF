@@ -18,12 +18,7 @@ namespace CoreWCF.Security
 
         public SecurityTokenParametersEnumerable(SecurityBindingElement sbe, bool clientTokensOnly)
         {
-            if (sbe == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("sbe");
-            }
-
-            _sbe = sbe;
+            _sbe = sbe ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(sbe));
             _clientTokensOnly = clientTokensOnly;
         }
 

@@ -70,16 +70,18 @@ namespace CoreWCF.Dispatcher
         {
             bool dataSet = false;
             MessageFilter filter = null;
-            data = default(FilterData);
+            data = default;
             foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(message))
                 {
                     if (dataSet)
                     {
-                        Collection<MessageFilter> f = new Collection<MessageFilter>();
-                        f.Add(filter);
-                        f.Add(item.Key);
+                        Collection<MessageFilter> f = new Collection<MessageFilter>
+                        {
+                            filter,
+                            item.Key
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, f), message);
                     }
 
@@ -96,16 +98,18 @@ namespace CoreWCF.Dispatcher
         {
             bool dataSet = false;
             MessageFilter filter = null;
-            data = default(FilterData);
+            data = default;
             foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(buffer))
                 {
                     if (dataSet)
                     {
-                        Collection<MessageFilter> f = new Collection<MessageFilter>();
-                        f.Add(filter);
-                        f.Add(item.Key);
+                        Collection<MessageFilter> f = new Collection<MessageFilter>
+                        {
+                            filter,
+                            item.Key
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, f));
                     }
 
@@ -153,9 +157,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (filter != null)
                     {
-                        Collection<MessageFilter> f = new Collection<MessageFilter>();
-                        f.Add(filter);
-                        f.Add(item.Key);
+                        Collection<MessageFilter> f = new Collection<MessageFilter>
+                        {
+                            filter,
+                            item.Key
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, f), message);
                     }
 
@@ -175,9 +181,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (filter != null)
                     {
-                        Collection<MessageFilter> f = new Collection<MessageFilter>();
-                        f.Add(filter);
-                        f.Add(item.Key);
+                        Collection<MessageFilter> f = new Collection<MessageFilter>
+                        {
+                            filter,
+                            item.Key
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, f));
                     }
 

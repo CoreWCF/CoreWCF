@@ -7,21 +7,20 @@ namespace CoreWCF.Channels
 {
     internal class BinaryVersion
     {
-        static public readonly BinaryVersion Version1 = new BinaryVersion(FramingEncodingString.Binary, FramingEncodingString.BinarySession, ServiceModelDictionary.Version1);
-        static public readonly BinaryVersion GZipVersion1 = new BinaryVersion(FramingEncodingString.ExtendedBinaryGZip, FramingEncodingString.ExtendedBinarySessionGZip, ServiceModelDictionary.Version1);
-        static public readonly BinaryVersion DeflateVersion1 = new BinaryVersion(FramingEncodingString.ExtendedBinaryDeflate, FramingEncodingString.ExtendedBinarySessionDeflate, ServiceModelDictionary.Version1);
-        private readonly string _sessionContentType;
+        public static readonly BinaryVersion Version1 = new BinaryVersion(FramingEncodingString.Binary, FramingEncodingString.BinarySession, ServiceModelDictionary.Version1);
+        public static readonly BinaryVersion GZipVersion1 = new BinaryVersion(FramingEncodingString.ExtendedBinaryGZip, FramingEncodingString.ExtendedBinarySessionGZip, ServiceModelDictionary.Version1);
+        public static readonly BinaryVersion DeflateVersion1 = new BinaryVersion(FramingEncodingString.ExtendedBinaryDeflate, FramingEncodingString.ExtendedBinarySessionDeflate, ServiceModelDictionary.Version1);
 
         private BinaryVersion(string contentType, string sessionContentType, IXmlDictionary dictionary)
         {
             ContentType = contentType;
-            _sessionContentType = sessionContentType;
+            SessionContentType = sessionContentType;
             Dictionary = dictionary;
         }
 
-        static public BinaryVersion CurrentVersion { get { return Version1; } }
+        public static BinaryVersion CurrentVersion { get { return Version1; } }
         public string ContentType { get; }
-        public string SessionContentType { get { return _sessionContentType; } }
+        public string SessionContentType { get; }
         public IXmlDictionary Dictionary { get; }
     }
 }

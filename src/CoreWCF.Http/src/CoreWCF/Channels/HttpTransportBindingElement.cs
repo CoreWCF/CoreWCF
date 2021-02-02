@@ -84,12 +84,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _realm = value;
+                _realm = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -116,11 +111,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-                _webSocketSettings = value;
+                _webSocketSettings = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -143,7 +134,7 @@ namespace CoreWCF.Channels
 
         public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
         {
-            var app = context.BindingParameters.Find<IApplicationBuilder>();
+            IApplicationBuilder app = context.BindingParameters.Find<IApplicationBuilder>();
             if (app == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(IApplicationBuilder));
@@ -214,13 +205,13 @@ namespace CoreWCF.Channels
             //}
             else if (typeof(T).FullName.Equals("CoreWCF.Channels.ITransportCompressionSupport"))
             {
-                var app = context.BindingParameters.Find<IApplicationBuilder>();
+                IApplicationBuilder app = context.BindingParameters.Find<IApplicationBuilder>();
                 if (app == null)
                 {
                     return base.GetProperty<T>(context);
                 }
 
-                var tcs = app.ApplicationServices.GetService(typeof(T).Assembly.GetType("CoreWCF.Channels.TransportCompressionSupportHelper"));
+                object tcs = app.ApplicationServices.GetService(typeof(T).Assembly.GetType("CoreWCF.Channels.TransportCompressionSupportHelper"));
                 return (T)tcs;
             }
             else
@@ -289,7 +280,7 @@ namespace CoreWCF.Channels
                 }
 
                 if (value.PolicyEnforcement == PolicyEnforcement.Always &&
-                    !System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+                    !ExtendedProtectionPolicy.OSSupportsExtendedProtection)
                 {
                     throw new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported);
                 }

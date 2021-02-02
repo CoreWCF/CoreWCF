@@ -18,8 +18,6 @@ namespace CoreWCF.Description
 {
     internal class XmlSerializerOperationBehavior : IOperationBehavior
     {
-        private readonly bool _builtInOperationBehavior;
-
         public XmlSerializerOperationBehavior(OperationDescription operation)
             : this(operation, null)
         {
@@ -47,15 +45,12 @@ namespace CoreWCF.Description
         {
             Fx.Assert(reflector != null, "");
             OperationReflector = reflector;
-            _builtInOperationBehavior = builtInOperationBehavior;
+            IsBuiltInOperationBehavior = builtInOperationBehavior;
         }
 
         internal Reflector.OperationReflector OperationReflector { get; }
 
-        internal bool IsBuiltInOperationBehavior
-        {
-            get { return _builtInOperationBehavior; }
-        }
+        internal bool IsBuiltInOperationBehavior { get; }
 
         public XmlSerializerFormatAttribute XmlSerializerFormatAttribute
         {
@@ -149,8 +144,7 @@ namespace CoreWCF.Description
                 }
                 else
                 {
-                    var wrapper = dispatch.FaultFormatter as IDispatchFaultFormatterWrapper;
-                    if (wrapper != null)
+                    if (dispatch.FaultFormatter is IDispatchFaultFormatterWrapper wrapper)
                     {
                         wrapper.InnerFaultFormatter = (IDispatchFaultFormatter)CreateFaultFormatter(dispatch.FaultContractInfos);
                     }
@@ -236,7 +230,7 @@ namespace CoreWCF.Description
 
             private static XmlSerializerFormatAttribute FindAttribute(OperationDescription operation)
             {
-                Type contractType = operation.DeclaringContract != null ? operation.DeclaringContract.ContractType : null;
+                Type contractType = operation.DeclaringContract?.ContractType;
                 XmlSerializerFormatAttribute contractFormatAttribute = contractType != null ? TypeLoader.GetFormattingAttribute(contractType.GetTypeInfo(), null) as XmlSerializerFormatAttribute : null;
                 return TypeLoader.GetFormattingAttribute(operation.OperationMethod, contractFormatAttribute) as XmlSerializerFormatAttribute;
             }
@@ -342,7 +336,7 @@ namespace CoreWCF.Description
                         bool isUnknown = false;
                         bool xmlIgnore = false;
 
-                        foreach (var attr in attrs)
+                        foreach (object attr in attrs)
                         {
                             if (attr is XmlAnyElementAttribute)
                             {
@@ -913,17 +907,9 @@ namespace CoreWCF.Description
                 internal XmlSerializerFaultContractInfo(FaultContractInfo faultContractInfo, SerializerStub serializerStub,
                     XmlQualifiedName faultContractElementName)
                 {
-                    if (faultContractInfo == null)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultContractInfo));
-                    }
-                    if (faultContractElementName == null)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultContractElementName));
-                    }
-                    FaultContractInfo = faultContractInfo;
+                    FaultContractInfo = faultContractInfo ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultContractInfo));
                     _serializerStub = serializerStub;
-                    FaultContractElementName = faultContractElementName;
+                    FaultContractElementName = faultContractElementName ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultContractElementName));
                 }
 
                 internal FaultContractInfo FaultContractInfo { get; }
@@ -1013,7 +999,7 @@ namespace CoreWCF.Description
 
     internal static class XmlSerializerHelper
     {
-        static internal XmlReflectionMember GetXmlReflectionMember(MessagePartDescription part, bool isRpc, bool isEncoded, bool isWrapped)
+        internal static XmlReflectionMember GetXmlReflectionMember(MessagePartDescription part, bool isRpc, bool isEncoded, bool isWrapped)
         {
             string ns = isRpc ? null : part.Namespace;
             MemberInfo additionalAttributesProvider = null;
@@ -1027,16 +1013,18 @@ namespace CoreWCF.Description
             return GetXmlReflectionMember(memberName, elementName, ns, part.Type, additionalAttributesProvider, part.Multiple, isEncoded, isWrapped);
         }
 
-        static internal XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, MemberInfo additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
+        internal static XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, MemberInfo additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
         {
             if (isEncoded && isMultiple)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxMultiplePartsNotAllowedInEncoded, elementName.DecodedName, ns)));
             }
 
-            XmlReflectionMember member = new XmlReflectionMember();
-            member.MemberName = (memberName ?? elementName).DecodedName;
-            member.MemberType = type;
+            XmlReflectionMember member = new XmlReflectionMember
+            {
+                MemberName = (memberName ?? elementName).DecodedName,
+                MemberType = type
+            };
             if (member.MemberType.IsByRef)
             {
                 member.MemberType = member.MemberType.GetElementType();
@@ -1131,9 +1119,11 @@ namespace CoreWCF.Description
                     }
                     else if (HasNoXmlParameterAttributes(member.XmlAttributes))
                     {
-                        member.XmlAttributes.XmlArray = new XmlArrayAttribute();
-                        member.XmlAttributes.XmlArray.ElementName = elementName.DecodedName;
-                        member.XmlAttributes.XmlArray.Namespace = ns;
+                        member.XmlAttributes.XmlArray = new XmlArrayAttribute
+                        {
+                            ElementName = elementName.DecodedName,
+                            Namespace = ns
+                        };
                     }
                 }
                 else
@@ -1142,9 +1132,11 @@ namespace CoreWCF.Description
                     {
                         if (HasNoXmlParameterAttributes(member.XmlAttributes))
                         {
-                            XmlElementAttribute elementAttribute = new XmlElementAttribute();
-                            elementAttribute.ElementName = elementName.DecodedName;
-                            elementAttribute.Namespace = ns;
+                            XmlElementAttribute elementAttribute = new XmlElementAttribute
+                            {
+                                ElementName = elementName.DecodedName,
+                                Namespace = ns
+                            };
                             member.XmlAttributes.XmlElements.Add(elementAttribute);
                         }
                     }

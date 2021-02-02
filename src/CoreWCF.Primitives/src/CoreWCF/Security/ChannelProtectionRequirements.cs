@@ -102,7 +102,7 @@ namespace CoreWCF.Security
 
         private static void AddActionParts(ScopedMessagePartSpecification to, ScopedMessagePartSpecification from)
         {
-            foreach (var action in from.Actions)
+            foreach (string action in from.Actions)
             {
                 if (from.TryGetParts(action, true, out MessagePartSpecification p))
                 {
@@ -131,7 +131,7 @@ namespace CoreWCF.Security
         private static MessagePartSpecification UnionMessagePartSpecifications(ScopedMessagePartSpecification actionParts)
         {
             var result = new MessagePartSpecification(false);
-            foreach (var action in actionParts.Actions)
+            foreach (string action in actionParts.Actions)
             {
                 if (actionParts.TryGetParts(action, out MessagePartSpecification parts))
                 {
@@ -139,7 +139,7 @@ namespace CoreWCF.Security
                     {
                         result.IsBodyIncluded = true;
                     }
-                    foreach (var headerType in parts.HeaderTypes)
+                    foreach (XmlQualifiedName headerType in parts.HeaderTypes)
                     {
                         if (!result.IsHeaderIncluded(headerType.Name, headerType.Namespace))
                         {
@@ -153,7 +153,7 @@ namespace CoreWCF.Security
 
         internal static ChannelProtectionRequirements CreateFromContractAndUnionResponseProtectionRequirements(ContractDescription contract, ISecurityCapabilities bindingElement)
         {
-            var contractRequirements = CreateFromContract(contract, bindingElement.SupportedRequestProtectionLevel, bindingElement.SupportedResponseProtectionLevel);
+            ChannelProtectionRequirements contractRequirements = CreateFromContract(contract, bindingElement.SupportedRequestProtectionLevel, bindingElement.SupportedResponseProtectionLevel);
             var result = new ChannelProtectionRequirements();
 
             result.OutgoingEncryptionParts.AddParts(UnionMessagePartSpecifications(contractRequirements.OutgoingEncryptionParts), MessageHeaders.WildcardAction);
@@ -172,8 +172,8 @@ namespace CoreWCF.Security
 
             var requirements = new ChannelProtectionRequirements();
 
-            var contractScopeDefaultRequestProtectionLevel = ProtectionLevel.None;
-            var contractScopeDefaultResponseProtectionLevel = ProtectionLevel.None;
+            ProtectionLevel contractScopeDefaultRequestProtectionLevel = ProtectionLevel.None;
+            ProtectionLevel contractScopeDefaultResponseProtectionLevel = ProtectionLevel.None;
             if (contract.HasProtectionLevel) // Currently always false
             {
                 //contractScopeDefaultRequestProtectionLevel = contract.ProtectionLevel;
@@ -185,10 +185,10 @@ namespace CoreWCF.Security
                 contractScopeDefaultResponseProtectionLevel = defaultResponseProtectionLevel;
             }
 
-            foreach (var operation in contract.Operations)
+            foreach (OperationDescription operation in contract.Operations)
             {
-                var operationScopeDefaultRequestProtectionLevel = ProtectionLevel.None;
-                var operationScopeDefaultResponseProtectionLevel = ProtectionLevel.None;
+                ProtectionLevel operationScopeDefaultRequestProtectionLevel = ProtectionLevel.None;
+                ProtectionLevel operationScopeDefaultResponseProtectionLevel = ProtectionLevel.None;
                 if (operation.HasProtectionLevel) // Currently always false
                 {
                     //operationScopeDefaultRequestProtectionLevel = operation.ProtectionLevel;
@@ -199,9 +199,9 @@ namespace CoreWCF.Security
                     operationScopeDefaultRequestProtectionLevel = contractScopeDefaultRequestProtectionLevel;
                     operationScopeDefaultResponseProtectionLevel = contractScopeDefaultResponseProtectionLevel;
                 }
-                foreach (var message in operation.Messages)
+                foreach (MessageDescription message in operation.Messages)
                 {
-                    var messageScopeDefaultProtectionLevel = ProtectionLevel.None;
+                    ProtectionLevel messageScopeDefaultProtectionLevel = ProtectionLevel.None;
                     if (message.HasProtectionLevel)
                     {
                         //messageScopeDefaultProtectionLevel = message.ProtectionLevel;
@@ -219,7 +219,7 @@ namespace CoreWCF.Security
                     var encryptedParts = new MessagePartSpecification();
 
                     // determine header protection requirements for message
-                    foreach (var header in message.Headers)
+                    foreach (MessageHeaderDescription header in message.Headers)
                     {
                         AddHeaderProtectionRequirements(header, signedParts, encryptedParts, messageScopeDefaultProtectionLevel);
                     }
@@ -251,9 +251,9 @@ namespace CoreWCF.Security
                     // determine body protection requirements for message
                     if (message.Body.Parts.Count > 0)
                     {
-                        foreach (var body in message.Body.Parts)
+                        foreach (MessagePartDescription body in message.Body.Parts)
                         {
-                            var partProtectionLevel = messageScopeDefaultProtectionLevel; // MessagePartDescription.HasProtectionLevel currently always false
+                            ProtectionLevel partProtectionLevel = messageScopeDefaultProtectionLevel; // MessagePartDescription.HasProtectionLevel currently always false
                             //ProtectionLevel partProtectionLevel = body.HasProtectionLevel ? body.ProtectionLevel : messageScopeDefaultProtectionLevel;
                             bodyProtectionLevel = ProtectionLevelHelper.Max(bodyProtectionLevel, partProtectionLevel);
                             if (bodyProtectionLevel == ProtectionLevel.EncryptAndSign)
@@ -302,7 +302,7 @@ namespace CoreWCF.Security
         private static void AddHeaderProtectionRequirements(MessageHeaderDescription header, MessagePartSpecification signedParts,
             MessagePartSpecification encryptedParts, ProtectionLevel defaultProtectionLevel)
         {
-            var p = defaultProtectionLevel; //header.HasProtectionLevel currently is always false;
+            ProtectionLevel p = defaultProtectionLevel; //header.HasProtectionLevel currently is always false;
             //ProtectionLevel p = header.HasProtectionLevel ? header.ProtectionLevel : defaultProtectionLevel;
 
             if (p != ProtectionLevel.None)
@@ -328,11 +328,11 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(requirements));
             }
 
-            foreach (var fault in faults)
+            foreach (FaultDescription fault in faults)
             {
                 var signedParts = new MessagePartSpecification();
                 var encryptedParts = new MessagePartSpecification();
-                var p = defaultProtectionLevel; // FaultDescription.HasProtectionLevel currently is always false
+                ProtectionLevel p = defaultProtectionLevel; // FaultDescription.HasProtectionLevel currently is always false
                 //ProtectionLevel p = fault.HasProtectionLevel ? fault.ProtectionLevel : defaultProtectionLevel;
                 if (p != ProtectionLevel.None)
                 {

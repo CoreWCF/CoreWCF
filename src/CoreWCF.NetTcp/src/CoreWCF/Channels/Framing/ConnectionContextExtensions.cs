@@ -38,7 +38,7 @@ namespace CoreWCF.Channels.Framing
                 }
             }
 
-            return default(T);
+            return default;
         }
     }
 }

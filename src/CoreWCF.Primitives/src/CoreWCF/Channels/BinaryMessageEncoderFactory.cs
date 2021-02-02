@@ -17,7 +17,6 @@ namespace CoreWCF.Channels
         private const int maxPooledXmlReaderPerMessage = 2;
         private readonly BinaryMessageEncoder _messageEncoder;
         private readonly MessageVersion _messageVersion;
-        private readonly int _maxWritePoolSize;
 
         // Double-checked locking pattern requires volatile for read/write synchronization
         //volatile SynchronizedPool<XmlDictionaryWriter> streamedWriterPool;
@@ -34,7 +33,7 @@ namespace CoreWCF.Channels
         {
             _messageVersion = messageVersion;
             MaxReadPoolSize = maxReadPoolSize;
-            _maxWritePoolSize = maxWritePoolSize;
+            MaxWritePoolSize = maxWritePoolSize;
             MaxSessionSize = maxSessionSize;
             ThisLock = new object();
             _onStreamedReaderClose = new OnXmlDictionaryReaderClose(ReturnStreamedReader);
@@ -70,10 +69,7 @@ namespace CoreWCF.Channels
             get { return _messageVersion; }
         }
 
-        public int MaxWritePoolSize
-        {
-            get { return _maxWritePoolSize; }
-        }
+        public int MaxWritePoolSize { get; }
 
         public XmlDictionaryReaderQuotas ReaderQuotas { get; }
 
@@ -157,7 +153,7 @@ namespace CoreWCF.Channels
                     if (_bufferedWriterPool == null)
                     {
                         //running = true;
-                        _bufferedWriterPool = new SynchronizedPool<BinaryBufferedMessageWriter>(_maxWritePoolSize);
+                        _bufferedWriterPool = new SynchronizedPool<BinaryBufferedMessageWriter>(MaxWritePoolSize);
                     }
                 }
             }
@@ -667,7 +663,7 @@ namespace CoreWCF.Channels
 
                 if (maxMessageSize < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("maxMessageSize", maxMessageSize,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxMessageSize), maxMessageSize,
                         SR.ValueMustBeNonNegative));
                 }
 
@@ -685,7 +681,7 @@ namespace CoreWCF.Channels
 
                 if (messageOffset < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("messageOffset", messageOffset,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(messageOffset), messageOffset,
                         SR.ValueMustBeNonNegative));
                 }
 
@@ -732,11 +728,11 @@ namespace CoreWCF.Channels
             {
                 if (message == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("message"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(message)));
                 }
                 if (stream == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("stream"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(stream)));
                 }
 
                 CompressionFormat compressionFormat = CheckCompressedWrite(message);
@@ -766,10 +762,10 @@ namespace CoreWCF.Channels
                     if (CompressionEnabled)
                     {
                         supported = (_factory.CompressionFormat == CompressionFormat.GZip &&
-                            base.IsContentTypeSupported(contentType, _gzipCompressedContentType, _gzipCompressedContentType)) ||
+                            IsContentTypeSupported(contentType, _gzipCompressedContentType, _gzipCompressedContentType)) ||
                             (_factory.CompressionFormat == CompressionFormat.Deflate &&
-                            base.IsContentTypeSupported(contentType, _deflateCompressedContentType, _deflateCompressedContentType)) ||
-                            base.IsContentTypeSupported(contentType, _normalContentType, _normalContentType);
+                            IsContentTypeSupported(contentType, _deflateCompressedContentType, _deflateCompressedContentType)) ||
+                            IsContentTypeSupported(contentType, _normalContentType, _normalContentType);
                     }
                     else
                     {
@@ -781,11 +777,11 @@ namespace CoreWCF.Channels
 
             public void SetSessionContentType(string contentType)
             {
-                if (base.IsContentTypeSupported(contentType, _gzipCompressedContentType, _gzipCompressedContentType))
+                if (IsContentTypeSupported(contentType, _gzipCompressedContentType, _gzipCompressedContentType))
                 {
                     _sessionCompressionFormat = CompressionFormat.GZip;
                 }
-                else if (base.IsContentTypeSupported(contentType, _deflateCompressedContentType, _deflateCompressedContentType))
+                else if (IsContentTypeSupported(contentType, _deflateCompressedContentType, _deflateCompressedContentType))
                 {
                     _sessionCompressionFormat = CompressionFormat.Deflate;
                 }
@@ -1004,7 +1000,7 @@ namespace CoreWCF.Channels
         {
             if (key < 0 || key >= 0x4000)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("key", key,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(key), key,
                     SR.Format(SR.ValueMustBeInRange, 0, 0x4000)));
             }
             if (key >= 0x80)
@@ -1027,7 +1023,7 @@ namespace CoreWCF.Channels
         {
             if (value < 0 || value > 0xFF)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                     SR.Format(SR.ValueMustBeInRange, 0, 0xFF)));
             }
             _bytes.Add((byte)value);
@@ -1097,7 +1093,7 @@ namespace CoreWCF.Channels
                 case 4:
                     return (buffer[offset] & 0x7f) + ((buffer[offset + 1] & 0x7f) << 7) + ((buffer[offset + 2] & 0x7f) << 14) + (buffer[offset + 3] << 21);
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("size", size,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(size), size,
                         SR.Format(SR.ValueMustBeInRange, 1, 4)));
             }
         }
@@ -1107,7 +1103,7 @@ namespace CoreWCF.Channels
             return ParseInt32(buffer, offset, size);
         }
 
-        public unsafe static UniqueId ParseUniqueID(byte[] buffer, int offset, int size)
+        public static unsafe UniqueId ParseUniqueID(byte[] buffer, int offset, int size)
         {
             return new UniqueId(buffer, offset);
         }

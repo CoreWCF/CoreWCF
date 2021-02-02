@@ -51,12 +51,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
             }
 
-            if (id == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
-            }
-
-            _id = id;
+            _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             _certificate = clone ? new X509Certificate2(certificate) : certificate;
             // if the cert needs to be cloned then the token owns the clone and should dispose it
             _disposable = clone || disposable;
@@ -74,8 +69,10 @@ namespace CoreWCF.IdentityModel.Tokens
                 ThrowIfDisposed();
                 if (_securityKeys == null)
                 {
-                    List<SecurityKey> temp = new List<SecurityKey>(1);
-                    temp.Add(new X509AsymmetricSecurityKey(_certificate));
+                    List<SecurityKey> temp = new List<SecurityKey>(1)
+                    {
+                        new X509AsymmetricSecurityKey(_certificate)
+                    };
                     _securityKeys = temp.AsReadOnly();
                 }
                 return _securityKeys;

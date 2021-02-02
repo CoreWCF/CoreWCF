@@ -26,9 +26,7 @@ namespace CoreWCF.Channels
         private SecurityTokenAuthenticator _clientCertificateAuthenticator;
         private SecurityTokenProvider _serverTokenProvider;
         private EndpointIdentity _identity;
-        private readonly string _scheme;
         private bool _enableChannelBinding;
-        private readonly SecurityTokenManager _clientSecurityTokenManager;
 
         private SslStreamSecurityUpgradeProvider(IDefaultCommunicationTimeouts timeouts, SecurityTokenProvider serverTokenProvider, bool requireClientCertificate, SecurityTokenAuthenticator clientCertificateAuthenticator, string scheme, IdentityVerifier identityVerifier, SslProtocols sslProtocols)
             : base(timeouts)
@@ -37,9 +35,9 @@ namespace CoreWCF.Channels
             RequireClientCertificate = requireClientCertificate;
             _clientCertificateAuthenticator = clientCertificateAuthenticator;
             IdentityVerifier = identityVerifier;
-            _scheme = scheme;
+            Scheme = scheme;
             SslProtocols = sslProtocols;
-            _clientSecurityTokenManager = null; // Used for client but there's public api which need this and the compiler complains it's never assigned
+            ClientSecurityTokenManager = null; // Used for client but there's public api which need this and the compiler complains it's never assigned
         }
 
         public static SslStreamSecurityUpgradeProvider CreateServerProvider(
@@ -56,12 +54,14 @@ namespace CoreWCF.Channels
             Uri listenUri = TransportSecurityHelpers.GetListenUri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
             SecurityTokenManager tokenManager = credentialProvider.CreateSecurityTokenManager();
 
-            RecipientServiceModelSecurityTokenRequirement serverCertRequirement = new RecipientServiceModelSecurityTokenRequirement();
-            serverCertRequirement.TokenType = SecurityTokenTypes.X509Certificate;
-            serverCertRequirement.RequireCryptographicToken = true;
-            serverCertRequirement.KeyUsage = SecurityKeyUsage.Exchange;
-            serverCertRequirement.TransportScheme = context.Binding.Scheme;
-            serverCertRequirement.ListenUri = listenUri;
+            RecipientServiceModelSecurityTokenRequirement serverCertRequirement = new RecipientServiceModelSecurityTokenRequirement
+            {
+                TokenType = SecurityTokenTypes.X509Certificate,
+                RequireCryptographicToken = true,
+                KeyUsage = SecurityKeyUsage.Exchange,
+                TransportScheme = context.Binding.Scheme,
+                ListenUri = listenUri
+            };
 
             SecurityTokenProvider tokenProvider = tokenManager.CreateSecurityTokenProvider(serverCertRequirement);
             if (tokenProvider == null)
@@ -107,18 +107,9 @@ namespace CoreWCF.Channels
             }
         }
 
-        public SecurityTokenManager ClientSecurityTokenManager
-        {
-            get
-            {
-                return _clientSecurityTokenManager;
-            }
-        }
+        public SecurityTokenManager ClientSecurityTokenManager { get; }
 
-        public string Scheme
-        {
-            get { return _scheme; }
-        }
+        public string Scheme { get; }
 
         public SslProtocols SslProtocols { get; }
 
@@ -138,16 +129,15 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(upgradeAcceptor));
             }
 
-            SslStreamSecurityUpgradeAcceptor sslupgradeAcceptor = upgradeAcceptor as SslStreamSecurityUpgradeAcceptor;
 
-            if (sslupgradeAcceptor == null)
+            if (!(upgradeAcceptor is SslStreamSecurityUpgradeAcceptor sslupgradeAcceptor))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("upgradeAcceptor", SR.Format(SR.UnsupportedUpgradeAcceptor, upgradeAcceptor.GetType()));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(upgradeAcceptor), SR.Format(SR.UnsupportedUpgradeAcceptor, upgradeAcceptor.GetType()));
             }
 
             if (kind != ChannelBindingKind.Endpoint)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("kind", SR.Format(SR.StreamUpgradeUnsupportedChannelBindingKind, GetType(), kind));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(kind), SR.Format(SR.StreamUpgradeUnsupportedChannelBindingKind, GetType(), kind));
             }
 
             return sslupgradeAcceptor.ChannelBinding;
@@ -195,8 +185,7 @@ namespace CoreWCF.Channels
 
         private void SetupServerCertificate(SecurityToken token)
         {
-            X509SecurityToken x509Token = token as X509SecurityToken;
-            if (x509Token == null)
+            if (!(token is X509SecurityToken x509Token))
             {
                 SecurityUtils.AbortTokenProviderIfRequired(_serverTokenProvider);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
@@ -310,9 +299,11 @@ namespace CoreWCF.Channels
                 {
                     SecurityToken token = new X509SecurityToken(certificate2, false);
                     ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _parent.ClientCertificateAuthenticator.ValidateToken(token);
-                    _clientSecurity = new SecurityMessageProperty();
-                    _clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
-                    _clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
+                    _clientSecurity = new SecurityMessageProperty
+                    {
+                        TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
+                        ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies)
+                    };
                 }
                 catch (SecurityTokenException e)
                 {
@@ -333,9 +324,11 @@ namespace CoreWCF.Channels
             {
                 SecurityToken token = new X509SecurityToken(_clientCertificate);
                 ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.NonValidatingX509Authenticator.ValidateToken(token);
-                _clientSecurity = new SecurityMessageProperty();
-                _clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
-                _clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
+                _clientSecurity = new SecurityMessageProperty
+                {
+                    TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
+                    ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies)
+                };
                 return _clientSecurity;
             }
             return base.GetRemoteSecurity();

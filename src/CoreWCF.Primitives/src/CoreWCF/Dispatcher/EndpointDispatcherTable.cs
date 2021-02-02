@@ -102,8 +102,7 @@ namespace CoreWCF.Dispatcher
                     MessageFilter cachedFilter = cachedEndpoint.EndpointFilter;
 
                     bool matchResult;
-                    AndMessageFilter andFilter = cachedFilter as AndMessageFilter;
-                    if (andFilter != null)
+                    if (cachedFilter is AndMessageFilter andFilter)
                     {
                         matchResult = andFilter.Match(message, out bool addressResult);
                         addressMatched |= addressResult;
@@ -140,10 +139,7 @@ namespace CoreWCF.Dispatcher
 
         public EndpointDispatcher Lookup(Message message, out bool addressMatched)
         {
-            EndpointDispatcher data = null;
-
-            data = LookupInCache(message, out addressMatched);
-
+            EndpointDispatcher data = LookupInCache(message, out addressMatched);
             if (data == null)
             {
                 lock (ThisLock)

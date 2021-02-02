@@ -20,20 +20,16 @@ namespace CoreWCF.Channels
         private bool _aborted;
         private ICommunicationWaiter _busyWaiter;
         private int _busyWaiterCount;
-        private LifetimeState _state;
 
         public LifetimeManager(object mutex)
         {
             ThisLock = mutex;
-            _state = LifetimeState.Opened;
+            State = LifetimeState.Opened;
         }
 
         public int BusyCount { get; private set; }
 
-        protected LifetimeState State
-        {
-            get { return _state; }
-        }
+        protected LifetimeState State { get; private set; }
 
         protected object ThisLock { get; }
 
@@ -47,16 +43,16 @@ namespace CoreWCF.Channels
                 }
 
                 _aborted = true;
-                _state = LifetimeState.Closing;
+                State = LifetimeState.Closing;
             }
 
             OnAbort();
-            _state = LifetimeState.Closed;
+            State = LifetimeState.Closed;
         }
 
         private void ThrowIfNotOpened()
         {
-            if (!_aborted && _state != LifetimeState.Opened)
+            if (!_aborted && State != LifetimeState.Opened)
             {
             }
         }
@@ -67,11 +63,11 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 ThrowIfNotOpened();
-                _state = LifetimeState.Closing;
+                State = LifetimeState.Closing;
             }
 
             await OnCloseAsync(token);
-            _state = LifetimeState.Closed;
+            State = LifetimeState.Closed;
         }
 
         protected virtual async Task OnCloseAsync(CancellationToken token)

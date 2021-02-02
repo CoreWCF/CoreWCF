@@ -265,7 +265,7 @@ namespace CoreWCF.Dispatcher
             MessageFilter f = InnerMatch(message);
             if (f == null)
             {
-                data = default(TFilterData);
+                data = default;
                 return false;
             }
 
@@ -293,7 +293,7 @@ namespace CoreWCF.Dispatcher
 
             if (f == null)
             {
-                data = default(TFilterData);
+                data = default;
                 return false;
             }
 
@@ -456,8 +456,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            ActionMessageFilter aFilter = filter as ActionMessageFilter;
-            if (aFilter != null)
+            if (filter is ActionMessageFilter aFilter)
             {
                 return Remove(aFilter);
             }

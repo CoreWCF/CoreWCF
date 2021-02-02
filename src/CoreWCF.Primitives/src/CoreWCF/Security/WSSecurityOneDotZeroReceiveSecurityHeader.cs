@@ -47,12 +47,12 @@ namespace CoreWCF.Security
 
         protected override bool IsReaderAtEncryptedKey(XmlDictionaryReader reader)
         {
-            return reader.IsStartElement(CoreWCF.XD.XmlEncryptionDictionary.EncryptedKey, CoreWCF.XD.XmlEncryptionDictionary.Namespace);
+            return reader.IsStartElement(XD.XmlEncryptionDictionary.EncryptedKey, XD.XmlEncryptionDictionary.Namespace);
         }
 
         protected override bool IsReaderAtEncryptedData(XmlDictionaryReader reader)
         {
-            bool encrypted = reader.IsStartElement(CoreWCF.XD.XmlEncryptionDictionary.EncryptedData, CoreWCF.XD.XmlEncryptionDictionary.Namespace);
+            bool encrypted = reader.IsStartElement(XD.XmlEncryptionDictionary.EncryptedData, XD.XmlEncryptionDictionary.Namespace);
 
             if (encrypted == true)
             {
@@ -136,7 +136,7 @@ namespace CoreWCF.Security
         protected override SecurityToken VerifySignature(SignedXml signedXml, bool isPrimarySignature, SecurityHeaderTokenResolver resolver, object signatureTarget, string id)
         {
             SecurityKeyIdentifier securityKeyIdentifier = null;
-            String keyInfoString = signedXml.Signature.KeyInfo.GetXml().OuterXml;
+            string keyInfoString = signedXml.Signature.KeyInfo.GetXml().OuterXml;
             using (var strReader = new StringReader(keyInfoString))
             {
                 XmlReader xmlReader = XmlReader.Create(strReader);
@@ -237,8 +237,7 @@ namespace CoreWCF.Security
         {
             symmetricAlgorithm = null;
             asymmetricAlgorithm = null;
-            SymmetricSecurityKey symmetricKey = signatureKey as SymmetricSecurityKey;
-            if (symmetricKey != null)
+            if (signatureKey is SymmetricSecurityKey symmetricKey)
             {
                 _signingKey = symmetricKey.GetKeyedHashAlgorithm(algorithmName);
                 if (_signingKey == null)
@@ -249,8 +248,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                AsymmetricSecurityKey asymmetricKey = signatureKey as AsymmetricSecurityKey;
-                if (asymmetricKey == null)
+                if (!(signatureKey is AsymmetricSecurityKey asymmetricKey))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                         SR.Format(SR.UnknownICryptoType, _signingKey)));

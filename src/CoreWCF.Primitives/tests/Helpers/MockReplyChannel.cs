@@ -17,7 +17,7 @@ namespace Helpers
 
         public MockReplyChannel(IServiceProvider serviceProvider)
         {
-            var servicesScopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
+            IServiceScopeFactory servicesScopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
             _serviceScope = servicesScopeFactory.CreateScope();
         }
 
@@ -27,11 +27,13 @@ namespace Helpers
         public IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
         // These are required to implement IReplyChannel
+#pragma warning disable CS0067 // The event is never used
         public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
+#pragma warning restore CS0067 // The event is never used
 
         public void Abort()
         {

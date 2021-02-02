@@ -12,7 +12,7 @@ namespace Contract
     {
         [CoreWCF.MessageHeader]
         [System.ServiceModel.MessageHeader]
-        public String Header { get; set; }
+        public string Header { get; set; }
 
         [CoreWCF.MessageBodyMember]
         [System.ServiceModel.MessageBodyMember]

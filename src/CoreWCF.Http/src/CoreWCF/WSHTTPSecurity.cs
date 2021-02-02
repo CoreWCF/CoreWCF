@@ -22,14 +22,16 @@ namespace CoreWCF
         internal WSHTTPSecurity(SecurityMode mode, HttpTransportSecurity transportSecurity, NonDualMessageSecurityOverHttp messageSecurity)
         {
             _mode = mode;
-            _transportSecurity = transportSecurity == null ? GetDefaultHttpTransportSecurity() : transportSecurity;
-            _messageSecurity = messageSecurity == null ? new NonDualMessageSecurityOverHttp() : messageSecurity;
+            _transportSecurity = transportSecurity ?? GetDefaultHttpTransportSecurity();
+            _messageSecurity = messageSecurity ?? new NonDualMessageSecurityOverHttp();
         }
 
         internal static HttpTransportSecurity GetDefaultHttpTransportSecurity()
         {
-            HttpTransportSecurity transportSecurity = new HttpTransportSecurity();
-            transportSecurity.ClientCredentialType = HttpClientCredentialType.Windows;
+            HttpTransportSecurity transportSecurity = new HttpTransportSecurity
+            {
+                ClientCredentialType = HttpClientCredentialType.Windows
+            };
             return transportSecurity;
         }
 
@@ -40,7 +42,7 @@ namespace CoreWCF
             {
                 if (!SecurityModeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 _mode = value;
             }
@@ -51,11 +53,7 @@ namespace CoreWCF
             get { return _transportSecurity; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                }
-                _transportSecurity = value;
+                _transportSecurity = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
@@ -64,11 +62,7 @@ namespace CoreWCF
             get { return _messageSecurity; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                }
-                _messageSecurity = value;
+                _messageSecurity = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 

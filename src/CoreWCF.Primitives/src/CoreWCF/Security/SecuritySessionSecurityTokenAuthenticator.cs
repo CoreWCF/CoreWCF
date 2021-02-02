@@ -25,7 +25,7 @@ namespace CoreWCF.Security
     internal class SecuritySessionSecurityTokenAuthenticator : CommunicationObjectSecurityTokenAuthenticator, IIssuanceSecurityTokenAuthenticator //, ILogonTokenCacheManager
     {
         internal static readonly TimeSpan defaultSessionTokenLifetime = TimeSpan.MaxValue;
-        internal const int defaultMaxCachedSessionTokens = Int32.MaxValue;
+        internal const int defaultMaxCachedSessionTokens = int.MaxValue;
         internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
         private bool _isClientAnonymous;
         private TimeSpan _sessionTokenLifetime;
@@ -43,7 +43,7 @@ namespace CoreWCF.Security
         private bool _shouldMatchRstWithEndpointFilter;
         private int _maximumConcurrentNegotiations;
         private TimeSpan _negotiationTimeout;
-        private readonly Object _thisLock = new Object();
+        private readonly object _thisLock = new object();
 
         public SecuritySessionSecurityTokenAuthenticator()
         {
@@ -555,7 +555,7 @@ namespace CoreWCF.Security
         {
             if (security == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("security");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
             }
 
             List<IAuthorizationPolicy> authorizationPolicies = new List<IAuthorizationPolicy>();
@@ -664,13 +664,15 @@ namespace CoreWCF.Security
                 }
             }
 
-            rstr = new RequestSecurityTokenResponse(_standardsManager);
-            rstr.Context = rst.Context;
-            rstr.KeySize = issuedKeySize;
-            rstr.RequestedUnattachedReference = IssuedSecurityTokenParameters.CreateKeyIdentifierClause(newToken, SecurityTokenReferenceStyle.External);
-            rstr.RequestedAttachedReference = IssuedSecurityTokenParameters.CreateKeyIdentifierClause(newToken, SecurityTokenReferenceStyle.Internal);
-            rstr.TokenType = _sctUri;
-            rstr.RequestedSecurityToken = newToken;
+            rstr = new RequestSecurityTokenResponse(_standardsManager)
+            {
+                Context = rst.Context,
+                KeySize = issuedKeySize,
+                RequestedUnattachedReference = IssuedSecurityTokenParameters.CreateKeyIdentifierClause(newToken, SecurityTokenReferenceStyle.External),
+                RequestedAttachedReference = IssuedSecurityTokenParameters.CreateKeyIdentifierClause(newToken, SecurityTokenReferenceStyle.Internal),
+                TokenType = _sctUri,
+                RequestedSecurityToken = newToken
+            };
             if (issuerEntropy != null)
             {
                 rstr.SetIssuerEntropy(issuerEntropy);
@@ -697,8 +699,7 @@ namespace CoreWCF.Security
                 {
                     continue;
                 }
-                SecurityContextSecurityToken sct = supportingTokenProperty.IncomingSupportingTokens[i].SecurityToken as SecurityContextSecurityToken;
-                if (sct != null && sctSkiClause.Matches(sct.ContextId, sct.KeyGeneration))
+                if (supportingTokenProperty.IncomingSupportingTokens[i].SecurityToken is SecurityContextSecurityToken sct && sctSkiClause.Matches(sct.ContextId, sct.KeyGeneration))
                 {
                     return supportingTokenProperty.IncomingSupportingTokens[i];
                 }
@@ -745,8 +746,10 @@ namespace CoreWCF.Security
                 BodyWriter replyMessage = rstr;
                 if (StandardsManager.MessageSecurityVersion.TrustVersion == TrustVersion.WSTrust13)
                 {
-                    List<RequestSecurityTokenResponse> rstrList = new List<RequestSecurityTokenResponse>(1);
-                    rstrList.Add(rstr);
+                    List<RequestSecurityTokenResponse> rstrList = new List<RequestSecurityTokenResponse>(1)
+                    {
+                        rstr
+                    };
                     RequestSecurityTokenResponseCollection rstrc = new RequestSecurityTokenResponseCollection(rstrList, StandardsManager);
                     replyMessage = rstrc;
                 }
@@ -767,8 +770,7 @@ namespace CoreWCF.Security
 
         private static void AddTokenToRemoveIfRequired(SecurityToken token, Collection<SecurityContextSecurityToken> sctsToRemove)
         {
-            SecurityContextSecurityToken sct = token as SecurityContextSecurityToken;
-            if (sct != null)
+            if (token is SecurityContextSecurityToken sct)
             {
                 sctsToRemove.Add(sct);
             }
@@ -888,8 +890,10 @@ namespace CoreWCF.Security
                 BodyWriter replyMessage = rstr;
                 if (StandardsManager.MessageSecurityVersion.TrustVersion == TrustVersion.WSTrust13)
                 {
-                    List<RequestSecurityTokenResponse> rstrList = new List<RequestSecurityTokenResponse>(1);
-                    rstrList.Add(rstr);
+                    List<RequestSecurityTokenResponse> rstrList = new List<RequestSecurityTokenResponse>(1)
+                    {
+                        rstr
+                    };
                     RequestSecurityTokenResponseCollection rstrc = new RequestSecurityTokenResponseCollection(rstrList, StandardsManager);
                     replyMessage = rstrc;
                 }
@@ -959,7 +963,7 @@ namespace CoreWCF.Security
             {
                 if (request == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("request");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(request));
                 }
                 if (request.Headers.Action == IssueAction.Value)
                 {
@@ -995,9 +999,11 @@ namespace CoreWCF.Security
             //channelBuilder.Binding.Elements.Insert(0, new ReplyAdapterBindingElement());
             //channelBuilder.Binding.Elements.Insert(0, new SecuritySessionAuthenticatorBindingElement(this));
 
-            List<string> supportedMessageActions = new List<string>();
-            supportedMessageActions.Add(IssueAction.Value);
-            supportedMessageActions.Add(RenewAction.Value);
+            List<string> supportedMessageActions = new List<string>
+            {
+                IssueAction.Value,
+                RenewAction.Value
+            };
             SecurityBindingElement securityBindingElement = IssuerBindingContext.Binding.Elements.Find<SecurityBindingElement>();
             foreach (SecurityTokenParameters stp in new SecurityTokenParametersEnumerable(securityBindingElement))
             {
@@ -1060,8 +1066,10 @@ namespace CoreWCF.Security
             }
 
             SupportingTokenParameters renewSupportingTokenParameters = new SupportingTokenParameters();
-            SecurityContextSecurityTokenParameters sctParameters = new SecurityContextSecurityTokenParameters();
-            sctParameters.RequireDerivedKeys = IssuedSecurityTokenParameters.RequireDerivedKeys;
+            SecurityContextSecurityTokenParameters sctParameters = new SecurityContextSecurityTokenParameters
+            {
+                RequireDerivedKeys = IssuedSecurityTokenParameters.RequireDerivedKeys
+            };
             renewSupportingTokenParameters.Endorsing.Add(sctParameters);
             bootstrapSecurityProtocolFactory.SecurityBindingElement.OperationSupportingTokenParameters.Add(RenewAction.Value, renewSupportingTokenParameters);
             bootstrapSecurityProtocolFactory.SecurityTokenManager = new SessionRenewSecurityTokenManager(bootstrapSecurityProtocolFactory.SecurityTokenManager, SessionTokenAuthenticator, (SecurityTokenResolver)IssuedTokenCache);
@@ -1098,7 +1106,7 @@ namespace CoreWCF.Security
             internal ChannelDispatcher InitializeRuntime(SecurityServiceDispatcher securityDispatcher)
             {
                 MessageFilter contractFilter = _filter;
-                int filterPriority = Int32.MaxValue - 10;
+                int filterPriority = int.MaxValue - 10;
                 List<Type> endpointChannelTypes = new List<Type> {  typeof(IReplyChannel),
                                                            typeof(IDuplexChannel),
                                                            typeof(IReplySessionChannel),
@@ -1126,9 +1134,11 @@ namespace CoreWCF.Security
                 //end
 
                 var bindingQname = new XmlQualifiedName(binding.Name, binding.Namespace);
-                var channelDispatcher = new ChannelDispatcher(_listenUri, binding, bindingQname.ToString(), binding, endpointChannelTypes);
-                channelDispatcher.MessageVersion = binding.MessageVersion;
-                channelDispatcher.ManualAddressing = true;
+                var channelDispatcher = new ChannelDispatcher(_listenUri, binding, bindingQname.ToString(), binding, endpointChannelTypes)
+                {
+                    MessageVersion = binding.MessageVersion,
+                    ManualAddressing = true
+                };
                 //  channelDispatcher.ServiceThrottle = new ServiceThrottle(this);
                 //  channelDispatcher.ServiceThrottle.MaxConcurrentCalls = this.authenticator.MaximumConcurrentNegotiations;
                 //  channelDispatcher.ServiceThrottle.MaxConcurrentSessions = this.authenticator.MaximumConcurrentNegotiations;
@@ -1152,14 +1162,16 @@ namespace CoreWCF.Security
                     }
                 }
 
-                DispatchOperation operation = new DispatchOperation(endpointDispatcher.DispatchRuntime, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
-                operation.Formatter = new MessageOperationFormatter();
-                operation.Invoker = new SecuritySessionAuthenticatorInvoker(_authenticator);
+                DispatchOperation operation = new DispatchOperation(endpointDispatcher.DispatchRuntime, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction)
+                {
+                    Formatter = new MessageOperationFormatter(),
+                    Invoker = new SecuritySessionAuthenticatorInvoker(_authenticator)
+                };
 
                 endpointDispatcher.DispatchRuntime.UnhandledDispatchOperation = operation;
                 channelDispatcher.Endpoints.Add(endpointDispatcher);
                 channelDispatcher.Init();
-                var openTask = channelDispatcher.OpenAsync();
+                Task openTask = channelDispatcher.OpenAsync();
                 Fx.Assert(openTask.IsCompleted, "ChannelDispatcher should open synchronously");
                 openTask.GetAwaiter().GetResult();
                 return channelDispatcher;
@@ -1184,8 +1196,7 @@ namespace CoreWCF.Security
                 public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
                 {
                     object[] outputs = EmptyArray<object>.Allocate(0);
-                    Message message = inputs[0] as Message;
-                    if (message == null)
+                    if (!(inputs[0] is Message message))
                     {
                         return new ValueTask<(object returnValue, object[] outputs)>(((object)null, outputs));
                     }
@@ -1238,7 +1249,7 @@ namespace CoreWCF.Security
             {
                 if (tokenRequirement == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenRequirement");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenRequirement));
                 }
 
                 if (tokenRequirement.TokenType == ServiceModelSecurityTokenTypes.SecurityContext)

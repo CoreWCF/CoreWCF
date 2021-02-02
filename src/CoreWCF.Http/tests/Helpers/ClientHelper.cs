@@ -228,7 +228,7 @@ namespace Helpers
 
         public static T GetProxy<T>()
         {
-            var httpBinding = ClientHelper.GetBufferedModeBinding();
+            BasicHttpBinding httpBinding = GetBufferedModeBinding();
             ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
             T proxy = channelFactory.CreateChannel();
             return proxy;

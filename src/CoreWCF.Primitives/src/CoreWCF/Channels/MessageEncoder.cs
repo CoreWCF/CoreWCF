@@ -104,7 +104,7 @@ namespace CoreWCF.Channels
         {
             if (contentType == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("contentType"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(contentType)));
             }
 
             return IsContentTypeSupported(contentType, ContentType, MediaType);

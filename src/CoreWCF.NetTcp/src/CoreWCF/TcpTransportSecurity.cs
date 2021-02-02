@@ -37,7 +37,7 @@ namespace CoreWCF
             {
                 if (!TcpClientCredentialTypeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 _clientCredentialType = value;
             }
@@ -51,7 +51,7 @@ namespace CoreWCF
             {
                 if (!ProtectionLevelHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 _protectionLevel = value;
             }
@@ -71,7 +71,7 @@ namespace CoreWCF
                 }
 
                 if (value.PolicyEnforcement == PolicyEnforcement.Always &&
-                    !System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+                    !ExtendedProtectionPolicy.OSSupportsExtendedProtection)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                         new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported));
@@ -99,9 +99,11 @@ namespace CoreWCF
                     SR.UnsupportedSslProtectionLevel, _protectionLevel)));
             }
 
-            SslStreamSecurityBindingElement result = new SslStreamSecurityBindingElement();
-            result.RequireClientCertificate = requireClientCertificate;
-            result.SslProtocols = _sslProtocols;
+            SslStreamSecurityBindingElement result = new SslStreamSecurityBindingElement
+            {
+                RequireClientCertificate = requireClientCertificate,
+                SslProtocols = _sslProtocols
+            };
             return result;
         }
 
@@ -113,8 +115,10 @@ namespace CoreWCF
             }
             else
             {
-                WindowsStreamSecurityBindingElement result = new WindowsStreamSecurityBindingElement();
-                result.ProtectionLevel = _protectionLevel;
+                WindowsStreamSecurityBindingElement result = new WindowsStreamSecurityBindingElement
+                {
+                    ProtectionLevel = _protectionLevel
+                };
                 return result;
             }
         }

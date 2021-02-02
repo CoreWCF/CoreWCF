@@ -498,7 +498,7 @@ namespace CoreWCF.Dispatcher
             }
             else
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("version",
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(version),
                     SR.Format(SR.EnvelopeVersionNotSupported, version));
             }
         }

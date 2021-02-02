@@ -11,8 +11,6 @@ namespace CoreWCF
 {
     public class MessageHeader<T>
     {
-        private bool _relay;
-
         public MessageHeader()
         {
         }
@@ -27,7 +25,7 @@ namespace CoreWCF
             Content = content;
             MustUnderstand = mustUnderstand;
             Actor = actor;
-            _relay = relay;
+            Relay = relay;
         }
 
         public string Actor { get; set; }
@@ -36,11 +34,7 @@ namespace CoreWCF
 
         public bool MustUnderstand { get; set; }
 
-        public bool Relay
-        {
-            get { return _relay; }
-            set { _relay = value; }
-        }
+        public bool Relay { get; set; }
 
         internal Type GetGenericArgument()
         {
@@ -49,7 +43,7 @@ namespace CoreWCF
 
         public MessageHeader GetUntypedHeader(string name, string ns)
         {
-            return MessageHeader.CreateHeader(name, ns, Content, MustUnderstand, Actor, _relay);
+            return MessageHeader.CreateHeader(name, ns, Content, MustUnderstand, Actor, Relay);
         }
     }
 
@@ -140,11 +134,13 @@ namespace CoreWCF
         {
             protected override object Create(object content, bool mustUnderstand, bool relay, string actor)
             {
-                MessageHeader<T> header = new MessageHeader<T>();
-                header.Content = (T)content;
-                header.MustUnderstand = mustUnderstand;
-                header.Relay = relay;
-                header.Actor = actor;
+                MessageHeader<T> header = new MessageHeader<T>
+                {
+                    Content = (T)content,
+                    MustUnderstand = mustUnderstand,
+                    Relay = relay,
+                    Actor = actor
+                };
                 return header;
             }
 
@@ -158,8 +154,7 @@ namespace CoreWCF
                     return null;
                 }
 
-                MessageHeader<T> header = typedHeaderInstance as MessageHeader<T>;
-                if (header == null)
+                if (!(typedHeaderInstance is MessageHeader<T> header))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException("typedHeaderInstance"));
                 }

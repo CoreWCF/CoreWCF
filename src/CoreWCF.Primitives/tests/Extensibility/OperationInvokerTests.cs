@@ -16,11 +16,11 @@ namespace Extensibility
         {
             TestDispatchOperationInvoker.ClearCounts();
             var behavior = new TestServiceBehavior { OperationInvokerFactory = TestDispatchOperationInvoker.Create };
-            var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             Assert.Equal(1, TestDispatchOperationInvoker.InvokeCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -33,13 +33,13 @@ namespace Extensibility
         {
             TestDispatchOperationInvoker.ClearCounts();
             var behavior = new TestServiceBehavior { OperationInvokerFactory = TestDispatchOperationInvoker.Create };
-            var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
-            foreach (var dummy in Enumerable.Range(0, 10))
+            foreach (int dummy in Enumerable.Range(0, 10))
             {
-                var echo = channel.Echo("hello");
+                string echo = channel.Echo("hello");
                 Assert.Equal("hello", echo);
             }
             Assert.Equal(10, TestDispatchOperationInvoker.InvokeCount);

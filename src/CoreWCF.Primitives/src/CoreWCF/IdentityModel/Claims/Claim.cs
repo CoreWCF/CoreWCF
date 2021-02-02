@@ -34,7 +34,7 @@ namespace CoreWCF.IdentityModel.Claims
 
             if (claimType.Length <= 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("claimType", SR.ArgumentCannotBeEmptyString);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(claimType), SR.ArgumentCannotBeEmptyString);
             }
 
             if (right == null)
@@ -44,7 +44,7 @@ namespace CoreWCF.IdentityModel.Claims
 
             if (right.Length <= 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("right", SR.ArgumentCannotBeEmptyString);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(right), SR.ArgumentCannotBeEmptyString);
             }
 
             // String interning is only supported in .Net standard 1.7. Api tool says this is slow?

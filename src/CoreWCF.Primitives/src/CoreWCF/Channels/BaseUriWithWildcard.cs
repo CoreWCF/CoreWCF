@@ -105,7 +105,6 @@ namespace CoreWCF.Channels
         private static string[] SplitBinding(string binding)
         {
             bool parsingIPv6Address = false;
-            string[] tokens = null;
             const char splitChar = ':', startIPv6Address = '[', endIPv6Address = ']';
 
             List<int> splitLocations = null;
@@ -130,6 +129,7 @@ namespace CoreWCF.Channels
                 }
             }
 
+            string[] tokens;
             if (splitLocations == null)
             {
                 tokens = new[] { binding };
@@ -199,9 +199,7 @@ namespace CoreWCF.Channels
 
         public override bool Equals(object o)
         {
-            BaseUriWithWildcard other = o as BaseUriWithWildcard;
-
-            if (other == null || other._hashCode != _hashCode || other._hostNameComparisonMode != _hostNameComparisonMode ||
+            if (!(o is BaseUriWithWildcard other) || other._hashCode != _hashCode || other._hostNameComparisonMode != _hostNameComparisonMode ||
                 other._comparand.Port != _comparand.Port)
             {
                 return false;
@@ -262,7 +260,7 @@ namespace CoreWCF.Channels
 
             if (!HostNameComparisonModeHelper.IsDefined(HostNameComparisonMode))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("context", SR.Hosting_BaseUriDeserializedNotValid);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(context), SR.Hosting_BaseUriDeserializedNotValid);
             }
             SetComparisonAddressAndHashCode();
         }

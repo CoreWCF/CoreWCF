@@ -18,7 +18,6 @@ namespace CoreWCF.Channels
         private Message _requestMessage;
         private Exception _requestMessageException;
         private bool _replySent;
-        private bool _aborted;
 
         protected RequestContextBase(Message requestMessage, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
         {
@@ -33,7 +32,7 @@ namespace CoreWCF.Channels
             _requestMessageException = null;
             _replySent = false;
             ReplyInitiated = false;
-            _aborted = false;
+            Aborted = false;
             _requestMessage = requestMessage;
         }
 
@@ -66,13 +65,7 @@ namespace CoreWCF.Channels
 
         protected object ThisLock { get; } = new object();
 
-        public bool Aborted
-        {
-            get
-            {
-                return _aborted;
-            }
-        }
+        public bool Aborted { get; private set; }
 
         public TimeSpan DefaultCloseTimeout
         {
@@ -95,7 +88,7 @@ namespace CoreWCF.Channels
 
                 _state = CommunicationState.Closing;
 
-                _aborted = true;
+                Aborted = true;
             }
 
             //if (DiagnosticUtility.ShouldTraceWarning)
@@ -187,7 +180,7 @@ namespace CoreWCF.Channels
         {
             if (_state == CommunicationState.Closed || _state == CommunicationState.Closing)
             {
-                if (_aborted)
+                if (Aborted)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationObjectAbortedException(SR.RequestContextAborted));
                 }

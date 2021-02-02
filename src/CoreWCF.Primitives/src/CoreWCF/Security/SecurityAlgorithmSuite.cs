@@ -28,14 +28,14 @@ namespace CoreWCF.Security
         private static SecurityAlgorithmSuite s_basic128Sha256Rsa15;
         private static SecurityAlgorithmSuite s_tripleDesSha256Rsa15;
 
-        static internal SecurityAlgorithmSuite KerberosDefault
+        internal static SecurityAlgorithmSuite KerberosDefault
         {
             get
             {
                 return Basic128;
             }
         }
-        static public SecurityAlgorithmSuite Default
+        public static SecurityAlgorithmSuite Default
         {
             get
             {
@@ -43,7 +43,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static public SecurityAlgorithmSuite Basic256
+        public static SecurityAlgorithmSuite Basic256
         {
             get
             {
@@ -55,7 +55,7 @@ namespace CoreWCF.Security
                 return s_basic256;
             }
         }
-        static public SecurityAlgorithmSuite Basic192
+        public static SecurityAlgorithmSuite Basic192
         {
             get
             {
@@ -67,7 +67,7 @@ namespace CoreWCF.Security
                 return s_basic192;
             }
         }
-        static public SecurityAlgorithmSuite Basic128
+        public static SecurityAlgorithmSuite Basic128
         {
             get
             {
@@ -79,7 +79,7 @@ namespace CoreWCF.Security
                 return s_basic128;
             }
         }
-        static public SecurityAlgorithmSuite TripleDes
+        public static SecurityAlgorithmSuite TripleDes
         {
             get
             {
@@ -91,7 +91,7 @@ namespace CoreWCF.Security
                 return s_tripleDes;
             }
         }
-        static public SecurityAlgorithmSuite Basic256Rsa15
+        public static SecurityAlgorithmSuite Basic256Rsa15
         {
             get
             {
@@ -103,7 +103,7 @@ namespace CoreWCF.Security
                 return s_basic256Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite Basic192Rsa15
+        public static SecurityAlgorithmSuite Basic192Rsa15
         {
             get
             {
@@ -115,7 +115,7 @@ namespace CoreWCF.Security
                 return s_basic192Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite Basic128Rsa15
+        public static SecurityAlgorithmSuite Basic128Rsa15
         {
             get
             {
@@ -127,7 +127,7 @@ namespace CoreWCF.Security
                 return s_basic128Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite TripleDesRsa15
+        public static SecurityAlgorithmSuite TripleDesRsa15
         {
             get
             {
@@ -140,7 +140,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static public SecurityAlgorithmSuite Basic256Sha256
+        public static SecurityAlgorithmSuite Basic256Sha256
         {
             get
             {
@@ -152,7 +152,7 @@ namespace CoreWCF.Security
                 return s_basic256Sha256;
             }
         }
-        static public SecurityAlgorithmSuite Basic192Sha256
+        public static SecurityAlgorithmSuite Basic192Sha256
         {
             get
             {
@@ -164,7 +164,7 @@ namespace CoreWCF.Security
                 return s_basic192Sha256;
             }
         }
-        static public SecurityAlgorithmSuite Basic128Sha256
+        public static SecurityAlgorithmSuite Basic128Sha256
         {
             get
             {
@@ -176,7 +176,7 @@ namespace CoreWCF.Security
                 return s_basic128Sha256;
             }
         }
-        static public SecurityAlgorithmSuite TripleDesSha256
+        public static SecurityAlgorithmSuite TripleDesSha256
         {
             get
             {
@@ -188,7 +188,7 @@ namespace CoreWCF.Security
                 return s_tripleDesSha256;
             }
         }
-        static public SecurityAlgorithmSuite Basic256Sha256Rsa15
+        public static SecurityAlgorithmSuite Basic256Sha256Rsa15
         {
             get
             {
@@ -200,7 +200,7 @@ namespace CoreWCF.Security
                 return s_basic256Sha256Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite Basic192Sha256Rsa15
+        public static SecurityAlgorithmSuite Basic192Sha256Rsa15
         {
             get
             {
@@ -212,7 +212,7 @@ namespace CoreWCF.Security
                 return s_basic192Sha256Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite Basic128Sha256Rsa15
+        public static SecurityAlgorithmSuite Basic128Sha256Rsa15
         {
             get
             {
@@ -224,7 +224,7 @@ namespace CoreWCF.Security
                 return s_basic128Sha256Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite TripleDesSha256Rsa15
+        public static SecurityAlgorithmSuite TripleDesSha256Rsa15
         {
             get
             {
@@ -422,8 +422,7 @@ namespace CoreWCF.Security
 
         internal void EnsureAcceptableSignatureKeySize(SecurityKey securityKey, SecurityToken token)
         {
-            AsymmetricSecurityKey asymmetricSecurityKey = securityKey as AsymmetricSecurityKey;
-            if (asymmetricSecurityKey != null)
+            if (securityKey is AsymmetricSecurityKey asymmetricSecurityKey)
             {
                 if (!IsAsymmetricKeyLengthSupported(asymmetricSecurityKey.KeySize))
                 {
@@ -449,8 +448,7 @@ namespace CoreWCF.Security
         internal void EnsureAcceptableSignatureSymmetricKeySize(SymmetricSecurityKey securityKey, SecurityToken token)
         {
             int keySize;
-            DerivedKeySecurityToken dkt = token as DerivedKeySecurityToken;
-            if (dkt != null)
+            if (token is DerivedKeySecurityToken dkt)
             {
                 token = dkt.TokenToDerive;
                 keySize = ((SymmetricSecurityKey)token.SecurityKeys[0]).KeySize;
@@ -510,15 +508,13 @@ namespace CoreWCF.Security
 
         internal void EnsureAcceptableSignatureAlgorithm(SecurityKey verificationKey, string algorithm)
         {
-            InMemorySymmetricSecurityKey symmeticKey = verificationKey as InMemorySymmetricSecurityKey;
-            if (symmeticKey != null)
+            if (verificationKey is InMemorySymmetricSecurityKey symmeticKey)
             {
                 EnsureAcceptableSymmetricSignatureAlgorithm(algorithm);
             }
             else
             {
-                AsymmetricSecurityKey asymmetricKey = verificationKey as AsymmetricSecurityKey;
-                if (asymmetricKey == null)
+                if (!(verificationKey is AsymmetricSecurityKey asymmetricKey))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, verificationKey)));
                 }

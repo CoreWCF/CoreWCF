@@ -11,12 +11,7 @@ namespace CoreWCF.Description
 
         public FaultDescription(string action)
         {
-            if (action == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
-            }
-
-            Action = action;
+            Action = action ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
         }
 
         public string Action { get; internal set; }

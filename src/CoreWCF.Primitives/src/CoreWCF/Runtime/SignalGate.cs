@@ -115,7 +115,7 @@ namespace CoreWCF.Runtime
                 return true;
             }
 
-            result = default(T);
+            result = default;
             return false;
         }
     }

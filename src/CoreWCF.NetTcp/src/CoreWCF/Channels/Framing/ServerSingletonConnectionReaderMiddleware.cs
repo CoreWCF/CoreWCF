@@ -37,7 +37,7 @@ namespace CoreWCF.Channels.Framing
             // after the preamble has completed. This probably needs to be addressed otherwise worse case you could end up taking 2X as long to timeout.
             // I believe the preamble should really use the OpenTimeout but that's not how this is implemented on .NET Framework.
             var timeoutHelper = new TimeoutHelper(((IDefaultCommunicationTimeouts)_replyChannel).ReceiveTimeout);
-            var requestContext = await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
+            StreamedFramingRequestContext requestContext = await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
             await _channelDispatcher.DispatchAsync(requestContext);
             await requestContext.ReplySent;
             //await channelDispatcher.DispatchAsync();
@@ -52,8 +52,8 @@ namespace CoreWCF.Channels.Framing
                 {
                     if (_replyChannel == null)
                     {
-                        var be = connection.ServiceDispatcher.Binding.CreateBindingElements();
-                        var tbe = be.Find<TransportBindingElement>();
+                        BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
+                        TransportBindingElement tbe = be.Find<TransportBindingElement>();
                         ITransportFactorySettings settings = new NetFramingTransportSettings
                         {
                             CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
@@ -84,7 +84,7 @@ namespace CoreWCF.Channels.Framing
             ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
             for (; ; )
             {
-                var readResult = await connection.Input.ReadAsync();
+                ReadResult readResult = await connection.Input.ReadAsync();
                 await Task.Yield();
                 if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                 {
@@ -126,7 +126,7 @@ namespace CoreWCF.Channels.Framing
             //        ServiceModelActivity.Start(activity, SR.GetString(SR.ActivityProcessingMessage, TraceUtility.RetrieveMessageNumber()), ActivityType.ProcessMessage);
             //    }
 
-            Message message = null;
+            Message message;
             try
             {
                 message = await connection.MessageEncoderFactory.Encoder.ReadMessageAsync(
@@ -314,7 +314,7 @@ namespace CoreWCF.Channels.Framing
             public override int Read(byte[] buffer, int offset, int count)
             {
                 // TODO: Create a ReadByte override which is optimized for that single case
-                var ct = _timeoutHelper.GetCancellationToken();
+                CancellationToken ct = _timeoutHelper.GetCancellationToken();
                 int result = 0;
                 while (true)
                 {
@@ -345,7 +345,7 @@ namespace CoreWCF.Channels.Framing
 
                         // When copying a ReadOnlySequence to a Span, they must be the same size so create a temporary
                         // ReadOnlySequence which has the same number of bytes as we wish to copy.
-                        var _fromBuffer = _buffer.Slice(_buffer.Start, bytesToCopy);
+                        ReadOnlySequence<byte> _fromBuffer = _buffer.Slice(_buffer.Start, bytesToCopy);
 
                         // keep decoder up to date
                         DecodeData(_fromBuffer);
@@ -386,7 +386,7 @@ namespace CoreWCF.Channels.Framing
 
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                var ct = new TimeoutHelper(_timeouts.ReceiveTimeout).GetCancellationToken();
+                CancellationToken ct = new TimeoutHelper(_timeouts.ReceiveTimeout).GetCancellationToken();
                 int result = 0;
                 while (true)
                 {
@@ -417,7 +417,7 @@ namespace CoreWCF.Channels.Framing
 
                         // When copying a ReadOnlySequence to a Span, they must be the same size so create a temporary
                         // ReadOnlySequence which has the same number of bytes as we wish to copy.
-                        var _fromBuffer = _buffer.Slice(_buffer.Start, bytesToCopy);
+                        ReadOnlySequence<byte> _fromBuffer = _buffer.Slice(_buffer.Start, bytesToCopy);
 
                         // keep decoder up to date
                         DecodeData(_fromBuffer);

@@ -36,7 +36,7 @@ namespace CoreWCF.Runtime
             var localTcs = new TaskCompletionSource<bool>();
             using (token.Register(TokenCancelledCallback, localTcs))
             {
-                var tcs = _tcs;
+                TaskCompletionSource<bool> tcs = _tcs;
                 CheckDisposed();
                 return await await Task.WhenAny(localTcs.Task, tcs.Task);
             }
@@ -59,7 +59,7 @@ namespace CoreWCF.Runtime
             CheckDisposed();
             while (true)
             {
-                var tcs = _tcs;
+                TaskCompletionSource<bool> tcs = _tcs;
                 if (tcs == null)
                 {
                     return; // Disposed
@@ -83,7 +83,7 @@ namespace CoreWCF.Runtime
 
         public void Dispose()
         {
-            var tcs = Interlocked.Exchange(ref _tcs, null);
+            TaskCompletionSource<bool> tcs = Interlocked.Exchange(ref _tcs, null);
             tcs?.TrySetResult(false);
         }
     }

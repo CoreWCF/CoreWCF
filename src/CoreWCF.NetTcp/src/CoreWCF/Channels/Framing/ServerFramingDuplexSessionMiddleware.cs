@@ -33,7 +33,7 @@ namespace CoreWCF.Channels.Framing
                 ReadOnlySequence<byte> buffer;
                 while (true)
                 {
-                    var readResult = await connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
                     buffer = readResult.Buffer;
                     if (readResult.IsCompleted)
                     {
@@ -110,7 +110,7 @@ namespace CoreWCF.Channels.Framing
 
         private static void ValidateContentType(FramingConnection connection, FramingDecoder decoder)
         {
-            var messageEncoderFactory = connection.MessageEncoderFactory;
+            MessageEncoderFactory messageEncoderFactory = connection.MessageEncoderFactory;
             MessageEncoder messageEncoder = messageEncoderFactory.CreateSessionEncoder();
             connection.MessageEncoder = messageEncoder;
 
@@ -122,8 +122,7 @@ namespace CoreWCF.Channels.Framing
                     SR.ContentTypeMismatch, decoder.ContentType, messageEncoder.ContentType)));
             }
 
-            ICompressedMessageEncoder compressedMessageEncoder = messageEncoder as ICompressedMessageEncoder;
-            if (compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled)
+            if (messageEncoder is ICompressedMessageEncoder compressedMessageEncoder && compressedMessageEncoder.CompressionEnabled)
             {
                 compressedMessageEncoder.SetSessionContentType(decoder.ContentType);
             }
@@ -131,7 +130,7 @@ namespace CoreWCF.Channels.Framing
 
         private static void ProcessUpgradeRequest(FramingConnection connection, ServerSessionDecoder decoder)
         {
-            var upgradeAcceptor = connection.StreamUpgradeAcceptor;
+            StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
             if (upgradeAcceptor == null)
             {
                 // TODO: SendFault
@@ -152,17 +151,16 @@ namespace CoreWCF.Channels.Framing
         public static async Task UpgradeConnectionAsync(FramingConnection connection)
         {
             connection.RawStream = new RawStream(connection);
-            var upgradeAcceptor = connection.StreamUpgradeAcceptor;
-            var stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
+            StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
+            Stream stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
             CreatePipelineFromStream(connection, stream);
         }
 
         private static void SetupSecurityIfNecessary(FramingConnection connection)
         {
-            StreamSecurityUpgradeAcceptor securityUpgradeAcceptor = connection.StreamUpgradeAcceptor as StreamSecurityUpgradeAcceptor;
-            if (securityUpgradeAcceptor != null)
+            if (connection.StreamUpgradeAcceptor is StreamSecurityUpgradeAcceptor securityUpgradeAcceptor)
             {
-                var remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
+                Security.SecurityMessageProperty remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
 
                 if (remoteSecurity == null)
                 {

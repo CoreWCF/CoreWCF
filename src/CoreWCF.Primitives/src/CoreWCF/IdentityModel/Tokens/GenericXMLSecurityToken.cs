@@ -15,7 +15,6 @@ namespace CoreWCF.IdentityModel.Tokens
     {
         private const int SupportedPersistanceVersion = 1;
         private readonly string _id;
-        private readonly SecurityKeyIdentifierClause _externalTokenReference;
         private readonly DateTime _effectiveTime;
         private readonly DateTime _expirationTime;
 
@@ -41,7 +40,7 @@ namespace CoreWCF.IdentityModel.Tokens
             _expirationTime = expirationTime.ToUniversalTime();
 
             InternalTokenReference = internalTokenReference;
-            _externalTokenReference = externalTokenReference;
+            ExternalTokenReference = externalTokenReference;
             AuthorizationPolicies = authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
         }
 
@@ -53,7 +52,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public SecurityKeyIdentifierClause InternalTokenReference { get; }
 
-        public SecurityKeyIdentifierClause ExternalTokenReference => _externalTokenReference;
+        public SecurityKeyIdentifierClause ExternalTokenReference { get; }
 
         public XmlElement TokenXml { get; }
 
@@ -87,9 +86,9 @@ namespace CoreWCF.IdentityModel.Tokens
                 writer.WriteLine("   InternalTokenReference: {0}", InternalTokenReference);
             }
 
-            if (_externalTokenReference != null)
+            if (ExternalTokenReference != null)
             {
-                writer.WriteLine("   ExternalTokenReference: {0}", _externalTokenReference);
+                writer.WriteLine("   ExternalTokenReference: {0}", ExternalTokenReference);
             }
 
             writer.WriteLine("   Token Element: ({0}, {1})", TokenXml.LocalName, TokenXml.NamespaceURI);
@@ -136,7 +135,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 return true;
             }
 
-            if (_externalTokenReference != null && typeof(T) == _externalTokenReference.GetType())
+            if (ExternalTokenReference != null && typeof(T) == ExternalTokenReference.GetType())
             {
                 return true;
             }
@@ -151,9 +150,9 @@ namespace CoreWCF.IdentityModel.Tokens
                 return (T)InternalTokenReference;
             }
 
-            if (_externalTokenReference != null && typeof(T) == _externalTokenReference.GetType())
+            if (ExternalTokenReference != null && typeof(T) == ExternalTokenReference.GetType())
             {
-                return (T)_externalTokenReference;
+                return (T)ExternalTokenReference;
             }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.UnableToCreateTokenReference)));
@@ -165,7 +164,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 return true;
             }
-            else if (_externalTokenReference != null && _externalTokenReference.Matches(keyIdentifierClause))
+            else if (ExternalTokenReference != null && ExternalTokenReference.Matches(keyIdentifierClause))
             {
                 return true;
             }

@@ -34,7 +34,6 @@ namespace CoreWCF.Security
         private SecurityKeyIdentifierClause _closeTarget;
         private OnGetBinaryNegotiationCallback _onGetBinaryNegotiation;
         private SecurityStandardsManager _standardsManager;
-        private bool _isReadOnly;
         private object _appliesTo;
         private DataContractSerializer _appliesToSerializer;
         private Type _appliesToType;
@@ -97,17 +96,8 @@ namespace CoreWCF.Security
                                       SecurityKeyIdentifierClause closeTarget)
             : base(true)
         {
-            if (standardsManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("standardsManager"));
-            }
-            _standardsManager = standardsManager;
-            if (rstXml == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("rstXml");
-            }
-
-            _rstXml = rstXml;
+            _standardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
+            _rstXml = rstXml ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rstXml));
             _context = context;
             _tokenType = tokenType;
             _keySize = keySize;
@@ -115,7 +105,7 @@ namespace CoreWCF.Security
             _renewTarget = renewTarget;
             _closeTarget = closeTarget;
             IsReceiver = true;
-            _isReadOnly = true;
+            IsReadOnly = true;
         }
 
         internal RequestSecurityToken(SecurityStandardsManager standardsManager)
@@ -127,15 +117,11 @@ namespace CoreWCF.Security
         internal RequestSecurityToken(SecurityStandardsManager standardsManager, bool isBuffered)
             : base(isBuffered)
         {
-            if (standardsManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("standardsManager"));
-            }
-            _standardsManager = standardsManager;
+            _standardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(standardsManager)));
             _requestType = _standardsManager.TrustDriver.RequestTypeIssue;
             _requestProperties = null;
             IsReceiver = false;
-            _isReadOnly = false;
+            IsReadOnly = false;
         }
 
         public ChannelBinding GetChannelBinding()
@@ -210,20 +196,14 @@ namespace CoreWCF.Security
 
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.ValueMustBeNonNegative));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeNonNegative));
                 }
 
                 _keySize = value;
             }
         }
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return _isReadOnly;
-            }
-        }
+        public bool IsReadOnly { get; private set; }
 
         public delegate void OnGetBinaryNegotiationCallback(ChannelBinding channelBinding);
         public OnGetBinaryNegotiationCallback OnGetBinaryNegotiation
@@ -248,9 +228,7 @@ namespace CoreWCF.Security
             {
                 if (IsReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "RequestProperties")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(RequestProperties))));
                 }
                 return _requestProperties;
             }
@@ -269,7 +247,7 @@ namespace CoreWCF.Security
                     {
                         if (property == null)
                         {
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(String.Format(CultureInfo.InvariantCulture, "value[{0}]", index)));
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(string.Format(CultureInfo.InvariantCulture, "value[{0}]", index)));
                         }
 
                         coll.Add(property);
@@ -297,12 +275,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 }
 
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
-                }
-
-                _requestType = value;
+                _requestType = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -346,9 +319,7 @@ namespace CoreWCF.Security
             {
                 if (!IsReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTOnly, "RequestSecurityTokenXml")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemAvailableInDeserializedRSTOnly, nameof(RequestSecurityTokenXml))));
                 }
                 return _rstXml;
             }
@@ -367,11 +338,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
                 }
 
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                }
-                _standardsManager = value;
+                _standardsManager = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
@@ -383,9 +350,7 @@ namespace CoreWCF.Security
             {
                 if (IsReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesTo")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesTo))));
                 }
                 return _appliesTo;
             }
@@ -397,9 +362,7 @@ namespace CoreWCF.Security
             {
                 if (IsReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesToSerializer")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesToSerializer))));
                 }
                 return _appliesToSerializer;
             }
@@ -411,29 +374,22 @@ namespace CoreWCF.Security
             {
                 if (IsReceiver)
                 {
-                    // PreSharp Bug: Property get methods should not throw exceptions.
-#pragma warning suppress 56503
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, "AppliesToType")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ItemNotAvailableInDeserializedRST, nameof(AppliesToType))));
                 }
                 return _appliesToType;
             }
         }
 
-        protected Object ThisLock { get; } = new Object();
+        protected object ThisLock { get; } = new object();
 
         internal void SetBinaryNegotiation(BinaryNegotiation negotiation)
         {
-            if (negotiation == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("negotiation");
-            }
-
             if (IsReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
             }
 
-            _negotiationData = negotiation;
+            _negotiationData = negotiation ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(negotiation));
         }
 
         internal BinaryNegotiation GetBinaryNegotiation()
@@ -492,7 +448,7 @@ namespace CoreWCF.Security
 
             if (appliesTo != null && serializer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
             }
             _appliesTo = appliesTo;
             _appliesToSerializer = serializer;
@@ -520,7 +476,7 @@ namespace CoreWCF.Security
             {
                 if (serializer == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("serializer");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
                 }
                 return _standardsManager.TrustDriver.GetAppliesTo<T>(this, serializer);
             }
@@ -546,7 +502,7 @@ namespace CoreWCF.Security
         {
             if (writer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
 
             if (IsReadOnly)
@@ -590,9 +546,9 @@ namespace CoreWCF.Security
 
         public void MakeReadOnly()
         {
-            if (!_isReadOnly)
+            if (!IsReadOnly)
             {
-                _isReadOnly = true;
+                IsReadOnly = true;
                 if (_requestProperties != null)
                 {
                     _requestProperties = new ReadOnlyCollection<XmlElement>(_requestProperties);
@@ -601,11 +557,11 @@ namespace CoreWCF.Security
             }
         }
 
-        internal protected virtual void OnWriteCustomAttributes(XmlWriter writer) { }
+        protected internal virtual void OnWriteCustomAttributes(XmlWriter writer) { }
 
-        internal protected virtual void OnWriteCustomElements(XmlWriter writer) { }
+        protected internal virtual void OnWriteCustomElements(XmlWriter writer) { }
 
-        internal protected virtual void OnMakeReadOnly() { }
+        protected internal virtual void OnMakeReadOnly() { }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {

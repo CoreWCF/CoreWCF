@@ -133,7 +133,7 @@ namespace CoreWCF.Dispatcher
 
             if (_filters.ContainsKey(filter))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("filter", SR.FilterExists);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(filter), SR.FilterExists);
             }
 
             Type filterType = filter.GetType();
@@ -263,7 +263,7 @@ namespace CoreWCF.Dispatcher
             bool dataSet = false;
             int pri = int.MinValue;
 
-            data = default(TFilterData);
+            data = default;
             for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
@@ -293,7 +293,7 @@ namespace CoreWCF.Dispatcher
         {
             bool dataSet = false;
             int pri = int.MinValue;
-            data = default(TFilterData);
+            data = default;
             addressMatched = false;
             for (int i = 0; i < _tables.Count; ++i)
             {
@@ -307,8 +307,7 @@ namespace CoreWCF.Dispatcher
                 bool matchResult;
                 TFilterData currentData;
                 IMessageFilterTable<TFilterData> table = _tables[i].table;
-                AndMessageFilterTable<TFilterData> andTable = table as AndMessageFilterTable<TFilterData>;
-                if (andTable != null)
+                if (table is AndMessageFilterTable<TFilterData> andTable)
                 {
                     matchResult = andTable.GetMatchingValue(message, out currentData, out bool addressResult);
                     addressMatched |= addressResult;
@@ -344,7 +343,7 @@ namespace CoreWCF.Dispatcher
         {
             bool dataSet = false;
             int pri = int.MinValue;
-            data = default(TFilterData);
+            data = default;
             for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
@@ -355,7 +354,7 @@ namespace CoreWCF.Dispatcher
                 pri = _tables[i].priority;
 
                 TFilterData currentData;
-                bool result = false;
+                bool result;
                 if (messageToReadHeaders != null && _tables[i].table is ActionMessageFilterTable<TFilterData>)
                 {
                     // this is an action message, in this case we can pass in the message itself since the filter will only read from the header
@@ -446,9 +445,11 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        Collection<MessageFilter> c = new Collection<MessageFilter>();
-                        c.Add(filter);
-                        c.Add(f);
+                        Collection<MessageFilter> c = new Collection<MessageFilter>
+                        {
+                            filter,
+                            f
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, c), message);
                     }
                 }
@@ -478,9 +479,11 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        Collection<MessageFilter> c = new Collection<MessageFilter>();
-                        c.Add(filter);
-                        c.Add(f);
+                        Collection<MessageFilter> c = new Collection<MessageFilter>
+                        {
+                            filter,
+                            f
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, c));
                     }
                 }

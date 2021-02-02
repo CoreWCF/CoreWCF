@@ -31,7 +31,7 @@ namespace CoreWCF.Http.Tests
         public void RequestReplyStreaming(string binding)
         {
             Startup.binding = binding;
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -56,9 +56,8 @@ namespace CoreWCF.Http.Tests
                 IStream stream2 = channelFactory.CreateChannel();
                 long messageSize = 0;
                 long num2 = 20000;
-                Stream stream = null;
                 MyStream input = new MyStream(messageSize);
-                stream = stream2.Echo(input);
+                Stream stream = stream2.Echo(input);
                 int num3 = 0;
                 byte[] buffer = new byte[5000];
                 int num4;

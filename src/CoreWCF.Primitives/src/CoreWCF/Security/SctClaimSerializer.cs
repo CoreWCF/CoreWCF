@@ -37,7 +37,7 @@ namespace CoreWCF.Security
         private static string ReadRightAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
         {
             string right = reader.GetAttribute(dictionary.Right, dictionary.EmptyString);
-            return String.IsNullOrEmpty(right) ? Rights.PossessProperty : right;
+            return string.IsNullOrEmpty(right) ? Rights.PossessProperty : right;
         }
 
         private static void WriteSidAttribute(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
@@ -184,15 +184,15 @@ namespace CoreWCF.Security
             }
             else if (claimSet == ClaimSet.System)
             {
-                writer.WriteElementString(dictionary.SystemClaimSet, dictionary.EmptyString, String.Empty);
+                writer.WriteElementString(dictionary.SystemClaimSet, dictionary.EmptyString, string.Empty);
             }
             else if (claimSet == ClaimSet.Windows)
             {
-                writer.WriteElementString(dictionary.WindowsClaimSet, dictionary.EmptyString, String.Empty);
+                writer.WriteElementString(dictionary.WindowsClaimSet, dictionary.EmptyString, string.Empty);
             }
             else if (claimSet == ClaimSet.Anonymous)
             {
-                writer.WriteElementString(dictionary.AnonymousClaimSet, dictionary.EmptyString, String.Empty);
+                writer.WriteElementString(dictionary.AnonymousClaimSet, dictionary.EmptyString, string.Empty);
             }
             else if (claimSet is WindowsClaimSet || claimSet is DefaultClaimSet)
             {
@@ -438,7 +438,7 @@ namespace CoreWCF.Security
                             authenticationType = wid.AuthenticationType;
                         }
                     }
-                    if (!String.IsNullOrEmpty(authenticationType))
+                    if (!string.IsNullOrEmpty(authenticationType))
                     {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, authenticationType);
                     }
@@ -451,7 +451,7 @@ namespace CoreWCF.Security
                     WindowsSidIdentity wsid = (WindowsSidIdentity)identity;
                     writer.WriteStartElement(dictionary.WindowsSidIdentity, dictionary.EmptyString);
                     WriteSidAttribute(wsid.SecurityIdentifier, dictionary, writer);
-                    if (!String.IsNullOrEmpty(wsid.AuthenticationType))
+                    if (!string.IsNullOrEmpty(wsid.AuthenticationType))
                     {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, wsid.AuthenticationType);
                     }
@@ -463,7 +463,7 @@ namespace CoreWCF.Security
                 {
                     GenericIdentity genericIdentity = (GenericIdentity)identity;
                     writer.WriteStartElement(dictionary.GenericIdentity, dictionary.EmptyString);
-                    if (!String.IsNullOrEmpty(genericIdentity.AuthenticationType))
+                    if (!string.IsNullOrEmpty(genericIdentity.AuthenticationType))
                     {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, genericIdentity.AuthenticationType);
                     }
@@ -511,7 +511,7 @@ namespace CoreWCF.Security
                     string authenticationType = reader.GetAttribute(dictionary.AuthenticationType, dictionary.EmptyString);
                     reader.ReadStartElement();
                     string name = reader.ReadContentAsString();
-                    identity = new WindowsSidIdentity(sid, name, authenticationType ?? String.Empty);
+                    identity = new WindowsSidIdentity(sid, name, authenticationType ?? string.Empty);
                     reader.ReadEndElement();
                 }
                 else if (reader.IsStartElement(dictionary.GenericIdentity, dictionary.EmptyString))
@@ -519,7 +519,7 @@ namespace CoreWCF.Security
                     string authenticationType = reader.GetAttribute(dictionary.AuthenticationType, dictionary.EmptyString);
                     reader.ReadStartElement();
                     string name = reader.ReadContentAsString();
-                    identity = SecurityUtils.CreateIdentity(name, authenticationType ?? String.Empty);
+                    identity = SecurityUtils.CreateIdentity(name, authenticationType ?? string.Empty);
                     reader.ReadEndElement();
                 }
                 else

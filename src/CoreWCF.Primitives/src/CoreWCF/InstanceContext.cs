@@ -26,7 +26,6 @@ namespace CoreWCF
         private readonly object _serviceInstanceLock = new object();
         private SynchronizationContext _synchronizationContext;
         private object _userObject;
-        private bool _isUserCreated;
 
         public InstanceContext(object implementation)
             : this(null, implementation)
@@ -53,27 +52,18 @@ namespace CoreWCF
             }
             AutoClose = false;
             _channels = new ServiceChannelManager(this);
-            _isUserCreated = isUserCreated;
+            IsUserCreated = isUserCreated;
         }
 
         internal InstanceContext(ServiceHostBase host, bool isUserCreated)
         {
-            if (host == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
-            }
-
-            _host = host;
+            _host = host ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
             AutoClose = true;
             _channels = new ServiceChannelManager(this, NotifyEmptyCallback);
-            _isUserCreated = isUserCreated;
+            IsUserCreated = isUserCreated;
         }
 
-        internal bool IsUserCreated
-        {
-            get { return _isUserCreated; }
-            set { _isUserCreated = value; }
-        }
+        internal bool IsUserCreated { get; set; }
 
         internal bool IsWellKnown { get; }
 
@@ -335,8 +325,10 @@ namespace CoreWCF
             {
                 if (QuotaThrottle == null)
                 {
-                    QuotaThrottle = new QuotaThrottle(ThisLock);
-                    QuotaThrottle.Owner = "InstanceContext";
+                    QuotaThrottle = new QuotaThrottle(ThisLock)
+                    {
+                        Owner = "InstanceContext"
+                    };
                 }
                 return QuotaThrottle;
             }

@@ -15,7 +15,7 @@ namespace CoreWCF.Description
             foreach (Attribute attr in type.GetCustomAttributes())
             {
                 if (attr.GetType() == typeof(MessageContractAttribute)
-                || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageContractAttributeFullName, true) == 0))
+                || (string.Compare(attr.GetType().FullName, ServiceReflector.SMMessageContractAttributeFullName, true) == 0))
                 {
                     return true;
                 }
@@ -25,7 +25,7 @@ namespace CoreWCF.Description
 
         internal static bool IsEligibleMember(MemberInfo memberInfo)
         {
-            HashSet<String> eligibleMessageList = new HashSet<string>()
+            HashSet<string> eligibleMessageList = new HashSet<string>()
             {
                  ServiceReflector.CWCFMesssageHeaderAttribute
                 , ServiceReflector.CWCFMesssageHeaderArrayAttribute
@@ -51,7 +51,7 @@ namespace CoreWCF.Description
             {
                 if ((attr.GetType() == typeof(MessageHeaderAttribute))
                     || (attr.GetType() == typeof(MessageHeaderArrayAttribute))
-                    || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessageHeaderAttributeFullName, true) == 0)
+                    || (string.Compare(attr.GetType().FullName, ServiceReflector.SMMessageHeaderAttributeFullName, true) == 0)
                     )
                 {
                     return true;
@@ -65,7 +65,7 @@ namespace CoreWCF.Description
             foreach (Attribute attr in memberInfo.GetCustomAttributes())
             {
                 if ((attr.GetType() == typeof(MessagePropertyAttribute))
-                    || (String.Compare(attr.GetType().FullName, ServiceReflector.SMMessagePropertyAttributeFullName, true) == 0))
+                    || (string.Compare(attr.GetType().FullName, ServiceReflector.SMMessagePropertyAttributeFullName, true) == 0))
                 {
                     return true;
                 }

@@ -9,7 +9,7 @@ namespace CoreWCF
 {
     internal class ServiceModelDictionary : IXmlDictionary
     {
-        static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
+        public static readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
         private readonly ServiceModelStrings _strings;
         private readonly int _count;
         private XmlDictionaryString[] _dictionaryStrings1;
@@ -23,7 +23,7 @@ namespace CoreWCF
             _count = strings.Count;
         }
 
-        static public ServiceModelDictionary CurrentVersion => Version1;
+        public static ServiceModelDictionary CurrentVersion => Version1;
 
         public XmlDictionaryString CreateString(string value, int key) => new XmlDictionaryString(this, value, key);
 
@@ -98,7 +98,7 @@ namespace CoreWCF
         {
             if (key == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("key"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
             }
 
             if (key.Dictionary == this)

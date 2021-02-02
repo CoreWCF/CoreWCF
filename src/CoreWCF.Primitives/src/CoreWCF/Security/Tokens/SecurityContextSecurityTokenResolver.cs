@@ -13,7 +13,6 @@ namespace CoreWCF.Security.Tokens
     public class SecurityContextSecurityTokenResolver : SecurityTokenResolver, ISecurityContextSecurityTokenCache
     {
         private readonly SecurityContextTokenCache _tokenCache;
-        private readonly int _capacity;
         private TimeSpan _clockSkew = SecurityProtocolFactory.defaultMaxClockSkew;
 
         public SecurityContextSecurityTokenResolver(int securityContextCacheCapacity, bool removeOldestTokensOnCacheFull)
@@ -33,19 +32,13 @@ namespace CoreWCF.Security.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(clockSkew), SR.TimeSpanCannotBeLessThanTimeSpanZero));
             }
 
-            _capacity = securityContextCacheCapacity;
+            SecurityContextTokenCacheCapacity = securityContextCacheCapacity;
             RemoveOldestTokensOnCacheFull = removeOldestTokensOnCacheFull;
             _clockSkew = clockSkew;
-            _tokenCache = new SecurityContextTokenCache(_capacity, RemoveOldestTokensOnCacheFull, clockSkew);
+            _tokenCache = new SecurityContextTokenCache(SecurityContextTokenCacheCapacity, RemoveOldestTokensOnCacheFull, clockSkew);
         }
 
-        public int SecurityContextTokenCacheCapacity
-        {
-            get
-            {
-                return _capacity;
-            }
-        }
+        public int SecurityContextTokenCacheCapacity { get; }
 
         public TimeSpan ClockSkew
         {
@@ -100,8 +93,7 @@ namespace CoreWCF.Security.Tokens
 
         protected override bool TryResolveTokenCore(SecurityKeyIdentifierClause keyIdentifierClause, out SecurityToken token)
         {
-            SecurityContextKeyIdentifierClause sctSkiClause = keyIdentifierClause as SecurityContextKeyIdentifierClause;
-            if (sctSkiClause != null)
+            if (keyIdentifierClause is SecurityContextKeyIdentifierClause sctSkiClause)
             {
                 token = _tokenCache.GetContext(sctSkiClause.ContextId, sctSkiClause.Generation);
             }

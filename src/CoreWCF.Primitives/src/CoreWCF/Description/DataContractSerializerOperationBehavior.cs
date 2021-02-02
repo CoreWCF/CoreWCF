@@ -15,7 +15,6 @@ namespace CoreWCF.Description
         private readonly OperationDescription _operation;
         internal bool ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
         internal int maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
-        private DataContractResolver _dataContractResolver;
 
         public DataContractFormatAttribute DataContractFormatAttribute { get; }
 
@@ -63,11 +62,7 @@ namespace CoreWCF.Description
 
         internal bool IgnoreExtensionDataObjectSetExplicit { get; set; }
 
-        public DataContractResolver DataContractResolver
-        {
-            get { return _dataContractResolver; }
-            set { _dataContractResolver = value; }
-        }
+        public DataContractResolver DataContractResolver { get; set; }
 
         public virtual XmlObjectSerializer CreateSerializer(Type type, string name, string ns, IList<Type> knownTypes)
         {

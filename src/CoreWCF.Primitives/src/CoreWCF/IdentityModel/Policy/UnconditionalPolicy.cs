@@ -164,8 +164,10 @@ namespace CoreWCF.IdentityModel.Policy
                 ThrowIfDisposed();
                 if (_issuances == null)
                 {
-                    List<ClaimSet> issuances = new List<ClaimSet>(1);
-                    issuances.Add(_issuance);
+                    List<ClaimSet> issuances = new List<ClaimSet>(1)
+                    {
+                        _issuance
+                    };
                     _issuances = issuances.AsReadOnly();
                 }
                 return _issuances;

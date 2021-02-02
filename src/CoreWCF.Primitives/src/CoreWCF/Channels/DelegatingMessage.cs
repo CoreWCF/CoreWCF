@@ -9,11 +9,7 @@ namespace CoreWCF.Channels
     {
         protected DelegatingMessage(Message innerMessage)
         {
-            if (innerMessage == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("innerMessage");
-            }
-            InnerMessage = innerMessage;
+            InnerMessage = innerMessage ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerMessage));
         }
 
         public override bool IsEmpty

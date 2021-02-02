@@ -15,12 +15,12 @@ namespace CoreWCF.Security
     internal sealed class SecurityContextTokenCache : TimeBoundedCache
     {
         // if there are less than lowWaterMark entries, no purging is done
-        private static readonly int s_lowWaterMark = 50;
+        private const int LowWaterMark = 50;
 
         // frequency of purging the cache of stale entries
         // this is set to 10 mins as SCTs are expected to have long lifetimes
         private static TimeSpan s_purgingInterval = TimeSpan.FromMinutes(10);
-        private static readonly double s_pruningFactor = 0.20;
+        private const double PruningFactor = 0.20;
         private readonly bool _replaceOldestEntries = true;
         private static readonly SctEffectiveTimeComparer s_sctEffectiveTimeComparer = new SctEffectiveTimeComparer();
         private TimeSpan _clockSkew;
@@ -31,7 +31,7 @@ namespace CoreWCF.Security
         }
 
         public SecurityContextTokenCache(int capacity, bool replaceOldestEntries, TimeSpan clockSkew)
-            : base(s_lowWaterMark, capacity, null, PurgingMode.TimerBasedPurge, s_purgingInterval, true)
+            : base(LowWaterMark, capacity, null, PurgingMode.TimerBasedPurge, s_purgingInterval, true)
 
         {
             _replaceOldestEntries = replaceOldestEntries;
@@ -80,7 +80,7 @@ namespace CoreWCF.Security
             }
 
             object hashKey = GetHashKey(token.ContextId, token.KeyGeneration);
-            bool wasTokenAdded = base.TryAddItem(hashKey, (SecurityContextSecurityToken)token.Clone(), false);
+            bool wasTokenAdded = TryAddItem(hashKey, (SecurityContextSecurityToken)token.Clone(), false);
             if (!wasTokenAdded)
             {
                 if (throwOnFailure)
@@ -112,7 +112,7 @@ namespace CoreWCF.Security
 
         public void ClearContexts()
         {
-            base.ClearItems();
+            ClearItems();
         }
 
         public SecurityContextSecurityToken GetContext(UniqueId contextId, UniqueId generation)
@@ -122,7 +122,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
             object hashKey = GetHashKey(contextId, generation);
-            SecurityContextSecurityToken sct = (SecurityContextSecurityToken)base.GetItem(hashKey);
+            SecurityContextSecurityToken sct = (SecurityContextSecurityToken)GetItem(hashKey);
             return sct != null ? (SecurityContextSecurityToken)sct.Clone() : null;
         }
 
@@ -133,7 +133,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
             object hashKey = GetHashKey(contextId, generation);
-            if (!base.TryRemoveItem(hashKey) && throwIfNotPresent)
+            if (!TryRemoveItem(hashKey) && throwIfNotPresent)
             {
                 if (generation == null)
                 {
@@ -160,12 +160,12 @@ namespace CoreWCF.Security
                 try { }
                 finally
                 {
-                    base.CacheLock.AcquireReaderLock(-1);
+                    CacheLock.AcquireReaderLock(-1);
                     lockHeld = true;
                 }
                 foreach (object key in Entries.Keys)
                 {
-                    bool isMatch = false;
+                    bool isMatch;
                     if (key is UniqueId)
                     {
                         isMatch = (((UniqueId)key) == contextId);
@@ -184,7 +184,7 @@ namespace CoreWCF.Security
             {
                 if (lockHeld)
                 {
-                    base.CacheLock.ReleaseReaderLock();
+                    CacheLock.ReleaseReaderLock();
                 }
             }
             return matchingKeys;
@@ -195,7 +195,7 @@ namespace CoreWCF.Security
             ArrayList matchingKeys = GetMatchingKeys(contextId);
             for (int i = 0; i < matchingKeys.Count; ++i)
             {
-                base.TryRemoveItem(matchingKeys[i]);
+                TryRemoveItem(matchingKeys[i]);
             }
         }
 
@@ -205,7 +205,7 @@ namespace CoreWCF.Security
             {
                 return;
             }
-            base.TryReplaceItem(GetHashKey(token.ContextId, token.KeyGeneration), token, expirationTime);
+            TryReplaceItem(GetHashKey(token.ContextId, token.KeyGeneration), token, expirationTime);
         }
 
         public Collection<SecurityContextSecurityToken> GetAllContexts(UniqueId contextId)
@@ -215,8 +215,7 @@ namespace CoreWCF.Security
             Collection<SecurityContextSecurityToken> matchingContexts = new Collection<SecurityContextSecurityToken>();
             for (int i = 0; i < matchingKeys.Count; ++i)
             {
-                SecurityContextSecurityToken token = base.GetItem(matchingKeys[i]) as SecurityContextSecurityToken;
-                if (token != null)
+                if (GetItem(matchingKeys[i]) is SecurityContextSecurityToken token)
                 {
                     matchingContexts.Add(token);
                 }
@@ -240,7 +239,7 @@ namespace CoreWCF.Security
                     tokens.Add(token);
                 }
                 tokens.Sort(s_sctEffectiveTimeComparer);
-                int pruningAmount = (int)(((double)Capacity) * s_pruningFactor);
+                int pruningAmount = (int)(((double)Capacity) * PruningFactor);
                 pruningAmount = pruningAmount <= 0 ? Capacity : pruningAmount;
                 ArrayList keys = new ArrayList(pruningAmount);
                 for (int i = 0; i < pruningAmount; ++i)
@@ -296,36 +295,27 @@ namespace CoreWCF.Security
 
         private struct ContextAndGenerationKey
         {
-            private readonly UniqueId _generation;
-
             public ContextAndGenerationKey(UniqueId contextId, UniqueId generation)
             {
                 Fx.Assert(contextId != null && generation != null, "");
                 ContextId = contextId;
-                _generation = generation;
+                Generation = generation;
             }
 
             public UniqueId ContextId { get; }
 
-            public UniqueId Generation
-            {
-                get
-                {
-                    return _generation;
-                }
-            }
+            public UniqueId Generation { get; }
 
             public override int GetHashCode()
             {
-                return ContextId.GetHashCode() ^ _generation.GetHashCode();
+                return ContextId.GetHashCode() ^ Generation.GetHashCode();
             }
 
             public override bool Equals(object obj)
             {
-                if (obj is ContextAndGenerationKey)
+                if (obj is ContextAndGenerationKey key2)
                 {
-                    ContextAndGenerationKey key2 = ((ContextAndGenerationKey)obj);
-                    return (key2.ContextId == ContextId && key2.Generation == _generation);
+                    return (key2.ContextId == ContextId && key2.Generation == Generation);
                 }
                 else
                 {
@@ -335,9 +325,9 @@ namespace CoreWCF.Security
 
             public static bool operator ==(ContextAndGenerationKey a, ContextAndGenerationKey b)
             {
-                if (object.ReferenceEquals(a, null))
+                if (ReferenceEquals(a, null))
                 {
-                    return object.ReferenceEquals(b, null);
+                    return ReferenceEquals(b, null);
                 }
 
                 return (a.Equals(b));

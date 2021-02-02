@@ -28,8 +28,6 @@ namespace CoreWCF.Security.Tokens
         public const int DefaultDerivedKeyLength = 32;
         private string _id;
         private byte[] _key;
-        private string _label;
-        private byte[] _nonce;
         private ReadOnlyCollection<SecurityKey> _securityKeys;
 
         // create from scratch
@@ -83,11 +81,11 @@ namespace CoreWCF.Security.Tokens
 
         public int Generation { get; private set; } = -1;
 
-        public string Label => _label;
+        public string Label { get; private set; }
 
         public int Length { get; private set; } = -1;
 
-        internal byte[] Nonce => _nonce;
+        internal byte[] Nonce { get; private set; }
 
         public int Offset { get; private set; } = -1;
 
@@ -114,7 +112,7 @@ namespace CoreWCF.Security.Tokens
 
         public byte[] GetNonce()
         {
-            return SecurityUtils.CloneBuffer(_nonce);
+            return SecurityUtils.CloneBuffer(Nonce);
         }
 
         internal bool TryGetSecurityKeys(out ReadOnlyCollection<SecurityKey> keys)
@@ -151,30 +149,19 @@ namespace CoreWCF.Security.Tokens
             SecurityToken tokenToDerive, SecurityKeyIdentifierClause tokenToDeriveIdentifier, string derivationAlgorithm,
             bool initializeDerivedKey)
         {
-            if (id == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
-            }
             if (tokenToDerive == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenToDerive));
-            }
-            if (tokenToDeriveIdentifier == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenToDeriveIdentifier));
             }
 
             if (!SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, tokenToDerive))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.DerivedKeyCannotDeriveFromSecret));
             }
-            if (nonce == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(nonce));
-            }
+
             if (length == -1)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("length"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(length)));
             }
             if (offset == -1 && generation == -1)
             {
@@ -185,14 +172,14 @@ namespace CoreWCF.Security.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.DerivedKeyPosAndGenBothSpecified);
             }
 
-            _id = id;
-            _label = label;
-            _nonce = nonce;
+            _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
+            Label = label;
+            Nonce = nonce ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(nonce));
             Length = length;
             Offset = offset;
             Generation = generation;
             TokenToDerive = tokenToDerive;
-            TokenToDeriveIdentifier = tokenToDeriveIdentifier;
+            TokenToDeriveIdentifier = tokenToDeriveIdentifier ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenToDeriveIdentifier));
             KeyDerivationAlgorithm = derivationAlgorithm;
 
             if (initializeDerivedKey)
@@ -213,14 +200,16 @@ namespace CoreWCF.Security.Tokens
             }
 
             _key = SecurityUtils.GenerateDerivedKey(TokenToDerive, KeyDerivationAlgorithm,
-                (_label != null ? Encoding.UTF8.GetBytes(_label) : s_defaultLabel), _nonce, Length * 8,
+                (Label != null ? Encoding.UTF8.GetBytes(Label) : s_defaultLabel), Nonce, Length * 8,
                 ((Offset >= 0) ? Offset : Generation * Length));
             if ((_key == null) || (_key.Length == 0))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.DerivedKeyCannotDeriveFromSecret);
             }
-            List<SecurityKey> temp = new List<SecurityKey>(1);
-            temp.Add(new InMemorySymmetricSecurityKey(_key, false));
+            List<SecurityKey> temp = new List<SecurityKey>(1)
+            {
+                new InMemorySymmetricSecurityKey(_key, false)
+            };
             _securityKeys = temp.AsReadOnly();
         }
 

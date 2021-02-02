@@ -39,7 +39,7 @@ namespace CoreWCF.Security.Tokens
             RequireCancellation = requireCancellation;
         }
 
-        internal protected override bool HasAsymmetricKey { get { return false; } }
+        protected internal override bool HasAsymmetricKey { get { return false; } }
 
         public bool RequireCancellation { get; set; } = defaultRequireCancellation;
 
@@ -59,20 +59,20 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        internal protected override bool SupportsClientAuthentication { get { return true; } }
-        internal protected override bool SupportsServerAuthentication { get { return true; } }
-        internal protected override bool SupportsClientWindowsIdentity { get { return true; } }
+        protected internal override bool SupportsClientAuthentication { get { return true; } }
+        protected internal override bool SupportsServerAuthentication { get { return true; } }
+        protected internal override bool SupportsClientWindowsIdentity { get { return true; } }
 
         protected override SecurityTokenParameters CloneCore()
         {
             return new SspiSecurityTokenParameters(this);
         }
 
-        internal protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        protected internal override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token is GenericXmlSecurityToken)
             {
-                return base.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+                return CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
             }
             else
             {
@@ -98,7 +98,7 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", RequireCancellation.ToString()));
+            sb.Append(string.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", RequireCancellation.ToString()));
 
             return sb.ToString();
         }

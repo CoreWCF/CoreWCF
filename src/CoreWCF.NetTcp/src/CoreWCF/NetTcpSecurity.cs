@@ -23,7 +23,7 @@ namespace CoreWCF
             Fx.Assert(SecurityModeHelper.IsDefined(mode), string.Format("Invalid SecurityMode value: {0}.", mode.ToString()));
 
             _mode = mode;
-            Transport = transportSecurity == null ? new TcpTransportSecurity() : transportSecurity;
+            Transport = transportSecurity ?? new TcpTransportSecurity();
         }
 
         [DefaultValue(DefaultMode)]
@@ -34,7 +34,7 @@ namespace CoreWCF
             {
                 if (!SecurityModeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 _mode = value;
             }

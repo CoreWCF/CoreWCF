@@ -28,7 +28,7 @@ namespace CoreWCF.Description
             Name = name;
             if (!string.IsNullOrEmpty(ns))
             {
-                NamingHelper.CheckUriParameter(ns, "ns");
+                NamingHelper.CheckUriParameter(ns, nameof(ns));
             }
 
             Operations = new OperationDescriptionCollection();

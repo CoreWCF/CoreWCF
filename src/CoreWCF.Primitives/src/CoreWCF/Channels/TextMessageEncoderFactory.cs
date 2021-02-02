@@ -69,18 +69,18 @@ namespace CoreWCF.Channels
 
         internal static string GetMediaType(MessageVersion version)
         {
-            string mediaType = null;
+            string mediaType;
             if (version.Envelope == EnvelopeVersion.Soap12)
             {
-                mediaType = TextMessageEncoderFactory.Soap12MediaType;
+                mediaType = Soap12MediaType;
             }
             else if (version.Envelope == EnvelopeVersion.Soap11)
             {
-                mediaType = TextMessageEncoderFactory.Soap11MediaType;
+                mediaType = Soap11MediaType;
             }
             else if (version.Envelope == EnvelopeVersion.None)
             {
-                mediaType = TextMessageEncoderFactory.XmlMediaType;
+                mediaType = XmlMediaType;
             }
             else
             {
@@ -97,14 +97,16 @@ namespace CoreWCF.Channels
 
         private static ContentEncoding[] GetContentEncodingMap(MessageVersion version)
         {
-            Encoding[] readEncodings = TextMessageEncoderFactory.GetSupportedEncodings();
+            Encoding[] readEncodings = GetSupportedEncodings();
             string media = GetMediaType(version);
             ContentEncoding[] map = new ContentEncoding[readEncodings.Length];
             for (int i = 0; i < readEncodings.Length; i++)
             {
-                ContentEncoding contentEncoding = new ContentEncoding();
-                contentEncoding.contentType = GetContentType(media, readEncodings[i]);
-                contentEncoding.encoding = readEncodings[i];
+                ContentEncoding contentEncoding = new ContentEncoding
+                {
+                    contentType = GetContentType(media, readEncodings[i]),
+                    encoding = readEncodings[i]
+                };
                 map[i] = contentEncoding;
             }
             return map;
@@ -248,7 +250,6 @@ namespace CoreWCF.Channels
 
         private class TextMessageEncoder : MessageEncoder
         {
-            private readonly int _maxWritePoolSize;
 
             // Double-checked locking pattern requires volatile for read/write synchronization
             private volatile SynchronizedPool<XmlDictionaryWriter> _streamedWriterPool;
@@ -268,11 +269,6 @@ namespace CoreWCF.Channels
 
             public TextMessageEncoder(MessageVersion version, Encoding writeEncoding, int maxReadPoolSize, int maxWritePoolSize, XmlDictionaryReaderQuotas quotas)
             {
-                if (version == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
-                }
-
                 if (writeEncoding == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writeEncoding));
@@ -284,9 +280,9 @@ namespace CoreWCF.Channels
 
                 ThisLock = new object();
 
-                _version = version;
+                _version = version ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
                 MaxReadPoolSize = maxReadPoolSize;
-                _maxWritePoolSize = maxWritePoolSize;
+                MaxWritePoolSize = maxWritePoolSize;
 
                 ReaderQuotas = new XmlDictionaryReaderQuotas();
                 quotas.CopyTo(ReaderQuotas);
@@ -295,19 +291,19 @@ namespace CoreWCF.Channels
 
                 _onStreamedReaderClose = new OnXmlDictionaryReaderClose(ReturnStreamedReader);
 
-                _mediaType = TextMessageEncoderFactory.GetMediaType(version);
-                _contentType = TextMessageEncoderFactory.GetContentType(_mediaType, writeEncoding);
+                _mediaType = GetMediaType(version);
+                _contentType = GetContentType(_mediaType, writeEncoding);
                 if (version.Envelope == EnvelopeVersion.Soap12)
                 {
-                    _contentEncodingMap = TextMessageEncoderFactory.Soap12Content;
+                    _contentEncodingMap = Soap12Content;
                 }
                 else if (version.Envelope == EnvelopeVersion.Soap11)
                 {
-                    _contentEncodingMap = TextMessageEncoderFactory.Soap11Content;
+                    _contentEncodingMap = Soap11Content;
                 }
                 else if (version.Envelope == EnvelopeVersion.None)
                 {
-                    _contentEncodingMap = TextMessageEncoderFactory.SoapNoneContent;
+                    _contentEncodingMap = SoapNoneContent;
                 }
                 else
                 {
@@ -326,10 +322,7 @@ namespace CoreWCF.Channels
                 get { return _contentType; }
             }
 
-            public int MaxWritePoolSize
-            {
-                get { return _maxWritePoolSize; }
-            }
+            public int MaxWritePoolSize { get; }
 
             public int MaxReadPoolSize { get; }
 
@@ -508,7 +501,7 @@ namespace CoreWCF.Channels
                     {
                         if (_streamedWriterPool == null)
                         {
-                            _streamedWriterPool = new SynchronizedPool<XmlDictionaryWriter>(_maxWritePoolSize);
+                            _streamedWriterPool = new SynchronizedPool<XmlDictionaryWriter>(MaxWritePoolSize);
                         }
                     }
                 }
@@ -540,7 +533,7 @@ namespace CoreWCF.Channels
                     {
                         if (_bufferedWriterPool == null)
                         {
-                            _bufferedWriterPool = new SynchronizedPool<TextBufferedMessageWriter>(_maxWritePoolSize);
+                            _bufferedWriterPool = new SynchronizedPool<TextBufferedMessageWriter>(MaxWritePoolSize);
                         }
                     }
                 }
@@ -575,11 +568,10 @@ namespace CoreWCF.Channels
                 {
                     xmlReader = XmlDictionaryReader.CreateTextReader(stream, enc, ReaderQuotas, null);
                 }
-                // TODO: Use the reinitialization API's once moved to .Net Standard 2.0
-                //else
-                //{
-                //    ((IXmlTextReaderInitializer)xmlReader).SetInput(stream, enc, this.readerQuotas, onStreamedReaderClose);
-                //}
+                else
+                {
+                    ((IXmlTextReaderInitializer)xmlReader).SetInput(stream, enc, ReaderQuotas, _onStreamedReaderClose);
+                }
                 return xmlReader;
             }
 
@@ -636,10 +628,6 @@ namespace CoreWCF.Channels
                 }
             }
 
-            private static readonly byte[] s_xmlDeclarationStartText = { (byte)'<', (byte)'?', (byte)'x', (byte)'m', (byte)'l' };
-            private static readonly byte[] s_version10Text = { (byte)'v', (byte)'e', (byte)'r', (byte)'s', (byte)'i', (byte)'o', (byte)'n', (byte)'=', (byte)'"', (byte)'1', (byte)'.', (byte)'0', (byte)'"' };
-            private static readonly byte[] s_encodingText = { (byte)'e', (byte)'n', (byte)'c', (byte)'o', (byte)'d', (byte)'i', (byte)'n', (byte)'g', (byte)'=' };
-
             private class UTF8BufferedMessageData : BufferedMessageData
             {
                 private readonly TextMessageEncoder _messageEncoder;
@@ -687,13 +675,12 @@ namespace CoreWCF.Channels
                     if (xmlReader == null)
                     {
                         // TODO: Use the reinitialization API's once moved to .Net Standard 2.0
-                        xmlReader = XmlDictionaryReader.CreateTextReader(buffer.Array, buffer.Offset, buffer.Count, /*this.encoding,*/ Quotas/*, onClose*/);
+                        xmlReader = XmlDictionaryReader.CreateTextReader(buffer.Array, buffer.Offset, buffer.Count, _encoding, Quotas, _onClose);
                     }
-                    // TODO: Use the reinitialization API's once moved to .Net Standard 2.0
-                    //else
-                    //{
-                    //    ((IXmlTextReaderInitializer)xmlReader).SetInput(buffer.Array, buffer.Offset, buffer.Count, this.encoding, this.Quotas, onClose);
-                    //}
+                    else
+                    {
+                        ((IXmlTextReaderInitializer)xmlReader).SetInput(buffer.Array, buffer.Offset, buffer.Count, _encoding, Quotas, _onClose);
+                    }
 
                     return xmlReader;
                 }

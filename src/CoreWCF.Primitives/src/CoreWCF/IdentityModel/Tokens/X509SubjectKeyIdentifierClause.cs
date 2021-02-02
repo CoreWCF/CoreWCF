@@ -28,9 +28,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
             }
 
-            X509SubjectKeyIdentifierExtension skiExtension =
-                certificate.Extensions[SubjectKeyIdentifierOid] as X509SubjectKeyIdentifierExtension;
-            if (skiExtension != null)
+            if (certificate.Extensions[SubjectKeyIdentifierOid] is X509SubjectKeyIdentifierExtension skiExtension)
             {
                 return skiExtension.RawData;
             }

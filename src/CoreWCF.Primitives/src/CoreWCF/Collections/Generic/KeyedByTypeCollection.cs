@@ -52,7 +52,7 @@ namespace CoreWCF.Collections.Generic
                     return (T)(object)settings;
                 }
             }
-            return default(T);
+            return default;
         }
 
         public Collection<T> FindAll<T>()

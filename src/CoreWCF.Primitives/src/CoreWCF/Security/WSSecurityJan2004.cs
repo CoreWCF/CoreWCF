@@ -214,8 +214,7 @@ namespace CoreWCF.Security
 
             public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
             {
-                BufferedGenericXmlSecurityToken bufferedXmlToken = token as BufferedGenericXmlSecurityToken;
-                if (bufferedXmlToken != null && bufferedXmlToken.TokenXmlBuffer != null)
+                if (token is BufferedGenericXmlSecurityToken bufferedXmlToken && bufferedXmlToken.TokenXmlBuffer != null)
                 {
                     using (XmlDictionaryReader reader = bufferedXmlToken.TokenXmlBuffer.GetReader(0))
                     {
@@ -315,7 +314,6 @@ namespace CoreWCF.Security
 
             private static void ParseToken(XmlDictionaryReader reader, out string id, out string userName, out string password)
             {
-                id = null;
                 userName = null;
                 password = null;
 
@@ -387,8 +385,7 @@ namespace CoreWCF.Security
             public override void WriteBinaryCore(SecurityToken token, out string id, out byte[] rawData)
             {
                 id = token.Id;
-                X509SecurityToken x509Token = token as X509SecurityToken;
-                if (x509Token != null)
+                if (token is X509SecurityToken x509Token)
                 {
                     rawData = x509Token.Certificate.GetRawCertData();
                 }

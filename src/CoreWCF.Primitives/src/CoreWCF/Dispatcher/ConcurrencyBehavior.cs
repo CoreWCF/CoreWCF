@@ -121,7 +121,7 @@ namespace CoreWCF.Dispatcher
         {
             if (_concurrencyMode != ConcurrencyMode.Multiple)
             {
-                ConcurrencyBehavior.UnlockInstance(rpc.InstanceContext);
+                UnlockInstance(rpc.InstanceContext);
             }
         }
 
@@ -129,7 +129,7 @@ namespace CoreWCF.Dispatcher
         {
             if (operationContext != null && operationContext.IsServiceReentrant)
             {
-                ConcurrencyBehavior.UnlockInstance(operationContext.InstanceContext);
+                UnlockInstance(operationContext.InstanceContext);
             }
         }
 

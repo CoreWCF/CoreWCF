@@ -28,21 +28,16 @@ namespace CoreWCF
 
         private struct Section
         {
-            private readonly int _size;
-
             public Section(int offset, int size, XmlDictionaryReaderQuotas quotas)
             {
                 Offset = offset;
-                _size = size;
+                Size = size;
                 Quotas = quotas;
             }
 
             public int Offset { get; }
 
-            public int Size
-            {
-                get { return _size; }
-            }
+            public int Size { get; }
 
             public XmlDictionaryReaderQuotas Quotas { get; }
         }
@@ -92,7 +87,7 @@ namespace CoreWCF
 
                 // to a new stream, with a new dictionary and session. 
 
-                var thisWriter = _writer;
+                XmlDictionaryWriter thisWriter = _writer;
 
                 thisWriter.Dispose();
 

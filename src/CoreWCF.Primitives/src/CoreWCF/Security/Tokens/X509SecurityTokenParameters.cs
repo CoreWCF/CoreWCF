@@ -22,19 +22,19 @@ namespace CoreWCF.Security.Tokens
         }
 
         public X509SecurityTokenParameters()
-            : this(X509SecurityTokenParameters.defaultX509ReferenceStyle, SecurityTokenParameters.defaultInclusionMode)
+            : this(defaultX509ReferenceStyle, defaultInclusionMode)
         {
             // empty
         }
 
         public X509SecurityTokenParameters(X509KeyIdentifierClauseType x509ReferenceStyle)
-            : this(x509ReferenceStyle, SecurityTokenParameters.defaultInclusionMode)
+            : this(x509ReferenceStyle, defaultInclusionMode)
         {
             // empty
         }
 
         public X509SecurityTokenParameters(X509KeyIdentifierClauseType x509ReferenceStyle, SecurityTokenInclusionMode inclusionMode)
-            : this(x509ReferenceStyle, inclusionMode, SecurityTokenParameters.defaultRequireDerivedKeys)
+            : this(x509ReferenceStyle, inclusionMode, defaultRequireDerivedKeys)
         {
         }
 
@@ -47,7 +47,7 @@ namespace CoreWCF.Security.Tokens
             RequireDerivedKeys = requireDerivedKeys;
         }
 
-        internal protected override bool HasAsymmetricKey { get { return true; } }
+        protected internal override bool HasAsymmetricKey { get { return true; } }
 
         public X509KeyIdentifierClauseType X509ReferenceStyle
         {
@@ -62,16 +62,16 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        internal protected override bool SupportsClientAuthentication { get { return true; } }
-        internal protected override bool SupportsServerAuthentication { get { return true; } }
-        internal protected override bool SupportsClientWindowsIdentity { get { return true; } }
+        protected internal override bool SupportsClientAuthentication { get { return true; } }
+        protected internal override bool SupportsServerAuthentication { get { return true; } }
+        protected internal override bool SupportsClientWindowsIdentity { get { return true; } }
 
         protected override SecurityTokenParameters CloneCore()
         {
             return new X509SecurityTokenParameters(this);
         }
 
-        internal protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        protected internal override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
             SecurityKeyIdentifierClause result = null;
 
@@ -81,8 +81,7 @@ namespace CoreWCF.Security.Tokens
                 case X509KeyIdentifierClauseType.Any:
                     if (referenceStyle == SecurityTokenReferenceStyle.External)
                     {
-                        X509SecurityToken x509Token = token as X509SecurityToken;
-                        if (x509Token != null)
+                        if (token is X509SecurityToken x509Token)
                         {
                             if (X509SubjectKeyIdentifierClause.TryCreateFrom(x509Token.Certificate, out X509SubjectKeyIdentifierClause x509KeyIdentifierClause))
                             {
@@ -91,8 +90,7 @@ namespace CoreWCF.Security.Tokens
                         }
                         else
                         {
-                            X509WindowsSecurityToken windowsX509Token = token as X509WindowsSecurityToken;
-                            if (windowsX509Token != null)
+                            if (token is X509WindowsSecurityToken windowsX509Token)
                             {
                                 if (X509SubjectKeyIdentifierClause.TryCreateFrom(windowsX509Token.Certificate, out X509SubjectKeyIdentifierClause x509KeyIdentifierClause))
                                 {
@@ -146,7 +144,7 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "X509ReferenceStyle: {0}", _x509ReferenceStyle.ToString()));
+            sb.Append(string.Format(CultureInfo.InvariantCulture, "X509ReferenceStyle: {0}", _x509ReferenceStyle.ToString()));
 
             return sb.ToString();
         }

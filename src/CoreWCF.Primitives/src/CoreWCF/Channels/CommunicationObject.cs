@@ -22,7 +22,6 @@ namespace CoreWCF.Channels
         private bool _raisedClosed;
         private bool _raisedClosing;
         private bool _raisedFaulted;
-        private CommunicationState _state;
 
         protected CommunicationObject() : this(new object()) { }
 
@@ -30,7 +29,7 @@ namespace CoreWCF.Channels
         {
             ThisLock = mutex;
             EventSender = this;
-            _state = CommunicationState.Created;
+            State = CommunicationState.Created;
         }
 
         internal bool Aborted { get; private set; }
@@ -39,13 +38,10 @@ namespace CoreWCF.Channels
 
         protected bool IsDisposed
         {
-            get { return _state == CommunicationState.Closed; }
+            get { return State == CommunicationState.Closed; }
         }
 
-        public CommunicationState State
-        {
-            get { return _state; }
-        }
+        public CommunicationState State { get; private set; }
 
         protected object ThisLock { get; }
 
@@ -72,13 +68,13 @@ namespace CoreWCF.Channels
         {
             lock (ThisLock)
             {
-                if (Aborted || _state == CommunicationState.Closed)
+                if (Aborted || State == CommunicationState.Closed)
                 {
                     return;
                 }
 
                 Aborted = true;
-                _state = CommunicationState.Closing;
+                State = CommunicationState.Closing;
             }
 
             //if (DiagnosticUtility.ShouldTraceInformation)
@@ -132,10 +128,10 @@ namespace CoreWCF.Channels
             CommunicationState originalState;
             lock (ThisLock)
             {
-                originalState = _state;
+                originalState = State;
                 if (originalState != CommunicationState.Closed)
                 {
-                    _state = CommunicationState.Closing;
+                    State = CommunicationState.Closing;
                 }
 
                 _closeCalled = true;
@@ -204,7 +200,7 @@ namespace CoreWCF.Channels
 
         public System.Threading.Tasks.Task OpenAsync()
         {
-            var token = new TimeoutHelper(DefaultOpenTimeout).GetCancellationToken();
+            CancellationToken token = new TimeoutHelper(DefaultOpenTimeout).GetCancellationToken();
             return OpenAsync(token);
         }
 
@@ -221,7 +217,7 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 ThrowIfDisposedOrImmutable();
-                _state = CommunicationState.Opening;
+                State = CommunicationState.Opening;
             }
 
             bool throwing = true;
@@ -294,7 +290,7 @@ namespace CoreWCF.Channels
 
         internal Exception GetPendingException()
         {
-            CommunicationState currentState = _state;
+            CommunicationState currentState = State;
 
             Fx.Assert(currentState == CommunicationState.Closing || currentState == CommunicationState.Closed || currentState == CommunicationState.Faulted,
                 "CommunicationObject.GetPendingException(currentState == CommunicationState.Closing || currentState == CommunicationState.Closed || currentState == CommunicationState.Faulted)");
@@ -314,17 +310,17 @@ namespace CoreWCF.Channels
         {
             lock (ThisLock)
             {
-                if (_state == CommunicationState.Closed || _state == CommunicationState.Closing)
+                if (State == CommunicationState.Closed || State == CommunicationState.Closing)
                 {
                     return;
                 }
 
-                if (_state == CommunicationState.Faulted)
+                if (State == CommunicationState.Faulted)
                 {
                     return;
                 }
 
-                _state = CommunicationState.Faulted;
+                State = CommunicationState.Faulted;
             }
 
             OnFaulted();
@@ -334,7 +330,7 @@ namespace CoreWCF.Channels
         {
             ThrowPending();
 
-            switch (_state)
+            switch (State)
             {
                 case CommunicationState.Created:
                     break;
@@ -382,7 +378,7 @@ namespace CoreWCF.Channels
                 }
 
                 _raisedClosed = true;
-                _state = CommunicationState.Closed;
+                State = CommunicationState.Closed;
             }
 
             //if (DiagnosticUtility.ShouldTraceVerbose)
@@ -488,12 +484,12 @@ namespace CoreWCF.Channels
 
             lock (ThisLock)
             {
-                if (Aborted || _state != CommunicationState.Opening)
+                if (Aborted || State != CommunicationState.Opening)
                 {
                     return;
                 }
 
-                _state = CommunicationState.Opened;
+                State = CommunicationState.Opened;
             }
 
             //if (DiagnosticUtility.ShouldTraceVerbose)
@@ -549,7 +545,7 @@ namespace CoreWCF.Channels
         {
             ThrowPending();
 
-            switch (_state)
+            switch (State)
             {
                 case CommunicationState.Created:
                     break;
@@ -584,7 +580,7 @@ namespace CoreWCF.Channels
 
         private Exception CreateNotOpenException()
         {
-            return new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeUsed, GetCommunicationObjectType().ToString(), _state.ToString()));
+            return new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeUsed, GetCommunicationObjectType().ToString(), State.ToString()));
         }
 
         private Exception CreateBaseClassMethodNotCalledException(string method)
@@ -594,7 +590,7 @@ namespace CoreWCF.Channels
 
         private Exception CreateImmutableException()
         {
-            return new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeModifiedInState, GetCommunicationObjectType().ToString(), _state.ToString()));
+            return new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeModifiedInState, GetCommunicationObjectType().ToString(), State.ToString()));
         }
 
         internal Exception CreateClosedException()
@@ -624,7 +620,7 @@ namespace CoreWCF.Channels
         {
             ThrowPending();
 
-            switch (_state)
+            switch (State)
             {
                 case CommunicationState.Created:
                     break;
@@ -653,7 +649,7 @@ namespace CoreWCF.Channels
         {
             ThrowPending();
 
-            switch (_state)
+            switch (State)
             {
                 case CommunicationState.Created:
                     break;
@@ -682,7 +678,7 @@ namespace CoreWCF.Channels
         {
             ThrowPending();
 
-            switch (_state)
+            switch (State)
             {
                 case CommunicationState.Created:
                     break;
@@ -711,7 +707,7 @@ namespace CoreWCF.Channels
         {
             ThrowPending();
 
-            switch (_state)
+            switch (State)
             {
                 case CommunicationState.Created:
                     throw TraceUtility.ThrowHelperError(CreateNotOpenException(), Guid.Empty, this);
@@ -738,7 +734,7 @@ namespace CoreWCF.Channels
 
         public void ThrowIfNotOpened()
         {
-            if (_state == CommunicationState.Created || _state == CommunicationState.Opening)
+            if (State == CommunicationState.Created || State == CommunicationState.Opening)
             {
                 throw TraceUtility.ThrowHelperError(CreateNotOpenException(), Guid.Empty, this);
             }
@@ -748,7 +744,7 @@ namespace CoreWCF.Channels
         {
             ThrowPending();
 
-            switch (_state)
+            switch (State)
             {
                 case CommunicationState.Created:
                     throw TraceUtility.ThrowHelperError(CreateNotOpenException(), Guid.Empty, this);

@@ -216,8 +216,7 @@ namespace CoreWCF.Security
                 {
                     foreach (SecurityToken token in _securityHeader.ElementContainer.EndorsingSupportingTokens)
                     {
-                        ProviderBackedSecurityToken pbst = token as ProviderBackedSecurityToken;
-                        if (pbst != null)
+                        if (token is ProviderBackedSecurityToken pbst)
                         {
                             pbst.ChannelBinding = cbmp.ChannelBinding;
                         }

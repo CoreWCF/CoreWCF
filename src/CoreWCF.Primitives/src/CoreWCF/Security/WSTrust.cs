@@ -54,7 +54,7 @@ namespace CoreWCF.Security
 
                 if (parent.SerializerDictionary is TrustDec2005Dictionary)
                 {
-                    _otherDictionary = CoreWCF.XD.TrustFeb2005Dictionary;
+                    _otherDictionary = XD.TrustFeb2005Dictionary;
                 }
 
                 if (parent.SerializerDictionary is TrustFeb2005Dictionary)
@@ -90,7 +90,7 @@ namespace CoreWCF.Security
             public override bool CanReadTokenCore(XmlDictionaryReader reader)
             {
                 return (reader.IsStartElement(LocalName, NamespaceUri) || reader.IsStartElement(LocalName, _otherDictionary.Namespace)) &&
-                       reader.GetAttribute(CoreWCF.XD.SecurityJan2004Dictionary.ValueType, null) == ValueTypeUri;
+                       reader.GetAttribute(XD.SecurityJan2004Dictionary.ValueType, null) == ValueTypeUri;
             }
 
 
@@ -107,14 +107,14 @@ namespace CoreWCF.Security
                         // Binary Secret tokens aren't referred to externally
                         return null;
                     default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("tokenReferenceStyle"));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(tokenReferenceStyle)));
                 }
             }
 
             public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
             {
-                string secretType = reader.GetAttribute(CoreWCF.XD.SecurityJan2004Dictionary.TypeAttribute, null);
-                string id = reader.GetAttribute(CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace);
+                string secretType = reader.GetAttribute(XD.SecurityJan2004Dictionary.TypeAttribute, null);
+                string id = reader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
                 bool isNonce = false;
 
                 if (secretType != null && secretType.Length > 0)
@@ -147,11 +147,11 @@ namespace CoreWCF.Security
                 writer.WriteStartElement(_parent.SerializerDictionary.Prefix.Value, _parent.SerializerDictionary.BinarySecret, _parent.SerializerDictionary.Namespace);
                 if (simpleToken.Id != null)
                 {
-                    writer.WriteAttributeString(CoreWCF.XD.UtilityDictionary.Prefix.Value, CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace, simpleToken.Id);
+                    writer.WriteAttributeString(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace, simpleToken.Id);
                 }
                 if (token is NonceToken)
                 {
-                    writer.WriteAttributeString(CoreWCF.XD.SecurityJan2004Dictionary.TypeAttribute, null, _parent.SerializerDictionary.NonceBinarySecret.Value);
+                    writer.WriteAttributeString(XD.SecurityJan2004Dictionary.TypeAttribute, null, _parent.SerializerDictionary.NonceBinarySecret.Value);
                 }
                 writer.WriteBase64(secret, 0, secret.Length);
                 writer.WriteEndElement();
@@ -160,8 +160,8 @@ namespace CoreWCF.Security
 
         public abstract class Driver : TrustDriver
         {
-            private static readonly string s_base64Uri = SecurityJan2004Strings.EncodingTypeValueBase64Binary;
-            private static readonly string s_hexBinaryUri = SecurityJan2004Strings.EncodingTypeValueHexBinary;
+            private const string Base64Uri = SecurityJan2004Strings.EncodingTypeValueBase64Binary;
+            private const string HexBinaryUri = SecurityJan2004Strings.EncodingTypeValueHexBinary;
             private readonly SecurityStandardsManager _standardsManager;
             private readonly List<SecurityTokenAuthenticator> _entropyAuthenticators;
 
@@ -221,7 +221,7 @@ namespace CoreWCF.Security
                         }
                         else if (child.LocalName == DriverDictionary.KeySize.Value && child.NamespaceURI == DriverDictionary.Namespace.Value)
                         {
-                            keySize = Int32.Parse(XmlHelper.ReadTextElementAsTrimmedString(child), NumberFormatInfo.InvariantInfo);
+                            keySize = int.Parse(XmlHelper.ReadTextElementAsTrimmedString(child), NumberFormatInfo.InvariantInfo);
                         }
                     }
                 }
@@ -244,7 +244,7 @@ namespace CoreWCF.Security
                         {
                             reader.ReadStartElement();
                             reader.MoveToContent();
-                            issuedTokenBuffer = new CoreWCF.XmlBuffer(Int32.MaxValue);
+                            issuedTokenBuffer = new CoreWCF.XmlBuffer(int.MaxValue);
                             using (XmlDictionaryWriter writer = issuedTokenBuffer.OpenSection(reader.Quotas))
                             {
                                 writer.WriteNode(reader, false);
@@ -275,7 +275,7 @@ namespace CoreWCF.Security
                     XmlHelper.OnRequiredElementMissing(DriverDictionary.RequestSecurityTokenResponse.Value, DriverDictionary.Namespace.Value);
                 }
 
-                CoreWCF.XmlBuffer rstrBuffer = new CoreWCF.XmlBuffer(Int32.MaxValue);
+                CoreWCF.XmlBuffer rstrBuffer = new CoreWCF.XmlBuffer(int.MaxValue);
                 using (XmlDictionaryWriter writer = rstrBuffer.OpenSection(reader.Quotas))
                 {
                     writer.WriteNode(reader, false);
@@ -296,7 +296,6 @@ namespace CoreWCF.Security
                 bool computeKey = false;
                 DateTime created = DateTime.UtcNow;
                 DateTime expires = SecurityUtils.MaxUtcDateTime;
-                bool isRequestedTokenClosed = false;
                 for (int i = 0; i < rstrXml.Attributes.Count; ++i)
                 {
                     XmlAttribute attr = rstrXml.Attributes[i];
@@ -317,7 +316,7 @@ namespace CoreWCF.Security
                         }
                         else if (child.LocalName == DriverDictionary.KeySize.Value && child.NamespaceURI == DriverDictionary.Namespace.Value)
                         {
-                            keySize = Int32.Parse(XmlHelper.ReadTextElementAsTrimmedString(child), NumberFormatInfo.InvariantInfo);
+                            keySize = int.Parse(XmlHelper.ReadTextElementAsTrimmedString(child), NumberFormatInfo.InvariantInfo);
                         }
                         else if (child.LocalName == DriverDictionary.RequestedProofToken.Value && child.NamespaceURI == DriverDictionary.Namespace.Value)
                         {
@@ -350,7 +349,7 @@ namespace CoreWCF.Security
                     }
                 }
 
-                isRequestedTokenClosed = ReadRequestedTokenClosed(rstrXml);
+                bool isRequestedTokenClosed = ReadRequestedTokenClosed(rstrXml);
                 ReadReferences(rstrXml, out SecurityKeyIdentifierClause requestedAttachedReference, out SecurityKeyIdentifierClause requestedUnattachedReference);
 
                 return new RequestSecurityTokenResponse(_standardsManager, rstrXml, context, tokenTypeUri, keySize, requestedAttachedReference, requestedUnattachedReference,
@@ -484,8 +483,7 @@ namespace CoreWCF.Security
                 {
                     for (int i = 0; i < rstr.RequestSecurityTokenResponseXml.ChildNodes.Count; ++i)
                     {
-                        XmlElement element = rstr.RequestSecurityTokenResponseXml.ChildNodes[i] as XmlElement;
-                        if (element != null)
+                        if (rstr.RequestSecurityTokenResponseXml.ChildNodes[i] is XmlElement element)
                         {
                             if (element.LocalName == DriverDictionary.Authenticator.Value && element.NamespaceURI == DriverDictionary.Namespace.Value)
                             {
@@ -530,8 +528,7 @@ namespace CoreWCF.Security
                 }
                 for (int i = 0; i < rootElement.ChildNodes.Count; ++i)
                 {
-                    XmlElement elem = rootElement.ChildNodes[i] as XmlElement;
-                    if (elem != null)
+                    if (rootElement.ChildNodes[i] is XmlElement elem)
                     {
                         if (elem.LocalName == DriverDictionary.BinaryExchange.Value && elem.NamespaceURI == DriverDictionary.Namespace.Value)
                         {
@@ -570,8 +567,7 @@ namespace CoreWCF.Security
                 }
                 for (int i = 0; i < rootElement.ChildNodes.Count; ++i)
                 {
-                    XmlElement element = rootElement.ChildNodes[i] as XmlElement;
-                    if (element != null)
+                    if (rootElement.ChildNodes[i] is XmlElement element)
                     {
                         if (element.LocalName == DriverDictionary.Entropy.Value && element.NamespaceURI == DriverDictionary.Namespace.Value)
                         {
@@ -579,7 +575,6 @@ namespace CoreWCF.Security
                             string valueTypeUri = element.GetAttribute(SecurityJan2004Strings.ValueType);
                             if (valueTypeUri.Length == 0)
                             {
-                                valueTypeUri = null;
                             }
 
                             return _standardsManager.SecurityTokenSerializer.ReadToken(new XmlNodeReader(tokenXml), resolver);
@@ -597,8 +592,7 @@ namespace CoreWCF.Security
                 {
                     for (int i = 0; i < rstr.RequestSecurityTokenResponseXml.ChildNodes.Count; ++i)
                     {
-                        XmlElement elem = rstr.RequestSecurityTokenResponseXml.ChildNodes[i] as XmlElement;
-                        if (elem != null)
+                        if (rstr.RequestSecurityTokenResponseXml.ChildNodes[i] is XmlElement elem)
                         {
                             if (elem.LocalName == DriverDictionary.RequestedSecurityToken.Value && elem.NamespaceURI == DriverDictionary.Namespace.Value)
                             {
@@ -637,7 +631,7 @@ namespace CoreWCF.Security
 
                 if (defaultKeySize < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("defaultKeySize", SR.ValueMustBeNonNegative));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(defaultKeySize), SR.ValueMustBeNonNegative));
                 }
 
                 if (rstr == null)
@@ -656,7 +650,6 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    tokenType = expectedTokenType;
                 }
 
                 // search the response elements for licenseXml, proofXml, and lifetime
@@ -711,7 +704,6 @@ namespace CoreWCF.Security
                     string valueTypeUri = proofXml.GetAttribute(SecurityJan2004Strings.ValueType);
                     if (valueTypeUri.Length == 0)
                     {
-                        valueTypeUri = null;
                     }
 
                     proofToken = _standardsManager.SecurityTokenSerializer.ReadToken(new XmlNodeReader(proofXml), resolver);
@@ -764,7 +756,7 @@ namespace CoreWCF.Security
             {
                 if (rstr == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("rstr"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(rstr)));
                 }
 
                 string tokenType;
@@ -778,7 +770,6 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    tokenType = expectedTokenType;
                 }
 
                 // search the response elements for licenseXml, proofXml, and lifetime
@@ -843,7 +834,6 @@ namespace CoreWCF.Security
                 // get the encoding and valueType attributes
                 string encodingUri = null;
                 string valueTypeUri = null;
-                byte[] negotiationData = null;
                 if (elem.Attributes != null)
                 {
                     for (int i = 0; i < elem.Attributes.Count; ++i)
@@ -852,7 +842,7 @@ namespace CoreWCF.Security
                         if (attr.LocalName == SecurityJan2004Strings.EncodingType && attr.NamespaceURI.Length == 0)
                         {
                             encodingUri = attr.Value;
-                            if (encodingUri != s_base64Uri && encodingUri != s_hexBinaryUri)
+                            if (encodingUri != Base64Uri && encodingUri != HexBinaryUri)
                             {
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.UnsupportedBinaryEncoding, encodingUri)));
                             }
@@ -873,7 +863,8 @@ namespace CoreWCF.Security
                     XmlHelper.OnRequiredAttributeMissing("ValueType", elem.Name);
                 }
                 string encodedBlob = XmlHelper.ReadTextElementAsTrimmedString(elem);
-                if (encodingUri == s_base64Uri)
+                byte[] negotiationData;
+                if (encodingUri == Base64Uri)
                 {
                     negotiationData = Convert.FromBase64String(encodedBlob);
                 }
@@ -894,8 +885,7 @@ namespace CoreWCF.Security
                 requestedUnattachedReference = null;
                 for (int i = 0; i < rstrXml.ChildNodes.Count; ++i)
                 {
-                    XmlElement child = rstrXml.ChildNodes[i] as XmlElement;
-                    if (child != null)
+                    if (rstrXml.ChildNodes[i] is XmlElement child)
                     {
                         if (child.LocalName == DriverDictionary.RequestedSecurityToken.Value && child.NamespaceURI == DriverDictionary.Namespace.Value)
                         {
@@ -927,8 +917,6 @@ namespace CoreWCF.Security
 
             internal bool TryReadKeyIdentifierClause(XmlNodeReader reader, out SecurityKeyIdentifierClause keyIdentifierClause)
             {
-                keyIdentifierClause = null;
-
                 try
                 {
                     keyIdentifierClause = _standardsManager.SecurityTokenSerializer.ReadKeyIdentifierClause(reader);
@@ -959,11 +947,10 @@ namespace CoreWCF.Security
 
             internal SecurityKeyIdentifierClause CreateGenericXmlSecurityKeyIdentifierClause(XmlNodeReader reader, XmlElement keyIdentifierReferenceXmlElement)
             {
-                SecurityKeyIdentifierClause keyIdentifierClause = null;
                 XmlDictionaryReader localReader = XmlDictionaryReader.CreateDictionaryReader(reader);
-                string strId = localReader.GetAttribute(CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace);
-                keyIdentifierClause = new GenericXmlSecurityKeyIdentifierClause(keyIdentifierReferenceXmlElement);
-                if (!String.IsNullOrEmpty(strId))
+                string strId = localReader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
+                SecurityKeyIdentifierClause keyIdentifierClause = new GenericXmlSecurityKeyIdentifierClause(keyIdentifierReferenceXmlElement);
+                if (!string.IsNullOrEmpty(strId))
                 {
                     keyIdentifierClause.Id = strId;
                 }
@@ -1020,7 +1007,7 @@ namespace CoreWCF.Security
                 XmlDictionaryWriter writer = XmlDictionaryWriter.CreateDictionaryWriter(xmlWriter);
                 negotiation.WriteTo(writer, DriverDictionary.Prefix.Value,
                                             DriverDictionary.BinaryExchange, DriverDictionary.Namespace,
-                                            CoreWCF.XD.SecurityJan2004Dictionary.ValueType, null);
+                                            XD.SecurityJan2004Dictionary.ValueType, null);
             }
 
             public override void WriteRequestSecurityToken(RequestSecurityToken rst, XmlWriter xmlWriter)
@@ -1143,7 +1130,7 @@ namespace CoreWCF.Security
                     writer.WriteAttributeString(DriverDictionary.Context, null, rstr.Context);
                 }
                 // define WSUtility at the top level to avoid multiple definitions below
-                XmlHelper.AddNamespaceDeclaration(writer, UtilityStrings.Prefix, CoreWCF.XD.UtilityDictionary.Namespace);
+                XmlHelper.AddNamespaceDeclaration(writer, UtilityStrings.Prefix, XD.UtilityDictionary.Namespace);
                 rstr.OnWriteCustomAttributes(writer);
 
                 if (rstr.TokenType != null)
@@ -1210,11 +1197,11 @@ namespace CoreWCF.Security
                     // write out the lifetime
                     writer.WriteStartElement(DriverDictionary.Prefix.Value, DriverDictionary.Lifetime, DriverDictionary.Namespace);
                     // write out Created
-                    writer.WriteStartElement(CoreWCF.XD.UtilityDictionary.Prefix.Value, CoreWCF.XD.UtilityDictionary.CreatedElement, CoreWCF.XD.UtilityDictionary.Namespace);
+                    writer.WriteStartElement(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.CreatedElement, XD.UtilityDictionary.Namespace);
                     writer.WriteString(effectiveTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture.DateTimeFormat));
                     writer.WriteEndElement(); // wsu:Created
                     // write out Expires
-                    writer.WriteStartElement(CoreWCF.XD.UtilityDictionary.Prefix.Value, CoreWCF.XD.UtilityDictionary.ExpiresElement, CoreWCF.XD.UtilityDictionary.Namespace);
+                    writer.WriteStartElement(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.ExpiresElement, XD.UtilityDictionary.Namespace);
                     writer.WriteString(expirationTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture.DateTimeFormat));
                     writer.WriteEndElement(); // wsu:Expires
                     writer.WriteEndElement(); // wsse:Lifetime
@@ -1296,7 +1283,7 @@ namespace CoreWCF.Security
                 if (element.LocalName == DriverDictionary.KeySize.Value
                     && element.NamespaceURI == DriverDictionary.Namespace.Value)
                 {
-                    keySize = Int32.Parse(XmlHelper.ReadTextElementAsTrimmedString(element), NumberFormatInfo.InvariantInfo);
+                    keySize = int.Parse(XmlHelper.ReadTextElementAsTrimmedString(element), NumberFormatInfo.InvariantInfo);
                     return true;
                 }
 
@@ -1308,12 +1295,12 @@ namespace CoreWCF.Security
             {
                 if (keySize < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("keySize", SR.ValueMustBeNonNegative));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(keySize), SR.ValueMustBeNonNegative));
                 }
                 XmlDocument doc = new XmlDocument();
                 XmlElement result = doc.CreateElement(DriverDictionary.Prefix.Value, DriverDictionary.KeySize.Value,
                     DriverDictionary.Namespace.Value);
-                result.AppendChild(doc.CreateTextNode(keySize.ToString(System.Globalization.CultureInfo.InvariantCulture.NumberFormat)));
+                result.AppendChild(doc.CreateTextNode(keySize.ToString(CultureInfo.InvariantCulture.NumberFormat)));
                 return result;
             }
 
@@ -1618,9 +1605,8 @@ namespace CoreWCF.Security
                 byte[] requestorEntropy;
                 if (requestorEntropyToken != null)
                 {
-                    if (requestorEntropyToken is BinarySecretSecurityToken)
+                    if (requestorEntropyToken is BinarySecretSecurityToken skToken)
                     {
-                        BinarySecretSecurityToken skToken = (BinarySecretSecurityToken)requestorEntropyToken;
                         requestorEntropy = skToken.GetKeyBytes();
                     }
                     else if (requestorEntropyToken is WrappedKeySecurityToken)

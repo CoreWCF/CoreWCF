@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.Serialization;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
-    //[Serializable]
+    [Serializable]
     public class MessageHeaderException : ProtocolException
     {
-        //[NonSerialized]
-        private readonly bool _isDuplicate;
-
         public MessageHeaderException(string message)
             : this(message, null, null)
         {
@@ -42,7 +40,7 @@ namespace CoreWCF
         {
             HeaderName = headerName;
             HeaderNamespace = ns;
-            _isDuplicate = isDuplicate;
+            IsDuplicate = isDuplicate;
         }
 
         public string HeaderName { get; }
@@ -50,19 +48,23 @@ namespace CoreWCF
         public string HeaderNamespace { get; }
 
         // IsDuplicate==true means there was more than one; IsDuplicate==false means there were zero
-        public bool IsDuplicate { get { return _isDuplicate; } }
+        public bool IsDuplicate { get; }
+        public StreamingContext Context { get; }
 
         internal Message ProvideFault(MessageVersion messageVersion)
         {
             Fx.Assert(messageVersion.Addressing == AddressingVersion.WSAddressing10, "");
             WSAddressing10ProblemHeaderQNameFault phf = new WSAddressing10ProblemHeaderQNameFault(this);
-            Message message = CoreWCF.Channels.Message.CreateMessage(messageVersion, phf, AddressingVersion.WSAddressing10.FaultAction);
+            Message message = Channels.Message.CreateMessage(messageVersion, phf, AddressingVersion.WSAddressing10.FaultAction);
             phf.AddHeaders(message.Headers);
             return message;
         }
 
         // for serialization
         public MessageHeaderException() { }
-        //protected MessageHeaderException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        protected MessageHeaderException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+            Context = context;
+        }
     }
 }

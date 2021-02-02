@@ -678,14 +678,13 @@ namespace CoreWCF.Channels
 
         private static FaultCode ReadFaultCode12Driver(XmlDictionaryReader reader, EnvelopeVersion version)
         {
-            FaultCode subCode = null;
             reader.ReadStartElement(XD.Message12Dictionary.FaultValue, version.DictionaryNamespace);
             XmlUtil.ReadContentAsQName(reader, out string localName, out string ns);
             reader.ReadEndElement();
             if (reader.IsStartElement(XD.Message12Dictionary.FaultSubcode, version.DictionaryNamespace))
             {
                 reader.ReadStartElement();
-                subCode = ReadFaultCode12Driver(reader, version);
+                FaultCode subCode = ReadFaultCode12Driver(reader, version);
                 reader.ReadEndElement();
                 return new FaultCode(localName, ns, subCode);
             }

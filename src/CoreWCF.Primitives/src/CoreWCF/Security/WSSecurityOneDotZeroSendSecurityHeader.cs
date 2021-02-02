@@ -24,7 +24,6 @@ namespace CoreWCF.Security
     {
         private HashStream _hashStream;
         private SignedXml _signedXml;
-        private readonly ReferenceList _referenceList;
         private KeyedHashAlgorithm _signingKey;
         private MessagePartSpecification _effectiveSignatureParts;
 
@@ -85,12 +84,10 @@ namespace CoreWCF.Security
             {
                 for (int i = 0; i < elements.Length; ++i)
                 {
-                    TokenElement signedEncryptedTokenElement = elements[i].Item as TokenElement;
-
                     // signedEncryptedTokenElement can either be a TokenElement ( in SignThenEncrypt case) or EncryptedData ( in !SignThenEncryptCase)
                     // STR-Transform does not make sense in !SignThenEncrypt case .
                     // note: signedEncryptedTokenElement can also be SignatureConfirmation but we do not care about it here.
-                    bool useStrTransform = signedEncryptedTokenElement != null
+                    bool useStrTransform = elements[i].Item is TokenElement signedEncryptedTokenElement
                                            && SignThenEncrypt
                                            && ShouldUseStrTransformForToken(signedEncryptedTokenElement.Token,
                                                                                  i,
@@ -116,17 +113,6 @@ namespace CoreWCF.Security
                     {
                         AddReference("#" + elements[i].Id, stream);
                     }
-                }
-            }
-        }
-
-        private void AddSignatureReference(SecurityToken[] tokens, SecurityTokenAttachmentMode mode)
-        {
-            if (tokens != null)
-            {
-                for (int i = 0; i < tokens.Length; ++i)
-                {
-                    AddSignatureReference(tokens[i], i, mode);
                 }
             }
         }
@@ -221,9 +207,11 @@ namespace CoreWCF.Security
 
         private void AddReference(string id, Stream contents)
         {
-            var reference = new System.Security.Cryptography.Xml.Reference(contents);
-            reference.Uri = id;
-            reference.DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm;
+            var reference = new System.Security.Cryptography.Xml.Reference(contents)
+            {
+                Uri = id,
+                DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm
+            };
             reference.AddTransform(new XmlDsigExcC14NTransform());
             _signedXml.AddReference(reference);
         }
@@ -232,10 +220,12 @@ namespace CoreWCF.Security
         {
             // No transforms added to Reference as the digest value has already been calculated
             headerId = GetSignatureHash(header, headerId, prefixGenerator, writer, out byte[] hashValue);
-            var reference = new System.Security.Cryptography.Xml.Reference();
-            reference.DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm;
-            reference.DigestValue = hashValue;
-            reference.Id = headerId;
+            var reference = new System.Security.Cryptography.Xml.Reference
+            {
+                DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm,
+                DigestValue = hashValue,
+                Id = headerId
+            };
             _signedXml.AddReference(reference);
         }
 
@@ -303,7 +293,7 @@ namespace CoreWCF.Security
 
                 if (header != this)
                 {
-                    ApplySecurityAndWriteHeader(header, headerIds == null ? null : headerIds[i], writer, prefixGenerator);
+                    ApplySecurityAndWriteHeader(header, headerIds?[i], writer, prefixGenerator);
                 }
             }
         }
@@ -314,8 +304,7 @@ namespace CoreWCF.Security
             {
                 return false;
             }
-            IFragmentCapableXmlDictionaryWriter fragmentingWriter = writer as IFragmentCapableXmlDictionaryWriter;
-            return fragmentingWriter != null && fragmentingWriter.CanFragment;
+            return writer is IFragmentCapableXmlDictionaryWriter fragmentingWriter && fragmentingWriter.CanFragment;
         }
 
         public override void ApplyBodySecurity(XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
@@ -370,7 +359,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.TimestampToSignHasNoId));
                 }
 
-                var buffer = new byte[64];
+                byte[] buffer = new byte[64];
                 var ms = new MemoryStream();
                 StandardsManager.WSUtilitySpecificationVersion.WriteTimestampCanonicalForm(
                     ms, timestamp, buffer);
@@ -460,7 +449,7 @@ namespace CoreWCF.Security
 
         private HashStream TakeHashStream()
         {
-            HashStream hashStream = null;
+            HashStream hashStream;
             if (_hashStream == null)
             {
                 _hashStream = hashStream = new HashStream(CryptoHelper.CreateHashAlgorithm(AlgorithmSuite.DefaultDigestAlgorithm));
@@ -536,8 +525,7 @@ namespace CoreWCF.Security
         {
             symmetricAlgorithm = null;
             asymmetricAlgorithm = null;
-            SymmetricSecurityKey symmetricKey = signatureKey as SymmetricSecurityKey;
-            if (symmetricKey != null)
+            if (signatureKey is SymmetricSecurityKey symmetricKey)
             {
                 _signingKey = symmetricKey.GetKeyedHashAlgorithm(algorithmName);
                 if (_signingKey == null)
@@ -548,8 +536,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                AsymmetricSecurityKey asymmetricKey = signatureKey as AsymmetricSecurityKey;
-                if (asymmetricKey == null)
+                if (!(signatureKey is AsymmetricSecurityKey asymmetricKey))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                         SR.Format(SR.UnknownICryptoType, _signingKey)));
@@ -640,11 +627,7 @@ namespace CoreWCF.Security
 
         protected override ISecurityElement CompleteEncryptionCore(SendSecurityHeaderElement primarySignature, SendSecurityHeaderElement[] basicTokens, SendSecurityHeaderElement[] signatureConfirmations, SendSecurityHeaderElement[] endorsingSignatures)
         {
-            if (_referenceList == null)
-            {
-                return null;
-            }
-            throw new NotImplementedException();
+            return null;
         }
     }
 

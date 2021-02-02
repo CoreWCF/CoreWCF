@@ -85,7 +85,7 @@ namespace CoreWCF.Security
 
         public void AppendSecurityTokenReference(SecurityKeyIdentifierClause strClause, string strId)
         {
-            if (!String.IsNullOrEmpty(strId))
+            if (!string.IsNullOrEmpty(strId))
             {
                 VerifyIdUniquenessInSecurityHeader(strId);
                 AppendElement(ReceiveSecurityHeaderElementCategory.SecurityTokenReference, strClause, ReceiveSecurityHeaderBindingModes.Unknown, strId, null);

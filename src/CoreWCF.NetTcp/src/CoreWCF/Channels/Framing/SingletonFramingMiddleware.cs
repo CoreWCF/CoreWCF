@@ -29,7 +29,7 @@ namespace CoreWCF.Channels.Framing
                 ReadOnlySequence<byte> buffer;
                 while (decoder.CurrentState != ServerSingletonDecoder.State.PreUpgradeStart)
                 {
-                    var readResult = await connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
                     buffer = readResult.Buffer;
 
                     while (buffer.Length > 0)

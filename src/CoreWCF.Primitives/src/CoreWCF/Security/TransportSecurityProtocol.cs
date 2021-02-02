@@ -115,7 +115,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    if (String.IsNullOrEmpty(actor))
+                    if (string.IsNullOrEmpty(actor))
                     {
                         throw Diagnostics.TraceUtility.ThrowHelperError(new MessageSecurityException(
                             SR.Format(SR.UnableToFindSecurityHeaderInMessageNoActor)), message);

@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
     internal abstract class StreamSecurityUpgradeAcceptorBase : StreamSecurityUpgradeAcceptor
     {
         private SecurityMessageProperty _remoteSecurity;
-        private readonly bool _securityUpgraded;
+        private bool _securityUpgraded;
         private readonly string _upgradeString;
 
         protected StreamSecurityUpgradeAcceptorBase(string upgradeString)
@@ -26,6 +26,7 @@ namespace CoreWCF.Channels
             }
 
             (stream, _remoteSecurity) = await OnAcceptUpgradeAsync(stream);
+            _securityUpgraded = true;
             return stream;
         }
 

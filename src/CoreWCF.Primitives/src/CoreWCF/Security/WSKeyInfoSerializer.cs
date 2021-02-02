@@ -29,7 +29,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("securityVersion", SR.Format(SR.MessageSecurityVersionOutOfRange)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(securityVersion), SR.Format(SR.MessageSecurityVersionOutOfRange)));
                 }
 
                 if (secureConversationVersion == SecureConversationVersion.WSSecureConversationFeb2005)
@@ -73,7 +73,7 @@ namespace CoreWCF.Security
             {
                 if (tokenEntryList == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenEntryList");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenEntryList));
                 }
                 tokenEntryList.Add(new DerivedKeyTokenEntry(this));
                 tokenEntryList.Add(new SecurityContextTokenEntry(this));
@@ -201,11 +201,7 @@ namespace CoreWCF.Security
 
                 public DerivedKeyTokenEntry(WSSecureConversation parent)
                 {
-                    if (parent == null)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parent");
-                    }
-                    _parent = parent;
+                    _parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
                 }
 
                 protected override XmlDictionaryString LocalName => _parent.SerializerDictionary.DerivedKeyToken;

@@ -397,8 +397,7 @@ namespace CoreWCF.Dispatcher
 
                 DisposeParameterList(OutputParameters);
 
-                IDisposable disposableParameter = ReturnParameter as IDisposable;
-                if (disposableParameter != null)
+                if (ReturnParameter is IDisposable disposableParameter)
                 {
                     try
                     {
@@ -421,13 +420,11 @@ namespace CoreWCF.Dispatcher
 
         private void DisposeParameterList(object[] parameters)
         {
-            IDisposable disposableParameter = null;
             if (parameters != null)
             {
                 foreach (object obj in parameters)
                 {
-                    disposableParameter = obj as IDisposable;
-                    if (disposableParameter != null)
+                    if (obj is IDisposable disposableParameter)
                     {
                         try
                         {
@@ -507,7 +504,9 @@ namespace CoreWCF.Dispatcher
                 {
                     if (Fx.IsFatal(e))
                     {
+#pragma warning disable CA2219 // Do not raise exceptions in finally clauses - Fx.IsFatal filters out non-process ending exceptions
                         throw;
+#pragma warning restore CA2219 // Do not raise exceptions in finally clauses
                     }
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperFatal(e.Message, e);
                 }

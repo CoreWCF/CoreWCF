@@ -7,7 +7,7 @@ namespace CoreWCF.Security
     {
         private LaxTimestampLastModeSecurityHeaderElementInferenceEngine() { }
 
-        internal new static LaxTimestampLastModeSecurityHeaderElementInferenceEngine Instance { get; } = new LaxTimestampLastModeSecurityHeaderElementInferenceEngine();
+        internal static new LaxTimestampLastModeSecurityHeaderElementInferenceEngine Instance { get; } = new LaxTimestampLastModeSecurityHeaderElementInferenceEngine();
 
         public override void MarkElements(ReceiveSecurityHeaderElementManager elementManager, bool messageSecurityMode)
         {

@@ -24,7 +24,7 @@ namespace CoreWCF.IdentityModel
 
         public static SecurityUniqueId Create()
         {
-            return SecurityUniqueId.Create(s_commonPrefix);
+            return Create(s_commonPrefix);
         }
 
         public static SecurityUniqueId Create(string prefix)

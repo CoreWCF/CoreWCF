@@ -8,11 +8,7 @@ namespace DispatcherClient
 {
     internal class DispatcherReplySessionChannel : DispatcherReplyChannel, IReplySessionChannel
     {
-        private readonly IServiceProvider _serviceProvider;
-
-        public DispatcherReplySessionChannel(IServiceProvider serviceProvider) : base(serviceProvider)
-        {
-        }
+        public DispatcherReplySessionChannel(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         public IInputSession Session { get; } = new InputSession();
 

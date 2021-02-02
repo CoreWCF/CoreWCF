@@ -41,20 +41,20 @@ namespace CoreWCF.Security
 
         public SecurityToken[] GetSignedSupportingTokens()
         {
-            return (_signedSupportingTokens != null) ? _signedSupportingTokens.ToArray() : null;
+            return _signedSupportingTokens?.ToArray();
         }
 
         public void AddSignedSupportingToken(SecurityToken token) => Add<SecurityToken>(ref _signedSupportingTokens, token);
 
         public List<SecurityToken> EndorsingSupportingTokens => _endorsingSupportingTokens;
 
-        public SendSecurityHeaderElement[] GetBasicSupportingTokens() => (_basicSupportingTokens != null) ? _basicSupportingTokens.ToArray() : null;
+        public SendSecurityHeaderElement[] GetBasicSupportingTokens() => _basicSupportingTokens?.ToArray();
 
         public void AddBasicSupportingToken(SendSecurityHeaderElement tokenElement) => Add<SendSecurityHeaderElement>(ref _basicSupportingTokens, tokenElement);
 
         public SecurityToken[] GetSignedEndorsingSupportingTokens()
         {
-            return (_signedEndorsingSupportingTokens != null) ? _signedEndorsingSupportingTokens.ToArray() : null;
+            return _signedEndorsingSupportingTokens?.ToArray();
         }
 
         public void AddSignedEndorsingSupportingToken(SecurityToken token)
@@ -64,7 +64,7 @@ namespace CoreWCF.Security
 
         public SecurityToken[] GetSignedEndorsingDerivedSupportingTokens()
         {
-            return (_signedEndorsingDerivedSupportingTokens != null) ? _signedEndorsingDerivedSupportingTokens.ToArray() : null;
+            return _signedEndorsingDerivedSupportingTokens?.ToArray();
         }
 
         public void AddSignedEndorsingDerivedSupportingToken(SecurityToken token)
@@ -72,19 +72,19 @@ namespace CoreWCF.Security
             Add<SecurityToken>(ref _signedEndorsingDerivedSupportingTokens, token);
         }
 
-        public SecurityToken[] GetEndorsingSupportingTokens() => (_endorsingSupportingTokens != null) ? _endorsingSupportingTokens.ToArray() : null;
+        public SecurityToken[] GetEndorsingSupportingTokens() => _endorsingSupportingTokens?.ToArray();
 
         public void AddEndorsingSupportingToken(SecurityToken token) => Add<SecurityToken>(ref _endorsingSupportingTokens, token);
 
-        public SecurityToken[] GetEndorsingDerivedSupportingTokens() => (_endorsingDerivedSupportingTokens != null) ? _endorsingDerivedSupportingTokens.ToArray() : null;
+        public SecurityToken[] GetEndorsingDerivedSupportingTokens() => _endorsingDerivedSupportingTokens?.ToArray();
 
         public void AddEndorsingDerivedSupportingToken(SecurityToken token) => Add<SecurityToken>(ref _endorsingDerivedSupportingTokens, token);
 
-        public SendSecurityHeaderElement[] GetSignatureConfirmations() => (_signatureConfirmations != null) ? _signatureConfirmations.ToArray() : null;
+        public SendSecurityHeaderElement[] GetSignatureConfirmations() => _signatureConfirmations?.ToArray();
 
         public void AddSignatureConfirmation(SendSecurityHeaderElement confirmation) => Add<SendSecurityHeaderElement>(ref _signatureConfirmations, confirmation);
 
-        public SendSecurityHeaderElement[] GetEndorsingSignatures() => (_endorsingSignatures != null) ? _endorsingSignatures.ToArray() : null;
+        public SendSecurityHeaderElement[] GetEndorsingSignatures() => _endorsingSignatures?.ToArray();
 
         public void AddEndorsingSignature(SendSecurityHeaderElement signature) => Add<SendSecurityHeaderElement>(ref _endorsingSignatures, signature);
 

@@ -10,13 +10,11 @@ namespace CoreWCF.Security.Tokens
 {
     public class SupportingTokenParameters
     {
-        private readonly Collection<SecurityTokenParameters> _signedEndorsing = new Collection<SecurityTokenParameters>();
-
         private SupportingTokenParameters(SupportingTokenParameters other)
         {
             if (other == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("other");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
             }
 
             foreach (SecurityTokenParameters p in other.Signed)
@@ -34,9 +32,9 @@ namespace CoreWCF.Security.Tokens
                 Endorsing.Add((SecurityTokenParameters)p.Clone());
             }
 
-            foreach (SecurityTokenParameters p in other._signedEndorsing)
+            foreach (SecurityTokenParameters p in other.SignedEndorsing)
             {
-                _signedEndorsing.Add((SecurityTokenParameters)p.Clone());
+                SignedEndorsing.Add((SecurityTokenParameters)p.Clone());
             }
         }
 
@@ -47,7 +45,7 @@ namespace CoreWCF.Security.Tokens
 
         public Collection<SecurityTokenParameters> Endorsing { get; } = new Collection<SecurityTokenParameters>();
 
-        public Collection<SecurityTokenParameters> SignedEndorsing => _signedEndorsing;
+        public Collection<SecurityTokenParameters> SignedEndorsing { get; } = new Collection<SecurityTokenParameters>();
 
         public Collection<SecurityTokenParameters> Signed { get; } = new Collection<SecurityTokenParameters>();
 
@@ -66,7 +64,7 @@ namespace CoreWCF.Security.Tokens
                     t.RequireDerivedKeys = requireDerivedKeys;
                 }
             }
-            foreach (SecurityTokenParameters t in _signedEndorsing)
+            foreach (SecurityTokenParameters t in SignedEndorsing)
             {
                 if (t.HasAsymmetricKey)
                 {
@@ -89,7 +87,7 @@ namespace CoreWCF.Security.Tokens
                 }
             }
 
-            foreach (SecurityTokenParameters t in _signedEndorsing)
+            foreach (SecurityTokenParameters t in SignedEndorsing)
             {
                 if (t.RequireDerivedKeys != requireDerivedKeys)
                 {
@@ -113,7 +111,7 @@ namespace CoreWCF.Security.Tokens
             {
                 for (k = 0; k < Endorsing.Count; k++)
                 {
-                    sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "Endorsing[{0}]", k.ToString(CultureInfo.InvariantCulture)));
+                    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "Endorsing[{0}]", k.ToString(CultureInfo.InvariantCulture)));
                     sb.AppendLine("  " + Endorsing[k].ToString().Trim().Replace("\n", "\n  "));
                 }
             }
@@ -126,7 +124,7 @@ namespace CoreWCF.Security.Tokens
             {
                 for (k = 0; k < Signed.Count; k++)
                 {
-                    sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "Signed[{0}]", k.ToString(CultureInfo.InvariantCulture)));
+                    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "Signed[{0}]", k.ToString(CultureInfo.InvariantCulture)));
                     sb.AppendLine("  " + Signed[k].ToString().Trim().Replace("\n", "\n  "));
                 }
             }
@@ -139,21 +137,21 @@ namespace CoreWCF.Security.Tokens
             {
                 for (k = 0; k < SignedEncrypted.Count; k++)
                 {
-                    sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "SignedEncrypted[{0}]", k.ToString(CultureInfo.InvariantCulture)));
+                    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "SignedEncrypted[{0}]", k.ToString(CultureInfo.InvariantCulture)));
                     sb.AppendLine("  " + SignedEncrypted[k].ToString().Trim().Replace("\n", "\n  "));
                 }
             }
 
-            if (_signedEndorsing.Count == 0)
+            if (SignedEndorsing.Count == 0)
             {
                 sb.AppendLine("No signed endorsing tokens.");
             }
             else
             {
-                for (k = 0; k < _signedEndorsing.Count; k++)
+                for (k = 0; k < SignedEndorsing.Count; k++)
                 {
-                    sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "SignedEndorsing[{0}]", k.ToString(CultureInfo.InvariantCulture)));
-                    sb.AppendLine("  " + _signedEndorsing[k].ToString().Trim().Replace("\n", "\n  "));
+                    sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "SignedEndorsing[{0}]", k.ToString(CultureInfo.InvariantCulture)));
+                    sb.AppendLine("  " + SignedEndorsing[k].ToString().Trim().Replace("\n", "\n  "));
                 }
             }
 
@@ -181,7 +179,7 @@ namespace CoreWCF.Security.Tokens
 
         internal bool IsEmpty()
         {
-            return Signed.Count == 0 && SignedEncrypted.Count == 0 && Endorsing.Count == 0 && _signedEndorsing.Count == 0;
+            return Signed.Count == 0 && SignedEncrypted.Count == 0 && Endorsing.Count == 0 && SignedEndorsing.Count == 0;
         }
     }
 }

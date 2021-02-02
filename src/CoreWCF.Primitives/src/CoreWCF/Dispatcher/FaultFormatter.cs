@@ -118,8 +118,6 @@ namespace CoreWCF.Dispatcher
                 faultInfos = _faultContractInfos;
             }
 
-            Type detailType = null;
-            object detailObj = null;
             for (int i = 0; i < faultInfos.Count; i++)
             {
                 FaultContractInfo faultInfo = faultInfos[i];
@@ -127,10 +125,10 @@ namespace CoreWCF.Dispatcher
                 XmlObjectSerializer serializer = faultInfo.Serializer;
                 if (serializer.IsStartObject(detailReader))
                 {
-                    detailType = faultInfo.Detail;
+                    Type detailType = faultInfo.Detail;
                     try
                     {
-                        detailObj = serializer.ReadObject(detailReader);
+                        object detailObj = serializer.ReadObject(detailReader);
                         FaultException faultException = CreateFaultException(messageFault, action,
                             detailObj, detailType, detailReader);
                         if (faultException != null)
@@ -138,9 +136,11 @@ namespace CoreWCF.Dispatcher
                             return faultException;
                         }
                     }
+#pragma warning disable CA1031 // Do not catch general exception types - return a non-specific FaultException is can't deserializer MessageFault
                     catch (SerializationException)
                     {
                     }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
             return new FaultException(messageFault, action);
@@ -157,7 +157,7 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new FormatException(SR.ExtraContentIsPresentInFaultDetail));
                 }
             }
-            bool isDetailObjectValid = true;
+            bool isDetailObjectValid;
             if (detailObj == null)
             {
                 isDetailObjectValid = !detailType.GetTypeInfo().IsValueType;

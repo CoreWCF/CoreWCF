@@ -176,7 +176,7 @@ namespace CoreWCF.Runtime
 
             using (CancellationTokenSource cts = new CancellationTokenSource())
             {
-                var completedTask = await Task.WhenAny(task, Task.Delay(timeout, cts.Token));
+                Task completedTask = await Task.WhenAny(task, Task.Delay(timeout, cts.Token));
                 if (completedTask == task)
                 {
                     cts.Cancel();
@@ -312,7 +312,7 @@ namespace CoreWCF.Runtime
         // Calls the given Action asynchronously.
         public static async Task CallActionAsync<TArg>(Action<TArg> action, TArg argument)
         {
-            using (var scope = TaskHelpers.RunTaskContinuationsOnOurThreads())
+            using (IDisposable scope = RunTaskContinuationsOnOurThreads())
             {
                 if (scope != null)  // No need to change threads if already off of thread pool
                 {
@@ -356,14 +356,14 @@ namespace CoreWCF.Runtime
                 return task;
             }
 
-            var state = new object[2];
+            object[] state = new object[2];
             var tcs = new TaskCompletionSource<TResult>(state);
             state[0] = tcs;
-            var registration = token.Register(OnCancellation<TResult>, state);
+            CancellationTokenRegistration registration = token.Register(OnCancellation<TResult>, state);
             state[1] = registration;
             task.ContinueWith((antecedent, obj) =>
             {
-                var stateArr = (object[])obj;
+                object[] stateArr = (object[])obj;
                 var tcsObj = (TaskCompletionSource<TResult>)stateArr[0];
                 var tokenRegistration = (CancellationTokenRegistration)stateArr[1];
                 tokenRegistration.Dispose();
@@ -386,7 +386,7 @@ namespace CoreWCF.Runtime
 
         private static void OnCancellation<TResult>(object state)
         {
-            var stateArr = (object[])state;
+            object[] stateArr = (object[])state;
             var tcsObj = (TaskCompletionSource<TResult>)stateArr[0];
             var tokenRegistration = (CancellationTokenRegistration)stateArr[1];
             tcsObj.TrySetCanceled();
@@ -496,10 +496,10 @@ namespace CoreWCF.Runtime
 
         public void Set()
         {
-            var tcs = _tcs;
+            TaskCompletionSource<object> tcs = _tcs;
             if (tcs == null)
             {
-                var temp = CreateTcs();
+                TaskCompletionSource<object> temp = CreateTcs();
                 tcs = Interlocked.CompareExchange(ref _tcs, temp, null) ?? temp;
             }
 
@@ -508,10 +508,10 @@ namespace CoreWCF.Runtime
 
         public TaskAwaiter<object> GetAwaiter()
         {
-            var tcs = _tcs;
+            TaskCompletionSource<object> tcs = _tcs;
             if (tcs == null)
             {
-                var temp = CreateTcs();
+                TaskCompletionSource<object> temp = CreateTcs();
                 tcs = Interlocked.CompareExchange(ref _tcs, temp, null) ?? temp;
             }
 
@@ -530,7 +530,7 @@ namespace CoreWCF.Runtime
     {
         public OutWrapper()
         {
-            Value = default(T);
+            Value = default;
         }
 
         public T Value { get; set; }

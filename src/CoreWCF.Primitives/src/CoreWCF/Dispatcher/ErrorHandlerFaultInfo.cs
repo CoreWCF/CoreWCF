@@ -7,22 +7,16 @@ namespace CoreWCF.Dispatcher
 {
     internal struct ErrorHandlerFaultInfo
     {
-        private string _defaultFaultAction;
-
         public ErrorHandlerFaultInfo(string defaultFaultAction)
         {
-            _defaultFaultAction = defaultFaultAction;
+            DefaultFaultAction = defaultFaultAction;
             Fault = null;
             IsConsideredUnhandled = false;
         }
 
         public Message Fault { get; set; }
 
-        public string DefaultFaultAction
-        {
-            get { return _defaultFaultAction; }
-            set { _defaultFaultAction = value; }
-        }
+        public string DefaultFaultAction { get; set; }
 
         public bool IsConsideredUnhandled { get; set; }
     }

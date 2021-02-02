@@ -22,7 +22,6 @@ namespace CoreWCF.Channels
         private int _cleanupStatus = WebSocketHelper.OperationNotStarted;
         private readonly WebSocketCloseDetails _webSocketCloseDetails = new WebSocketCloseDetails();
         private bool _shouldDisposeWebSocketAfterClosed = true;
-        private readonly Exception _pendingWritingMessageException;
 
         public WebSocketTransportDuplexSessionChannel(IHttpTransportFactorySettings settings, EndpointAddress localAddress, Uri localVia)
             : base(settings, localAddress, localVia, EndpointAddress.AnonymousAddress, settings.MessageVersion.Addressing.AnonymousUri)
@@ -174,6 +173,7 @@ namespace CoreWCF.Channels
             });
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2219:Do not raise exceptions in finally clauses", Justification = "Fx.IsFatal only allows process killing level exceptions to be thrown")]
         protected override async Task OnSendCoreAsync(Message message, CancellationToken token)
         {
             Fx.Assert(message != null, "message should not be null.");
@@ -347,14 +347,14 @@ namespace CoreWCF.Channels
             private readonly ReadOnlyDictionary<string, object> _properties;
             private TimeSpan _asyncReceiveTimeout;
             private TaskCompletionSource<object> _receiveTask;
-            private IOThreadTimer _receiveTimer;
             private int _asyncReceiveState;
 
             public WebSocketMessageSource(WebSocketTransportDuplexSessionChannel webSocketTransportDuplexSessionChannel, WebSocket webSocket,
                     bool useStreaming, IDefaultCommunicationTimeouts defaultTimeouts)
             {
                 Initialize(webSocketTransportDuplexSessionChannel, webSocket, useStreaming, defaultTimeouts);
-
+                // TODO: Switch IMessageSource to use TimeSpan instead of CancellationToken. See Issue #283
+                _asyncReceiveTimeout = TimeSpan.Zero;
                 StartNextReceiveAsync();
             }
 
@@ -363,12 +363,12 @@ namespace CoreWCF.Channels
             {
                 Initialize(webSocketTransportDuplexSessionChannel, context.WebSocket, isStreamed, defaultTimeouts);
 
-                IPrincipal user = requestContext == null ? null : requestContext.User;
+                IPrincipal user = requestContext?.User;
                 _context = new ServiceWebSocketContext(context, user);
                 RemoteEndpointMessageProperty = remoteEndpointMessageProperty;
                 // Copy any string keyed items from requestContext to properties. This is an attempt to mimic HttpRequestMessage.Properties
                 var properties = new Dictionary<string, object>();
-                foreach (var kv in requestContext.Items)
+                foreach (KeyValuePair<object, object> kv in requestContext.Items)
                 {
                     if (kv.Key is string key)
                     {
@@ -394,7 +394,6 @@ namespace CoreWCF.Channels
                 _useStreaming = useStreaming;
                 _defaultTimeouts = defaultTimeouts;
                 _closeDetails = webSocketTransportDuplexSessionChannel._webSocketCloseDetails;
-                _receiveTimer = new IOThreadTimer(s_onAsyncReceiveCancelled, this, true);
                 _asyncReceiveState = AsyncReceiveState.Finished;
             }
 
@@ -913,7 +912,8 @@ namespace CoreWCF.Channels
             public override void Close()
             {
                 base.Close();
-                CleanupAsync(_closeToken);
+                // There's no async close on Stream
+                CleanupAsync(_closeToken).GetAwaiter().GetResult();
             }
 
             public override void Flush()
@@ -998,7 +998,7 @@ namespace CoreWCF.Channels
 
                 if (_endOfMessageReached)
                 {
-                    CleanupAsync(cancellationToken);
+                    await CleanupAsync(cancellationToken);
                 }
 
                 return receivedBytes;
@@ -1180,22 +1180,9 @@ namespace CoreWCF.Channels
 
         private class WebSocketCloseDetails : IWebSocketCloseDetails
         {
-            private string _inputCloseStatusDescription;
-
             public WebSocketCloseStatus? InputCloseStatus { get; internal set; }
 
-            public string InputCloseStatusDescription
-            {
-                get
-                {
-                    return _inputCloseStatusDescription;
-                }
-
-                internal set
-                {
-                    _inputCloseStatusDescription = value;
-                }
-            }
+            public string InputCloseStatusDescription { get; internal set; }
 
             internal WebSocketCloseStatus OutputCloseStatus { get; private set; } = WebSocketCloseStatus.NormalClosure;
 

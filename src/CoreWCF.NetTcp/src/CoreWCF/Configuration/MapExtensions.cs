@@ -37,9 +37,9 @@ namespace CoreWCF.Configuration
             }
 
             // create branch
-            var branchBuilder = handshakeBuilder.New();
+            IFramingConnectionHandshakeBuilder branchBuilder = handshakeBuilder.New();
             configuration(branchBuilder);
-            var branch = branchBuilder.Build();
+            HandshakeDelegate branch = branchBuilder.Build();
 
             var options = new MapOptions
             {

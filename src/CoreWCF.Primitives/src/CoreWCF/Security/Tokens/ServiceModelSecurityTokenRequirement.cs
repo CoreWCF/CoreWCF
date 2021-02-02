@@ -50,36 +50,36 @@ namespace CoreWCF.Security.Tokens
             Properties[SupportSecurityContextCancellationProperty] = defaultSupportSecurityContextCancellation;
         }
 
-        static public string SecurityAlgorithmSuiteProperty { get { return securityAlgorithmSuiteProperty; } }
-        static public string SecurityBindingElementProperty { get { return securityBindingElementProperty; } }
-        static public string IssuerAddressProperty { get { return issuerAddressProperty; } }
-        static public string IssuerBindingProperty { get { return issuerBindingProperty; } }
-        static public string SecureConversationSecurityBindingElementProperty { get { return secureConversationSecurityBindingElementProperty; } }
-        static public string SupportSecurityContextCancellationProperty { get { return supportSecurityContextCancellationProperty; } }
-        static public string MessageSecurityVersionProperty { get { return messageSecurityVersionProperty; } }
-        static internal string DefaultMessageSecurityVersionProperty { get { return defaultMessageSecurityVersionProperty; } }
-        static public string IssuerBindingContextProperty { get { return issuerBindingContextProperty; } }
-        static public string TransportSchemeProperty { get { return transportSchemeProperty; } }
-        static public string IsInitiatorProperty { get { return isInitiatorProperty; } }
-        static public string TargetAddressProperty { get { return targetAddressProperty; } }
-        static public string ViaProperty { get { return viaProperty; } }
-        static public string ListenUriProperty { get { return listenUriProperty; } }
-        static public string AuditLogLocationProperty { get { return auditLogLocationProperty; } }
-        static public string SuppressAuditFailureProperty { get { return suppressAuditFailureProperty; } }
-        static public string MessageAuthenticationAuditLevelProperty { get { return messageAuthenticationAuditLevelProperty; } }
-        static public string IsOutOfBandTokenProperty { get { return isOutOfBandTokenProperty; } }
-        static public string PreferSslCertificateAuthenticatorProperty { get { return preferSslCertificateAuthenticatorProperty; } }
+        public static string SecurityAlgorithmSuiteProperty { get { return securityAlgorithmSuiteProperty; } }
+        public static string SecurityBindingElementProperty { get { return securityBindingElementProperty; } }
+        public static string IssuerAddressProperty { get { return issuerAddressProperty; } }
+        public static string IssuerBindingProperty { get { return issuerBindingProperty; } }
+        public static string SecureConversationSecurityBindingElementProperty { get { return secureConversationSecurityBindingElementProperty; } }
+        public static string SupportSecurityContextCancellationProperty { get { return supportSecurityContextCancellationProperty; } }
+        public static string MessageSecurityVersionProperty { get { return messageSecurityVersionProperty; } }
+        internal static string DefaultMessageSecurityVersionProperty { get { return defaultMessageSecurityVersionProperty; } }
+        public static string IssuerBindingContextProperty { get { return issuerBindingContextProperty; } }
+        public static string TransportSchemeProperty { get { return transportSchemeProperty; } }
+        public static string IsInitiatorProperty { get { return isInitiatorProperty; } }
+        public static string TargetAddressProperty { get { return targetAddressProperty; } }
+        public static string ViaProperty { get { return viaProperty; } }
+        public static string ListenUriProperty { get { return listenUriProperty; } }
+        public static string AuditLogLocationProperty { get { return auditLogLocationProperty; } }
+        public static string SuppressAuditFailureProperty { get { return suppressAuditFailureProperty; } }
+        public static string MessageAuthenticationAuditLevelProperty { get { return messageAuthenticationAuditLevelProperty; } }
+        public static string IsOutOfBandTokenProperty { get { return isOutOfBandTokenProperty; } }
+        public static string PreferSslCertificateAuthenticatorProperty { get { return preferSslCertificateAuthenticatorProperty; } }
 
-        static public string SupportingTokenAttachmentModeProperty { get { return supportingTokenAttachmentModeProperty; } }
-        static public string MessageDirectionProperty { get { return messageDirectionProperty; } }
-        static public string HttpAuthenticationSchemeProperty { get { return httpAuthenticationSchemeProperty; } }
-        static public string IssuedSecurityTokenParametersProperty { get { return issuedSecurityTokenParametersProperty; } }
-        static public string PrivacyNoticeUriProperty { get { return privacyNoticeUriProperty; } }
-        static public string PrivacyNoticeVersionProperty { get { return privacyNoticeVersionProperty; } }
-        static public string DuplexClientLocalAddressProperty { get { return duplexClientLocalAddressProperty; } }
-        static public string EndpointFilterTableProperty { get { return endpointFilterTableProperty; } }
-        static public string ChannelParametersCollectionProperty { get { return channelParametersCollectionProperty; } }
-        static public string ExtendedProtectionPolicy { get { return extendedProtectionPolicy; } }
+        public static string SupportingTokenAttachmentModeProperty { get { return supportingTokenAttachmentModeProperty; } }
+        public static string MessageDirectionProperty { get { return messageDirectionProperty; } }
+        public static string HttpAuthenticationSchemeProperty { get { return httpAuthenticationSchemeProperty; } }
+        public static string IssuedSecurityTokenParametersProperty { get { return issuedSecurityTokenParametersProperty; } }
+        public static string PrivacyNoticeUriProperty { get { return privacyNoticeUriProperty; } }
+        public static string PrivacyNoticeVersionProperty { get { return privacyNoticeVersionProperty; } }
+        public static string DuplexClientLocalAddressProperty { get { return duplexClientLocalAddressProperty; } }
+        public static string EndpointFilterTableProperty { get { return endpointFilterTableProperty; } }
+        public static string ChannelParametersCollectionProperty { get { return channelParametersCollectionProperty; } }
+        public static string ExtendedProtectionPolicy { get { return extendedProtectionPolicy; } }
 
         public bool IsInitiator
         {

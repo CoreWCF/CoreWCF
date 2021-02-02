@@ -24,11 +24,7 @@ namespace CoreWCF.Security.Tokens
 
         public SecurityContextCookieSerializer(SecurityStateEncoder securityStateEncoder, IList<Type> knownTypes)
         {
-            if (securityStateEncoder == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(securityStateEncoder));
-            }
-            _securityStateEncoder = securityStateEncoder;
+            _securityStateEncoder = securityStateEncoder ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(securityStateEncoder));
             _knownTypes = knownTypes ?? new List<Type>();
         }
 
@@ -136,15 +132,17 @@ namespace CoreWCF.Security.Tokens
             List<IAuthorizationPolicy> authorizationPolicies;
             if (claimSets != null)
             {
-                authorizationPolicies = new List<IAuthorizationPolicy>(1);
-                authorizationPolicies.Add(new SctUnconditionalPolicy(identities, claimSets, expiryTime));
+                authorizationPolicies = new List<IAuthorizationPolicy>(1)
+                {
+                    new SctUnconditionalPolicy(identities, claimSets, expiryTime)
+                };
             }
             else
             {
                 authorizationPolicies = null;
             }
             return new SecurityContextSecurityToken(cookieContextId, localId, key, effectiveTime, expiryTime,
-                authorizationPolicies != null ? authorizationPolicies.AsReadOnly() : null, isCookie, cookieBlob, keyGeneration, keyEffectiveTime, keyExpirationTime);
+                authorizationPolicies?.AsReadOnly(), isCookie, cookieBlob, keyGeneration, keyEffectiveTime, keyExpirationTime);
         }
 
         public byte[] CreateCookieFromSecurityContext(UniqueId contextId, string id, byte[] key, DateTime tokenEffectiveTime,
@@ -153,12 +151,12 @@ namespace CoreWCF.Security.Tokens
         {
             if (contextId == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
 
             if (key == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("key");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
             }
 
             MemoryStream stream = new MemoryStream();
@@ -297,8 +295,7 @@ namespace CoreWCF.Security.Tokens
                     else
                     {
                         // null if other overrides the property with something else
-                        List<IIdentity> dstIdentities = obj as List<IIdentity>;
-                        if (dstIdentities != null)
+                        if (obj is List<IIdentity> dstIdentities)
                         {
                             dstIdentities.AddRange(_identities);
                         }

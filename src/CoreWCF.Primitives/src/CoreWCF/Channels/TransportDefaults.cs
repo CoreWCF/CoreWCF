@@ -155,9 +155,7 @@ namespace CoreWCF.Channels
         internal const bool RequireClientCertificate = false;
         internal const int TcpUriDefaultPort = 808;
 
-        internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.Tls |
-                                                   System.Security.Authentication.SslProtocols.Tls11 |
-                                                   System.Security.Authentication.SslProtocols.Tls12;
+        internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.None; // Let the OS decide
 
         internal static MessageEncoderFactory GetDefaultMessageEncoderFactory()
         {

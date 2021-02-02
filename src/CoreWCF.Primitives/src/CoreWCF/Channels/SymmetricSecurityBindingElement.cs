@@ -14,7 +14,6 @@ namespace CoreWCF.Channels
     public sealed class SymmetricSecurityBindingElement : SecurityBindingElement //, IPolicyExportExtension
     {
         private MessageProtectionOrder _messageProtectionOrder;
-        private bool _requireSignatureConfirmation;
 
         private SymmetricSecurityBindingElement(SymmetricSecurityBindingElement elementToBeCloned)
             : base(elementToBeCloned)
@@ -25,7 +24,7 @@ namespace CoreWCF.Channels
                 ProtectionTokenParameters = (SecurityTokenParameters)elementToBeCloned.ProtectionTokenParameters.Clone();
             }
 
-            _requireSignatureConfirmation = elementToBeCloned._requireSignatureConfirmation;
+            RequireSignatureConfirmation = elementToBeCloned.RequireSignatureConfirmation;
         }
 
         public SymmetricSecurityBindingElement()
@@ -37,22 +36,12 @@ namespace CoreWCF.Channels
         public SymmetricSecurityBindingElement(SecurityTokenParameters protectionTokenParameters)
             : base()
         {
-            _messageProtectionOrder = SecurityBindingElement.defaultMessageProtectionOrder;
-            _requireSignatureConfirmation = SecurityBindingElement.defaultRequireSignatureConfirmation;
+            _messageProtectionOrder = defaultMessageProtectionOrder;
+            RequireSignatureConfirmation = defaultRequireSignatureConfirmation;
             ProtectionTokenParameters = protectionTokenParameters;
         }
 
-        public bool RequireSignatureConfirmation
-        {
-            get
-            {
-                return _requireSignatureConfirmation;
-            }
-            set
-            {
-                _requireSignatureConfirmation = value;
-            }
-        }
+        public bool RequireSignatureConfirmation { get; set; }
 
         public MessageProtectionOrder MessageProtectionOrder
         {
@@ -100,8 +89,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                SecureConversationSecurityTokenParameters secureConversationTokenParameters = ProtectionTokenParameters as SecureConversationSecurityTokenParameters;
-                if (secureConversationTokenParameters != null)
+                if (ProtectionTokenParameters is SecureConversationSecurityTokenParameters secureConversationTokenParameters)
                 {
                     return secureConversationTokenParameters.RequireCancellation;
                 }
@@ -146,7 +134,7 @@ namespace CoreWCF.Channels
                 {
                     addressing = encoding.MessageVersion.Addressing;
                 }
-                ChannelProtectionRequirements myRequirements = base.GetProtectionRequirements(addressing, ProtectionLevel.EncryptAndSign);
+                ChannelProtectionRequirements myRequirements = GetProtectionRequirements(addressing, ProtectionLevel.EncryptAndSign);
                 myRequirements.Add(context.GetInnerProperty<ChannelProtectionRequirements>() ?? new ChannelProtectionRequirements());
                 return (T)(object)myRequirements;
             }
@@ -161,8 +149,8 @@ namespace CoreWCF.Channels
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "MessageProtectionOrder: {0}", _messageProtectionOrder.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireSignatureConfirmation: {0}", _requireSignatureConfirmation.ToString()));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "MessageProtectionOrder: {0}", _messageProtectionOrder.ToString()));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "RequireSignatureConfirmation: {0}", RequireSignatureConfirmation.ToString()));
             sb.Append("ProtectionTokenParameters: ");
             if (ProtectionTokenParameters != null)
             {

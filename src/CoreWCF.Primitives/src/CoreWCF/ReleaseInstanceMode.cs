@@ -13,7 +13,7 @@ namespace CoreWCF
 
     internal static class ReleaseInstanceModeHelper
     {
-        static public bool IsDefined(ReleaseInstanceMode x)
+        public static bool IsDefined(ReleaseInstanceMode x)
         {
             return
                 x == ReleaseInstanceMode.None ||

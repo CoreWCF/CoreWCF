@@ -76,7 +76,6 @@ namespace CoreWCF.Security
         private static ReadOnlyCollection<SupportingTokenAuthenticatorSpecification> s_emptyTokenAuthenticators;
         private bool _addTimestamp = defaultAddTimestamp;
         private bool _detectReplays = defaultDetectReplays;
-        private bool _expectOutgoingMessages;
         private SecurityAlgorithmSuite _incomingAlgorithmSuite = SecurityAlgorithmSuite.Default;
         private Dictionary<string, MergedSupportingTokenAuthenticatorSpecification> _mergedSupportingTokenAuthenticatorsMap;
         private int _maxCachedNonces = defaultMaxCachedNonces;
@@ -300,7 +299,7 @@ namespace CoreWCF.Security
             {
                 if (s_emptyTokenAuthenticators == null)
                 {
-                    s_emptyTokenAuthenticators = Array.AsReadOnly(new SupportingTokenAuthenticatorSpecification[0]);
+                    s_emptyTokenAuthenticators = Array.AsReadOnly(Array.Empty<SupportingTokenAuthenticatorSpecification>());
                 }
                 return s_emptyTokenAuthenticators;
             }
@@ -310,7 +309,7 @@ namespace CoreWCF.Security
 
         internal bool ExpectIncomingMessages { get; private set; }
 
-        internal bool ExpectOutgoingMessages => _expectOutgoingMessages;
+        internal bool ExpectOutgoingMessages { get; private set; }
 
         internal bool ExpectKeyDerivation { get; set; }
 
@@ -325,11 +324,7 @@ namespace CoreWCF.Security
             set
             {
                 ThrowIfImmutable();
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
-                }
-                _incomingAlgorithmSuite = value;
+                _incomingAlgorithmSuite = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
@@ -389,11 +384,7 @@ namespace CoreWCF.Security
             set
             {
                 ThrowIfImmutable();
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
-                }
-                _outgoingAlgorithmSuite = value;
+                _outgoingAlgorithmSuite = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
@@ -470,11 +461,7 @@ namespace CoreWCF.Security
             set
             {
                 ThrowIfImmutable();
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
-                }
-                _standardsManager = value;
+                _standardsManager = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
@@ -581,9 +568,9 @@ namespace CoreWCF.Security
                 {
                     foreach (SupportingTokenAuthenticatorSpecification spec in ChannelSupportingTokenAuthenticatorSpecification)
                     {
-                        if (spec.TokenAuthenticator is ISecurityContextSecurityTokenCacheProvider)
+                        if (spec.TokenAuthenticator is ISecurityContextSecurityTokenCacheProvider cacheProvider)
                         {
-                            result.Add(((ISecurityContextSecurityTokenCacheProvider)spec.TokenAuthenticator).TokenCache);
+                            result.Add(cacheProvider.TokenCache);
                         }
                     }
                 }
@@ -591,7 +578,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                return default(T);
+                return default;
             }
         }
         internal abstract SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, TimeSpan timeout);
@@ -606,7 +593,7 @@ namespace CoreWCF.Security
                 foreach (SupportingTokenAuthenticatorSpecification spec2 in supportingTokenAuthenticators)
                 {
                     Type spec2AuthenticatorType = spec2.TokenAuthenticator.GetType();
-                    if (object.ReferenceEquals(spec, spec2))
+                    if (ReferenceEquals(spec, spec2))
                     {
                         if (numSkipped > 0)
                         {
@@ -648,7 +635,7 @@ namespace CoreWCF.Security
             expectBasicTokens = _expectChannelBasicTokens;
             expectEndorsingTokens = _expectChannelEndorsingTokens;
             // in case the channelSupportingTokenAuthenticators is empty return null so that its Count does not get accessed.
-            return (Object.ReferenceEquals(ChannelSupportingTokenAuthenticatorSpecification, EmptyTokenAuthenticators)) ? null : (IList<SupportingTokenAuthenticatorSpecification>)ChannelSupportingTokenAuthenticatorSpecification;
+            return (ReferenceEquals(ChannelSupportingTokenAuthenticatorSpecification, EmptyTokenAuthenticators)) ? null : (IList<SupportingTokenAuthenticatorSpecification>)ChannelSupportingTokenAuthenticatorSpecification;
         }
 
         private void MergeSupportingTokenAuthenticators(TimeSpan timeout)
@@ -707,11 +694,13 @@ namespace CoreWCF.Security
                         }
                     }
                     VerifyTypeUniqueness(mergedAuthenticators);
-                    MergedSupportingTokenAuthenticatorSpecification mergedSpec = new MergedSupportingTokenAuthenticatorSpecification();
-                    mergedSpec.SupportingTokenAuthenticators = mergedAuthenticators;
-                    mergedSpec.ExpectBasicTokens = expectBasicTokens;
-                    mergedSpec.ExpectEndorsingTokens = expectEndorsingTokens;
-                    mergedSpec.ExpectSignedTokens = expectSignedTokens;
+                    MergedSupportingTokenAuthenticatorSpecification mergedSpec = new MergedSupportingTokenAuthenticatorSpecification
+                    {
+                        SupportingTokenAuthenticators = mergedAuthenticators,
+                        ExpectBasicTokens = expectBasicTokens,
+                        ExpectEndorsingTokens = expectEndorsingTokens,
+                        ExpectSignedTokens = expectSignedTokens
+                    };
                     _mergedSupportingTokenAuthenticatorsMap.Add(action, mergedSpec);
                 }
             }
@@ -719,11 +708,13 @@ namespace CoreWCF.Security
 
         protected RecipientServiceModelSecurityTokenRequirement CreateRecipientSecurityTokenRequirement()
         {
-            RecipientServiceModelSecurityTokenRequirement requirement = new RecipientServiceModelSecurityTokenRequirement();
-            requirement.SecurityBindingElement = _securityBindingElement;
-            requirement.SecurityAlgorithmSuite = IncomingAlgorithmSuite;
-            requirement.ListenUri = _listenUri;
-            requirement.MessageSecurityVersion = MessageSecurityVersion.SecurityTokenVersion;
+            RecipientServiceModelSecurityTokenRequirement requirement = new RecipientServiceModelSecurityTokenRequirement
+            {
+                SecurityBindingElement = _securityBindingElement,
+                SecurityAlgorithmSuite = IncomingAlgorithmSuite,
+                ListenUri = _listenUri,
+                MessageSecurityVersion = MessageSecurityVersion.SecurityTokenVersion
+            };
             // requirement.AuditLogLocation = this.auditLogLocation;
             // requirement.SuppressAuditFailure = this.suppressAuditFailure;
             // requirement.MessageAuthenticationAuditLevel = this.messageAuthenticationAuditLevel;
@@ -827,15 +818,15 @@ namespace CoreWCF.Security
         {
             if (SecurityBindingElement == null)
             {
-                OnPropertySettingsError("SecurityBindingElement", true);
+                OnPropertySettingsError(nameof(SecurityBindingElement), true);
             }
             if (SecurityTokenManager == null)
             {
-                OnPropertySettingsError("SecurityTokenManager", true);
+                OnPropertySettingsError(nameof(SecurityTokenManager), true);
             }
             MessageSecurityVersion = _standardsManager.MessageSecurityVersion;
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            _expectOutgoingMessages = ActAsInitiator || SupportsRequestReply;
+            ExpectOutgoingMessages = ActAsInitiator || SupportsRequestReply;
             ExpectIncomingMessages = !ActAsInitiator || SupportsRequestReply;
             if (!ActAsInitiator)
             {
@@ -973,16 +964,6 @@ namespace CoreWCF.Security
             else if (_requestReplyErrorPropertyName == null)
             {
                 _requestReplyErrorPropertyName = propertyName;
-            }
-        }
-
-        private void ThrowIfReturnDirectionSecurityNotSupported()
-        {
-            if (_requestReplyErrorPropertyName != null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(
-                    SR.Format(SR.PropertySettingErrorOnProtocolFactory, _requestReplyErrorPropertyName, this),
-                    _requestReplyErrorPropertyName));
             }
         }
 

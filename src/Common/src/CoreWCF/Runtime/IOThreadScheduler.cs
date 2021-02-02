@@ -91,7 +91,7 @@ namespace CoreWCF.Runtime
         {
             if (callback == null)
             {
-                throw Fx.Exception.ArgumentNull("callback");
+                throw Fx.Exception.ArgumentNull(nameof(callback));
             }
 
             bool queued = false;
@@ -101,7 +101,7 @@ namespace CoreWCF.Runtime
                 finally
                 {
                     // Called in a finally because it needs to run uninterrupted in order to maintain consistency.
-                    queued = IOThreadScheduler.s_current.ScheduleCallbackHelper(callback, state);
+                    queued = s_current.ScheduleCallbackHelper(callback, state);
                 }
             }
         }
@@ -110,7 +110,7 @@ namespace CoreWCF.Runtime
         {
             if (callback == null)
             {
-                throw Fx.Exception.ArgumentNull("callback");
+                throw Fx.Exception.ArgumentNull(nameof(callback));
             }
 
             bool queued = false;
@@ -120,7 +120,7 @@ namespace CoreWCF.Runtime
                 finally
                 {
                     // Called in a finally because it needs to run uninterrupted in order to maintain consistency.
-                    queued = IOThreadScheduler.s_current.ScheduleCallbackLowPriHelper(callback, state);
+                    queued = s_current.ScheduleCallbackLowPriHelper(callback, state);
                 }
             }
         }
@@ -156,7 +156,7 @@ namespace CoreWCF.Runtime
                 // Wrapped around the circular buffer.  Create a new, bigger IOThreadScheduler.
                 IOThreadScheduler next =
                     new IOThreadScheduler(Math.Min(_slots.Length * 2, MaximumCapacity), _slotsLowPri.Length);
-                Interlocked.CompareExchange<IOThreadScheduler>(ref IOThreadScheduler.s_current, next, this);
+                Interlocked.CompareExchange<IOThreadScheduler>(ref s_current, next, this);
             }
 
             if (wasIdle)
@@ -211,7 +211,7 @@ namespace CoreWCF.Runtime
             {
                 IOThreadScheduler next =
                     new IOThreadScheduler(_slots.Length, Math.Min(_slotsLowPri.Length * 2, MaximumCapacity));
-                Interlocked.CompareExchange<IOThreadScheduler>(ref IOThreadScheduler.s_current, next, this);
+                Interlocked.CompareExchange<IOThreadScheduler>(ref s_current, next, this);
             }
 
             if (wasIdle)

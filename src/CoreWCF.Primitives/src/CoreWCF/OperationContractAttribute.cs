@@ -13,7 +13,6 @@ namespace CoreWCF
         private string _name;
         private string _action;
         private string _replyAction;
-        private bool _isOneWay;
 
         public string Name
         {
@@ -40,12 +39,7 @@ namespace CoreWCF
             get { return _action; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _action = value;
+                _action = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -55,22 +49,13 @@ namespace CoreWCF
             get { return _replyAction; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _replyAction = value;
+                _replyAction = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
         public bool AsyncPattern { get; set; }
 
-        public bool IsOneWay
-        {
-            get { return _isOneWay; }
-            set { _isOneWay = value; }
-        }
+        public bool IsOneWay { get; set; }
 
         internal bool IsSessionOpenNotificationEnabled
         {

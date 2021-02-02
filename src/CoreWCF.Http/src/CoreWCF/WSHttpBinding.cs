@@ -23,7 +23,7 @@ namespace CoreWCF
 
         internal WSHttpBinding(WSHTTPSecurity security, bool reliableSessionEnabled) : base(reliableSessionEnabled)
         {
-            _security = security == null ? new WSHTTPSecurity() : security;
+            _security = security ?? new WSHTTPSecurity();
         }
 
         public WSHTTPSecurity Security

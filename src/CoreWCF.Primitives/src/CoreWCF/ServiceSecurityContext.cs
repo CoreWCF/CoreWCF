@@ -22,12 +22,8 @@ namespace CoreWCF
         // Perf: delay created authorizationContext using forward chain.
         public ServiceSecurityContext(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
-            if (authorizationPolicies == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
-            }
             _authorizationContext = null;
-            AuthorizationPolicies = authorizationPolicies;
+            AuthorizationPolicies = authorizationPolicies ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
         }
 
         public ServiceSecurityContext(AuthorizationContext authorizationContext)
@@ -37,16 +33,8 @@ namespace CoreWCF
 
         public ServiceSecurityContext(AuthorizationContext authorizationContext, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
-            if (authorizationContext == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationContext));
-            }
-            if (authorizationPolicies == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
-            }
-            _authorizationContext = authorizationContext;
-            AuthorizationPolicies = authorizationPolicies;
+            _authorizationContext = authorizationContext ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationContext));
+            AuthorizationPolicies = authorizationPolicies ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
         }
 
         public static ServiceSecurityContext Anonymous
@@ -100,7 +88,7 @@ namespace CoreWCF
             {
                 if (_identityClaim == null)
                 {
-                    _identityClaim = Security.SecurityUtils.GetPrimaryIdentityClaim(AuthorizationContext);
+                    _identityClaim = SecurityUtils.GetPrimaryIdentityClaim(AuthorizationContext);
                 }
                 return _identityClaim;
             }
@@ -120,7 +108,7 @@ namespace CoreWCF
                         primaryIdentity = identities[0];
                     }
 
-                    _primaryIdentity = primaryIdentity ?? Security.SecurityUtils.AnonymousIdentity;
+                    _primaryIdentity = primaryIdentity ?? SecurityUtils.AnonymousIdentity;
                 }
                 return _primaryIdentity;
             }
@@ -138,8 +126,7 @@ namespace CoreWCF
                     {
                         for (int i = 0; i < identities.Count; ++i)
                         {
-                            WindowsIdentity identity = identities[i] as WindowsIdentity;
-                            if (identity != null)
+                            if (identities[i] is WindowsIdentity identity)
                             {
                                 // Multiple Identities is treated as anonymous
                                 if (windowsIdentity != null)
@@ -175,7 +162,7 @@ namespace CoreWCF
         private IList<IIdentity> GetIdentities()
         {
             AuthorizationContext authContext = AuthorizationContext;
-            if (authContext != null && authContext.Properties.TryGetValue(Security.SecurityUtils.Identities, out object identities))
+            if (authContext != null && authContext.Properties.TryGetValue(SecurityUtils.Identities, out object identities))
             {
                 return identities as IList<IIdentity>;
             }

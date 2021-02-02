@@ -81,8 +81,10 @@ namespace Services
         public MessageContractStreamOneIntHeader Operation(MessageContractStreamNoHeader input)
         {
             FileStream file = File.OpenRead("temp.dat");
-            MessageContractStreamOneIntHeader message = new MessageContractStreamOneIntHeader();
-            message.input = file;
+            MessageContractStreamOneIntHeader message = new MessageContractStreamOneIntHeader
+            {
+                input = file
+            };
             return message;
         }
     }

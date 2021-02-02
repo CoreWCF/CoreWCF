@@ -49,7 +49,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(spnName));
             }
 
-            base.Initialize(Claim.CreateSpnClaim(spnName));
+            Initialize(Claim.CreateSpnClaim(spnName));
         }
 
         public SpnEndpointIdentity(Claim identity)
@@ -64,7 +64,7 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.UnrecognizedClaimTypeForIdentity, identity.ClaimType, ClaimTypes.Spn));
             }
 
-            base.Initialize(identity);
+            Initialize(identity);
         }
 
         internal override void WriteContentsTo(XmlDictionaryWriter writer)

@@ -38,7 +38,7 @@ namespace CoreWCF.Http.Tests
         public void Variations(string method)
         {
             Startup._method = method;
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -75,7 +75,7 @@ namespace CoreWCF.Http.Tests
         public void TwoAttributesSameType_Test()
         {
             Startup._method = "TwoAttributesSameType";
-            using (var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build())
+            using (IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build())
             {
                 Assert.Throws<ArgumentException>(() => host.Start());
             }
@@ -92,7 +92,7 @@ namespace CoreWCF.Http.Tests
         //7.Send a message to the server
         public static ChannelFactory<T> GetChannelFactory<T>()
         {
-            var httpBinding = ClientHelper.GetBufferedModeBinding();
+            System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractBehaviorService.svc")));
         }
 

@@ -20,7 +20,7 @@ namespace CoreWCF
             Fx.Assert(messageVersion.Addressing != AddressingVersion.None, "");
             FaultCode code = FaultCode.CreateSenderFaultCode(AddressingStrings.ActionNotSupported, messageVersion.Addressing.Namespace);
             string reason = Message;
-            return CoreWCF.Channels.Message.CreateMessage(
+            return Channels.Message.CreateMessage(
                messageVersion, code, reason, messageVersion.Addressing.FaultAction);
         }
     }

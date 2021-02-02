@@ -16,7 +16,6 @@ namespace CoreWCF.Security
         private char[] _computedExpiryTimeUtc;
         private DateTime _creationTimeUtc;
         private DateTime _expiryTimeUtc;
-        private readonly string _digestAlgorithm;
         private readonly byte[] _digest;
 
         public SecurityTimestamp(DateTime creationTimeUtc, DateTime expiryTimeUtc, string id)
@@ -38,7 +37,7 @@ namespace CoreWCF.Security
             _expiryTimeUtc = expiryTimeUtc;
             Id = id;
 
-            _digestAlgorithm = digestAlgorithm;
+            DigestAlgorithm = digestAlgorithm;
             _digest = digest;
         }
 
@@ -60,13 +59,7 @@ namespace CoreWCF.Security
 
         public string Id { get; }
 
-        public string DigestAlgorithm
-        {
-            get
-            {
-                return _digestAlgorithm;
-            }
-        }
+        public string DigestAlgorithm { get; }
 
         internal byte[] GetDigest()
         {

@@ -89,18 +89,17 @@ namespace CoreWCF.Channels
             // to cover all our bases, let's iterate through the BindingParameters to make sure
             // we haven't missed a query (since we're the Transport and we're at the bottom)
             Collection<BindingElement> bindingElements = new Collection<BindingElement>();
-            foreach (var param in context.BindingParameters)
+            foreach (object param in context.BindingParameters)
             {
-                if (param is BindingElement)
+                if (param is BindingElement element)
                 {
-                    bindingElements.Add((BindingElement)param);
+                    bindingElements.Add(element);
                 }
             }
 
-            T result = default(T);
             for (int i = 0; i < bindingElements.Count; i++)
             {
-                result = bindingElements[i].GetIndividualProperty<T>();
+                T result = bindingElements[i].GetIndividualProperty<T>();
                 if (result != default(T))
                 {
                     return result;
@@ -126,8 +125,7 @@ namespace CoreWCF.Channels
             {
                 return false;
             }
-            TransportBindingElement transport = b as TransportBindingElement;
-            if (transport == null)
+            if (!(b is TransportBindingElement transport))
             {
                 return false;
             }

@@ -29,7 +29,7 @@ namespace NetHttp
         public void NetHttpWebSocketsBufferedTransferMode()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -37,12 +37,12 @@ namespace NetHttp
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeWebSocketBinding();
+                    System.ServiceModel.NetHttpBinding binding = ClientHelper.GetBufferedModeWebSocketBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(binding,
                         new System.ServiceModel.EndpointAddress(new Uri(NetHttpBufferedServiceUri)));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoString(testString);
+                    string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();

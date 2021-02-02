@@ -91,18 +91,8 @@ namespace CoreWCF.IdentityModel.Claims
 
         protected void Initialize(ClaimSet issuer, IList<Claim> claims)
         {
-            if (issuer == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuer));
-            }
-
-            if (claims == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claims));
-            }
-
-            _issuer = issuer;
-            _claims = claims;
+            _issuer = issuer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuer));
+            _claims = claims ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claims));
         }
 
         public override string ToString()

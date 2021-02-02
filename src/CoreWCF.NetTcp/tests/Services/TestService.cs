@@ -89,7 +89,7 @@ namespace Services
         }
 
         [OperationBehavior(Impersonation = ImpersonationOption.Required)]
-        public string EchoForImpersonation(String value)
+        public string EchoForImpersonation(string value)
         {
             return value;
         }

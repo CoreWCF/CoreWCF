@@ -22,11 +22,6 @@ namespace CoreWCF.Channels
 
         public TextMessageEncodingBindingElement(MessageVersion messageVersion, Encoding writeEncoding)
         {
-            if (messageVersion == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
-            }
-
             if (writeEncoding == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writeEncoding));
@@ -38,7 +33,7 @@ namespace CoreWCF.Channels
             _maxWritePoolSize = EncoderDefaults.MaxWritePoolSize;
             _readerQuotas = new XmlDictionaryReaderQuotas();
             EncoderDefaults.ReaderQuotas.CopyTo(_readerQuotas);
-            _messageVersion = messageVersion;
+            _messageVersion = messageVersion ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
             _writeEncoding = writeEncoding;
         }
 
@@ -112,12 +107,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _messageVersion = value;
+                _messageVersion = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -177,8 +167,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            TextMessageEncodingBindingElement text = b as TextMessageEncodingBindingElement;
-            if (text == null)
+            if (!(b is TextMessageEncodingBindingElement text))
             {
                 return false;
             }

@@ -44,7 +44,7 @@ namespace CoreWCF.Security.Tokens
         {
             if (key == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("key");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
             }
 
             _id = id;

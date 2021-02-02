@@ -7,8 +7,6 @@ namespace CoreWCF.IdentityModel
 {
     internal class DictionaryManager
     {
-        private IXmlDictionary _parentDictionary;
-
         public DictionaryManager()
         {
             SamlDictionary = CoreWCF.XD.SamlDictionary;
@@ -16,7 +14,7 @@ namespace CoreWCF.IdentityModel
             UtilityDictionary = CoreWCF.XD.UtilityDictionary;
             ExclusiveC14NDictionary = CoreWCF.XD.ExclusiveC14NDictionary;
             SecurityAlgorithmDictionary = CoreWCF.XD.SecurityAlgorithmDictionary;
-            _parentDictionary = CoreWCF.XD.Dictionary;
+            ParentDictionary = CoreWCF.XD.Dictionary;
             SecurityJan2004Dictionary = CoreWCF.XD.SecurityJan2004Dictionary;
             SecurityJanXXX2005Dictionary = CoreWCF.XD.SecurityXXX2005Dictionary;
             SecureConversationFeb2005Dictionary = CoreWCF.XD.SecureConversationFeb2005Dictionary;
@@ -41,7 +39,7 @@ namespace CoreWCF.IdentityModel
             SecureConversationFeb2005Dictionary = new SecureConversationFeb2005Dictionary(parentDictionary);
             TrustFeb2005Dictionary = new TrustFeb2005Dictionary(parentDictionary);
             XmlEncryptionDictionary = new XmlEncryptionDictionary(parentDictionary);
-            _parentDictionary = parentDictionary;
+            ParentDictionary = parentDictionary;
 
             // These 3 are factored into a seperate dictionary in ServiceModel under DXD. 
             // ServiceModel should set these seperately using the property setters.
@@ -76,10 +74,6 @@ namespace CoreWCF.IdentityModel
 
         public XmlEncryptionDictionary XmlEncryptionDictionary { get; set; }
 
-        public IXmlDictionary ParentDictionary
-        {
-            get { return _parentDictionary; }
-            set { _parentDictionary = value; }
-        }
+        public IXmlDictionary ParentDictionary { get; set; }
     }
 }

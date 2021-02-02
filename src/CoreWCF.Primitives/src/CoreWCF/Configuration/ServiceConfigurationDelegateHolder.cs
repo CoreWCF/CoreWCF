@@ -17,7 +17,7 @@ namespace CoreWCF.Configuration
 
         public void Configure(ServiceHostBase host)
         {
-            foreach (var del in _configDelegates)
+            foreach (Action<ServiceHostBase> del in _configDelegates)
             {
                 del(host);
             }

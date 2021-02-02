@@ -15,7 +15,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    public class ServiceChannelProxy : DispatchProxy, ICommunicationObject, IChannel, IClientChannel, IOutputChannel, IRequestChannel, IServiceChannel, IDuplexContextChannel
+    internal sealed class ServiceChannelProxy : DispatchProxy, ICommunicationObject, IChannel, IClientChannel, IOutputChannel, IRequestChannel, IServiceChannel, IDuplexContextChannel
     {
         private const string activityIdSlotName = "E2ETrace.ActivityID";
         private Type _proxiedType;
@@ -28,7 +28,7 @@ namespace CoreWCF.Channels
         // In .Net Remoting terms, it is conceptually the same as a RealProxy and a TransparentProxy combined.
         internal static TChannel CreateProxy<TChannel>(MessageDirection direction, ServiceChannel serviceChannel)
         {
-            TChannel proxy = DispatchProxy.Create<TChannel, ServiceChannelProxy>();
+            TChannel proxy = Create<TChannel, ServiceChannelProxy>();
             if (proxy == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.FailedToCreateTypedProxy, typeof(TChannel))));
@@ -156,9 +156,9 @@ namespace CoreWCF.Channels
             {
                 if (operation.TaskTResult == ServiceReflector.VoidType)
                 {
-                    return TaskCreator.CreateTask(channel, operation, methodCall.Args);
+                    return CreateTask(channel, operation, methodCall.Args);
                 }
-                return TaskCreator.CreateGenericTask(channel, operation, methodCall.Args);
+                return CreateGenericTask(channel, operation, methodCall.Args);
             }
 
             private static Task CreateGenericTask(ServiceChannel channel, ProxyOperationRuntime operation, object[] inputParameters)
@@ -187,10 +187,12 @@ namespace CoreWCF.Channels
                     channel.CallAsync(operation.Action, operation.IsOneWay, operation, inputParameters,
                     Array.Empty<object>()).ContinueWith(completeCallDelegate, tcsp);
                 }
+#pragma warning disable CA1031 // Do not catch general exception types - copying all exceptions to TaskCompeletionSource
                 catch (Exception e)
                 {
                     tcsp.TrySetException(e);
                 }
+#pragma warning restore CA1031 // Do not catch general exception types
 
                 return tcsp.Task;
             }
@@ -223,10 +225,13 @@ namespace CoreWCF.Channels
                     channel.CallAsync(operation.Action, operation.IsOneWay, operation, inputParameters,
                         Array.Empty<object>()).ContinueWith(completeCallDelegate, tcs);
                 }
+#pragma warning disable CA1031 // Do not catch general exception types - copying all exceptions to TaskCompeletionSource
+
                 catch (Exception e)
                 {
                     tcs.TrySetException(e);
                 }
+#pragma warning restore CA1031 // Do not catch general exception types
 
                 return tcs.Task;
             }
@@ -361,7 +366,7 @@ namespace CoreWCF.Channels
             MethodBase targetMethod = methodCall.MethodBase;
 
             object[] args = methodCall.Args;
-            object returnValue = null;
+            object returnValue;
             try
             {
                 returnValue = targetMethod.Invoke(target, args);
@@ -461,8 +466,6 @@ namespace CoreWCF.Channels
 
         internal struct MethodData
         {
-            private readonly ProxyOperationRuntime _operation;
-
             public MethodData(MethodBase methodBase, MethodType methodType)
                 : this(methodBase, methodType, null)
             {
@@ -472,17 +475,14 @@ namespace CoreWCF.Channels
             {
                 MethodBase = methodBase;
                 MethodType = methodType;
-                _operation = operation;
+                Operation = operation;
             }
 
             public MethodBase MethodBase { get; }
 
             public MethodType MethodType { get; }
 
-            public ProxyOperationRuntime Operation
-            {
-                get { return _operation; }
-            }
+            public ProxyOperationRuntime Operation { get; }
         }
 
         #region Channel interfaces

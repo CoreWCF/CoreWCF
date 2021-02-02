@@ -223,10 +223,7 @@ namespace CoreWCF.IdentityModel.Claims
                 {
                     return true;
                 }
-
-                byte[] bytes1 = obj1 as byte[];
-                byte[] bytes2 = obj2 as byte[];
-                if (bytes1 == null || bytes2 == null)
+                if (!(obj1 is byte[] bytes1) || !(obj2 is byte[] bytes2))
                 {
                     return false;
                 }
@@ -249,8 +246,7 @@ namespace CoreWCF.IdentityModel.Claims
 
             int IEqualityComparer.GetHashCode(object obj)
             {
-                byte[] bytes = obj as byte[];
-                if (bytes == null)
+                if (!(obj is byte[] bytes))
                 {
                     return 0;
                 }
@@ -273,10 +269,7 @@ namespace CoreWCF.IdentityModel.Claims
                 {
                     return true;
                 }
-
-                RSA rsa1 = obj1 as RSA;
-                RSA rsa2 = obj2 as RSA;
-                if (rsa1 == null || rsa2 == null)
+                if (!(obj1 is RSA rsa1) || !(obj2 is RSA rsa2))
                 {
                     return false;
                 }
@@ -311,8 +304,7 @@ namespace CoreWCF.IdentityModel.Claims
 
             int IEqualityComparer.GetHashCode(object obj)
             {
-                RSA rsa = obj as RSA;
-                if (rsa == null)
+                if (!(obj is RSA rsa))
                 {
                     return 0;
                 }
@@ -336,10 +328,7 @@ namespace CoreWCF.IdentityModel.Claims
                 {
                     return true;
                 }
-
-                X500DistinguishedName dn1 = obj1 as X500DistinguishedName;
-                X500DistinguishedName dn2 = obj2 as X500DistinguishedName;
-                if (dn1 == null || dn2 == null)
+                if (!(obj1 is X500DistinguishedName dn1) || !(obj2 is X500DistinguishedName dn2))
                 {
                     return false;
                 }
@@ -357,8 +346,7 @@ namespace CoreWCF.IdentityModel.Claims
 
             int IEqualityComparer.GetHashCode(object obj)
             {
-                X500DistinguishedName dn = obj as X500DistinguishedName;
-                if (dn == null)
+                if (!(obj is X500DistinguishedName dn))
                 {
                     return 0;
                 }

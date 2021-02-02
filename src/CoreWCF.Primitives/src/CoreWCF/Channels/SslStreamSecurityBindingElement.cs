@@ -40,12 +40,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _identityVerifier = value;
+                _identityVerifier = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -103,8 +98,7 @@ namespace CoreWCF.Channels
             {
                 return false;
             }
-            SslStreamSecurityBindingElement ssl = b as SslStreamSecurityBindingElement;
-            if (ssl == null)
+            if (!(b is SslStreamSecurityBindingElement ssl))
             {
                 return false;
             }

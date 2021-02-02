@@ -45,7 +45,7 @@ namespace CoreWCF
             set { _use = value ? OperationFormatUse.Encoded : OperationFormatUse.Literal; }
         }
 
-        static internal void ValidateOperationFormatStyle(OperationFormatStyle value)
+        internal static void ValidateOperationFormatStyle(OperationFormatStyle value)
         {
             if (!OperationFormatStyleHelper.IsDefined(value))
             {
@@ -53,7 +53,7 @@ namespace CoreWCF
             }
         }
 
-        static internal void ValidateOperationFormatUse(OperationFormatUse value)
+        internal static void ValidateOperationFormatUse(OperationFormatUse value)
         {
             if (!OperationFormatUseHelper.IsDefined(value))
             {

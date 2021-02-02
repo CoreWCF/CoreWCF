@@ -10,7 +10,6 @@ namespace CoreWCF.Description
 {
     public class MessagePartDescription
     {
-        private readonly string _ns;
         private ProtectionLevel _protectionLevel;
         private bool _hasProtectionLevel;
 
@@ -21,23 +20,23 @@ namespace CoreWCF.Description
         {
             if (name == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name", SR.SFxParameterNameCannotBeNull);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name), SR.SFxParameterNameCannotBeNull);
             }
 
             XmlName = new XmlName(name, true /*isEncoded*/);
 
             if (!string.IsNullOrEmpty(ns))
             {
-                NamingHelper.CheckUriParameter(ns, "ns");
+                NamingHelper.CheckUriParameter(ns, nameof(ns));
             }
 
-            _ns = ns;
+            Namespace = ns;
         }
 
         internal MessagePartDescription(MessagePartDescription other)
         {
             XmlName = other.XmlName;
-            _ns = other._ns;
+            Namespace = other.Namespace;
             Index = other.Index;
             Type = other.Type;
             SerializationPosition = other.SerializationPosition;
@@ -62,10 +61,7 @@ namespace CoreWCF.Description
             get { return XmlName.EncodedName; }
         }
 
-        public string Namespace
-        {
-            get { return _ns; }
-        }
+        public string Namespace { get; }
 
         public Type Type { get; set; }
 

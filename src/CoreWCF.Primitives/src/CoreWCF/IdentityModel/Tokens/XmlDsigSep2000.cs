@@ -174,9 +174,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
             public override void WriteKeyIdentifierClauseCore(XmlDictionaryWriter writer, SecurityKeyIdentifierClause keyIdentifierClause)
             {
-                X509RawDataKeyIdentifierClause x509Clause = keyIdentifierClause as X509RawDataKeyIdentifierClause;
-
-                if (x509Clause != null)
+                if (keyIdentifierClause is X509RawDataKeyIdentifierClause x509Clause)
                 {
                     writer.WriteStartElement(CoreWCF.XD.XmlSignatureDictionary.Prefix.Value, CoreWCF.XD.XmlSignatureDictionary.X509Data, NamespaceUri);
 
@@ -188,8 +186,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     writer.WriteEndElement();
                 }
 
-                X509IssuerSerialKeyIdentifierClause issuerSerialClause = keyIdentifierClause as X509IssuerSerialKeyIdentifierClause;
-                if (issuerSerialClause != null)
+                if (keyIdentifierClause is X509IssuerSerialKeyIdentifierClause issuerSerialClause)
                 {
                     writer.WriteStartElement(CoreWCF.XD.XmlSignatureDictionary.Prefix.Value, CoreWCF.XD.XmlSignatureDictionary.X509Data, CoreWCF.XD.XmlSignatureDictionary.Namespace);
                     writer.WriteStartElement(CoreWCF.XD.XmlSignatureDictionary.Prefix.Value, CoreWCF.XD.XmlSignatureDictionary.X509IssuerSerial, CoreWCF.XD.XmlSignatureDictionary.Namespace);
@@ -200,8 +197,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     return;
                 }
 
-                X509SubjectKeyIdentifierClause skiClause = keyIdentifierClause as X509SubjectKeyIdentifierClause;
-                if (skiClause != null)
+                if (keyIdentifierClause is X509SubjectKeyIdentifierClause skiClause)
                 {
                     writer.WriteStartElement(XmlSignatureConstants.Prefix, XmlSignatureConstants.Elements.X509Data, XmlSignatureConstants.Namespace);
                     writer.WriteStartElement(XmlSignatureConstants.Prefix, XmlSignatureConstants.Elements.X509SKI, XmlSignatureConstants.Namespace);

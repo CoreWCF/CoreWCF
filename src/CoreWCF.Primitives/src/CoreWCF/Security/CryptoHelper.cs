@@ -27,7 +27,7 @@ namespace CoreWCF.Security
             {
                 if (s_emptyBuffer == null)
                 {
-                    byte[] tmp = new byte[0];
+                    byte[] tmp = Array.Empty<byte>();
                     s_emptyBuffer = tmp;
                 }
                 return s_emptyBuffer;
@@ -36,12 +36,12 @@ namespace CoreWCF.Security
 
         internal static HashAlgorithm NewSha1HashAlgorithm()
         {
-            return CryptoHelper.CreateHashAlgorithm(SecurityAlgorithms.Sha1Digest);
+            return CreateHashAlgorithm(SecurityAlgorithms.Sha1Digest);
         }
 
         internal static HashAlgorithm NewSha256HashAlgorithm()
         {
-            return CryptoHelper.CreateHashAlgorithm(SecurityAlgorithms.Sha256Digest);
+            return CreateHashAlgorithm(SecurityAlgorithms.Sha256Digest);
         }
 
         internal static HashAlgorithm CreateHashAlgorithm(string digestMethod)
@@ -49,8 +49,7 @@ namespace CoreWCF.Security
             object algorithmObject = CryptoAlgorithms.GetAlgorithmFromConfig(digestMethod);
             if (algorithmObject != null)
             {
-                HashAlgorithm hashAlgorithm = algorithmObject as HashAlgorithm;
-                if (hashAlgorithm != null)
+                if (algorithmObject is HashAlgorithm hashAlgorithm)
                 {
                     return hashAlgorithm;
                 }
@@ -75,9 +74,8 @@ namespace CoreWCF.Security
             if (algorithmObject != null)
             {
                 HashAlgorithm hashAlgorithm;
-                SignatureDescription signatureDescription = algorithmObject as SignatureDescription;
 
-                if (signatureDescription != null)
+                if (algorithmObject is SignatureDescription signatureDescription)
                 {
                     hashAlgorithm = signatureDescription.CreateDigest();
                     if (hashAlgorithm != null)
@@ -147,17 +145,18 @@ namespace CoreWCF.Security
 
         private static CryptoAlgorithmType GetAlgorithmType(string algorithm)
         {
-            object algorithmObject = null;
-
+            object algorithmObject;
             try
             {
                 algorithmObject = CryptoAlgorithms.GetAlgorithmFromConfig(algorithm);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (InvalidOperationException)
             {
                 algorithmObject = null;
                 // We swallow the exception and continue.
             }
+#pragma warning restore CA1031 // Do not catch general exception types
             if (algorithmObject != null)
             {
                 SymmetricAlgorithm symmetricAlgorithm = algorithmObject as SymmetricAlgorithm;
@@ -252,17 +251,18 @@ namespace CoreWCF.Security
         internal static bool IsSymmetricSupportedAlgorithm(string algorithm, int keySize)
         {
             bool found = false;
-            object algorithmObject = null;
-
+            object algorithmObject;
             try
             {
                 algorithmObject = CryptoAlgorithms.GetAlgorithmFromConfig(algorithm);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (InvalidOperationException)
             {
                 algorithmObject = null;
                 // We swallow the exception and continue.
             }
+#pragma warning restore CA1031 // Do not catch general exception types
             if (algorithmObject != null)
             {
                 SymmetricAlgorithm symmetricAlgorithm = algorithmObject as SymmetricAlgorithm;

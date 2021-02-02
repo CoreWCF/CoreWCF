@@ -21,21 +21,21 @@ namespace CoreWCF.Security
         {
             _actAsInitiator = actAsInitiator;
             InclusionMode = actAsInitiator ? SecurityTokenInclusionMode.AlwaysToRecipient : SecurityTokenInclusionMode.AlwaysToInitiator;
-            base.RequireDerivedKeys = false;
+            RequireDerivedKeys = false;
         }
 
-        internal protected override bool SupportsClientAuthentication => false;
-        internal protected override bool SupportsServerAuthentication => false;
-        internal protected override bool SupportsClientWindowsIdentity => false;
+        protected internal override bool SupportsClientAuthentication => false;
+        protected internal override bool SupportsServerAuthentication => false;
+        protected internal override bool SupportsClientWindowsIdentity => false;
 
-        internal protected override bool HasAsymmetricKey => false;
+        protected internal override bool HasAsymmetricKey => false;
 
         protected override SecurityTokenParameters CloneCore()
         {
             return new SessionDerivedKeySecurityTokenParameters(this);
         }
 
-        internal protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        protected internal override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
             if (referenceStyle == SecurityTokenReferenceStyle.Internal)
             {
@@ -47,12 +47,11 @@ namespace CoreWCF.Security
             }
         }
 
-        internal protected override bool MatchesKeyIdentifierClause(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenReferenceStyle referenceStyle)
+        protected internal override bool MatchesKeyIdentifierClause(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenReferenceStyle referenceStyle)
         {
             if (referenceStyle == SecurityTokenReferenceStyle.Internal)
             {
-                LocalIdKeyIdentifierClause localClause = keyIdentifierClause as LocalIdKeyIdentifierClause;
-                if (localClause == null)
+                if (!(keyIdentifierClause is LocalIdKeyIdentifierClause localClause))
                 {
                     return false;
                 }

@@ -26,7 +26,7 @@ namespace CoreWCF.Dispatcher
             //  7. For all further requests on the same channel, we will return ServiceChannel.InstanceContext which will be non null.
             ServiceChannel serviceChannel = GetServiceChannelFromProxy(channel);
             Fx.Assert((serviceChannel != null), "CoreWCF.Dispatcher.PerSessionInstanceContextProvider.GetExistingInstanceContext(), serviceChannel != null");
-            return (serviceChannel != null) ? serviceChannel.InstanceContext : null;
+            return serviceChannel?.InstanceContext;
         }
 
         public override void InitializeInstanceContext(InstanceContext instanceContext, Message message, IContextChannel channel)

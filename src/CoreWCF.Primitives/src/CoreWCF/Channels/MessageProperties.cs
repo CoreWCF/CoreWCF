@@ -519,8 +519,7 @@ namespace CoreWCF.Channels
 
         private object CreateCopyOfPropertyValue(object propertyValue)
         {
-            IMessageProperty messageProperty = propertyValue as IMessageProperty;
-            if (messageProperty == null)
+            if (!(propertyValue is IMessageProperty messageProperty))
             {
                 return propertyValue;
             }
@@ -667,7 +666,7 @@ namespace CoreWCF.Channels
             }
             else
             {
-                property = default(TProperty);
+                property = default;
                 return false;
             }
         }
@@ -986,26 +985,19 @@ namespace CoreWCF.Channels
 
         private struct Property : IDisposable
         {
-            private object _value;
-
             public Property(string name, object value)
             {
                 Name = name;
-                _value = value;
+                Value = value;
             }
 
             public string Name { get; }
 
-            public object Value
-            {
-                get { return _value; }
-                set { _value = value; }
-            }
+            public object Value { get; set; }
 
             public void Dispose()
             {
-                IDisposable disposable = _value as IDisposable;
-                if (disposable != null)
+                if (Value is IDisposable disposable)
                 {
                     disposable.Dispose();
                 }

@@ -151,9 +151,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (pair != null)
                     {
-                        Collection<MessageFilter> matches = new Collection<MessageFilter>();
-                        matches.Add(pair.filter);
-                        matches.Add(pairs[i].filter);
+                        Collection<MessageFilter> matches = new Collection<MessageFilter>
+                        {
+                            pair.filter,
+                            pairs[i].filter
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches), message);
                     }
                     pair = pairs[i];
@@ -175,9 +177,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (pair != null)
                     {
-                        Collection<MessageFilter> matches = new Collection<MessageFilter>();
-                        matches.Add(pair.filter);
-                        matches.Add(pairs[i].filter);
+                        Collection<MessageFilter> matches = new Collection<MessageFilter>
+                        {
+                            pair.filter,
+                            pairs[i].filter
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches));
                     }
                     pair = pairs[i];
@@ -260,9 +264,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (pair != null)
                     {
-                        Collection<MessageFilter> matches = new Collection<MessageFilter>();
-                        matches.Add(pair.filter);
-                        matches.Add(pairs[i].filter);
+                        Collection<MessageFilter> matches = new Collection<MessageFilter>
+                        {
+                            pair.filter,
+                            pairs[i].filter
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches), message);
                     }
                     pair = pairs[i];
@@ -271,7 +277,7 @@ namespace CoreWCF.Dispatcher
 
             if (pair == null)
             {
-                data = default(FilterData);
+                data = default;
                 return false;
             }
 
@@ -289,7 +295,7 @@ namespace CoreWCF.Dispatcher
             FilterDataPair pair = InnerMatch(message);
             if (pair == null)
             {
-                data = default(FilterData);
+                data = default;
                 return false;
             }
 
@@ -308,7 +314,7 @@ namespace CoreWCF.Dispatcher
 
             if (pair == null)
             {
-                data = default(FilterData);
+                data = default;
                 return false;
             }
 
@@ -428,8 +434,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            AndMessageFilter sbFilter = filter as AndMessageFilter;
-            if (sbFilter != null)
+            if (filter is AndMessageFilter sbFilter)
             {
                 return Remove(sbFilter);
             }

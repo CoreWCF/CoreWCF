@@ -19,8 +19,10 @@ namespace CoreWCF
         {
             _httpTransport = new HttpTransportBindingElement();
             _httpsTransport = new HttpsTransportBindingElement();
-            TextMessageEncodingBindingElement = new TextMessageEncodingBindingElement();
-            TextMessageEncodingBindingElement.MessageVersion = MessageVersion.Soap11;
+            TextMessageEncodingBindingElement = new TextMessageEncodingBindingElement
+            {
+                MessageVersion = MessageVersion.Soap11
+            };
         }
         // [System.ComponentModel.DefaultValueAttribute(false)]
         // public bool AllowCookies { get { return default(bool); } set { } }

@@ -81,7 +81,7 @@ namespace Helpers
         //}
 
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
-            WebHost.CreateDefaultBuilder(new string[0])
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
@@ -104,7 +104,7 @@ namespace Helpers
             .UseStartup<TStartup>();
 
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
-            WebHost.CreateDefaultBuilder(new string[0])
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
@@ -127,7 +127,7 @@ namespace Helpers
             .UseStartup(startupType);
 
         public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
-            WebHost.CreateDefaultBuilder(new string[0])
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {

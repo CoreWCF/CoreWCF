@@ -9,23 +9,14 @@ namespace CoreWCF.Security
 {
     public class SecurityTokenSpecification
     {
-        private readonly ReadOnlyCollection<IAuthorizationPolicy> _tokenPolicies;
-
         public SecurityTokenSpecification(SecurityToken token, ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies)
         {
             SecurityToken = token;
-            if (tokenPolicies == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenPolicies));
-            }
-            _tokenPolicies = tokenPolicies;
+            SecurityTokenPolicies = tokenPolicies ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenPolicies));
         }
 
         public SecurityToken SecurityToken { get; }
 
-        public ReadOnlyCollection<IAuthorizationPolicy> SecurityTokenPolicies
-        {
-            get { return _tokenPolicies; }
-        }
+        public ReadOnlyCollection<IAuthorizationPolicy> SecurityTokenPolicies { get; }
     }
 }

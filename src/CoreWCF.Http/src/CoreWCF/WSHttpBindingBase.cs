@@ -105,8 +105,10 @@ namespace CoreWCF
         {
             HttpTransport = new HttpTransportBindingElement();
             HttpsTransport = new HttpsTransportBindingElement();
-            _textEncoding = new TextMessageEncodingBindingElement();
-            _textEncoding.MessageVersion = MessageVersion.Soap12WSAddressing10;
+            _textEncoding = new TextMessageEncodingBindingElement
+            {
+                MessageVersion = MessageVersion.Soap12WSAddressing10
+            };
         }
 
         public override BindingElementCollection CreateBindingElements()

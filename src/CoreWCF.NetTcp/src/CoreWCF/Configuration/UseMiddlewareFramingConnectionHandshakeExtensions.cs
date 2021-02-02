@@ -41,11 +41,11 @@ namespace CoreWCF.Configuration
         /// <returns>The <see cref="IFramingConnectionHandshakeBuilder"/> instance.</returns>
         public static IFramingConnectionHandshakeBuilder UseMiddleware(this IFramingConnectionHandshakeBuilder app, Type middleware, params object[] args)
         {
-            var handshakeServices = app.HandshakeServices;
+            IServiceProvider handshakeServices = app.HandshakeServices;
             return app.Use(next =>
             {
-                var methods = middleware.GetMethods(BindingFlags.Instance | BindingFlags.Public);
-                var invokeMethods = methods.Where(m =>
+                MethodInfo[] methods = middleware.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+                MethodInfo[] invokeMethods = methods.Where(m =>
                     string.Equals(m.Name, OnConnectedAsyncMethodName, StringComparison.Ordinal)
                     ).ToArray();
 
@@ -61,34 +61,34 @@ namespace CoreWCF.Configuration
                     throw new InvalidOperationException($"Resources.FormatException_UseMiddlewareNoInvokeMethod({OnConnectedAsyncMethodName}, {middleware}");
                 }
 
-                var methodInfo = invokeMethods[0];
+                MethodInfo methodInfo = invokeMethods[0];
                 if (!typeof(Task).IsAssignableFrom(methodInfo.ReturnType))
                 {
                     // TODO: String resources
                     throw new InvalidOperationException($"Resources.FormatException_UseMiddlewareNonTaskReturnType({OnConnectedAsyncMethodName}, {nameof(Task)}");
                 }
 
-                var parameters = methodInfo.GetParameters();
+                ParameterInfo[] parameters = methodInfo.GetParameters();
                 if (parameters.Length == 0 || parameters[0].ParameterType != typeof(FramingConnection))
                 {
                     // TODO: String resources
                     throw new InvalidOperationException($"Resources.FormatException_UseMiddlewareNoParameters({OnConnectedAsyncMethodName}, {nameof(FramingConnection)}");
                 }
 
-                var ctorArgs = new object[args.Length + 1];
+                object[] ctorArgs = new object[args.Length + 1];
                 ctorArgs[0] = next;
                 Array.Copy(args, 0, ctorArgs, 1, args.Length);
-                var instance = ActivatorUtilities.CreateInstance(app.HandshakeServices, middleware, ctorArgs);
+                object instance = ActivatorUtilities.CreateInstance(app.HandshakeServices, middleware, ctorArgs);
                 if (parameters.Length == 1)
                 {
                     return (HandshakeDelegate)methodInfo.CreateDelegate(typeof(HandshakeDelegate), instance);
                 }
 
-                var factory = Compile<object>(methodInfo, parameters);
+                Func<object, FramingConnection, IServiceProvider, Task> factory = Compile<object>(methodInfo, parameters);
 
                 return context =>
                 {
-                    var serviceProvider = handshakeServices;
+                    IServiceProvider serviceProvider = handshakeServices;
                     if (serviceProvider == null)
                     {
                         // TODO: String resources
@@ -128,17 +128,17 @@ namespace CoreWCF.Configuration
             //      return ((Middleware)instance).Invoke(httpContext, (ILoggerFactory)UseMiddlewareConnectionHandshakeExtensions.GetService(provider, typeof(ILoggerFactory));
             //   }
 
-            var middleware = typeof(T);
+            Type middleware = typeof(T);
 
-            var connectionContextArg = Expression.Parameter(typeof(FramingConnection), "connectionContext");
-            var providerArg = Expression.Parameter(typeof(IServiceProvider), "serviceProvider");
-            var instanceArg = Expression.Parameter(middleware, "middleware");
+            ParameterExpression connectionContextArg = Expression.Parameter(typeof(FramingConnection), "connectionContext");
+            ParameterExpression providerArg = Expression.Parameter(typeof(IServiceProvider), "serviceProvider");
+            ParameterExpression instanceArg = Expression.Parameter(middleware, "middleware");
 
             var methodArguments = new Expression[parameters.Length];
             methodArguments[0] = connectionContextArg;
             for (int i = 1; i < parameters.Length; i++)
             {
-                var parameterType = parameters[i].ParameterType;
+                Type parameterType = parameters[i].ParameterType;
                 if (parameterType.IsByRef)
                 {
                     // TODO: String resources
@@ -152,7 +152,7 @@ namespace CoreWCF.Configuration
                     Expression.Constant(methodInfo.DeclaringType, typeof(Type))
                 };
 
-                var getServiceCall = Expression.Call(s_getServiceInfo, parameterTypeExpression);
+                MethodCallExpression getServiceCall = Expression.Call(s_getServiceInfo, parameterTypeExpression);
                 methodArguments[i] = Expression.Convert(getServiceCall, parameterType);
             }
 
@@ -162,7 +162,7 @@ namespace CoreWCF.Configuration
                 middlewareInstanceArg = Expression.Convert(middlewareInstanceArg, methodInfo.DeclaringType);
             }
 
-            var body = Expression.Call(middlewareInstanceArg, methodInfo, methodArguments);
+            MethodCallExpression body = Expression.Call(middlewareInstanceArg, methodInfo, methodArguments);
 
             var lambda = Expression.Lambda<Func<T, FramingConnection, IServiceProvider, Task>>(body, instanceArg, connectionContextArg, providerArg);
 
@@ -171,7 +171,7 @@ namespace CoreWCF.Configuration
 
         private static object GetService(IServiceProvider sp, Type type, Type middleware)
         {
-            var service = sp.GetService(type);
+            object service = sp.GetService(type);
             if (service == null)
             {
                 // TODO: String resources

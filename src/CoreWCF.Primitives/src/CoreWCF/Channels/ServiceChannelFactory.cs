@@ -45,9 +45,7 @@ namespace CoreWCF.Channels
 
         internal static ServiceChannel GetServiceChannel(object transparentProxy)
         {
-            ServiceChannelProxy proxy = transparentProxy as ServiceChannelProxy;
-
-            if (proxy != null)
+            if (transparentProxy is ServiceChannelProxy proxy)
             {
                 return proxy.GetServiceChannel();
             }

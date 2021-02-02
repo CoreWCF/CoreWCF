@@ -21,7 +21,7 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            var receiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout;
+            TimeSpan receiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout;
             var timeoutHelper = new TimeoutHelper(receiveTimeout);
             bool success = false;
             try
@@ -38,7 +38,7 @@ namespace CoreWCF.Channels.Framing
                 {
                     if (buffer.Length == 0 && CanReadAndDecode(upgradeState))
                     {
-                        var readResult = await connection.Input.ReadAsync();
+                        System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
                         buffer = readResult.Buffer;
                         if (readResult.IsCompleted)
                         {
@@ -245,8 +245,8 @@ namespace CoreWCF.Channels.Framing
         public static async Task UpgradeConnectionAsync(FramingConnection connection)
         {
             connection.RawStream = new RawStream(connection);
-            var upgradeAcceptor = connection.StreamUpgradeAcceptor;
-            var stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
+            StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
+            Stream stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
             CreatePipelineFromStream(connection, stream);
         }
 
@@ -258,10 +258,9 @@ namespace CoreWCF.Channels.Framing
 
         private static void SetupSecurityIfNecessary(FramingConnection connection)
         {
-            StreamSecurityUpgradeAcceptor securityUpgradeAcceptor = connection.StreamUpgradeAcceptor as StreamSecurityUpgradeAcceptor;
-            if (securityUpgradeAcceptor != null)
+            if (connection.StreamUpgradeAcceptor is StreamSecurityUpgradeAcceptor securityUpgradeAcceptor)
             {
-                var remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
+                Security.SecurityMessageProperty remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
 
                 if (remoteSecurity == null)
                 {

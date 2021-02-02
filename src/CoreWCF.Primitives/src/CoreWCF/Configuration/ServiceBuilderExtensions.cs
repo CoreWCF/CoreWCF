@@ -11,7 +11,7 @@ namespace CoreWCF.Configuration
         public static void ConfigureServiceHostBase<TService>(this IServiceBuilder builder, Action<ServiceHostBase> func) where TService : class
         {
             var serviceBuilder = builder as ServiceBuilder;
-            var holder = serviceBuilder.ServiceProvider
+            ServiceConfigurationDelegateHolder<TService> holder = serviceBuilder.ServiceProvider
                 .GetRequiredService<ServiceConfigurationDelegateHolder<TService>>();
             holder.AddConfigDelegate(func);
         }

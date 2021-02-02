@@ -31,8 +31,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public virtual bool MatchesKeyIdentifierClause(SecurityKeyIdentifierClause keyIdentifierClause)
         {
-            LocalIdKeyIdentifierClause localKeyIdentifierClause = keyIdentifierClause as LocalIdKeyIdentifierClause;
-            if (localKeyIdentifierClause != null)
+            if (keyIdentifierClause is LocalIdKeyIdentifierClause localKeyIdentifierClause)
             {
                 return localKeyIdentifierClause.Matches(Id, GetType());
             }

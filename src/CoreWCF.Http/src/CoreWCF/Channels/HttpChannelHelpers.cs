@@ -309,7 +309,7 @@ namespace CoreWCF.Channels
                 {
                     action = SoapActionHeader;
                 }
-                else if (message.Version.Envelope == EnvelopeVersion.Soap12 && !String.IsNullOrEmpty(ContentType))
+                else if (message.Version.Envelope == EnvelopeVersion.Soap12 && !string.IsNullOrEmpty(ContentType))
                 {
                     ContentType parsedContentType = new ContentType(ContentType);
 
@@ -383,13 +383,13 @@ namespace CoreWCF.Channels
 
         public async Task<(Message message, Exception requestException)> ParseIncomingMessageAsync()
         {
-            Message message = null;
             Exception requestException = null;
             bool throwing = true;
             try
             {
                 ValidateContentType();
 
+                Message message;
                 if (!HasContent)
                 {
                     if (_messageEncoder.MessageVersion == MessageVersion.None)
@@ -477,7 +477,6 @@ namespace CoreWCF.Channels
     // abstract out the common functionality of an "HttpOutput"
     internal abstract class HttpOutput
     {
-        private const string DefaultMimeVersion = "1.0";
         private HttpAbortReason _abortReason;
         private bool _isDisposed;
         private readonly bool _isRequest;
@@ -488,19 +487,16 @@ namespace CoreWCF.Channels
         private readonly MessageEncoder _messageEncoder;
         private readonly bool _streamed;
         private static Action<object> s_onStreamSendTimeout;
-        private readonly string _mtomBoundary;
         private Stream _outputStream;
-        private readonly bool _supportsConcurrentIO;
 
-        protected HttpOutput(IHttpTransportFactorySettings settings, Message message, bool isRequest, bool supportsConcurrentIO)
+        protected HttpOutput(IHttpTransportFactorySettings settings, Message message, bool isRequest)
         {
             _settings = settings;
             _message = message;
             _isRequest = isRequest;
             _bufferManager = settings.BufferManager;
             _messageEncoder = settings.MessageEncoderFactory.Encoder;
-            ICompressedMessageEncoder compressedMessageEncoder = _messageEncoder as ICompressedMessageEncoder;
-            CanSendCompressedResponses = compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled;
+            CanSendCompressedResponses = _messageEncoder is ICompressedMessageEncoder compressedMessageEncoder && compressedMessageEncoder.CompressionEnabled;
             if (isRequest)
             {
                 _streamed = TransferModeHelper.IsRequestStreamed(settings.TransferMode);
@@ -509,7 +505,6 @@ namespace CoreWCF.Channels
             {
                 _streamed = TransferModeHelper.IsResponseStreamed(settings.TransferMode);
             }
-            _supportsConcurrentIO = supportsConcurrentIO;
         }
 
         protected virtual bool IsChannelBindingSupportEnabled { get { return false; } }
@@ -801,7 +796,7 @@ namespace CoreWCF.Channels
             private readonly string _httpMethod;
 
             public AspNetCoreHttpOutput(HttpContext httpContext, IHttpTransportFactorySettings settings, Message message, string httpMethod)
-                : base(settings, message, false, true)
+                : base(settings, message, false)
             {
                 _httpResponse = httpContext.Response;
                 _httpContext = httpContext;
@@ -877,9 +872,8 @@ namespace CoreWCF.Channels
                         string value = responseHeaders[i];
                         if (string.Compare(name, "content-length", StringComparison.OrdinalIgnoreCase) == 0)
                         {
-                            int contentLength = -1;
                             if (httpMethodIsHead &&
-                                int.TryParse(value, out contentLength))
+                                int.TryParse(value, out int contentLength))
                             {
                                 SetContentLength(contentLength);
                             }
@@ -916,7 +910,7 @@ namespace CoreWCF.Channels
                 {
                     if (_httpResponse.Headers.ContainsKey(name))
                     {
-                        var previousValues = _httpResponse.Headers[name];
+                        StringValues previousValues = _httpResponse.Headers[name];
                         _httpResponse.Headers[name] = StringValues.Concat(previousValues, value);
                     }
                     else
@@ -934,7 +928,7 @@ namespace CoreWCF.Channels
                 {
                     // Need to remove existing keep-alive and/or close values
                     StringValues connectionHeaderValue;
-                    var previousValues = _httpResponse.Headers["Connection"];
+                    StringValues previousValues = _httpResponse.Headers["Connection"];
                     for (int i = 0; i < previousValues.Count; i++)
                     {
                         if (previousValues[i].Equals("keep-alive", StringComparison.OrdinalIgnoreCase) ||

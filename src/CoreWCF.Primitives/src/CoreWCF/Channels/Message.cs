@@ -402,15 +402,10 @@ namespace CoreWCF.Channels
         internal void InitializeReply(Message request)
         {
             UniqueId requestMessageID = request.Headers.MessageId;
-            if (requestMessageID == null)
-            {
-                throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.RequestMessageDoesNotHaveAMessageID)), request);
-            }
-
-            Headers.RelatesTo = requestMessageID;
+            Headers.RelatesTo = requestMessageID ?? throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.RequestMessageDoesNotHaveAMessageID)), request);
         }
 
-        static internal bool IsFaultStartElement(XmlDictionaryReader reader, EnvelopeVersion version)
+        internal static bool IsFaultStartElement(XmlDictionaryReader reader, EnvelopeVersion version)
         {
             return reader.IsStartElement(XD.MessageDictionary.Fault, version.DictionaryNamespace);
         }
@@ -552,8 +547,10 @@ namespace CoreWCF.Channels
             }
 
             StringWriter stringWriter = new StringWriter(CultureInfo.InvariantCulture);
-            EncodingFallbackAwareXmlTextWriter textWriter = new EncodingFallbackAwareXmlTextWriter(stringWriter);
-            textWriter.Formatting = Formatting.Indented;
+            EncodingFallbackAwareXmlTextWriter textWriter = new EncodingFallbackAwareXmlTextWriter(stringWriter)
+            {
+                Formatting = Formatting.Indented
+            };
             XmlDictionaryWriter writer = XmlDictionaryWriter.CreateDictionaryWriter(textWriter);
             try
             {
@@ -636,7 +633,7 @@ namespace CoreWCF.Channels
 
         internal void ReadFromBodyContentsToEnd(XmlDictionaryReader reader)
         {
-            Message.ReadFromBodyContentsToEnd(reader, Version.Envelope);
+            ReadFromBodyContentsToEnd(reader, Version.Envelope);
         }
 
         private static void ReadFromBodyContentsToEnd(XmlDictionaryReader reader, EnvelopeVersion envelopeVersion)
@@ -676,7 +673,7 @@ namespace CoreWCF.Channels
                 {
                     isEmpty = true;
                     isFault = false;
-                    Message.ReadFromBodyContentsToEnd(reader, envelopeVersion);
+                    ReadFromBodyContentsToEnd(reader, envelopeVersion);
                     return false;
                 }
                 else
@@ -845,8 +842,7 @@ namespace CoreWCF.Channels
                     continue;
                 }
 
-                IMessageHeaderWithSharedNamespace headerWithSharedNamespace = headers[i] as IMessageHeaderWithSharedNamespace;
-                if (headerWithSharedNamespace != null)
+                if (headers[i] is IMessageHeaderWithSharedNamespace headerWithSharedNamespace)
                 {
                     XmlDictionaryString prefix = headerWithSharedNamespace.SharedPrefix;
                     string prefixString = prefix.Value;
@@ -1017,8 +1013,10 @@ namespace CoreWCF.Channels
         public BodyWriterMessage(MessageVersion version, string action, BodyWriter bodyWriter)
             : this(bodyWriter)
         {
-            _headers = new MessageHeaders(version);
-            _headers.Action = action;
+            _headers = new MessageHeaders(version)
+            {
+                Action = action
+            };
         }
 
         public BodyWriterMessage(MessageVersion version, ActionHeader actionHeader, BodyWriter bodyWriter)
@@ -1241,7 +1239,7 @@ namespace CoreWCF.Channels
 
         protected bool ReadStartBody(XmlDictionaryReader reader)
         {
-            return Message.ReadStartBody(reader, Version.Envelope, out _isFault, out _isEmpty);
+            return ReadStartBody(reader, Version.Envelope, out _isFault, out _isEmpty);
         }
 
         protected static EnvelopeVersion ReadStartEnvelope(XmlDictionaryReader reader)
@@ -1880,16 +1878,14 @@ namespace CoreWCF.Channels
 
     internal struct XmlAttributeHolder
     {
-        private readonly string _value;
-
-        public static XmlAttributeHolder[] emptyArray = new XmlAttributeHolder[0];
+        public static XmlAttributeHolder[] emptyArray = Array.Empty<XmlAttributeHolder>();
 
         public XmlAttributeHolder(string prefix, string localName, string ns, string value)
         {
             Prefix = prefix;
             LocalName = localName;
             NamespaceUri = ns;
-            _value = value;
+            Value = value;
         }
 
         public string Prefix { get; }
@@ -1898,15 +1894,12 @@ namespace CoreWCF.Channels
 
         public string LocalName { get; }
 
-        public string Value
-        {
-            get { return _value; }
-        }
+        public string Value { get; }
 
         public void WriteTo(XmlWriter writer)
         {
             writer.WriteStartAttribute(Prefix, LocalName, NamespaceUri);
-            writer.WriteString(_value);
+            writer.WriteString(Value);
             writer.WriteEndAttribute();
         }
 
@@ -2088,8 +2081,7 @@ namespace CoreWCF.Channels
 
         public void ReturnHeaderInfo(MessageHeaderInfo headerInfo)
         {
-            HeaderInfo headerInfoToReturn = headerInfo as HeaderInfo;
-            if (headerInfoToReturn != null)
+            if (headerInfo is HeaderInfo headerInfoToReturn)
             {
                 if (_headerInfos == null)
                 {
@@ -2231,20 +2223,15 @@ namespace CoreWCF.Channels
 
         private struct Entry
         {
-            private readonly Uri _value;
-
             public Entry(string key, Uri value)
             {
                 Key = key;
-                _value = value;
+                Value = value;
             }
 
             public string Key { get; }
 
-            public Uri Value
-            {
-                get { return _value; }
-            }
+            public Uri Value { get; }
         }
     }
 }

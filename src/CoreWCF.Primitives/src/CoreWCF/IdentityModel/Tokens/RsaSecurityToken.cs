@@ -20,18 +20,8 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public RsaSecurityToken(RSA rsa, string id)
         {
-            if (rsa == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
-            }
-
-            if (id == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
-            }
-
-            Rsa = rsa;
-            _id = id;
+            Rsa = rsa ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
+            _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             _effectiveTime = DateTime.UtcNow;
         }
 

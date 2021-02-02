@@ -12,7 +12,7 @@ namespace CoreWCF
 
     internal static class AddressFilterModeHelper
     {
-        static public bool IsDefined(AddressFilterMode x)
+        public static bool IsDefined(AddressFilterMode x)
         {
             return
                 x == AddressFilterMode.Exact ||

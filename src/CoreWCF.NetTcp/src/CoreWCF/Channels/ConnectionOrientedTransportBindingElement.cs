@@ -20,7 +20,6 @@ namespace CoreWCF.Channels
         private TimeSpan _maxOutputDelay;
         private int _maxPendingAccepts;
         private TransferMode _transferMode;
-        private bool _isMaxPendingAcceptsSet;
 
         internal ConnectionOrientedTransportBindingElement()
             : base()
@@ -50,7 +49,7 @@ namespace CoreWCF.Channels
             _maxPendingAccepts = elementToBeCloned._maxPendingAccepts;
             _transferMode = elementToBeCloned._transferMode;
             IsMaxPendingConnectionsSet = elementToBeCloned.IsMaxPendingConnectionsSet;
-            _isMaxPendingAcceptsSet = elementToBeCloned._isMaxPendingAcceptsSet;
+            IsMaxPendingAcceptsSet = elementToBeCloned.IsMaxPendingAcceptsSet;
         }
 
         [DefaultValue(ConnectionOrientedTransportDefaults.ConnectionBufferSize)]
@@ -64,7 +63,7 @@ namespace CoreWCF.Channels
             {
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.ValueMustBeNonNegative));
                 }
 
@@ -111,7 +110,7 @@ namespace CoreWCF.Channels
             {
                 if (value <= 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.ValueMustBePositive));
                 }
 
@@ -130,7 +129,7 @@ namespace CoreWCF.Channels
             {
                 if (value <= 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.ValueMustBePositive));
                 }
 
@@ -155,13 +154,13 @@ namespace CoreWCF.Channels
             {
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
@@ -180,13 +179,13 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.SFxTimeoutOutOfRange0));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
@@ -205,19 +204,16 @@ namespace CoreWCF.Channels
             {
                 if (value <= 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.ValueMustBePositive));
                 }
 
                 _maxPendingAccepts = value;
-                _isMaxPendingAcceptsSet = true;
+                IsMaxPendingAcceptsSet = true;
             }
         }
 
-        internal bool IsMaxPendingAcceptsSet
-        {
-            get { return _isMaxPendingAcceptsSet; }
-        }
+        internal bool IsMaxPendingAcceptsSet { get; private set; }
 
         [DefaultValue(ConnectionOrientedTransportDefaults.TransferMode)]
         public TransferMode TransferMode
@@ -257,8 +253,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            ConnectionOrientedTransportBindingElement connection = b as ConnectionOrientedTransportBindingElement;
-            if (connection == null)
+            if (!(b is ConnectionOrientedTransportBindingElement connection))
             {
                 return false;
             }

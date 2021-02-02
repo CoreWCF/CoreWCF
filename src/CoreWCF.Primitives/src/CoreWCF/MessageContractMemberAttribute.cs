@@ -10,7 +10,7 @@ namespace CoreWCF
     {
         private string _name;
         private string _ns;
-        private bool _isNamespaceSetExplicit;
+
         //ProtectionLevel protectionLevel = ProtectionLevel.None;
         //bool hasProtectionLevel = false;
 
@@ -30,14 +30,11 @@ namespace CoreWCF
                     NamingHelper.CheckUriProperty(value, "Namespace");
                 }
                 _ns = value;
-                _isNamespaceSetExplicit = true;
+                IsNamespaceSetExplicit = true;
             }
         }
 
-        internal bool IsNamespaceSetExplicit
-        {
-            get { return _isNamespaceSetExplicit; }
-        }
+        internal bool IsNamespaceSetExplicit { get; private set; }
 
         internal const string NamePropertyName = "Name";
         public string Name

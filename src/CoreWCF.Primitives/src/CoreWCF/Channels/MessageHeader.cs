@@ -359,15 +359,10 @@ namespace CoreWCF.Channels
 
         private XmlObjectSerializerHeader(XmlObjectSerializer serializer, bool mustUnderstand, string actor, bool relay)
         {
-            if (actor == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
-            }
-
             _mustUnderstand = mustUnderstand;
             _relay = relay;
             _serializer = serializer;
-            _actor = actor;
+            _actor = actor ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
             if (actor == EnvelopeVersion.Soap12.UltimateDestinationActor)
             {
                 _isOneOneSupported = false;
@@ -410,7 +405,7 @@ namespace CoreWCF.Channels
             }
             if (ns.Length > 0)
             {
-                NamingHelper.CheckUriParameter(ns, "ns");
+                NamingHelper.CheckUriParameter(ns, nameof(ns));
             }
             _objectToSerialize = objectToSerialize;
             _name = name;

@@ -12,26 +12,6 @@ namespace CoreWCF.Security
         private readonly string _toString;
         private readonly ReadOnlyCollection<string> _supportedSpecs;
         private const string bsp10ns = @"http://ws-i.org/profiles/basic-security/core/1.0";
-        private static readonly MessageSecurityTokenVersion s_wss10bsp10 = new MessageSecurityTokenVersion(
-            SecurityVersion.WSSecurity10,
-            TrustVersion.WSTrustFeb2005,
-            SecureConversationVersion.WSSecureConversationFeb2005,
-            "WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10",
-            true,
-            XD.SecurityJan2004Dictionary.Namespace.Value,
-            XD.TrustFeb2005Dictionary.Namespace.Value,
-            XD.SecureConversationFeb2005Dictionary.Namespace.Value,
-            bsp10ns);
-        private static readonly MessageSecurityTokenVersion s_wss11bsp10 = new MessageSecurityTokenVersion(
-            SecurityVersion.WSSecurity11,
-            TrustVersion.WSTrustFeb2005,
-            SecureConversationVersion.WSSecureConversationFeb2005,
-            "WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10",
-            true,
-            XD.SecurityXXX2005Dictionary.Namespace.Value,
-            XD.TrustFeb2005Dictionary.Namespace.Value,
-            XD.SecureConversationFeb2005Dictionary.Namespace.Value,
-            bsp10ns);
         private static readonly MessageSecurityTokenVersion s_wss10oasisdec2005bsp10 = new MessageSecurityTokenVersion(
             SecurityVersion.WSSecurity10,
             TrustVersion.WSTrust13,
@@ -73,21 +53,27 @@ namespace CoreWCF.Security
             XD.TrustFeb2005Dictionary.Namespace.Value,
             XD.SecureConversationFeb2005Dictionary.Namespace.Value);
 
-        public static MessageSecurityTokenVersion WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10
-        {
-            get
-            {
-                return s_wss11bsp10;
-            }
-        }
+        public static MessageSecurityTokenVersion WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10 { get; } = new MessageSecurityTokenVersion(
+            SecurityVersion.WSSecurity11,
+            TrustVersion.WSTrustFeb2005,
+            SecureConversationVersion.WSSecureConversationFeb2005,
+            "WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10",
+            true,
+            XD.SecurityXXX2005Dictionary.Namespace.Value,
+            XD.TrustFeb2005Dictionary.Namespace.Value,
+            XD.SecureConversationFeb2005Dictionary.Namespace.Value,
+            bsp10ns);
 
-        public static MessageSecurityTokenVersion WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10
-        {
-            get
-            {
-                return s_wss10bsp10;
-            }
-        }
+        public static MessageSecurityTokenVersion WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10 { get; } = new MessageSecurityTokenVersion(
+            SecurityVersion.WSSecurity10,
+            TrustVersion.WSTrustFeb2005,
+            SecureConversationVersion.WSSecureConversationFeb2005,
+            "WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10",
+            true,
+            XD.SecurityJan2004Dictionary.Namespace.Value,
+            XD.TrustFeb2005Dictionary.Namespace.Value,
+            XD.SecureConversationFeb2005Dictionary.Namespace.Value,
+            bsp10ns);
 
         public static MessageSecurityTokenVersion WSSecurity10WSTrust13WSSecureConversation13BasicSecurityProfile10
         {
@@ -119,7 +105,7 @@ namespace CoreWCF.Security
             {
                 if (emitBspAttributes)
                 {
-                    return MessageSecurityTokenVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10;
+                    return WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10;
                 }
                 else
                 {
@@ -130,11 +116,11 @@ namespace CoreWCF.Security
             {
                 if (emitBspAttributes)
                 {
-                    return MessageSecurityTokenVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10;
+                    return WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005BasicSecurityProfile10;
                 }
                 else
                 {
-                    return MessageSecurityTokenVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005;
+                    return WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005;
                 }
             }
             else

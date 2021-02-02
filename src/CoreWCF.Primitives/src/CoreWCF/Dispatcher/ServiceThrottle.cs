@@ -20,7 +20,6 @@ namespace CoreWCF.Dispatcher
         private FlowThrottle _instanceContexts;
 
         private readonly ServiceHostBase _host;
-        private readonly object _thisLock = new object();
 
         internal ServiceThrottle(ServiceHostBase host)
         {
@@ -94,8 +93,10 @@ namespace CoreWCF.Dispatcher
                     {
                         if (_dynamic == null)
                         {
-                            QuotaThrottle dynamicQt = new QuotaThrottle(new object());
-                            dynamicQt.Owner = "ServiceHost";
+                            QuotaThrottle dynamicQt = new QuotaThrottle(new object())
+                            {
+                                Owner = "ServiceHost"
+                            };
 
                             _dynamic = dynamicQt;
                         }
@@ -174,7 +175,7 @@ namespace CoreWCF.Dispatcher
                     {
                         if (_instanceContexts == null)
                         {
-                            FlowThrottle instanceContextsFt = new FlowThrottle(Int32.MaxValue,
+                            FlowThrottle instanceContextsFt = new FlowThrottle(int.MaxValue,
                                                                      MaxConcurrentInstancesPropertyName, MaxConcurrentInstancesConfigName);
                             instanceContextsFt.SetRatio(RatioInstancesToken);
 
@@ -194,10 +195,7 @@ namespace CoreWCF.Dispatcher
 
         internal bool IsActive { get; private set; }
 
-        internal object ThisLock
-        {
-            get { return _thisLock; }
-        }
+        internal object ThisLock { get; } = new object();
 
         //internal void SetServicePerformanceCounters(ServicePerformanceCountersBase counters)
         //{
@@ -363,9 +361,9 @@ namespace CoreWCF.Dispatcher
         private void UpdateIsActive()
         {
             IsActive = ((_dynamic != null) ||
-                             ((_calls != null) && (_calls.Capacity != Int32.MaxValue)) ||
-                             ((_sessions != null) && (_sessions.Capacity != Int32.MaxValue)) ||
-                             ((_instanceContexts != null) && (_instanceContexts.Capacity != Int32.MaxValue)));
+                             ((_calls != null) && (_calls.Capacity != int.MaxValue)) ||
+                             ((_sessions != null) && (_sessions.Capacity != int.MaxValue)) ||
+                             ((_instanceContexts != null) && (_instanceContexts.Capacity != int.MaxValue)));
         }
 
         //internal void AcquiredCallsToken()

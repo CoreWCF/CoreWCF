@@ -8,7 +8,6 @@ namespace CoreWCF.Description
     public class MessageBodyDescription
     {
         private XmlName _wrapperName;
-        private MessagePartDescription _returnValue;
 
         public MessageBodyDescription()
         {
@@ -18,16 +17,12 @@ namespace CoreWCF.Description
         public MessagePartDescriptionCollection Parts { get; }
 
         [DefaultValue(null)]
-        public MessagePartDescription ReturnValue
-        {
-            get { return _returnValue; }
-            set { _returnValue = value; }
-        }
+        public MessagePartDescription ReturnValue { get; set; }
 
         [DefaultValue(null)]
         public string WrapperName
         {
-            get { return _wrapperName == null ? null : _wrapperName.EncodedName; }
+            get { return _wrapperName?.EncodedName; }
             set { _wrapperName = new XmlName(value, true /*isEncoded*/); }
         }
 

@@ -18,11 +18,9 @@ namespace CoreWCF
         private bool _closeClientReply;
         private ExtensionCollection<OperationContext> _extensions;
         private Message _request;
-        private bool _isServiceReentrant = false;
         internal IPrincipal threadPrincipal;
         private MessageProperties _outgoingMessageProperties;
         private MessageHeaders _outgoingMessageHeaders;
-        private EndpointDispatcher _endpointDispatcher;
 
         public event EventHandler OperationCompleted;
 
@@ -33,10 +31,9 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channel));
             }
 
-            ServiceChannel serviceChannel = channel as ServiceChannel;
 
             //Could be a TransparentProxy
-            if (serviceChannel == null)
+            if (!(channel is ServiceChannel serviceChannel))
             {
                 serviceChannel = ServiceChannelFactory.GetServiceChannel(channel);
             }
@@ -59,13 +56,8 @@ namespace CoreWCF
 
         internal OperationContext(ServiceHostBase host, MessageVersion outgoingMessageVersion)
         {
-            if (outgoingMessageVersion == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(outgoingMessageVersion));
-            }
-
             Host = host;
-            OutgoingMessageVersion = outgoingMessageVersion;
+            OutgoingMessageVersion = outgoingMessageVersion ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(outgoingMessageVersion));
         }
 
         internal OperationContext(RequestContext requestContext, Message request, ServiceChannel channel, ServiceHostBase host)
@@ -100,11 +92,11 @@ namespace CoreWCF
         {
             get
             {
-                Holder holder = OperationContext.s_currentContext.Value;
+                Holder holder = s_currentContext.Value;
                 if (holder == null)
                 {
                     holder = new Holder();
-                    OperationContext.s_currentContext.Value = holder;
+                    s_currentContext.Value = holder;
                 }
                 return holder;
             }
@@ -112,17 +104,7 @@ namespace CoreWCF
 
         public ServiceHostBase Host { get; }
 
-        public EndpointDispatcher EndpointDispatcher
-        {
-            get
-            {
-                return _endpointDispatcher;
-            }
-            set
-            {
-                _endpointDispatcher = value;
-            }
-        }
+        public EndpointDispatcher EndpointDispatcher { get; set; }
         public bool IsUserContext
         {
             get
@@ -143,11 +125,7 @@ namespace CoreWCF
             }
         }
 
-        internal bool IsServiceReentrant
-        {
-            get { return _isServiceReentrant; }
-            set { _isServiceReentrant = value; }
-        }
+        internal bool IsServiceReentrant { get; set; } = false;
 
         internal Message IncomingMessage
         {
@@ -302,7 +280,7 @@ namespace CoreWCF
         {
             if (InternalServiceChannel == null || IsUserContext)
             {
-                return default(T);
+                return default;
             }
 
             // yes, we might throw InvalidCastException here.  Is it really
@@ -331,7 +309,7 @@ namespace CoreWCF
         {
             Message oldClientReply = null;
 
-            if (!object.Equals(message, _clientReply))
+            if (!Equals(message, _clientReply))
             {
                 if (_closeClientReply && (_clientReply != null))
                 {

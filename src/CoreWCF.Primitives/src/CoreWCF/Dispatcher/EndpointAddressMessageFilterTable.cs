@@ -286,8 +286,7 @@ namespace CoreWCF.Dispatcher
             EndpointAddressProcessor p = null;
             lock (_processorPool)
             {
-                ProcessorPool pool = _processorPool.Target as ProcessorPool;
-                if (null != pool)
+                if (_processorPool.Target is ProcessorPool pool)
                 {
                     p = pool.Pop();
                 }
@@ -344,9 +343,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (can != null)
                     {
-                        Collection<MessageFilter> matches = new Collection<MessageFilter>();
-                        matches.Add(can.filter);
-                        matches.Add(c.filter);
+                        Collection<MessageFilter> matches = new Collection<MessageFilter>
+                        {
+                            can.filter,
+                            c.filter
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches));
                     }
                     can = c;
@@ -392,9 +393,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (can != null)
                     {
-                        Collection<MessageFilter> matches = new Collection<MessageFilter>();
-                        matches.Add(can.filter);
-                        matches.Add(candis[i].filter);
+                        Collection<MessageFilter> matches = new Collection<MessageFilter>
+                        {
+                            can.filter,
+                            candis[i].filter
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches), message);
                     }
                     can = candis[i];
@@ -482,7 +485,7 @@ namespace CoreWCF.Dispatcher
             Candidate can = InnerMatch(message);
             if (can == null)
             {
-                data = default(TFilterData);
+                data = default;
                 return false;
             }
 
@@ -510,7 +513,7 @@ namespace CoreWCF.Dispatcher
 
             if (can == null)
             {
-                data = default(TFilterData);
+                data = default;
                 return false;
             }
 
@@ -667,8 +670,7 @@ namespace CoreWCF.Dispatcher
         {
             lock (_processorPool)
             {
-                ProcessorPool pool = _processorPool.Target as ProcessorPool;
-                if (null == pool)
+                if (!(_processorPool.Target is ProcessorPool pool))
                 {
                     pool = new ProcessorPool();
                     _processorPool.Target = pool;
@@ -684,8 +686,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            EndpointAddressMessageFilter saFilter = filter as EndpointAddressMessageFilter;
-            if (saFilter != null)
+            if (filter is EndpointAddressMessageFilter saFilter)
             {
                 return Remove(saFilter);
             }
@@ -708,7 +709,7 @@ namespace CoreWCF.Dispatcher
             Candidate can = candidates[filter];
             Uri soapToAddress = filter.Address.Uri;
 
-            CandidateSet cset = null;
+            CandidateSet cset;
             if (filter.IncludeHostNameInComparison)
             {
                 cset = _toHostLookup[soapToAddress];

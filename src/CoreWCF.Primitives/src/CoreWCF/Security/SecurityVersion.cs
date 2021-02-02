@@ -76,7 +76,7 @@ namespace CoreWCF.Security
             SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
         {
             int headerIndex = message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, actor);
-            if (headerIndex < 0 && String.IsNullOrEmpty(actor))
+            if (headerIndex < 0 && string.IsNullOrEmpty(actor))
             {
                 headerIndex = message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, message.Version.Envelope.UltimateDestinationActorValues);
             }
@@ -156,7 +156,7 @@ namespace CoreWCF.Security
             {
             }
 
-            public new static SecurityVersion11 Instance { get; } = new SecurityVersion11();
+            public static new SecurityVersion11 Instance { get; } = new SecurityVersion11();
 
             internal bool SupportsSignatureConfirmation => true;
 
@@ -205,11 +205,11 @@ namespace CoreWCF.Security
             {
                 if (id == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("id");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
                 }
                 if (signature == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("signature");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(signature));
                 }
                 writer.WriteStartElement(XD.SecurityXXX2005Dictionary.Prefix.Value, XD.SecurityXXX2005Dictionary.SignatureConfirmation, XD.SecurityXXX2005Dictionary.Namespace);
                 writer.WriteAttributeString(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace, id);

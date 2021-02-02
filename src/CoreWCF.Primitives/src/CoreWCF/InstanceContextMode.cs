@@ -12,7 +12,7 @@ namespace CoreWCF
 
     internal static class InstanceContextModeHelper
     {
-        static public bool IsDefined(InstanceContextMode x)
+        public static bool IsDefined(InstanceContextMode x)
         {
             return
                 x == InstanceContextMode.PerCall ||

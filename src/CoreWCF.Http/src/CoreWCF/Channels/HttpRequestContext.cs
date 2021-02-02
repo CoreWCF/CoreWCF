@@ -159,13 +159,13 @@ namespace CoreWCF.Channels
 
             if (requestException != null)
             {
-                base.SetRequestMessage(requestException);
+                SetRequestMessage(requestException);
                 message.Close();
             }
             else
             {
                 message.Properties.Security = (_securityProperty != null) ? (SecurityMessageProperty)_securityProperty.CreateCopy() : null;
-                base.SetRequestMessage(message);
+                SetRequestMessage(message);
             }
         }
 
@@ -240,7 +240,7 @@ namespace CoreWCF.Channels
             finally
             {
                 if (message != null &&
-                    !object.ReferenceEquals(message, responseMessage))
+                    !ReferenceEquals(message, responseMessage))
                 {
                     responseMessage.Close();
                 }
@@ -319,9 +319,11 @@ namespace CoreWCF.Channels
         private Message CreateAckMessage(HttpStatusCode statusCode, string statusDescription)
         {
             Message ackMessage = new NullMessage();
-            HttpResponseMessageProperty httpResponseProperty = new HttpResponseMessageProperty();
-            httpResponseProperty.StatusCode = statusCode;
-            httpResponseProperty.SuppressEntityBody = true;
+            HttpResponseMessageProperty httpResponseProperty = new HttpResponseMessageProperty
+            {
+                StatusCode = statusCode,
+                SuppressEntityBody = true
+            };
             if (statusDescription.Length > 0)
             {
                 httpResponseProperty.StatusDescription = statusDescription;
@@ -360,8 +362,7 @@ namespace CoreWCF.Channels
                     _aspNetContext.Response.Headers["Connection"] = "close";
                 }
 
-                ICompressedMessageEncoder compressedMessageEncoder = HttpTransportSettings.MessageEncoderFactory.Encoder as ICompressedMessageEncoder;
-                if (compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled)
+                if (HttpTransportSettings.MessageEncoderFactory.Encoder is ICompressedMessageEncoder compressedMessageEncoder && compressedMessageEncoder.CompressionEnabled)
                 {
                     string acceptEncoding = _aspNetContext.Request.Headers[HttpChannelUtilities.AcceptEncodingHeader];
                     compressedMessageEncoder.AddCompressedMessageProperties(message, acceptEncoding);
@@ -460,7 +461,7 @@ namespace CoreWCF.Channels
 
                 protected override void AddProperties(Message message)
                 {
-                    var request = _aspNetCoreHttpContext._aspNetContext.Request;
+                    HttpRequest request = _aspNetCoreHttpContext._aspNetContext.Request;
                     var requestProperty = new HttpRequestMessageProperty(_aspNetCoreHttpContext._aspNetContext);
                     message.Properties.Add(HttpRequestMessageProperty.Name, requestProperty);
                     // TODO: Test the Via code
@@ -470,8 +471,8 @@ namespace CoreWCF.Channels
                         request.Path.ToUriComponent(),
                         request.QueryString.ToUriComponent()));
 
-                    var remoteIPAddress = request.HttpContext.Connection.RemoteIpAddress;
-                    var remotePort = request.HttpContext.Connection.RemotePort;
+                    IPAddress remoteIPAddress = request.HttpContext.Connection.RemoteIpAddress;
+                    int remotePort = request.HttpContext.Connection.RemotePort;
                     RemoteEndpointMessageProperty remoteEndpointProperty = new RemoteEndpointMessageProperty(new IPEndPoint(remoteIPAddress, remotePort));
                     message.Properties.Add(RemoteEndpointMessageProperty.Name, remoteEndpointProperty);
                 }

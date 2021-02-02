@@ -14,7 +14,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class PrimitiveOperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
-        internal static readonly string NsXsi = "http://www.w3.org/2001/XMLSchema-instance";
+        internal const string NsXsi = "http://www.w3.org/2001/XMLSchema-instance";
         private readonly OperationDescription _operation;
         private readonly MessageDescription _responseMessage;
         private readonly MessageDescription _requestMessage;
@@ -293,7 +293,6 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
             }
 
-            OperationDescription operation = description;
             MessageDescription requestMessage = description.Messages[0];
             MessageDescription responseMessage = null;
             if (description.Messages.Count == 2)
@@ -825,7 +824,7 @@ namespace CoreWCF.Dispatcher
                             else
                             {
                                 reader.Read();
-                                value = new bool[0];
+                                value = Array.Empty<bool>();
                             }
                             break;
                         case TypeCode.DateTime:
@@ -838,7 +837,7 @@ namespace CoreWCF.Dispatcher
                             else
                             {
                                 reader.Read();
-                                value = new DateTime[0];
+                                value = Array.Empty<DateTime>();
                             }
                             break;
                         case TypeCode.Decimal:
@@ -851,7 +850,7 @@ namespace CoreWCF.Dispatcher
                             else
                             {
                                 reader.Read();
-                                value = new decimal[0];
+                                value = Array.Empty<decimal>();
                             }
                             break;
                         case TypeCode.Int32:
@@ -864,7 +863,7 @@ namespace CoreWCF.Dispatcher
                             else
                             {
                                 reader.Read();
-                                value = new int[0];
+                                value = Array.Empty<int>();
                             }
                             break;
                         case TypeCode.Int64:
@@ -877,7 +876,7 @@ namespace CoreWCF.Dispatcher
                             else
                             {
                                 reader.Read();
-                                value = new long[0];
+                                value = Array.Empty<long>();
                             }
                             break;
                         case TypeCode.Single:
@@ -890,7 +889,7 @@ namespace CoreWCF.Dispatcher
                             else
                             {
                                 reader.Read();
-                                value = new float[0];
+                                value = Array.Empty<float>();
                             }
                             break;
                         case TypeCode.Double:
@@ -903,7 +902,7 @@ namespace CoreWCF.Dispatcher
                             else
                             {
                                 reader.Read();
-                                value = new double[0];
+                                value = Array.Empty<double>();
                             }
                             break;
                         default:

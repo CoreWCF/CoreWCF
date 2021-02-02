@@ -118,7 +118,7 @@ namespace CoreWCF.Runtime
             }
             // Once _timerFired is set, there's no need to hold the lock as
             // no more will be added to the list.
-            foreach (var cts in _cancellationTokenSources)
+            foreach (CancellationTokenSource cts in _cancellationTokenSources)
             {
                 // TODO: ActionItem.Schedule might be overkill here as I don't expect there
                 // to be many cancellations. There's just no

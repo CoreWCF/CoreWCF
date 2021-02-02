@@ -14,7 +14,7 @@ namespace Services
         public async Task<string> TestMethodAsync(int ID, string name)
         {
             myDelegate del = ProcessAsync;
-            var workTask = System.Threading.Tasks.Task.Run(() => del.Invoke(ID, name));
+            var workTask = Task.Run(() => del.Invoke(ID, name));
             return await workTask;
         }
 

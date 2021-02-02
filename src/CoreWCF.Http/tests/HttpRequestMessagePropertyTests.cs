@@ -30,7 +30,7 @@ namespace BasicHttp
         public void CanFetchHttpHeadersSync()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -38,7 +38,7 @@ namespace BasicHttp
                 IHttpHeadersService channel = null;
                 try
                 {
-                    var httpBinding = ClientHelper.GetBufferedModeBinding();
+                    System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<IHttpHeadersService>(httpBinding,
                         new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/httpHeaders.svc")));
                     channel = factory.CreateChannel();
@@ -47,7 +47,7 @@ namespace BasicHttp
                         var httpRequestMessageProperty = new System.ServiceModel.Channels.HttpRequestMessageProperty();
                         httpRequestMessageProperty.Headers[TestHeaderName] = TestHeaderValue;
                         System.ServiceModel.OperationContext.Current.OutgoingMessageProperties.Add(System.ServiceModel.Channels.HttpRequestMessageProperty.Name, httpRequestMessageProperty);
-                        var headerValue = channel.GetHeaderSync(TestHeaderName);
+                        string headerValue = channel.GetHeaderSync(TestHeaderName);
                         Assert.Equal(TestHeaderValue, headerValue);
                     }
                 }
@@ -64,7 +64,7 @@ namespace BasicHttp
         public async Task CanFetchHttpHeadersAsync(bool initialYield)
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -72,7 +72,7 @@ namespace BasicHttp
                 IHttpHeadersService channel = null;
                 try
                 {
-                    var httpBinding = ClientHelper.GetBufferedModeBinding();
+                    System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<IHttpHeadersService>(httpBinding,
                         new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/httpHeaders.svc")));
                     channel = factory.CreateChannel();
@@ -85,7 +85,7 @@ namespace BasicHttp
                         resultTask = channel.GetHeaderAsync(TestHeaderName, initialYield);
                     }
 
-                    var headerValue = await resultTask;
+                    string headerValue = await resultTask;
                     Assert.Equal(TestHeaderValue, headerValue);
                 }
                 finally
@@ -126,7 +126,7 @@ namespace BasicHttp
 
             public string GetHeaderSync(string headerName)
             {
-                var operationContext = OperationContext.Current;
+                OperationContext operationContext = OperationContext.Current;
                 if (operationContext == null)
                 {
                     return "Operation Context was null";

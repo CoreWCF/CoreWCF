@@ -85,7 +85,7 @@ namespace CoreWCF.Channels
             base.OnClosed();
         }
 
-        protected override async Task OnOpenAsync(CancellationToken token)
+        protected override Task OnOpenAsync(CancellationToken token)
         {
             RemoteEndpointMessageProperty remoteEndpointMessageProperty = null;
             if (_httpContext.Connection.RemoteIpAddress != null)
@@ -100,6 +100,8 @@ namespace CoreWCF.Channels
             //        this._httpContext.EventTraceActivity,
             //        this.WebSocket != null ? this.WebSocket.GetHashCode() : -1);
             //}
+
+            return Task.CompletedTask;
         }
 
         private SecurityMessageProperty ProcessAuthentication()

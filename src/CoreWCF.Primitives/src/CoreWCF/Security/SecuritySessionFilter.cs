@@ -15,20 +15,15 @@ namespace CoreWCF.Security
 {
     internal sealed class SecuritySessionFilter : HeaderFilter
     {
-        private static readonly string s_sessionContextIdsProperty = String.Format(CultureInfo.InvariantCulture, "{0}/SecuritySessionContextIds", DotNetSecurityStrings.Namespace);
+        private static readonly string s_sessionContextIdsProperty = string.Format(CultureInfo.InvariantCulture, "{0}/SecuritySessionContextIds", DotNetSecurityStrings.Namespace);
         private readonly SecurityStandardsManager _standardsManager;
         private readonly string[] _excludedActions;
         private readonly bool _isStrictMode;
 
         public SecuritySessionFilter(UniqueId securityContextTokenId, SecurityStandardsManager standardsManager, bool isStrictMode, params string[] excludedActions)
         {
-            if (securityContextTokenId == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(securityContextTokenId)));
-            }
-
             _excludedActions = excludedActions;
-            SecurityContextTokenId = securityContextTokenId;
+            SecurityContextTokenId = securityContextTokenId ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(securityContextTokenId)));
             _standardsManager = standardsManager;
             _isStrictMode = isStrictMode;
         }
@@ -44,7 +39,7 @@ namespace CoreWCF.Security
             }
             for (int i = 0; i < excludedActions.Length; ++i)
             {
-                if (String.Equals(action, excludedActions[i], StringComparison.Ordinal))
+                if (string.Equals(action, excludedActions[i], StringComparison.Ordinal))
                 {
                     return true;
                 }
@@ -133,15 +128,11 @@ namespace CoreWCF.Security
 
             public SecuritySessionFilterTable(SecurityStandardsManager standardsManager, bool isStrictMode, string[] excludedActions)
             {
-                if (standardsManager == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
-                }
                 if (excludedActions == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(excludedActions));
                 }
-                _standardsManager = standardsManager;
+                _standardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
                 _excludedActions = new string[excludedActions.Length];
                 excludedActions.CopyTo(_excludedActions, 0);
                 _isStrictMode = isStrictMode;
@@ -234,10 +225,9 @@ namespace CoreWCF.Security
 
             public void Add(MessageFilter filter, FilterData data)
             {
-                SecuritySessionFilter sessionFilter = filter as SecuritySessionFilter;
-                if (sessionFilter == null)
+                if (!(filter is SecuritySessionFilter sessionFilter))
                 {
-                    Fx.Assert(String.Format(CultureInfo.InvariantCulture, "Unknown filter type {0}", filter.GetType()));
+                    Fx.Assert(string.Format(CultureInfo.InvariantCulture, "Unknown filter type {0}", filter.GetType()));
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnknownFilterType, filter.GetType())));
                 }
                 if (sessionFilter._standardsManager != _standardsManager)
@@ -266,8 +256,7 @@ namespace CoreWCF.Security
 
             public bool Remove(MessageFilter filter)
             {
-                SecuritySessionFilter sessionFilter = filter as SecuritySessionFilter;
-                if (sessionFilter == null)
+                if (!(filter is SecuritySessionFilter sessionFilter))
                 {
                     return false;
                 }
@@ -301,7 +290,7 @@ namespace CoreWCF.Security
 
             private bool TryMatchCore(Message message, out KeyValuePair<MessageFilter, FilterData> match)
             {
-                match = default(KeyValuePair<MessageFilter, FilterData>);
+                match = default;
                 if (ShouldExcludeMessage(message, _excludedActions))
                 {
                     return false;
@@ -316,7 +305,7 @@ namespace CoreWCF.Security
                 }
                 catch (Exception e)
                 {
-                    if (!SecuritySessionFilter.CanHandleException(e))
+                    if (!CanHandleException(e))
                     {
                         throw;
                     }
@@ -338,7 +327,7 @@ namespace CoreWCF.Security
             {
                 if (!TryMatchCore(message, out KeyValuePair<MessageFilter, FilterData> matchingPair))
                 {
-                    data = default(FilterData);
+                    data = default;
                     return false;
                 }
                 data = matchingPair.Value;

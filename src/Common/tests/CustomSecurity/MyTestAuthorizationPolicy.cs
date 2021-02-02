@@ -18,8 +18,7 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
 
         public bool Evaluate(EvaluationContext evaluationContext, ref object state)
         {
-            bool bRet = false;
-            CustomAuthState customstate = null;
+            CustomAuthState customstate;
 
             // If the state is null, then this has not been called before so 
             // set up a custom state.
@@ -33,13 +32,16 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
                 customstate = (CustomAuthState)state;
             }
 
+            bool bRet;
             // If claims have not been added yet...
             if (!customstate.ClaimsAdded)
             {
                 // Create an empty list of claims.
-                IList<Claim> claims = new List<Claim>();
-                claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/EchoString", Rights.PossessProperty));
-                claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/ComplexEcho", Rights.PossessProperty));
+                IList<Claim> claims = new List<Claim>
+                {
+                    new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/EchoString", Rights.PossessProperty),
+                    new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/ComplexEcho", Rights.PossessProperty)
+                };
                 evaluationContext.AddClaimSet(this, new DefaultClaimSet(Issuer, claims));
                 // Record that claims were added.
                 customstate.ClaimsAdded = true;

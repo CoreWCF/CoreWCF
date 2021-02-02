@@ -8,7 +8,7 @@ namespace CoreWCF
 {
     internal class ServiceModelDictionary : IXmlDictionary
     {
-        static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
+        public static readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
         private readonly ServiceModelStrings _strings;
         private readonly int _count;
         private XmlDictionaryString[] _dictionaryStrings1;
@@ -22,7 +22,7 @@ namespace CoreWCF
             _count = strings.Count;
         }
 
-        static public ServiceModelDictionary CurrentVersion
+        public static ServiceModelDictionary CurrentVersion
         {
             get
             {

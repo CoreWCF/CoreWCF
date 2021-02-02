@@ -129,8 +129,7 @@ namespace CoreWCF.Channels
                 _closed = true;
                 for (int i = 0; i < _properties.Length; i++)
                 {
-                    IDisposable disposable = _properties[i].Value as IDisposable;
-                    if (disposable != null)
+                    if (_properties[i].Value is IDisposable disposable)
                     {
                         disposable.Dispose();
                     }
@@ -291,8 +290,6 @@ namespace CoreWCF.Channels
 
     internal class BodyWriterMessageBuffer : MessageBuffer
     {
-        private readonly object _thisLock = new object();
-
         public BodyWriterMessageBuffer(MessageHeaders headers,
             KeyValuePair<string, object>[] properties, BodyWriter bodyWriter)
         {
@@ -301,10 +298,7 @@ namespace CoreWCF.Channels
             Properties = properties;
         }
 
-        protected object ThisLock
-        {
-            get { return _thisLock; }
-        }
+        protected object ThisLock { get; } = new object();
 
         public override int BufferSize
         {

@@ -32,7 +32,7 @@ namespace CoreWCF
         {
             if (address == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("address");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
             return new EndpointAddressAugust2004(address);
         }
@@ -77,7 +77,7 @@ namespace CoreWCF
         {
             if (xmlSchemaSet == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("xmlSchemaSet");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlSchemaSet));
             }
 
             XmlQualifiedName eprType = EprType;

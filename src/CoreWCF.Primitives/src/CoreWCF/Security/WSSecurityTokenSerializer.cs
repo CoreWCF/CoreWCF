@@ -141,9 +141,11 @@ namespace CoreWCF.Security
                 serializerEntry.PopulateTokenEntries(_tokenEntries);
             }
 
-            DictionaryManager dictionaryManager = new DictionaryManager(ServiceModelDictionary.CurrentVersion);
-            dictionaryManager.SecureConversationDec2005Dictionary = DXD.SecureConversationDec2005Dictionary;
-            dictionaryManager.SecurityAlgorithmDec2005Dictionary = DXD.SecurityAlgorithmDec2005Dictionary;
+            DictionaryManager dictionaryManager = new DictionaryManager(ServiceModelDictionary.CurrentVersion)
+            {
+                SecureConversationDec2005Dictionary = DXD.SecureConversationDec2005Dictionary,
+                SecurityAlgorithmDec2005Dictionary = DXD.SecurityAlgorithmDec2005Dictionary
+            };
 
             _keyInfoSerializer = new WSKeyInfoSerializer(EmitBspRequiredAttributes, dictionaryManager, trustDictionary, this, securityVersion, secureConversationVersion);
         }
@@ -419,7 +421,7 @@ namespace CoreWCF.Security
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.CannotReadToken, element.LocalName, element.NamespaceURI, element.GetAttribute(SecurityJan2004Strings.ValueType, null))));
         }
 
-        internal abstract new class TokenEntry
+        internal new abstract class TokenEntry
         {
             private Type[] _tokenTypes = null;
             protected abstract XmlDictionaryString LocalName { get; }
@@ -498,7 +500,7 @@ namespace CoreWCF.Security
             public abstract void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token);
         }
 
-        internal abstract new class SerializerEntries
+        internal new abstract class SerializerEntries
         {
             public virtual void PopulateTokenEntries(IList<TokenEntry> tokenEntries) { }
         }

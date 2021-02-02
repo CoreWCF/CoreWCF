@@ -76,7 +76,7 @@ namespace CoreWCF.Description
 
         public object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
-            var attributes = GetCustomAttributes(inherit);
+            object[] attributes = GetCustomAttributes(inherit);
             if (attributes == null || attributes.Length == 0)
             {
                 return attributes;
@@ -172,8 +172,10 @@ namespace CoreWCF.Description
         private static MessageContractAttribute ConvertFromServiceModelMessageContractAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageContractAttributeFullName), "Expected attribute of type System.ServiceModel.MessageContract");
-            var messageContract = new MessageContractAttribute();
-            messageContract.IsWrapped = GetProperty<bool>(attr, nameof(MessageContractAttribute.IsWrapped));
+            var messageContract = new MessageContractAttribute
+            {
+                IsWrapped = GetProperty<bool>(attr, nameof(MessageContractAttribute.IsWrapped))
+            };
             string tmpStr = GetProperty<string>(attr, nameof(MessageContractAttribute.WrapperName));
             if (!string.IsNullOrEmpty(tmpStr))
             {

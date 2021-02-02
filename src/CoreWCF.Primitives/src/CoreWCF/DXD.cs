@@ -11,8 +11,6 @@ namespace CoreWCF
     // When adding or removing memebers please keep the capacity of the XmlDictionary field current.
     internal static class DXD
     {
-        private static readonly Wsrm11Dictionary s_wsrm11Dictionary;
-
         static DXD()
         {
             // Each string added to the XmlDictionary will keep a reference to the XmlDictionary so this class does
@@ -29,7 +27,7 @@ namespace CoreWCF
             TrustDec2005Dictionary = new TrustDec2005Dictionary(dictionary);
             TrustDec2005Dictionary.PopulateDec2005DictionaryStrings();
             TrustDec2005Dictionary.PopulateFeb2005DictionaryString();
-            s_wsrm11Dictionary = new Wsrm11Dictionary(dictionary);
+            Wsrm11Dictionary = new Wsrm11Dictionary(dictionary);
         }
 
         public static AtomicTransactionExternal11Dictionary AtomicTransactionExternal11Dictionary { get; private set; }
@@ -42,10 +40,7 @@ namespace CoreWCF
 
         public static TrustDec2005Dictionary TrustDec2005Dictionary { get; private set; }
 
-        public static Wsrm11Dictionary Wsrm11Dictionary
-        {
-            get { return s_wsrm11Dictionary; }
-        }
+        public static Wsrm11Dictionary Wsrm11Dictionary { get; private set; }
     }
 
     internal class AtomicTransactionExternal11Dictionary

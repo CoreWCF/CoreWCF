@@ -57,11 +57,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
-                }
-                _binaryVersion = value;
+                _binaryVersion = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
@@ -249,8 +245,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            BinaryMessageEncodingBindingElement binary = b as BinaryMessageEncodingBindingElement;
-            if (binary == null)
+            if (!(b is BinaryMessageEncodingBindingElement binary))
             {
                 return false;
             }

@@ -19,13 +19,13 @@ namespace ErrorHandling
             var fault = new TestFault { Message = Guid.NewGuid().ToString() };
             var reason = new FaultReason(Guid.NewGuid().ToString());
             var code = new FaultCode(nameof(ServiceSendFaultMessage));
-            var factory = DispatcherHelper.CreateChannelFactory<FaultingService, IFaultingService>(
+            System.ServiceModel.ChannelFactory<IFaultingService> factory = DispatcherHelper.CreateChannelFactory<FaultingService, IFaultingService>(
                 (services) =>
                 {
                     services.AddSingleton(new FaultingService(fault, reason, code));
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            IFaultingService channel = factory.CreateChannel();
             Exception exceptionThrown = null;
             try
             {

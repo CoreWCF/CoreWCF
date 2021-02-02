@@ -22,7 +22,7 @@ namespace CoreWCF.Channels
 
             for (int i = 0; i < parameters.Length; i++)
             {
-                base.Add(parameters[i]);
+                Add(parameters[i]);
             }
         }
 

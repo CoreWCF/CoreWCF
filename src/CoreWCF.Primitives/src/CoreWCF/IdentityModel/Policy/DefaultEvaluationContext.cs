@@ -56,7 +56,7 @@ namespace CoreWCF.IdentityModel.Policy
         {
             if (claimSet == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claimSet");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claimSet));
             }
 
             if (_claimSets == null)

@@ -112,12 +112,7 @@ namespace CoreWCF
 
         internal void SetWellKnownSingleton(object value)
         {
-            if (value == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-            }
-
-            _wellKnownSingleton = value;
+            _wellKnownSingleton = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
         }
 
         internal object GetHiddenSingleton()
@@ -127,12 +122,7 @@ namespace CoreWCF
 
         internal void SetHiddenSingleton(object value)
         {
-            if (value == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-            }
-
-            _hiddenSingleton = value;
+            _hiddenSingleton = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
         }
 
         void IServiceBehavior.Validate(ServiceDescription description, ServiceHostBase serviceHostBase)
@@ -154,8 +144,7 @@ namespace CoreWCF
         {
             for (int i = 0; i < serviceHostBase.ChannelDispatchers.Count; i++)
             {
-                ChannelDispatcher channelDispatcher = serviceHostBase.ChannelDispatchers[i] as ChannelDispatcher;
-                if (channelDispatcher != null)
+                if (serviceHostBase.ChannelDispatchers[i] is ChannelDispatcher channelDispatcher)
                 {
                     channelDispatcher.IncludeExceptionDetailInFaults = _includeExceptionDetailInFaults;
 
@@ -208,8 +197,7 @@ namespace CoreWCF
 
             for (int i = 0; i < serviceHostBase.ChannelDispatchers.Count; i++)
             {
-                ChannelDispatcher channelDispatcher = serviceHostBase.ChannelDispatchers[i] as ChannelDispatcher;
-                if (channelDispatcher != null)
+                if (serviceHostBase.ChannelDispatchers[i] is ChannelDispatcher channelDispatcher)
                 {
                     foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
                     {

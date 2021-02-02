@@ -9,21 +9,15 @@ namespace CoreWCF.Dispatcher
 {
     internal class DataContractSerializerServiceBehavior : IServiceBehavior, IEndpointBehavior
     {
-        private int _maxItemsInObjectGraph;
-
         internal DataContractSerializerServiceBehavior(bool ignoreExtensionDataObject, int maxItemsInObjectGraph)
         {
             IgnoreExtensionDataObject = ignoreExtensionDataObject;
-            _maxItemsInObjectGraph = maxItemsInObjectGraph;
+            MaxItemsInObjectGraph = maxItemsInObjectGraph;
         }
 
         public bool IgnoreExtensionDataObject { get; set; }
 
-        public int MaxItemsInObjectGraph
-        {
-            get { return _maxItemsInObjectGraph; }
-            set { _maxItemsInObjectGraph = value; }
-        }
+        public int MaxItemsInObjectGraph { get; set; }
 
         void IServiceBehavior.Validate(ServiceDescription description, ServiceHostBase serviceHostBase)
         {
@@ -35,7 +29,7 @@ namespace CoreWCF.Dispatcher
 
         void IServiceBehavior.ApplyDispatchBehavior(ServiceDescription description, ServiceHostBase serviceHostBase)
         {
-            ApplySerializationSettings(description, IgnoreExtensionDataObject, _maxItemsInObjectGraph);
+            ApplySerializationSettings(description, IgnoreExtensionDataObject, MaxItemsInObjectGraph);
         }
 
         void IEndpointBehavior.Validate(ServiceEndpoint serviceEndpoint)
@@ -48,12 +42,12 @@ namespace CoreWCF.Dispatcher
 
         void IEndpointBehavior.ApplyClientBehavior(ServiceEndpoint serviceEndpoint, ClientRuntime clientRuntime)
         {
-            ApplySerializationSettings(serviceEndpoint, IgnoreExtensionDataObject, _maxItemsInObjectGraph);
+            ApplySerializationSettings(serviceEndpoint, IgnoreExtensionDataObject, MaxItemsInObjectGraph);
         }
 
         void IEndpointBehavior.ApplyDispatchBehavior(ServiceEndpoint serviceEndpoint, EndpointDispatcher endpointDispatcher)
         {
-            ApplySerializationSettings(serviceEndpoint, IgnoreExtensionDataObject, _maxItemsInObjectGraph);
+            ApplySerializationSettings(serviceEndpoint, IgnoreExtensionDataObject, MaxItemsInObjectGraph);
         }
 
         internal static void ApplySerializationSettings(ServiceDescription description, bool ignoreExtensionDataObject, int maxItemsInObjectGraph)
@@ -73,8 +67,7 @@ namespace CoreWCF.Dispatcher
             {
                 foreach (IOperationBehavior ob in operation.Behaviors)
                 {
-                    DataContractSerializerOperationBehavior behavior = ob as DataContractSerializerOperationBehavior;
-                    if (behavior != null)
+                    if (ob is DataContractSerializerOperationBehavior behavior)
                     {
                         if (!behavior.IgnoreExtensionDataObjectSetExplicit)
                         {

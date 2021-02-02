@@ -106,7 +106,7 @@ namespace CoreWCF.Dispatcher
 
         public Task DispatchAsync(Message message)
         {
-            var requestContext = WrapMessage(message);
+            RequestContext requestContext = WrapMessage(message);
             return _next.DispatchAsync(requestContext);
         }
 

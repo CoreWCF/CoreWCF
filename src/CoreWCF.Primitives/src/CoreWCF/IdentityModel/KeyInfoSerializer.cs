@@ -48,10 +48,11 @@ namespace CoreWCF.IdentityModel.Tokens
             EmitBspRequiredAttributes = emitBspRequiredAttributes;
             _innerSecurityTokenSerializer = innerSecurityTokenSerializer;
 
-            _serializerEntries = new List<SerializerEntries>();
-
-            _serializerEntries.Add(new XmlDsigSep2000(this));
-            _serializerEntries.Add(new Security.WSTrust(this, trustDictionary));
+            _serializerEntries = new List<SerializerEntries>
+            {
+                new XmlDsigSep2000(this),
+                new Security.WSTrust(this, trustDictionary)
+            };
             if (additionalEntries != null)
             {
                 foreach (SerializerEntries entries in additionalEntries(this))
@@ -99,7 +100,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             get
             {
-                return _innerSecurityTokenSerializer == null ? this : _innerSecurityTokenSerializer;
+                return _innerSecurityTokenSerializer ?? this;
             }
             set
             {

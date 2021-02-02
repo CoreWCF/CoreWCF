@@ -29,7 +29,7 @@ namespace CoreWCF
             {
                 if (!MessageCredentialTypeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 _clientCredentialType = value;
             }
@@ -42,11 +42,7 @@ namespace CoreWCF
             get { return _algorithmSuite; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
-                }
-                _algorithmSuite = value;
+                _algorithmSuite = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 WasAlgorithmSuiteSet = true;
             }
         }
@@ -66,10 +62,8 @@ namespace CoreWCF
             }
 
             SecurityBindingElement result;
-            SecurityBindingElement oneShotSecurity = null;
-
             bool isKerberosSelected = false;
-            bool emitBspAttributes = true;
+            SecurityBindingElement oneShotSecurity;
             if (isSecureTransportMode)
             {
                 switch (_clientCredentialType)
@@ -86,7 +80,7 @@ namespace CoreWCF
                     //    oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
                     //    break;
                     //case MessageCredentialType.IssuedToken:
-                    //    oneShotSecurity = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes)), this.algorithmSuite));
+                    //    oneShotSecurity = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes: true)), this.algorithmSuite));
                     //    break;
                     default:
                         Fx.Assert("unknown ClientCredentialType");
@@ -122,7 +116,7 @@ namespace CoreWCF
                 //            oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationBindingElement(true);
                 //            break;
                 //        case MessageCredentialType.IssuedToken:
-                //            oneShotSecurity = SecurityBindingElement.CreateIssuedTokenForSslBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes)), this.algorithmSuite), true);
+                //            oneShotSecurity = SecurityBindingElement.CreateIssuedTokenForSslBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes: true)), this.algorithmSuite), true);
                 //            break;
                 //        default:
                 //            Fx.Assert("unknown ClientCredentialType");
@@ -147,21 +141,21 @@ namespace CoreWCF
                 //            isKerberosSelected = true;
                 //            break;
                 //        case MessageCredentialType.IssuedToken:
-                //            oneShotSecurity = SecurityBindingElement.CreateIssuedTokenForCertificateBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes)), this.algorithmSuite));
+                //            oneShotSecurity = SecurityBindingElement.CreateIssuedTokenForCertificateBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes: true)), this.algorithmSuite));
                 //            break;
                 //        default:
                 //            Fx.Assert("unknown ClientCredentialType");
                 //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
                 //    }
                 //}
-                if (IsSecureConversationEnabled())
-                {
-                    result = SecurityBindingElement.CreateSecureConversationBindingElement(oneShotSecurity, true);
-                }
-                else
-                {
-                    result = oneShotSecurity;
-                }
+                //if (IsSecureConversationEnabled())
+                //{
+                //    result = SecurityBindingElement.CreateSecureConversationBindingElement(oneShotSecurity, true);
+                //}
+                //else
+                //{
+                //    result = oneShotSecurity;
+                //}
             }
 
             // set the algorithm suite and issued token params if required

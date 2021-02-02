@@ -15,27 +15,24 @@ namespace CoreWCF
     {
         internal static readonly Uri EmptyUri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
         private bool _initializeDescriptionHasFinished;
-        private readonly ChannelDispatcherCollection _channelDispatchers;
         private TimeSpan _closeTimeout = ServiceDefaults.ServiceHostCloseTimeout;
         private readonly ExtensionCollection<ServiceHostBase> _extensions;
         private ReadOnlyCollection<Uri> _externalBaseAddresses;
         private IDictionary<string, ContractDescription> _implementedContracts;
         private readonly IInstanceContextManager _instances;
         private TimeSpan _openTimeout = ServiceDefaults.OpenTimeout;
-        private readonly ServiceCredentials _readOnlyCredentials;
-        private readonly ServiceAuthorizationBehavior _readOnlyAuthorization;
 
         //ServiceAuthenticationBehavior readOnlyAuthentication;
-        private readonly Dictionary<DispatcherBuilder.ListenUriInfo, Collection<ServiceEndpoint>> _endpointsByListenUriInfo;
-        private readonly int _busyCount;
         //EventTraceActivity eventTraceActivity;
 
+#pragma warning disable CS0067 // The event is never used - see issue #288
         public event EventHandler<UnknownMessageReceivedEventArgs> UnknownMessageReceived;
+#pragma warning restore CS0067 // The event is never used
 
         protected ServiceHostBase()
         {
             InternalBaseAddresses = new UriSchemeKeyedCollection(ThisLock);
-            _channelDispatchers = new ChannelDispatcherCollection(this, ThisLock);
+            ChannelDispatchers = new ChannelDispatcherCollection(this, ThisLock);
             _extensions = new ExtensionCollection<ServiceHostBase>(this, ThisLock);
             _instances = new InstanceContextManager(ThisLock);
         }
@@ -54,7 +51,7 @@ namespace CoreWCF
                 }
                 else
                 {
-                    return _readOnlyAuthorization;
+                    return null;
                 }
             }
         }
@@ -88,10 +85,7 @@ namespace CoreWCF
             }
         }
 
-        public ChannelDispatcherCollection ChannelDispatchers
-        {
-            get { return _channelDispatchers; }
-        }
+        public ChannelDispatcherCollection ChannelDispatchers { get; }
 
         public TimeSpan CloseTimeout
         {
@@ -101,11 +95,11 @@ namespace CoreWCF
                 if (value < TimeSpan.Zero)
                 {
                     string message = SR.SFxTimeoutOutOfRange0;
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", message));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), message));
                 }
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.SFxTimeoutOutOfRangeTooBig));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 lock (ThisLock)
@@ -130,7 +124,7 @@ namespace CoreWCF
                 }
                 else
                 {
-                    return _readOnlyCredentials;
+                    return null;
                 }
             }
         }
@@ -173,11 +167,11 @@ namespace CoreWCF
                 if (value < TimeSpan.Zero)
                 {
                     string message = SR.SFxTimeoutOutOfRange0;
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", message));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), message));
                 }
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.SFxTimeoutOutOfRangeTooBig));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 lock (ThisLock)
@@ -204,46 +198,6 @@ namespace CoreWCF
                     SR.SFxCannotCallAddBaseAddress));
             }
             InternalBaseAddresses.Add(baseAddress);
-        }
-
-        public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, string address)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, string address, Uri listenUri)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, Uri address)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, Uri address, Uri listenUri)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public virtual void AddServiceEndpoint(ServiceEndpoint endpoint)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public void SetEndpointAddress(ServiceEndpoint endpoint, string relativeAddress)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        protected virtual void ApplyConfiguration()
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public virtual ReadOnlyCollection<ServiceEndpoint> AddDefaultEndpoints()
-        {
-            throw new PlatformNotSupportedException();
         }
 
         internal virtual void BindInstance(InstanceContext instance)
@@ -314,10 +268,10 @@ namespace CoreWCF
             return c;
         }
 
-        public int IncrementManualFlowControlLimit(int incrementBy)
-        {
-            throw new PlatformNotSupportedException();
-        }
+        //public int IncrementManualFlowControlLimit(int incrementBy)
+        //{
+        //    throw new PlatformNotSupportedException();
+        //}
 
         protected void InitializeDescription(UriSchemeKeyedCollection baseAddresses)
         {
@@ -327,7 +281,6 @@ namespace CoreWCF
             }
 
             Description = CreateDescription(out _implementedContracts);
-            ApplyConfiguration();
             _initializeDescriptionHasFinished = true;
         }
 
@@ -361,10 +314,10 @@ namespace CoreWCF
             Fault();
         }
 
-        protected void ReleasePerformanceCounters()
-        {
-            throw new PlatformNotSupportedException();
-        }
+        //protected void ReleasePerformanceCounters()
+        //{
+        //    throw new PlatformNotSupportedException();
+        //}
 
         internal virtual void UnbindInstance(InstanceContext instance)
         {

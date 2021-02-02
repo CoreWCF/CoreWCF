@@ -14,7 +14,6 @@ namespace CoreWCF.Security.Tokens
 {
     public class SecurityContextSecurityToken : SecurityToken, IDisposable, TimeBoundedCache.IExpirableItem
     {
-        private UniqueId _keyGeneration = null;
         private DateTime _tokenEffectiveTime;
         private DateTime _tokenExpirationTime;
         private byte[] _key;
@@ -47,7 +46,7 @@ namespace CoreWCF.Security.Tokens
         }
 
         internal SecurityContextSecurityToken(SecurityContextSecurityToken sourceToken, string id)
-            : this(sourceToken, id, sourceToken._key, sourceToken._keyGeneration, sourceToken.KeyEffectiveTime, sourceToken.KeyExpirationTime, sourceToken.AuthorizationPolicies)
+            : this(sourceToken, id, sourceToken._key, sourceToken.KeyGeneration, sourceToken.KeyEffectiveTime, sourceToken.KeyExpirationTime, sourceToken.AuthorizationPolicies)
         {
         }
 
@@ -78,7 +77,7 @@ namespace CoreWCF.Security.Tokens
         {
             ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.CloneAuthorizationPoliciesIfNecessary(from._authorizationPolicies);
             _id = from._id;
-            Initialize(from.ContextId, from._key, from._tokenEffectiveTime, from._tokenExpirationTime, authorizationPolicies, from.IsCookieMode, from._keyGeneration, from.KeyEffectiveTime, from.KeyExpirationTime);
+            Initialize(from.ContextId, from._key, from._tokenEffectiveTime, from._tokenExpirationTime, authorizationPolicies, from.IsCookieMode, from.KeyGeneration, from.KeyEffectiveTime, from.KeyExpirationTime);
             CookieBlob = from.CookieBlob;
             BootstrapMessageProperty = (from.BootstrapMessageProperty == null) ? null : (SecurityMessageProperty)from.BootstrapMessageProperty.CreateCopy();
         }
@@ -103,7 +102,7 @@ namespace CoreWCF.Security.Tokens
 
         public UniqueId ContextId { get; private set; } = null;
 
-        public UniqueId KeyGeneration => _keyGeneration;
+        public UniqueId KeyGeneration { get; private set; } = null;
 
         public DateTime KeyEffectiveTime { get; private set; }
 
@@ -159,17 +158,12 @@ namespace CoreWCF.Security.Tokens
 
         public override string ToString()
         {
-            return String.Format(CultureInfo.CurrentCulture, "SecurityContextSecurityToken(Identifier='{0}', KeyGeneration='{1}')", ContextId, _keyGeneration);
+            return string.Format(CultureInfo.CurrentCulture, "SecurityContextSecurityToken(Identifier='{0}', KeyGeneration='{1}')", ContextId, KeyGeneration);
         }
 
         private void Initialize(UniqueId contextId, byte[] key, DateTime validFrom, DateTime validTo, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, bool isCookieMode,
             UniqueId keyGeneration, DateTime keyEffectiveTime, DateTime keyExpirationTime)
         {
-            if (contextId == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
-            }
-
             if (key == null || key.Length == 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
@@ -197,11 +191,13 @@ namespace CoreWCF.Security.Tokens
 
             _key = new byte[key.Length];
             Buffer.BlockCopy(key, 0, _key, 0, key.Length);
-            ContextId = contextId;
-            _keyGeneration = keyGeneration;
+            ContextId = contextId ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
+            KeyGeneration = keyGeneration;
             _authorizationPolicies = authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
-            List<SecurityKey> temp = new List<SecurityKey>(1);
-            temp.Add(new InMemorySymmetricSecurityKey(_key, false));
+            List<SecurityKey> temp = new List<SecurityKey>(1)
+            {
+                new InMemorySymmetricSecurityKey(_key, false)
+            };
             _securityKeys = temp.AsReadOnly();
             IsCookieMode = isCookieMode;
         }
@@ -220,7 +216,7 @@ namespace CoreWCF.Security.Tokens
         {
             if (typeof(T) == typeof(SecurityContextKeyIdentifierClause))
             {
-                return new SecurityContextKeyIdentifierClause(ContextId, _keyGeneration) as T;
+                return new SecurityContextKeyIdentifierClause(ContextId, KeyGeneration) as T;
             }
 
             return base.CreateKeyIdentifierClause<T>();
@@ -228,10 +224,9 @@ namespace CoreWCF.Security.Tokens
 
         public override bool MatchesKeyIdentifierClause(SecurityKeyIdentifierClause keyIdentifierClause)
         {
-            SecurityContextKeyIdentifierClause sctKeyIdentifierClause = keyIdentifierClause as SecurityContextKeyIdentifierClause;
-            if (sctKeyIdentifierClause != null)
+            if (keyIdentifierClause is SecurityContextKeyIdentifierClause sctKeyIdentifierClause)
             {
-                return sctKeyIdentifierClause.Matches(ContextId, _keyGeneration);
+                return sctKeyIdentifierClause.Matches(ContextId, KeyGeneration);
             }
 
             return base.MatchesKeyIdentifierClause(keyIdentifierClause);

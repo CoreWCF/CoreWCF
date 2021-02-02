@@ -109,12 +109,7 @@ namespace CoreWCF.Dispatcher
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _identityVerifier = value;
+                _identityVerifier = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -210,13 +205,11 @@ namespace CoreWCF.Dispatcher
             // This operation does not have to be under the lock
             if (array != null && array.Length > 0)
             {
-                RequestReplyCorrelator requestReplyCorrelator = _correlator as RequestReplyCorrelator;
-                if (requestReplyCorrelator != null)
+                if (_correlator is RequestReplyCorrelator requestReplyCorrelator)
                 {
                     foreach (IDuplexRequest request in array)
                     {
-                        ICorrelatorKey keyedRequest = request as ICorrelatorKey;
-                        if (keyedRequest != null)
+                        if (request is ICorrelatorKey keyedRequest)
                         {
                             requestReplyCorrelator.RemoveRequest(keyedRequest);
                         }
@@ -364,8 +357,7 @@ namespace CoreWCF.Dispatcher
             // This operation does not have to be under the lock
             if (array != null && array.Length > 0)
             {
-                RequestReplyCorrelator requestReplyCorrelator = _correlator as RequestReplyCorrelator;
-                if (requestReplyCorrelator != null)
+                if (_correlator is RequestReplyCorrelator requestReplyCorrelator)
                 {
                     foreach (ICorrelatorKey request in array)
                     {

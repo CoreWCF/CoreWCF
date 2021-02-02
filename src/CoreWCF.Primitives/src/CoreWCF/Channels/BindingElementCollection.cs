@@ -104,7 +104,7 @@ namespace CoreWCF.Channels
                     return item;
                 }
             }
-            return default(T);
+            return default;
         }
 
         public Collection<T> FindAll<T>()

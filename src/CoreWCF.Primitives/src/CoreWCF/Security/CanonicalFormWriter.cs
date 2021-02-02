@@ -67,13 +67,13 @@ namespace CoreWCF.IdentityModel
 
         private static void EncodeAndWrite(Stream stream, string s)
         {
-            byte[] buffer = CanonicalFormWriter.Utf8WithoutPreamble.GetBytes(s);
+            byte[] buffer = Utf8WithoutPreamble.GetBytes(s);
             stream.Write(buffer, 0, buffer.Length);
         }
 
         private static void EncodeAndWrite(Stream stream, char[] chars, int count)
         {
-            byte[] buffer = CanonicalFormWriter.Utf8WithoutPreamble.GetBytes(chars, 0, count);
+            byte[] buffer = Utf8WithoutPreamble.GetBytes(chars, 0, count);
             stream.Write(buffer, 0, buffer.Length);
         }
     }

@@ -9,7 +9,7 @@ namespace CoreWCF
     {
         public GeneralEndpointIdentity(Claim identityClaim)
         {
-            base.Initialize(identityClaim);
+            Initialize(identityClaim);
         }
     }
 }

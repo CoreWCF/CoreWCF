@@ -30,13 +30,13 @@ namespace CoreWCF.IdentityModel.Selectors
             Initialize();
         }
 
-        static public string TokenTypeProperty { get { return tokenTypeProperty; } }
-        static public string KeyUsageProperty { get { return keyUsageProperty; } }
-        static public string KeyTypeProperty { get { return keyTypeProperty; } }
-        static public string KeySizeProperty { get { return keySizeProperty; } }
-        static public string RequireCryptographicTokenProperty { get { return requireCryptographicTokenProperty; } }
-        static public string PeerAuthenticationMode { get { return peerAuthenticationMode; } }
-        static public string IsOptionalTokenProperty { get { return isOptionalTokenProperty; } }
+        public static string TokenTypeProperty { get { return tokenTypeProperty; } }
+        public static string KeyUsageProperty { get { return keyUsageProperty; } }
+        public static string KeyTypeProperty { get { return keyTypeProperty; } }
+        public static string KeySizeProperty { get { return keySizeProperty; } }
+        public static string RequireCryptographicTokenProperty { get { return requireCryptographicTokenProperty; } }
+        public static string PeerAuthenticationMode { get { return peerAuthenticationMode; } }
+        public static string IsOptionalTokenProperty { get { return isOptionalTokenProperty; } }
 
         public string TokenType
         {
@@ -146,7 +146,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             if (!Properties.TryGetValue(propertyName, out object dictionaryValue))
             {
-                result = default(TValue);
+                result = default;
                 return false;
             }
             if (dictionaryValue != null && !typeof(TValue).IsAssignableFrom(dictionaryValue.GetType()))

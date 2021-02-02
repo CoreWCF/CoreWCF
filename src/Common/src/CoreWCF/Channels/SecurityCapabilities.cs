@@ -29,12 +29,12 @@ namespace CoreWCF.Channels
         {
             if (capabilities1 == null)
             {
-                capabilities1 = SecurityCapabilities.None;
+                capabilities1 = None;
             }
 
             if (capabilities2 == null)
             {
-                capabilities2 = SecurityCapabilities.None;
+                capabilities2 = None;
             }
 
             if (capabilities1.SupportedRequestProtectionLevel != capabilities2.SupportedRequestProtectionLevel)

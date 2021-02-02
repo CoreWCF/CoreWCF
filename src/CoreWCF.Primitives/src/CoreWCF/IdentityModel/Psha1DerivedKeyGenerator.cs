@@ -52,7 +52,7 @@ namespace CoreWCF.IdentityModel
                 seed.CopyTo(_seed, label.Length);
 
                 _aValue = _seed;
-                _chunk = new byte[0];
+                _chunk = Array.Empty<byte>();
                 _index = 0;
                 _position = 0;
                 _hmac = CryptoHelper.NewHmacSha1KeyedHashAlgorithm(secret);

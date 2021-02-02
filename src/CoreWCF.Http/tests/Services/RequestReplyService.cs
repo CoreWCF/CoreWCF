@@ -78,11 +78,13 @@ namespace Services
         public Stream DownloadStream()
         {
             log.Add("DownloadStream");
-            localStream = new FlowControlledStream();
-            localStream.ReadThrottle = TimeSpan.FromMilliseconds(500);
-            // Setting to 900ms instead of 1 second because sometimes 3 reads occur and the read buffer grows with
-            // each read by a factor of 16 up to 64KB and this is causing the client to exceed it's MaxReceivedMessageSize
-            localStream.StreamDuration = TimeSpan.FromMilliseconds(900);
+            localStream = new FlowControlledStream
+            {
+                ReadThrottle = TimeSpan.FromMilliseconds(500),
+                // Setting to 900ms instead of 1 second because sometimes 3 reads occur and the read buffer grows with
+                // each read by a factor of 16 up to 64KB and this is causing the client to exceed it's MaxReceivedMessageSize
+                StreamDuration = TimeSpan.FromMilliseconds(900)
+            };
 
             return localStream;
         }
@@ -90,9 +92,11 @@ namespace Services
         public Stream DownloadCustomizedStream(TimeSpan readThrottle, TimeSpan streamDuration)
         {
             log.Add("DownloadStream");
-            localStream = new FlowControlledStream();
-            localStream.ReadThrottle = readThrottle;
-            localStream.StreamDuration = streamDuration;
+            localStream = new FlowControlledStream
+            {
+                ReadThrottle = readThrottle,
+                StreamDuration = streamDuration
+            };
 
             return localStream;
         }

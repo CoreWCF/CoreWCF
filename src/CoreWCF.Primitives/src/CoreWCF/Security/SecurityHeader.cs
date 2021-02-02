@@ -17,7 +17,6 @@ namespace CoreWCF.Security
         private bool _requireMessageProtection = true;
         private bool _processingStarted;
         private bool _maintainSignatureConfirmationState;
-        private readonly MessageDirection _transferDirection;
         private SecurityHeaderLayout _layout = SecurityHeaderLayout.Strict;
 
         public SecurityHeader(Message message,
@@ -26,30 +25,13 @@ namespace CoreWCF.Security
             , SecurityAlgorithmSuite algorithmSuite,
             MessageDirection transferDirection)
         {
-            if (message == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
-            }
-            if (actor == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
-            }
-            if (standardsManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
-            }
-            if (algorithmSuite == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithmSuite));
-            }
-
-            Message = message;
-            _actor = actor;
+            Message = message ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            _actor = actor ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
             _mustUnderstand = mustUnderstand;
             _relay = relay;
-            StandardsManager = standardsManager;
-            AlgorithmSuite = algorithmSuite;
-            _transferDirection = transferDirection;
+            StandardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
+            AlgorithmSuite = algorithmSuite ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithmSuite));
+            MessageDirection = transferDirection;
         }
 
         public override string Actor => _actor;
@@ -107,7 +89,7 @@ namespace CoreWCF.Security
 
         public SecurityStandardsManager StandardsManager { get; }
 
-        public MessageDirection MessageDirection => _transferDirection;
+        public MessageDirection MessageDirection { get; }
 
         protected MessageVersion Version => Message.Version;
 

@@ -50,9 +50,11 @@ namespace CoreWCF.Dispatcher
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
         {
-            AuthorizationBehavior behavior = new AuthorizationBehavior();
-            behavior._externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies;
-            behavior._serviceAuthorizationManager = dispatch.ServiceAuthorizationManager;
+            AuthorizationBehavior behavior = new AuthorizationBehavior
+            {
+                _externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies,
+                _serviceAuthorizationManager = dispatch.ServiceAuthorizationManager
+            };
             return behavior;
         }
 

@@ -67,7 +67,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
             if (clause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("clause"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(clause)));
             }
             _clauses.Add(clause);
         }
@@ -124,8 +124,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             for (int i = 0; i < _clauses.Count; i++)
             {
-                TClause c = _clauses[i] as TClause;
-                if (c != null)
+                if (_clauses[i] is TClause c)
                 {
                     clause = c;
                     return true;

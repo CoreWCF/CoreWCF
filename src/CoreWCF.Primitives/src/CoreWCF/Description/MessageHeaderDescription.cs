@@ -7,7 +7,6 @@ namespace CoreWCF.Description
 {
     public class MessageHeaderDescription : MessagePartDescription
     {
-        private bool _relay;
         private bool _isUnknownHeader;
 
         public MessageHeaderDescription(string name, string ns)
@@ -34,11 +33,7 @@ namespace CoreWCF.Description
 
         public bool MustUnderstand { get; set; }
 
-        public bool Relay
-        {
-            get { return _relay; }
-            set { _relay = value; }
-        }
+        public bool Relay { get; set; }
 
         public bool TypedHeader { get; set; }
 

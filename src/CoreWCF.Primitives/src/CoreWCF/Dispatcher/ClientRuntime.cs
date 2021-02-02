@@ -20,7 +20,6 @@ namespace CoreWCF.Dispatcher
         internal SynchronizedKeyedCollection<string, ClientOperation> operations;
         private Type _callbackProxyType;
         private readonly ProxyBehaviorCollection<IChannelInitializer> _channelInitializers;
-        private readonly string _contractNamespace;
         private Type _contractProxyType;
         private IdentityVerifier _identityVerifier;
         private IClientOperationSelector _operationSelector;
@@ -36,12 +35,7 @@ namespace CoreWCF.Dispatcher
                    dispatchRuntime.EndpointDispatcher.ContractNamespace,
                    shared)
         {
-            if (dispatchRuntime == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatchRuntime));
-            }
-
-            DispatchRuntime = dispatchRuntime;
+            DispatchRuntime = dispatchRuntime ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatchRuntime));
             _shared = shared;
 
             Fx.Assert(shared.IsOnServer, "Server constructor called on client?");
@@ -56,7 +50,7 @@ namespace CoreWCF.Dispatcher
         private ClientRuntime(string contractName, string contractNamespace, SharedRuntimeState shared)
         {
             ContractName = contractName;
-            _contractNamespace = contractNamespace;
+            ContractNamespace = contractNamespace;
             _shared = shared;
 
             OperationCollection operations = new OperationCollection(this);
@@ -64,8 +58,10 @@ namespace CoreWCF.Dispatcher
             _channelInitializers = new ProxyBehaviorCollection<IChannelInitializer>(this);
             messageInspectors = new ProxyBehaviorCollection<IClientMessageInspector>(this);
 
-            UnhandledClientOperation = new ClientOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
-            UnhandledClientOperation.InternalFormatter = new MessageOperationFormatter();
+            UnhandledClientOperation = new ClientOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction)
+            {
+                InternalFormatter = new MessageOperationFormatter()
+            };
             _maxFaultSize = TransportDefaults.MaxFaultSize;
         }
 
@@ -102,10 +98,7 @@ namespace CoreWCF.Dispatcher
 
         public string ContractName { get; }
 
-        public string ContractNamespace
-        {
-            get { return _contractNamespace; }
-        }
+        public string ContractNamespace { get; }
 
         public Type ContractClientType
         {
@@ -133,13 +126,9 @@ namespace CoreWCF.Dispatcher
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
                 InvalidateRuntime();
 
-                _identityVerifier = value;
+                _identityVerifier = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -287,7 +276,7 @@ namespace CoreWCF.Dispatcher
 
                     for (int i = 0; i < operations.Count; i++)
                     {
-                        max = System.Math.Max(max, operations[i].ParameterInspectors.Count);
+                        max = Math.Max(max, operations[i].ParameterInspectors.Count);
                     }
 
                     return max;

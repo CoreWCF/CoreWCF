@@ -75,7 +75,7 @@ namespace CoreWCF.Channels
 
         public override IPrincipal User
         {
-            get { return _user != null ? _user : _context.User; }
+            get { return _user ?? _context.User; }
         }
 
         public override WebSocket WebSocket

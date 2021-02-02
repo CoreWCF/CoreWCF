@@ -147,7 +147,7 @@ namespace CoreWCF.Security
                 bool needsCorrelationTokenOnReply = RequireIntegrity || RequireConfidentiality;
                 if (!savesCorrelationTokenOnRequest && needsCorrelationTokenOnReply)
                 {
-                    OnPropertySettingsError("ApplyIntegrity", false);
+                    OnPropertySettingsError(nameof(ApplyIntegrity), false);
                 }
             }
         }

@@ -36,23 +36,23 @@ namespace CoreWCF.Dispatcher
 
         public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
         {
-            var sessionIdleManager = channel.GetProperty<ServiceChannel.SessionIdleManager>();
+            ServiceChannel.SessionIdleManager sessionIdleManager = channel.GetProperty<ServiceChannel.SessionIdleManager>();
             IChannelBinder binder = null;
             if (channel is IReplyChannel)
             {
-                var rcbinder = channel.GetProperty<ReplyChannelBinder>();
+                ReplyChannelBinder rcbinder = channel.GetProperty<ReplyChannelBinder>();
                 rcbinder.Init(channel as IReplyChannel, BaseAddress);
                 binder = rcbinder;
             }
             else if (channel is IDuplexSessionChannel)
             {
-                var dcbinder = channel.GetProperty<DuplexChannelBinder>();
+                DuplexChannelBinder dcbinder = channel.GetProperty<DuplexChannelBinder>();
                 dcbinder.Init(channel as IDuplexSessionChannel, _requestReplyCorrelator, BaseAddress);
                 binder = dcbinder;
             }
             else if (channel is IInputChannel)
             {
-                var icbinder = channel.GetProperty<InputChannelBinder>();
+                InputChannelBinder icbinder = channel.GetProperty<InputChannelBinder>();
                 icbinder.Init(channel as IInputChannel, BaseAddress);
                 binder = icbinder;
             }
@@ -61,7 +61,7 @@ namespace CoreWCF.Dispatcher
             var channelHandler = new ChannelHandler(Binding.MessageVersion, binder, channel.GetProperty<ServiceThrottle>(),
              this, /*wasChannelThrottled*/ false, sessionIdleManager);
 
-            var channelDispatcher = channelHandler.GetDispatcher();
+            IServiceChannelDispatcher channelDispatcher = channelHandler.GetDispatcher();
             //   channel.ChannelDispatcher = channelDispatcher;
             await channelHandler.OpenAsync();
             return channelDispatcher;

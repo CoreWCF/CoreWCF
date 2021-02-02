@@ -10,7 +10,6 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class ClientOperation
     {
-        private readonly SynchronizedCollection<FaultContractInfo> _faultContractInfos;
         private bool _serializeRequest;
         private bool _deserializeReply;
         private IClientFaultFormatter _faultFormatter;
@@ -18,13 +17,11 @@ namespace CoreWCF.Dispatcher
         private bool _isOneWay;
         private bool _isTerminating;
         private bool _isSessionOpenNotificationEnabled;
-        private readonly string _replyAction;
         private MethodInfo _beginMethod;
         private MethodInfo _endMethod;
         private MethodInfo _syncMethod;
         private MethodInfo _taskMethod;
         private Type _taskTResult;
-        private readonly SynchronizedCollection<IParameterInspector> _parameterInspectors;
 
         public ClientOperation(ClientRuntime parent, string name, string action)
             : this(parent, name, action, null)
@@ -33,31 +30,18 @@ namespace CoreWCF.Dispatcher
 
         public ClientOperation(ClientRuntime parent, string name, string action, string replyAction)
         {
-            if (parent == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            }
-
-            if (name == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
-            }
-
-            Parent = parent;
-            Name = name;
+            Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
+            Name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             Action = action;
-            _replyAction = replyAction;
+            ReplyAction = replyAction;
 
-            _faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
-            _parameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
+            FaultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
+            ParameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
         }
 
         public string Action { get; }
 
-        internal SynchronizedCollection<FaultContractInfo> FaultContractInfos
-        {
-            get { return _faultContractInfos; }
-        }
+        internal SynchronizedCollection<FaultContractInfo> FaultContractInfos { get; }
 
         public MethodInfo BeginMethod
         {
@@ -117,7 +101,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (_faultFormatter == null)
                 {
-                    _faultFormatter = new DataContractSerializerFaultFormatter(_faultContractInfos);
+                    _faultFormatter = new DataContractSerializerFaultFormatter(FaultContractInfos);
                 }
                 return _faultFormatter;
             }
@@ -182,17 +166,11 @@ namespace CoreWCF.Dispatcher
             get { return ParameterInspectors; }
         }
 
-        internal SynchronizedCollection<IParameterInspector> ParameterInspectors
-        {
-            get { return _parameterInspectors; }
-        }
+        internal SynchronizedCollection<IParameterInspector> ParameterInspectors { get; }
 
         public ClientRuntime Parent { get; }
 
-        public string ReplyAction
-        {
-            get { return _replyAction; }
-        }
+        public string ReplyAction { get; }
 
         public bool SerializeRequest
         {

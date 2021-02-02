@@ -16,11 +16,7 @@ namespace CoreWCF.Security
     {
         public ServiceCredentialsSecurityTokenManager(ServiceCredentials parent)
         {
-            if (parent == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            }
-            ServiceCredentials = parent;
+            ServiceCredentials = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
         }
 
         public ServiceCredentials ServiceCredentials { get; }
@@ -31,8 +27,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             }
-            MessageSecurityTokenVersion wsVersion = version as MessageSecurityTokenVersion;
-            if (wsVersion != null)
+            if (version is MessageSecurityTokenVersion wsVersion)
             {
                 SamlSerializer samlSerializer = null;
                 //TODO this will be implemented when we add WS-Federation support
@@ -54,7 +49,7 @@ namespace CoreWCF.Security
             SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
             if (securityBindingElement == null)
             {
-                throw CoreWCF.DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, (object)recipientRequirement));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, (object)recipientRequirement));
             }
 
             bool flag = !recipientRequirement.SupportSecurityContextCancellation;
@@ -324,8 +319,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            RecipientServiceModelSecurityTokenRequirement recipientRequirement = tokenRequirement as RecipientServiceModelSecurityTokenRequirement;
-            if (recipientRequirement == null)
+            if (!(tokenRequirement is RecipientServiceModelSecurityTokenRequirement recipientRequirement))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SecurityTokenManagerCannotCreateAuthenticatorForRequirement, tokenRequirement)));
             }
@@ -466,9 +460,8 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(requirement));
             }
 
-            RecipientServiceModelSecurityTokenRequirement recipientRequirement = requirement as RecipientServiceModelSecurityTokenRequirement;
             SecurityTokenProvider result = null;
-            if (recipientRequirement != null)
+            if (requirement is RecipientServiceModelSecurityTokenRequirement recipientRequirement)
             {
                 result = CreateLocalSecurityTokenProvider(recipientRequirement);
             }

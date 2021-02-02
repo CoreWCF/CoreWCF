@@ -17,12 +17,7 @@ namespace CoreWCF.Dispatcher
 
         public SyncMethodInvoker(MethodInfo method)
         {
-            if (method == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(method));
-            }
-
-            Method = method;
+            Method = method ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(method));
         }
 
         public MethodInfo Method { get; }
@@ -59,7 +54,7 @@ namespace CoreWCF.Dispatcher
 
         public object InvokeEnd(object instance, out object[] outputs, IAsyncResult result)
         {
-            var tuple = TaskHelpers.ToApmEnd<Tuple<object, object[]>>(result);
+            Tuple<object, object[]> tuple = TaskHelpers.ToApmEnd<Tuple<object, object[]>>(result);
             outputs = tuple.Item2;
             return tuple.Item1;
         }
@@ -85,7 +80,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInputParametersToServiceInvalid, _inputParameterCount, inputs.Length)));
             }
 
-            var outputs = EmptyArray<object>.Allocate(_outputParameterCount);
+            object[] outputs = EmptyArray<object>.Allocate(_outputParameterCount);
 
             //long beginOperation = 0;
             //bool callSucceeded = false;
@@ -197,7 +192,7 @@ namespace CoreWCF.Dispatcher
         {
             // Only pass locals byref because InvokerUtil may store temporary results in the byref.
             // If two threads both reference this.count, temporary results may interact.
-            var invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(Method, out int inputParameterCount, out int outputParameterCount);
+            InvokeDelegate invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(Method, out int inputParameterCount, out int outputParameterCount);
             _outputParameterCount = outputParameterCount;
             _inputParameterCount = inputParameterCount;
             _invokeDelegate = invokeDelegate;  // must set this last due to race

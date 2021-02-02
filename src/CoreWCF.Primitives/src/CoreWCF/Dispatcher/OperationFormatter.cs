@@ -15,23 +15,20 @@ namespace CoreWCF.Dispatcher
 {
     internal abstract class OperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
-        private readonly MessageDescription _requestDescription;
         private readonly XmlDictionaryString _action;
         private readonly XmlDictionaryString _replyAction;
         protected StreamFormatter requestStreamFormatter, replyStreamFormatter;
-        private readonly string _operationName;
-        private static readonly object[] s_emptyObjectArray = new object[0];
 
         public OperationFormatter(OperationDescription description, bool isRpc, bool isEncoded)
         {
             Validate(description, isRpc, isEncoded);
-            _requestDescription = description.Messages[0];
+            RequestDescription = description.Messages[0];
             if (description.Messages.Count == 2)
             {
                 ReplyDescription = description.Messages[1];
             }
 
-            int stringCount = 3 + _requestDescription.Body.Parts.Count;
+            int stringCount = 3 + RequestDescription.Body.Parts.Count;
             if (ReplyDescription != null)
             {
                 stringCount += 2 + ReplyDescription.Body.Parts.Count;
@@ -39,11 +36,11 @@ namespace CoreWCF.Dispatcher
 
             Dictionary = new XmlDictionary(stringCount * 2);
             GetActions(description, Dictionary, out _action, out _replyAction);
-            _operationName = description.Name;
-            requestStreamFormatter = StreamFormatter.Create(_requestDescription, _operationName, true/*isRequest*/);
+            OperationName = description.Name;
+            requestStreamFormatter = StreamFormatter.Create(RequestDescription, OperationName, true/*isRequest*/);
             if (ReplyDescription != null)
             {
-                replyStreamFormatter = StreamFormatter.Create(ReplyDescription, _operationName, false/*isResponse*/);
+                replyStreamFormatter = StreamFormatter.Create(ReplyDescription, OperationName, false/*isResponse*/);
             }
         }
 
@@ -83,17 +80,11 @@ namespace CoreWCF.Dispatcher
 
         protected XmlDictionary Dictionary { get; }
 
-        protected string OperationName
-        {
-            get { return _operationName; }
-        }
+        protected string OperationName { get; }
 
         protected MessageDescription ReplyDescription { get; }
 
-        protected MessageDescription RequestDescription
-        {
-            get { return _requestDescription; }
-        }
+        protected MessageDescription RequestDescription { get; }
 
         protected XmlDictionaryString AddToDictionary(string s)
         {
@@ -141,17 +132,17 @@ namespace CoreWCF.Dispatcher
             catch (XmlException xe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(
-                    SR.Format(SR.SFxErrorDeserializingReplyBodyMore, _operationName, xe.Message), xe));
+                    SR.Format(SR.SFxErrorDeserializingReplyBodyMore, OperationName, xe.Message), xe));
             }
             catch (FormatException fe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(
-                    SR.Format(SR.SFxErrorDeserializingReplyBodyMore, _operationName, fe.Message), fe));
+                    SR.Format(SR.SFxErrorDeserializingReplyBodyMore, OperationName, fe.Message), fe));
             }
             catch (SerializationException se)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(
-                    SR.Format(SR.SFxErrorDeserializingReplyBodyMore, _operationName, se.Message), se));
+                    SR.Format(SR.SFxErrorDeserializingReplyBodyMore, OperationName, se.Message), se));
             }
         }
 
@@ -182,14 +173,14 @@ namespace CoreWCF.Dispatcher
 
             try
             {
-                if (_requestDescription.IsTypedMessage)
+                if (RequestDescription.IsTypedMessage)
                 {
-                    object typeMessageInstance = CreateTypedMessageInstance(_requestDescription.MessageType);
-                    TypedMessageParts typedMessageParts = new TypedMessageParts(typeMessageInstance, _requestDescription);
+                    object typeMessageInstance = CreateTypedMessageInstance(RequestDescription.MessageType);
+                    TypedMessageParts typedMessageParts = new TypedMessageParts(typeMessageInstance, RequestDescription);
                     object[] parts = new object[typedMessageParts.Count];
 
-                    GetPropertiesFromMessage(message, _requestDescription, parts);
-                    GetHeadersFromMessage(message, _requestDescription, parts, true/*isRequest*/);
+                    GetPropertiesFromMessage(message, RequestDescription, parts);
+                    GetHeadersFromMessage(message, RequestDescription, parts, true/*isRequest*/);
                     DeserializeBodyContents(message, parts, true/*isRequest*/);
 
                     // copy values into the actual field/properties
@@ -199,29 +190,29 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    GetPropertiesFromMessage(message, _requestDescription, parameters);
-                    GetHeadersFromMessage(message, _requestDescription, parameters, true/*isRequest*/);
+                    GetPropertiesFromMessage(message, RequestDescription, parameters);
+                    GetHeadersFromMessage(message, RequestDescription, parameters, true/*isRequest*/);
                     DeserializeBodyContents(message, parameters, true/*isRequest*/);
                 }
             }
             catch (XmlException xe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    OperationFormatter.CreateDeserializationFailedFault(
-                        SR.Format(SR.SFxErrorDeserializingRequestBodyMore, _operationName, xe.Message),
+                    CreateDeserializationFailedFault(
+                        SR.Format(SR.SFxErrorDeserializingRequestBodyMore, OperationName, xe.Message),
                         xe));
             }
             catch (FormatException fe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    OperationFormatter.CreateDeserializationFailedFault(
-                        SR.Format(SR.SFxErrorDeserializingRequestBodyMore, _operationName, fe.Message),
+                    CreateDeserializationFailedFault(
+                        SR.Format(SR.SFxErrorDeserializingRequestBodyMore, OperationName, fe.Message),
                         fe));
             }
             catch (SerializationException se)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(
-                    SR.Format(SR.SFxErrorDeserializingRequestBodyMore, _operationName, se.Message),
+                    SR.Format(SR.SFxErrorDeserializingRequestBodyMore, OperationName, se.Message),
                     se));
             }
         }
@@ -255,8 +246,6 @@ namespace CoreWCF.Dispatcher
 
         public Message SerializeRequest(MessageVersion messageVersion, object[] parameters)
         {
-            object[] parts = null;
-
             if (messageVersion == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
@@ -267,9 +256,10 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
             }
 
-            if (_requestDescription.IsTypedMessage)
+            object[] parts;
+            if (RequestDescription.IsTypedMessage)
             {
-                TypedMessageParts typedMessageParts = new TypedMessageParts(parameters[0], _requestDescription);
+                TypedMessageParts typedMessageParts = new TypedMessageParts(parameters[0], RequestDescription);
 
                 // copy values from the actual field/properties
                 parts = new object[typedMessageParts.Count];
@@ -282,17 +272,14 @@ namespace CoreWCF.Dispatcher
             Message msg = new OperationFormatterMessage(this, messageVersion,
                 _action == null ? null : ActionHeader.Create(_action, messageVersion.Addressing),
                 parts, null, true/*isRequest*/);
-            AddPropertiesToMessage(msg, _requestDescription, parts);
-            AddHeadersToMessage(msg, _requestDescription, parts, true /*isRequest*/);
+            AddPropertiesToMessage(msg, RequestDescription, parts);
+            AddHeadersToMessage(msg, RequestDescription, parts, true /*isRequest*/);
 
             return msg;
         }
 
         public Message SerializeReply(MessageVersion messageVersion, object[] parameters, object result)
         {
-            object[] parts = null;
-            object resultPart = null;
-
             if (messageVersion == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageVersion));
@@ -303,6 +290,8 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
             }
 
+            object[] parts;
+            object resultPart;
             if (ReplyDescription.IsTypedMessage)
             {
                 // If the response is a typed message then it must 
@@ -337,7 +326,7 @@ namespace CoreWCF.Dispatcher
             if (isRequest)
             {
                 streamFormatter = requestStreamFormatter;
-                messageDescription = _requestDescription;
+                messageDescription = RequestDescription;
             }
             else
             {
@@ -553,11 +542,6 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(description)));
                 }
 
-                if (instance == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(SR.Format(SR.SFxTypedMessageCannotBeNull, description.Action)));
-                }
-
                 _members = new MemberInfo[description.Body.Parts.Count + description.Properties.Count + description.Headers.Count];
 
                 foreach (MessagePartDescription part in description.Headers)
@@ -575,7 +559,7 @@ namespace CoreWCF.Dispatcher
                     _members[part.Index] = part.MemberInfo;
                 }
 
-                _instance = instance;
+                _instance = instance ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(SR.Format(SR.SFxTypedMessageCannotBeNull, description.Action)));
             }
 
             private object GetValue(int index)
@@ -658,11 +642,11 @@ namespace CoreWCF.Dispatcher
                 BodyWriter bufferedBodyWriter;
                 if (BodyWriter.IsBuffered)
                 {
-                    bufferedBodyWriter = base.BodyWriter;
+                    bufferedBodyWriter = BodyWriter;
                 }
                 else
                 {
-                    bufferedBodyWriter = base.BodyWriter.CreateBufferedCopy(maxBufferSize);
+                    bufferedBodyWriter = BodyWriter.CreateBufferedCopy(maxBufferSize);
                 }
                 KeyValuePair<string, object>[] properties = new KeyValuePair<string, object>[base.Properties.Count];
                 ((ICollection<KeyValuePair<string, object>>)base.Properties).CopyTo(properties, 0);
@@ -724,20 +708,19 @@ namespace CoreWCF.Dispatcher
 
                 public override Message CreateMessage()
                 {
-                    OperationFormatterBodyWriter operationFormatterBodyWriter = base.BodyWriter as OperationFormatterBodyWriter;
-                    if (operationFormatterBodyWriter == null)
+                    if (!(BodyWriter is OperationFormatterBodyWriter operationFormatterBodyWriter))
                     {
                         return base.CreateMessage();
                     }
 
                     lock (ThisLock)
                     {
-                        if (base.Closed)
+                        if (Closed)
                         {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
                         }
 
-                        return new OperationFormatterMessage(base.Headers, base.Properties, operationFormatterBodyWriter);
+                        return new OperationFormatterMessage(Headers, Properties, operationFormatterBodyWriter);
                     }
                 }
             }
@@ -755,11 +738,11 @@ namespace CoreWCF.Dispatcher
                 this.version = version;
                 if (actor != null)
                 {
-                    innerHeader = MessageHeader.CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, actor, relay);
+                    innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, actor, relay);
                 }
                 else
                 {
-                    innerHeader = MessageHeader.CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, "", relay);
+                    innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, "", relay);
                 }
             }
 
@@ -804,7 +787,7 @@ namespace CoreWCF.Dispatcher
 
             protected virtual void OnWriteHeaderAttributes(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
-                base.WriteHeaderAttributes(writer, messageVersion);
+                WriteHeaderAttributes(writer, messageVersion);
             }
         }
 
@@ -819,7 +802,7 @@ namespace CoreWCF.Dispatcher
 
             protected override void OnWriteHeaderAttributes(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
-                base.WriteHeaderAttributes(writer, messageVersion);
+                WriteHeaderAttributes(writer, messageVersion);
                 XmlDictionaryReader nodeReader = XmlDictionaryReader.CreateDictionaryReader(new XmlNodeReader(headerValue));
                 nodeReader.MoveToContent();
                 writer.WriteAttributes(nodeReader, false);
@@ -842,7 +825,7 @@ namespace CoreWCF.Dispatcher
         }
         internal class QNameComparer : IEqualityComparer<QName>
         {
-            static internal QNameComparer Singleton = new QNameComparer();
+            internal static QNameComparer Singleton = new QNameComparer();
 
             private QNameComparer() { }
 
@@ -861,11 +844,11 @@ namespace CoreWCF.Dispatcher
             internal MessageHeaderDescriptionTable() : base(QNameComparer.Singleton) { }
             internal void Add(string name, string ns, MessageHeaderDescription message)
             {
-                base.Add(new QName(name, ns), message);
+                Add(new QName(name, ns), message);
             }
             internal MessageHeaderDescription Get(string name, string ns)
             {
-                if (base.TryGetValue(new QName(name, ns), out MessageHeaderDescription message))
+                if (TryGetValue(new QName(name, ns), out MessageHeaderDescription message))
                 {
                     return message;
                 }

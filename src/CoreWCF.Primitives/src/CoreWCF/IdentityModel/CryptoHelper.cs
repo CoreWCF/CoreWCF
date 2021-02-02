@@ -28,7 +28,7 @@ namespace CoreWCF.IdentityModel
             {
                 if (s_emptyBuffer == null)
                 {
-                    byte[] tmp = new byte[0];
+                    byte[] tmp = Array.Empty<byte>();
                     s_emptyBuffer = tmp;
                 }
                 return s_emptyBuffer;
@@ -50,8 +50,8 @@ namespace CoreWCF.IdentityModel
                 return false;
             }
 
-            var result = 0;
-            var length = a.Length;
+            int result = 0;
+            int length = a.Length;
 
             for (int i = 0; i < length; i++)
             {
@@ -97,8 +97,7 @@ namespace CoreWCF.IdentityModel
 
             if (algorithmObject != null)
             {
-                KeyedHashAlgorithm keyedHashAlgorithm = algorithmObject as KeyedHashAlgorithm;
-                if (keyedHashAlgorithm != null)
+                if (algorithmObject is KeyedHashAlgorithm keyedHashAlgorithm)
                 {
                     keyedHashAlgorithm.Key = key;
                     return keyedHashAlgorithm;
@@ -242,8 +241,7 @@ namespace CoreWCF.IdentityModel
 
             if (algorithmObject != null)
             {
-                HashAlgorithm hashAlgorithm = algorithmObject as HashAlgorithm;
-                if (hashAlgorithm != null)
+                if (algorithmObject is HashAlgorithm hashAlgorithm)
                 {
                     return hashAlgorithm;
                 }
@@ -410,7 +408,7 @@ namespace CoreWCF.IdentityModel
 
         internal static KeyedHashAlgorithm NewHmacSha1KeyedHashAlgorithm(byte[] key)
         {
-            return CryptoHelper.CreateKeyedHashAlgorithm(key, SecurityAlgorithms.HmacSha1Signature);
+            return CreateKeyedHashAlgorithm(key, SecurityAlgorithms.HmacSha1Signature);
         }
     }
 }

@@ -75,8 +75,8 @@ namespace DispatcherClient
             RemoteAddress?.ApplyTo(message);
             var requestContext = new DispatcherClientRequestContext(message);
             await _serviceChannelDispatch.DispatchAsync(requestContext);
-            var coreReplyMessage = await requestContext.ReplyMessageTask;
-            var replyMessage = Helpers.TestHelper.ConvertMessage(coreReplyMessage);
+            CoreWCF.Channels.Message coreReplyMessage = await requestContext.ReplyMessageTask;
+            Message replyMessage = Helpers.TestHelper.ConvertMessage(coreReplyMessage);
             return replyMessage;
         }
 

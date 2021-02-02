@@ -16,7 +16,6 @@ namespace CoreWCF.Dispatcher
         private readonly IInstanceContextInitializer[] _initializers;
         private readonly IInstanceProvider _provider;
         private readonly InstanceContext _singleton;
-        private readonly bool _isSynchronized;
         private readonly ImmutableDispatchRuntime _immutableRuntime;
 
         internal InstanceBehavior(DispatchRuntime dispatch, ImmutableDispatchRuntime immutableRuntime)
@@ -25,7 +24,6 @@ namespace CoreWCF.Dispatcher
             _initializers = EmptyArray<IInstanceContextInitializer>.ToArray(dispatch.InstanceContextInitializers);
             _provider = dispatch.InstanceProvider;
             _singleton = dispatch.SingletonInstanceContext;
-            _isSynchronized = (dispatch.ConcurrencyMode != ConcurrencyMode.Multiple);
             InstanceContextProvider = dispatch.InstanceContextProvider;
 
             if (_provider == null)
@@ -33,7 +31,7 @@ namespace CoreWCF.Dispatcher
                 ConstructorInfo constructor = null;
                 if (dispatch.Type != null)
                 {
-                    constructor = InstanceBehavior.GetConstructor(dispatch.Type);
+                    constructor = GetConstructor(dispatch.Type);
                 }
 
                 if (_singleton == null)
@@ -134,8 +132,10 @@ namespace CoreWCF.Dispatcher
         {
             if (rpc.InstanceContext == null)
             {
-                rpc.InstanceContext = new InstanceContext(rpc.Host, false);
-                rpc.InstanceContext.ServiceThrottle = rpc.channelHandler.InstanceContextServiceThrottle;
+                rpc.InstanceContext = new InstanceContext(rpc.Host, false)
+                {
+                    ServiceThrottle = rpc.channelHandler.InstanceContextServiceThrottle
+                };
                 rpc.MessageRpcOwnsInstanceContextThrottle = false;
             }
 
@@ -165,7 +165,7 @@ namespace CoreWCF.Dispatcher
 
         private static ConstructorInfo GetConstructor(Type type)
         {
-            foreach (var constructor in type.GetConstructors(DefaultBindingFlags))
+            foreach (ConstructorInfo constructor in type.GetConstructors(DefaultBindingFlags))
             {
                 if (constructor.GetParameters().Length == 0)
                 {
@@ -198,7 +198,7 @@ namespace CoreWCF.Dispatcher
         internal void Initialize(InstanceContext instanceContext)
         {
             OperationContext current = OperationContext.Current;
-            Message message = (current != null) ? current.IncomingMessage : null;
+            Message message = current?.IncomingMessage;
 
             if (current != null && current.InternalServiceChannel != null)
             {
@@ -258,12 +258,7 @@ namespace CoreWCF.Dispatcher
 
         internal InstanceProvider(CreateInstanceDelegate creator)
         {
-            if (creator == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(creator));
-            }
-
-            _creator = creator;
+            _creator = creator ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(creator));
         }
 
         public object GetInstance(InstanceContext instanceContext)
@@ -278,8 +273,7 @@ namespace CoreWCF.Dispatcher
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
         {
-            IDisposable dispose = instance as IDisposable;
-            if (dispose != null)
+            if (instance is IDisposable dispose)
             {
                 dispose.Dispose();
             }

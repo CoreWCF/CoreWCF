@@ -70,7 +70,7 @@ namespace CoreWCF.Channels
                         {
                             if (_identity == null)
                             {
-                                _identity = Security.SecurityUtils.CreateWindowsIdentity(ServerCredential);
+                                _identity = SecurityUtils.CreateWindowsIdentity(ServerCredential);
                             }
                         }
                     }
@@ -172,7 +172,7 @@ namespace CoreWCF.Channels
                 if (remoteIdentity is WindowsIdentity)
                 {
                     WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
-                    Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
+                    SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
                     WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
                     token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
                     authorizationPolicies = authenticator.ValidateToken(token);
@@ -183,9 +183,11 @@ namespace CoreWCF.Channels
                     GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator();
                     authorizationPolicies = authenticator.ValidateToken(token);
                 }
-                SecurityMessageProperty clientSecurity = new SecurityMessageProperty();
-                clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
-                clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
+                SecurityMessageProperty clientSecurity = new SecurityMessageProperty
+                {
+                    TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
+                    ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies)
+                };
                 return clientSecurity;
             }
 

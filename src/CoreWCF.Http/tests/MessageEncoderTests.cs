@@ -28,14 +28,14 @@ namespace CoreWCF.Http.Tests
         public void BinaryMessageEncoderCompressionFormat_EchoString(Type startupType, System.ServiceModel.Channels.Binding clientBinding)
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
             using (host)
             {
                 host.Start();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(clientBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-                var channel = factory.CreateChannel();
-                var result = channel.EchoString(testString);
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
             }
         }

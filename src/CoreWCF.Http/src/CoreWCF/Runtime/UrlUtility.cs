@@ -165,7 +165,7 @@ namespace CoreWCF.Runtime
 
                 if (_numChars > 0)
                 {
-                    return new String(_charBuffer, 0, _numChars);
+                    return new string(_charBuffer, 0, _numChars);
                 }
                 else
                 {

@@ -10,7 +10,7 @@ namespace CoreWCF.Channels
 {
     internal abstract class ReceiveContext
     {
-        public readonly static string Name = "ReceiveContext";
+        public static readonly string Name = "ReceiveContext";
         private readonly SemaphoreSlim _stateLock; // protects state that may be reverted
         private bool _contextFaulted;
 

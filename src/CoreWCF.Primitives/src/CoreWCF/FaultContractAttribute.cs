@@ -15,12 +15,7 @@ namespace CoreWCF
 
         public FaultContractAttribute(Type detailType)
         {
-            if (detailType == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(detailType));
-            }
-
-            DetailType = detailType;
+            DetailType = detailType ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(detailType));
         }
 
         public Type DetailType { get; }
@@ -30,12 +25,7 @@ namespace CoreWCF
             get { return _action; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _action = value;
+                _action = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 

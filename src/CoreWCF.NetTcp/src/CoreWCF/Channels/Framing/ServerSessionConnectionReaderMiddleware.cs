@@ -27,8 +27,8 @@ namespace CoreWCF.Channels.Framing
         {
             if (!_transportSettingsCache.TryGetValue(connection.ServiceDispatcher, out ITransportFactorySettings settings))
             {
-                var be = connection.ServiceDispatcher.Binding.CreateBindingElements();
-                var tbe = be.Find<TransportBindingElement>();
+                BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
+                TransportBindingElement tbe = be.Find<TransportBindingElement>();
                 settings = new NetFramingTransportSettings
                 {
                     CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,

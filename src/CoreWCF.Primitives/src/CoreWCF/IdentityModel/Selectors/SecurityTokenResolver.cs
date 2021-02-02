@@ -93,12 +93,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
             public SimpleTokenResolver(ReadOnlyCollection<SecurityToken> tokens, bool canMatchLocalId)
             {
-                if (tokens == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokens));
-                }
-
-                _tokens = tokens;
+                _tokens = tokens ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokens));
                 _canMatchLocalId = canMatchLocalId;
             }
 

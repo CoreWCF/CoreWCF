@@ -191,8 +191,10 @@ namespace CoreWCF.Security
             else
             {
                 bool useMachineContext = _trustedStoreLocation == StoreLocation.LocalMachine;
-                X509ChainPolicy chainPolicy = new X509ChainPolicy();
-                chainPolicy.RevocationMode = _revocationMode;
+                X509ChainPolicy chainPolicy = new X509ChainPolicy
+                {
+                    RevocationMode = _revocationMode
+                };
                 if (_certificateValidationMode == X509CertificateValidationMode.ChainTrust)
                 {
                     return X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);

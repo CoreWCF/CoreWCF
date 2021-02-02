@@ -13,17 +13,15 @@ namespace CoreWCF.Channels
 {
     internal class ChannelDemuxer
     {
-        public readonly static TimeSpan UseDefaultReceiveTimeout = TimeSpan.MinValue;
-        private TypedChannelDemuxer _inputDemuxer;
+        public static readonly TimeSpan UseDefaultReceiveTimeout = TimeSpan.MinValue;
+        //private TypedChannelDemuxer _inputDemuxer;
         private TypedChannelDemuxer _replyDemuxer;
-        private readonly Dictionary<Type, TypedChannelDemuxer> _typeDemuxers;
         private TimeSpan _peekTimeout;
 
         public ChannelDemuxer()
         {
-            _peekTimeout = ChannelDemuxer.UseDefaultReceiveTimeout; //use the default receive timeout (original behavior)
+            _peekTimeout = UseDefaultReceiveTimeout; //use the default receive timeout (original behavior)
             MaxPendingSessions = 10;
-            _typeDemuxers = new Dictionary<Type, TypedChannelDemuxer>();
         }
 
         public TimeSpan PeekTimeout
@@ -54,10 +52,10 @@ namespace CoreWCF.Channels
         {
             GetTypedServiceDispatcher<TChannel>().RemoveDispatcher(filter);
         }
+
         internal TypedChannelDemuxer GetTypedServiceDispatcher<TChannel>()
         {
             TypedChannelDemuxer typeDemuxer = null;
-            bool createdDemuxer = false;
 
             //if (typeof(TChannel) == typeof(IInputChannel))
             //{
@@ -76,9 +74,9 @@ namespace CoreWCF.Channels
             {
                 if (_replyDemuxer == null)
                 {
-                    _inputDemuxer = _replyDemuxer = new ReplyChannelDemuxer();
-                    createdDemuxer = true;
+                    /*_inputDemuxer = */_replyDemuxer = new ReplyChannelDemuxer();
                 }
+
                 typeDemuxer = _replyDemuxer;
             }
             //else if (!this.typeDemuxers.TryGetValue(channelType, out typeDemuxer))
@@ -159,7 +157,7 @@ namespace CoreWCF.Channels
         where TInnerItem : class, IDisposable
     {
         private readonly MessageFilterTable<IServiceDispatcher> _filterTable;
-        private readonly IChannelDemuxFailureHandler _demuxFailureHandler;
+
         // since the OnOuterListenerOpen method will be called for every outer listener and we will open
         // the inner listener only once, we need to ensure that all the outer listeners wait till the 
         // inner listener is opened.
@@ -171,7 +169,7 @@ namespace CoreWCF.Channels
         public DatagramChannelDemuxer(IChannelDemuxFailureHandler demuxFailureHandlerPassed)
         {
             _filterTable = new MessageFilterTable<IServiceDispatcher>();
-            _demuxFailureHandler = demuxFailureHandlerPassed;
+            DemuxFailureHandler = demuxFailureHandlerPassed;
         }
 
         protected TInnerChannel InnerChannel { get; }
@@ -183,10 +181,7 @@ namespace CoreWCF.Channels
             get { return this; }
         }
 
-        protected IChannelDemuxFailureHandler DemuxFailureHandler
-        {
-            get { return _demuxFailureHandler; }
-        }
+        protected IChannelDemuxFailureHandler DemuxFailureHandler { get; }
 
         public override IServiceDispatcher AddDispatcher(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
         {
@@ -520,14 +515,14 @@ namespace CoreWCF.Channels
             public async Task DispatchAsync(RequestContext context)
             {
                 // TODO: Find way to avoid instantiating a new ServiceChannelDispatcher each time
-                var serviceDispatcher = _demuxer.MatchDispatcher(context.RequestMessage);
+                IServiceDispatcher serviceDispatcher = _demuxer.MatchDispatcher(context.RequestMessage);
                 if (serviceDispatcher == null)
                 {
-                    CoreWCF.Dispatcher.ErrorBehavior.ThrowAndCatch(
+                    ErrorBehavior.ThrowAndCatch(
                         new EndpointNotFoundException(SR.Format(SR.UnableToDemuxChannel, context.RequestMessage.Headers.Action)), context.RequestMessage);
                 }
                 // TODO: if serviceDispatcher == null, use the EndpointNotFound code path
-                var serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(_channel);
+                IServiceChannelDispatcher serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(_channel);
                 await serviceChannelDispatcher.DispatchAsync(context);
             }
 
@@ -545,20 +540,15 @@ namespace CoreWCF.Channels
 
     internal class ChannelDemuxerFilter
     {
-        private readonly int _priority;
-
         public ChannelDemuxerFilter(MessageFilter filter, int priority)
         {
             Filter = filter;
-            _priority = priority;
+            Priority = priority;
         }
 
         public MessageFilter Filter { get; }
 
-        public int Priority
-        {
-            get { return _priority; }
-        }
+        public int Priority { get; }
     }
 
     internal interface IChannelDemuxFailureHandler

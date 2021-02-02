@@ -108,12 +108,7 @@ namespace CoreWCF
             get { return _security; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _security = value;
+                _security = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -153,10 +148,12 @@ namespace CoreWCF
             CheckSettings();
 
             // return collection of BindingElements
-            BindingElementCollection bindingElements = new BindingElementCollection();
-            // order of BindingElements is important
-            // add encoding
-            bindingElements.Add(_encoding);
+            BindingElementCollection bindingElements = new BindingElementCollection
+            {
+                // order of BindingElements is important
+                // add encoding
+                _encoding
+            };
             // add transport security
             BindingElement transportSecurity = CreateTransportSecurity();
             if (transportSecurity != null)

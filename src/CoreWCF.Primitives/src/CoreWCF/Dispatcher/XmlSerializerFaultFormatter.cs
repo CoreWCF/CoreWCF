@@ -31,11 +31,7 @@ namespace CoreWCF.Dispatcher
 
         private void Initialize(SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos)
         {
-            if (xmlSerializerFaultContractInfos == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlSerializerFaultContractInfos));
-            }
-            _xmlSerializerFaultContractInfos = xmlSerializerFaultContractInfos;
+            _xmlSerializerFaultContractInfos = xmlSerializerFaultContractInfos ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlSerializerFaultContractInfos));
         }
 
         protected override XmlObjectSerializer GetSerializer(Type detailType, string faultExceptionAction, out string action)
@@ -86,8 +82,6 @@ namespace CoreWCF.Dispatcher
                 faultInfos = _xmlSerializerFaultContractInfos;
             }
 
-            Type detailType = null;
-            object detailObj = null;
             for (int i = 0; i < faultInfos.Count; i++)
             {
                 XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo faultInfo = faultInfos[i];
@@ -96,10 +90,10 @@ namespace CoreWCF.Dispatcher
 
                 if (serializer.IsStartObject(detailReader))
                 {
-                    detailType = faultInfo.FaultContractInfo.Detail;
+                    Type detailType = faultInfo.FaultContractInfo.Detail;
                     try
                     {
-                        detailObj = serializer.ReadObject(detailReader);
+                        object detailObj = serializer.ReadObject(detailReader);
                         FaultException faultException = CreateFaultException(messageFault, action,
                             detailObj, detailType, detailReader);
                         if (faultException != null)
@@ -107,9 +101,11 @@ namespace CoreWCF.Dispatcher
                             return faultException;
                         }
                     }
+#pragma warning disable CA1031 // Do not catch general exception types - if we can't deserialie the message fault detail, return plain FaultException
                     catch (SerializationException)
                     {
                     }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
             return new FaultException(messageFault, action);

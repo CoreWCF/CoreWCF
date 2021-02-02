@@ -37,8 +37,7 @@ namespace System.Xml.XmlDiff
 
         public static PositionInfo GetPositionInfo(object o)
         {
-            IXmlLineInfo lineInfo = o as IXmlLineInfo;
-            if (lineInfo != null && lineInfo.HasLineInfo())
+            if (o is IXmlLineInfo lineInfo && lineInfo.HasLineInfo())
             {
                 return new ReaderPositionInfo(lineInfo);
             }
@@ -537,34 +536,42 @@ namespace System.Xml.XmlDiff
         {
             if (!IgnoreEmptyTextNodes || !string.IsNullOrEmpty(text))
             {
-                XmlDiffCharacterData textNode = new XmlDiffCharacterData(text, nt, NormalizeNewline);
-                textNode.LineNumber = pInfo.LineNumber;
-                textNode.LinePosition = pInfo.LinePosition;
+                XmlDiffCharacterData textNode = new XmlDiffCharacterData(text, nt, NormalizeNewline)
+                {
+                    LineNumber = pInfo.LineNumber,
+                    LinePosition = pInfo.LinePosition
+                };
                 InsertChild(parent, textNode);
             }
         }
 
         private void LoadTopLevelAttribute(XmlDiffNode parent, string text, PositionInfo pInfo, XmlDiffNodeType nt)
         {
-            XmlDiffCharacterData textNode = new XmlDiffCharacterData(text, nt, NormalizeNewline);
-            textNode.LineNumber = pInfo.LineNumber;
-            textNode.LinePosition = pInfo.LinePosition;
+            XmlDiffCharacterData textNode = new XmlDiffCharacterData(text, nt, NormalizeNewline)
+            {
+                LineNumber = pInfo.LineNumber,
+                LinePosition = pInfo.LinePosition
+            };
             InsertTopLevelAttributeAsText(parent, textNode);
         }
 
         private void LoadPI(XmlDiffNode parent, XmlReader reader, PositionInfo pInfo)
         {
-            XmlDiffProcessingInstruction pi = new XmlDiffProcessingInstruction(reader.Name, reader.Value);
-            pi.LineNumber = pInfo.LineNumber;
-            pi.LinePosition = pInfo.LinePosition;
+            XmlDiffProcessingInstruction pi = new XmlDiffProcessingInstruction(reader.Name, reader.Value)
+            {
+                LineNumber = pInfo.LineNumber,
+                LinePosition = pInfo.LinePosition
+            };
             InsertChild(parent, pi);
         }
 
         private void LoadEntityReference(XmlDiffNode parent, XmlReader reader, PositionInfo pInfo)
         {
-            XmlDiffEntityReference er = new XmlDiffEntityReference(reader.Name);
-            er.LineNumber = pInfo.LineNumber;
-            er.LinePosition = pInfo.LinePosition;
+            XmlDiffEntityReference er = new XmlDiffEntityReference(reader.Name)
+            {
+                LineNumber = pInfo.LineNumber,
+                LinePosition = pInfo.LinePosition
+            };
             InsertChild(parent, er);
         }
 

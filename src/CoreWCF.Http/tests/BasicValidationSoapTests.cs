@@ -25,11 +25,11 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void BasicRequestReplySoap()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<BasicValidationSoapTestsStartup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<BasicValidationSoapTestsStartup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var client = ClientHelper.GetProxy<ClientContract.IRequestReplyService>();
+                ClientContract.IRequestReplyService client = ClientHelper.GetProxy<ClientContract.IRequestReplyService>();
                 _output.WriteLine("Invoking service operation DownloadData");
                 _output.WriteLine("Response = {0}", client.DownloadData());
 

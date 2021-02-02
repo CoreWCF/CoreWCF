@@ -19,7 +19,7 @@ namespace CoreWCF.Description
     {
         private static void ValidateDescription(ServiceHostBase serviceHost)
         {
-            var description = serviceHost.Description;
+            ServiceDescription description = serviceHost.Description;
             description.EnsureInvariants();
             // TODO: Reenable SecurityValidationBehavior validation
             //(SecurityValidationBehavior.Instance as IServiceBehavior).Validate(description, serviceHost);
@@ -145,7 +145,7 @@ namespace CoreWCF.Description
 
         internal static void InitializeServiceHost(ServiceHostBase serviceHost, IServiceProvider services)
         {
-            var description = serviceHost.Description;
+            ServiceDescription description = serviceHost.Description;
             if (serviceHost.ImplementedContracts != null && serviceHost.ImplementedContracts.Count > 0)
             {
                 EnsureThereAreApplicationEndpoints(description);
@@ -198,7 +198,7 @@ namespace CoreWCF.Description
                     }
 
                     // ensure all endpoints with this ListenUriInfo have same identity
-                    if (!object.Equals(endpoint.Address.Identity, identity))
+                    if (!Equals(endpoint.Address.Identity, identity))
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                                                                                       SR.Format(SR.SFxWhenMultipleEndpointsShareAListenUriTheyMustHaveSameIdentity, viaString)));
@@ -476,7 +476,7 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceDescription));
             }
 
-            var contractDescription = endpoint.Contract;
+            ContractDescription contractDescription = endpoint.Contract;
             if (contractDescription == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpoint.Contract));
@@ -548,7 +548,7 @@ namespace CoreWCF.Description
         private static void BuildDispatchOperation(OperationDescription operation, DispatchRuntime parent, EndpointFilterProvider provider)
         {
             string requestAction = operation.Messages[0].Action;
-            DispatchOperation child = null;
+            DispatchOperation child;
             if (operation.IsOneWay)
             {
                 child = new DispatchOperation(parent, operation.Name, requestAction);
@@ -667,13 +667,13 @@ namespace CoreWCF.Description
 
         internal static List<IServiceDispatcher> BuildDispatcher<TService>(ServiceConfiguration<TService> serviceConfig, IServiceProvider services) where TService : class
         {
-            var serviceBuilder = services.GetRequiredService<IServiceBuilder>();
-            var serverUriAddresses = serviceBuilder.BaseAddresses.ToArray();
+            IServiceBuilder serviceBuilder = services.GetRequiredService<IServiceBuilder>();
+            Uri[] serverUriAddresses = serviceBuilder.BaseAddresses.ToArray();
             ServiceHostObjectModel<TService> serviceHost;
             serviceHost = services.GetRequiredService<ServiceHostObjectModel<TService>>();
 
             // TODO: Create internal behavior which configures any extensibilities which exist in serviceProvider, eg IMessageInspector
-            foreach (var endpointConfig in serviceConfig.Endpoints)
+            foreach (ServiceEndpointConfiguration endpointConfig in serviceConfig.Endpoints)
             {
                 if (!serviceHost.ReflectedContracts.Contains(endpointConfig.Contract))
                 {
@@ -682,7 +682,7 @@ namespace CoreWCF.Description
 
                 ContractDescription contract = serviceHost.ReflectedContracts[endpointConfig.Contract];
 
-                var uri = serviceHost.MakeAbsoluteUri(endpointConfig.Address, endpointConfig.Binding);
+                Uri uri = serviceHost.MakeAbsoluteUri(endpointConfig.Address, endpointConfig.Binding);
                 var serviceEndpoint = new ServiceEndpoint(
                     contract,
                     endpointConfig.Binding,
@@ -697,11 +697,11 @@ namespace CoreWCF.Description
 
             // TODO: Add error checking to make sure property chain is correctly populated with objects
             var dispatchers = new List<IServiceDispatcher>(serviceHost.ChannelDispatchers.Count);
-            foreach (var cdb in serviceHost.ChannelDispatchers)
+            foreach (ChannelDispatcherBase cdb in serviceHost.ChannelDispatchers)
             {
                 var cd = cdb as ChannelDispatcher;
                 cd.Init();
-                var openTask = cd.OpenAsync();
+                System.Threading.Tasks.Task openTask = cd.OpenAsync();
                 Fx.Assert(openTask.IsCompleted, "ChannelDispatcher should open synchronously");
                 openTask.GetAwaiter().GetResult();
                 dispatchers.Add(new ServiceDispatcher(cd));
@@ -774,35 +774,28 @@ namespace CoreWCF.Description
         #region InnerClasses
         private class EndpointInfo
         {
-            private readonly EndpointFilterProvider _provider;
-
             public EndpointInfo(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher, EndpointFilterProvider provider)
             {
                 Endpoint = endpoint;
                 EndpointDispatcher = endpointDispatcher;
-                _provider = provider;
+                FilterProvider = provider;
             }
             public ServiceEndpoint Endpoint { get; }
-            public EndpointFilterProvider FilterProvider { get { return _provider; } }
+            public EndpointFilterProvider FilterProvider { get; }
             public EndpointDispatcher EndpointDispatcher { get; }
         }
 
         internal class ListenUriInfo
         {
-            private readonly ListenUriMode _listenUriMode;
-
             public ListenUriInfo(Uri listenUri, ListenUriMode listenUriMode)
             {
                 ListenUri = listenUri;
-                _listenUriMode = listenUriMode;
+                ListenUriMode = listenUriMode;
             }
 
             public Uri ListenUri { get; }
 
-            public ListenUriMode ListenUriMode
-            {
-                get { return _listenUriMode; }
-            }
+            public ListenUriMode ListenUriMode { get; }
 
             // implement Equals and GetHashCode so that we can use this as a key in a dictionary
             public override bool Equals(object obj)
@@ -817,12 +810,12 @@ namespace CoreWCF.Description
                     return false;
                 }
 
-                if (object.ReferenceEquals(this, other))
+                if (ReferenceEquals(this, other))
                 {
                     return true;
                 }
 
-                return (_listenUriMode == other._listenUriMode)
+                return (ListenUriMode == other.ListenUriMode)
                     && EndpointAddress.UriEquals(ListenUri, other.ListenUri, true /* ignoreCase */, true /* includeHost */);
             }
 

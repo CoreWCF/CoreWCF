@@ -45,7 +45,7 @@ namespace CoreWCF.Dispatcher
         {
             if (rpc.Operation.IsTerminating && rpc.Channel.HasSession)
             {
-                Timer timer = new Timer(new TimerCallback(TerminatingOperationBehavior.AbortChannel), rpc.Channel.Binder.Channel, rpc.Channel.CloseTimeout, TimeSpan.FromMilliseconds(-1));
+                Timer timer = new Timer(new TimerCallback(AbortChannel), rpc.Channel.Binder.Channel, rpc.Channel.CloseTimeout, TimeSpan.FromMilliseconds(-1));
             }
         }
 

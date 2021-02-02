@@ -154,9 +154,9 @@ namespace CoreWCF.Channels.Framing
         public static bool TryGetFaultString(Exception exception, out string framingFault)
         {
             framingFault = null;
-            if (exception.Data.Contains(FramingEncodingString.ExceptionKey))
+            if (exception.Data.Contains(ExceptionKey))
             {
-                framingFault = exception.Data[FramingEncodingString.ExceptionKey] as string;
+                framingFault = exception.Data[ExceptionKey] as string;
                 if (framingFault != null)
                 {
                     return true;
@@ -168,7 +168,7 @@ namespace CoreWCF.Channels.Framing
 
         public static void AddFaultString(Exception exception, string framingFault)
         {
-            exception.Data[FramingEncodingString.ExceptionKey] = framingFault;
+            exception.Data[ExceptionKey] = framingFault;
         }
     }
 

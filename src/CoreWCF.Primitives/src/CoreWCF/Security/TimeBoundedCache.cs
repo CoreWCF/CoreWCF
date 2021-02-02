@@ -136,8 +136,7 @@ namespace CoreWCF.Security
                 }
                 PurgeIfNeeded();
                 EnforceQuota();
-                IExpirableItem currentItem = Entries[key] as IExpirableItem;
-                if (currentItem == null || IsExpired(currentItem))
+                if (!(Entries[key] is IExpirableItem currentItem) || IsExpired(currentItem))
                 {
                     return false;
                 }
@@ -204,8 +203,7 @@ namespace CoreWCF.Security
                     CacheLock.AcquireReaderLock(-1);
                     lockHeld = true;
                 }
-                IExpirableItem item = Entries[key] as IExpirableItem;
-                if (item == null)
+                if (!(Entries[key] is IExpirableItem item))
                 {
                     return null;
                 }

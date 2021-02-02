@@ -323,7 +323,6 @@ namespace CoreWCF.Runtime
             private abstract class BufferPool
             {
                 private int _count;
-                private int _peak;
 
                 public BufferPool(int bufferSize, int limit)
                 {
@@ -337,10 +336,7 @@ namespace CoreWCF.Runtime
 
                 public int Misses { get; set; }
 
-                public int Peak
-                {
-                    get { return _peak; }
-                }
+                public int Peak { get; private set; }
 
                 public void Clear()
                 {
@@ -363,9 +359,9 @@ namespace CoreWCF.Runtime
                     if (newValue <= Limit)
                     {
                         _count = newValue;
-                        if (newValue > _peak)
+                        if (newValue > Peak)
                         {
-                            _peak = newValue;
+                            Peak = newValue;
                         }
                     }
                 }

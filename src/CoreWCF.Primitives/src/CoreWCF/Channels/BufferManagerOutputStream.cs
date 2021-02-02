@@ -35,7 +35,7 @@ namespace CoreWCF.Channels
 
         public void Init(int initialSize, int maxSizeQuota, int effectiveMaxSize, BufferManager bufferManager)
         {
-            base.Reinitialize(initialSize, maxSizeQuota, effectiveMaxSize, BufferManager.GetInternalBufferManager(bufferManager));
+            Reinitialize(initialSize, maxSizeQuota, effectiveMaxSize, BufferManager.GetInternalBufferManager(bufferManager));
         }
 
         protected override Exception CreateQuotaExceededException(int maxSizeQuota)

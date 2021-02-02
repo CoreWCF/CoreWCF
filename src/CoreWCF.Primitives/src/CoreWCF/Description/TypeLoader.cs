@@ -72,9 +72,9 @@ namespace CoreWCF.Description
                         EnsureNoOperationContractsOnNonServiceContractTypes(actualContractType);
                         contractDescription = CreateContractDescription(actualContractAttribute, actualContractType, out ContractReflectionInfo reflectionInfo, serviceImplementation);
                         // IContractBehaviors
-                        if (serviceImplementation != null && serviceImplementation is IContractBehavior)
+                        if (serviceImplementation != null && serviceImplementation is IContractBehavior behavior)
                         {
-                            contractDescription.ContractBehaviors.Add((IContractBehavior)serviceImplementation);
+                            contractDescription.ContractBehaviors.Add(behavior);
                         }
                         UpdateContractDescriptionWithAttributesFromServiceType(contractDescription);
                         foreach (ContractDescription inheritedContract in contractDescription.GetInheritedContracts())
@@ -93,7 +93,7 @@ namespace CoreWCF.Description
 
         private void EnsureNoInheritanceWithContractClasses(Type actualContractType)
         {
-            var ti = actualContractType;
+            Type ti = actualContractType;
             if (ti.IsClass)
             {
                 // we only need to check base _classes_ here, the check for interfaces happens elsewhere
@@ -172,10 +172,12 @@ namespace CoreWCF.Description
         {
             Type channelType = typeof(IOutputChannel);
             XmlQualifiedName contractName = NamingHelper.GetContractName(channelType, null, NamingHelper.MSNamespace);
-            ContractDescription contract = new ContractDescription(contractName.Name, contractName.Namespace);
-            contract.ContractType = channelType;
-            contract.ConfigurationName = channelType.FullName;
-            contract.SessionMode = SessionMode.NotAllowed;
+            ContractDescription contract = new ContractDescription(contractName.Name, contractName.Namespace)
+            {
+                ContractType = channelType,
+                ConfigurationName = channelType.FullName,
+                SessionMode = SessionMode.NotAllowed
+            };
             OperationDescription operation = new OperationDescription("Send", contract);
             MessageDescription message = new MessageDescription(MessageHeaders.WildcardAction, MessageDirection.Input);
             operation.Messages.Add(message);
@@ -187,10 +189,12 @@ namespace CoreWCF.Description
         {
             Type channelType = typeof(IRequestChannel);
             XmlQualifiedName contractName = NamingHelper.GetContractName(channelType, null, NamingHelper.MSNamespace);
-            ContractDescription contract = new ContractDescription(contractName.Name, contractName.Namespace);
-            contract.ContractType = channelType;
-            contract.ConfigurationName = channelType.FullName;
-            contract.SessionMode = SessionMode.NotAllowed;
+            ContractDescription contract = new ContractDescription(contractName.Name, contractName.Namespace)
+            {
+                ContractType = channelType,
+                ConfigurationName = channelType.FullName,
+                SessionMode = SessionMode.NotAllowed
+            };
             OperationDescription operation = new OperationDescription("Request", contract);
             MessageDescription request = new MessageDescription(MessageHeaders.WildcardAction, MessageDirection.Input);
             MessageDescription reply = new MessageDescription(MessageHeaders.WildcardAction, MessageDirection.Output);
@@ -273,8 +277,7 @@ namespace CoreWCF.Description
                 Attribute formattingAttribute = GetFormattingAttribute(opMethod,
                                                     GetFormattingAttribute(operationDescription.DeclaringContract.ContractType,
                                                         DefaultDataContractFormatAttribute));
-                DataContractFormatAttribute dataContractFormatAttribute = formattingAttribute as DataContractFormatAttribute;
-                if (dataContractFormatAttribute != null)
+                if (formattingAttribute is DataContractFormatAttribute dataContractFormatAttribute)
                 {
                     if (!isInherited)
                     {
@@ -311,8 +314,7 @@ namespace CoreWCF.Description
                 {
                     foreach (IContractBehavior iContractBehavior in ServiceReflector.GetCustomAttributes(currentType, typeof(IContractBehavior), false))
                     {
-                        IContractBehaviorAttribute iContractBehaviorAttribute = iContractBehavior as IContractBehaviorAttribute;
-                        if (iContractBehaviorAttribute == null
+                        if (!(iContractBehavior is IContractBehaviorAttribute iContractBehaviorAttribute)
                             || (iContractBehaviorAttribute.TargetContract == null)
                             || (iContractBehaviorAttribute.TargetContract == description.ContractType))
                         {
@@ -743,8 +745,10 @@ namespace CoreWCF.Description
             reflectionInfo = new ContractReflectionInfo();
 
             XmlQualifiedName contractName = NamingHelper.GetContractName(contractType, contractAttr.Name, contractAttr.Namespace);
-            ContractDescription contractDescription = new ContractDescription(contractName.Name, contractName.Namespace);
-            contractDescription.ContractType = contractType;
+            ContractDescription contractDescription = new ContractDescription(contractName.Name, contractName.Namespace)
+            {
+                ContractType = contractType
+            };
 
             // MessageSecurity not supported
             //if (contractAttr.HasProtectionLevel)
@@ -960,12 +964,14 @@ namespace CoreWCF.Description
                 }
             }
 
-            OperationDescription operationDescription = new OperationDescription(operationName.EncodedName, declaringContract);
-            //operationDescription.IsInitiating = opAttr.IsInitiating;
-            //operationDescription.IsTerminating = opAttr.IsTerminating;
-            operationDescription.IsSessionOpenNotificationEnabled = opAttr.IsSessionOpenNotificationEnabled;
+            OperationDescription operationDescription = new OperationDescription(operationName.EncodedName, declaringContract)
+            {
+                //operationDescription.IsInitiating = opAttr.IsInitiating;
+                //operationDescription.IsTerminating = opAttr.IsTerminating;
+                IsSessionOpenNotificationEnabled = opAttr.IsSessionOpenNotificationEnabled,
 
-            operationDescription.HasNoDisposableParameters = ServiceReflector.HasNoDisposableParameters(methodInfo);
+                HasNoDisposableParameters = ServiceReflector.HasNoDisposableParameters(methodInfo)
+            };
 
             //if (opAttr.HasProtectionLevel)
             //{
@@ -1276,10 +1282,12 @@ namespace CoreWCF.Description
             MessageParameterAttribute paramAttr = ServiceReflector.GetSingleAttribute<MessageParameterAttribute>(attrProvider);
 
             XmlName name = paramAttr == null || !paramAttr.IsNameSetExplicit ? defaultName : new XmlName(paramAttr.Name);
-            parameterPart = new MessagePartDescription(name.EncodedName, defaultNS);
-            parameterPart.Type = type;
-            parameterPart.Index = index;
-            parameterPart.AdditionalAttributesProvider = attrProvider;
+            parameterPart = new MessagePartDescription(name.EncodedName, defaultNS)
+            {
+                Type = type,
+                Index = index,
+                AdditionalAttributesProvider = attrProvider
+            };
             return parameterPart;
         }
 
@@ -1364,9 +1372,9 @@ namespace CoreWCF.Description
                 MemberInfo memberInfo = contractMembers[i];
 
                 Type memberType;
-                if (memberInfo is PropertyInfo)
+                if (memberInfo is PropertyInfo propInfo)
                 {
-                    memberType = ((PropertyInfo)memberInfo).PropertyType;
+                    memberType = propInfo.PropertyType;
                 }
                 else
                 {
@@ -1428,20 +1436,24 @@ namespace CoreWCF.Description
                                                          int parameterIndex,
                                                          int serializationIndex)
         {
-            MessagePartDescription partDescription = null;
             MessageBodyMemberAttribute bodyAttr = ServiceReflector.GetSingleAttribute<MessageBodyMemberAttribute>(attrProvider, s_messageContractMemberAttributes);
 
+            MessagePartDescription partDescription;
             if (bodyAttr == null)
             {
-                partDescription = new MessagePartDescription(defaultName.EncodedName, defaultNS);
-                partDescription.SerializationPosition = serializationIndex;
+                partDescription = new MessagePartDescription(defaultName.EncodedName, defaultNS)
+                {
+                    SerializationPosition = serializationIndex
+                };
             }
             else
             {
                 XmlName partName = bodyAttr.IsNameSetExplicit ? new XmlName(bodyAttr.Name) : defaultName;
                 string partNs = bodyAttr.IsNamespaceSetExplicit ? bodyAttr.Namespace : defaultNS;
-                partDescription = new MessagePartDescription(partName.EncodedName, partNs);
-                partDescription.SerializationPosition = bodyAttr.Order < 0 ? serializationIndex : bodyAttr.Order;
+                partDescription = new MessagePartDescription(partName.EncodedName, partNs)
+                {
+                    SerializationPosition = bodyAttr.Order < 0 ? serializationIndex : bodyAttr.Order
+                };
             }
 
             if (attrProvider.MemberInfo != null)
@@ -1460,12 +1472,13 @@ namespace CoreWCF.Description
                                                                     int parameterIndex,
                                                                     int serializationPosition)
         {
-            MessageHeaderDescription headerDescription = null;
             MessageHeaderAttribute headerAttr = ServiceReflector.GetRequiredSingleAttribute<MessageHeaderAttribute>(attrProvider, s_messageContractMemberAttributes);
             XmlName headerName = headerAttr.IsNameSetExplicit ? new XmlName(headerAttr.Name) : defaultName;
             string headerNs = headerAttr.IsNamespaceSetExplicit ? headerAttr.Namespace : defaultNS;
-            headerDescription = new MessageHeaderDescription(headerName.EncodedName, headerNs);
-            headerDescription.UniquePartName = defaultName.EncodedName;
+            MessageHeaderDescription headerDescription = new MessageHeaderDescription(headerName.EncodedName, headerNs)
+            {
+                UniquePartName = defaultName.EncodedName
+            };
 
             if (headerAttr is MessageHeaderArrayAttribute)
             {
@@ -1507,8 +1520,10 @@ namespace CoreWCF.Description
         {
             MessagePropertyAttribute attr = ServiceReflector.GetSingleAttribute<MessagePropertyAttribute>(attrProvider, s_messageContractMemberAttributes);
             XmlName propertyName = attr.IsNameSetExplicit ? new XmlName(attr.Name) : defaultName;
-            MessagePropertyDescription propertyDescription = new MessagePropertyDescription(propertyName.EncodedName);
-            propertyDescription.Index = parameterIndex;
+            MessagePropertyDescription propertyDescription = new MessagePropertyDescription(propertyName.EncodedName)
+            {
+                Index = parameterIndex
+            };
 
             if (attrProvider.MemberInfo != null)
             {

@@ -31,7 +31,7 @@ namespace CoreWCF.Channels
                         {
                             try
                             {
-                                s_machineName = Dns.GetHostEntry(String.Empty).HostName;
+                                s_machineName = Dns.GetHostEntry(string.Empty).HostName;
                             }
                             catch (SocketException exception)
                             {

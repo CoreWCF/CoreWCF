@@ -10,7 +10,6 @@ namespace CoreWCF
     {
         private bool _mustUnderstand;
         private bool _relay;
-        private string _actor;
 
         public bool MustUnderstand
         {
@@ -24,11 +23,7 @@ namespace CoreWCF
             set { _relay = value; IsRelaySet = true; }
         }
 
-        public string Actor
-        {
-            get { return _actor; }
-            set { _actor = value; }
-        }
+        public string Actor { get; set; }
 
         internal bool IsMustUnderstandSet { get; private set; }
 

@@ -56,7 +56,7 @@ namespace CoreWCF.Dispatcher
     {
         internal T[] buffer;    // buffer of T. Frequently larger than count
         internal int count;     // Actual # of items
-        internal static T[] EmptyBuffer = new T[0];
+        internal static T[] EmptyBuffer = Array.Empty<T>();
 
         /// <summary>
         /// Construct a new buffer
@@ -66,7 +66,7 @@ namespace CoreWCF.Dispatcher
         {
             if (0 == capacity)
             {
-                buffer = QueryBuffer<T>.EmptyBuffer;
+                buffer = EmptyBuffer;
             }
             else
             {
@@ -292,7 +292,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (0 == count)
                 {
-                    buffer = QueryBuffer<T>.EmptyBuffer;
+                    buffer = EmptyBuffer;
                 }
                 else
                 {
@@ -320,7 +320,7 @@ namespace CoreWCF.Dispatcher
             }
             else
             {
-                Fx.Assert(object.ReferenceEquals(DefaultComparer.Comparer, comparerInstance), "The SortedBuffer type has already been initialized with a different comparer instance.");
+                Fx.Assert(ReferenceEquals(DefaultComparer.Comparer, comparerInstance), "The SortedBuffer type has already been initialized with a different comparer instance.");
             }
         }
 
@@ -490,7 +490,7 @@ namespace CoreWCF.Dispatcher
                 Array.Copy(_buffer, index + 1, _buffer, index, Count - index - 1);
             }
 
-            _buffer[--Count] = default(T);
+            _buffer[--Count] = default;
         }
 
         private int Search(T item)

@@ -46,8 +46,8 @@ namespace DispatcherClient
             services.AddSingleton(server);
             services.AddSingleton(GetType(), this);
             configureServices?.Invoke(services);
-            var serviceProvider = services.BuildServiceProvider();
-            var serverAddressesFeature = serviceProvider.GetRequiredService<IServerAddressesFeature>();
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServerAddressesFeature serverAddressesFeature = serviceProvider.GetRequiredService<IServerAddressesFeature>();
             server.Features.Set(serverAddressesFeature);
             return serviceProvider;
         }
@@ -62,8 +62,8 @@ namespace DispatcherClient
 
         public TChannel CreateChannel(EndpointAddress to, Uri via)
         {
-            var servicesScopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
-            var serviceScope = servicesScopeFactory.CreateScope();
+            IServiceScopeFactory servicesScopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
+            IServiceScope serviceScope = servicesScopeFactory.CreateScope();
 
             if (typeof(TChannel) == typeof(IRequestChannel))
             {
@@ -95,15 +95,15 @@ namespace DispatcherClient
                 }
             }
 
-            var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
+            IServiceBuilder serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.AddService<TService>();
             var binding = new CoreWCF.Channels.CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new Helpers.MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<TService, TContract>(binding, channel.Via);
             await serviceBuilder.OpenAsync();
-            var dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
-            var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
-            var serviceDispatcher = dispatchers[0];
+            IDispatcherBuilder dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
+            IServiceDispatcher serviceDispatcher = dispatchers[0];
             CoreWCF.Channels.IChannel replyChannel;
             if (channel is DispatcherRequestSessionChannel)
             {

@@ -32,13 +32,9 @@ namespace CoreWCF.Dispatcher
 
         private void Initialize(Type type, string rootName, string rootNamespace, XmlSerializer xmlSerializer)
         {
-            if (type == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(type));
-            }
-            _rootType = type;
+            _rootType = type ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(type));
             _rootName = rootName;
-            _rootNamespace = rootNamespace == null ? string.Empty : rootNamespace;
+            _rootNamespace = rootNamespace ?? string.Empty;
             _serializer = xmlSerializer;
 
             if (_serializer == null)
@@ -49,9 +45,11 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    XmlRootAttribute xmlRoot = new XmlRootAttribute();
-                    xmlRoot.ElementName = _rootName;
-                    xmlRoot.Namespace = _rootNamespace;
+                    XmlRootAttribute xmlRoot = new XmlRootAttribute
+                    {
+                        ElementName = _rootName,
+                        Namespace = _rootNamespace
+                    };
                     _serializer = new XmlSerializer(type, xmlRoot);
                 }
             }

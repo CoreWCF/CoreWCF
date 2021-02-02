@@ -54,7 +54,7 @@ namespace CoreWCF.Channels.Framing
         {
             get
             {
-                var connectionFeature = _context.Features.Get<IHttpConnectionFeature>();
+                IHttpConnectionFeature connectionFeature = _context.Features.Get<IHttpConnectionFeature>();
                 if (connectionFeature == null)
                 {
                     return null;
@@ -107,7 +107,7 @@ namespace CoreWCF.Channels.Framing
             //}
             var encodedFault = new EncodedFault(faultString);
             var timeoutHelper = new TimeoutHelper(sendTimeout);
-            var ct = timeoutHelper.GetCancellationToken();
+            System.Threading.CancellationToken ct = timeoutHelper.GetCancellationToken();
             try
             {
                 await Output.WriteAsync(encodedFault.EncodedBytes, ct);

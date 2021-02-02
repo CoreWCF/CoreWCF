@@ -55,13 +55,8 @@ namespace CoreWCF
             int index = 0;
             foreach (FaultReasonText faultReasonText in translations)
             {
-                if (faultReasonText == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(translations),
+                array[index++] = faultReasonText ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(translations),
                         SR.NoNullTranslations);
-                }
-
-                array[index++] = faultReasonText;
             }
             Init(array);
         }

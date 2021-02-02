@@ -28,11 +28,7 @@ namespace CoreWCF.Security.Tokens
         internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference, byte[] wrappedKey, SecurityKey wrappingSecurityKey)
              : this(id, keyToWrap, wrappingAlgorithm, wrappingAlgorithmDictionaryString)
         {
-            if (wrappingToken == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappingToken");
-            }
-            WrappingToken = wrappingToken;
+            WrappingToken = wrappingToken ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappingToken));
             WrappingTokenReference = wrappingTokenReference;
             if (wrappedKey == null)
             {
@@ -48,25 +44,15 @@ namespace CoreWCF.Security.Tokens
 
         private WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString)
         {
-            if (id == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
-            }
-
-            if (wrappingAlgorithm == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappingAlgorithm));
-            }
-
             if (keyToWrap == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyToWrap));
             }
 
-            _id = id;
+            _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             _effectiveTime = DateTime.UtcNow;
             _securityKey = SecurityUtils.CreateSymmetricSecurityKeys(keyToWrap);
-            WrappingAlgorithm = wrappingAlgorithm;
+            WrappingAlgorithm = wrappingAlgorithm ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappingAlgorithm));
             _wrappingAlgorithmDictionaryString = wrappingAlgorithmDictionaryString;
         }
 
@@ -78,7 +64,7 @@ namespace CoreWCF.Security.Tokens
 
         internal EncryptedKey EncryptedKey { get; set; }
 
-        internal ReferenceList ReferenceList => EncryptedKey == null ? null : EncryptedKey.ReferenceList;
+        internal ReferenceList ReferenceList => EncryptedKey?.ReferenceList;
 
         public string WrappingAlgorithm { get; }
 
@@ -114,8 +100,10 @@ namespace CoreWCF.Security.Tokens
         {
             if (EncryptedKey == null)
             {
-                EncryptedKey ek = new EncryptedKey();
-                ek.Id = Id;
+                EncryptedKey ek = new EncryptedKey
+                {
+                    Id = Id
+                };
                 if (_serializeCarriedKeyName)
                 {
                     ek.CarriedKeyName = CarriedKeyName;
@@ -157,8 +145,7 @@ namespace CoreWCF.Security.Tokens
 
         public override bool MatchesKeyIdentifierClause(SecurityKeyIdentifierClause keyIdentifierClause)
         {
-            EncryptedKeyHashIdentifierClause encKeyIdentifierClause = keyIdentifierClause as EncryptedKeyHashIdentifierClause;
-            if (encKeyIdentifierClause != null)
+            if (keyIdentifierClause is EncryptedKeyHashIdentifierClause encKeyIdentifierClause)
             {
                 return encKeyIdentifierClause.Matches(GetHash());
             }

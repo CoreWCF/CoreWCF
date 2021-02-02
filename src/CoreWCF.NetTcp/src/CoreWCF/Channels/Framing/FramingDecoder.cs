@@ -18,7 +18,7 @@ namespace CoreWCF.Channels.Framing
         {
             if (size <= 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("size", size, SR.ValueMustBePositive));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(size), size, SR.ValueMustBePositive));
             }
         }
     }
@@ -62,7 +62,7 @@ namespace CoreWCF.Channels.Framing
 
             while (bytesConsumed < buffer.Length)
             {
-                var data = buffer.First.Span;
+                ReadOnlySpan<byte> data = buffer.First.Span;
                 int next = data[0];
                 _value |= (next & 0x7F) << (_index * 7);
                 bytesConsumed++;
@@ -161,7 +161,7 @@ namespace CoreWCF.Channels.Framing
 
                         Span<byte> span = _encodedBytes;
                         Span<byte> slicedBytes = span.Slice(_encodedSize - _bytesNeeded, bytesConsumed);
-                        var tempBuffer = buffer.Slice(0, bytesConsumed);
+                        ReadOnlySequence<byte> tempBuffer = buffer.Slice(0, bytesConsumed);
                         tempBuffer.CopyTo(slicedBytes);
                         _bytesNeeded -= bytesConsumed;
                         if (_bytesNeeded == 0)
@@ -186,7 +186,7 @@ namespace CoreWCF.Channels.Framing
 
         private static bool CompareBuffers(byte[] buffer1, ReadOnlySequence<byte> buffer2)
         {
-            var buff = buffer2.ToArray();
+            byte[] buff = buffer2.ToArray();
             for (int i = 0; i < buffer1.Length; i++)
             {
                 if (buffer1[i] != buff[i])
@@ -482,7 +482,7 @@ namespace CoreWCF.Channels.Framing
         public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
-            var data = buffer.First.Span;
+            ReadOnlySpan<byte> data = buffer.First.Span;
 
             try
             {
@@ -539,7 +539,7 @@ namespace CoreWCF.Channels.Framing
             ReadOnlySequence<byte> buffer;
             while (true)
             {
-                var readResult = await inputPipe.ReadAsync();
+                ReadResult readResult = await inputPipe.ReadAsync();
                 if (readResult.IsCompleted)
                 {
                     return false;
@@ -733,7 +733,7 @@ namespace CoreWCF.Channels.Framing
         public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
-            var data = buffer.First.Span;
+            ReadOnlySpan<byte> data = buffer.First.Span;
             try
             {
                 int bytesConsumed;
@@ -951,7 +951,7 @@ namespace CoreWCF.Channels.Framing
         public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
-            var data = buffer.First.Span;
+            ReadOnlySpan<byte> data = buffer.First.Span;
             try
             {
                 int bytesConsumed;
@@ -1100,7 +1100,7 @@ namespace CoreWCF.Channels.Framing
         public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
-            var data = buffer.First.Span;
+            ReadOnlySpan<byte> data = buffer.First.Span;
             try
             {
                 int bytesConsumed;
@@ -1252,7 +1252,7 @@ namespace CoreWCF.Channels.Framing
         public override int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
-            var data = buffer.First.Span;
+            ReadOnlySpan<byte> data = buffer.First.Span;
             try
             {
                 int bytesConsumed;

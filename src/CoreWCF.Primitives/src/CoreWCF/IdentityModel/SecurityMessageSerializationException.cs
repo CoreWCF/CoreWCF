@@ -13,12 +13,12 @@ namespace CoreWCF.IdentityModel
         {
         }
 
-        public SecurityMessageSerializationException(String message)
+        public SecurityMessageSerializationException(string message)
             : base(message)
         {
         }
 
-        public SecurityMessageSerializationException(String message, Exception innerException)
+        public SecurityMessageSerializationException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

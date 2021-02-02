@@ -227,7 +227,7 @@ namespace CoreWCF.Channels
             {
                 if (null == uriPath)
                 {
-                    return new string[0];
+                    return Array.Empty<string>();
                 }
                 UriSegmentEnum segmentEnum = new UriSegmentEnum(uriPath); // struct
                 return segmentEnum.GetSegments(hostNameComparisonMode, includePortInComparison);

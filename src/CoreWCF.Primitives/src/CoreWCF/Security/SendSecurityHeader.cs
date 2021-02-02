@@ -26,7 +26,6 @@ namespace CoreWCF.Security
         private SignatureConfirmations _signatureConfirmationsToSend;
         private int _idCounter;
         private string _idPrefix;
-        private bool _hasEncryptedTokens;
         private MessagePartSpecification _signatureParts;
         private MessagePartSpecification _encryptionParts;
         private SecurityTokenParameters _encryptingTokenParameters;
@@ -174,16 +173,12 @@ namespace CoreWCF.Security
 
         public bool HasSignedTokens { get; private set; }
 
-        public bool HasEncryptedTokens => _hasEncryptedTokens;
+        public bool HasEncryptedTokens { get; private set; }
 
         public void AddPrerequisiteToken(SecurityToken token)
         {
             ThrowIfProcessingStarted();
-            if (token == null)
-            {
-                throw TraceUtility.ThrowHelperError(new Exception(nameof(token)), Message);
-            }
-            ElementContainer.PrerequisiteToken = token;
+            ElementContainer.PrerequisiteToken = token ?? throw TraceUtility.ThrowHelperError(new Exception(nameof(token)), Message);
         }
 
         private void AddParameters(ref List<SecurityTokenParameters> list, SecurityTokenParameters item)
@@ -236,10 +231,12 @@ namespace CoreWCF.Security
             }
 
             ThrowIfProcessingStarted();
-            SendSecurityHeaderElement tokenElement = new SendSecurityHeaderElement(token.Id, new TokenElement(token, StandardsManager));
-            tokenElement.MarkedForEncryption = true;
+            SendSecurityHeaderElement tokenElement = new SendSecurityHeaderElement(token.Id, new TokenElement(token, StandardsManager))
+            {
+                MarkedForEncryption = true
+            };
             ElementContainer.AddBasicSupportingToken(tokenElement);
-            _hasEncryptedTokens = true;
+            HasEncryptedTokens = true;
             HasSignedTokens = true;
             AddParameters(ref _basicSupportingTokenParameters, parameters);
             if (_basicTokens == null)
@@ -338,12 +335,8 @@ namespace CoreWCF.Security
             {
                 throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.TimestampAlreadySetForSecurityHeader), Message);
             }
-            if (timestamp == null)
-            {
-                throw TraceUtility.ThrowHelperArgumentNull(nameof(timestamp), Message);
-            }
 
-            ElementContainer.Timestamp = timestamp;
+            ElementContainer.Timestamp = timestamp ?? throw TraceUtility.ThrowHelperArgumentNull(nameof(timestamp), Message);
         }
 
         protected virtual ISignatureValueSecurityElement[] CreateSignatureConfirmationElements(SignatureConfirmations signatureConfirmations)
@@ -788,8 +781,10 @@ namespace CoreWCF.Security
                 signatureConfirmationElements = CreateSignatureConfirmationElements(_signatureConfirmationsToSend);
                 for (int i = 0; i < signatureConfirmationElements.Length; ++i)
                 {
-                    SendSecurityHeaderElement sigConfElement = new SendSecurityHeaderElement(signatureConfirmationElements[i].Id, signatureConfirmationElements[i]);
-                    sigConfElement.MarkedForEncryption = _signatureConfirmationsToSend.IsMarkedForEncryption;
+                    SendSecurityHeaderElement sigConfElement = new SendSecurityHeaderElement(signatureConfirmationElements[i].Id, signatureConfirmationElements[i])
+                    {
+                        MarkedForEncryption = _signatureConfirmationsToSend.IsMarkedForEncryption
+                    };
                     ElementContainer.AddSignatureConfirmation(sigConfElement);
                 }
             }
@@ -807,8 +802,10 @@ namespace CoreWCF.Security
             {
                 return;
             }
-            ElementContainer.PrimarySignature = new SendSecurityHeaderElement(signedXml.Id, signedXml);
-            ElementContainer.PrimarySignature.MarkedForEncryption = _encryptSignature;
+            ElementContainer.PrimarySignature = new SendSecurityHeaderElement(signedXml.Id, signedXml)
+            {
+                MarkedForEncryption = _encryptSignature
+            };
             AddGeneratedSignatureValue(signedXml.GetSignatureValue(), EncryptPrimarySignature);
             _primarySignatureDone = true;
             PrimarySignatureValue = signedXml.GetSignatureValue();
@@ -871,8 +868,10 @@ namespace CoreWCF.Security
                 supportingSignature = CreateSupportingSignature(token, identifier, ElementContainer.PrimarySignature.Item);
             }
             AddGeneratedSignatureValue(supportingSignature.GetSignatureValue(), _encryptSignature);
-            SendSecurityHeaderElement supportingSignatureElement = new SendSecurityHeaderElement(supportingSignature.Id, supportingSignature);
-            supportingSignatureElement.MarkedForEncryption = _encryptSignature;
+            SendSecurityHeaderElement supportingSignatureElement = new SendSecurityHeaderElement(supportingSignature.Id, supportingSignature)
+            {
+                MarkedForEncryption = _encryptSignature
+            };
             ElementContainer.AddEndorsingSignature(supportingSignatureElement);
         }
 
@@ -944,9 +943,9 @@ namespace CoreWCF.Security
 
         protected bool ShouldUseStrTransformForToken(SecurityToken securityToken, int position, SecurityTokenAttachmentMode mode, out SecurityKeyIdentifierClause keyIdentifierClause)
         {
-            IssuedSecurityTokenParameters tokenParams = null;
             keyIdentifierClause = null;
 
+            IssuedSecurityTokenParameters tokenParams;
             switch (mode)
             {
                 case SecurityTokenAttachmentMode.SignedEndorsing:
@@ -1005,8 +1004,7 @@ namespace CoreWCF.Security
 
         public override bool Equals(object item)
         {
-            TokenElement element = item as TokenElement;
-            return (element != null && Token == element.Token && _standardsManager == element._standardsManager);
+            return (item is TokenElement element && Token == element.Token && _standardsManager == element._standardsManager);
         }
 
         public override int GetHashCode()

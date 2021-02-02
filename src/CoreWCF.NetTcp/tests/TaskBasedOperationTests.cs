@@ -29,7 +29,7 @@ namespace AsyncServices
         public async Task BufferedSynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -37,7 +37,7 @@ namespace AsyncServices
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.BufferedRelatveAddress));
                     channel = factory.CreateChannel();
@@ -57,7 +57,7 @@ namespace AsyncServices
         public async Task BufferedAsynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -65,7 +65,7 @@ namespace AsyncServices
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.BufferedRelatveAddress));
                     channel = factory.CreateChannel();
@@ -85,7 +85,7 @@ namespace AsyncServices
         public async Task StreamedSynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -93,7 +93,7 @@ namespace AsyncServices
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.StreamedRelatveAddress));
                     channel = factory.CreateChannel();
@@ -113,7 +113,7 @@ namespace AsyncServices
         public async Task StreamedAsynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -121,7 +121,7 @@ namespace AsyncServices
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.StreamedRelatveAddress));
                     channel = factory.CreateChannel();

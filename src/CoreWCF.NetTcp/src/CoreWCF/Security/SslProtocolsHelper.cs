@@ -12,7 +12,7 @@ namespace CoreWCF.Security
         internal static bool IsDefined(SslProtocols value)
         {
             SslProtocols allValues = SslProtocols.None;
-            foreach (var protocol in Enum.GetValues(typeof(SslProtocols)))
+            foreach (object protocol in Enum.GetValues(typeof(SslProtocols)))
             {
                 allValues |= (SslProtocols)protocol;
             }

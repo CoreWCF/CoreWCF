@@ -157,7 +157,7 @@ namespace CoreWCF.Security
 
             private TimestampCanonicalFormWriter()
             {
-                Encoding encoding = CanonicalFormWriter.Utf8WithoutPreamble;
+                Encoding encoding = Utf8WithoutPreamble;
                 _fragment1 = encoding.GetBytes(xml1);
                 _fragment2 = encoding.GetBytes(xml2);
                 _fragment3 = encoding.GetBytes(xml3);

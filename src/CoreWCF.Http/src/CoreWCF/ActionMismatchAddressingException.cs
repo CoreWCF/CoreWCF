@@ -46,7 +46,7 @@ namespace CoreWCF
         {
             Fx.Assert(messageVersion.Addressing == AddressingVersion.WSAddressing10, "");
             WSAddressing10ProblemHeaderQNameFault phf = new WSAddressing10ProblemHeaderQNameFault(this);
-            Message message = CoreWCF.Channels.Message.CreateMessage(messageVersion, phf, messageVersion.Addressing.FaultAction);
+            Message message = Channels.Message.CreateMessage(messageVersion, phf, messageVersion.Addressing.FaultAction);
             phf.AddHeaders(message.Headers);
             return message;
         }

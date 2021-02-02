@@ -73,7 +73,7 @@ namespace CoreWCF.Channels
 
             if (tokenProvider != null)
             {
-                SspiSecurityToken token = await TransportSecurityHelpers.GetTokenAsync<SspiSecurityToken>(tokenProvider, cancellationToken);
+                SspiSecurityToken token = await GetTokenAsync<SspiSecurityToken>(tokenProvider, cancellationToken);
                 if (token != null)
                 {
                     extractGroupsForWindowsAccounts = token.ExtractGroupsForWindowsAccounts;
@@ -100,22 +100,26 @@ namespace CoreWCF.Channels
 
         public static SecurityTokenRequirement CreateSspiTokenRequirement(string transportScheme, Uri listenUri)
         {
-            RecipientServiceModelSecurityTokenRequirement tokenRequirement = new RecipientServiceModelSecurityTokenRequirement();
-            tokenRequirement.TransportScheme = transportScheme;
-            tokenRequirement.RequireCryptographicToken = false;
-            tokenRequirement.ListenUri = listenUri;
-            tokenRequirement.TokenType = ServiceModelSecurityTokenTypes.SspiCredential;
+            RecipientServiceModelSecurityTokenRequirement tokenRequirement = new RecipientServiceModelSecurityTokenRequirement
+            {
+                TransportScheme = transportScheme,
+                RequireCryptographicToken = false,
+                ListenUri = listenUri,
+                TokenType = ServiceModelSecurityTokenTypes.SspiCredential
+            };
             return tokenRequirement;
         }
 
         public static SecurityTokenAuthenticator GetCertificateTokenAuthenticator(SecurityTokenManager tokenManager, string transportScheme, Uri listenUri)
         {
-            RecipientServiceModelSecurityTokenRequirement clientAuthRequirement = new RecipientServiceModelSecurityTokenRequirement();
-            clientAuthRequirement.TokenType = SecurityTokenTypes.X509Certificate;
-            clientAuthRequirement.RequireCryptographicToken = true;
-            clientAuthRequirement.KeyUsage = SecurityKeyUsage.Signature;
-            clientAuthRequirement.TransportScheme = transportScheme;
-            clientAuthRequirement.ListenUri = listenUri;
+            RecipientServiceModelSecurityTokenRequirement clientAuthRequirement = new RecipientServiceModelSecurityTokenRequirement
+            {
+                TokenType = SecurityTokenTypes.X509Certificate,
+                RequireCryptographicToken = true,
+                KeyUsage = SecurityKeyUsage.Signature,
+                TransportScheme = transportScheme,
+                ListenUri = listenUri
+            };
             return tokenManager.CreateSecurityTokenAuthenticator(clientAuthRequirement, out SecurityTokenResolver dummy);
         }
 

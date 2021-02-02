@@ -13,13 +13,10 @@ namespace CoreWCF.Dispatcher
 {
     internal class ProxyOperationRuntime
     {
-        static internal readonly ParameterInfo[] NoParams = new ParameterInfo[0];
-        static internal readonly object[] EmptyArray = new object[0];
+        internal static readonly ParameterInfo[] NoParams = Array.Empty<ParameterInfo>();
+        internal static readonly object[] EmptyArray = Array.Empty<object>();
         private readonly IClientMessageFormatter _formatter;
-        private readonly bool _isSessionOpenNotificationEnabled;
         private readonly IParameterInspector[] _parameterInspectors;
-        private readonly bool _deserializeReply;
-        private readonly string _replyAction;
         private readonly MethodInfo _beginMethod;
         private readonly MethodInfo _syncMethod;
         private readonly MethodInfo _taskMethod;
@@ -35,24 +32,19 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operation));
             }
 
-            if (parent == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            }
-
-            Parent = parent;
+            Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             _formatter = operation.Formatter;
             IsInitiating = operation.IsInitiating;
             IsOneWay = operation.IsOneWay;
             IsTerminating = operation.IsTerminating;
-            _isSessionOpenNotificationEnabled = operation.IsSessionOpenNotificationEnabled;
+            IsSessionOpenNotificationEnabled = operation.IsSessionOpenNotificationEnabled;
             Name = operation.Name;
             _parameterInspectors = EmptyArray<IParameterInspector>.ToArray(operation.ParameterInspectors);
             FaultFormatter = operation.FaultFormatter;
             SerializeRequest = operation.SerializeRequest;
-            _deserializeReply = operation.DeserializeReply;
+            DeserializeReply = operation.DeserializeReply;
             Action = operation.Action;
-            _replyAction = operation.ReplyAction;
+            ReplyAction = operation.ReplyAction;
             _beginMethod = operation.BeginMethod;
             _syncMethod = operation.SyncMethod;
             _taskMethod = operation.TaskMethod;
@@ -79,7 +71,7 @@ namespace CoreWCF.Dispatcher
                 _returnParam = _syncMethod.ReturnParameter;
             }
 
-            if (_formatter == null && (SerializeRequest || _deserializeReply))
+            if (_formatter == null && (SerializeRequest || DeserializeReply))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ClientRuntimeRequiresFormatter0, Name)));
             }
@@ -95,24 +87,15 @@ namespace CoreWCF.Dispatcher
 
         internal bool IsTerminating { get; }
 
-        internal bool IsSessionOpenNotificationEnabled
-        {
-            get { return _isSessionOpenNotificationEnabled; }
-        }
+        internal bool IsSessionOpenNotificationEnabled { get; }
 
         internal string Name { get; }
 
         internal ImmutableClientRuntime Parent { get; }
 
-        internal string ReplyAction
-        {
-            get { return _replyAction; }
-        }
+        internal string ReplyAction { get; }
 
-        internal bool DeserializeReply
-        {
-            get { return _deserializeReply; }
-        }
+        internal bool DeserializeReply { get; }
 
         internal bool SerializeRequest { get; }
 
@@ -128,7 +111,7 @@ namespace CoreWCF.Dispatcher
             {
                 Message reply = rpc.Reply;
 
-                if (_deserializeReply)
+                if (DeserializeReply)
                 {
                     //if (TD.ClientFormatterDeserializeReplyStartIsEnabled())
                     //{
@@ -369,7 +352,7 @@ namespace CoreWCF.Dispatcher
             return args;
         }
 
-        static internal bool IsValidAction(Message message, string action)
+        internal static bool IsValidAction(Message message, string action)
         {
             if (message == null)
             {

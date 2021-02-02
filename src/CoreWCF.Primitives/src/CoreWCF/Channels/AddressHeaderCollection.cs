@@ -21,8 +21,7 @@ namespace CoreWCF.Channels
             : base(new List<AddressHeader>(addressHeaders))
         {
             // avoid allocating an enumerator when possible
-            IList<AddressHeader> collection = addressHeaders as IList<AddressHeader>;
-            if (collection != null)
+            if (addressHeaders is IList<AddressHeader> collection)
             {
                 for (int i = 0; i < collection.Count; i++)
                 {

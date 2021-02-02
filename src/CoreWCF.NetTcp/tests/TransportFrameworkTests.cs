@@ -28,14 +28,14 @@ namespace CoreWCF.NetTcp.Tests
         [Fact]
         public void RemoteEndpointMessageProperty()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var nettcpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.NetTcpBinding nettcpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IRemoteEndpointMessageProperty>(nettcpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri(host.GetNetTcpAddressInUse() + "/RemoteEndpointMessagePropertyService.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.IRemoteEndpointMessageProperty channel = factory.CreateChannel();
 
                 Message request = Message.CreateMessage(nettcpBinding.MessageVersion, "echo", "PASS");
                 Message response = channel.Echo(request);

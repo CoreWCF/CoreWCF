@@ -23,18 +23,18 @@ namespace DependencyInjection
         {
             SingleInstanceContextSimpleService.ClearCounts();
             var serviceInstance = new SingleInstanceContextSimpleService();
-            var factory = DispatcherHelper.CreateChannelFactory<SingleInstanceContextSimpleService, ISimpleService>(
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<SingleInstanceContextSimpleService, ISimpleService>(
                 (services) =>
                 {
                     services.AddSingleton(serviceInstance);
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             Assert.Equal(1, SingleInstanceContextSimpleService.AddBindingParametersCallCount);
             Assert.Equal(1, SingleInstanceContextSimpleService.ApplyDispatchBehaviorCount);
             Assert.Equal(1, SingleInstanceContextSimpleService.ValidateCallCount);
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             Assert.Equal(1, SingleInstanceContextSimpleService.CreationCount);
             Assert.Equal(0, SingleInstanceContextSimpleService.DisposalCount);
@@ -48,14 +48,14 @@ namespace DependencyInjection
         public static void InstanceContextMode_Single_NoInjection()
         {
             SingleInstanceContextSimpleService.ClearCounts();
-            var factory = DispatcherHelper.CreateChannelFactory<SingleInstanceContextSimpleService, ISimpleService>();
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<SingleInstanceContextSimpleService, ISimpleService>();
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             Assert.Equal(1, SingleInstanceContextSimpleService.AddBindingParametersCallCount);
             Assert.Equal(1, SingleInstanceContextSimpleService.ApplyDispatchBehaviorCount);
             Assert.Equal(1, SingleInstanceContextSimpleService.ValidateCallCount);
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             Assert.Equal(1, SingleInstanceContextSimpleService.CreationCount);
             Assert.Equal(0, SingleInstanceContextSimpleService.DisposalCount);
@@ -68,13 +68,13 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerCall()
         {
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehavior, ISimpleService>(
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehavior, ISimpleService>(
                 (services) =>
                 {
                     services.AddTransient<PerCallInstanceContextSimpleServiceAndBehavior>();
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             // Instance created as part of service startup to probe if type is availale in DI
             Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehavior.CreationCount);
@@ -85,7 +85,7 @@ namespace DependencyInjection
             Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehavior.ValidateCallCount);
 
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             PerCallInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.CreationCount);
@@ -99,15 +99,15 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerCall_NoInjection()
         {
             PerCallInstanceContextSimpleService.ClearCounts();
-            var factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleService, ISimpleService>();
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleService, ISimpleService>();
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             // Instance shouldn't be created as part of service startup as type isn't available in DI
             Assert.Equal(0, PerCallInstanceContextSimpleService.CreationCount);
             Assert.Equal(0, PerCallInstanceContextSimpleService.DisposalCount);
 
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             PerCallInstanceContextSimpleService.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
             Assert.Equal(2, PerCallInstanceContextSimpleService.CreationCount);
@@ -121,9 +121,9 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerCall_WithBehavior_NoInjection()
         {
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehavior, ISimpleService>();
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehavior, ISimpleService>();
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             // Instance created as part of service startup as it implements IServiceBehavior
             Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehavior.CreationCount);
@@ -134,7 +134,7 @@ namespace DependencyInjection
             Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehavior.ValidateCallCount);
 
             PerCallInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             PerCallInstanceContextSimpleServiceAndBehavior.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehavior.CreationCount);
@@ -148,13 +148,13 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerSession()
         {
             PerSessionInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehavior, ISimpleSessionService>(
+            System.ServiceModel.ChannelFactory<ISimpleSessionService> factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehavior, ISimpleSessionService>(
                 (services) =>
                 {
                     services.AddTransient<PerSessionInstanceContextSimpleServiceAndBehavior>();
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleSessionService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             // Instance created as part of service startup to probe if type is available in DI
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehavior.CreationCount);
@@ -165,7 +165,7 @@ namespace DependencyInjection
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehavior.ValidateCallCount);
 
             PerSessionInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -180,16 +180,16 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerSession_NoInjection()
         {
             PerSessionInstanceContextSimpleService.ClearCounts();
-            var factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleService, ISimpleSessionService>();
+            System.ServiceModel.ChannelFactory<ISimpleSessionService> factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleService, ISimpleSessionService>();
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleSessionService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             // Instance shouldn't be created as part of service startup to as type isn't available in DI
             Assert.Equal(0, PerSessionInstanceContextSimpleService.CreationCount);
             Assert.Equal(0, PerSessionInstanceContextSimpleService.DisposalCount);
 
             PerSessionInstanceContextSimpleService.ClearCounts();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -204,9 +204,9 @@ namespace DependencyInjection
         public static void InstanceContextMode_PerSession_WithBehavior_NoInjection()
         {
             PerSessionInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehavior, ISimpleSessionService>();
+            System.ServiceModel.ChannelFactory<ISimpleSessionService> factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehavior, ISimpleSessionService>();
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleSessionService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             // Instance created as part of service startup as it implements IServiceBehavior
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehavior.CreationCount);
@@ -217,7 +217,7 @@ namespace DependencyInjection
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehavior.ValidateCallCount);
 
             PerSessionInstanceContextSimpleServiceAndBehavior.ClearCounts();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             ((System.ServiceModel.Channels.IChannel)channel).Close();

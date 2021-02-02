@@ -8,7 +8,7 @@ namespace CoreWCF
     // Static Xml Dictionary
     internal static class XD
     {
-        static public ServiceModelDictionary Dictionary { get { return ServiceModelDictionary.CurrentVersion; } }
+        public static ServiceModelDictionary Dictionary { get { return ServiceModelDictionary.CurrentVersion; } }
 
         private static ActivityIdFlowDictionary s_activityIdFlowDictionary;
         private static AddressingDictionary s_addressingDictionary;
@@ -44,7 +44,7 @@ namespace CoreWCF
         private static XmlEncryptionDictionary s_xmlEncryptionDictionary;
         private static XmlSignatureDictionary s_xmlSignatureDictionary;
 
-        static public ActivityIdFlowDictionary ActivityIdFlowDictionary
+        public static ActivityIdFlowDictionary ActivityIdFlowDictionary
         {
             get
             {
@@ -57,7 +57,7 @@ namespace CoreWCF
             }
         }
 
-        static public AddressingDictionary AddressingDictionary
+        public static AddressingDictionary AddressingDictionary
         {
             get
             {
@@ -70,7 +70,7 @@ namespace CoreWCF
             }
         }
 
-        static public Addressing10Dictionary Addressing10Dictionary
+        public static Addressing10Dictionary Addressing10Dictionary
         {
             get
             {
@@ -83,7 +83,7 @@ namespace CoreWCF
             }
         }
 
-        static public Addressing200408Dictionary Addressing200408Dictionary
+        public static Addressing200408Dictionary Addressing200408Dictionary
         {
             get
             {
@@ -96,7 +96,7 @@ namespace CoreWCF
             }
         }
 
-        static public AddressingNoneDictionary AddressingNoneDictionary
+        public static AddressingNoneDictionary AddressingNoneDictionary
         {
             get
             {
@@ -109,7 +109,7 @@ namespace CoreWCF
             }
         }
 
-        static public AtomicTransactionExternalDictionary AtomicTransactionExternalDictionary
+        public static AtomicTransactionExternalDictionary AtomicTransactionExternalDictionary
         {
             get
             {
@@ -122,7 +122,7 @@ namespace CoreWCF
             }
         }
 
-        static public AtomicTransactionExternal10Dictionary AtomicTransactionExternal10Dictionary
+        public static AtomicTransactionExternal10Dictionary AtomicTransactionExternal10Dictionary
         {
             get
             {
@@ -135,7 +135,7 @@ namespace CoreWCF
             }
         }
 
-        static public CoordinationExternalDictionary CoordinationExternalDictionary
+        public static CoordinationExternalDictionary CoordinationExternalDictionary
         {
             get
             {
@@ -148,7 +148,7 @@ namespace CoreWCF
             }
         }
 
-        static public CoordinationExternal10Dictionary CoordinationExternal10Dictionary
+        public static CoordinationExternal10Dictionary CoordinationExternal10Dictionary
         {
             get
             {
@@ -161,7 +161,7 @@ namespace CoreWCF
             }
         }
 
-        static public DotNetAddressingDictionary DotNetAddressingDictionary
+        public static DotNetAddressingDictionary DotNetAddressingDictionary
         {
             get
             {
@@ -174,7 +174,7 @@ namespace CoreWCF
             }
         }
 
-        static public DotNetAtomicTransactionExternalDictionary DotNetAtomicTransactionExternalDictionary
+        public static DotNetAtomicTransactionExternalDictionary DotNetAtomicTransactionExternalDictionary
         {
             get
             {
@@ -187,7 +187,7 @@ namespace CoreWCF
             }
         }
 
-        static public DotNetOneWayDictionary DotNetOneWayDictionary
+        public static DotNetOneWayDictionary DotNetOneWayDictionary
         {
             get
             {
@@ -200,7 +200,7 @@ namespace CoreWCF
             }
         }
 
-        static public DotNetSecurityDictionary DotNetSecurityDictionary
+        public static DotNetSecurityDictionary DotNetSecurityDictionary
         {
             get
             {
@@ -213,7 +213,7 @@ namespace CoreWCF
             }
         }
 
-        static public ExclusiveC14NDictionary ExclusiveC14NDictionary
+        public static ExclusiveC14NDictionary ExclusiveC14NDictionary
         {
             get
             {
@@ -226,7 +226,7 @@ namespace CoreWCF
             }
         }
 
-        static public MessageDictionary MessageDictionary
+        public static MessageDictionary MessageDictionary
         {
             get
             {
@@ -239,7 +239,7 @@ namespace CoreWCF
             }
         }
 
-        static public Message11Dictionary Message11Dictionary
+        public static Message11Dictionary Message11Dictionary
         {
             get
             {
@@ -252,7 +252,7 @@ namespace CoreWCF
             }
         }
 
-        static public Message12Dictionary Message12Dictionary
+        public static Message12Dictionary Message12Dictionary
         {
             get
             {
@@ -265,7 +265,7 @@ namespace CoreWCF
             }
         }
 
-        static public OleTxTransactionExternalDictionary OleTxTransactionExternalDictionary
+        public static OleTxTransactionExternalDictionary OleTxTransactionExternalDictionary
         {
             get
             {
@@ -278,7 +278,7 @@ namespace CoreWCF
             }
         }
 
-        static public PeerWireStringsDictionary PeerWireStringsDictionary
+        public static PeerWireStringsDictionary PeerWireStringsDictionary
         {
             get
             {
@@ -291,7 +291,7 @@ namespace CoreWCF
             }
         }
 
-        static public PolicyDictionary PolicyDictionary
+        public static PolicyDictionary PolicyDictionary
         {
             get
             {
@@ -304,7 +304,7 @@ namespace CoreWCF
             }
         }
 
-        static public SamlDictionary SamlDictionary
+        public static SamlDictionary SamlDictionary
         {
             get
             {
@@ -317,7 +317,7 @@ namespace CoreWCF
             }
         }
 
-        static public SecureConversationApr2004Dictionary SecureConversationApr2004Dictionary
+        public static SecureConversationApr2004Dictionary SecureConversationApr2004Dictionary
         {
             get
             {
@@ -330,7 +330,7 @@ namespace CoreWCF
             }
         }
 
-        static public SecureConversationFeb2005Dictionary SecureConversationFeb2005Dictionary
+        public static SecureConversationFeb2005Dictionary SecureConversationFeb2005Dictionary
         {
             get
             {
@@ -343,7 +343,7 @@ namespace CoreWCF
             }
         }
 
-        static public SecurityAlgorithmDictionary SecurityAlgorithmDictionary
+        public static SecurityAlgorithmDictionary SecurityAlgorithmDictionary
         {
             get
             {
@@ -356,7 +356,7 @@ namespace CoreWCF
             }
         }
 
-        static public SecurityJan2004Dictionary SecurityJan2004Dictionary
+        public static SecurityJan2004Dictionary SecurityJan2004Dictionary
         {
             get
             {
@@ -369,7 +369,7 @@ namespace CoreWCF
             }
         }
 
-        static public SecurityXXX2005Dictionary SecurityXXX2005Dictionary
+        public static SecurityXXX2005Dictionary SecurityXXX2005Dictionary
         {
             get
             {
@@ -382,7 +382,7 @@ namespace CoreWCF
             }
         }
 
-        static public SerializationDictionary SerializationDictionary
+        public static SerializationDictionary SerializationDictionary
         {
             get
             {
@@ -395,7 +395,7 @@ namespace CoreWCF
             }
         }
 
-        static public TrustApr2004Dictionary TrustApr2004Dictionary
+        public static TrustApr2004Dictionary TrustApr2004Dictionary
         {
             get
             {
@@ -408,7 +408,7 @@ namespace CoreWCF
             }
         }
 
-        static public TrustFeb2005Dictionary TrustFeb2005Dictionary
+        public static TrustFeb2005Dictionary TrustFeb2005Dictionary
         {
             get
             {
@@ -421,7 +421,7 @@ namespace CoreWCF
             }
         }
 
-        static public UtilityDictionary UtilityDictionary
+        public static UtilityDictionary UtilityDictionary
         {
             get
             {
@@ -434,7 +434,7 @@ namespace CoreWCF
             }
         }
 
-        static public WsrmFeb2005Dictionary WsrmFeb2005Dictionary
+        public static WsrmFeb2005Dictionary WsrmFeb2005Dictionary
         {
             get
             {
@@ -447,7 +447,7 @@ namespace CoreWCF
             }
         }
 
-        static public XmlEncryptionDictionary XmlEncryptionDictionary
+        public static XmlEncryptionDictionary XmlEncryptionDictionary
         {
             get
             {
@@ -460,7 +460,7 @@ namespace CoreWCF
             }
         }
 
-        static public XmlSignatureDictionary XmlSignatureDictionary
+        public static XmlSignatureDictionary XmlSignatureDictionary
         {
             get
             {

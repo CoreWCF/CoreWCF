@@ -22,7 +22,6 @@ namespace CoreWCF.Dispatcher
     internal sealed class SecurityImpersonationBehavior
     {
         private readonly PrincipalPermissionMode _principalPermissionMode;
-        private readonly object _roleProvider;
         private readonly bool _impersonateCallerForAllOperations;
         private readonly Dictionary<string, string> _ncNameMap;
 
@@ -149,9 +148,9 @@ namespace CoreWCF.Dispatcher
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IPrincipal GetCustomPrincipal(ServiceSecurityContext securityContext)
         {
-            if (securityContext.AuthorizationContext.Properties.TryGetValue(SecurityUtils.Principal, out object customPrincipal) && customPrincipal is IPrincipal)
+            if (securityContext.AuthorizationContext.Properties.TryGetValue(SecurityUtils.Principal, out object obj) && obj is IPrincipal customPrincipal)
             {
-                return (IPrincipal)customPrincipal;
+                return customPrincipal;
             }
             else
             {
@@ -173,7 +172,7 @@ namespace CoreWCF.Dispatcher
 
         public T RunImpersonated<T>(MessageRpc rpc, Func<T> func)
         {
-            T returnValue = default(T);
+            T returnValue = default;
             IPrincipal originalPrincipal = null;
             bool isThreadPrincipalSet = false;
             ServiceSecurityContext securityContext;
@@ -217,7 +216,7 @@ namespace CoreWCF.Dispatcher
 
         private T RunImpersonated2<T>(MessageRpc rpc, ServiceSecurityContext securityContext, bool isSecurityContextImpersonationOn, Func<T> func)
         {
-            T returnValue = default(T);
+            T returnValue = default;
             try
             {
                 if (isSecurityContextImpersonationOn)
@@ -313,8 +312,7 @@ namespace CoreWCF.Dispatcher
                 return new WindowsPrincipal(wid);
             }
 
-            WindowsSidIdentity wsid = securityContext.PrimaryIdentity as WindowsSidIdentity;
-            if (wsid != null)
+            if (securityContext.PrimaryIdentity is WindowsSidIdentity wsid)
             {
                 return new WindowsSidPrincipal(wsid, securityContext);
             }
@@ -404,8 +402,10 @@ namespace CoreWCF.Dispatcher
                         string configNC = rootDse.Properties["configurationNamingContext"].Value.ToString();
 
                         DirectoryEntry configSearchRoot = new DirectoryEntry("LDAP://" + configNC);
-                        DirectorySearcher configSearch = new DirectorySearcher(configSearchRoot);
-                        configSearch.Filter = $"(&(NETBIOSName={shortDomainName})(objectClass=crossRef))";
+                        DirectorySearcher configSearch = new DirectorySearcher(configSearchRoot)
+                        {
+                            Filter = $"(&(NETBIOSName={shortDomainName})(objectClass=crossRef))"
+                        };
 
                         // Configure search to return ncname attribute
                         configSearch.PropertiesToLoad.Add("ncname");
@@ -484,7 +484,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (role == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("role");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(role));
                 }
 
                 NTAccount account = new NTAccount(role);

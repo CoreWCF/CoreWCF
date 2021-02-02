@@ -234,12 +234,12 @@ namespace CoreWCF.Dispatcher
         {
             if (writer == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("writer"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(writer)));
             }
 
             if (parameters == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("parameters"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)));
             }
 
             MessageInfo messageInfo;
@@ -413,7 +413,7 @@ namespace CoreWCF.Dispatcher
 
         private object DeserializeHeaderContents(XmlDictionaryReader reader, MessageDescription messageDescription, MessageHeaderDescription headerDescription)
         {
-            Type dataContractType = DataContractSerializerOperationFormatter.GetSubstituteDataContractType(headerDescription.Type, out bool isQueryable);
+            Type dataContractType = GetSubstituteDataContractType(headerDescription.Type, out bool isQueryable);
             XmlObjectSerializer serializerLocal = _serializerFactory.CreateSerializer(dataContractType, headerDescription.Name, headerDescription.Namespace, _knownTypes);
             object val = serializerLocal.ReadObject(reader);
             if (isQueryable && val != null)
@@ -427,12 +427,12 @@ namespace CoreWCF.Dispatcher
         {
             if (reader == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("reader"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(reader)));
             }
 
             if (parameters == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("parameters"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)));
             }
 
             MessageInfo messageInfo;
@@ -475,7 +475,7 @@ namespace CoreWCF.Dispatcher
                         break;
                     }
 
-                    OperationFormatter.TraceAndSkipElement(reader);
+                    TraceAndSkipElement(reader);
                 }
             }
             DeserializeParameters(reader, messageInfo.BodyParts, parameters, isRequest);
@@ -509,7 +509,7 @@ namespace CoreWCF.Dispatcher
 
                 if (reader.IsStartElement())
                 {
-                    OperationFormatter.TraceAndSkipElement(reader);
+                    TraceAndSkipElement(reader);
                 }
             }
         }
@@ -549,14 +549,14 @@ namespace CoreWCF.Dispatcher
             catch (System.FormatException e)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    OperationFormatter.CreateDeserializationFailedFault(
+                    CreateDeserializationFailedFault(
                         SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameterMore, part.Description.Namespace, part.Description.Name, e.Message),
                                      e));
             }
             catch (System.Runtime.Serialization.SerializationException e)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    OperationFormatter.CreateDeserializationFailedFault(
+                    CreateDeserializationFailedFault(
                         SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameterMore, part.Description.Namespace, part.Description.Name, e.Message),
                                      e));
             }
@@ -617,7 +617,6 @@ namespace CoreWCF.Dispatcher
 
         protected class PartInfo
         {
-            private readonly XmlDictionaryString _dictionaryNamespace;
             private XmlObjectSerializer _serializer;
             private readonly IList<Type> _knownTypes;
             private readonly DataContractSerializerOperationBehavior _serializerFactory;
@@ -627,12 +626,12 @@ namespace CoreWCF.Dispatcher
                 IList<Type> knownTypes, DataContractSerializerOperationBehavior behavior)
             {
                 DictionaryName = dictionaryName;
-                _dictionaryNamespace = dictionaryNamespace;
+                DictionaryNamespace = dictionaryNamespace;
                 Description = description;
                 _knownTypes = knownTypes;
                 _serializerFactory = behavior;
 
-                ContractType = DataContractSerializerOperationFormatter.GetSubstituteDataContractType(description.Type, out _isQueryable);
+                ContractType = GetSubstituteDataContractType(description.Type, out _isQueryable);
             }
 
             public Type ContractType { get; }
@@ -641,10 +640,7 @@ namespace CoreWCF.Dispatcher
 
             public XmlDictionaryString DictionaryName { get; }
 
-            public XmlDictionaryString DictionaryNamespace
-            {
-                get { return _dictionaryNamespace; }
-            }
+            public XmlDictionaryString DictionaryNamespace { get; }
 
             public XmlObjectSerializer Serializer
             {

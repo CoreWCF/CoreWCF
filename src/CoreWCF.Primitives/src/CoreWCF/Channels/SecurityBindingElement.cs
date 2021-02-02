@@ -23,13 +23,11 @@ namespace CoreWCF.Channels
         internal const bool defaultEnableUnsecuredResponse = false;
         internal const bool defaultProtectTokens = false;
         private SecurityAlgorithmSuite _defaultAlgorithmSuite;
-        private readonly SupportingTokenParameters _optionalEndpointSupportingTokenParameters;
         private SecurityKeyEntropyMode _keyEntropyMode;
         private readonly Dictionary<string, SupportingTokenParameters> _operationSupportingTokenParameters;
         private readonly Dictionary<string, SupportingTokenParameters> _optionalOperationSupportingTokenParameters;
         private MessageSecurityVersion _messageSecurityVersion;
         private SecurityHeaderLayout _securityHeaderLayout;
-        private bool _protectTokens = defaultProtectTokens;
 
         internal SecurityBindingElement()
             : base()
@@ -40,13 +38,13 @@ namespace CoreWCF.Channels
             _defaultAlgorithmSuite = defaultDefaultAlgorithmSuite;
             LocalServiceSettings = new LocalServiceSecuritySettings();
             EndpointSupportingTokenParameters = new SupportingTokenParameters();
-            _optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
+            OptionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
             _operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             _optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             _securityHeaderLayout = SecurityHeaderLayout.Strict; // SecurityProtocolFactory.defaultSecurityHeaderLayout;
             AllowInsecureTransport = defaultAllowInsecureTransport;
             EnableUnsecuredResponse = defaultEnableUnsecuredResponse;
-            _protectTokens = defaultProtectTokens;
+            ProtectTokens = defaultProtectTokens;
         }
 
         internal SecurityBindingElement(SecurityBindingElement elementToBeCloned)
@@ -54,7 +52,7 @@ namespace CoreWCF.Channels
         {
             if (elementToBeCloned == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementToBeCloned");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elementToBeCloned));
             }
 
             _defaultAlgorithmSuite = elementToBeCloned._defaultAlgorithmSuite;
@@ -63,7 +61,7 @@ namespace CoreWCF.Channels
             _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
             _securityHeaderLayout = elementToBeCloned._securityHeaderLayout;
             EndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.EndpointSupportingTokenParameters.Clone();
-            _optionalEndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned._optionalEndpointSupportingTokenParameters.Clone();
+            OptionalEndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.OptionalEndpointSupportingTokenParameters.Clone();
             _operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             foreach (string key in elementToBeCloned._operationSupportingTokenParameters.Keys)
             {
@@ -82,20 +80,14 @@ namespace CoreWCF.Channels
             AllowInsecureTransport = elementToBeCloned.AllowInsecureTransport;
             EnableUnsecuredResponse = elementToBeCloned.EnableUnsecuredResponse;
             SupportsExtendedProtectionPolicy = elementToBeCloned.SupportsExtendedProtectionPolicy;
-            _protectTokens = elementToBeCloned._protectTokens;
+            ProtectTokens = elementToBeCloned.ProtectTokens;
         }
 
         internal bool SupportsExtendedProtectionPolicy { get; set; }
 
         public SupportingTokenParameters EndpointSupportingTokenParameters { get; }
 
-        public SupportingTokenParameters OptionalEndpointSupportingTokenParameters
-        {
-            get
-            {
-                return _optionalEndpointSupportingTokenParameters;
-            }
-        }
+        public SupportingTokenParameters OptionalEndpointSupportingTokenParameters { get; }
 
         public IDictionary<string, SupportingTokenParameters> OperationSupportingTokenParameters
         {
@@ -123,7 +115,7 @@ namespace CoreWCF.Channels
             {
                 if (!SecurityHeaderLayoutHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
 
                 _securityHeaderLayout = value;
@@ -138,12 +130,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                }
-
-                _messageSecurityVersion = value;
+                _messageSecurityVersion = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
@@ -161,26 +148,11 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                }
-
-                _defaultAlgorithmSuite = value;
+                _defaultAlgorithmSuite = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
-        public bool ProtectTokens
-        {
-            get
-            {
-                return _protectTokens;
-            }
-            set
-            {
-                _protectTokens = value;
-            }
-        }
+        public bool ProtectTokens { get; set; } = defaultProtectTokens;
 
         public LocalServiceSecuritySettings LocalServiceSettings { get; }
 
@@ -481,7 +453,7 @@ namespace CoreWCF.Channels
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
 
             if (!CanBuildServiceDispatcher<TChannel>(context))
@@ -554,7 +526,7 @@ namespace CoreWCF.Channels
         {
             if (addressing == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressing");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressing));
             }
 
             ChannelProtectionRequirements result = new ChannelProtectionRequirements();
@@ -606,7 +578,18 @@ namespace CoreWCF.Channels
 
         public override T GetProperty<T>(BindingContext context)
         {
-            return context.GetInnerProperty<T>();
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+            if (typeof(T) == typeof(ISecurityCapabilities))
+            {
+                return (T)(object)GetSecurityCapabilities(context);
+            }
+            else
+            {
+                return context.GetInnerProperty<T>();
+            }
         }
 
         internal abstract ISecurityCapabilities GetIndividualISecurityCapabilities();
@@ -681,7 +664,7 @@ namespace CoreWCF.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsUserNameOverTransportBinding() method.
-        static public TransportSecurityBindingElement CreateUserNameOverTransportBindingElement()
+        public static TransportSecurityBindingElement CreateUserNameOverTransportBindingElement()
         {
             TransportSecurityBindingElement result = new TransportSecurityBindingElement();
             result.EndpointSupportingTokenParameters.SignedEncrypted.Add(
@@ -694,30 +677,30 @@ namespace CoreWCF.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSecureConversationBinding() method.
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity)
+        public static SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity)
         {
             return CreateSecureConversationBindingElement(bootstrapSecurity, SecureConversationSecurityTokenParameters.defaultRequireCancellation, null);
         }
 
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation)
+        public static SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation)
         {
             return CreateSecureConversationBindingElement(bootstrapSecurity, requireCancellation, null);
         }
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsCertificateOverTransportBinding() method.
-        static public TransportSecurityBindingElement CreateCertificateOverTransportBindingElement()
+        public static TransportSecurityBindingElement CreateCertificateOverTransportBindingElement()
         {
             return CreateCertificateOverTransportBindingElement(MessageSecurityVersion.Default);
         }
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsCertificateOverTransportBinding() method.
-        static public TransportSecurityBindingElement CreateCertificateOverTransportBindingElement(MessageSecurityVersion version)
+        public static TransportSecurityBindingElement CreateCertificateOverTransportBindingElement(MessageSecurityVersion version)
         {
             if (version == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             }
             X509KeyIdentifierClauseType x509ReferenceType;
 
@@ -766,8 +749,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            X509SecurityTokenParameters x509Parameters = parameters.Endorsing[0] as X509SecurityTokenParameters;
-            if (x509Parameters == null)
+            if (!(parameters.Endorsing[0] is X509SecurityTokenParameters x509Parameters))
             {
                 return false;
             }
@@ -783,7 +765,7 @@ namespace CoreWCF.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSecureConversationBinding() method.
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation, ChannelProtectionRequirements bootstrapProtectionRequirements)
+        public static SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation, ChannelProtectionRequirements bootstrapProtectionRequirements)
         {
             if (bootstrapSecurity == null)
             {
@@ -799,8 +781,10 @@ namespace CoreWCF.Channels
                 SecureConversationSecurityTokenParameters scParameters = new SecureConversationSecurityTokenParameters(
                         bootstrapSecurity,
                         requireCancellation,
-                        bootstrapProtectionRequirements);
-                scParameters.RequireDerivedKeys = false;
+                        bootstrapProtectionRequirements)
+                {
+                    RequireDerivedKeys = false
+                };
                 primary.EndpointSupportingTokenParameters.Endorsing.Add(
                     scParameters);
                 // primary.LocalClientSettings.DetectReplays = false;
@@ -814,9 +798,11 @@ namespace CoreWCF.Channels
                     new SecureConversationSecurityTokenParameters(
                         bootstrapSecurity,
                         requireCancellation,
-                        bootstrapProtectionRequirements));
-                // there is no need for signature confirmation on the steady state binding
-                primary.RequireSignatureConfirmation = false;
+                        bootstrapProtectionRequirements))
+                {
+                    // there is no need for signature confirmation on the steady state binding
+                    RequireSignatureConfirmation = false
+                };
                 result = primary;
             }
             return result;

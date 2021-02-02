@@ -38,7 +38,6 @@ namespace CoreWCF.Dispatcher
         private bool _isChannelTerminated;
         private bool _shouldRejectMessageWithOnOpenActionHeader;
         private RequestContext _replied;
-        private readonly bool _isCallback;
         private readonly bool _incrementedActivityCountInConstructor;
         private readonly ResettableAsyncWaitable _resettableAsyncWaitable;
         private bool _openCalled;
@@ -141,7 +140,7 @@ namespace CoreWCF.Dispatcher
                 if (_needToCreateSessionOpenNotificationMessage)
                 {
                     _needToCreateSessionOpenNotificationMessage = false;
-                    var requestContext = GetSessionOpenNotificationRequestContext();
+                    RequestContext requestContext = GetSessionOpenNotificationRequestContext();
                     await HandleReceiveCompleteAsync(requestContext);
                     HandleRequestAsync(requestContext);
                 }
@@ -155,7 +154,7 @@ namespace CoreWCF.Dispatcher
 
         internal InstanceContext InstanceContext
         {
-            get { return (_channel != null) ? _channel.InstanceContext : null; }
+            get { return _channel?.InstanceContext; }
         }
 
         internal ServiceThrottle InstanceContextServiceThrottle { get; set; }
@@ -171,14 +170,12 @@ namespace CoreWCF.Dispatcher
             {
                 if (_binder != null)
                 {
-                    IInputChannel input = _binder.Channel as IInputChannel;
-                    if (input != null)
+                    if (_binder.Channel is IInputChannel input)
                     {
                         return input.LocalAddress;
                     }
 
-                    IReplyChannel reply = _binder.Channel as IReplyChannel;
-                    if (reply != null)
+                    if (_binder.Channel is IReplyChannel reply)
                     {
                         return reply.LocalAddress;
                     }
@@ -217,7 +214,7 @@ namespace CoreWCF.Dispatcher
 
         public Task DispatchAsync(Message message)
         {
-            var requestContext = _binder.CreateRequestContext(message);
+            RequestContext requestContext = _binder.CreateRequestContext(message);
             return DispatchAsync(requestContext);
         }
 
@@ -318,7 +315,6 @@ namespace CoreWCF.Dispatcher
                     return;
                 }
 
-                MessageBuffer buffer = null;
                 Message message;
 
                 //EventTraceActivity eventTraceActivity = TraceDispatchMessageStart(request.RequestMessage);
@@ -328,7 +324,7 @@ namespace CoreWCF.Dispatcher
                 if (operation == null)
                 {
                     Fx.Assert("ChannelHandler.Dispatch (operation == null)");
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(String.Format(CultureInfo.InvariantCulture, "No DispatchOperationRuntime found to process message.")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "No DispatchOperationRuntime found to process message.")));
                 }
 
                 if (_shouldRejectMessageWithOnOpenActionHeader && message.Headers.Action == OperationDescription.SessionOpenedAction)
@@ -356,11 +352,6 @@ namespace CoreWCF.Dispatcher
                 {
                     hasOperationContextBeenSet = false;
                     currentOperationContext = new OperationContext(request, message, channel, _host);
-                }
-
-                if (dispatchBehavior.PreserveMessage)
-                {
-                    currentOperationContext.IncomingMessageProperties.Add(MessageBufferPropertyName, buffer);
                 }
 
                 if (currentOperationContext.EndpointDispatcher == null && _serviceDispatcher != null)
@@ -513,7 +504,7 @@ namespace CoreWCF.Dispatcher
                 return;
             }
 
-            if (requestInfo.Channel.HasSession || _isCallback)
+            if (requestInfo.Channel.HasSession)
             {
                 requestInfo.DispatchRuntime = requestInfo.Channel.DispatchRuntime;
             }
@@ -525,7 +516,6 @@ namespace CoreWCF.Dispatcher
 
         private ServiceChannel GetDatagramChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
         {
-            addressMatched = false;
             endpoint = GetEndpointDispatcher(message, out addressMatched);
 
             if (endpoint == null)
@@ -733,8 +723,10 @@ namespace CoreWCF.Dispatcher
         {
             FaultException exception = new FaultException(reason, code);
             ErrorBehavior.ThrowAndCatch(exception);
-            ErrorHandlerFaultInfo faultInfo = new ErrorHandlerFaultInfo(action);
-            faultInfo.Fault = fault;
+            ErrorHandlerFaultInfo faultInfo = new ErrorHandlerFaultInfo(action)
+            {
+                Fault = fault
+            };
             faultInfo = await ProvideFaultAndReplyFailureAsync(request, requestInfo, exception, faultInfo);
             HandleError(exception, ref faultInfo);
         }
@@ -831,18 +823,20 @@ namespace CoreWCF.Dispatcher
                 }
                 // swallow it
             }
-            if (!object.ReferenceEquals(requestMessage, null))
+            if (!ReferenceEquals(requestMessage, null))
             {
                 UniqueId requestID = null;
                 try
                 {
                     requestID = requestMessage.Headers.MessageId;
                 }
+#pragma warning disable CA1031 // Do not catch general exception types - intentionally swallowing this exception
                 catch (MessageHeaderException)
                 {
                     // swallow it - we don't need to correlate the reply if the MessageId header is bad
                 }
-                if (!object.ReferenceEquals(requestID, null) && !_isManualAddressing)
+#pragma warning restore CA1031 // Do not catch general exception types
+                if (!ReferenceEquals(requestID, null) && !_isManualAddressing)
                 {
                     RequestReplyCorrelator.PrepareReply(reply, requestID);
                 }
@@ -852,10 +846,12 @@ namespace CoreWCF.Dispatcher
                     {
                         canSendReply = RequestReplyCorrelator.AddressReply(reply, requestMessage);
                     }
+#pragma warning disable CA1031 // Do not catch general exception types - intentionally swallowing exception
                     catch (MessageHeaderException)
                     {
                         // swallow it - we don't need to address the reply if the FaultTo header is bad
                     }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
 

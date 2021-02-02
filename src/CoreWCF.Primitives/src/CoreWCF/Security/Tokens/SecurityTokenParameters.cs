@@ -24,7 +24,7 @@ namespace CoreWCF.Security.Tokens
         {
             if (other == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("other");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
             }
 
             RequireDerivedKeys = other.RequireDerivedKeys;
@@ -37,7 +37,7 @@ namespace CoreWCF.Security.Tokens
             // empty
         }
 
-        internal protected abstract bool HasAsymmetricKey { get; }
+        protected internal abstract bool HasAsymmetricKey { get; }
 
         public SecurityTokenInclusionMode InclusionMode
         {
@@ -67,9 +67,9 @@ namespace CoreWCF.Security.Tokens
 
         public bool RequireDerivedKeys { get; set; } = defaultRequireDerivedKeys;
 
-        internal protected abstract bool SupportsClientAuthentication { get; }
-        internal protected abstract bool SupportsServerAuthentication { get; }
-        internal protected abstract bool SupportsClientWindowsIdentity { get; }
+        protected internal abstract bool SupportsClientAuthentication { get; }
+        protected internal abstract bool SupportsServerAuthentication { get; }
+        protected internal abstract bool SupportsClientWindowsIdentity { get; }
 
         public SecurityTokenParameters Clone()
         {
@@ -85,9 +85,9 @@ namespace CoreWCF.Security.Tokens
 
         protected abstract SecurityTokenParameters CloneCore();
 
-        internal protected abstract SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle);
+        protected internal abstract SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle);
 
-        internal protected abstract void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement);
+        protected internal abstract void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement);
 
         internal SecurityKeyIdentifierClause CreateKeyIdentifierClause<TExternalClause, TInternalClause>(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
             where TExternalClause : SecurityKeyIdentifierClause
@@ -95,7 +95,7 @@ namespace CoreWCF.Security.Tokens
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
 
             SecurityKeyIdentifierClause result;
@@ -118,8 +118,7 @@ namespace CoreWCF.Security.Tokens
 
         internal SecurityKeyIdentifierClause CreateGenericXmlTokenKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
-            GenericXmlSecurityToken xmlToken = token as GenericXmlSecurityToken;
-            if (xmlToken != null)
+            if (token is GenericXmlSecurityToken xmlToken)
             {
                 if (referenceStyle == SecurityTokenReferenceStyle.Internal && xmlToken.InternalTokenReference != null)
                 {
@@ -135,11 +134,11 @@ namespace CoreWCF.Security.Tokens
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.UnableToCreateTokenReference)));
         }
 
-        internal protected virtual bool MatchesKeyIdentifierClause(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenReferenceStyle referenceStyle)
+        protected internal virtual bool MatchesKeyIdentifierClause(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
 
             if (token is GenericXmlSecurityToken)
@@ -177,14 +176,13 @@ namespace CoreWCF.Security.Tokens
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
 
             bool result;
 
-            GenericXmlSecurityToken xmlToken = token as GenericXmlSecurityToken;
 
-            if (xmlToken == null)
+            if (!(token is GenericXmlSecurityToken xmlToken))
             {
                 result = false;
             }
@@ -208,10 +206,10 @@ namespace CoreWCF.Security.Tokens
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "{0}:", GetType().ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "InclusionMode: {0}", _inclusionMode.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "ReferenceStyle: {0}", _referenceStyle.ToString()));
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireDerivedKeys: {0}", RequireDerivedKeys.ToString()));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0}:", GetType().ToString()));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "InclusionMode: {0}", _inclusionMode.ToString()));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "ReferenceStyle: {0}", _referenceStyle.ToString()));
+            sb.Append(string.Format(CultureInfo.InvariantCulture, "RequireDerivedKeys: {0}", RequireDerivedKeys.ToString()));
 
             return sb.ToString();
         }

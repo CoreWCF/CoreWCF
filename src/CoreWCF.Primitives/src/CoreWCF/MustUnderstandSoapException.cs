@@ -11,27 +11,25 @@ namespace CoreWCF
     //[Serializable]
     internal class MustUnderstandSoapException : CommunicationException
     {
-        private readonly EnvelopeVersion _envelopeVersion;
-
         public MustUnderstandSoapException(Collection<MessageHeaderInfo> notUnderstoodHeaders, EnvelopeVersion envelopeVersion)
         {
             NotUnderstoodHeaders = notUnderstoodHeaders;
-            _envelopeVersion = envelopeVersion;
+            EnvelopeVersion = envelopeVersion;
         }
 
         public Collection<MessageHeaderInfo> NotUnderstoodHeaders { get; }
-        public EnvelopeVersion EnvelopeVersion { get { return _envelopeVersion; } }
+        public EnvelopeVersion EnvelopeVersion { get; }
 
         internal Message ProvideFault(MessageVersion messageVersion)
         {
             string name = NotUnderstoodHeaders[0].Name;
             string ns = NotUnderstoodHeaders[0].Namespace;
-            FaultCode code = new FaultCode(MessageStrings.MustUnderstandFault, _envelopeVersion.Namespace);
+            FaultCode code = new FaultCode(MessageStrings.MustUnderstandFault, EnvelopeVersion.Namespace);
             FaultReason reason = new FaultReason(SR.Format(SR.SFxHeaderNotUnderstood, name, ns), CultureInfo.CurrentCulture);
             MessageFault fault = MessageFault.CreateFault(code, reason);
             string faultAction = messageVersion.Addressing.DefaultFaultAction;
-            Message message = CoreWCF.Channels.Message.CreateMessage(messageVersion, fault, faultAction);
-            if (_envelopeVersion == EnvelopeVersion.Soap12)
+            Message message = Channels.Message.CreateMessage(messageVersion, fault, faultAction);
+            if (EnvelopeVersion == EnvelopeVersion.Soap12)
             {
                 AddNotUnderstoodHeaders(message.Headers);
             }

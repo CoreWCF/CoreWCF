@@ -45,7 +45,7 @@ namespace CoreWCF.Channels
         {
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
 
             return TryGet(message.Properties, out property);
@@ -55,12 +55,12 @@ namespace CoreWCF.Channels
         {
             if (properties == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("properties");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
             property = null;
 
-            if (properties.TryGetValue(ChannelBindingMessageProperty.Name, out object value))
+            if (properties.TryGetValue(Name, out object value))
             {
                 property = value as ChannelBindingMessageProperty;
                 return property != null;

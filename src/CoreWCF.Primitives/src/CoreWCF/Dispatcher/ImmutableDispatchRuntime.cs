@@ -17,7 +17,6 @@ namespace CoreWCF.Dispatcher
         private readonly AuthorizationBehavior _authorizationBehavior;
         private readonly ConcurrencyBehavior _concurrency;
         private readonly IDemuxer _demuxer;
-        private readonly bool _impersonateOnSerializingReply;
         private readonly IInputSessionShutdown[] _inputSessionShutdownHandlers;
         private readonly bool _isOnServer;
         private readonly IDispatchMessageInspector[] _messageInspectors;
@@ -40,7 +39,7 @@ namespace CoreWCF.Dispatcher
             _messageInspectors = EmptyArray<IDispatchMessageInspector>.ToArray(dispatch.MessageInspectors);
             SecurityImpersonation = SecurityImpersonationBehavior.CreateIfNecessary(dispatch);
             RequireClaimsPrincipalOnOperationContext = dispatch.RequireClaimsPrincipalOnOperationContext;
-            _impersonateOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
+            IsImpersonationEnabledOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
             _terminate = TerminatingOperationBehavior.CreateIfNecessary(dispatch);
             _thread = new ThreadBehavior(dispatch);
             ValidateMustUnderstand = dispatch.ValidateMustUnderstand;
@@ -92,10 +91,7 @@ namespace CoreWCF.Dispatcher
 
         internal InstanceBehavior InstanceBehavior { get; }
 
-        internal bool IsImpersonationEnabledOnSerializingReply
-        {
-            get { return _impersonateOnSerializingReply; }
-        }
+        internal bool IsImpersonationEnabledOnSerializingReply { get; }
 
         internal bool RequireClaimsPrincipalOnOperationContext { get; }
 
@@ -268,7 +264,7 @@ namespace CoreWCF.Dispatcher
         {
             rpc.ErrorProcessor = ProcessError;
             rpc.AsyncProcessor = ProcessMessageAsync;
-            var task = rpc.ProcessAsync(isOperationContextSet);
+            Task<MessageRpc> task = rpc.ProcessAsync(isOperationContextSet);
             rpc._processCallReturned = true;
             return task;
         }
@@ -283,9 +279,7 @@ namespace CoreWCF.Dispatcher
 
         private void InputSessionDoneReceivingCore(ServiceChannel channel)
         {
-            IDuplexContextChannel proxy = channel.Proxy as IDuplexContextChannel;
-
-            if (proxy != null)
+            if (channel.Proxy is IDuplexContextChannel proxy)
             {
                 IInputSessionShutdown[] handlers = _inputSessionShutdownHandlers;
                 try
@@ -324,9 +318,7 @@ namespace CoreWCF.Dispatcher
 
         private void InputSessionFaultedCore(ServiceChannel channel)
         {
-            IDuplexContextChannel proxy = channel.Proxy as IDuplexContextChannel;
-
-            if (proxy != null)
+            if (channel.Proxy is IDuplexContextChannel proxy)
             {
                 IInputSessionShutdown[] handlers = _inputSessionShutdownHandlers;
                 try
@@ -458,7 +450,7 @@ namespace CoreWCF.Dispatcher
 
             if (!ManualAddressing)
             {
-                if (!object.ReferenceEquals(rpc.RequestID, null))
+                if (!ReferenceEquals(rpc.RequestID, null))
                 {
                     RequestReplyCorrelator.PrepareReply(rpc.Reply, rpc.RequestID);
                 }
@@ -719,7 +711,7 @@ namespace CoreWCF.Dispatcher
         private void ProcessMessageCleanup(MessageRpc rpc)
         {
             Fx.Assert(
-                !object.ReferenceEquals(rpc.ErrorProcessor, _processMessageCleanupError),
+                !ReferenceEquals(rpc.ErrorProcessor, _processMessageCleanupError),
                 "ProcessMessageCleanup run twice on the same MessageRpc!");
             rpc.ErrorProcessor = _processMessageCleanupError;
 

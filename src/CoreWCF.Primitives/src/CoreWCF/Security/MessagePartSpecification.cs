@@ -59,7 +59,7 @@ namespace CoreWCF.Security
 
         public bool IsReadOnly { get; private set; }
 
-        static public MessagePartSpecification NoParts
+        public static MessagePartSpecification NoParts
         {
             get
             {

@@ -8,8 +8,6 @@ namespace CoreWCF.Dispatcher
 {
     public abstract class ExceptionHandler
     {
-        private static ExceptionHandler s_transportExceptionHandler = AlwaysHandle;
-
         public static ExceptionHandler AlwaysHandle { get; } = new AlwaysHandleExceptionHandler();
 
         public static ExceptionHandler AsynchronousThreadExceptionHandler
@@ -17,7 +15,7 @@ namespace CoreWCF.Dispatcher
             get
             {
                 HandlerWrapper wrapper = (HandlerWrapper)Fx.AsynchronousThreadExceptionHandler;
-                return wrapper == null ? null : wrapper.Handler;
+                return wrapper?.Handler;
             }
 
             set
@@ -26,18 +24,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public static ExceptionHandler TransportExceptionHandler
-        {
-            get
-            {
-                return s_transportExceptionHandler;
-            }
-
-            set
-            {
-                s_transportExceptionHandler = value;
-            }
-        }
+        public static ExceptionHandler TransportExceptionHandler { get; set; } = AlwaysHandle;
 
         // Returns true if the exception has been handled.  If it returns false or
         // throws a different exception, the original exception will be rethrown.

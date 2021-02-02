@@ -21,9 +21,11 @@ namespace CoreWCF.IdentityModel.Claims
             {
                 if (s_system == null)
                 {
-                    List<Claim> claims = new List<Claim>(2);
-                    claims.Add(Claim.System);
-                    claims.Add(new Claim(ClaimTypes.System, XsiConstants.System, Rights.PossessProperty));
+                    List<Claim> claims = new List<Claim>(2)
+                    {
+                        Claim.System,
+                        new Claim(ClaimTypes.System, XsiConstants.System, Rights.PossessProperty)
+                    };
                     s_system = new DefaultClaimSet(claims);
                 }
                 return s_system;
@@ -59,7 +61,7 @@ namespace CoreWCF.IdentityModel.Claims
             }
         }
 
-        static internal bool SupportedRight(string right)
+        internal static bool SupportedRight(string right)
         {
             return right == null ||
                 Rights.Identity.Equals(right) ||

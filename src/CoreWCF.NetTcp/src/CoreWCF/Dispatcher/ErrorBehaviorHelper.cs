@@ -39,7 +39,7 @@ namespace CoreWCF.Dispatcher
             }
             catch (Exception e2)
             {
-                if (!object.ReferenceEquals(e, e2))
+                if (!ReferenceEquals(e, e2))
                 {
                     throw;
                 }

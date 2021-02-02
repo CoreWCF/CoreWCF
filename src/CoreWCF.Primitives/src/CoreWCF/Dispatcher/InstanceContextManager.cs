@@ -217,7 +217,7 @@ namespace CoreWCF.Dispatcher
                 _firstFreeIndex = index;
             }
 
-            base.DecrementBusyCount();
+            DecrementBusyCount();
             return true;
         }
 

@@ -21,7 +21,7 @@ namespace CoreWCF.IdentityModel
         {
             if (hash == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("hash");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(hash));
             }
 
             Reset(hash);

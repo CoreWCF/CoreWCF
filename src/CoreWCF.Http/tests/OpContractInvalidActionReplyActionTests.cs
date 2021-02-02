@@ -24,7 +24,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void NullAction()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 InvalidOperationException exception = null;
@@ -46,7 +46,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void NullReplyAction()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
             using (host)
             {
                 InvalidOperationException exception = null;

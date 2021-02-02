@@ -36,7 +36,7 @@ namespace CoreWCF.Security
         internal static void Categorize(SecurityTokenAttachmentMode value,
             out bool isBasic, out bool isSignedButNotBasic, out ReceiveSecurityHeaderBindingModes mode)
         {
-            SecurityTokenAttachmentModeHelper.Validate(value);
+            Validate(value);
 
             switch (value)
             {
@@ -61,7 +61,7 @@ namespace CoreWCF.Security
                     mode = ReceiveSecurityHeaderBindingModes.SignedEndorsing;
                     break;
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
             }
         }
     }

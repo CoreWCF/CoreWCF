@@ -18,7 +18,7 @@ namespace CoreWCF.Configuration
 
         public List<IServiceDispatcher> BuildDispatchers(Type serviceType)
         {
-            var serviceConfigInterface = typeof(IServiceConfiguration<>);
+            Type serviceConfigInterface = typeof(IServiceConfiguration<>);
             var serviceConfig = (IServiceConfiguration)_services.GetRequiredService(serviceConfigInterface.MakeGenericType(serviceType));
             return serviceConfig.GetDispatchers();
         }

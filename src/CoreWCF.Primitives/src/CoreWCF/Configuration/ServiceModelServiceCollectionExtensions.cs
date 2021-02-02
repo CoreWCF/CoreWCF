@@ -33,7 +33,7 @@ namespace CoreWCF.Configuration
                     services[i] = ServiceDescriptor.Singleton<IServer>((provider) =>
                         {
                             var originalIServer = (IServer)provider.GetRequiredService(implType);
-                            var wrappingServer = provider.GetRequiredService<WrappingIServer>();
+                            WrappingIServer wrappingServer = provider.GetRequiredService<WrappingIServer>();
                             wrappingServer.InnerServer = originalIServer;
                             return wrappingServer;
                         });
@@ -45,7 +45,7 @@ namespace CoreWCF.Configuration
             services.AddSingleton<ServiceAuthorizationBehavior>(provider =>
             {
                 var behavior = new ServiceAuthorizationBehavior();
-                var manager = provider.GetService<ServiceAuthorizationManager>();
+                ServiceAuthorizationManager manager = provider.GetService<ServiceAuthorizationManager>();
                 if (manager != null)
                 {
                     behavior.ServiceAuthorizationManager = manager;

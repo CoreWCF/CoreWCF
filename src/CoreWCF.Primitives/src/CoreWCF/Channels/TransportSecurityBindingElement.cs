@@ -65,18 +65,18 @@ namespace CoreWCF.Channels
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
 
             if (credentialsManager == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("credentialsManager");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(credentialsManager));
             }
 
             TransportSecurityProtocolFactory protocolFactory = new TransportSecurityProtocolFactory();
             // if (isForService)
             //     base.ApplyAuditBehaviorSettings(context, protocolFactory);
-            base.ConfigureProtocolFactory(protocolFactory, credentialsManager, isForService, issuerBindingContext, context.Binding);
+            ConfigureProtocolFactory(protocolFactory, credentialsManager, isForService, issuerBindingContext, context.Binding);
             protocolFactory.DetectReplays = false;
 
             return protocolFactory;
@@ -84,7 +84,7 @@ namespace CoreWCF.Channels
 
         protected override IServiceDispatcher BuildServiceDispatcherCore<TChannel>(BindingContext context, IServiceDispatcher serviceDispatcher)
         {
-            SecurityServiceDispatcher securityServiceDispatcher = new SecurityServiceDispatcher(this, context, serviceDispatcher);
+            SecurityServiceDispatcher securityServiceDispatcher = new SecurityServiceDispatcher(context, serviceDispatcher);
             SecurityCredentialsManager credentialsManager = serviceDispatcher.Host.Description.Behaviors.Find<SecurityCredentialsManager>();
             if (credentialsManager == null)
             {
@@ -120,14 +120,16 @@ namespace CoreWCF.Channels
 
                 if (scParameters.RequireCancellation)
                 {
-                    SessionSymmetricTransportSecurityProtocolFactory sessionFactory = new SessionSymmetricTransportSecurityProtocolFactory();
-                    // base.ApplyAuditBehaviorSettings(context, sessionFactory);
-                    sessionFactory.SecurityTokenParameters = scParameters.Clone();
+                    SessionSymmetricTransportSecurityProtocolFactory sessionFactory = new SessionSymmetricTransportSecurityProtocolFactory
+                    {
+                        // base.ApplyAuditBehaviorSettings(context, sessionFactory);
+                        SecurityTokenParameters = scParameters.Clone()
+                    };
                     ((SecureConversationSecurityTokenParameters)sessionFactory.SecurityTokenParameters).IssuerBindingContext = issuerBindingContext;
                     EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
                     try
                     {
-                        base.ConfigureProtocolFactory(sessionFactory, credentialsManager, true, issuerBindingContext, context.Binding);
+                        ConfigureProtocolFactory(sessionFactory, credentialsManager, true, issuerBindingContext, context.Binding);
                     }
                     finally
                     {
@@ -163,7 +165,7 @@ namespace CoreWCF.Channels
                     EndpointSupportingTokenParameters.Endorsing.RemoveAt(0);
                     try
                     {
-                        base.ConfigureProtocolFactory(protocolFactory, credentialsManager, true, issuerBindingContext, context.Binding);
+                        ConfigureProtocolFactory(protocolFactory, credentialsManager, true, issuerBindingContext, context.Binding);
                         SecureConversationSecurityTokenParameters acceleratedTokenParameters = (SecureConversationSecurityTokenParameters)scParameters.Clone();
                         acceleratedTokenParameters.IssuerBindingContext = issuerBindingContext;
                         protocolFactory.SecurityBindingElement.EndpointSupportingTokenParameters.Endorsing.Insert(0, acceleratedTokenParameters);
@@ -191,7 +193,7 @@ namespace CoreWCF.Channels
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
 
             if (typeof(T) == typeof(ChannelProtectionRequirements))
@@ -203,7 +205,7 @@ namespace CoreWCF.Channels
                     addressing = encoding.MessageVersion.Addressing;
                 }
 
-                ChannelProtectionRequirements myRequirements = base.GetProtectionRequirements(addressing, ProtectionLevel.EncryptAndSign);
+                ChannelProtectionRequirements myRequirements = GetProtectionRequirements(addressing, ProtectionLevel.EncryptAndSign);
                 myRequirements.Add(context.GetInnerProperty<ChannelProtectionRequirements>() ?? new ChannelProtectionRequirements());
                 return (T)(object)myRequirements;
             }

@@ -72,7 +72,7 @@ namespace CoreWCF
                     return true;
                 }
 
-                if (base.BusyCount > 0)
+                if (BusyCount > 0)
                 {
                     return true;
                 }
@@ -142,7 +142,7 @@ namespace CoreWCF
         private void ChannelRemoved(IChannel channel)
         {
             channel.Closed -= OnChannelClosed;
-            base.DecrementBusyCount();
+            DecrementBusyCount();
         }
 
         public async Task CloseInputAsync(CancellationToken token)
@@ -398,13 +398,8 @@ namespace CoreWCF
 
             public ChannelCollection(ServiceChannelManager channelManager, object syncRoot)
             {
-                if (syncRoot == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
-                }
-
                 _channelManager = channelManager;
-                _syncRoot = syncRoot;
+                _syncRoot = syncRoot ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
             }
 
             public void Add(IChannel channel)

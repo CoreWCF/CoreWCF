@@ -55,13 +55,17 @@ namespace CoreWCF.Security
             CommunicationObject.ThrowIfDisposedOrImmutable();
             _sessionId = sessionId;
             _sessionTokenResolver = sessionTokenResolver;
-            Collection<SecurityTokenResolver> tmp = new Collection<SecurityTokenResolver>();
-            tmp.Add(_sessionTokenResolver);
+            Collection<SecurityTokenResolver> tmp = new Collection<SecurityTokenResolver>
+            {
+                _sessionTokenResolver
+            };
             _sessionTokenResolverList = new ReadOnlyCollection<SecurityTokenResolver>(tmp);
             _sessionTokenAuthenticator = sessionTokenAuthenticator;
             SupportingTokenAuthenticatorSpecification spec = new SupportingTokenAuthenticatorSpecification(_sessionTokenAuthenticator, _sessionTokenResolver, SecurityTokenAttachmentMode.Endorsing, Factory.SecurityTokenParameters);
-            _sessionTokenAuthenticatorSpecificationList = new Collection<SupportingTokenAuthenticatorSpecification>();
-            _sessionTokenAuthenticatorSpecificationList.Add(spec);
+            _sessionTokenAuthenticatorSpecificationList = new Collection<SupportingTokenAuthenticatorSpecification>
+            {
+                spec
+            };
         }
 
         public SecurityToken GetOutgoingSessionToken()
@@ -71,11 +75,7 @@ namespace CoreWCF.Security
 
         public void SetOutgoingSessionToken(SecurityToken token)
         {
-            if (token == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
-            }
-            _outgoingSessionToken = token;
+            _outgoingSessionToken = token ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
         }
 
         protected override void VerifyIncomingMessageCore(ref Message message, TimeSpan timeout)
@@ -130,7 +130,7 @@ namespace CoreWCF.Security
             message = securityHeader.ProcessedMessage;
             AttachRecipientSecurityProperty(message, securityHeader.BasicSupportingTokens, securityHeader.EndorsingSupportingTokens,
                 securityHeader.SignedEndorsingSupportingTokens, securityHeader.SignedSupportingTokens, securityHeader.SecurityTokenAuthorizationPoliciesMapping);
-            base.OnIncomingMessageVerified(message);
+            OnIncomingMessageVerified(message);
         }
     }
 }

@@ -57,11 +57,11 @@ namespace Helpers
         internal void SerializeReply()
         {
             MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
-            var mef = mebe.CreateMessageEncoderFactory();
-            var me = mef.Encoder;
+            MessageEncoderFactory mef = mebe.CreateMessageEncoderFactory();
+            MessageEncoder me = mef.Encoder;
             MemoryStream ms = new MemoryStream();
             me.WriteMessageAsync(ReplyMessage, ms);
-            var messageBytes = ms.ToArray();
+            byte[] messageBytes = ms.ToArray();
             _replyMessageString = Encoding.UTF8.GetString(messageBytes);
         }
 
@@ -78,10 +78,10 @@ namespace Helpers
         internal static XmlSerializerTestRequestContext Create(string toAddress)
         {
             MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
-            var mef = mebe.CreateMessageEncoderFactory();
-            var me = mef.Encoder;
-            var requestMessageBytes = Encoding.UTF8.GetBytes(s_requestMessage);
-            var requestMessage = me.ReadMessage(new ArraySegment<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
+            MessageEncoderFactory mef = mebe.CreateMessageEncoderFactory();
+            MessageEncoder me = mef.Encoder;
+            byte[] requestMessageBytes = Encoding.UTF8.GetBytes(s_requestMessage);
+            Message requestMessage = me.ReadMessage(new ArraySegment<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
             requestMessage.Headers.To = new Uri(toAddress);
             requestMessage.Headers.Action = "http://tempuri.org/ISimpleXmlSerializerService/Echo";
             return new XmlSerializerTestRequestContext(requestMessage);

@@ -103,8 +103,7 @@ namespace CoreWCF.Security
             {
                 if (_wsSecurityTokenSerializer == null)
                 {
-                    WSSecurityTokenSerializer wsSecurityTokenSerializer = SecurityTokenSerializer as WSSecurityTokenSerializer;
-                    if (wsSecurityTokenSerializer == null)
+                    if (!(SecurityTokenSerializer is WSSecurityTokenSerializer wsSecurityTokenSerializer))
                     {
                         wsSecurityTokenSerializer = new WSSecurityTokenSerializer(SecurityVersion);
                     }

@@ -29,7 +29,6 @@ namespace CoreWCF.Dispatcher
         //AuditLevel messageAuthenticationAuditLevel;
         private bool _automaticInputSessionShutdown;
         private readonly ChannelDispatcher _channelDispatcher;
-        private readonly EndpointDispatcher _endpointDispatcher;
         private IInstanceProvider _instanceProvider;
         private IInstanceContextProvider _instanceContextProvider;
         private InstanceContext _singleton;
@@ -48,13 +47,12 @@ namespace CoreWCF.Dispatcher
         private bool _impersonateCallerForAllOperations;
         private bool _impersonateOnSerializingReply;
         private readonly SharedRuntimeState _shared;
-        private readonly bool _preserveMessage;
         private bool _requireClaimsPrincipalOnOperationContext;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
         {
-            _endpointDispatcher = endpointDispatcher ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
+            EndpointDispatcher = endpointDispatcher ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointDispatcher));
             Fx.Assert(_shared.IsOnServer, "Server constructor called on client?");
         }
 
@@ -81,9 +79,11 @@ namespace CoreWCF.Dispatcher
             _synchronizationContext = ThreadBehavior.GetCurrentSynchronizationContext();
             _automaticInputSessionShutdown = true;
             _principalPermissionMode = ServiceAuthorizationBehavior.DefaultPrincipalPermissionMode;
-            _unhandled = new DispatchOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction);
-            _unhandled.InternalFormatter = MessageOperationFormatter.Instance;
-            _unhandled.InternalInvoker = new UnhandledActionInvoker(this);
+            _unhandled = new DispatchOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction)
+            {
+                InternalFormatter = MessageOperationFormatter.Instance,
+                InternalInvoker = new UnhandledActionInvoker(this)
+            };
         }
 
         internal IInstanceContextProvider InstanceContextProvider
@@ -224,7 +224,7 @@ namespace CoreWCF.Dispatcher
 
         internal ChannelDispatcher ChannelDispatcher
         {
-            get { return _channelDispatcher ?? _endpointDispatcher.ChannelDispatcher; }
+            get { return _channelDispatcher ?? EndpointDispatcher.ChannelDispatcher; }
         }
 
         public ClientRuntime CallbackClientRuntime
@@ -246,10 +246,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public EndpointDispatcher EndpointDispatcher
-        {
-            get { return _endpointDispatcher; }
-        }
+        public EndpointDispatcher EndpointDispatcher { get; }
 
         public bool ImpersonateCallerForAllOperations
         {
@@ -453,21 +450,6 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        // TODO: Only used for WF so remove
-        public bool PreserveMessage
-        {
-            get { return _preserveMessage; }
-            set
-            {
-                throw new PlatformNotSupportedException(nameof(PreserveMessage));
-                //lock (ThisLock)
-                //{
-                //    InvalidateRuntime();
-                //    preserveMessage = value;
-                //}
-            }
-        }
-
         internal bool RequiresAuthentication { get; private set; }
 
         internal bool RequiresAuthorization
@@ -536,9 +518,9 @@ namespace CoreWCF.Dispatcher
 
                     for (int i = 0; i < _operations.Count; i++)
                     {
-                        max = System.Math.Max(max, _operations[i].CallContextInitializers.Count);
+                        max = Math.Max(max, _operations[i].CallContextInitializers.Count);
                     }
-                    max = System.Math.Max(max, _unhandled.CallContextInitializers.Count);
+                    max = Math.Max(max, _unhandled.CallContextInitializers.Count);
                     return max;
                 }
             }
@@ -554,9 +536,9 @@ namespace CoreWCF.Dispatcher
 
                     for (int i = 0; i < _operations.Count; i++)
                     {
-                        max = System.Math.Max(max, _operations[i].ParameterInspectors.Count);
+                        max = Math.Max(max, _operations[i].ParameterInspectors.Count);
                     }
-                    max = System.Math.Max(max, _unhandled.ParameterInspectors.Count);
+                    max = Math.Max(max, _unhandled.ParameterInspectors.Count);
                     return max;
                 }
             }
@@ -648,8 +630,7 @@ namespace CoreWCF.Dispatcher
             {
                 object[] outputs = EmptyArray<object>.Allocate(0);
 
-                Message message = inputs[0] as Message;
-                if (message == null)
+                if (!(inputs[0] is Message message))
                 {
                     return new ValueTask<(object returnValue, object[] outputs)>(((object)null, outputs));
                 }

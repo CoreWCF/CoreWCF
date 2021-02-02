@@ -28,7 +28,7 @@ namespace CoreWCF.Channels
                 return baseProperty;
             }
 
-            return default(T);
+            return default;
         }
 
         protected abstract Task OnSendAsync(Message message, CancellationToken token);

@@ -20,22 +20,12 @@ namespace CoreWCF.Description
 
         public ServiceEndpoint(ContractDescription contract)
         {
-            if (contract == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
-            }
-
-            _contract = contract;
+            _contract = contract ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
         }
 
         public ServiceEndpoint(ContractDescription contract, Binding binding, EndpointAddress address)
         {
-            if (contract == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
-            }
-
-            _contract = contract;
+            _contract = contract ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
             Binding = binding;
             Address = address;
         }
@@ -67,11 +57,7 @@ namespace CoreWCF.Description
             get { return _contract; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-                _contract = value;
+                _contract = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -128,7 +114,7 @@ namespace CoreWCF.Description
             {
                 if (value != null && !value.IsAbsoluteUri)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("value", SR.UriMustBeAbsolute);
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(value), SR.UriMustBeAbsolute);
                 }
                 _listenUri = value;
             }

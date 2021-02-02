@@ -13,7 +13,7 @@ namespace CoreWCF.Channels
         internal static WebHeaderCollection ToWebHeaderCollection(this HttpRequest httpRequest)
         {
             var webHeaders = new WebHeaderCollection();
-            foreach (var header in httpRequest.Headers)
+            foreach (System.Collections.Generic.KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues> header in httpRequest.Headers)
             {
                 webHeaders[header.Key] = header.Value;
             }

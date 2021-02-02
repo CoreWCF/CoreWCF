@@ -18,12 +18,7 @@ namespace CoreWCF.IdentityModel.Tokens
         public RsaKeyIdentifierClause(RSA rsa)
             : base(s_clauseType)
         {
-            if (rsa == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
-            }
-
-            Rsa = rsa;
+            Rsa = rsa ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
             _rsaParameters = rsa.ExportParameters(false);
         }
 

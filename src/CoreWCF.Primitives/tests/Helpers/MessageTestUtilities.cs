@@ -312,13 +312,14 @@ namespace Helpers
             {
                 versionIndex = actionIndex = bodyIndex = bodySizeIndex = headersIndex = 0;
                 typeIndex = 0;
-                mp = new MessageParameters();
-
-                mp.addComments = addComments;
-                mp.version = versions[0];
-                mp.action = actions[0];
-                mp.bodyContentSize = bodySizes[0];
-                mp.headers = headers[0];
+                mp = new MessageParameters
+                {
+                    addComments = addComments,
+                    version = versions[0],
+                    action = actions[0],
+                    bodyContentSize = bodySizes[0],
+                    headers = headers[0]
+                };
 
                 if (bodies != null)
                 {
@@ -628,9 +629,11 @@ namespace Helpers
 
                         if (bodyComplexity > 1)
                         {
-                            var translations = new Collection<FaultReasonText>();
-                            translations.Add(new FaultReasonText("Reason: auto-generated fault for testing.", "en-US"));
-                            translations.Add(new FaultReasonText("Raison: auto-generat error pour examiner.", "fr"));
+                            var translations = new Collection<FaultReasonText>
+                            {
+                                new FaultReasonText("Reason: auto-generated fault for testing.", "en-US"),
+                                new FaultReasonText("Raison: auto-generat error pour examiner.", "fr")
+                            };
                             var reason = new FaultReason(translations);
                             object detailObject = new GeneratedSerializableObject(bodyComplexity, bodyContentSize);
                             fault = MessageFault.CreateFault(new FaultCode("SomeFaultSubCode"), reason, detailObject, new DataContractSerializer(typeof(GeneratedSerializableObject)), "", "");
@@ -883,7 +886,7 @@ namespace Helpers
         // Complexity is an abstract measure that corresponds to general
         // fuzziness of a message:  attributes per element, children per
         // element, depth of child-element nesting, etc..
-        public CustomGeneratedMessage(MessageVersion version, String action, int bodyComplexity, long bodyContentSize)
+        public CustomGeneratedMessage(MessageVersion version, string action, int bodyComplexity, long bodyContentSize)
         {
             this.version = version;
             headers = new MessageHeaders(version);
@@ -944,7 +947,7 @@ namespace Helpers
 
             if (writer == null)
             {
-                throw new ArgumentNullException("writer");
+                throw new ArgumentNullException(nameof(writer));
             }
 
             for (int i = 0; i < complexity; i++)
@@ -1061,7 +1064,7 @@ namespace Helpers
 
             if (writer == null)
             {
-                throw new ArgumentNullException("writer");
+                throw new ArgumentNullException(nameof(writer));
             }
 
             if (addComments)
@@ -1121,7 +1124,7 @@ namespace Helpers
         {
             if (writer == null)
             {
-                throw new ArgumentNullException("writer");
+                throw new ArgumentNullException(nameof(writer));
             }
 
             for (int i = 0; i < complexity; i++)

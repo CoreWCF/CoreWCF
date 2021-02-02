@@ -15,21 +15,11 @@ namespace CoreWCF.Security
 
         internal SupportingTokenAuthenticatorSpecification(SecurityTokenAuthenticator tokenAuthenticator, SecurityTokenResolver securityTokenResolver, SecurityTokenAttachmentMode attachmentMode, SecurityTokenParameters tokenParameters, bool isTokenOptional)
         {
-            if (tokenAuthenticator == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenAuthenticator");
-            }
-
             SecurityTokenAttachmentModeHelper.Validate(attachmentMode);
-
-            if (tokenParameters == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenParameters");
-            }
-            TokenAuthenticator = tokenAuthenticator;
+            TokenAuthenticator = tokenAuthenticator ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenAuthenticator));
             TokenResolver = securityTokenResolver;
             SecurityTokenAttachmentMode = attachmentMode;
-            TokenParameters = tokenParameters;
+            TokenParameters = tokenParameters ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenParameters));
             IsTokenOptional = isTokenOptional;
         }
 

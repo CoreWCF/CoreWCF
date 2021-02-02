@@ -14,12 +14,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public RsaSecurityKey(RSA rsa)
         {
-            if (rsa == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
-            }
-
-            _rsa = rsa;
+            _rsa = rsa ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
         }
 
         public override int KeySize
@@ -86,14 +81,12 @@ namespace CoreWCF.IdentityModel.Tokens
 
             if (algorithmObject != null)
             {
-                SignatureDescription description = algorithmObject as SignatureDescription;
-                if (description != null)
+                if (algorithmObject is SignatureDescription description)
                 {
                     return description.CreateDigest();
                 }
 
-                HashAlgorithm hashAlgorithm = algorithmObject as HashAlgorithm;
-                if (hashAlgorithm != null)
+                if (algorithmObject is HashAlgorithm hashAlgorithm)
                 {
                     return hashAlgorithm;
                 }
@@ -124,16 +117,14 @@ namespace CoreWCF.IdentityModel.Tokens
             object algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
             if (algorithmObject != null)
             {
-                SignatureDescription description = algorithmObject as SignatureDescription;
-                if (description != null)
+                if (algorithmObject is SignatureDescription description)
                 {
                     return description.CreateDeformatter(_rsa);
                 }
 
                 try
                 {
-                    AsymmetricSignatureDeformatter asymmetricSignatureDeformatter = algorithmObject as AsymmetricSignatureDeformatter;
-                    if (asymmetricSignatureDeformatter != null)
+                    if (algorithmObject is AsymmetricSignatureDeformatter asymmetricSignatureDeformatter)
                     {
                         asymmetricSignatureDeformatter.SetKey(_rsa);
                         return asymmetricSignatureDeformatter;
@@ -169,17 +160,14 @@ namespace CoreWCF.IdentityModel.Tokens
             object algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
             if (algorithmObject != null)
             {
-                SignatureDescription description = algorithmObject as SignatureDescription;
-                if (description != null)
+                if (algorithmObject is SignatureDescription description)
                 {
                     return description.CreateFormatter(_rsa);
                 }
 
                 try
                 {
-                    AsymmetricSignatureFormatter asymmetricSignatureFormatter = algorithmObject as AsymmetricSignatureFormatter;
-
-                    if (asymmetricSignatureFormatter != null)
+                    if (algorithmObject is AsymmetricSignatureFormatter asymmetricSignatureFormatter)
                     {
                         asymmetricSignatureFormatter.SetKey(_rsa);
                         return asymmetricSignatureFormatter;
@@ -210,8 +198,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (_privateKeyStatus == PrivateKeyStatus.AvailabilityNotDetermined)
             {
-                RSACryptoServiceProvider rsaCryptoServiceProvider = _rsa as RSACryptoServiceProvider;
-                if (rsaCryptoServiceProvider != null)
+                if (_rsa is RSACryptoServiceProvider rsaCryptoServiceProvider)
                 {
                     _privateKeyStatus = rsaCryptoServiceProvider.PublicOnly ? PrivateKeyStatus.DoesNotHavePrivateKey : PrivateKeyStatus.HasPrivateKey;
                 }
@@ -223,10 +210,12 @@ namespace CoreWCF.IdentityModel.Tokens
                         _rsa.DecryptValue(hash); // imitate signing
                         _privateKeyStatus = PrivateKeyStatus.HasPrivateKey;
                     }
+#pragma warning disable CA1031 // Do not catch general exception types - interpret as no private key, don't need to use exception 
                     catch (CryptographicException)
                     {
                         _privateKeyStatus = PrivateKeyStatus.DoesNotHavePrivateKey;
                     }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
             return _privateKeyStatus == PrivateKeyStatus.HasPrivateKey;
@@ -238,26 +227,27 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format(SR.EmptyOrNullArgumentString, algorithm));
             }
-            object algorithmObject = null;
+            object algorithmObject;
             try
             {
                 algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (InvalidOperationException)
             {
                 algorithmObject = null;
+                // We swallow the exception and continue.
             }
+#pragma warning restore CA1031 // Do not catch general exception types
 
             if (algorithmObject != null)
             {
-                SignatureDescription signatureDescription = algorithmObject as SignatureDescription;
-                if (signatureDescription != null)
+                if (algorithmObject is SignatureDescription signatureDescription)
                 {
                     return true;
                 }
 
-                AsymmetricAlgorithm asymmetricAlgorithm = algorithmObject as AsymmetricAlgorithm;
-                if (asymmetricAlgorithm != null)
+                if (algorithmObject is AsymmetricAlgorithm asymmetricAlgorithm)
                 {
                     return true;
                 }

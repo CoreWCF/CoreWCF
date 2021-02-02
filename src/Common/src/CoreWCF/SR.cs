@@ -17,7 +17,7 @@ namespace CoreWCF
             {
                 if (s_resourceManager == null)
                 {
-                    s_resourceManager = new ResourceManager(SR.ResourceType);
+                    s_resourceManager = new ResourceManager(ResourceType);
                 }
                 return s_resourceManager;
             }

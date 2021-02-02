@@ -12,9 +12,11 @@ namespace CoreWCF.Dispatcher
     {
         private readonly object _mutex;
         private readonly Queue<TaskCompletionSource<object>> _waiters;
-        private bool _didTraceThrottleLimit;
+        //private bool _didTraceThrottleLimit;
         // private string _propertyName = "ManualFlowControlLimit"; // Used for eventing
+#pragma warning disable IDE0052 // Remove unread private members
         private string _owner; // Used for eventing
+#pragma warning restore IDE0052 // Remove unread private members
 
         internal QuotaThrottle(object mutex)
         {
@@ -133,7 +135,7 @@ namespace CoreWCF.Dispatcher
                         Limit -= released.Length;
                     }
                 }
-                _didTraceThrottleLimit = false;
+                //didTraceThrottleLimit = false;
             }
             else
             {

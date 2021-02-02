@@ -36,8 +36,7 @@ namespace CoreWCF.Security
             if (securityHeader.RequireMessageProtection)
             {
                 XmlDictionaryReader messageReader;
-                BufferedMessage bufferedMessage = InnerMessage as BufferedMessage;
-                if (bufferedMessage != null && Headers.ContainsOnlyBufferedMessageHeaders)
+                if (InnerMessage is BufferedMessage bufferedMessage && Headers.ContainsOnlyBufferedMessageHeaders)
                 {
                     messageReader = bufferedMessage.GetMessageReader();
                 }
@@ -150,7 +149,7 @@ namespace CoreWCF.Security
             if (!_isDecryptedBodyStatusDetermined)
             {
                 XmlDictionaryReader reader = CreateFullBodyReader();
-                if (Message.ReadStartBody(reader, InnerMessage.Version.Envelope, out _isDecryptedBodyFault, out _isDecryptedBodyEmpty))
+                if (ReadStartBody(reader, InnerMessage.Version.Envelope, out _isDecryptedBodyFault, out _isDecryptedBodyEmpty))
                 {
                     _cachedDecryptedBodyContentReader = reader;
                 }

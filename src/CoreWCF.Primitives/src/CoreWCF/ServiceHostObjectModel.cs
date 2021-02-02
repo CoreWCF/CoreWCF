@@ -21,9 +21,10 @@ namespace CoreWCF
     internal class ServiceHostObjectModel<TService> : ServiceHostBase where TService : class
     {
         private IDisposable _disposableInstance;
-        private readonly TService _singletonInstance;
         private readonly IServiceProvider _serviceProvider;
+#pragma warning disable IDE0052 // Remove unread private members - see issue #286
         private readonly ILogger<ServiceHostObjectModel<TService>> _logger;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public ServiceHostObjectModel(IServiceProvider serviceProvider, ServiceBuilder serviceBuilder, ILogger<ServiceHostObjectModel<TService>> logger)
         {
@@ -61,8 +62,8 @@ namespace CoreWCF
             }
 
             // Any user supplied IServiceBehaviors can be applied now
-            var serviceBehaviors = _serviceProvider.GetServices<IServiceBehavior>();
-            foreach (var behavior in serviceBehaviors)
+            IEnumerable<IServiceBehavior> serviceBehaviors = _serviceProvider.GetServices<IServiceBehavior>();
+            foreach (IServiceBehavior behavior in serviceBehaviors)
             {
                 description.Behaviors.Add(behavior);
             }
@@ -108,9 +109,9 @@ namespace CoreWCF
 
             if (instance == null)
             {
-                if (serviceInstanceUsedAsABehavior is IServiceBehavior)
+                if (serviceInstanceUsedAsABehavior is IServiceBehavior behavior)
                 {
-                    description.Behaviors.Add((IServiceBehavior)serviceInstanceUsedAsABehavior);
+                    description.Behaviors.Add(behavior);
                 }
             }
 
@@ -121,7 +122,7 @@ namespace CoreWCF
                 Type contractType = interfaces[i];
                 if (!reflectedContracts.Contains(contractType))
                 {
-                    ContractDescription contract = null;
+                    ContractDescription contract;
                     if (serviceInstanceUsedAsABehavior != null)
                     {
                         contract = ContractDescription.GetContract<TService>(contractType, serviceInstanceUsedAsABehavior);
@@ -147,11 +148,6 @@ namespace CoreWCF
 
             implementedContracts = reflectedContracts.ToImplementedContracts();
             return description;
-        }
-
-        protected override void ApplyConfiguration()
-        {
-            // Prevent base class throw by overriding
         }
 
         internal class ReflectedContractCollection : KeyedCollection<Type, ContractDescription>
@@ -233,7 +229,7 @@ namespace CoreWCF
             Uri result = uri;
             if (!result.IsAbsoluteUri)
             {
-                if (binding.Scheme == string.Empty)
+                if (string.IsNullOrEmpty(binding.Scheme))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxCustomBindingWithoutTransport));
                 }
@@ -249,7 +245,7 @@ namespace CoreWCF
             return result;
         }
 
-        internal static String GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
+        internal static string GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
         {
             StringBuilder buffer = new StringBuilder();
             bool firstScheme = true;
@@ -286,7 +282,7 @@ namespace CoreWCF
 
         internal static Uri GetUri(Uri baseUri, Uri relativeUri)
         {
-            var path = relativeUri.OriginalString;
+            string path = relativeUri.OriginalString;
             if (path.StartsWith("/", StringComparison.Ordinal) || path.StartsWith("\\", StringComparison.Ordinal))
             {
                 int i = 1;

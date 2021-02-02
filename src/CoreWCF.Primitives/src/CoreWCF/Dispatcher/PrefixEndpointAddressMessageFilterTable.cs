@@ -98,8 +98,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            PrefixEndpointAddressMessageFilter pFilter = filter as PrefixEndpointAddressMessageFilter;
-            if (pFilter != null)
+            if (filter is PrefixEndpointAddressMessageFilter pFilter)
             {
                 return Remove(pFilter);
             }

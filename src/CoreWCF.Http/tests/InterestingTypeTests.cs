@@ -27,14 +27,14 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void TypedContractCollectionTest()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<TypedContractCollectionServiceStartup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<TypedContractCollectionServiceStartup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ITypedContract_Collection>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TypedContract_CollectionService.svc")));
-                var channel = factory.CreateChannel();
+                ITypedContract_Collection channel = factory.CreateChannel();
 
                 foreach (int numItems in new int[] { 1, 5, 15, 50 })
                 {

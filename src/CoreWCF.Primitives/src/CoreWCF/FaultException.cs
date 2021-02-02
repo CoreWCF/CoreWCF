@@ -95,7 +95,7 @@ namespace CoreWCF
         {
             if (fault == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
             }
 
             _code = EnsureCode(fault.Code);
@@ -108,7 +108,7 @@ namespace CoreWCF
         {
             if (fault == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
             }
 
             _code = fault.Code;
@@ -185,12 +185,12 @@ namespace CoreWCF
         {
             if (messageFault == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageFault");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageFault));
             }
 
             if (faultDetailTypes == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("faultDetailTypes");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultDetailTypes));
             }
             var faultFormatter = new DataContractSerializerFaultFormatter(faultDetailTypes);
             return faultFormatter.Deserialize(messageFault, action);
@@ -267,12 +267,12 @@ namespace CoreWCF
 
         private static FaultCode EnsureCode(FaultCode code)
         {
-            return (code != null) ? code : DefaultCode;
+            return code ?? DefaultCode;
         }
 
         private static FaultReason EnsureReason(FaultReason reason)
         {
-            return (reason != null) ? reason : DefaultReason;
+            return reason ?? DefaultReason;
         }
 
         internal FaultCode ReconstructFaultCode(SerializationInfo info, string key)
@@ -313,9 +313,11 @@ namespace CoreWCF
 
                 for (int i = 0; i < array.Length; i++)
                 {
-                    array[i] = new FaultCodeData();
-                    array[i]._name = code.Name;
-                    array[i]._ns = code.Namespace;
+                    array[i] = new FaultCodeData
+                    {
+                        _name = code.Name,
+                        _ns = code.Namespace
+                    };
                     code = code.SubCode;
                 }
 
@@ -367,9 +369,11 @@ namespace CoreWCF
 
                 for (int i = 0; i < translations.Count; i++)
                 {
-                    array[i] = new FaultReasonData();
-                    array[i]._xmlLang = translations[i].XmlLang;
-                    array[i]._text = translations[i].Text;
+                    array[i] = new FaultReasonData
+                    {
+                        _xmlLang = translations[i].XmlLang,
+                        _text = translations[i].Text
+                    };
                 }
 
                 return array;

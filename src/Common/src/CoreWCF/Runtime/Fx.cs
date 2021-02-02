@@ -82,7 +82,7 @@ namespace CoreWCF.Runtime
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Exception AssertAndThrowFatal(string description)
         {
-            Fx.Assert(description);
+            Assert(description);
             //TraceCore.ShipAssertExceptionMessage(Trace, description);
             throw new FatalInternalException(description);
         }
@@ -189,7 +189,7 @@ namespace CoreWCF.Runtime
             catch (OutOfMemoryException exception)
             {
                 // Convert OOM into an exception that can be safely handled by higher layers.
-                throw Fx.Exception.AsError(exception);
+                throw Exception.AsError(exception);
                 //new InsufficientMemoryException(InternalSR.BufferAllocationFailed(size), exception));
             }
         }
@@ -216,7 +216,7 @@ namespace CoreWCF.Runtime
 
         public static IOCompletionCallback ThunkCallback(IOCompletionCallback callback)
         {
-            Fx.Assert(callback != null, "Trying to create a ThunkCallback with a null callback method");
+            Assert(callback != null, "Trying to create a ThunkCallback with a null callback method");
             return (new IOCompletionThunk(callback)).ThunkFrame;
         }
 
@@ -253,7 +253,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }
@@ -284,7 +284,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }
@@ -315,7 +315,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }
@@ -347,7 +347,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }
@@ -361,7 +361,7 @@ namespace CoreWCF.Runtime
             {
                 // This call exits the CER.  However, when still inside a catch, normal ThreadAbort is prevented.
                 // Rude ThreadAbort will still be allowed to terminate processing.
-                Fx.Exception.TraceUnhandledException(exception);
+                Exception.TraceUnhandledException(exception);
             }
             catch
             {
@@ -375,7 +375,7 @@ namespace CoreWCF.Runtime
             // This area is too sensitive to do anything but return.
             if (exception == null)
             {
-                Fx.Assert("Null exception in HandleAtThreadBase.");
+                Assert("Null exception in HandleAtThreadBase.");
                 return false;
             }
 
@@ -383,7 +383,7 @@ namespace CoreWCF.Runtime
 
             try
             {
-                ExceptionHandler handler = Fx.AsynchronousThreadExceptionHandler;
+                ExceptionHandler handler = AsynchronousThreadExceptionHandler;
                 return handler == null ? false : handler.HandleException(exception);
             }
             catch (Exception secondException)
@@ -427,7 +427,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }

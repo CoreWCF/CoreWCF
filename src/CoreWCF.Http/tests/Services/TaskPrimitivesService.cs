@@ -63,7 +63,7 @@ namespace Services
 
         public Task<double> GetDouble()
         {
-            Task<double> task = new Task<Double>(() =>
+            Task<double> task = new Task<double>(() =>
             {
                 return 588.1200;
             });
@@ -71,9 +71,9 @@ namespace Services
             return task;
         }
 
-        public Task<UInt32> GetUInt()
+        public Task<uint> GetUInt()
         {
-            Task<UInt32> task = new Task<UInt32>(() =>
+            Task<uint> task = new Task<uint>(() =>
             {
                 return 12566;
             });
@@ -143,7 +143,7 @@ namespace Services
 
         public Task<string> GetString()
         {
-            Task<String> task = new Task<String>(() =>
+            Task<string> task = new Task<string>(() =>
             {
                 return "Hello Seattle";
             });

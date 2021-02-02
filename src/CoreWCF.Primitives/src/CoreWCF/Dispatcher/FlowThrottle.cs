@@ -11,13 +11,15 @@ namespace CoreWCF.Dispatcher
     {
         private int _capacity;
         private int _count;
-        private bool _warningIssued;
+        //private bool _warningIssued;
         private readonly int _warningRestoreLimit;
         private readonly object _mutex;
         // TODO: See if there's a way to pool resettable awaitables to remove allocation. Same in QuotaThrottle
         private readonly Queue<TaskCompletionSource<object>> _waiters;
+#pragma warning disable IDE0052 // Remove unread private members - Will be used once events are restored
         private readonly string _propertyName;
         private readonly string _configName;
+#pragma warning restore IDE0052 // Remove unread private members
         private Action _acquired;
         private Action _released;
         private Action<int> _ratio;
@@ -135,7 +137,7 @@ namespace CoreWCF.Dispatcher
                         //{
                         //    TD.MessageThrottleAtSeventyPercent(this.propertyName, this.capacity);
                         //}
-                        _warningIssued = false;
+                        //_warningIssued = false;
                     }
                 }
             }

@@ -30,8 +30,7 @@ namespace CoreWCF
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
         {
-            IDisposable dispose = instance as IDisposable;
-            if (dispose != null)
+            if (instance is IDisposable dispose)
             {
                 dispose.Dispose();
             }

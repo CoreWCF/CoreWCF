@@ -32,7 +32,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionWindowsAuth()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -40,12 +40,12 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoString(testString);
+                    string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
@@ -62,7 +62,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionUseWindowsGroups()
         {
             string testString = "a" + PrincipalPermissionMode.UseWindowsGroups.ToString() + "test";
-            var host = ServiceHelper.CreateWebHostBuilder<PermissionUseWindowsGroup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseWindowsGroup>(_output).Build();
             assertForCommon(testString, host);
         }
         [Fact]
@@ -70,7 +70,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionUseAlways()
         {
             string testString = "a" + PrincipalPermissionMode.Always.ToString() + "test";
-            var host = ServiceHelper.CreateWebHostBuilder<PermissionUseAlways>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseAlways>(_output).Build();
             assertForCommon(testString, host);
         }
 
@@ -79,7 +79,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionUseNone()
         {
             string testString = "a" + PrincipalPermissionMode.None.ToString() + "test";
-            var host = ServiceHelper.CreateWebHostBuilder<PermissionUseNone>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseNone>(_output).Build();
             assertForCommon(testString, host);
         }
 
@@ -88,7 +88,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientImpersonateUser()
         {
             string sourceString = "test";
-            var host = ServiceHelper.CreateWebHostBuilder<ImpersonateCallerForAll>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<ImpersonateCallerForAll>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -96,12 +96,12 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoForImpersonation(sourceString);
+                    string result = channel.EchoForImpersonation(sourceString);
                     Assert.Equal(sourceString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
@@ -113,7 +113,7 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
-        private void assertForCommon(String sourceString, IWebHost host)
+        private void assertForCommon(string sourceString, IWebHost host)
         {
             using (host)
             {
@@ -122,12 +122,12 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoForPermission(sourceString);
+                    string result = channel.EchoForPermission(sourceString);
                     Assert.Equal(sourceString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
@@ -192,7 +192,7 @@ namespace CoreWCF.NetTcp.Tests
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            var authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
+            ServiceAuthorizationBehavior authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
             authBehavior.PrincipalPermissionMode = principalMode;
             if (isImpersonate)
             {
@@ -203,7 +203,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 builder.AddService<Services.TestService>();
                 builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(), WindowsAuthRelativePath);
-                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(CoreWCF.SecurityMode.None), NoSecurityRelativePath);
+                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(SecurityMode.None), NoSecurityRelativePath);
             });
         }
     }
@@ -220,9 +220,11 @@ namespace CoreWCF.NetTcp.Tests
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            var authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
-            var authPolicies = new List<IAuthorizationPolicy>();
-            authPolicies.Add(new MyTestAuthorizationPolicy());
+            ServiceAuthorizationBehavior authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
+            var authPolicies = new List<IAuthorizationPolicy>
+            {
+                new MyTestAuthorizationPolicy()
+            };
             var externalAuthPolicies = new ReadOnlyCollection<IAuthorizationPolicy>(authPolicies);
             authBehavior.ExternalAuthorizationPolicies = externalAuthPolicies;
             authBehavior.ServiceAuthorizationManager = new MyTestServiceAuthorizationManager();
@@ -230,7 +232,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 builder.AddService<Services.TestService>();
                 builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(), WindowsAuthRelativePath);
-                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(CoreWCF.SecurityMode.None), NoSecurityRelativePath);
+                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(SecurityMode.None), NoSecurityRelativePath);
             });
         }
     }

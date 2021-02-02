@@ -32,11 +32,13 @@ namespace CoreWCF.Channels
 
         public IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
+#pragma warning disable CS0067 // The event is never used - see issue #290
         public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
+#pragma warning restore CS0067 // The event is never used
 
         public void Abort()
         {
@@ -96,7 +98,7 @@ namespace CoreWCF.Channels
             }
 
             var requestContext = HttpRequestContext.CreateContext(_httpSettings, context);
-            var httpInput = requestContext.GetHttpInput(true);
+            HttpInput httpInput = requestContext.GetHttpInput(true);
             (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
             if ((requestMessage == null) && (requestException == null))
             {

@@ -97,8 +97,7 @@ namespace CoreWCF.Channels.Framing
 
         protected override async Task OnReplyAsync(Message message, CancellationToken token)
         {
-            ICompressedMessageEncoder compressedMessageEncoder = _connection.MessageEncoderFactory.Encoder as ICompressedMessageEncoder;
-            if (compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled)
+            if (_connection.MessageEncoderFactory.Encoder is ICompressedMessageEncoder compressedMessageEncoder && compressedMessageEncoder.CompressionEnabled)
             {
                 compressedMessageEncoder.AddCompressedMessageProperties(message, _connection.FramingDecoder.ContentType);
             }
@@ -138,7 +137,7 @@ namespace CoreWCF.Channels.Framing
                     Stream connectionStream = new StreamingOutputConnectionStream(connection, settings);
                     // TODO: Determine if timeout stream is needed as StreamingOutputConnectionStream implements some timeout functionality
                     //Stream writeTimeoutStream = new TimeoutStream(connectionStream, ref timeoutHelper);
-                    messageEncoder.WriteMessageAsync(message, connectionStream);
+                    await messageEncoder.WriteMessageAsync(message, connectionStream);
                     await connection.Output.FlushAsync();
                 }
                 else
@@ -217,7 +216,7 @@ namespace CoreWCF.Channels.Framing
         public override void WriteByte(byte value)
         {
             var timeoutHelper = new TimeoutHelper(_timeouts.SendTimeout);
-            var ct = timeoutHelper.GetCancellationToken();
+            CancellationToken ct = timeoutHelper.GetCancellationToken();
             WriteChunkSizeAsync(1, ct).GetAwaiter().GetResult();
             _connection.Output.WriteAsync(new byte[] { value }, ct).GetAwaiter().GetResult();
             _connection.Output.FlushAsync();
@@ -231,7 +230,7 @@ namespace CoreWCF.Channels.Framing
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             var timeoutHelper = new TimeoutHelper(_timeouts.SendTimeout);
-            var ct = timeoutHelper.GetCancellationToken();
+            CancellationToken ct = timeoutHelper.GetCancellationToken();
             await WriteChunkSizeAsync(count, ct);
             await _connection.Output.WriteAsync(new ArraySegment<byte>(buffer, offset, count), ct);
             await _connection.Output.FlushAsync();

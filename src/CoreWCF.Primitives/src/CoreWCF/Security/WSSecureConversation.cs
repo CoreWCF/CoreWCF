@@ -19,11 +19,7 @@ namespace CoreWCF.Security
 
         protected WSSecureConversation(WSSecurityTokenSerializer tokenSerializer, int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
         {
-            if (tokenSerializer == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
-            }
-            WSSecurityTokenSerializer = tokenSerializer;
+            WSSecurityTokenSerializer = tokenSerializer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
             _derivedKeyEntry = new DerivedKeyTokenEntry(this, maxKeyDerivationOffset, maxKeyDerivationLabelLength, maxKeyDerivationNonceLength);
         }
 
@@ -72,11 +68,7 @@ namespace CoreWCF.Security
 
             public DerivedKeyTokenEntry(WSSecureConversation parent, int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
             {
-                if (parent == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-                }
-                _parent = parent;
+                _parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
                 _maxKeyDerivationOffset = maxKeyDerivationOffset;
                 _maxKeyDerivationLabelLength = maxKeyDerivationLabelLength;
                 _maxKeyDerivationNonceLength = maxKeyDerivationNonceLength;
@@ -101,7 +93,7 @@ namespace CoreWCF.Security
                         // DerivedKeys aren't referred to externally
                         return null;
                     default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("tokenReferenceStyle"));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(tokenReferenceStyle)));
                 }
             }
 
@@ -121,12 +113,12 @@ namespace CoreWCF.Security
             {
                 if (tokenResolver == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("tokenResolver");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenResolver));
                 }
 
-                id = reader.GetAttribute(CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace);
+                id = reader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
 
-                derivationAlgorithm = reader.GetAttribute(CoreWCF.XD.XmlSignatureDictionary.Algorithm, null);
+                derivationAlgorithm = reader.GetAttribute(XD.XmlSignatureDictionary.Algorithm, null);
                 if (derivationAlgorithm == null)
                 {
                     derivationAlgorithm = _parent.DerivationAlgorithm;
@@ -137,7 +129,7 @@ namespace CoreWCF.Security
                 tokenToDeriveIdentifier = null;
                 tokenToDerive = null;
 
-                if (reader.IsStartElement(CoreWCF.XD.SecurityJan2004Dictionary.SecurityTokenReference, CoreWCF.XD.SecurityJan2004Dictionary.Namespace))
+                if (reader.IsStartElement(XD.SecurityJan2004Dictionary.SecurityTokenReference, XD.SecurityJan2004Dictionary.Namespace))
                 {
                     tokenToDeriveIdentifier = _parent.WSSecurityTokenSerializer.ReadKeyIdentifierClause(reader);
                     tokenResolver.TryResolveToken(tokenToDeriveIdentifier, out tokenToDerive);
@@ -201,7 +193,6 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.DerivedKeyTokenLabelTooLong, label.Length, _maxKeyDerivationLabelLength)));
                 }
 
-                nonce = null;
                 reader.ReadStartElement(_parent.SerializerDictionary.Nonce, _parent.SerializerDictionary.Namespace);
                 nonce = reader.ReadContentAsBase64();
                 reader.ReadEndElement();
@@ -245,7 +236,7 @@ namespace CoreWCF.Security
                 writer.WriteStartElement(serializerPrefix, _parent.SerializerDictionary.DerivedKeyToken, _parent.SerializerDictionary.Namespace);
                 if (derivedKeyToken.Id != null)
                 {
-                    writer.WriteAttributeString(CoreWCF.XD.UtilityDictionary.Prefix.Value, CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace, derivedKeyToken.Id);
+                    writer.WriteAttributeString(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace, derivedKeyToken.Id);
                 }
                 if (derivedKeyToken.KeyDerivationAlgorithm != _parent.DerivationAlgorithm)
                 {
@@ -329,8 +320,7 @@ namespace CoreWCF.Security
                         UniqueId generation = null;
                         foreach (XmlNode node in issuedTokenXml.ChildNodes)
                         {
-                            XmlElement element = node as XmlElement;
-                            if (element != null)
+                            if (node is XmlElement element)
                             {
                                 if (element.LocalName == Parent.SerializerDictionary.Identifier.Value && element.NamespaceURI == Parent.SerializerDictionary.Namespace.Value)
                                 {
@@ -344,7 +334,7 @@ namespace CoreWCF.Security
                         }
                         return new SecurityContextKeyIdentifierClause(contextId, generation);
                     default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("tokenReferenceStyle"));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(tokenReferenceStyle)));
                 }
             }
 
@@ -370,8 +360,7 @@ namespace CoreWCF.Security
                     AggregateSecurityHeaderTokenResolver aggregateTokenResolve = tokenResolver as AggregateSecurityHeaderTokenResolver;
                     for (int i = 0; i < aggregateTokenResolve.TokenResolvers.Count; ++i)
                     {
-                        ISecurityContextSecurityTokenCache oobTokenResolver = aggregateTokenResolve.TokenResolvers[i] as ISecurityContextSecurityTokenCache;
-                        if (oobTokenResolver == null)
+                        if (!(aggregateTokenResolve.TokenResolvers[i] is ISecurityContextSecurityTokenCache oobTokenResolver))
                         {
                             continue;
                         }
@@ -402,33 +391,31 @@ namespace CoreWCF.Security
 
             public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
             {
-                UniqueId contextId = null;
-                byte[] encodedCookie = null;
                 UniqueId generation = null;
                 bool isCookieMode = false;
 
                 Fx.Assert(reader.NodeType == XmlNodeType.Element, "");
 
                 // check if there is an id
-                string id = reader.GetAttribute(CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace);
+                string id = reader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
 
                 SecurityContextSecurityToken sct = null;
 
                 // There needs to be at least a contextId in here.
                 reader.ReadFullStartElement();
                 reader.MoveToStartElement(Parent.SerializerDictionary.Identifier, Parent.SerializerDictionary.Namespace);
-                contextId = reader.ReadElementContentAsUniqueId();
+                UniqueId contextId = reader.ReadElementContentAsUniqueId();
                 if (CanReadGeneration(reader))
                 {
                     generation = ReadGeneration(reader);
                 }
-                if (reader.IsStartElement(Parent.SerializerDictionary.Cookie, CoreWCF.XD.DotNetSecurityDictionary.Namespace))
+                if (reader.IsStartElement(Parent.SerializerDictionary.Cookie, XD.DotNetSecurityDictionary.Namespace))
                 {
                     isCookieMode = true;
                     sct = TryResolveSecurityContextToken(contextId, generation, id, tokenResolver, out ISecurityContextSecurityTokenCache sctCache);
                     if (sct == null)
                     {
-                        encodedCookie = reader.ReadElementContentAsBase64();
+                        byte[] encodedCookie = reader.ReadElementContentAsBase64();
                         if (encodedCookie != null)
                         {
                             sct = _cookieSerializer.CreateSecurityContextFromCookie(encodedCookie, contextId, generation, id, reader.Quotas);
@@ -473,7 +460,7 @@ namespace CoreWCF.Security
                 writer.WriteStartElement(Parent.SerializerDictionary.Prefix.Value, Parent.SerializerDictionary.SecurityContextToken, Parent.SerializerDictionary.Namespace);
                 if (sct.Id != null)
                 {
-                    writer.WriteAttributeString(CoreWCF.XD.UtilityDictionary.Prefix.Value, CoreWCF.XD.UtilityDictionary.IdAttribute, CoreWCF.XD.UtilityDictionary.Namespace, sct.Id);
+                    writer.WriteAttributeString(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace, sct.Id);
                 }
 
                 // serialize the context id
@@ -492,7 +479,7 @@ namespace CoreWCF.Security
                     }
 
                     // if the token has a cookie, write it out
-                    writer.WriteStartElement(CoreWCF.XD.DotNetSecurityDictionary.Prefix.Value, Parent.SerializerDictionary.Cookie, CoreWCF.XD.DotNetSecurityDictionary.Namespace);
+                    writer.WriteStartElement(XD.DotNetSecurityDictionary.Prefix.Value, Parent.SerializerDictionary.Cookie, XD.DotNetSecurityDictionary.Namespace);
                     writer.WriteBase64(sct.CookieBlob, 0, sct.CookieBlob.Length);
                     writer.WriteEndElement();
                 }
@@ -524,7 +511,7 @@ namespace CoreWCF.Security
             {
                 if (reader == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
                 }
 
                 reader.ReadStartElement(DriverDictionary.SecurityContextToken, DriverDictionary.Namespace);
@@ -541,7 +528,7 @@ namespace CoreWCF.Security
             {
                 if (reader == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
                 }
 
                 return reader.IsStartElement(DriverDictionary.SecurityContextToken, DriverDictionary.Namespace);

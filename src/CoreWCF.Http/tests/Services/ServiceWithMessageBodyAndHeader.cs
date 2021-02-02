@@ -17,9 +17,11 @@ namespace Services
 
         public CoreEchoMessageResponse EchoWithMessageContract(CoreEchoMessageRequest request)
         {
-            CoreEchoMessageResponse echoMessageResponse = new CoreEchoMessageResponse();
-            echoMessageResponse.SayHello = "Saying Hello " + request.Text;
-            echoMessageResponse.SayHi = "Saying Hi " + request.Text;
+            CoreEchoMessageResponse echoMessageResponse = new CoreEchoMessageResponse
+            {
+                SayHello = "Saying Hello " + request.Text,
+                SayHi = "Saying Hi " + request.Text
+            };
             return echoMessageResponse;
         }
     }

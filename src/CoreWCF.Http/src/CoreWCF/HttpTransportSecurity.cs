@@ -11,7 +11,7 @@ namespace CoreWCF
     public sealed class HttpTransportSecurity
     {
         internal const HttpClientCredentialType DefaultClientCredentialType = HttpClientCredentialType.None;
-        internal const string DefaultRealm = CoreWCF.Channels.HttpTransportDefaults.Realm;
+        internal const string DefaultRealm = HttpTransportDefaults.Realm;
         private HttpClientCredentialType _clientCredentialType;
         private ExtendedProtectionPolicy _extendedProtectionPolicy;
 
@@ -29,7 +29,7 @@ namespace CoreWCF
             {
                 if (!HttpClientCredentialTypeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 _clientCredentialType = value;
             }
@@ -51,7 +51,7 @@ namespace CoreWCF
                 }
 
                 if (value.PolicyEnforcement == PolicyEnforcement.Always &&
-                    !System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+                    !ExtendedProtectionPolicy.OSSupportsExtendedProtection)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                         new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported));

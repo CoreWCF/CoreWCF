@@ -10,7 +10,7 @@ namespace CoreWCF.Description
     {
         private static Type s_typeOfUntypedMessage;
         private MessageDescriptionItems _items;
-        private Type _messageType;
+
         //XmlQualifiedName xsdType;
 
         public MessageDescription(string action, MessageDirection direction) : this(action, direction, null) { }
@@ -75,17 +75,13 @@ namespace CoreWCF.Description
 
         internal XmlName MessageName { get; set; }
 
-        public Type MessageType
-        {
-            get { return _messageType; }
-            set { _messageType = value; }
-        }
+        public Type MessageType { get; set; }
 
         internal bool IsTypedMessage
         {
             get
             {
-                return _messageType != null;
+                return MessageType != null;
             }
         }
 

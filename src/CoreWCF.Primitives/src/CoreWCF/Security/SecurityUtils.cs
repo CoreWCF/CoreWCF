@@ -94,7 +94,7 @@ namespace CoreWCF.Security
         internal static bool IsDefined(SslProtocols value)
         {
             SslProtocols allValues = SslProtocols.None;
-            foreach (var protocol in Enum.GetValues(typeof(SslProtocols)))
+            foreach (object protocol in Enum.GetValues(typeof(SslProtocols)))
             {
                 allValues |= (SslProtocols)protocol;
             }
@@ -156,7 +156,7 @@ namespace CoreWCF.Security
             {
                 if (s_anonymousIdentity == null)
                 {
-                    s_anonymousIdentity = SecurityUtils.CreateIdentity(string.Empty);
+                    s_anonymousIdentity = CreateIdentity(string.Empty);
                 }
                 return s_anonymousIdentity;
             }
@@ -225,7 +225,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                return SecurityUtils.CreateWindowsIdentity();
+                return CreateWindowsIdentity();
             }
         }
 
@@ -251,7 +251,7 @@ namespace CoreWCF.Security
                 bool isSystemAccount = IsSystemAccount(self);
                 if (spnOnly || isSystemAccount)
                 {
-                    identity = EndpointIdentity.CreateSpnIdentity(String.Format(CultureInfo.InvariantCulture, "host/{0}", DnsCache.MachineName));
+                    identity = EndpointIdentity.CreateSpnIdentity(string.Format(CultureInfo.InvariantCulture, "host/{0}", DnsCache.MachineName));
                 }
                 else
                 {
@@ -265,7 +265,7 @@ namespace CoreWCF.Security
 
         internal static WindowsIdentity CloneWindowsIdentityIfNecessary(WindowsIdentity wid)
         {
-            return SecurityUtils.CloneWindowsIdentityIfNecessary(wid, null);
+            return CloneWindowsIdentityIfNecessary(wid, null);
         }
 
         internal static WindowsIdentity CloneWindowsIdentityIfNecessary(WindowsIdentity wid, string authType)
@@ -396,15 +396,13 @@ namespace CoreWCF.Security
             string wrappingAlgorithm = keyClause.EncryptionMethod;
             byte[] unwrappedKey = unwrappingSecurityKey.DecryptKey(wrappingAlgorithm, wrappedKey);
             //TODO, check value for XmlDictionaryString Symmetric or else 
-            return new WrappedKeySecurityToken(SecurityUtils.GenerateId(), unwrappedKey, wrappingAlgorithm,
+            return new WrappedKeySecurityToken(GenerateId(), unwrappedKey, wrappingAlgorithm,
                XmlDictionaryString.Empty, unwrappingToken, wrappingTokenReference, wrappedKey, unwrappingSecurityKey
                     );
         }
 
         private static bool CanKeyDoKeyExchange(X509Certificate2 certificate)
         {
-            bool canDoKeyExchange = false;
-
             X509KeyUsageExtension keyUsageExtension = null;
             for (int i = 0; i < certificate.Extensions.Count; i++)
             {
@@ -428,10 +426,9 @@ namespace CoreWCF.Security
             // being used. See RFC 5246 section 7.4.6 for more details.
             // Additionally, according to msdn docs for PFXImportCertStore, the key specification is set to AT_KEYEXCHANGE
             // when the data encipherment usage is set.
-            canDoKeyExchange = (keyUsageExtension.KeyUsages &
+            bool canDoKeyExchange = (keyUsageExtension.KeyUsages &
                 (X509KeyUsageFlags.KeyAgreement | X509KeyUsageFlags.KeyEncipherment |
                     X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.DataEncipherment)) != X509KeyUsageFlags.None;
-
             return canDoKeyExchange;
         }
 
@@ -476,18 +473,17 @@ namespace CoreWCF.Security
                     isGenericTokenError = true;
                     break;
                 }
-                else if (e is MessageSecurityException)
+                else if (e is MessageSecurityException ms)
                 {
-                    MessageSecurityException ms = (MessageSecurityException)e;
                     if (ms.Fault != null)
                     {
                         return ms.Fault;
                     }
                     isSecurityError = true;
                 }
-                else if (e is FaultException)
+                else if (e is FaultException fe)
                 {
-                    faultException = (FaultException)e;
+                    faultException = fe;
                     break;
                 }
                 e = e.InnerException;
@@ -527,7 +523,7 @@ namespace CoreWCF.Security
 
         internal static byte[] GenerateDerivedKey(SecurityToken tokenToDerive, string derivationAlgorithm, byte[] label, byte[] nonce, int keySize, int offset)
         {
-            SymmetricSecurityKey symmetricSecurityKey = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(tokenToDerive);
+            SymmetricSecurityKey symmetricSecurityKey = GetSecurityKey<SymmetricSecurityKey>(tokenToDerive);
             if (symmetricSecurityKey == null || !symmetricSecurityKey.IsSupportedAlgorithm(derivationAlgorithm))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.CannotFindMatchingCrypto, derivationAlgorithm)));
@@ -543,9 +539,8 @@ namespace CoreWCF.Security
                 key = keyIdentifierClause.CreateKey();
                 return true;
             }
-            if (keyIdentifierClause is EncryptedKeyIdentifierClause)
+            if (keyIdentifierClause is EncryptedKeyIdentifierClause keyClause)
             {
-                EncryptedKeyIdentifierClause keyClause = (EncryptedKeyIdentifierClause)keyIdentifierClause;
                 for (int i = 0; i < keyClause.EncryptingKeyIdentifier.Count; i++)
                 {
                     if (resolver.TryResolveSecurityKey(keyClause.EncryptingKeyIdentifier[i], out SecurityKey unwrappingSecurityKey))
@@ -620,7 +615,7 @@ namespace CoreWCF.Security
 
         internal static string GetKeyDerivationAlgorithm(SecureConversationVersion version)
         {
-            string derivationAlgorithm = null;
+            string derivationAlgorithm;
             if (version == SecureConversationVersion.WSSecureConversationFeb2005)
             {
                 derivationAlgorithm = SecurityAlgorithms.Psha1KeyDerivation;
@@ -649,8 +644,7 @@ namespace CoreWCF.Security
                 bool clone = false;
                 for (int i = 0; i < authorizationPolicies.Count; ++i)
                 {
-                    UnconditionalPolicy policy = authorizationPolicies[i] as UnconditionalPolicy;
-                    if (policy != null && policy.IsDisposable)
+                    if (authorizationPolicies[i] is UnconditionalPolicy policy && policy.IsDisposable)
                     {
                         clone = true;
                         break;
@@ -661,8 +655,7 @@ namespace CoreWCF.Security
                     List<IAuthorizationPolicy> ret = new List<IAuthorizationPolicy>(authorizationPolicies.Count);
                     for (int i = 0; i < authorizationPolicies.Count; ++i)
                     {
-                        UnconditionalPolicy policy = authorizationPolicies[i] as UnconditionalPolicy;
-                        if (policy != null)
+                        if (authorizationPolicies[i] is UnconditionalPolicy policy)
                         {
                             ret.Add(policy.Clone());
                         }
@@ -730,32 +723,32 @@ namespace CoreWCF.Security
 
         private static class NetworkCredentialHelper
         {
-            static internal bool IsNullOrEmpty(NetworkCredential credential)
+            internal static bool IsNullOrEmpty(NetworkCredential credential)
             {
                 return credential == null ||
                         (
-                            String.IsNullOrEmpty(UnsafeGetUsername(credential)) &&
-                            String.IsNullOrEmpty(UnsafeGetDomain(credential)) &&
-                            String.IsNullOrEmpty(UnsafeGetPassword(credential))
+                            string.IsNullOrEmpty(UnsafeGetUsername(credential)) &&
+                            string.IsNullOrEmpty(UnsafeGetDomain(credential)) &&
+                            string.IsNullOrEmpty(UnsafeGetPassword(credential))
                         );
             }
 
-            static internal bool IsDefault(NetworkCredential credential)
+            internal static bool IsDefault(NetworkCredential credential)
             {
                 return UnsafeGetDefaultNetworkCredentials().Equals(credential);
             }
 
-            static internal string UnsafeGetUsername(NetworkCredential credential)
+            internal static string UnsafeGetUsername(NetworkCredential credential)
             {
                 return credential.UserName;
             }
 
-            static internal string UnsafeGetPassword(NetworkCredential credential)
+            internal static string UnsafeGetPassword(NetworkCredential credential)
             {
                 return credential.Password;
             }
 
-            static internal string UnsafeGetDomain(NetworkCredential credential)
+            internal static string UnsafeGetDomain(NetworkCredential credential)
             {
                 return credential.Domain;
             }
@@ -807,7 +800,7 @@ namespace CoreWCF.Security
             }
             finally
             {
-                SecurityUtils.ResetAllCertificates(certs);
+                ResetAllCertificates(certs);
                 store.Close();
             }
         }
@@ -958,8 +951,7 @@ namespace CoreWCF.Security
         {
             if (obj != null)
             {
-                ICommunicationObject co = obj as ICommunicationObject;
-                if (co != null)
+                if (obj is ICommunicationObject co)
                 {
                     if (aborted)
                     {
@@ -977,9 +969,9 @@ namespace CoreWCF.Security
                         return co.CloseAsync(token);
                     }
                 }
-                else if (obj is IDisposable)
+                else if (obj is IDisposable disposable)
                 {
-                    ((IDisposable)obj).Dispose();
+                    disposable.Dispose();
                 }
             }
 
@@ -1026,12 +1018,16 @@ namespace CoreWCF.Security
                 primaryPrincipal = Claim.CreateSpnClaim(principalName);
             }
 
-            List<Claim> claims = new List<Claim>(2);
-            claims.Add(identityClaim);
-            claims.Add(primaryPrincipal);
+            List<Claim> claims = new List<Claim>(2)
+            {
+                identityClaim,
+                primaryPrincipal
+            };
 
-            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1);
-            policies.Add(new UnconditionalPolicy(SecurityUtils.CreateIdentity(principalName), new DefaultClaimSet(ClaimSet.Anonymous, claims)));
+            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1)
+            {
+                new UnconditionalPolicy(CreateIdentity(principalName), new DefaultClaimSet(ClaimSet.Anonymous, claims))
+            };
             return policies.AsReadOnly();
         }
 
@@ -1252,8 +1248,10 @@ namespace CoreWCF.Security
 
         internal static ReadOnlyCollection<IAuthorizationPolicy> CreateAuthorizationPolicies(ClaimSet claimSet, DateTime expirationTime)
         {
-            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1);
-            policies.Add(new UnconditionalPolicy(claimSet, expirationTime));
+            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1)
+            {
+                new UnconditionalPolicy(claimSet, expirationTime)
+            };
             return policies.AsReadOnly();
         }
 
@@ -1261,8 +1259,7 @@ namespace CoreWCF.Security
         {
             if (identity != null)
             {
-                WindowsIdentity wid = identity as WindowsIdentity;
-                if (wid != null)
+                if (identity is WindowsIdentity wid)
                 {
                     return CloneWindowsIdentityIfNecessary(wid);
                 }
@@ -1274,8 +1271,7 @@ namespace CoreWCF.Security
         {
             if (claimSet != null)
             {
-                WindowsClaimSet wic = claimSet as WindowsClaimSet;
-                if (wic != null)
+                if (claimSet is WindowsClaimSet wic)
                 {
                     return wic.Clone();
                 }
@@ -1301,7 +1297,7 @@ namespace CoreWCF.Security
                     List<ClaimSet> ret = new List<ClaimSet>(claimSets.Count);
                     for (int i = 0; i < claimSets.Count; ++i)
                     {
-                        ret.Add(SecurityUtils.CloneClaimSetIfNecessary(claimSets[i]));
+                        ret.Add(CloneClaimSetIfNecessary(claimSets[i]));
                     }
                     return ret.AsReadOnly();
                 }
@@ -1338,11 +1334,13 @@ namespace CoreWCF.Security
             {
                 _policy = (UnconditionalPolicy)authorizationPolicies[0];
                 Dictionary<string, object> properties = new Dictionary<string, object>();
-                if (_policy.PrimaryIdentity != null && _policy.PrimaryIdentity != SecurityUtils.AnonymousIdentity)
+                if (_policy.PrimaryIdentity != null && _policy.PrimaryIdentity != AnonymousIdentity)
                 {
-                    List<IIdentity> identities = new List<IIdentity>();
-                    identities.Add(_policy.PrimaryIdentity);
-                    properties.Add(SecurityUtils.Identities, identities);
+                    List<IIdentity> identities = new List<IIdentity>
+                    {
+                        _policy.PrimaryIdentity
+                    };
+                    properties.Add(Identities, identities);
                 }
                 // Might need to port ReadOnlyDictionary?
                 _properties = properties;
@@ -1427,11 +1425,11 @@ namespace CoreWCF.Security
 
             return authorizationContext;
         }
-        public static bool IsRequestSecurityContextIssuance(String actionString)
+        public static bool IsRequestSecurityContextIssuance(string actionString)
         {
-            if (String.CompareOrdinal(actionString, CoreWCF.XD.SecureConversationFeb2005Dictionary
+            if (string.CompareOrdinal(actionString, XD.SecureConversationFeb2005Dictionary
                 .RequestSecurityContextIssuance.Value) == 0 ||
-                String.CompareOrdinal(actionString, CoreWCF.XD.SecureConversationApr2004Dictionary
+                string.CompareOrdinal(actionString, XD.SecureConversationApr2004Dictionary
                 .RequestSecurityContextIssuance.Value) == 0)
             {
                 return true;

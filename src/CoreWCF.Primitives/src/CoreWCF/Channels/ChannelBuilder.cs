@@ -10,7 +10,6 @@ namespace CoreWCF.Channels
     internal class ChannelBuilder
     {
         private BindingContext _context;
-        private readonly Uri _listenUri;
         private readonly bool _isChannelDemuxerRequired = false;
 
         public ChannelBuilder(BindingContext context, bool addChannelDemuxerIfRequired)

@@ -31,23 +31,13 @@ namespace CoreWCF.Collections.Generic
         protected SynchronizedKeyedCollection(object syncRoot, IEqualityComparer<K> comparer)
             : base(syncRoot)
         {
-            if (comparer == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(comparer));
-            }
-
-            _comparer = comparer;
+            _comparer = comparer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(comparer));
             _threshold = int.MaxValue;
         }
 
         protected SynchronizedKeyedCollection(object syncRoot, IEqualityComparer<K> comparer, int dictionaryCreationThreshold)
             : base(syncRoot)
         {
-            if (comparer == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(comparer));
-            }
-
             if (dictionaryCreationThreshold < -1)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(dictionaryCreationThreshold), dictionaryCreationThreshold,
@@ -62,7 +52,7 @@ namespace CoreWCF.Collections.Generic
                 _threshold = dictionaryCreationThreshold;
             }
 
-            _comparer = comparer;
+            _comparer = comparer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(comparer));
         }
 
         public T this[K key]
@@ -188,7 +178,7 @@ namespace CoreWCF.Collections.Generic
 
         private bool ContainsItem(T item)
         {
-            K key = default(K);
+            K key;
             if ((_dictionary == null) || ((key = GetKeyForItem(item)) == null))
             {
                 return Items.Contains(item);

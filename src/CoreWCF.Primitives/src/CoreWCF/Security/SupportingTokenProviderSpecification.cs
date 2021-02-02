@@ -10,18 +10,10 @@ namespace CoreWCF.Security
     {
         public SupportingTokenProviderSpecification(SecurityTokenProvider tokenProvider, SecurityTokenAttachmentMode attachmentMode, SecurityTokenParameters tokenParameters)
         {
-            if (tokenProvider == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenProvider));
-            }
             SecurityTokenAttachmentModeHelper.Validate(attachmentMode);
-            if (tokenParameters == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenParameters));
-            }
-            TokenProvider = tokenProvider;
+            TokenProvider = tokenProvider ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenProvider));
             SecurityTokenAttachmentMode = attachmentMode;
-            TokenParameters = tokenParameters;
+            TokenParameters = tokenParameters ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenParameters));
         }
 
         public SecurityTokenProvider TokenProvider { get; }

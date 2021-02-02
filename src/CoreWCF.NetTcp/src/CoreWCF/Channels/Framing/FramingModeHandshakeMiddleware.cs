@@ -30,7 +30,7 @@ namespace CoreWCF.Channels.Framing
                 IConnectionReuseHandler reuseHandler = null;
                 do
                 {
-                    var inputPipe = connection.Input;
+                    System.IO.Pipelines.PipeReader inputPipe = connection.Input;
                     var modeDecoder = new ServerModeDecoder();
                     try
                     {

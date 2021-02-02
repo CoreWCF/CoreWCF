@@ -13,12 +13,7 @@ namespace CoreWCF.Channels
 
         protected DelegatingStream(Stream stream)
         {
-            if (stream == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
-            }
-
-            BaseStream = stream;
+            BaseStream = stream ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
         }
 
         protected Stream BaseStream { get; private set; }

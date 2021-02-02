@@ -65,8 +65,7 @@ namespace CoreWCF.Channels
 
         protected override bool IsMatch(BindingElement b)
         {
-            MessageEncodingBindingElement encoding = b as MessageEncodingBindingElement;
-            if (encoding == null)
+            if (!(b is MessageEncodingBindingElement encoding))
             {
                 return false;
             }

@@ -56,17 +56,17 @@ namespace Services
         #endregion
 
         #region TwoWayAsync Method
-        private delegate string TwoWayMethodAsync(string s);
+        private delegate string TwoWayMethod(string s);
 
         public async System.Threading.Tasks.Task<string> TwoWayAsync_MethodAsync(string s)
         {
-            TwoWayMethodAsync del = ProcessTwoWayAsync;
+            TwoWayMethod del = ProcessTwoWay;
             var workTask = System.Threading.Tasks.Task.Run(() => del.Invoke(s));
             return await workTask;
         }
 
         // Worker
-        public string ProcessTwoWayAsync(string s)
+        public static string ProcessTwoWay(string s)
         {
             // This is where the incoming message processing is handled.
             if (s.Length == 0)
@@ -91,7 +91,7 @@ namespace Services
             return fmc;
         }
 
-        public string MessageContractParams_Method(int id, string name, DateTime dateTime)
+        public static string MessageContractParams_Method(int id, string name, DateTime dateTime)
         {
             if (name.Length == 0)
             {
@@ -113,7 +113,7 @@ namespace Services
                 throw new FaultException<string>(faultToThrow);
             }
 
-            return CoreWCF.Channels.Message.CreateMessage(mv, CoreWCF.Channels.MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspecified",
+            return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspecified",
                 new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", ""), "");
         }
 
@@ -123,11 +123,11 @@ namespace Services
             string faultToThrow = "Test fault thrown from a service";
             if (msgIn != null)
             {
-                return CoreWCF.Channels.Message.CreateMessage(mv, CoreWCF.Channels.MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), faultToThrow,
+                return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), faultToThrow,
                 new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", ""), "");
             }
 
-            return CoreWCF.Channels.Message.CreateMessage(mv, CoreWCF.Channels.MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspeficied",
+            return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspeficied",
                 new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", ""), "");
         }
         #endregion
@@ -248,7 +248,7 @@ namespace Services
                 ThrowTestFault(GetTestStrFromMsg(msgIn));
             }
 
-            return CoreWCF.Channels.Message.CreateMessage(CoreWCF.Channels.MessageVersion.Soap11, CoreWCF.Channels.MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspecified",
+            return Message.CreateMessage(MessageVersion.Soap11, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspecified",
                 new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", ""), "http://www.w3.org/2005/08/addressing/fault");
         }
 
@@ -262,17 +262,19 @@ namespace Services
                 switch (faultString)
                 {
                     case VarSomeFault:
-                        return CoreWCF.Channels.Message.CreateMessage(mv, CoreWCF.Channels.MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), (object)new ServiceContract.SomeFault(123456789, "SomeFault"),
+                        return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), (object)new ServiceContract.SomeFault(123456789, "SomeFault"),
         new System.Runtime.Serialization.DataContractSerializer(typeof(ServiceContract.SomeFault)), "", ""), "http://tempuri.org/ITestDataContractFault/Untyped_MethodReturnsSomeFaultFault");
                     case VarOuterFault:
                         ServiceContract.SomeFault sf = new ServiceContract.SomeFault(123456789, "SomeFault as innerfault");
-                        ServiceContract.OuterFault of = new ServiceContract.OuterFault();
-                        of.InnerFault = sf;
-                        return CoreWCF.Channels.Message.CreateMessage(mv, CoreWCF.Channels.MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), (object)of,
+                        ServiceContract.OuterFault of = new ServiceContract.OuterFault
+                        {
+                            InnerFault = sf
+                        };
+                        return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), (object)of,
                 new System.Runtime.Serialization.DataContractSerializer(typeof(ServiceContract.OuterFault)), "", ""), "http://tempuri.org/ITestDataContractFault/Untyped_MethodReturnsOuterFaultFault");
                     case VarComplexFault:
                         ServiceContract.ComplexFault cf = GetComplexFault();
-                        return CoreWCF.Channels.Message.CreateMessage(mv, CoreWCF.Channels.MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), (object)cf,
+                        return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), (object)cf,
         new System.Runtime.Serialization.DataContractSerializer(typeof(ServiceContract.ComplexFault)), "", ""), "http://tempuri.org/ITestDataContractFault/Untyped_MethodReturnsComplexFaultFault");
 
                     default:
@@ -280,7 +282,7 @@ namespace Services
                 }
             }
 
-            return CoreWCF.Channels.Message.CreateMessage(mv, CoreWCF.Channels.MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspecified",
+            return Message.CreateMessage(mv, MessageFault.CreateFault(new FaultCode("Sender"), new FaultReason("Unspecified ServiceModel Fault"), "unspecified",
         new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", ""), "http://www.w3.org/2005/08/addressing/fault");
         }
         #endregion
@@ -344,14 +346,16 @@ namespace Services
                         new ServiceContract.SomeFault(234, "Second somefault in complexfault")
                     };
 
-            ServiceContract.ComplexFault cf = new ServiceContract.ComplexFault();
-            cf.ErrorInt = errorInt;
-            cf.ErrorString = errorString;
-            cf.ErrorByteArray = errorByteArray;
-            cf.SomeFault = errorSomeFault;
-            cf.ErrorIntArray = errorIntArray;
-            cf.ErrorStringArray = errorStringArray;
-            cf.SomeFaultArray = errorSomeFaultArray;
+            ServiceContract.ComplexFault cf = new ServiceContract.ComplexFault
+            {
+                ErrorInt = errorInt,
+                ErrorString = errorString,
+                ErrorByteArray = errorByteArray,
+                SomeFault = errorSomeFault,
+                ErrorIntArray = errorIntArray,
+                ErrorStringArray = errorStringArray,
+                SomeFaultArray = errorSomeFaultArray
+            };
 
             return cf;
         }

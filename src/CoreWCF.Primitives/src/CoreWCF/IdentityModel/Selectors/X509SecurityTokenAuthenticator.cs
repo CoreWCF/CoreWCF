@@ -39,12 +39,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         internal X509SecurityTokenAuthenticator(X509CertificateValidator validator, bool mapToWindows, bool includeWindowsGroups, bool cloneHandle)
         {
-            if (validator == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
-            }
-
-            _validator = validator;
+            _validator = validator ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
             MapCertificateToWindowsAccount = mapToWindows;
             _includeWindowsGroups = includeWindowsGroups;
             _cloneHandle = cloneHandle;
@@ -69,9 +64,9 @@ namespace CoreWCF.IdentityModel.Selectors
             }
 
             WindowsClaimSet windowsClaimSet;
-            if (token is X509WindowsSecurityToken)
+            if (token is X509WindowsSecurityToken x509token)
             {
-                windowsClaimSet = new WindowsClaimSet(((X509WindowsSecurityToken)token).WindowsIdentity, SecurityUtils.AuthTypeCertMap, _includeWindowsGroups, _cloneHandle);
+                windowsClaimSet = new WindowsClaimSet(x509token.WindowsIdentity, SecurityUtils.AuthTypeCertMap, _includeWindowsGroups, _cloneHandle);
             }
             else
             {
@@ -85,12 +80,16 @@ namespace CoreWCF.IdentityModel.Selectors
 
                 //windowsClaimSet = new WindowsClaimSet(windowsIdentity, SecurityUtils.AuthTypeCertMap, this.includeWindowsGroups, false);
             }
-            List<ClaimSet> claimSets = new List<ClaimSet>(2);
-            claimSets.Add(windowsClaimSet);
-            claimSets.Add(x509ClaimSet);
+            List<ClaimSet> claimSets = new List<ClaimSet>(2)
+            {
+                windowsClaimSet,
+                x509ClaimSet
+            };
 
-            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1);
-            policies.Add(new UnconditionalPolicy(claimSets.AsReadOnly(), x509Token.ValidTo));
+            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1)
+            {
+                new UnconditionalPolicy(claimSets.AsReadOnly(), x509Token.ValidTo)
+            };
             return policies.AsReadOnly();
         }
     }

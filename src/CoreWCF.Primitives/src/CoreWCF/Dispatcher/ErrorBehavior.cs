@@ -33,8 +33,7 @@ namespace CoreWCF.Dispatcher
         private void InitializeFault(MessageRpc rpc)
         {
             Exception error = rpc.Error;
-            FaultException fault = error as FaultException;
-            if (fault != null)
+            if (error is FaultException fault)
             {
                 MessageFault messageFault = rpc.Operation.FaultFormatter.Serialize(fault, out string action);
                 if (action == null)
@@ -97,8 +96,7 @@ namespace CoreWCF.Dispatcher
             //if this is an InternalServiceFault coming from another service dispatcher we should treat it as unhandled so that the channels are cleaned up
             else if (error != null)
             {
-                FaultException e = error as FaultException;
-                if (e != null && e.Fault != null && e.Fault.Code != null && e.Fault.Code.SubCode != null &&
+                if (error is FaultException e && e.Fault != null && e.Fault.Code != null && e.Fault.Code.SubCode != null &&
                     string.Compare(e.Fault.Code.SubCode.Namespace, FaultCodeConstants.Namespaces.NetDispatch, StringComparison.Ordinal) == 0 &&
                     string.Compare(e.Fault.Code.SubCode.Name, FaultCodeConstants.Codes.InternalServiceFault, StringComparison.Ordinal) == 0)
                 {
@@ -270,7 +268,7 @@ namespace CoreWCF.Dispatcher
             }
             catch (Exception e2)
             {
-                if (!object.ReferenceEquals(e, e2))
+                if (!ReferenceEquals(e, e2))
                 {
                     throw;
                 }

@@ -115,10 +115,14 @@ namespace System.Xml.XmlDiff
 
         private void InitFiles()
         {
-            _SourceDoc = new XmlDiffDocument();
-            _SourceDoc.Option = Option;
-            _TargetDoc = new XmlDiffDocument();
-            _TargetDoc.Option = Option;
+            _SourceDoc = new XmlDiffDocument
+            {
+                Option = Option
+            };
+            _TargetDoc = new XmlDiffDocument
+            {
+                Option = Option
+            };
             _Output = new StringBuilder(string.Empty);
         }
 

@@ -10,7 +10,6 @@ namespace CoreWCF.IdentityModel.Tokens
     internal class USerNameSecurityToken : SecurityToken
     {
         private readonly string _id;
-        private readonly string _userName;
         private readonly DateTime _effectiveTime;
 
         public USerNameSecurityToken(string userName, string password)
@@ -30,7 +29,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.UserNameCannotBeEmpty);
             }
 
-            _userName = userName;
+            UserName = userName;
             Password = password;
             _id = id;
             _effectiveTime = DateTime.UtcNow;
@@ -57,10 +56,7 @@ namespace CoreWCF.IdentityModel.Tokens
             get { return SecurityUtils.MaxUtcDateTime; }
         }
 
-        public string UserName
-        {
-            get { return _userName; }
-        }
+        public string UserName { get; }
 
         public string Password { get; }
     }

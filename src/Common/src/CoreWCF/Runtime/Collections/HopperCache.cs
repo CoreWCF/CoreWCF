@@ -73,7 +73,7 @@ namespace CoreWCF.Runtime.Collections
             Fx.Assert(value != null, "HopperCache value cannot be null.");
 
             // Special-case DBNull since it can never be collected.
-            if (_weak && !object.ReferenceEquals(value, DBNull.Value))
+            if (_weak && !ReferenceEquals(value, DBNull.Value))
             {
                 value = new WeakReference(value);
             }
@@ -217,23 +217,15 @@ namespace CoreWCF.Runtime.Collections
 
         private class LastHolder
         {
-            private readonly object _value;
-
             internal LastHolder(object key, object value)
             {
                 Key = key;
-                _value = value;
+                Value = value;
             }
 
             internal object Key { get; private set; }
 
-            internal object Value
-            {
-                get
-                {
-                    return _value;
-                }
-            }
+            internal object Value { get; private set; }
         }
     }
 }

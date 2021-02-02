@@ -252,14 +252,14 @@ namespace CoreWCF.IdentityModel.Selectors
 
             public PeerOrChainTrustValidator()
             {
-                _chain = X509CertificateValidator.ChainTrust;
-                _peer = (PeerTrustValidator)X509CertificateValidator.PeerTrust;
+                _chain = ChainTrust;
+                _peer = (PeerTrustValidator)PeerTrust;
             }
 
             public PeerOrChainTrustValidator(bool useMachineContext, X509ChainPolicy chainPolicy)
             {
-                _chain = X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
-                _peer = (PeerTrustValidator)X509CertificateValidator.PeerTrust;
+                _chain = CreateChainTrustValidator(useMachineContext, chainPolicy);
+                _peer = (PeerTrustValidator)PeerTrust;
             }
 
             public override void Validate(X509Certificate2 certificate)

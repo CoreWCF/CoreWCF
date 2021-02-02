@@ -17,9 +17,7 @@ namespace CoreWCF.Channels
 {
     internal class ServerFramingDuplexSessionChannel : FramingDuplexSessionChannel
     {
-        private readonly StreamUpgradeAcceptor _upgradeAcceptor;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IStreamUpgradeChannelBindingProvider _channelBindingProvider;
         private CancellationTokenRegistration _applicationStoppingRegistration;
 
         public ServerFramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings,
@@ -27,7 +25,6 @@ namespace CoreWCF.Channels
             : base(connection, settings, exposeConnectionProperty)
         {
             Connection = connection;
-            _upgradeAcceptor = connection.StreamUpgradeAcceptor;
             _serviceProvider = serviceProvider;
             SetMessageSource(new ServerSessionConnectionMessageSource(connection));
         }
@@ -60,11 +57,6 @@ namespace CoreWCF.Channels
 
         public override T GetProperty<T>()
         {
-            if (typeof(T) == typeof(IChannelBindingProvider))
-            {
-                return (T)(object)_channelBindingProvider;
-            }
-
             T service = _serviceProvider.GetService<T>();
             if (service != null)
             {
@@ -83,7 +75,7 @@ namespace CoreWCF.Channels
         {
             base.OnOpened();
 
-            var appLifetime = _serviceProvider.GetRequiredService<IApplicationLifetime>();
+            IApplicationLifetime appLifetime = _serviceProvider.GetRequiredService<IApplicationLifetime>();
             _applicationStoppingRegistration = appLifetime.ApplicationStopping.Register(() =>
             {
                 _ = CloseAsync();
@@ -112,7 +104,7 @@ namespace CoreWCF.Channels
                 ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
                 for (; ; )
                 {
-                    var readResult = await _connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await _connection.Input.ReadAsync();
                     if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                     {
                         if (!readResult.IsCompleted)
@@ -175,7 +167,7 @@ namespace CoreWCF.Channels
                     {
                         if (!_connection.EnvelopeBuffer.IsEmpty)
                         {
-                            var remainingEnvelopeBuffer = _connection.EnvelopeBuffer.Slice(_connection.EnvelopeOffset, _connection.EnvelopeSize - _connection.EnvelopeOffset);
+                            Memory<byte> remainingEnvelopeBuffer = _connection.EnvelopeBuffer.Slice(_connection.EnvelopeOffset, _connection.EnvelopeSize - _connection.EnvelopeOffset);
                             CopyBuffer(buffer, remainingEnvelopeBuffer, bytesRead);
                             _connection.EnvelopeOffset += bytesRead;
                         }
@@ -204,8 +196,7 @@ namespace CoreWCF.Channels
                         case ServerSessionDecoder.State.EnvelopeEnd:
                             if (!_connection.EnvelopeBuffer.IsEmpty)
                             {
-                                Message message = null;
-
+                                Message message;
                                 try
                                 {
                                     message = _connection.MessageEncoder.ReadMessage(
@@ -243,17 +234,17 @@ namespace CoreWCF.Channels
                     throw new ArgumentOutOfRangeException(nameof(bytesToCopy));
                 }
 
-                var destSpan = dest.Span;
+                Span<byte> destSpan = dest.Span;
                 if (src.IsSingleSegment)
                 {
-                    var srcSpan = src.First.Span;
+                    ReadOnlySpan<byte> srcSpan = src.First.Span;
                     srcSpan.CopyTo(destSpan);
                 }
                 else
                 {
-                    foreach (var segment in src)
+                    foreach (ReadOnlyMemory<byte> segment in src)
                     {
-                        var srcSpan = segment.Span;
+                        ReadOnlySpan<byte> srcSpan = segment.Span;
                         if (srcSpan.Length > bytesToCopy)
                         {
                             srcSpan = srcSpan.Slice(0, bytesToCopy);
@@ -376,8 +367,7 @@ namespace CoreWCF.Channels
             public static FramingConnectionDuplexSession CreateSession(FramingDuplexSessionChannel channel,
                 StreamUpgradeAcceptor upgradeAcceptor)
             {
-                StreamSecurityUpgradeAcceptor security = upgradeAcceptor as StreamSecurityUpgradeAcceptor;
-                if (security == null)
+                if (!(upgradeAcceptor is StreamSecurityUpgradeAcceptor security))
                 {
                     return new FramingConnectionDuplexSession(channel);
                 }

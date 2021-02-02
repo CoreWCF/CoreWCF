@@ -16,7 +16,6 @@ namespace CoreWCF.Dispatcher
     // This class has been kept to enable using existing behaviors.
     public class ChannelDispatcher : ChannelDispatcherBase
     {
-        private readonly ThreadSafeMessageFilterTable<EndpointAddress> _addressTable;
         private EndpointDispatcherCollection _endpointDispatchers;
         private ServiceHostBase _host;
 
@@ -30,14 +29,16 @@ namespace CoreWCF.Dispatcher
         private bool _includeExceptionDetailInFaults;
 
         //ServiceThrottle serviceThrottle;
-        private readonly bool _session;
+        // TODO: _session is needed when implementing clean shutdown codepath. See issue #282
+        // private readonly bool _session;
         private SharedRuntimeState _shared;
         private readonly IDefaultCommunicationTimeouts _timeouts;
 
         //IsolationLevel transactionIsolationLevel = ServiceBehaviorAttribute.DefaultIsolationLevel;
         //bool transactionIsolationLevelSet;
-        private TimeSpan _transactionTimeout;
-        private readonly bool _performDefaultCloseInput;
+        //private TimeSpan _transactionTimeout;
+        // TODO: Implement shutdown service cleanly, see Issue #282
+        //private readonly bool _performDefaultCloseInput;
 
         //EventTraceActivity eventTraceActivity;
         private ErrorBehavior _errorBehavior;
@@ -307,11 +308,6 @@ namespace CoreWCF.Dispatcher
 
                 EndpointDispatcherTable.AddEndpoint(endpoint);
 
-                if ((_addressTable != null) && (endpoint.OriginalAddress != null))
-                {
-                    _addressTable.Add(endpoint.AddressFilter, endpoint.OriginalAddress, endpoint.FilterPriority);
-                }
-
                 //if (DiagnosticUtility.ShouldTraceInformation)
                 //{
                 //    this.TraceEndpointLifetime(endpoint, TraceCode.EndpointListenerOpen, SR.Format(SR.TraceCodeEndpointListenerOpen));
@@ -347,11 +343,6 @@ namespace CoreWCF.Dispatcher
 
                 if (State == CommunicationState.Opened)
                 {
-                    if (_addressTable != null)
-                    {
-                        _addressTable.Add(endpoint.AddressFilter, endpoint.EndpointAddress, endpoint.FilterPriority);
-                    }
-
                     EndpointDispatcherTable.AddEndpoint(endpoint);
                 }
             }
@@ -364,11 +355,6 @@ namespace CoreWCF.Dispatcher
                 if (State == CommunicationState.Opened)
                 {
                     EndpointDispatcherTable.RemoveEndpoint(endpoint);
-
-                    if (_addressTable != null)
-                    {
-                        _addressTable.Remove(endpoint.AddressFilter);
-                    }
                 }
 
                 endpoint.Detach(this);

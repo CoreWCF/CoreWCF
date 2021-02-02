@@ -27,18 +27,18 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void FaultOnDiffContractAndOps()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestFaultOpContract>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/FaultOnDiffContractsAndOpsService.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.ITestFaultOpContract channel = factory.CreateChannel();
 
                 var factory2 = new System.ServiceModel.ChannelFactory<ClientContract.ITestFaultOpContractTypedClient>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/FaultOnDiffContractsAndOpsService.svc")));
-                var channel2 = factory2.CreateChannel();
+                ClientContract.ITestFaultOpContractTypedClient channel2 = factory2.CreateChannel();
 
                 //test variations count
                 int count = 9;
@@ -114,9 +114,11 @@ namespace CoreWCF.Http.Tests
 
                 //Variation_MessageContractMethod
                 // Send the two way message
-                var fmc = new ClientContract.FaultMsgContract();
-                fmc.ID = 123;
-                fmc.Name = "";
+                var fmc = new ClientContract.FaultMsgContract
+                {
+                    ID = 123,
+                    Name = ""
+                };
                 try
                 {
                     ClientContract.FaultMsgContract fmcResult = channel.MessageContract_Method(fmc);
@@ -189,18 +191,18 @@ namespace CoreWCF.Http.Tests
         [InlineData("complexfault")]
         public void DatacontractFaults(string f)
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestDataContractFault>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/DatacontractFaults.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.ITestDataContractFault channel = factory.CreateChannel();
 
                 var factory2 = new System.ServiceModel.ChannelFactory<ClientContract.ITestDataContractFaultTypedClient>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/DatacontractFaults.svc")));
-                var channel2 = factory2.CreateChannel();
+                ClientContract.ITestDataContractFaultTypedClient channel2 = factory2.CreateChannel();
 
                 //test variations
                 int count = 9;
@@ -258,9 +260,11 @@ namespace CoreWCF.Http.Tests
 
                 try
                 {
-                    var fmc = new ClientContract.FaultMsgContract();
-                    fmc.ID = 123;
-                    fmc.Name = f;
+                    var fmc = new ClientContract.FaultMsgContract
+                    {
+                        ID = 123,
+                        Name = f
+                    };
                     ClientContract.FaultMsgContract fmcResult = channel.MessageContract_Method(fmc);
                     Assert.False(true, $"Error, Client received: {fmcResult.Name}");
                 }

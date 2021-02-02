@@ -22,12 +22,12 @@ namespace CoreWCF.Runtime
         private TimeSpan _originalTimeout;
 
         internal BackoffTimeoutHelper(TimeSpan timeout)
-            : this(timeout, BackoffTimeoutHelper.s_defaultMaxWaitTime)
+            : this(timeout, s_defaultMaxWaitTime)
         {
         }
 
         internal BackoffTimeoutHelper(TimeSpan timeout, TimeSpan maxWaitTime)
-            : this(timeout, maxWaitTime, BackoffTimeoutHelper.s_defaultInitialWaitTime)
+            : this(timeout, maxWaitTime, s_defaultInitialWaitTime)
         {
         }
 
@@ -82,7 +82,7 @@ namespace CoreWCF.Runtime
                 }
                 _backoffCallback = callback;
                 _backoffState = state;
-                _backoffTimer = new IOThreadTimer(callback, state, false, BackoffTimeoutHelper.s_maxSkewMilliseconds);
+                _backoffTimer = new IOThreadTimer(callback, state, false, s_maxSkewMilliseconds);
             }
 
             TimeSpan backoffTime = WaitTimeWithDrift();
@@ -100,9 +100,9 @@ namespace CoreWCF.Runtime
         private TimeSpan WaitTimeWithDrift()
         {
             return Ticks.ToTimeSpan(Math.Max(
-                Ticks.FromTimeSpan(BackoffTimeoutHelper.s_defaultInitialWaitTime),
+                Ticks.FromTimeSpan(s_defaultInitialWaitTime),
                 Ticks.Add(Ticks.FromTimeSpan(_waitTime),
-                    (long)(uint)_random.Next() % (2 * BackoffTimeoutHelper.s_maxDriftTicks + 1) - BackoffTimeoutHelper.s_maxDriftTicks)));
+                    (long)(uint)_random.Next() % (2 * s_maxDriftTicks + 1) - s_maxDriftTicks)));
         }
 
         private void Backoff()

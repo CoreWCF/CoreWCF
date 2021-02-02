@@ -9,15 +9,17 @@ using CoreWCF.IdentityModel.Tokens;
 namespace CoreWCF.Security.Tokens
 {
     /// <summary>
-    /// The ProviderBackedSecurityToken was added for the ChannelBindingToken work for Win7.  
-    /// It is used to delay the resolution of a token until it is needed.  
+    /// The ProviderBackedSecurityToken was added for the ChannelBindingToken work for Win7.
+    /// It is used to delay the resolution of a token until it is needed.
     /// For the CBT, this delay is necessary as the CBT is not available until SecurityAppliedMessage.OnWriteMessage is called.
-    /// The CBT binds a token to the 
+    /// The CBT binds a token to the
     /// </summary>
     internal class ProviderBackedSecurityToken : SecurityToken
     {
         // Double-checked locking pattern requires volatile for read/write synchronization
+#pragma warning disable CS0649 // The field is never assigned to
         private readonly SecurityToken _securityToken;
+#pragma warning restore CS0649 // The field is never assigned to
         private TimeSpan _timeout;
         private ChannelBinding _channelBinding;
         private readonly object _lock;
@@ -29,13 +31,7 @@ namespace CoreWCF.Security.Tokens
         public ProviderBackedSecurityToken(SecurityTokenProvider tokenProvider, TimeSpan timeout)
         {
             _lock = new object();
-
-            if (tokenProvider == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(tokenProvider)));
-            }
-
-            TokenProvider = tokenProvider;
+            TokenProvider = tokenProvider ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(tokenProvider)));
             _timeout = timeout;
         }
 

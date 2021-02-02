@@ -19,7 +19,6 @@ namespace CoreWCF.Channels
         private bool _isInputSessionClosed;
         private bool _isOutputSessionClosed;
         private ChannelBinding _channelBindingToken;
-        private readonly IServiceChannelDispatcher _channelDispatcher;
 
         protected TransportDuplexSessionChannel(
           ITransportFactorySettings settings,
@@ -72,13 +71,13 @@ namespace CoreWCF.Channels
 
             while (true)
             {
-                var result = await TryReceiveAsync(CancellationToken.None);
-                if (result.success)
+                (Message message, bool success) = await TryReceiveAsync(CancellationToken.None);
+                if (success)
                 {
-                    await ChannelDispatcher.DispatchAsync(result.message);
+                    await ChannelDispatcher.DispatchAsync(message);
                 }
 
-                if (result.message == null) // NULL message means client sent FIN byte
+                if (message == null) // NULL message means client sent FIN byte
                 {
                     return;
                 }

@@ -51,8 +51,7 @@ namespace CoreWCF.Security.Tokens
                 return true;
             }
 
-            var sidIdentity = obj as WindowsSidIdentity;
-            if (sidIdentity == null)
+            if (!(obj is WindowsSidIdentity sidIdentity))
             {
                 return false;
             }

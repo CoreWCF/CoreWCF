@@ -15,14 +15,13 @@ namespace CoreWCF.Security.Tokens
     {
         internal const bool defaultRequireCancellation = true;
         internal const bool defaultCanRenewSession = true;
-        private bool _canRenewSession = defaultCanRenewSession;
         private BindingContext _issuerBindingContext;
 
         protected SecureConversationSecurityTokenParameters(SecureConversationSecurityTokenParameters other)
             : base(other)
         {
             RequireCancellation = other.RequireCancellation;
-            _canRenewSession = other._canRenewSession;
+            CanRenewSession = other.CanRenewSession;
             if (other.BootstrapSecurityBindingElement != null)
             {
                 BootstrapSecurityBindingElement = (SecurityBindingElement)other.BootstrapSecurityBindingElement.Clone();
@@ -73,7 +72,7 @@ namespace CoreWCF.Security.Tokens
             : base()
         {
             BootstrapSecurityBindingElement = bootstrapSecurityBindingElement;
-            _canRenewSession = canRenewSession;
+            CanRenewSession = canRenewSession;
             if (bootstrapProtectionRequirements != null)
             {
                 BootstrapProtectionRequirements = new ChannelProtectionRequirements(bootstrapProtectionRequirements);
@@ -89,7 +88,7 @@ namespace CoreWCF.Security.Tokens
             RequireCancellation = requireCancellation;
         }
 
-        internal protected override bool HasAsymmetricKey => false;
+        protected internal override bool HasAsymmetricKey => false;
 
         public SecurityBindingElement BootstrapSecurityBindingElement { get; set; }
 
@@ -115,34 +114,24 @@ namespace CoreWCF.Security.Tokens
 
         public bool RequireCancellation { get; set; }
 
-        public bool CanRenewSession
-        {
-            get
-            {
-                return _canRenewSession;
-            }
-            set
-            {
-                _canRenewSession = value;
-            }
-        }
+        public bool CanRenewSession { get; set; } = defaultCanRenewSession;
 
-        internal protected override bool SupportsClientAuthentication => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsClientAuthentication;
+        protected internal override bool SupportsClientAuthentication => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsClientAuthentication;
 
-        internal protected override bool SupportsServerAuthentication => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsServerAuthentication;
+        protected internal override bool SupportsServerAuthentication => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsServerAuthentication;
 
-        internal protected override bool SupportsClientWindowsIdentity => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsClientWindowsIdentity;
+        protected internal override bool SupportsClientWindowsIdentity => BootstrapSecurityCapabilities == null ? false : BootstrapSecurityCapabilities.SupportsClientWindowsIdentity;
 
         protected override SecurityTokenParameters CloneCore()
         {
             return new SecureConversationSecurityTokenParameters(this);
         }
 
-        internal protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        protected internal override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token is GenericXmlSecurityToken)
             {
-                return base.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+                return CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
             }
             else
             {
@@ -166,14 +155,14 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", RequireCancellation.ToString()));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", RequireCancellation.ToString()));
             if (BootstrapSecurityBindingElement == null)
             {
-                sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "BootstrapSecurityBindingElement: null"));
+                sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "BootstrapSecurityBindingElement: null"));
             }
             else
             {
-                sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "BootstrapSecurityBindingElement:"));
+                sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "BootstrapSecurityBindingElement:"));
                 sb.AppendLine("  " + BootstrapSecurityBindingElement.ToString().Trim().Replace("\n", "\n  "));
             }
 

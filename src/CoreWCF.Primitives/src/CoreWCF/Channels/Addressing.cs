@@ -723,7 +723,7 @@ namespace CoreWCF.Channels
 
         public static MessageIDHeader Create(UniqueId messageId, AddressingVersion addressingVersion)
         {
-            if (object.ReferenceEquals(messageId, null))
+            if (ReferenceEquals(messageId, null))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
             }
@@ -823,7 +823,7 @@ namespace CoreWCF.Channels
 
         public static RelatesToHeader Create(UniqueId messageId, AddressingVersion addressingVersion)
         {
-            if (object.ReferenceEquals(messageId, null))
+            if (ReferenceEquals(messageId, null))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
             }
@@ -838,7 +838,7 @@ namespace CoreWCF.Channels
 
         public static RelatesToHeader Create(UniqueId messageId, AddressingVersion addressingVersion, Uri relationshipType)
         {
-            if (object.ReferenceEquals(messageId, null))
+            if (ReferenceEquals(messageId, null))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
             }

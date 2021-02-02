@@ -8,7 +8,6 @@ namespace CoreWCF
 {
     public class FaultCode
     {
-        private readonly string _ns;
         private readonly EnvelopeVersion _version;
 
         public FaultCode(string name)
@@ -40,11 +39,11 @@ namespace CoreWCF
 
             if (!string.IsNullOrEmpty(ns))
             {
-                NamingHelper.CheckUriParameter(ns, "ns");
+                NamingHelper.CheckUriParameter(ns, nameof(ns));
             }
 
             Name = name;
-            _ns = ns;
+            Namespace = ns;
             SubCode = subCode;
 
             if (ns == Message12Strings.Namespace)
@@ -69,7 +68,7 @@ namespace CoreWCF
         {
             get
             {
-                return _ns.Length == 0 || _version != null;
+                return Namespace.Length == 0 || _version != null;
             }
         }
 
@@ -99,13 +98,7 @@ namespace CoreWCF
             }
         }
 
-        public string Namespace
-        {
-            get
-            {
-                return _ns;
-            }
-        }
+        public string Namespace { get; }
 
         public string Name { get; }
 

@@ -13,11 +13,11 @@ namespace CoreWCF.Security.Tokens
         private const string secureConversation = Namespace + "/SecureConversation";
         private const string sspiCredential = Namespace + "/SspiCredential";
 
-        static public string Spnego { get { return spnego; } }
-        static public string MutualSslnego { get { return mutualSslnego; } }
-        static public string AnonymousSslnego { get { return anonymousSslnego; } }
-        static public string SecurityContext { get { return securityContext; } }
-        static public string SecureConversation { get { return secureConversation; } }
-        static public string SspiCredential { get { return sspiCredential; } }
+        public static string Spnego { get { return spnego; } }
+        public static string MutualSslnego { get { return mutualSslnego; } }
+        public static string AnonymousSslnego { get { return anonymousSslnego; } }
+        public static string SecurityContext { get { return securityContext; } }
+        public static string SecureConversation { get { return secureConversation; } }
+        public static string SspiCredential { get { return sspiCredential; } }
     }
 }

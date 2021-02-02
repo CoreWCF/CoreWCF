@@ -31,7 +31,7 @@ namespace CoreWCF.Security
         {
             if (id == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(id)));
             }
             _referredIds.Add(id);
         }
@@ -40,7 +40,7 @@ namespace CoreWCF.Security
         {
             if (id == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(id)));
             }
             return _referredIds.Contains(id);
         }
@@ -74,7 +74,7 @@ namespace CoreWCF.Security
         {
             if (id == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(id)));
             }
             return _referredIds.Remove(id);
         }
@@ -114,7 +114,7 @@ namespace CoreWCF.Security
             public static void WriteTo(XmlDictionaryWriter writer, string referredId)
             {
                 writer.WriteStartElement(XD.XmlEncryptionDictionary.Prefix.Value, ElementName, NamespaceUri);
-                writer.WriteStartAttribute(ReferenceList.UriAttribute, null);
+                writer.WriteStartAttribute(UriAttribute, null);
                 writer.WriteString("#");
                 writer.WriteString(referredId);
                 writer.WriteEndAttribute();

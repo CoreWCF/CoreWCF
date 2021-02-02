@@ -28,7 +28,7 @@ namespace CoreWCF.Channels
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("name", SR.SFXBindingNameCannotBeNullOrEmpty);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(name), SR.SFXBindingNameCannotBeNullOrEmpty);
             }
             if (ns == null)
             {
@@ -37,7 +37,7 @@ namespace CoreWCF.Channels
 
             if (ns.Length > 0)
             {
-                NamingHelper.CheckUriParameter(ns, "ns");
+                NamingHelper.CheckUriParameter(ns, nameof(ns));
             }
 
             _name = name;
@@ -77,7 +77,7 @@ namespace CoreWCF.Channels
             {
                 if (string.IsNullOrEmpty(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("value", SR.SFXBindingNameCannotBeNullOrEmpty);
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(value), SR.SFXBindingNameCannotBeNullOrEmpty);
                 }
 
                 _name = value;
@@ -200,8 +200,7 @@ where TChannel : class, IChannel
             where TChannel : class, IChannel
         {
             EnsureInvariants();
-            var binding = this as CustomBinding;
-            if (binding == null)
+            if (!(this is CustomBinding binding))
             {
                 binding = new CustomBinding(this);
             }

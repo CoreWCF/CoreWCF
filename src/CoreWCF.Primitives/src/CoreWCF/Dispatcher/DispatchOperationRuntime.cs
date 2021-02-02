@@ -14,12 +14,10 @@ namespace CoreWCF.Dispatcher
     internal class DispatchOperationRuntime
     {
         private readonly bool _isSessionOpenNotificationEnabled;
-        private readonly bool _releaseInstanceBeforeCall;
 
         //readonly bool transactionAutoComplete;
         //readonly bool transactionRequired;
         private readonly bool _deserializeRequest;
-        private readonly bool _disposeParameters;
 
         //readonly bool isInsideTransactedReceiveScope;
 
@@ -29,17 +27,14 @@ namespace CoreWCF.Dispatcher
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operation));
             }
-            if (parent == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            }
+
             if (operation.Invoker == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.RuntimeRequiresInvoker0));
             }
 
-            _disposeParameters = ((operation.AutoDisposeParameters) && (!operation.HasNoDisposableParameters));
-            Parent = parent;
+            DisposeParameters = ((operation.AutoDisposeParameters) && (!operation.HasNoDisposableParameters));
+            Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
             CallContextInitializers = EmptyArray<ICallContextInitializer>.ToArray(operation.CallContextInitializers);
             ParameterInspectors = EmptyArray<IParameterInspector>.ToArray(operation.ParameterInspectors);
             FaultFormatter = operation.FaultFormatter;
@@ -53,7 +48,7 @@ namespace CoreWCF.Dispatcher
             Action = operation.Action;
             Name = operation.Name;
             ReleaseInstanceAfterCall = operation.ReleaseInstanceAfterCall;
-            _releaseInstanceBeforeCall = operation.ReleaseInstanceBeforeCall;
+            ReleaseInstanceBeforeCall = operation.ReleaseInstanceBeforeCall;
             ReplyAction = operation.ReplyAction;
             IsOneWay = operation.IsOneWay;
             ReceiveContextAcknowledgementMode = operation.ReceiveContextAcknowledgementMode;
@@ -65,8 +60,7 @@ namespace CoreWCF.Dispatcher
 
             if ((operation.Parent.InstanceProvider == null) && (operation.Parent.Type != null))
             {
-                SyncMethodInvoker sync = Invoker as SyncMethodInvoker;
-                if (sync != null)
+                if (Invoker is SyncMethodInvoker sync)
                 {
                     ValidateInstanceType(operation.Parent.Type, sync.Method);
                 }
@@ -78,8 +72,7 @@ namespace CoreWCF.Dispatcher
                 //    this.ValidateInstanceType(operation.Parent.Type, async.EndMethod);
                 //}
 
-                TaskMethodInvoker task = Invoker as TaskMethodInvoker;
-                if (task != null)
+                if (Invoker is TaskMethodInvoker task)
                 {
                     ValidateInstanceType(operation.Parent.Type, task.TaskMethod);
                 }
@@ -90,10 +83,7 @@ namespace CoreWCF.Dispatcher
 
         internal ICallContextInitializer[] CallContextInitializers { get; }
 
-        internal bool DisposeParameters
-        {
-            get { return _disposeParameters; }
-        }
+        internal bool DisposeParameters { get; }
 
         internal bool HasDefaultUnhandledActionInvoker
         {
@@ -124,10 +114,7 @@ namespace CoreWCF.Dispatcher
 
         internal bool ReleaseInstanceAfterCall { get; }
 
-        internal bool ReleaseInstanceBeforeCall
-        {
-            get { return _releaseInstanceBeforeCall; }
-        }
+        internal bool ReleaseInstanceBeforeCall { get; }
 
         internal string ReplyAction { get; }
 

@@ -14,8 +14,6 @@ namespace CoreWCF.Dispatcher
 {
     internal class StreamFormatter
     {
-        private string _wrapperNS;
-        private readonly string _partNS;
         private readonly int _streamIndex;
         private readonly bool _isRequest;
         private readonly string _operationName;
@@ -44,9 +42,9 @@ namespace CoreWCF.Dispatcher
             }
 
             WrapperName = messageDescription.Body.WrapperName;
-            _wrapperNS = messageDescription.Body.WrapperNamespace;
+            WrapperNamespace = messageDescription.Body.WrapperNamespace;
             PartName = streamPart.Name;
-            _partNS = streamPart.Namespace;
+            PartNamespace = streamPart.Namespace;
             _isRequest = isRequest;
             _operationName = operationName;
         }
@@ -115,18 +113,11 @@ namespace CoreWCF.Dispatcher
 
         internal string WrapperName { get; set; }
 
-        internal string WrapperNamespace
-        {
-            get { return _wrapperNS; }
-            set { _wrapperNS = value; }
-        }
+        internal string WrapperNamespace { get; set; }
 
         internal string PartName { get; }
 
-        internal string PartNamespace
-        {
-            get { return _partNS; }
-        }
+        internal string PartNamespace { get; }
 
         private Stream GetStreamValue(object[] parameters, object returnValue)
         {
@@ -403,11 +394,10 @@ namespace CoreWCF.Dispatcher
                 }
 
                 int blockSize = 256;
-                int bytesRead = 0;
                 byte[] block = new byte[blockSize];
                 while (true)
                 {
-                    bytesRead = stream.Read(block, 0, blockSize);
+                    int bytesRead = stream.Read(block, 0, blockSize);
                     if (bytesRead > 0)
                     {
                         writer.WriteBase64(block, 0, bytesRead);
@@ -441,11 +431,10 @@ namespace CoreWCF.Dispatcher
                 }
 
                 int blockSize = 256;
-                int bytesRead = 0;
                 byte[] block = new byte[blockSize];
                 while (true)
                 {
-                    bytesRead = await stream.ReadAsync(block, 0, blockSize);
+                    int bytesRead = await stream.ReadAsync(block, 0, blockSize);
                     if (bytesRead > 0)
                     {
                         // XmlDictionaryWriter has not implemented WriteBase64Async() yet.

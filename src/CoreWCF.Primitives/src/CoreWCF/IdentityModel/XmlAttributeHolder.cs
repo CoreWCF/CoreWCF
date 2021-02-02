@@ -8,16 +8,14 @@ namespace CoreWCF.IdentityModel
 {
     internal struct XmlAttributeHolder
     {
-        private readonly string _value;
-
-        public static XmlAttributeHolder[] emptyArray = new XmlAttributeHolder[0];
+        public static XmlAttributeHolder[] emptyArray = Array.Empty<XmlAttributeHolder>();
 
         public XmlAttributeHolder(string prefix, string localName, string ns, string value)
         {
             Prefix = prefix;
             LocalName = localName;
             NamespaceUri = ns;
-            _value = value;
+            Value = value;
         }
 
         public string Prefix { get; }
@@ -26,15 +24,12 @@ namespace CoreWCF.IdentityModel
 
         public string LocalName { get; }
 
-        public string Value
-        {
-            get { return _value; }
-        }
+        public string Value { get; }
 
         public void WriteTo(XmlWriter writer)
         {
             writer.WriteStartAttribute(Prefix, LocalName, NamespaceUri);
-            writer.WriteString(_value);
+            writer.WriteString(Value);
             writer.WriteEndAttribute();
         }
 

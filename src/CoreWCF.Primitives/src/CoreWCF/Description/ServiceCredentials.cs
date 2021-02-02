@@ -12,8 +12,6 @@ namespace CoreWCF.Description
 {
     public class ServiceCredentials : SecurityCredentialsManager, IServiceBehavior
     {
-        private readonly X509CertificateRecipientServiceCredential _serviceCertificate;
-        private readonly bool _useIdentityConfiguration = false;
         private bool _isReadOnly = false;
         private readonly bool _saveBootstrapTokenInSession = true;
         private ExceptionMapper _exceptionMapper;
@@ -22,7 +20,7 @@ namespace CoreWCF.Description
         {
             UserNameAuthentication = new UserNamePasswordServiceCredential();
             ClientCertificate = new X509CertificateInitiatorServiceCredential();
-            _serviceCertificate = new X509CertificateRecipientServiceCredential();
+            ServiceCertificate = new X509CertificateRecipientServiceCredential();
             WindowsAuthentication = new WindowsServiceCredential();
             IssuedTokenAuthentication = new IssuedTokenServiceCredential();
             SecureConversationAuthentication = new SecureConversationServiceCredential();
@@ -37,7 +35,7 @@ namespace CoreWCF.Description
             }
             UserNameAuthentication = new UserNamePasswordServiceCredential(other.UserNameAuthentication);
             ClientCertificate = new X509CertificateInitiatorServiceCredential(other.ClientCertificate);
-            _serviceCertificate = new X509CertificateRecipientServiceCredential(other._serviceCertificate);
+            ServiceCertificate = new X509CertificateRecipientServiceCredential(other.ServiceCertificate);
             WindowsAuthentication = new WindowsServiceCredential(other.WindowsAuthentication);
             IssuedTokenAuthentication = new IssuedTokenServiceCredential(other.IssuedTokenAuthentication);
             SecureConversationAuthentication = new SecureConversationServiceCredential(other.SecureConversationAuthentication);
@@ -49,13 +47,7 @@ namespace CoreWCF.Description
 
         public X509CertificateInitiatorServiceCredential ClientCertificate { get; }
 
-        public X509CertificateRecipientServiceCredential ServiceCertificate
-        {
-            get
-            {
-                return _serviceCertificate;
-            }
-        }
+        public X509CertificateRecipientServiceCredential ServiceCertificate { get; }
 
         public WindowsServiceCredential WindowsAuthentication { get; }
 
@@ -75,11 +67,7 @@ namespace CoreWCF.Description
             set
             {
                 ThrowIfImmutable();
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-                _exceptionMapper = value;
+                _exceptionMapper = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -131,16 +119,15 @@ namespace CoreWCF.Description
         {
             for (int i = 0; i < serviceHostBase.ChannelDispatchers.Count; i++)
             {
-                ChannelDispatcher channelDispatcher = serviceHostBase.ChannelDispatchers[i] as ChannelDispatcher;
                 // TODO: ServiceMetadataBehavior
-                //if (channelDispatcher != null && !ServiceMetadataBehavior.IsHttpGetMetadataDispatcher(description, channelDispatcher))
-                //{
-                //    foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
-                //    {
-                //        DispatchRuntime behavior = endpointDispatcher.DispatchRuntime;
-                //        behavior.RequireClaimsPrincipalOnOperationContext = this.useIdentityConfiguration;
-                //    }
-                //}
+                if (serviceHostBase.ChannelDispatchers[i] is ChannelDispatcher channelDispatcher /*&& !ServiceMetadataBehavior.IsHttpGetMetadataDispatcher(description, channelDispatcher)*/)
+                {
+                    foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
+                    {
+                        DispatchRuntime behavior = endpointDispatcher.DispatchRuntime;
+                        behavior.RequireClaimsPrincipalOnOperationContext = false; // _useIdentityConfiguration;
+                    }
+                }
             }
         }
 

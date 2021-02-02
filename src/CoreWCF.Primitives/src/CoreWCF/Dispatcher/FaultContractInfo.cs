@@ -10,7 +10,6 @@ namespace CoreWCF.Dispatcher
 {
     internal class FaultContractInfo
     {
-        private readonly string _ns;
         private DataContractSerializer _serializer;
 
         public FaultContractInfo(string action, Type detail)
@@ -19,23 +18,14 @@ namespace CoreWCF.Dispatcher
         }
         internal FaultContractInfo(string action, Type detail, XmlName elementName, string ns, IList<Type> knownTypes)
         {
-            if (action == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
-            }
-            if (detail == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(detail));
-            }
-
-            Action = action;
-            Detail = detail;
+            Action = action ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
+            Detail = detail ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(detail));
             if (elementName != null)
             {
                 ElementName = elementName.EncodedName;
             }
 
-            _ns = ns;
+            ElementNamespace = ns;
             KnownTypes = knownTypes;
         }
 
@@ -45,7 +35,7 @@ namespace CoreWCF.Dispatcher
 
         internal string ElementName { get; }
 
-        internal string ElementNamespace => _ns;
+        internal string ElementNamespace { get; }
 
         internal IList<Type> KnownTypes { get; }
 
@@ -61,7 +51,7 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        _serializer = DataContractSerializerDefaults.CreateSerializer(Detail, KnownTypes, ElementName, _ns ?? string.Empty, int.MaxValue /* maxItemsInObjectGraph */);
+                        _serializer = DataContractSerializerDefaults.CreateSerializer(Detail, KnownTypes, ElementName, ElementNamespace ?? string.Empty, int.MaxValue /* maxItemsInObjectGraph */);
                     }
                 }
                 return _serializer;

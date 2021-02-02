@@ -33,12 +33,7 @@ namespace CoreWCF
 
             set
             {
-                if (value == null)
-                {
-                    throw Fx.Exception.ArgumentNull(nameof(value));
-                }
-
-                _basicHttpSecurity = value;
+                _basicHttpSecurity = value ?? throw Fx.Exception.ArgumentNull(nameof(value));
             }
         }
 

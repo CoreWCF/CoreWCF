@@ -14,16 +14,8 @@ namespace CoreWCF.Security
 
         public SignatureConfirmationElement(string id, byte[] signatureValue, SecurityVersion version)
         {
-            if (id == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
-            }
-            if (signatureValue == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(signatureValue));
-            }
-            Id = id;
-            _signatureValue = signatureValue;
+            Id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
+            _signatureValue = signatureValue ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(signatureValue));
             _version = version;
         }
 

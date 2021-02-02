@@ -25,18 +25,18 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void BasicScenariosAndOps()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestBasicScenarios>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.ITestBasicScenarios channel = factory.CreateChannel();
 
                 var factory2 = new System.ServiceModel.ChannelFactory<ClientContract.ITestBasicScenariosClientService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc")));
-                var channel2 = factory2.CreateChannel();
+                ClientContract.ITestBasicScenariosClientService channel2 = factory2.CreateChannel();
 
                 //Variation string TestMethodDefaults
                 int ID = 1;

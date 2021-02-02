@@ -22,11 +22,7 @@ namespace CoreWCF.Security
         public SecurityContextKeyIdentifierClause(UniqueId contextId, UniqueId generation, byte[] derivationNonce, int derivationLength)
             : base(null, derivationNonce, derivationLength)
         {
-            if (contextId == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
-            }
-            ContextId = contextId;
+            ContextId = contextId ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             Generation = generation;
         }
 

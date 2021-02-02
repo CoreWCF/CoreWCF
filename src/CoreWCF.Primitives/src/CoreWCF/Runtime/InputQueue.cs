@@ -72,7 +72,7 @@ namespace CoreWCF.Runtime
 
         public async Task<T> DequeueAsync(CancellationToken token)
         {
-            var dequeued = await TryDequeueAsync(token);
+            (T result, bool success) dequeued = await TryDequeueAsync(token);
 
             if (!dequeued.success)
             {
@@ -343,7 +343,7 @@ namespace CoreWCF.Runtime
                 while (_readerQueue.Count > 0)
                 {
                     IQueueReader reader = _readerQueue.Dequeue();
-                    reader.Set(default(Item));
+                    reader.Set(default);
                 }
 
                 while (_itemQueue.HasAnyItem)
@@ -381,7 +381,7 @@ namespace CoreWCF.Runtime
 
             for (int i = 0; i < outstandingReaders.Length; i++)
             {
-                outstandingReaders[i].Set(default(Item));
+                outstandingReaders[i].Set(default);
             }
         }
 
@@ -593,7 +593,7 @@ namespace CoreWCF.Runtime
                     for (int i = _readerQueue.Count; i > 0; i--)
                     {
                         IQueueReader temp = _readerQueue.Dequeue();
-                        if (object.ReferenceEquals(temp, reader))
+                        if (ReferenceEquals(temp, reader))
                         {
                             removed = true;
                         }
@@ -629,8 +629,6 @@ namespace CoreWCF.Runtime
 
         private struct Item
         {
-            private readonly T _value;
-
             public Item(T value, Action dequeuedCallback)
                 : this(value, null, dequeuedCallback)
             {
@@ -643,7 +641,7 @@ namespace CoreWCF.Runtime
 
             private Item(T value, Exception exception, Action dequeuedCallback)
             {
-                _value = value;
+                Value = value;
                 Exception = exception;
                 DequeuedCallback = dequeuedCallback;
             }
@@ -652,10 +650,7 @@ namespace CoreWCF.Runtime
 
             public Exception Exception { get; }
 
-            public T Value
-            {
-                get { return _value; }
-            }
+            public T Value { get; }
 
             public T GetValue()
             {
@@ -664,7 +659,7 @@ namespace CoreWCF.Runtime
                     throw Fx.Exception.AsError(Exception);
                 }
 
-                return _value;
+                return Value;
             }
         }
 

@@ -23,12 +23,7 @@ namespace CoreWCF.Dispatcher
 
         public EndpointAddressMessageFilter(EndpointAddress address, bool includeHostNameInComparison)
         {
-            if (address == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
-            }
-
-            Address = address;
+            Address = address ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             IncludeHostNameInComparison = includeHostNameInComparison;
             _helper = new EndpointAddressMessageFilterHelper(Address);
 

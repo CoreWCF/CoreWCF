@@ -18,10 +18,10 @@ namespace CoreWCF.IdentityModel.Tokens
         internal const string OasisWssSamlTokenProfile11 = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1";
         internal const string OasisWssSaml2TokenProfile11 = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0";
 
-        static public string UserName { get { return userName; } }
-        static public string X509Certificate { get { return x509Certificate; } }
-        static public string Kerberos { get { return kerberos; } }
-        static public string Saml { get { return saml; } }
-        static public string Rsa { get { return rsa; } }
+        public static string UserName { get { return userName; } }
+        public static string X509Certificate { get { return x509Certificate; } }
+        public static string Kerberos { get { return kerberos; } }
+        public static string Saml { get { return saml; } }
+        public static string Rsa { get { return rsa; } }
     }
 }

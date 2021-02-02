@@ -24,14 +24,14 @@ namespace CoreWCF.Configuration
                 throw new ArgumentNullException(nameof(configureServices));
             }
 
-            var loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger(nameof(ServiceModelApplicationBuilderExtensions));
-            var serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
+            ILoggerFactory loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+            ILogger logger = loggerFactory.CreateLogger(nameof(ServiceModelApplicationBuilderExtensions));
+            ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
             configureServices(serviceBuilder);
 
-            var transportServiceBuilders = app.ApplicationServices.GetServices<ITransportServiceBuilder>();
+            IEnumerable<ITransportServiceBuilder> transportServiceBuilders = app.ApplicationServices.GetServices<ITransportServiceBuilder>();
             var transportServiceBuilderSeenTypes = new HashSet<Type>();
-            foreach (var transportServiceBuilder in transportServiceBuilders)
+            foreach (ITransportServiceBuilder transportServiceBuilder in transportServiceBuilders)
             {
                 if (!transportServiceBuilderSeenTypes.Contains(transportServiceBuilder.GetType()))
                 {
@@ -41,11 +41,11 @@ namespace CoreWCF.Configuration
                 }
             }
 
-            foreach (var serviceConfig in serviceBuilder.ServiceConfigurations)
+            foreach (IServiceConfiguration serviceConfig in serviceBuilder.ServiceConfigurations)
             {
-                foreach (var serviceEndpoint in serviceConfig.Endpoints)
+                foreach (ServiceEndpointConfiguration serviceEndpoint in serviceConfig.Endpoints)
                 {
-                    var transportServiceBuilder = serviceEndpoint.Binding.GetProperty<ITransportServiceBuilder>(new BindingParameterCollection());
+                    ITransportServiceBuilder transportServiceBuilder = serviceEndpoint.Binding.GetProperty<ITransportServiceBuilder>(new BindingParameterCollection());
                     // Check if this transport service builder type has already been used in this app
                     if (transportServiceBuilder != null && !transportServiceBuilderSeenTypes.Contains(transportServiceBuilder.GetType()))
                     {

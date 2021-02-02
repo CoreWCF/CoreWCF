@@ -42,7 +42,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("MessageContractStreamMutipleOperationsService")]
         public void StreamingInputOutputTest(string method)
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             Startup._method = method;
             using (host)
             {
@@ -81,7 +81,7 @@ namespace CoreWCF.Http.Tests
 
         private T GetProxy<T>()
         {
-            var httpBinding = ClientHelper.GetBufferedModeBinding();
+            System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/StreamingInputOutputService.svc")));
             T proxy = channelFactory.CreateChannel();
             return proxy;
@@ -89,7 +89,7 @@ namespace CoreWCF.Http.Tests
 
         private void StreamStreamAsyncService()
         {
-            var clientProxy = GetProxy<IStreamStreamAsyncService>();
+            IStreamStreamAsyncService clientProxy = GetProxy<IStreamStreamAsyncService>();
             Stream input = new ClientHelper.NoneSerializableStream();
             ClientHelper.PopulateStreamWithStringBytes(input, TestString);
             string response = ClientHelper.GetStringFrom(clientProxy.TwoWayMethodAsync(input).GetAwaiter().GetResult());
@@ -98,7 +98,7 @@ namespace CoreWCF.Http.Tests
 
         private void RefStreamService()
         {
-            var clientProxy = GetProxy<IRefStreamService>();
+            IRefStreamService clientProxy = GetProxy<IRefStreamService>();
             Stream input = new ClientHelper.NoneSerializableStream();
             ClientHelper.PopulateStreamWithStringBytes(input, TestString);
             clientProxy.Operation(ref input);
@@ -108,7 +108,7 @@ namespace CoreWCF.Http.Tests
 
         private void StreamInOutService()
         {
-            var clientProxy = GetProxy<IStreamInOutService>();
+            IStreamInOutService clientProxy = GetProxy<IStreamInOutService>();
             Stream input = new ClientHelper.NoneSerializableStream();
             ClientHelper.PopulateStreamWithStringBytes(input, TestString);
             clientProxy.Operation(input, out input);
@@ -118,7 +118,7 @@ namespace CoreWCF.Http.Tests
 
         private void InFileStreamService()
         {
-            var clientProxy = GetProxy<IMessageContractStreamInReturnService>();
+            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>();
             if (!File.Exists(FileToSend))
             {
                 throw new FileNotFoundException("Could not find file " + FileToSend);
@@ -142,9 +142,11 @@ namespace CoreWCF.Http.Tests
 
         private void ReturnFileStreamService()
         {
-            var clientProxy = GetProxy<IMessageContractStreamInReturnService>();
-            MessageContractStreamNoHeader message = new MessageContractStreamNoHeader();
-            message.stream = ClientHelper.GetStreamWithStringBytes(TestString);
+            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>();
+            MessageContractStreamNoHeader message = new MessageContractStreamNoHeader
+            {
+                stream = ClientHelper.GetStreamWithStringBytes(TestString)
+            };
 
             using (Stream stream = clientProxy.Operation(message).input)
             {
@@ -164,7 +166,7 @@ namespace CoreWCF.Http.Tests
 
         private void MessageContractStreamInOutService()
         {
-            var clientProxy = GetProxy<IMessageContractStreamInReturnService>();
+            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>();
             MessageContractStreamNoHeader input = ClientHelper.GetMessageContractStreamNoHeader(TestString);
             MessageContractStreamOneIntHeader output = clientProxy.Operation(input);
             string response = ClientHelper.GetStringFrom(output.input);
@@ -173,15 +175,19 @@ namespace CoreWCF.Http.Tests
 
         private void MessageContractStreamMutipleOperationsService()
         {
-            var clientProxy = GetProxy<IMessageContractStreamMutipleOperationsService>();
+            IMessageContractStreamMutipleOperationsService clientProxy = GetProxy<IMessageContractStreamMutipleOperationsService>();
             Stream input = ClientHelper.GetStreamWithStringBytes(TestString);
-            MessageContractStreamOneIntHeader message = new MessageContractStreamOneIntHeader();
-            message.input = input;
+            MessageContractStreamOneIntHeader message = new MessageContractStreamOneIntHeader
+            {
+                input = input
+            };
             MessageContractStreamTwoHeaders output = clientProxy.Operation2(message);
             string response = ClientHelper.GetStringFrom(output.Stream);
 
-            MessageContractStreamOneStringHeader message2 = new MessageContractStreamOneStringHeader();
-            message2.input = ClientHelper.GetStreamWithStringBytes(TestString);
+            MessageContractStreamOneStringHeader message2 = new MessageContractStreamOneStringHeader
+            {
+                input = ClientHelper.GetStreamWithStringBytes(TestString)
+            };
             MessageContractStreamNoHeader output2 = clientProxy.Operation1(message2);
             string response2 = ClientHelper.GetStringFrom(output2);
 
@@ -191,7 +197,7 @@ namespace CoreWCF.Http.Tests
 
         private void VoidStreamService()
         {
-            var clientProxy = GetProxy<IVoidStreamService>();
+            IVoidStreamService clientProxy = GetProxy<IVoidStreamService>();
             Stream input = ClientHelper.GetStreamWithStringBytes(TestString);
             clientProxy.Operation(input);
         }

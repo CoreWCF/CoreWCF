@@ -13,7 +13,6 @@ namespace CoreWCF.Dispatcher
         private readonly IChannelInitializer[] _channelInitializers;
         private readonly IClientMessageInspector[] _messageInspectors;
         private readonly Dictionary<string, ProxyOperationRuntime> _operations;
-        private readonly bool _useSynchronizationContext;
 
         internal ImmutableClientRuntime(ClientRuntime behavior)
         {
@@ -22,7 +21,7 @@ namespace CoreWCF.Dispatcher
             _messageInspectors = EmptyArray<IClientMessageInspector>.ToArray(behavior.MessageInspectors);
 
             OperationSelector = behavior.OperationSelector;
-            _useSynchronizationContext = behavior.UseSynchronizationContext;
+            UseSynchronizationContext = behavior.UseSynchronizationContext;
             ValidateMustUnderstand = behavior.ValidateMustUnderstand;
 
             UnhandledProxyOperation = new ProxyOperationRuntime(behavior.UnhandledClientOperation, this);
@@ -57,10 +56,7 @@ namespace CoreWCF.Dispatcher
 
         internal ProxyOperationRuntime UnhandledProxyOperation { get; }
 
-        internal bool UseSynchronizationContext
-        {
-            get { return _useSynchronizationContext; }
-        }
+        internal bool UseSynchronizationContext { get; }
 
         internal bool ValidateMustUnderstand { get; set; }
 

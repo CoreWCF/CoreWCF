@@ -16,17 +16,17 @@ namespace ErrorHandling
         [Fact]
         public static void ServiceThrowsTimeoutException()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ThrowingService, ISimpleService>(
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<ThrowingService, ISimpleService>(
                 (services) =>
                 {
                     services.AddSingleton(new ThrowingService(new TimeoutException()));
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             System.ServiceModel.FaultException exceptionThrown = null;
             try
             {
-                var echo = channel.Echo("hello");
+                string echo = channel.Echo("hello");
             }
             catch (System.ServiceModel.FaultException e)
             {
@@ -44,18 +44,18 @@ namespace ErrorHandling
         [Fact]
         public static async Task AsyncServiceThrowsTimeoutExceptionBeforeAwait()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ThrowingAsyncService, ISimpleAsyncService>(
+            System.ServiceModel.ChannelFactory<ISimpleAsyncService> factory = DispatcherHelper.CreateChannelFactory<ThrowingAsyncService, ISimpleAsyncService>(
                 (services) =>
                 {
                     services.AddSingleton(new ThrowingAsyncService(new TimeoutException(), beforeAwait: true));
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleAsyncService channel = factory.CreateChannel();
             ((System.ServiceModel.IClientChannel)channel).Open();
             System.ServiceModel.FaultException exceptionThrown = null;
             try
             {
-                var echo = await channel.EchoAsync("hello");
+                string echo = await channel.EchoAsync("hello");
             }
             catch (System.ServiceModel.FaultException e)
             {
@@ -73,18 +73,18 @@ namespace ErrorHandling
         [Fact]
         public static async Task AsyncServiceThrowsTimeoutExceptionAfterAwait()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ThrowingAsyncService, ISimpleAsyncService>(
+            System.ServiceModel.ChannelFactory<ISimpleAsyncService> factory = DispatcherHelper.CreateChannelFactory<ThrowingAsyncService, ISimpleAsyncService>(
                 (services) =>
                 {
                     services.AddSingleton(new ThrowingAsyncService(new TimeoutException(), beforeAwait: false));
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleAsyncService channel = factory.CreateChannel();
             ((System.ServiceModel.IClientChannel)channel).Open();
             System.ServiceModel.FaultException exceptionThrown = null;
             try
             {
-                var echo = await channel.EchoAsync("hello");
+                string echo = await channel.EchoAsync("hello");
             }
             catch (System.ServiceModel.FaultException e)
             {

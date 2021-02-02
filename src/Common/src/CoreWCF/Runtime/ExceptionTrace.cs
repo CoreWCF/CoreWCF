@@ -30,15 +30,13 @@ namespace CoreWCF.Runtime
         public Exception AsError(Exception exception)
         {
             // AggregateExceptions are automatically unwrapped.
-            AggregateException aggregateException = exception as AggregateException;
-            if (aggregateException != null)
+            if (exception is AggregateException aggregateException)
             {
                 return AsError<Exception>(aggregateException);
             }
 
             // TargetInvocationExceptions are automatically unwrapped.
-            TargetInvocationException targetInvocationException = exception as TargetInvocationException;
-            if (targetInvocationException != null && targetInvocationException.InnerException != null)
+            if (exception is TargetInvocationException targetInvocationException && targetInvocationException.InnerException != null)
             {
                 return AsError(targetInvocationException.InnerException);
             }
@@ -64,7 +62,7 @@ namespace CoreWCF.Runtime
 
             // Collapse possibly nested graph into a flat list.
             // Empty inner exception list is unlikely but possible via public api.
-            var innerExceptions = aggregateException.Flatten().InnerExceptions;
+            System.Collections.ObjectModel.ReadOnlyCollection<Exception> innerExceptions = aggregateException.Flatten().InnerExceptions;
             if (innerExceptions.Count == 0)
             {
                 return TraceException(aggregateException, eventSource);
@@ -75,9 +73,8 @@ namespace CoreWCF.Runtime
             foreach (Exception nextInnerException in innerExceptions)
             {
                 // AggregateException may wrap TargetInvocationException, so unwrap those as well
-                TargetInvocationException targetInvocationException = nextInnerException as TargetInvocationException;
 
-                Exception innerException = (targetInvocationException != null && targetInvocationException.InnerException != null)
+                Exception innerException = (nextInnerException is TargetInvocationException targetInvocationException && targetInvocationException.InnerException != null)
                                                 ? targetInvocationException.InnerException
                                                 : nextInnerException;
 

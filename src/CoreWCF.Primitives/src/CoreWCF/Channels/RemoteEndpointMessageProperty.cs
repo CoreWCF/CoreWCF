@@ -23,7 +23,7 @@ namespace CoreWCF.Channels
 
             if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("port",
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(port),
                     SR.Format(SR.ValueMustBeInRange, IPEndPoint.MinPort, IPEndPoint.MaxPort));
             }
 

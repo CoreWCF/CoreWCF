@@ -40,14 +40,14 @@ namespace CoreWCF.Http.Tests
         [InlineData("untypedreplyaction")]
         public void OperationContractActionReplyActionBehaviorTests(string variation)
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOpActionReplyActionBehavior>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/OpActionReplyActionBehaviorService.svc")));
-                var channel = factory.CreateChannel();
+                IOpActionReplyActionBehavior channel = factory.CreateChannel();
 
                 switch (variation)
                 {

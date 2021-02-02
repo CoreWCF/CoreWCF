@@ -72,12 +72,12 @@ namespace CoreWCF.Configuration
 
         public void Configure(KestrelServerOptions options)
         {
-            foreach (var endpoint in _options.EndPoints)
+            foreach (IPEndPoint endpoint in _options.EndPoints)
             {
                 options.Listen(endpoint, builder =>
                 {
                     builder.UseConnectionHandler<NetMessageFramingConnectionHandler>();
-                    var handler = builder.ApplicationServices.GetRequiredService<NetMessageFramingConnectionHandler>();
+                    NetMessageFramingConnectionHandler handler = builder.ApplicationServices.GetRequiredService<NetMessageFramingConnectionHandler>();
                     // Save the ListenOptions to be able to get final port number for adding BaseAddresses later
                     ListenOptions.Add(builder);
                 });
@@ -88,9 +88,9 @@ namespace CoreWCF.Configuration
 
         private void OnServiceBuilderOpening(object sender, EventArgs e)
         {
-            foreach (var listenOptions in ListenOptions)
+            foreach (ListenOptions listenOptions in ListenOptions)
             {
-                var endpoint = listenOptions.IPEndPoint;
+                IPEndPoint endpoint = listenOptions.IPEndPoint;
                 var baseAddress = new Uri($"net.tcp://localhost:{endpoint.Port}/");
                 _logger.LogDebug($"Adding base address {baseAddress} to ServiceBuilderOptions");
                 _serviceBuilder.BaseAddresses.Add(baseAddress);

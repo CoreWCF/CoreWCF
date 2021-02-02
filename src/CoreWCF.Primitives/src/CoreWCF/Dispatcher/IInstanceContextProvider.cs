@@ -57,8 +57,7 @@ namespace CoreWCF.Dispatcher
 
         internal ServiceChannel GetServiceChannelFromProxy(IContextChannel channel)
         {
-            ServiceChannel serviceChannel = channel as ServiceChannel;
-            if (serviceChannel == null)
+            if (!(channel is ServiceChannel serviceChannel))
             {
                 serviceChannel = ServiceChannelFactory.GetServiceChannel(channel);
             }
