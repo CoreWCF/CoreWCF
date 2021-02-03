@@ -235,49 +235,6 @@ namespace CoreWCF.Channels
 
         // SecureConversation needs a demuxer below security to 1) demux between the security sessions and 2) demux the SCT issue and renewal messages
         // to the authenticator
-        internal void AddDemuxerForSecureConversation(ChannelBuilder builder, BindingContext secureConversationBindingContext)
-        {
-            //new way -- commented below.
-            //ChannelBuilder holding the context of demuxer
-            secureConversationBindingContext.BindingParameters.Add(builder);
-            
-            // add a demuxer element  right below security unless there's a demuxer already present below and the only 
-            // binding elements between security and the demuxer are "ancillary" binding elements like message encoding element and
-            // stream-security upgrade element. We could always add the channel demuxer below security but not doing so in the ancillary
-            // binding elements case improves perf
-            //int numChannelDemuxersBelowSecurity = 0;
-            //bool doesBindingHaveShapeChangingElements = false;
-            //for (int i = 0; i < builder.Binding.Elements.Count; ++i)
-            //{
-            //    if ((builder.Binding.Elements[i] is MessageEncodingBindingElement) || (builder.Binding.Elements[i] is StreamUpgradeBindingElement))
-            //    {
-            //        continue;
-            //    }
-            //    if (builder.Binding.Elements[i] is ChannelDemuxerBindingElement)
-            //    {
-            //        ++numChannelDemuxersBelowSecurity;
-            //    }
-            //    else if (builder.Binding.Elements[i] is TransportBindingElement)
-            //    {
-            //        break;
-            //    }
-            //    else
-            //    {
-            //        doesBindingHaveShapeChangingElements = true;
-            //    }
-            //}
-            //if (numChannelDemuxersBelowSecurity == 1 && !doesBindingHaveShapeChangingElements)
-            //{
-            //    return;
-            //}
-
-            //ChannelDemuxerBindingElement demuxer = new ChannelDemuxerBindingElement(false);
-            //demuxer.MaxPendingSessions = this.LocalServiceSettings.MaxPendingSessions;
-            //demuxer.PeekTimeout = this.LocalServiceSettings.NegotiationTimeout;
-
-            //builder.Binding.Elements.Insert(0, demuxer);
-            //secureConversationBindingContext.RemainingBindingElements.Insert(0, demuxer);
-        }
 
         internal void ApplyPropertiesOnDemuxer(ChannelBuilder builder, BindingContext context)
         {
