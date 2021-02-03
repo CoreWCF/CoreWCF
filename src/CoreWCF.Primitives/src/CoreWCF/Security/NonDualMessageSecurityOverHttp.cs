@@ -1,32 +1,23 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 namespace CoreWCF
 {
     public sealed class NonDualMessageSecurityOverHttp : MessageSecurityOverHttp
     {
         internal const bool DefaultEstablishSecurityContext = true;
 
-        bool establishSecurityContext;
-
         public NonDualMessageSecurityOverHttp()
             : base()
         {
-            this.establishSecurityContext = DefaultEstablishSecurityContext;
+            EstablishSecurityContext = DefaultEstablishSecurityContext;
         }
 
-        public bool EstablishSecurityContext
-        {
-            get
-            {
-                return this.establishSecurityContext;
-            }
-            set
-            {
-                this.establishSecurityContext = value;
-            }
-        }
+        public bool EstablishSecurityContext { get; set; }
 
         protected override bool IsSecureConversationEnabled()
         {
-            return this.establishSecurityContext;
+            return EstablishSecurityContext;
         }
     }
 }

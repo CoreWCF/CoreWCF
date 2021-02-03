@@ -1,17 +1,15 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Xml;
 
 namespace CoreWCF.Security
 {
-    sealed class StrictModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
+    internal sealed class StrictModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
     {
-        static StrictModeSecurityHeaderElementInferenceEngine instance = new StrictModeSecurityHeaderElementInferenceEngine();
+        private StrictModeSecurityHeaderElementInferenceEngine() { }
 
-        StrictModeSecurityHeaderElementInferenceEngine() { }
-
-        internal static StrictModeSecurityHeaderElementInferenceEngine Instance
-        {
-            get { return instance; }
-        }
+        internal static StrictModeSecurityHeaderElementInferenceEngine Instance { get; } = new StrictModeSecurityHeaderElementInferenceEngine();
 
         public override void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader)
         {
@@ -23,8 +21,7 @@ namespace CoreWCF.Security
             bool primarySignatureFound = false;
             for (int position = 0; position < elementManager.Count; position++)
             {
-                ReceiveSecurityHeaderEntry entry;
-                elementManager.GetElementEntry(position, out entry);
+                elementManager.GetElementEntry(position, out ReceiveSecurityHeaderEntry entry);
                 if (entry.elementCategory == ReceiveSecurityHeaderElementCategory.Signature)
                 {
                     if (!messageSecurityMode || primarySignatureFound)

@@ -1,7 +1,10 @@
-﻿using CoreWCF.Primitives.Tests.Contracts;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using CoreWCF.Primitives.Tests.Contracts;
 using DispatcherClient;
 using Helpers;
-using System;
 using Xunit;
 
 
@@ -12,11 +15,11 @@ namespace Contracts
         [Fact]
         public static void AttributeNoPropertiesContract()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ServiceModelSimpleService, IServiceModelSimpleService>();
+            System.ServiceModel.ChannelFactory<IServiceModelSimpleService> factory = DispatcherHelper.CreateChannelFactory<ServiceModelSimpleService, IServiceModelSimpleService>();
             factory.Open();
-            var channel = factory.CreateChannel();
+            IServiceModelSimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             factory.Close();
@@ -26,11 +29,11 @@ namespace Contracts
         [Fact]
         public static void AttributesForMessageContract()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ServiceModelSimpleService, IServiceModelSimpleService>();
+            System.ServiceModel.ChannelFactory<IServiceModelSimpleService> factory = DispatcherHelper.CreateChannelFactory<ServiceModelSimpleService, IServiceModelSimpleService>();
             factory.Open();
-            var channel = factory.CreateChannel();
+            IServiceModelSimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
-            var echo = channel.EchoWithMessageContract(new EchoMessageRequest() { Text = "Message Hello", APIKey = "DEVKEYTOTEST" });
+            EchoMessageResponse echo = channel.EchoWithMessageContract(new EchoMessageRequest() { Text = "Message Hello", APIKey = "DEVKEYTOTEST" });
             Assert.NotNull(echo);
             Assert.NotEmpty(echo.SayHello);
             Assert.NotEmpty(echo.SayHi);
@@ -42,11 +45,11 @@ namespace Contracts
         [Fact]
         public static void AttributeWithNameNamespaceActionReplyActionContract()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ServiceModelSimpleService, IServiceModelServiceWithPropertiesSet>();
+            System.ServiceModel.ChannelFactory<IServiceModelServiceWithPropertiesSet> factory = DispatcherHelper.CreateChannelFactory<ServiceModelSimpleService, IServiceModelServiceWithPropertiesSet>();
             factory.Open();
-            var channel = factory.CreateChannel();
+            IServiceModelServiceWithPropertiesSet channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             factory.Close();
@@ -82,9 +85,11 @@ namespace Contracts
 
         public EchoMessageResponse EchoWithMessageContract(EchoMessageRequest request)
         {
-            EchoMessageResponse echoMessageResponse = new EchoMessageResponse();
-            echoMessageResponse.SayHello = "Saying Hello " + request.Text;
-            echoMessageResponse.SayHi = "Saying Hi " + request.Text;
+            EchoMessageResponse echoMessageResponse = new EchoMessageResponse
+            {
+                SayHello = "Saying Hello " + request.Text,
+                SayHi = "Saying Hi " + request.Text
+            };
             return echoMessageResponse;
         }
     }

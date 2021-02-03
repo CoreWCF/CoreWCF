@@ -1,19 +1,20 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    using QName = CoreWCF.Dispatcher.EndpointAddressProcessor.QName;
     using HeaderBit = CoreWCF.Dispatcher.EndpointAddressProcessor.HeaderBit;
+    using QName = CoreWCF.Dispatcher.EndpointAddressProcessor.QName;
 
     internal class EndpointAddressMessageFilter : MessageFilter
     {
-        EndpointAddress address;
-        bool includeHostNameInComparison;
-        EndpointAddressMessageFilterHelper helper;
-        UriComparer comparer;
+        private readonly EndpointAddressMessageFilterHelper _helper;
+        private readonly UriComparer _comparer;
 
         public EndpointAddressMessageFilter(EndpointAddress address)
             : this(address, false)
@@ -22,25 +23,20 @@ namespace CoreWCF.Dispatcher
 
         public EndpointAddressMessageFilter(EndpointAddress address, bool includeHostNameInComparison)
         {
-            if (address == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
-            }
-
-            this.address = address;
-            this.includeHostNameInComparison = includeHostNameInComparison;
-            helper = new EndpointAddressMessageFilterHelper(this.address);
+            Address = address ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
+            IncludeHostNameInComparison = includeHostNameInComparison;
+            _helper = new EndpointAddressMessageFilterHelper(Address);
 
             if (includeHostNameInComparison)
             {
-                comparer = HostUriComparer.Value;
+                _comparer = HostUriComparer.Value;
             }
             else
             {
                 if (address.Uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) ||
                     address.Uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
                 {
-                    comparer = new NoHostUriComparer
+                    _comparer = new NoHostUriComparer
                     {
                         ComparePort = false,
                         CompareScheme = false
@@ -48,23 +44,14 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    comparer = NoHostUriComparer.Value;
+                    _comparer = NoHostUriComparer.Value;
                 }
             }
         }
 
-        public EndpointAddress Address
-        {
-            get
-            {
-                return address;
-            }
-        }
+        public EndpointAddress Address { get; }
 
-        public bool IncludeHostNameInComparison
-        {
-            get { return includeHostNameInComparison; }
-        }
+        public bool IncludeHostNameInComparison { get; }
 
         protected internal override IMessageFilterTable<FilterData> CreateFilterTable<FilterData>()
         {
@@ -98,26 +85,26 @@ namespace CoreWCF.Dispatcher
 
             // To
             Uri to = message.Headers.To;
-            Uri actingAs = address.Uri;
+            Uri actingAs = Address.Uri;
 
-            if (to == null || !comparer.Equals(actingAs, to))
+            if (to == null || !_comparer.Equals(actingAs, to))
             {
                 return false;
             }
 
-            return helper.Match(message);
+            return _helper.Match(message);
         }
 
         internal Dictionary<string, HeaderBit[]> HeaderLookup
         {
-            get { return helper.HeaderLookup; }
+            get { return _helper.HeaderLookup; }
         }
 
         internal bool ComparePort
         {
             set
             {
-                comparer.ComparePort = value;
+                _comparer.ComparePort = value;
             }
         }
 
@@ -148,7 +135,7 @@ namespace CoreWCF.Dispatcher
         {
             internal static readonly UriComparer Value = new HostUriComparer();
 
-            HostUriComparer()
+            private HostUriComparer()
             {
             }
 
@@ -181,93 +168,93 @@ namespace CoreWCF.Dispatcher
 
     internal class EndpointAddressMessageFilterHelper
     {
-        EndpointAddress address;
-        WeakReference processorPool;
-
-        int size;
-        byte[] mask;
-        Dictionary<QName, int> qnameLookup;
-        Dictionary<string, HeaderBit[]> headerLookup;
+        private readonly EndpointAddress _address;
+        private readonly WeakReference _processorPool;
+        private int _size;
+        private byte[] _mask;
+        private Dictionary<QName, int> _qnameLookup;
+        private Dictionary<string, HeaderBit[]> _headerLookup;
 
         internal EndpointAddressMessageFilterHelper(EndpointAddress address)
         {
-            this.address = address;
+            _address = address;
 
-            if (this.address.Headers.Count > 0)
+            if (_address.Headers.Count > 0)
             {
                 CreateMask();
-                processorPool = new WeakReference(null);
+                _processorPool = new WeakReference(null);
             }
             else
             {
-                qnameLookup = null;
-                headerLookup = null;
-                size = 0;
-                mask = null;
+                _qnameLookup = null;
+                _headerLookup = null;
+                _size = 0;
+                _mask = null;
             }
         }
 
-        void CreateMask()
+        private void CreateMask()
         {
             int nextBit = 0;
             string key;
-            HeaderBit[] bits;
             QName qname;
-            qnameLookup = new Dictionary<QName, int>(EndpointAddressProcessor.QNameComparer);
-            headerLookup = new Dictionary<string, HeaderBit[]>();
+            _qnameLookup = new Dictionary<QName, int>(EndpointAddressProcessor.QNameComparer);
+            _headerLookup = new Dictionary<string, HeaderBit[]>();
             StringBuilder builder = null;
 
-            for (int i = 0; i < address.Headers.Count; ++i)
+            for (int i = 0; i < _address.Headers.Count; ++i)
             {
                 if (builder == null)
-                    builder = new StringBuilder();
-                else
-                    builder.Remove(0, builder.Length);
-
-
-                key = address.Headers[i].GetComparableForm(builder);
-                if (headerLookup.TryGetValue(key, out bits))
                 {
-                    Array.Resize(ref bits, bits.Length + 1);
-                    bits[bits.Length - 1] = new HeaderBit(nextBit++);
-                    headerLookup[key] = bits;
+                    builder = new StringBuilder();
                 }
                 else
                 {
+                    builder.Remove(0, builder.Length);
+                }
 
-                    headerLookup.Add(key, new HeaderBit[] { new HeaderBit(nextBit++) });
-                    AddressHeader parameter = address.Headers[i];
+                key = _address.Headers[i].GetComparableForm(builder);
+                if (_headerLookup.TryGetValue(key, out HeaderBit[] bits))
+                {
+                    Array.Resize(ref bits, bits.Length + 1);
+                    bits[bits.Length - 1] = new HeaderBit(nextBit++);
+                    _headerLookup[key] = bits;
+                }
+                else
+                {
+                    _headerLookup.Add(key, new HeaderBit[] { new HeaderBit(nextBit++) });
+                    AddressHeader parameter = _address.Headers[i];
 
                     qname.name = parameter.Name;
                     qname.ns = parameter.Namespace;
-                    qnameLookup[qname] = 1;
+                    _qnameLookup[qname] = 1;
                 }
             }
 
             if (nextBit == 0)
             {
-                size = 0;
+                _size = 0;
             }
             else
             {
-                size = (nextBit - 1) / 8 + 1;
+                _size = (nextBit - 1) / 8 + 1;
             }
 
-            if (size > 0)
+            if (_size > 0)
             {
-                mask = new byte[size];
-                for (int i = 0; i < size - 1; ++i)
+                _mask = new byte[_size];
+                for (int i = 0; i < _size - 1; ++i)
                 {
-                    mask[i] = 0xff;
+                    _mask[i] = 0xff;
                 }
 
                 if ((nextBit % 8) == 0)
                 {
-                    mask[size - 1] = 0xff;
+                    _mask[_size - 1] = 0xff;
                 }
                 else
                 {
-                    mask[size - 1] = (byte)((1 << (nextBit % 8)) - 1);
+                    _mask[_size - 1] = (byte)((1 << (nextBit % 8)) - 1);
                 }
             }
         }
@@ -276,23 +263,26 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (headerLookup == null)
-                    headerLookup = new Dictionary<string, HeaderBit[]>();
-                return headerLookup;
+                if (_headerLookup == null)
+                {
+                    _headerLookup = new Dictionary<string, HeaderBit[]>();
+                }
+
+                return _headerLookup;
             }
         }
 
-        EndpointAddressProcessor CreateProcessor(int length)
+        private EndpointAddressProcessor CreateProcessor(int length)
         {
-            if (processorPool.Target != null)
+            if (_processorPool.Target != null)
             {
-                lock (processorPool)
+                lock (_processorPool)
                 {
-                    object o = processorPool.Target;
+                    object o = _processorPool.Target;
                     if (o != null)
                     {
                         EndpointAddressProcessor p = (EndpointAddressProcessor)o;
-                        processorPool.Target = p.Next;
+                        _processorPool.Target = p.Next;
                         p.Next = null;
                         p.Clear(length);
                         return p;
@@ -305,27 +295,25 @@ namespace CoreWCF.Dispatcher
 
         internal bool Match(Message message)
         {
-            if (size == 0)
+            if (_size == 0)
             {
                 return true;
             }
 
-            EndpointAddressProcessor context = CreateProcessor(size);
-            context.ProcessHeaders(message, qnameLookup, headerLookup);
-            bool result = context.TestExact(mask);
+            EndpointAddressProcessor context = CreateProcessor(_size);
+            context.ProcessHeaders(message, _qnameLookup, _headerLookup);
+            bool result = context.TestExact(_mask);
             ReleaseProcessor(context);
             return result;
         }
 
-        void ReleaseProcessor(EndpointAddressProcessor context)
+        private void ReleaseProcessor(EndpointAddressProcessor context)
         {
-            lock (processorPool)
+            lock (_processorPool)
             {
-                context.Next = processorPool.Target as EndpointAddressProcessor;
-                processorPool.Target = context;
+                context.Next = _processorPool.Target as EndpointAddressProcessor;
+                _processorPool.Target = context;
             }
         }
-
     }
-
 }

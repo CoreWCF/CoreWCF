@@ -1,19 +1,20 @@
-using CoreWCF.Channels;
-using CoreWCF.Description;
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
-using System.Threading.Tasks;
+using CoreWCF.Channels;
+using CoreWCF.Description;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
-    class TransportSecurityProtocol : SecurityProtocol
+    internal class TransportSecurityProtocol : SecurityProtocol
     {
         public TransportSecurityProtocol(TransportSecurityProtocolFactory factory, EndpointAddress target, Uri via) : base(factory, target, via)
         {
@@ -44,15 +45,15 @@ namespace CoreWCF.Security
                 base.OnSecureOutgoingMessageFailure(message);
                 throw;
             }
-            
+
             return message;
         }
 
         protected virtual Message SecureOutgoingMessageAtResponder(Message message, string actor)
         {
-            if (this.SecurityProtocolFactory.AddTimestamp && !this.SecurityProtocolFactory.SecurityBindingElement.EnableUnsecuredResponse)
+            if (SecurityProtocolFactory.AddTimestamp && !SecurityProtocolFactory.SecurityBindingElement.EnableUnsecuredResponse)
             {
-                SendSecurityHeader securityHeader = CreateSendSecurityHeaderForTransportProtocol(message, actor, this.SecurityProtocolFactory);
+                SendSecurityHeader securityHeader = CreateSendSecurityHeaderForTransportProtocol(message, actor, SecurityProtocolFactory);
                 message = securityHeader.SetupExecution();
             }
             return message;
@@ -97,16 +98,13 @@ namespace CoreWCF.Security
 
         protected virtual void VerifyIncomingMessageCore(ref Message message, TimeSpan timeout)
         {
-            TransportSecurityProtocolFactory factory = (TransportSecurityProtocolFactory)this.SecurityProtocolFactory;
+            TransportSecurityProtocolFactory factory = (TransportSecurityProtocolFactory)SecurityProtocolFactory;
             string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
 
             ReceiveSecurityHeader securityHeader = factory.StandardsManager.TryCreateReceiveSecurityHeader(message, actor,
                 factory.IncomingAlgorithmSuite, (factory.ActAsInitiator) ? MessageDirection.Output : MessageDirection.Input);
-            bool expectBasicTokens;
-            bool expectEndorsingTokens;
-            bool expectSignedTokens;
             IList<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = factory.GetSupportingTokenAuthenticators(message.Headers.Action,
-                out expectSignedTokens, out expectBasicTokens, out expectEndorsingTokens);
+                out bool expectSignedTokens, out bool expectBasicTokens, out bool expectEndorsingTokens);
             if (securityHeader == null)
             {
                 bool expectSupportingTokens = expectEndorsingTokens || expectSignedTokens || expectBasicTokens;
@@ -117,12 +115,16 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    if (String.IsNullOrEmpty(actor))
+                    if (string.IsNullOrEmpty(actor))
+                    {
                         throw Diagnostics.TraceUtility.ThrowHelperError(new MessageSecurityException(
                             SR.Format(SR.UnableToFindSecurityHeaderInMessageNoActor)), message);
+                    }
                     else
+                    {
                         throw Diagnostics.TraceUtility.ThrowHelperError(new MessageSecurityException(
                             SR.Format(SR.UnableToFindSecurityHeaderInMessage, actor)), message);
+                    }
                 }
             }
 

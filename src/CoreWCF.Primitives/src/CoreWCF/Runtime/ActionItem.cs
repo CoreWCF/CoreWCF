@@ -1,10 +1,11 @@
-﻿using System;
-using System.Security;
-using System.Threading;
-using CoreWCF.Runtime.Diagnostics;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Runtime
 {
@@ -12,25 +13,13 @@ namespace CoreWCF.Runtime
     public abstract class ActionItem
     {
         //SecurityContext context;
-        bool isScheduled;
-
-        bool lowPriority;
+        private bool _isScheduled;
 
         protected ActionItem()
         {
         }
 
-        public bool LowPriority
-        {
-            get
-            {
-                return lowPriority;
-            }
-            protected set
-            {
-                lowPriority = value;
-            }
-        }
+        public bool LowPriority { get; protected set; }
 
         public static void Schedule(Action<object> callback, object state)
         {
@@ -48,7 +37,7 @@ namespace CoreWCF.Runtime
             //}
             //else
             //{
-                ScheduleCallback(callback, state, lowPriority);
+            ScheduleCallback(callback, state, lowPriority);
             //}
         }
 
@@ -57,19 +46,19 @@ namespace CoreWCF.Runtime
 
         protected void Schedule()
         {
-            if (isScheduled)
+            if (_isScheduled)
             {
                 throw Fx.Exception.AsError(new InvalidOperationException(SR.ActionItemIsAlreadyScheduled));
             }
 
-            isScheduled = true;
+            _isScheduled = true;
             //if (this.context != null)
             //{
             //    ScheduleCallback(CallbackHelper.InvokeWithContextCallback);
             //}
             //else
             //{
-                ScheduleCallback(CallbackHelper.InvokeWithoutContextCallback);
+            ScheduleCallback(CallbackHelper.InvokeWithoutContextCallback);
             //}
         }
 
@@ -91,16 +80,16 @@ namespace CoreWCF.Runtime
 
         protected void ScheduleWithoutContext()
         {
-            if (isScheduled)
+            if (_isScheduled)
             {
                 throw Fx.Exception.AsError(new InvalidOperationException(SR.ActionItemIsAlreadyScheduled));
             }
 
-            isScheduled = true;
+            _isScheduled = true;
             ScheduleCallback(CallbackHelper.InvokeWithoutContextCallback);
         }
 
-        static void ScheduleCallback(Action<object> callback, object state, bool lowPriority)
+        private static void ScheduleCallback(Action<object> callback, object state, bool lowPriority)
         {
             Fx.Assert(callback != null, "Cannot schedule a null callback");
             if (lowPriority)
@@ -122,26 +111,26 @@ namespace CoreWCF.Runtime
         //    return result;
         //}
 
-        void ScheduleCallback(Action<object> callback)
+        private void ScheduleCallback(Action<object> callback)
         {
-            ScheduleCallback(callback, this, lowPriority);
+            ScheduleCallback(callback, this, LowPriority);
         }
 
-        static class CallbackHelper
+        private static class CallbackHelper
         {
-            static Action<object> invokeWithContextCallback;
-            static Action<object> invokeWithoutContextCallback;
-            static ContextCallback onContextAppliedCallback;
+            private static Action<object> s_invokeWithContextCallback;
+            private static Action<object> s_invokeWithoutContextCallback;
+            private static ContextCallback s_onContextAppliedCallback;
 
             public static Action<object> InvokeWithContextCallback
             {
                 get
                 {
-                    if (invokeWithContextCallback == null)
+                    if (s_invokeWithContextCallback == null)
                     {
-                        invokeWithContextCallback = InvokeWithContext;
+                        s_invokeWithContextCallback = InvokeWithContext;
                     }
-                    return invokeWithContextCallback;
+                    return s_invokeWithContextCallback;
                 }
             }
 
@@ -149,11 +138,11 @@ namespace CoreWCF.Runtime
             {
                 get
                 {
-                    if (invokeWithoutContextCallback == null)
+                    if (s_invokeWithoutContextCallback == null)
                     {
-                        invokeWithoutContextCallback = InvokeWithoutContext;
+                        s_invokeWithoutContextCallback = InvokeWithoutContext;
                     }
-                    return invokeWithoutContextCallback;
+                    return s_invokeWithoutContextCallback;
                 }
             }
 
@@ -161,39 +150,38 @@ namespace CoreWCF.Runtime
             {
                 get
                 {
-                    if (onContextAppliedCallback == null)
+                    if (s_onContextAppliedCallback == null)
                     {
-                        onContextAppliedCallback = new ContextCallback(OnContextApplied);
+                        s_onContextAppliedCallback = new ContextCallback(OnContextApplied);
                     }
-                    return onContextAppliedCallback;
+                    return s_onContextAppliedCallback;
                 }
             }
 
-            static void InvokeWithContext(object state)
+            private static void InvokeWithContext(object state)
             {
                 throw new PlatformNotSupportedException();
                 //SecurityContext context = ((ActionItem)state).ExtractContext();
                 //SecurityContext.Run(context, OnContextAppliedCallback, state);
             }
 
-            static void InvokeWithoutContext(object state)
+            private static void InvokeWithoutContext(object state)
             {
                 ((ActionItem)state).Invoke();
-                ((ActionItem)state).isScheduled = false;
+                ((ActionItem)state)._isScheduled = false;
             }
 
-            static void OnContextApplied(object o)
+            private static void OnContextApplied(object o)
             {
                 ((ActionItem)o).Invoke();
-                ((ActionItem)o).isScheduled = false;
+                ((ActionItem)o)._isScheduled = false;
             }
         }
 
-        class DefaultActionItem : ActionItem
+        private class DefaultActionItem : ActionItem
         {
-            
-            Action<object> callback;
-            object state;
+            private readonly Action<object> _callback;
+            private readonly object _state;
 
             //bool flowLegacyActivityId;
             //Guid activityId;
@@ -202,9 +190,9 @@ namespace CoreWCF.Runtime
             public DefaultActionItem(Action<object> callback, object state, bool isLowPriority)
             {
                 Fx.Assert(callback != null, "Shouldn't instantiate an object to wrap a null callback");
-                base.LowPriority = isLowPriority;
-                this.callback = callback;
-                this.state = state;
+                LowPriority = isLowPriority;
+                _callback = callback;
+                _state = state;
                 //if (Action<object>ActionItem.ShouldUseActivity)
                 //{
                 //    this.flowLegacyActivityId = true;
@@ -229,11 +217,11 @@ namespace CoreWCF.Runtime
                 //}
                 //else
                 //{
-                    callback(state);
+                _callback(_state);
                 //}
             }
 
-            void TraceAndInvoke()
+            private void TraceAndInvoke()
             {
                 //TODO:  Consider merging these since they go through the same codepath.
                 //if (this.flowLegacyActivityId)
@@ -251,29 +239,29 @@ namespace CoreWCF.Runtime
                 //}
                 //else
                 //{
-                    Guid previous = Guid.Empty;
-                    bool restoreActivityId = false;
-                    try
+                Guid previous = Guid.Empty;
+                bool restoreActivityId = false;
+                try
+                {
+                    //if (this.eventTraceActivity != null)
+                    //{
+                    //    previous = Trace.CorrelationManager.ActivityId;
+                    //    restoreActivityId = true;
+                    //    Trace.CorrelationManager.ActivityId = this.eventTraceActivity.ActivityId;
+                    //    if (TraceCore.ActionItemCallbackInvokedIsEnabled(Fx.Trace))
+                    //    {
+                    //        TraceCore.ActionItemCallbackInvoked(Fx.Trace, this.eventTraceActivity);
+                    //    }
+                    //}
+                    _callback(_state);
+                }
+                finally
+                {
+                    if (restoreActivityId)
                     {
-                        //if (this.eventTraceActivity != null)
-                        //{
-                        //    previous = Trace.CorrelationManager.ActivityId;
-                        //    restoreActivityId = true;
-                        //    Trace.CorrelationManager.ActivityId = this.eventTraceActivity.ActivityId;
-                        //    if (TraceCore.ActionItemCallbackInvokedIsEnabled(Fx.Trace))
-                        //    {
-                        //        TraceCore.ActionItemCallbackInvoked(Fx.Trace, this.eventTraceActivity);
-                        //    }
-                        //}
-                        callback(state);
+                        //Trace.CorrelationManager.ActivityId = previous;
                     }
-                    finally
-                    {
-                        if (restoreActivityId)
-                        {
-                            //Trace.CorrelationManager.ActivityId = previous;
-                        }
-                    }
+                }
                 //}
             }
         }
@@ -283,7 +271,7 @@ namespace CoreWCF.Runtime
         internal class IOThreadTaskScheduler : TaskScheduler
         {
             [ThreadStatic]
-            private static bool _onSchedulerThread;
+            private static bool s_onSchedulerThread;
 
             internal IOThreadTaskScheduler()
             {
@@ -301,12 +289,11 @@ namespace CoreWCF.Runtime
             private static void OnTaskQueued(object obj)
             {
                 var thisPtr = obj as IOThreadTaskScheduler;
-                Task nextTask;
-                if (thisPtr._tasks.TryDequeue(out nextTask))
+                if (thisPtr._tasks.TryDequeue(out Task nextTask))
                 {
-                    _onSchedulerThread = true;
+                    s_onSchedulerThread = true;
                     thisPtr.TryExecuteTask(nextTask);
-                    _onSchedulerThread = false;
+                    s_onSchedulerThread = false;
                 }
             }
 
@@ -323,9 +310,8 @@ namespace CoreWCF.Runtime
 
             protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
             {
-                return _onSchedulerThread && TryExecuteTask(task);
+                return s_onSchedulerThread && TryExecuteTask(task);
             }
         }
     }
-
 }

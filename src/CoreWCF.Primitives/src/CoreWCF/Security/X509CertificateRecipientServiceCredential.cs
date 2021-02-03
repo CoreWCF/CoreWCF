@@ -1,15 +1,18 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Security.Cryptography.X509Certificates;
 
 namespace CoreWCF.Security
 {
     public sealed class X509CertificateRecipientServiceCredential
     {
-        X509Certificate2 certificate;
+        private X509Certificate2 _certificate;
         internal const StoreLocation DefaultStoreLocation = StoreLocation.LocalMachine;
         internal const StoreName DefaultStoreName = StoreName.My;
         internal const X509FindType DefaultFindType = X509FindType.FindBySubjectDistinguishedName;
-        bool isReadOnly;
+        private bool _isReadOnly;
 
         internal X509CertificateRecipientServiceCredential()
         {
@@ -17,20 +20,20 @@ namespace CoreWCF.Security
 
         internal X509CertificateRecipientServiceCredential(X509CertificateRecipientServiceCredential other)
         {
-            certificate = other.certificate;
-            isReadOnly = other.isReadOnly;
+            _certificate = other._certificate;
+            _isReadOnly = other._isReadOnly;
         }
 
         public X509Certificate2 Certificate
         {
             get
             {
-                return certificate;
+                return _certificate;
             }
             set
             {
                 ThrowIfImmutable();
-                certificate = value;
+                _certificate = value;
             }
         }
 
@@ -55,21 +58,20 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(findValue));
             }
             ThrowIfImmutable();
-            certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);
+            _certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);
         }
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
         }
     }
-
 }

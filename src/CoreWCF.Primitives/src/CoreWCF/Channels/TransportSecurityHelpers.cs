@@ -1,20 +1,21 @@
-﻿using CoreWCF.IdentityModel.Selectors;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Net;
+using System.Security.Principal;
+using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Security.Principal;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
     internal static class TransportSecurityHelpers
     {
-        static async Task<T> GetTokenAsync<T>(SecurityTokenProvider tokenProvider, CancellationToken token)
+        private static async Task<T> GetTokenAsync<T>(SecurityTokenProvider tokenProvider, CancellationToken token)
             where T : SecurityToken
         {
             SecurityToken result = await tokenProvider.GetTokenAsync(token);
@@ -63,7 +64,7 @@ namespace CoreWCF.Channels
         }
 
         // core Cred lookup code
-        static async Task<(NetworkCredential, bool, TokenImpersonationLevel, bool)> GetSspiCredentialAsync(SspiSecurityTokenProvider tokenProvider, CancellationToken cancellationToken)
+        private static async Task<(NetworkCredential, bool, TokenImpersonationLevel, bool)> GetSspiCredentialAsync(SspiSecurityTokenProvider tokenProvider, CancellationToken cancellationToken)
         {
             NetworkCredential credential = null;
             bool extractGroupsForWindowsAccounts = TransportDefaults.ExtractGroupsForWindowsAccounts;
@@ -72,7 +73,7 @@ namespace CoreWCF.Channels
 
             if (tokenProvider != null)
             {
-                SspiSecurityToken token = await TransportSecurityHelpers.GetTokenAsync<SspiSecurityToken>(tokenProvider, cancellationToken);
+                SspiSecurityToken token = await GetTokenAsync<SspiSecurityToken>(tokenProvider, cancellationToken);
                 if (token != null)
                 {
                     extractGroupsForWindowsAccounts = token.ExtractGroupsForWindowsAccounts;
@@ -99,24 +100,27 @@ namespace CoreWCF.Channels
 
         public static SecurityTokenRequirement CreateSspiTokenRequirement(string transportScheme, Uri listenUri)
         {
-            RecipientServiceModelSecurityTokenRequirement tokenRequirement = new RecipientServiceModelSecurityTokenRequirement();
-            tokenRequirement.TransportScheme = transportScheme;
-            tokenRequirement.RequireCryptographicToken = false;
-            tokenRequirement.ListenUri = listenUri;
-            tokenRequirement.TokenType = ServiceModelSecurityTokenTypes.SspiCredential;
+            RecipientServiceModelSecurityTokenRequirement tokenRequirement = new RecipientServiceModelSecurityTokenRequirement
+            {
+                TransportScheme = transportScheme,
+                RequireCryptographicToken = false,
+                ListenUri = listenUri,
+                TokenType = ServiceModelSecurityTokenTypes.SspiCredential
+            };
             return tokenRequirement;
         }
 
         public static SecurityTokenAuthenticator GetCertificateTokenAuthenticator(SecurityTokenManager tokenManager, string transportScheme, Uri listenUri)
         {
-            RecipientServiceModelSecurityTokenRequirement clientAuthRequirement = new RecipientServiceModelSecurityTokenRequirement();
-            clientAuthRequirement.TokenType = SecurityTokenTypes.X509Certificate;
-            clientAuthRequirement.RequireCryptographicToken = true;
-            clientAuthRequirement.KeyUsage = SecurityKeyUsage.Signature;
-            clientAuthRequirement.TransportScheme = transportScheme;
-            clientAuthRequirement.ListenUri = listenUri;
-            SecurityTokenResolver dummy;
-            return tokenManager.CreateSecurityTokenAuthenticator(clientAuthRequirement, out dummy);
+            RecipientServiceModelSecurityTokenRequirement clientAuthRequirement = new RecipientServiceModelSecurityTokenRequirement
+            {
+                TokenType = SecurityTokenTypes.X509Certificate,
+                RequireCryptographicToken = true,
+                KeyUsage = SecurityKeyUsage.Signature,
+                TransportScheme = transportScheme,
+                ListenUri = listenUri
+            };
+            return tokenManager.CreateSecurityTokenAuthenticator(clientAuthRequirement, out SecurityTokenResolver dummy);
         }
 
         public static Uri GetListenUri(Uri baseAddress, string relativeAddress)

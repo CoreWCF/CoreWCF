@@ -1,12 +1,15 @@
-﻿using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Security.Cryptography.X509Certificates;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509SubjectKeyIdentifierClause : BinaryKeyIdentifierClause
     {
-        const string SubjectKeyIdentifierOid = "2.5.29.14";
-        const int SkiDataOffset = 2;
+        private const string SubjectKeyIdentifierOid = "2.5.29.14";
+        private const int SkiDataOffset = 2;
 
         public X509SubjectKeyIdentifierClause(byte[] ski)
             : this(ski, true)
@@ -18,14 +21,14 @@ namespace CoreWCF.IdentityModel.Tokens
         {
         }
 
-        static byte[] GetSkiRawData(X509Certificate2 certificate)
+        private static byte[] GetSkiRawData(X509Certificate2 certificate)
         {
             if (certificate == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
+            }
 
-            X509SubjectKeyIdentifierExtension skiExtension =
-                certificate.Extensions[SubjectKeyIdentifierOid] as X509SubjectKeyIdentifierExtension;
-            if (skiExtension != null)
+            if (certificate.Extensions[SubjectKeyIdentifierOid] is X509SubjectKeyIdentifierExtension skiExtension)
             {
                 return skiExtension.RawData;
             }
@@ -43,7 +46,9 @@ namespace CoreWCF.IdentityModel.Tokens
         public bool Matches(X509Certificate2 certificate)
         {
             if (certificate == null)
+            {
                 return false;
+            }
 
             byte[] data = GetSkiRawData(certificate);
             return data != null && Matches(data, SkiDataOffset);
@@ -65,7 +70,5 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             return null != GetSkiRawData(certificate);
         }
-
-       
     }
 }

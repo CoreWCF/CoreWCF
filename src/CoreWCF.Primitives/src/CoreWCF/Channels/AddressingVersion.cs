@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Xml;
 
@@ -6,14 +9,14 @@ namespace CoreWCF.Channels
     public sealed class AddressingVersion
     {
         /*MessagePartSpecification signedMessageParts;*/
-        string toStringFormat;
+        private readonly string _toStringFormat;
 
-        AddressingVersion(string ns, XmlDictionaryString dictionaryNs, string toStringFormat,
+        private AddressingVersion(string ns, XmlDictionaryString dictionaryNs, string toStringFormat,
             /*MessagePartSpecification signedMessageParts,*/ string anonymous, XmlDictionaryString dictionaryAnonymous, string none, string faultAction, string defaultFaultAction)
         {
             Namespace = ns;
             DictionaryNamespace = dictionaryNs;
-            this.toStringFormat = toStringFormat;
+            _toStringFormat = toStringFormat;
             /*this.signedMessageParts = signedMessageParts;*/
             Anonymous = anonymous;
             DictionaryAnonymous = dictionaryAnonymous;
@@ -63,7 +66,7 @@ namespace CoreWCF.Channels
 
         public override string ToString()
         {
-            return SR.Format(toStringFormat, Namespace);
+            return SR.Format(_toStringFormat, Namespace);
         }
     }
 }

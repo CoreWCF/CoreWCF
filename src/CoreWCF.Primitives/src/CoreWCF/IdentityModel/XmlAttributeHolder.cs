@@ -1,56 +1,44 @@
-using System.Xml;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using System.Xml;
 
 namespace CoreWCF.IdentityModel
 {
-    struct XmlAttributeHolder
+    internal struct XmlAttributeHolder
     {
-        string prefix;
-        string ns;
-        string localName;
-        string value;
-
-        public static XmlAttributeHolder[] emptyArray = new XmlAttributeHolder[0];
+        public static XmlAttributeHolder[] emptyArray = Array.Empty<XmlAttributeHolder>();
 
         public XmlAttributeHolder(string prefix, string localName, string ns, string value)
         {
-            this.prefix = prefix;
-            this.localName = localName;
-            this.ns = ns;
-            this.value = value;
+            Prefix = prefix;
+            LocalName = localName;
+            NamespaceUri = ns;
+            Value = value;
         }
 
-        public string Prefix
-        {
-            get { return prefix; }
-        }
+        public string Prefix { get; }
 
-        public string NamespaceUri
-        {
-            get { return ns; }
-        }
+        public string NamespaceUri { get; }
 
-        public string LocalName
-        {
-            get { return localName; }
-        }
+        public string LocalName { get; }
 
-        public string Value
-        {
-            get { return value; }
-        }
+        public string Value { get; }
 
         public void WriteTo(XmlWriter writer)
         {
-            writer.WriteStartAttribute(prefix, localName, ns);
-            writer.WriteString(value);
+            writer.WriteStartAttribute(Prefix, LocalName, NamespaceUri);
+            writer.WriteString(Value);
             writer.WriteEndAttribute();
         }
 
         public static void WriteAttributes(XmlAttributeHolder[] attributes, XmlWriter writer)
         {
             for (int i = 0; i < attributes.Length; i++)
+            {
                 attributes[i].WriteTo(writer);
+            }
         }
 
         public static XmlAttributeHolder[] ReadAttributes(XmlDictionaryReader reader)
@@ -62,7 +50,10 @@ namespace CoreWCF.IdentityModel
         public static XmlAttributeHolder[] ReadAttributes(XmlDictionaryReader reader, ref int maxSizeOfHeaders)
         {
             if (reader.AttributeCount == 0)
+            {
                 return emptyArray;
+            }
+
             XmlAttributeHolder[] attributes = new XmlAttributeHolder[reader.AttributeCount];
             reader.MoveToFirstAttribute();
             for (int i = 0; i < attributes.Length; i++)
@@ -74,9 +65,13 @@ namespace CoreWCF.IdentityModel
                 while (reader.ReadAttributeValue())
                 {
                     if (value.Length == 0)
+                    {
                         value = reader.Value;
+                    }
                     else
+                    {
                         value += reader.Value;
+                    }
                 }
                 Deduct(prefix, ref maxSizeOfHeaders);
                 Deduct(localName, ref maxSizeOfHeaders);
@@ -89,7 +84,7 @@ namespace CoreWCF.IdentityModel
             return attributes;
         }
 
-        static void Deduct(string s, ref int maxSizeOfHeaders)
+        private static void Deduct(string s, ref int maxSizeOfHeaders)
         {
             int byteCount = s.Length * sizeof(char);
             if (byteCount > maxSizeOfHeaders)
@@ -102,8 +97,13 @@ namespace CoreWCF.IdentityModel
         public static string GetAttribute(XmlAttributeHolder[] attributes, string localName, string ns)
         {
             for (int i = 0; i < attributes.Length; i++)
+            {
                 if (attributes[i].LocalName == localName && attributes[i].NamespaceUri == ns)
+                {
                     return attributes[i].Value;
+                }
+            }
+
             return null;
         }
     }

@@ -1,18 +1,19 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Text;
-using CoreWCF.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
+using CoreWCF.Configuration;
 using CoreWCF.Description;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Hosting.Server;
-using System.Threading.Tasks;
-using System.Threading;
-using CoreWCF.Configuration;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace CoreWCF
@@ -20,9 +21,10 @@ namespace CoreWCF
     internal class ServiceHostObjectModel<TService> : ServiceHostBase where TService : class
     {
         private IDisposable _disposableInstance;
-        private TService _singletonInstance;
         private readonly IServiceProvider _serviceProvider;
+#pragma warning disable IDE0052 // Remove unread private members - see issue #286
         private readonly ILogger<ServiceHostObjectModel<TService>> _logger;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public ServiceHostObjectModel(IServiceProvider serviceProvider, ServiceBuilder serviceBuilder, ILogger<ServiceHostObjectModel<TService>> logger)
         {
@@ -60,8 +62,8 @@ namespace CoreWCF
             }
 
             // Any user supplied IServiceBehaviors can be applied now
-            var serviceBehaviors = _serviceProvider.GetServices<IServiceBehavior>();
-            foreach (var behavior in serviceBehaviors)
+            IEnumerable<IServiceBehavior> serviceBehaviors = _serviceProvider.GetServices<IServiceBehavior>();
+            foreach (IServiceBehavior behavior in serviceBehaviors)
             {
                 description.Behaviors.Add(behavior);
             }
@@ -107,9 +109,9 @@ namespace CoreWCF
 
             if (instance == null)
             {
-                if (serviceInstanceUsedAsABehavior is IServiceBehavior)
+                if (serviceInstanceUsedAsABehavior is IServiceBehavior behavior)
                 {
-                    description.Behaviors.Add((IServiceBehavior)serviceInstanceUsedAsABehavior);
+                    description.Behaviors.Add(behavior);
                 }
             }
 
@@ -120,7 +122,7 @@ namespace CoreWCF
                 Type contractType = interfaces[i];
                 if (!reflectedContracts.Contains(contractType))
                 {
-                    ContractDescription contract = null;
+                    ContractDescription contract;
                     if (serviceInstanceUsedAsABehavior != null)
                     {
                         contract = ContractDescription.GetContract<TService>(contractType, serviceInstanceUsedAsABehavior);
@@ -148,11 +150,6 @@ namespace CoreWCF
             return description;
         }
 
-        protected override void ApplyConfiguration()
-        {
-            // Prevent base class throw by overriding
-        }
-
         internal class ReflectedContractCollection : KeyedCollection<Type, ContractDescription>
         {
             public ReflectedContractCollection()
@@ -163,7 +160,9 @@ namespace CoreWCF
             protected override Type GetKeyForItem(ContractDescription item)
             {
                 if (item == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+                }
 
                 return item.ContractType;
             }
@@ -184,19 +183,19 @@ namespace CoreWCF
             }
         }
 
-        class ReflectedAndBehaviorContractCollection
+        private class ReflectedAndBehaviorContractCollection
         {
-            ReflectedContractCollection reflectedContracts;
-            KeyedByTypeCollection<IServiceBehavior> behaviors;
+            private readonly ReflectedContractCollection _reflectedContracts;
+            private readonly KeyedByTypeCollection<IServiceBehavior> _behaviors;
             public ReflectedAndBehaviorContractCollection(ReflectedContractCollection reflectedContracts, KeyedByTypeCollection<IServiceBehavior> behaviors)
             {
-                this.reflectedContracts = reflectedContracts;
-                this.behaviors = behaviors;
+                _reflectedContracts = reflectedContracts;
+                _behaviors = behaviors;
             }
 
             internal bool Contains(Type implementedContract)
             {
-                if (this.reflectedContracts.Contains(implementedContract))
+                if (_reflectedContracts.Contains(implementedContract))
                 {
                     return true;
                 }
@@ -211,9 +210,9 @@ namespace CoreWCF
 
             internal string GetConfigKey(Type implementedContract)
             {
-                if (reflectedContracts.Contains(implementedContract))
+                if (_reflectedContracts.Contains(implementedContract))
                 {
-                    return ReflectedContractCollection.GetConfigKey(reflectedContracts[implementedContract]);
+                    return ReflectedContractCollection.GetConfigKey(_reflectedContracts[implementedContract]);
                 }
 
                 //if (this.behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
@@ -222,7 +221,6 @@ namespace CoreWCF
                 //}
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SfxReflectedContractKeyNotFound2, implementedContract.FullName, string.Empty)));
-
             }
         }
 
@@ -231,7 +229,7 @@ namespace CoreWCF
             Uri result = uri;
             if (!result.IsAbsoluteUri)
             {
-                if (binding.Scheme == string.Empty)
+                if (string.IsNullOrEmpty(binding.Scheme))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxCustomBindingWithoutTransport));
                 }
@@ -247,7 +245,7 @@ namespace CoreWCF
             return result;
         }
 
-        internal static String GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
+        internal static string GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
         {
             StringBuilder buffer = new StringBuilder();
             bool firstScheme = true;
@@ -284,7 +282,7 @@ namespace CoreWCF
 
         internal static Uri GetUri(Uri baseUri, Uri relativeUri)
         {
-            var path = relativeUri.OriginalString;
+            string path = relativeUri.OriginalString;
             if (path.StartsWith("/", StringComparison.Ordinal) || path.StartsWith("\\", StringComparison.Ordinal))
             {
                 int i = 1;
@@ -300,7 +298,9 @@ namespace CoreWCF
 
             // new Uri(Uri, string.Empty) is broken
             if (path.Length == 0)
+            {
                 return baseUri;
+            }
 
             if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
             {

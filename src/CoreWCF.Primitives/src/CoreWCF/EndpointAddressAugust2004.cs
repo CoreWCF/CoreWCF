@@ -1,9 +1,12 @@
-using CoreWCF.Channels;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections;
 using System.IO;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using CoreWCF.Channels;
 
 namespace CoreWCF
 {
@@ -11,56 +14,58 @@ namespace CoreWCF
     [XmlRoot(AddressingStrings.EndpointReference, Namespace = Addressing200408Strings.Namespace)]
     public class EndpointAddressAugust2004 : IXmlSerializable
     {
-        static XmlQualifiedName eprType;
-
-        EndpointAddress address;
+        private static XmlQualifiedName s_eprType;
+        private EndpointAddress _address;
 
         // for IXmlSerializable
-        EndpointAddressAugust2004()
+        private EndpointAddressAugust2004()
         {
-            this.address = null;
+            _address = null;
         }
 
-        EndpointAddressAugust2004(EndpointAddress address)
+        private EndpointAddressAugust2004(EndpointAddress address)
         {
-            this.address = address;
+            _address = address;
         }
 
         public static EndpointAddressAugust2004 FromEndpointAddress(EndpointAddress address)
         {
             if (address == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("address");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
             return new EndpointAddressAugust2004(address);
         }
 
         public EndpointAddress ToEndpointAddress()
         {
-            return this.address;
+            return _address;
         }
 
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            this.address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressingAugust2004, XmlDictionaryReader.CreateDictionaryReader(reader));
+            _address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressingAugust2004, XmlDictionaryReader.CreateDictionaryReader(reader));
         }
 
         void IXmlSerializable.WriteXml(XmlWriter writer)
         {
-            this.address.WriteContentsTo(AddressingVersion.WSAddressingAugust2004, XmlDictionaryWriter.CreateDictionaryWriter(writer));
+            _address.WriteContentsTo(AddressingVersion.WSAddressingAugust2004, XmlDictionaryWriter.CreateDictionaryWriter(writer));
         }
 
-        static XmlQualifiedName EprType
+        private static XmlQualifiedName EprType
         {
             get
             {
-                if (eprType == null)
-                    eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing200408Strings.Namespace);
-                return eprType;
+                if (s_eprType == null)
+                {
+                    s_eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing200408Strings.Namespace);
+                }
+
+                return s_eprType;
             }
         }
 
-        static XmlSchema GetEprSchema()
+        private static XmlSchema GetEprSchema()
         {
             using (XmlTextReader reader = new XmlTextReader(new StringReader(Schema)) { DtdProcessing = DtdProcessing.Prohibit })
             {
@@ -71,12 +76,17 @@ namespace CoreWCF
         public static XmlQualifiedName GetSchema(XmlSchemaSet xmlSchemaSet)
         {
             if (xmlSchemaSet == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("xmlSchemaSet");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlSchemaSet));
+            }
+
             XmlQualifiedName eprType = EprType;
             XmlSchema eprSchema = GetEprSchema();
             ICollection schemas = xmlSchemaSet.Schemas(Addressing200408Strings.Namespace);
             if (schemas == null || schemas.Count == 0)
+            {
                 xmlSchemaSet.Add(eprSchema);
+            }
             else
             {
                 XmlSchema schemaToAdd = null;
@@ -88,14 +98,22 @@ namespace CoreWCF
                         break;
                     }
                     else
+                    {
                         schemaToAdd = xmlSchema;
+                    }
                 }
                 if (schemaToAdd != null)
                 {
                     foreach (XmlQualifiedName prefixNsPair in eprSchema.Namespaces.ToArray())
+                    {
                         schemaToAdd.Namespaces.Add(prefixNsPair.Name, prefixNsPair.Namespace);
+                    }
+
                     foreach (XmlSchemaObject schemaObject in eprSchema.Items)
+                    {
                         schemaToAdd.Items.Add(schemaObject);
+                    }
+
                     xmlSchemaSet.Reprocess(schemaToAdd);
                 }
             }
@@ -107,7 +125,7 @@ namespace CoreWCF
             return null;
         }
 
-        const string Schema =
+        private const string Schema =
 @"<xs:schema targetNamespace=""http://schemas.xmlsoap.org/ws/2004/08/addressing"" xmlns:xs=""http://www.w3.org/2001/XMLSchema"" xmlns:wsa=""http://schemas.xmlsoap.org/ws/2004/08/addressing"" elementFormDefault=""qualified"" blockDefault=""#all"">
   <!-- //////////////////// WS-Addressing //////////////////// -->
   <!-- Endpoint reference -->

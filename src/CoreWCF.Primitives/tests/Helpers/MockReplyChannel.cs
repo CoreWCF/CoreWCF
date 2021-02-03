@@ -1,20 +1,23 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using CoreWCF;
-using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF;
+using CoreWCF.Channels;
 using CoreWCF.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helpers
 {
     internal class MockReplyChannel : IReplyChannel
     {
-        private IServiceScope _serviceScope;
+        private readonly IServiceScope _serviceScope;
 
         public MockReplyChannel(IServiceProvider serviceProvider)
         {
-            var servicesScopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
+            IServiceScopeFactory servicesScopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
             _serviceScope = servicesScopeFactory.CreateScope();
         }
 
@@ -24,11 +27,13 @@ namespace Helpers
         public IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
         // These are required to implement IReplyChannel
+#pragma warning disable CS0067 // The event is never used
         public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
+#pragma warning restore CS0067 // The event is never used
 
         public void Abort()
         {

@@ -1,6 +1,9 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 namespace CoreWCF.Security
 {
-   internal struct ReceiveSecurityHeaderEntry
+    internal struct ReceiveSecurityHeaderEntry
     {
         internal ReceiveSecurityHeaderElementCategory elementCategory;
         internal object element;
@@ -18,13 +21,13 @@ namespace CoreWCF.Security
         {
             if (doubleEncrypted)
             {
-                return (this.encryptedFormId == id || this.encryptedFormWsuId == id);
+                return (encryptedFormId == id || encryptedFormWsuId == id);
             }
             else
             {
                 if (requiresEncryptedFormId)
                 {
-                    return this.encryptedFormId == id;
+                    return encryptedFormId == id;
                 }
                 else
                 {
@@ -35,7 +38,7 @@ namespace CoreWCF.Security
 
         public void PreserveIdBeforeDecryption()
         {
-            this.encryptedFormId = this.id;
+            encryptedFormId = id;
         }
 
         public void SetElement(

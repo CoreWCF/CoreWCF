@@ -1,11 +1,14 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security;
-using CoreWCF.Security.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Xml;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
+using CoreWCF.Security.Tokens;
 using HexBinary = CoreWCF.Security.SoapHexBinary;
 using KeyIdentifierClauseEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.KeyIdentifierClauseEntry;
 using StrEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.StrEntry;
@@ -63,7 +66,7 @@ namespace CoreWCF.IdentityModel.Tokens
             internal const string EncodingTypeValueHexBinary = SecurityJan2004Strings.EncodingTypeValueHexBinary;
             internal static readonly XmlDictionaryString ValueTypeAttribute = CoreWCF.XD.SecurityJan2004Dictionary.ValueType;
 
-            private string[] _valueTypeUris = null;
+            private readonly string[] _valueTypeUris = null;
 
             protected BinaryTokenEntry(string valueTypeUri)
             {
@@ -321,7 +324,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 }
                 else if (encodingType == EncodingTypeValueHexBinary)
                 {
-                     bytes = HexBinary.Parse(reader.ReadContentAsString()).Value;
+                    bytes = HexBinary.Parse(reader.ReadContentAsString()).Value;
                 }
                 else if (encodingType == EncodingTypeValueText)
                 {
@@ -394,8 +397,8 @@ namespace CoreWCF.IdentityModel.Tokens
 
         protected class LocalReferenceStrEntry : StrEntry
         {
-            private bool _emitBspRequiredAttributes;
-            private KeyInfoSerializer _tokenSerializer;
+            private readonly bool _emitBspRequiredAttributes;
+            private readonly KeyInfoSerializer _tokenSerializer;
 
             public LocalReferenceStrEntry(bool emitBspRequiredAttributes, KeyInfoSerializer tokenSerializer)
             {

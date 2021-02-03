@@ -1,13 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Security;
-using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Runtime;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
-using System.Diagnostics;
-using System.Runtime.ExceptionServices;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
@@ -17,17 +19,12 @@ namespace CoreWCF.Dispatcher
         private InvokeDelegate _invokeDelegate;
         private int _inputParameterCount;
         private int _outputParameterCount;
-        private MethodInfo _taskTResultGetMethod;
-        private bool _isGenericTask;
+        private readonly MethodInfo _taskTResultGetMethod;
+        private readonly bool _isGenericTask;
 
         public TaskMethodInvoker(MethodInfo taskMethod, Type taskType)
         {
-            if (taskMethod == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(taskMethod));
-            }
-
-            TaskMethod = taskMethod;
+            TaskMethod = taskMethod ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(taskMethod));
 
             if (taskType != ServiceReflector.VoidType)
             {
@@ -61,9 +58,6 @@ namespace CoreWCF.Dispatcher
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoServiceObject));
             }
-
-            object returnVal = null;
-            object[] outputs = null;
             //bool callFailed = true;
             //bool callFaulted = false;
             //ServiceModelActivity activity = null;
@@ -76,14 +70,11 @@ namespace CoreWCF.Dispatcher
                 // This code would benefith from a rewrite to call TaskHelpers.ToApmEnd<Tuple<object, object[]>>
                 // When doing so make sure there is enought test coverage se PR comment at link below for a good starting point
                 // https://github.com/CoreWCF/CoreWCF/pull/54/files/8db6ff9ad6940a1056363defd1f6449adee56e1a#r333826132
-                var tupleResult = await InvokeAsyncCore(instance, inputs);
-                
+                (Task returnValue, object[] outputs) tupleResult = await InvokeAsyncCore(instance, inputs);
+
                 AggregateException ae = null;
-                Task task = null;
-
-                task = tupleResult.returnValue as Task;
-
-                if (task == null)
+                object[] outputs;
+                if (!(tupleResult.returnValue is Task task))
                 {
                     outputs = tupleResult.outputs;
                     return (null, outputs);
@@ -126,7 +117,7 @@ namespace CoreWCF.Dispatcher
 
                 outputs = tupleResult.outputs;
 
-                returnVal = _isGenericTask ? _taskTResultGetMethod.Invoke(task, Type.EmptyTypes) : null;
+                object returnVal = _isGenericTask ? _taskTResultGetMethod.Invoke(task, Type.EmptyTypes) : null;
                 //callFailed = false;
 
                 return (returnVal, outputs);
@@ -211,7 +202,7 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        var completionTask = returnValueTask.ContinueWith(antecedant =>
+                        Task<(Task returnValue, object[] outputs)> completionTask = returnValueTask.ContinueWith(antecedant =>
                         {
                             if (returnValueTask.IsFaulted)
                             {
@@ -227,7 +218,7 @@ namespace CoreWCF.Dispatcher
                     }
                     //await returnValueTask;
                 }
-                
+
                 // returnValue is null
                 return new ValueTask<(Task returnValue, object[] outputs)>((returnValueTask, outputs));
             }
@@ -245,15 +236,15 @@ namespace CoreWCF.Dispatcher
                 // Any exception above means InvokeEnd will not be called, so complete it here.
                 //if (callFailed || callFaulted)
                 //{
-                    //AsyncMethodInvoker.StopOperationInvokeTrace(callFailed, callFaulted, TaskMethod.Name);
-                    //AsyncMethodInvoker.StopOperationInvokePerformanceCounters(callFailed, callFaulted, TaskMethod.Name);
+                //AsyncMethodInvoker.StopOperationInvokeTrace(callFailed, callFaulted, TaskMethod.Name);
+                //AsyncMethodInvoker.StopOperationInvokePerformanceCounters(callFailed, callFaulted, TaskMethod.Name);
                 //}
             }
         }
 
         private Exception ConvertExceptionForFaultedTask(Task task)
         {
-            var exception = task.Exception.InnerException;
+            Exception exception = task.Exception.InnerException;
             //bool callFaulted;
             if (exception is SecurityException)
             {
@@ -280,9 +271,7 @@ namespace CoreWCF.Dispatcher
             {
                 // Only pass locals byref because InvokerUtil may store temporary results in the byref.
                 // If two threads both reference this.count, temporary results may interact.
-                int inputParameterCount;
-                int outputParameterCount;
-                InvokeDelegate invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(TaskMethod, out inputParameterCount, out outputParameterCount);
+                InvokeDelegate invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(TaskMethod, out int inputParameterCount, out int outputParameterCount);
                 _inputParameterCount = inputParameterCount;
                 _outputParameterCount = outputParameterCount;
                 _invokeDelegate = invokeDelegate;  // must set this last due to race

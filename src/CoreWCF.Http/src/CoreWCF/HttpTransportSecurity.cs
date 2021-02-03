@@ -1,53 +1,47 @@
-﻿using System;
-using System.ComponentModel;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Net;
 using System.Security.Authentication.ExtendedProtection;
 using CoreWCF.Channels;
-using CoreWCF.Security;
-using System.Net;
-using System.Net.Security;
 
 namespace CoreWCF
 {
     public sealed class HttpTransportSecurity
     {
         internal const HttpClientCredentialType DefaultClientCredentialType = HttpClientCredentialType.None;
-        internal const string DefaultRealm = CoreWCF.Channels.HttpTransportDefaults.Realm;
-
-        HttpClientCredentialType clientCredentialType;
-        string realm;
-        ExtendedProtectionPolicy extendedProtectionPolicy;
+        internal const string DefaultRealm = HttpTransportDefaults.Realm;
+        private HttpClientCredentialType _clientCredentialType;
+        private ExtendedProtectionPolicy _extendedProtectionPolicy;
 
         public HttpTransportSecurity()
         {
-            clientCredentialType = DefaultClientCredentialType;
-            realm = DefaultRealm;
-            extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
+            _clientCredentialType = DefaultClientCredentialType;
+            Realm = DefaultRealm;
+            _extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
 
         public HttpClientCredentialType ClientCredentialType
         {
-            get { return clientCredentialType; }
+            get { return _clientCredentialType; }
             set
             {
                 if (!HttpClientCredentialTypeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
-                clientCredentialType = value;
+                _clientCredentialType = value;
             }
         }
 
-        public string Realm
-        {
-            get { return realm; }
-            set { realm = value; }
-        }
+        public string Realm { get; set; }
 
         public ExtendedProtectionPolicy ExtendedProtectionPolicy
         {
             get
             {
-                return extendedProtectionPolicy;
+                return _extendedProtectionPolicy;
             }
             set
             {
@@ -57,13 +51,13 @@ namespace CoreWCF
                 }
 
                 if (value.PolicyEnforcement == PolicyEnforcement.Always &&
-                    !System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+                    !ExtendedProtectionPolicy.OSSupportsExtendedProtection)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                         new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported));
                 }
 
-                extendedProtectionPolicy = value;
+                _extendedProtectionPolicy = value;
             }
         }
 
@@ -73,21 +67,21 @@ namespace CoreWCF
             https.RequireClientCertificate = false;
         }
 
-        void ConfigureAuthentication(HttpTransportBindingElement http)
+        private void ConfigureAuthentication(HttpTransportBindingElement http)
         {
-            http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(clientCredentialType);
+            http.AuthenticationScheme = HttpClientCredentialTypeHelper.MapToAuthenticationScheme(_clientCredentialType);
             http.Realm = Realm;
-            http.ExtendedProtectionPolicy = extendedProtectionPolicy;
+            http.ExtendedProtectionPolicy = _extendedProtectionPolicy;
         }
 
-        static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
+        private static void ConfigureAuthentication(HttpTransportBindingElement http, HttpTransportSecurity transportSecurity)
         {
-            transportSecurity.clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
-            transportSecurity.realm = http.Realm;
-            transportSecurity.extendedProtectionPolicy = http.ExtendedProtectionPolicy;
+            transportSecurity._clientCredentialType = HttpClientCredentialTypeHelper.MapToClientCredentialType(http.AuthenticationScheme);
+            transportSecurity.Realm = http.Realm;
+            transportSecurity._extendedProtectionPolicy = http.ExtendedProtectionPolicy;
         }
 
-        void DisableAuthentication(HttpTransportBindingElement http)
+        private void DisableAuthentication(HttpTransportBindingElement http)
         {
             http.AuthenticationScheme = AuthenticationSchemes.Anonymous;
             http.Realm = DefaultRealm;
@@ -104,19 +98,21 @@ namespace CoreWCF
         internal void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https)
         {
             ConfigureAuthentication(https);
-            https.RequireClientCertificate = (clientCredentialType == HttpClientCredentialType.Certificate);
+            https.RequireClientCertificate = (_clientCredentialType == HttpClientCredentialType.Certificate);
         }
 
         internal static void ConfigureTransportProtectionAndAuthentication(HttpsTransportBindingElement https, HttpTransportSecurity transportSecurity)
         {
             ConfigureAuthentication(https, transportSecurity);
             if (https.RequireClientCertificate)
+            {
                 transportSecurity.ClientCredentialType = HttpClientCredentialType.Certificate;
+            }
         }
 
         internal void ConfigureTransportAuthentication(HttpTransportBindingElement http)
         {
-            if (clientCredentialType == HttpClientCredentialType.Certificate)
+            if (_clientCredentialType == HttpClientCredentialType.Certificate)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.CertificateUnsupportedForHttpTransportCredentialOnly));
             }

@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
 using System.Text;
@@ -11,16 +14,15 @@ namespace CoreWCF.Security.Tokens
     public class SspiSecurityTokenParameters : SecurityTokenParameters
     {
         internal const bool defaultRequireCancellation = false;
-        private bool requireCancellation = defaultRequireCancellation;
-        private BindingContext issuerBindingContext;
-        
+        private BindingContext _issuerBindingContext;
+
         protected SspiSecurityTokenParameters(SspiSecurityTokenParameters other)
             : base(other)
         {
-            this.requireCancellation = other.requireCancellation;
-            if (other.issuerBindingContext != null)
+            RequireCancellation = other.RequireCancellation;
+            if (other._issuerBindingContext != null)
             {
-                this.issuerBindingContext = other.issuerBindingContext.Clone();
+                _issuerBindingContext = other._issuerBindingContext.Clone();
             }
         }
 
@@ -34,28 +36,18 @@ namespace CoreWCF.Security.Tokens
         public SspiSecurityTokenParameters(bool requireCancellation)
             : base()
         {
-            this.requireCancellation = requireCancellation;
+            RequireCancellation = requireCancellation;
         }
 
-        internal protected override bool HasAsymmetricKey { get { return false; } }
+        protected internal override bool HasAsymmetricKey { get { return false; } }
 
-        public bool RequireCancellation
-        {
-            get
-            {
-                return this.requireCancellation;
-            }
-            set
-            {
-                this.requireCancellation = value;
-            }
-        }
+        public bool RequireCancellation { get; set; } = defaultRequireCancellation;
 
         internal BindingContext IssuerBindingContext
         {
             get
             {
-                return this.issuerBindingContext;
+                return _issuerBindingContext;
             }
             set
             {
@@ -63,25 +55,29 @@ namespace CoreWCF.Security.Tokens
                 {
                     value = value.Clone();
                 }
-                this.issuerBindingContext = value;
+                _issuerBindingContext = value;
             }
         }
 
-        internal protected override bool SupportsClientAuthentication { get { return true; } }
-        internal protected override bool SupportsServerAuthentication { get { return true; } }
-        internal protected override bool SupportsClientWindowsIdentity { get { return true; } }
+        protected internal override bool SupportsClientAuthentication { get { return true; } }
+        protected internal override bool SupportsServerAuthentication { get { return true; } }
+        protected internal override bool SupportsClientWindowsIdentity { get { return true; } }
 
         protected override SecurityTokenParameters CloneCore()
         {
             return new SspiSecurityTokenParameters(this);
         }
 
-        internal protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        protected internal override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
         {
             if (token is GenericXmlSecurityToken)
-                return base.CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+            {
+                return CreateGenericXmlTokenKeyIdentifierClause(token, referenceStyle);
+            }
             else
-                return this.CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+            {
+                return CreateKeyIdentifierClause<SecurityContextKeyIdentifierClause, LocalIdKeyIdentifierClause>(token, referenceStyle);
+            }
         }
 
         protected internal override void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
@@ -89,12 +85,12 @@ namespace CoreWCF.Security.Tokens
             requirement.TokenType = ServiceModelSecurityTokenTypes.Spnego;
             requirement.RequireCryptographicToken = true;
             requirement.KeyType = SecurityKeyType.SymmetricKey;
-            requirement.Properties[ServiceModelSecurityTokenRequirement.SupportSecurityContextCancellationProperty] = this.RequireCancellation;
-            if (this.IssuerBindingContext != null)
+            requirement.Properties[ServiceModelSecurityTokenRequirement.SupportSecurityContextCancellationProperty] = RequireCancellation;
+            if (IssuerBindingContext != null)
             {
-                requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty] = this.IssuerBindingContext.Clone();
+                requirement.Properties[ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty] = IssuerBindingContext.Clone();
             }
-            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = this.Clone();
+            requirement.Properties[ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty] = Clone();
         }
 
         public override string ToString()
@@ -102,7 +98,7 @@ namespace CoreWCF.Security.Tokens
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.Append(String.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", this.RequireCancellation.ToString()));
+            sb.Append(string.Format(CultureInfo.InvariantCulture, "RequireCancellation: {0}", RequireCancellation.ToString()));
 
             return sb.ToString();
         }

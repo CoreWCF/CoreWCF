@@ -1,10 +1,13 @@
-﻿using CoreWCF.Channels;
-using Helpers;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Channels;
+using Helpers;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -46,7 +49,7 @@ namespace CoreWCF.Primitives.Tests
 
                 Assert.False(bad > 0, $"Messages not equal! Failure!({bad} bad ones, {good} good ones.)");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Assert.True(false, $"Exception caught: {ex.Message} More information: {bad} bad ones, {good} good ones.");
             }

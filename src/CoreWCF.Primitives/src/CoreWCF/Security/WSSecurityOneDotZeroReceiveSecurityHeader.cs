@@ -1,3 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel;
@@ -5,15 +14,6 @@ using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
-using System.Security.Policy;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace CoreWCF.Security
 {
@@ -47,12 +47,12 @@ namespace CoreWCF.Security
 
         protected override bool IsReaderAtEncryptedKey(XmlDictionaryReader reader)
         {
-            return reader.IsStartElement(CoreWCF.XD.XmlEncryptionDictionary.EncryptedKey, CoreWCF.XD.XmlEncryptionDictionary.Namespace);
+            return reader.IsStartElement(XD.XmlEncryptionDictionary.EncryptedKey, XD.XmlEncryptionDictionary.Namespace);
         }
 
         protected override bool IsReaderAtEncryptedData(XmlDictionaryReader reader)
         {
-            bool encrypted = reader.IsStartElement(CoreWCF.XD.XmlEncryptionDictionary.EncryptedData, CoreWCF.XD.XmlEncryptionDictionary.Namespace);
+            bool encrypted = reader.IsStartElement(XD.XmlEncryptionDictionary.EncryptedData, XD.XmlEncryptionDictionary.Namespace);
 
             if (encrypted == true)
             {
@@ -114,16 +114,19 @@ namespace CoreWCF.Security
             {
                 writer.WriteStartDocument();
                 writer.WriteStartElement(SIGNED_XML_HEADER);
-                MessageHeaders headers = this.Message.Headers;
+                MessageHeaders headers = Message.Headers;
                 for (int i = 0; i < headers.Count; i++)
+                {
                     headers.WriteHeader(i, writer);
+                }
+
                 writer.WriteEndElement();
                 writer.WriteEndDocument();
             }
             SignedXMLInternal signedXml = new SignedXMLInternal(doc);
             XmlNodeList nodeList = doc.GetElementsByTagName("Signature");
             signedXml.LoadXml((XmlElement)nodeList[0]);
-            using(XmlReader tempReader = signatureReader.ReadSubtree())
+            using (XmlReader tempReader = signatureReader.ReadSubtree())
             {
                 tempReader.Read();//move the reader to next
             }
@@ -133,15 +136,17 @@ namespace CoreWCF.Security
         protected override SecurityToken VerifySignature(SignedXml signedXml, bool isPrimarySignature, SecurityHeaderTokenResolver resolver, object signatureTarget, string id)
         {
             SecurityKeyIdentifier securityKeyIdentifier = null;
-            String keyInfoString = signedXml.Signature.KeyInfo.GetXml().OuterXml;
+            string keyInfoString = signedXml.Signature.KeyInfo.GetXml().OuterXml;
             using (var strReader = new StringReader(keyInfoString))
             {
                 XmlReader xmlReader = XmlReader.Create(strReader);
-                securityKeyIdentifier =  this.StandardsManager.SecurityTokenSerializer.ReadKeyIdentifier(xmlReader);
-
+                securityKeyIdentifier = StandardsManager.SecurityTokenSerializer.ReadKeyIdentifier(xmlReader);
             }
             if (securityKeyIdentifier == null)
+            {
                 throw new Exception("SecurityKeyIdentifier is missing");
+            }
+
             SecurityToken token = ResolveSignatureToken(securityKeyIdentifier, resolver, isPrimarySignature);
             if (isPrimarySignature)
             {
@@ -154,14 +159,14 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
                     SR.Format(SR.UnableToCreateICryptoFromTokenForSignatureVerification, token)));
             }
-           // signedXml.SigningKey = securityKey;
-         
-           // signedXml.StartSignatureVerification(securityKey);
-           // StandardSignedInfo signedInfo = (StandardSignedInfo)signedXml.Signature.SignedInfo;
+            // signedXml.SigningKey = securityKey;
 
-           // ValidateDigestsOfTargetsInSecurityHeader(signedInfo, this.Timestamp, isPrimarySignature, signatureTarget, id);
+            // signedXml.StartSignatureVerification(securityKey);
+            // StandardSignedInfo signedInfo = (StandardSignedInfo)signedXml.Signature.SignedInfo;
 
-            if (!isPrimarySignature)        
+            // ValidateDigestsOfTargetsInSecurityHeader(signedInfo, this.Timestamp, isPrimarySignature, signatureTarget, id);
+
+            if (!isPrimarySignature)
             {
                 //TODO securityKey is AsymmetricSecurityKey
                 //if ((!this.RequireMessageProtection) && (securityKey is AsymmetricSecurityKey) && (this.Version.Addressing != AddressingVersion.None))
@@ -198,16 +203,12 @@ namespace CoreWCF.Security
                 // signedXml.CompleteSignatureVerification();
 
                 SecurityAlgorithmSuite suite = AlgorithmSuite;
-                this.AlgorithmSuite.EnsureAcceptableSignatureKeySize(securityKey, token);
-                this.AlgorithmSuite.EnsureAcceptableSignatureAlgorithm(securityKey, signedXml.Signature.SignedInfo.SignatureMethod);
+                AlgorithmSuite.EnsureAcceptableSignatureKeySize(securityKey, token);
+                AlgorithmSuite.EnsureAcceptableSignatureAlgorithm(securityKey, signedXml.Signature.SignedInfo.SignatureMethod);
                 string canonicalizationAlgorithm = suite.DefaultCanonicalizationAlgorithm;
-                string signatureAlgorithm;
-                XmlDictionaryString signatureAlgorithmDictionaryString;
-                SecurityKey signatureKey;
-                suite.GetSignatureAlgorithmAndKey(token, out signatureAlgorithm, out signatureKey, out signatureAlgorithmDictionaryString);
-                AsymmetricAlgorithm asymmetricAlgorithm  ;
-                GetSigningAlgorithm(signatureKey, signatureAlgorithm, out _signingKey, out asymmetricAlgorithm);
-                if(_signingKey != null)
+                suite.GetSignatureAlgorithmAndKey(token, out string signatureAlgorithm, out SecurityKey signatureKey, out XmlDictionaryString signatureAlgorithmDictionaryString);
+                GetSigningAlgorithm(signatureKey, signatureAlgorithm, out _signingKey, out AsymmetricAlgorithm asymmetricAlgorithm);
+                if (_signingKey != null)
                 {
                     if (!signedXml.CheckSignature(_signingKey))
                     {
@@ -221,10 +222,8 @@ namespace CoreWCF.Security
                         throw new Exception("Signature not valid.");
                     }
                 }
-               
-                
             }
-           // this.pendingSignature = signedXml;
+            // this.pendingSignature = signedXml;
 
             //if (TD.SignatureVerificationSuccessIsEnabled())
             //{
@@ -238,8 +237,7 @@ namespace CoreWCF.Security
         {
             symmetricAlgorithm = null;
             asymmetricAlgorithm = null;
-            SymmetricSecurityKey symmetricKey = signatureKey as SymmetricSecurityKey;
-            if (symmetricKey != null)
+            if (signatureKey is SymmetricSecurityKey symmetricKey)
             {
                 _signingKey = symmetricKey.GetKeyedHashAlgorithm(algorithmName);
                 if (_signingKey == null)
@@ -250,43 +248,39 @@ namespace CoreWCF.Security
             }
             else
             {
-                AsymmetricSecurityKey asymmetricKey = signatureKey as AsymmetricSecurityKey;
-                if (asymmetricKey == null)
+                if (!(signatureKey is AsymmetricSecurityKey asymmetricKey))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                         SR.Format(SR.UnknownICryptoType, _signingKey)));
                 }
 
                 //On server we validate using Public Key.... (check with Matt)
-                asymmetricAlgorithm = asymmetricKey.GetAsymmetricAlgorithm(algorithmName,false); 
+                asymmetricAlgorithm = asymmetricKey.GetAsymmetricAlgorithm(algorithmName, false);
                 if (asymmetricAlgorithm == null)
-                { 
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-                        SR.Format(SR.UnableToCreateKeyedHashAlgorithm   , algorithmName,
+                        SR.Format(SR.UnableToCreateKeyedHashAlgorithm, algorithmName,
                             asymmetricKey)));
                 }
             }
         }
 
-        SecurityToken ResolveSignatureToken(SecurityKeyIdentifier keyIdentifier, SecurityTokenResolver resolver, bool isPrimarySignature)
+        private SecurityToken ResolveSignatureToken(SecurityKeyIdentifier keyIdentifier, SecurityTokenResolver resolver, bool isPrimarySignature)
         {
-            SecurityToken token = null;
-            TryResolveKeyIdentifier(keyIdentifier, resolver, true, out token);
+            TryResolveKeyIdentifier(keyIdentifier, resolver, true, out SecurityToken token);
             if (token == null && !isPrimarySignature)
             {
                 // check if there is a rsa key token authenticator
                 if (keyIdentifier.Count == 1)
                 {
-                    RsaKeyIdentifierClause rsaClause;
-                    if (keyIdentifier.TryFind<RsaKeyIdentifierClause>(out rsaClause))
+                    if (keyIdentifier.TryFind<RsaKeyIdentifierClause>(out RsaKeyIdentifierClause rsaClause))
                     {
                         RsaSecurityTokenAuthenticator rsaAuthenticator = FindAllowedAuthenticator<RsaSecurityTokenAuthenticator>(false);
                         if (rsaAuthenticator != null)
                         {
                             token = new RsaSecurityToken(rsaClause.Rsa);
                             ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = rsaAuthenticator.ValidateToken(token);
-                            SupportingTokenAuthenticatorSpecification spec;
-                            TokenTracker rsaTracker = GetSupportingTokenTracker(rsaAuthenticator, out spec);
+                            TokenTracker rsaTracker = GetSupportingTokenTracker(rsaAuthenticator, out SupportingTokenAuthenticatorSpecification spec);
                             if (rsaTracker == null)
                             {
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.UnknownTokenAuthenticatorUsedInTokenProcessing, rsaAuthenticator)));
@@ -326,5 +320,4 @@ namespace CoreWCF.Security
             throw new NotImplementedException();
         }
     }
-
 }

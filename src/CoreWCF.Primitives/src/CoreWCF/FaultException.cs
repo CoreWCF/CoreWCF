@@ -1,9 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
@@ -15,11 +18,10 @@ namespace CoreWCF
     public class FaultException : CommunicationException
     {
         internal const string Namespace = "http://schemas.xmlsoap.org/Microsoft/WindowsCommunicationFoundation/2005/08/Faults/";
-
-        string _action;
-        FaultCode _code;
-        FaultReason _reason;
-        MessageFault _fault;
+        private readonly string _action;
+        private readonly FaultCode _code;
+        private readonly FaultReason _reason;
+        private readonly MessageFault _fault;
 
         public FaultException()
             : base(SR.SFxFaultReason)
@@ -92,7 +94,9 @@ namespace CoreWCF
             : base(GetSafeReasonText(GetReason(fault)))
         {
             if (fault == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
+            }
 
             _code = EnsureCode(fault.Code);
             _reason = EnsureReason(fault.Reason);
@@ -103,7 +107,9 @@ namespace CoreWCF
             : base(GetSafeReasonText(GetReason(fault)))
         {
             if (fault == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("fault");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
+            }
 
             _code = fault.Code;
             _reason = fault.Reason;
@@ -130,12 +136,12 @@ namespace CoreWCF
             get { return _code; }
         }
 
-        static FaultReason DefaultReason
+        private static FaultReason DefaultReason
         {
             get { return new FaultReason(SR.SFxFaultReason); }
         }
 
-        static FaultCode DefaultCode
+        private static FaultCode DefaultCode
         {
             get { return new FaultCode("Sender"); }
         }
@@ -165,7 +171,7 @@ namespace CoreWCF
             info.AddValue(key, FaultReasonData.GetObjectData(reason));
         }
 
-        static FaultCode CreateCode(string code)
+        private static FaultCode CreateCode(string code)
         {
             return (code != null) ? new FaultCode(code) : DefaultCode;
         }
@@ -179,12 +185,12 @@ namespace CoreWCF
         {
             if (messageFault == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("messageFault");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageFault));
             }
 
             if (faultDetailTypes == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("faultDetailTypes");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultDetailTypes));
             }
             var faultFormatter = new DataContractSerializerFaultFormatter(faultDetailTypes);
             return faultFormatter.Deserialize(messageFault, action);
@@ -202,7 +208,7 @@ namespace CoreWCF
             }
         }
 
-        static FaultReason CreateReason(string reason)
+        private static FaultReason CreateReason(string reason)
         {
             return (reason != null) ? new FaultReason(reason) : DefaultReason;
         }
@@ -216,7 +222,7 @@ namespace CoreWCF
             info.AddValue("action", _action);
         }
 
-        static FaultReason GetReason(MessageFault fault)
+        private static FaultReason GetReason(MessageFault fault)
         {
             if (fault == null)
             {
@@ -228,7 +234,9 @@ namespace CoreWCF
         internal static string GetSafeReasonText(MessageFault messageFault)
         {
             if (messageFault == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageFault));
+            }
 
             return GetSafeReasonText(messageFault.Reason);
         }
@@ -236,7 +244,9 @@ namespace CoreWCF
         internal static string GetSafeReasonText(FaultReason reason)
         {
             if (reason == null)
+            {
                 return SR.SFxUnknownFaultNullReason0;
+            }
 
             try
             {
@@ -255,14 +265,14 @@ namespace CoreWCF
             }
         }
 
-        static FaultCode EnsureCode(FaultCode code)
+        private static FaultCode EnsureCode(FaultCode code)
         {
-            return (code != null) ? code : DefaultCode;
+            return code ?? DefaultCode;
         }
 
-        static FaultReason EnsureReason(FaultReason reason)
+        private static FaultReason EnsureReason(FaultReason reason)
         {
-            return (reason != null) ? reason : DefaultReason;
+            return reason ?? DefaultReason;
         }
 
         internal FaultCode ReconstructFaultCode(SerializationInfo info, string key)
@@ -281,8 +291,8 @@ namespace CoreWCF
         internal class FaultCodeData
         {
 #pragma warning disable IDE1006 // Naming Styles - class is Serializable so can't change field names
-            string name;
-            string ns;
+            private string _name;
+            private string _ns;
 #pragma warning restore IDE1006 // Naming Styles
 
             internal static FaultCode Construct(FaultCodeData[] nodes)
@@ -291,7 +301,7 @@ namespace CoreWCF
 
                 for (int i = nodes.Length - 1; i >= 0; i--)
                 {
-                    code = new FaultCode(nodes[i].name, nodes[i].ns, code);
+                    code = new FaultCode(nodes[i]._name, nodes[i]._ns, code);
                 }
 
                 return code;
@@ -303,9 +313,11 @@ namespace CoreWCF
 
                 for (int i = 0; i < array.Length; i++)
                 {
-                    array[i] = new FaultCodeData();
-                    array[i].name = code.Name;
-                    array[i].ns = code.Namespace;
+                    array[i] = new FaultCodeData
+                    {
+                        _name = code.Name,
+                        _ns = code.Namespace
+                    };
                     code = code.SubCode;
                 }
 
@@ -316,7 +328,7 @@ namespace CoreWCF
                 return array;
             }
 
-            static int GetDepth(FaultCode code)
+            private static int GetDepth(FaultCode code)
             {
                 int depth = 0;
 
@@ -334,8 +346,8 @@ namespace CoreWCF
         internal class FaultReasonData
         {
 #pragma warning disable IDE1006 // Naming Styles - class is Serializable so can't change field names
-            string xmlLang;
-            string text;
+            private string _xmlLang;
+            private string _text;
 #pragma warning restore IDE1006 // Naming Styles
 
             internal static FaultReason Construct(FaultReasonData[] nodes)
@@ -344,7 +356,7 @@ namespace CoreWCF
 
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    reasons[i] = new FaultReasonText(nodes[i].text, nodes[i].xmlLang);
+                    reasons[i] = new FaultReasonText(nodes[i]._text, nodes[i]._xmlLang);
                 }
 
                 return new FaultReason(reasons);
@@ -357,9 +369,11 @@ namespace CoreWCF
 
                 for (int i = 0; i < translations.Count; i++)
                 {
-                    array[i] = new FaultReasonData();
-                    array[i].xmlLang = translations[i].XmlLang;
-                    array[i].text = translations[i].Text;
+                    array[i] = new FaultReasonData
+                    {
+                        _xmlLang = translations[i].XmlLang,
+                        _text = translations[i].Text
+                    };
                 }
 
                 return array;

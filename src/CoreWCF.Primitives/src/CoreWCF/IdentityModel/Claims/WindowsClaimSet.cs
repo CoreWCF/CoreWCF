@@ -1,20 +1,22 @@
-﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Claims
 {
     internal class WindowsClaimSet : ClaimSet, IIdentityInfo, IDisposable
     {
         internal const bool DefaultIncludeWindowsGroups = true;
-        private WindowsIdentity _windowsIdentity;
-        private DateTime _expirationTime;
-        private bool _includeWindowsGroups;
+        private readonly WindowsIdentity _windowsIdentity;
+        private readonly bool _includeWindowsGroups;
         private IList<Claim> _claims;
         private bool _disposed = false;
-        private string _authenticationType;
+        private readonly string _authenticationType;
 
         public WindowsClaimSet(WindowsIdentity windowsIdentity)
             : this(windowsIdentity, DefaultIncludeWindowsGroups)
@@ -49,16 +51,18 @@ namespace CoreWCF.IdentityModel.Claims
         internal WindowsClaimSet(WindowsIdentity windowsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone)
         {
             if (windowsIdentity == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
+            }
 
-            _windowsIdentity = clone ? CoreWCF.Security.SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
+            _windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
             _includeWindowsGroups = includeWindowsGroups;
-            _expirationTime = expirationTime;
+            ExpirationTime = expirationTime;
             _authenticationType = authenticationType;
         }
 
         private WindowsClaimSet(WindowsClaimSet from)
-            : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from._expirationTime, true)
+            : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from.ExpirationTime, true)
         {
         }
 
@@ -102,13 +106,10 @@ namespace CoreWCF.IdentityModel.Claims
 
         public override ClaimSet Issuer
         {
-            get { return ClaimSet.Windows; }
+            get { return Windows; }
         }
 
-        public DateTime ExpirationTime
-        {
-            get { return _expirationTime; }
-        }
+        public DateTime ExpirationTime { get; }
 
         internal WindowsClaimSet Clone()
         {
@@ -128,12 +129,15 @@ namespace CoreWCF.IdentityModel.Claims
         private IList<Claim> InitializeClaimsCore()
         {
             if (_windowsIdentity.AccessToken == null)
+            {
                 return new List<Claim>();
+            }
 
-            List<Claim> claims = new List<Claim>(3);
-            claims.Add(new Claim(ClaimTypes.Sid, _windowsIdentity.User, Rights.Identity));
-            Claim claim;
-            if (TryCreateWindowsSidClaim(_windowsIdentity, out claim))
+            List<Claim> claims = new List<Claim>(3)
+            {
+                new Claim(ClaimTypes.Sid, _windowsIdentity.User, Rights.Identity)
+            };
+            if (TryCreateWindowsSidClaim(_windowsIdentity, out Claim claim))
             {
                 claims.Add(claim);
             }
@@ -148,7 +152,9 @@ namespace CoreWCF.IdentityModel.Claims
         private void EnsureClaims()
         {
             if (_claims != null)
+            {
                 return;
+            }
 
             _claims = InitializeClaimsCore();
         }
@@ -173,7 +179,7 @@ namespace CoreWCF.IdentityModel.Claims
         public override IEnumerable<Claim> FindClaims(string claimType, string right)
         {
             ThrowIfDisposed();
-            if (!SupportedClaimType(claimType) || !ClaimSet.SupportedRight(right))
+            if (!SupportedClaimType(claimType) || !SupportedRight(right))
             {
                 yield break;
             }
@@ -189,8 +195,7 @@ namespace CoreWCF.IdentityModel.Claims
 
                 if (right == null || Rights.PossessProperty == right)
                 {
-                    Claim sid;
-                    if (TryCreateWindowsSidClaim(_windowsIdentity, out sid))
+                    if (TryCreateWindowsSidClaim(_windowsIdentity, out Claim sid))
                     {
                         if (claimType == sid.ClaimType)
                         {
@@ -242,5 +247,4 @@ namespace CoreWCF.IdentityModel.Claims
             throw new PlatformNotSupportedException("CreateWindowsSidClaim is not yet supported");
         }
     }
-
 }

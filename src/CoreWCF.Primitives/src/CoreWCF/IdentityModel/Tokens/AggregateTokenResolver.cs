@@ -1,8 +1,9 @@
-﻿
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CoreWCF.IdentityModel.Selectors;
-using CoreWCF;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
@@ -12,7 +13,7 @@ namespace CoreWCF.IdentityModel.Tokens
     /// </summary>
     internal class AggregateTokenResolver : SecurityTokenResolver
     {
-        private List<SecurityTokenResolver> _tokenResolvers = new List<SecurityTokenResolver>();
+        private readonly List<SecurityTokenResolver> _tokenResolvers = new List<SecurityTokenResolver>();
 
         /// <summary>
         /// Initializes an instance of <see cref="AggregateTokenResolver"/>
@@ -127,7 +128,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             foreach (SecurityTokenResolver resolver in resolvers)
             {
-                if (resolver != null ) // && resolver != EmptySecurityTokenResolver.Instance)
+                if (resolver != null) // && resolver != EmptySecurityTokenResolver.Instance)
                 {
                     _tokenResolvers.Add(resolver);
                 }

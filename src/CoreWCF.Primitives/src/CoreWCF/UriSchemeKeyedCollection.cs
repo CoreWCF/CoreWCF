@@ -1,5 +1,8 @@
-﻿using CoreWCF.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using CoreWCF.Collections.Generic;
 
 namespace CoreWCF
 {
@@ -13,7 +16,9 @@ namespace CoreWCF
         public UriSchemeKeyedCollection(params Uri[] addresses)
         {
             if (addresses == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addresses));
+            }
 
             for (int i = 0; i < addresses.Length; i++)
             {
@@ -30,7 +35,9 @@ namespace CoreWCF
         {
             ValidateBaseAddress(item, "item");
             if (Contains(item.Scheme))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(item), SR.Format(SR.BaseAddressDuplicateScheme, item.Scheme));
+            }
 
             base.InsertItem(index, item);
         }
@@ -41,7 +48,9 @@ namespace CoreWCF
             if (this[index].Scheme != item.Scheme)
             {
                 if (Contains(item.Scheme))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(item), SR.Format(SR.BaseAddressDuplicateScheme, item.Scheme));
+                }
             }
             base.SetItem(index, item);
         }

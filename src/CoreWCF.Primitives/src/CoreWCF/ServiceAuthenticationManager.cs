@@ -1,11 +1,13 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Security;
-using CoreWCF.Security.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using CoreWCF.Channels;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Security;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF
 {
@@ -19,16 +21,11 @@ namespace CoreWCF
 
     internal class SCTServiceAuthenticationManagerWrapper : ServiceAuthenticationManager
     {
-        private ServiceAuthenticationManager wrappedAuthenticationManager;
+        private readonly ServiceAuthenticationManager _wrappedAuthenticationManager;
 
         internal SCTServiceAuthenticationManagerWrapper(ServiceAuthenticationManager wrappedServiceAuthManager)
         {
-            if (wrappedServiceAuthManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappedServiceAuthManager");
-            }
-
-            this.wrappedAuthenticationManager = wrappedServiceAuthManager;
+            _wrappedAuthenticationManager = wrappedServiceAuthManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappedServiceAuthManager));
         }
 
         public override ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
@@ -48,32 +45,27 @@ namespace CoreWCF
                 authPolicy = authPolicies.AsReadOnly();
             }
 
-            return this.wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
+            return _wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
         }
     }
 
     internal class ServiceAuthenticationManagerWrapper : ServiceAuthenticationManager
     {
-        ServiceAuthenticationManager wrappedAuthenticationManager;
-        string[] filteredActionUriCollection;
+        private readonly ServiceAuthenticationManager _wrappedAuthenticationManager;
+        private readonly string[] _filteredActionUriCollection;
 
         internal ServiceAuthenticationManagerWrapper(ServiceAuthenticationManager wrappedServiceAuthManager, string[] actionUriFilter)
         {
-            if (wrappedServiceAuthManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("wrappedServiceAuthManager");
-            }
-
             if ((actionUriFilter != null) && (actionUriFilter.Length > 0))
             {
-                this.filteredActionUriCollection = new string[actionUriFilter.Length];
+                _filteredActionUriCollection = new string[actionUriFilter.Length];
                 for (int i = 0; i < actionUriFilter.Length; ++i)
                 {
-                    this.filteredActionUriCollection[i] = actionUriFilter[i];
+                    _filteredActionUriCollection[i] = actionUriFilter[i];
                 }
             }
 
-            this.wrappedAuthenticationManager = wrappedServiceAuthManager;
+            _wrappedAuthenticationManager = wrappedServiceAuthManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappedServiceAuthManager));
         }
 
         public override ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
@@ -83,21 +75,21 @@ namespace CoreWCF
                 return authPolicy;
             }
 
-            if (this.filteredActionUriCollection != null)
+            if (_filteredActionUriCollection != null)
             {
-                for (int i = 0; i < this.filteredActionUriCollection.Length; ++i)
+                for (int i = 0; i < _filteredActionUriCollection.Length; ++i)
                 {
                     if ((message != null) &&
                         (message.Headers != null) &&
-                        !String.IsNullOrEmpty(message.Headers.Action) &&
-                        (message.Headers.Action == this.filteredActionUriCollection[i]))
+                        !string.IsNullOrEmpty(message.Headers.Action) &&
+                        (message.Headers.Action == _filteredActionUriCollection[i]))
                     {
                         return authPolicy;
                     }
                 }
             }
 
-            return this.wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
+            return _wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
         }
 
         //
@@ -106,7 +98,7 @@ namespace CoreWCF
         // Authentication again. If TransportToken was present then we would call ServiceAutenticationManager as 
         // TransportTokens are not authenticated during SCT issuance.
         //
-        bool CanSkipAuthentication(Message message)
+        private bool CanSkipAuthentication(Message message)
         {
             if ((message != null) && (message.Properties != null) && (message.Properties.Security != null) && (message.Properties.Security.TransportToken == null))
             {

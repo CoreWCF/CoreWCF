@@ -1,11 +1,14 @@
-﻿using CoreWCF.IdentityModel.Claims;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Text;
+using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
-    class MyTestServiceAuthorizationManager : ServiceAuthorizationManager
+    internal class MyTestServiceAuthorizationManager : ServiceAuthorizationManager
     {
         protected override bool CheckAccessCore(OperationContext operationContext)
         {
@@ -23,9 +26,12 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
                     {
                         // If the Claim resource matches the action URI then return true to allow access.
                         if (action == c.Resource.ToString())
+                        {
                             return true;
+                        }
                     }
-                }else if(cs.Issuer == ClaimSet.Windows)
+                }
+                else if (cs.Issuer == ClaimSet.Windows)
                 {
                     isWIndowIdentity = true; // unconditionally for windows
                 }

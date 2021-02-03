@@ -1,8 +1,10 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
 using System.Text;
 using CoreWCF.Configuration;
-using CoreWCF.Description;
 
 namespace CoreWCF.Channels
 {
@@ -63,13 +65,13 @@ namespace CoreWCF.Channels
         public IServiceDispatcher BuildNextServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher)
     where TChannel : class, IChannel
         {
-            return this.RemoveNextElement().BuildServiceDispatcher<TChannel>(this, innerDispatcher);
+            return RemoveNextElement().BuildServiceDispatcher<TChannel>(this, innerDispatcher);
         }
 
         public bool CanBuildNextServiceDispatcher<TChannel>()
     where TChannel : class, IChannel
         {
-            BindingContext clone = this.Clone();
+            BindingContext clone = Clone();
             return clone.RemoveNextElement().CanBuildServiceDispatcher<TChannel>(clone);
         }
 
@@ -96,7 +98,10 @@ namespace CoreWCF.Channels
         {
             BindingElement element = RemainingBindingElements.Remove<BindingElement>();
             if (element != null)
+            {
                 return element;
+            }
+
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
                 SR.NoChannelBuilderAvailable, Binding.Name, Binding.Namespace)));
         }

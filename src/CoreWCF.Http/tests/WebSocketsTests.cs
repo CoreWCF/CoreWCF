@@ -1,11 +1,14 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.ServiceModel.Channels;
+using CoreWCF;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.ServiceModel.Channels;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +18,7 @@ namespace NetHttp
     {
         private const string NetHttpServiceBaseUri = "http://localhost:8080";
         private const string NetHttpBufferedServiceUri = NetHttpServiceBaseUri + Startup.BufferedPath;
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public WebSocketsTests(ITestOutputHelper output)
         {
@@ -26,7 +29,7 @@ namespace NetHttp
         public void NetHttpWebSocketsBufferedTransferMode()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -34,12 +37,12 @@ namespace NetHttp
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeWebSocketBinding();
+                    System.ServiceModel.NetHttpBinding binding = ClientHelper.GetBufferedModeWebSocketBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(binding,
                         new System.ServiceModel.EndpointAddress(new Uri(NetHttpBufferedServiceUri)));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoString(testString);
+                    string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();

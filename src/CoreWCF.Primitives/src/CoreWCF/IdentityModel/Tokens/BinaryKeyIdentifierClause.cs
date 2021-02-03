@@ -1,5 +1,8 @@
-﻿using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using CoreWCF.Security;
 using HexBinary = CoreWCF.Security.SoapHexBinary;
 
 namespace CoreWCF.IdentityModel.Tokens
@@ -74,6 +77,5 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             return new HexBinary(_identificationData).ToString();
         }
-
     }
 }

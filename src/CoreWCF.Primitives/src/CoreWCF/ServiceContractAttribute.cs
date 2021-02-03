@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Description;
 
 namespace CoreWCF
@@ -6,11 +9,10 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract, Inherited = false, AllowMultiple = false)]
     public sealed class ServiceContractAttribute : Attribute
     {
-        Type _callbackContract;
-        string _configurationName;
-        string _name;
-        string _ns;
-        SessionMode _sessionMode;
+        private string _configurationName;
+        private string _name;
+        private string _ns;
+        private SessionMode _sessionMode;
 
         public string ConfigurationName
         {
@@ -54,7 +56,10 @@ namespace CoreWCF
             set
             {
                 if (!string.IsNullOrEmpty(value))
+                {
                     NamingHelper.CheckUriProperty(value, "Namespace");
+                }
+
                 _ns = value;
             }
         }
@@ -73,11 +78,6 @@ namespace CoreWCF
             }
         }
 
-        public Type CallbackContract
-        {
-            get { return _callbackContract; }
-            set { _callbackContract = value; }
-        }
-
+        public Type CallbackContract { get; set; }
     }
 }

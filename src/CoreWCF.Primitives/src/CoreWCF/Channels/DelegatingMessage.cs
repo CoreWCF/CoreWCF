@@ -1,87 +1,81 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Xml;
 
 namespace CoreWCF.Channels
 {
     internal abstract class DelegatingMessage : Message
     {
-        private Message innerMessage;
-
         protected DelegatingMessage(Message innerMessage)
         {
-            if (innerMessage == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("innerMessage");
-            }
-            this.innerMessage = innerMessage;
+            InnerMessage = innerMessage ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerMessage));
         }
 
         public override bool IsEmpty
         {
             get
             {
-                return this.innerMessage.IsEmpty;
+                return InnerMessage.IsEmpty;
             }
         }
 
         public override bool IsFault
         {
-            get { return this.innerMessage.IsFault; }
+            get { return InnerMessage.IsFault; }
         }
 
         public override MessageHeaders Headers
         {
-            get { return this.innerMessage.Headers; }
+            get { return InnerMessage.Headers; }
         }
 
         public override MessageProperties Properties
         {
-            get { return this.innerMessage.Properties; }
+            get { return InnerMessage.Properties; }
         }
 
         public override MessageVersion Version
         {
-            get { return this.innerMessage.Version; }
+            get { return InnerMessage.Version; }
         }
 
-        protected Message InnerMessage
-        {
-            get { return this.innerMessage; }
-        }
+        protected Message InnerMessage { get; }
 
         protected override void OnClose()
         {
             base.OnClose();
-            this.innerMessage.Close();
+            InnerMessage.Close();
         }
 
         protected override void OnWriteStartEnvelope(XmlDictionaryWriter writer)
         {
-            this.innerMessage.WriteStartEnvelope(writer);
+            InnerMessage.WriteStartEnvelope(writer);
         }
 
         protected override void OnWriteStartHeaders(XmlDictionaryWriter writer)
         {
-            this.innerMessage.WriteStartHeaders(writer);
+            InnerMessage.WriteStartHeaders(writer);
         }
 
         protected override void OnWriteStartBody(XmlDictionaryWriter writer)
         {
-            this.innerMessage.WriteStartBody(writer);
+            InnerMessage.WriteStartBody(writer);
         }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            this.innerMessage.WriteBodyContents(writer);
+            InnerMessage.WriteBodyContents(writer);
         }
 
         protected override string OnGetBodyAttribute(string localName, string ns)
         {
-            return this.innerMessage.GetBodyAttribute(localName, ns);
+            return InnerMessage.GetBodyAttribute(localName, ns);
         }
 
         protected override void OnBodyToString(XmlDictionaryWriter writer)
         {
-            this.innerMessage.BodyToString(writer);
+            InnerMessage.BodyToString(writer);
         }
     }
 }

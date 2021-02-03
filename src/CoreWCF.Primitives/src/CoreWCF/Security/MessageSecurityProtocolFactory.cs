@@ -1,9 +1,12 @@
-using CoreWCF.Channels;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CoreWCF.Channels;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -11,15 +14,13 @@ namespace CoreWCF.Security
     {
         internal const MessageProtectionOrder defaultMessageProtectionOrder = MessageProtectionOrder.SignBeforeEncrypt;
         internal const bool defaultDoRequestSignatureConfirmation = false;
-        private bool applyIntegrity = true;
-        private bool applyConfidentiality = true;
-        private bool doRequestSignatureConfirmation = defaultDoRequestSignatureConfirmation;
-        private IdentityVerifier identityVerifier;
-        private ChannelProtectionRequirements protectionRequirements = new ChannelProtectionRequirements();
-        private MessageProtectionOrder messageProtectionOrder = defaultMessageProtectionOrder;
-        private bool requireIntegrity = true;
-        private bool requireConfidentiality = true;
-        private List<SecurityTokenAuthenticator> wrappedKeyTokenAuthenticator;
+        private bool _applyIntegrity = true;
+        private bool _applyConfidentiality = true;
+        private bool _doRequestSignatureConfirmation = defaultDoRequestSignatureConfirmation;
+        private IdentityVerifier _identityVerifier;
+        private MessageProtectionOrder _messageProtectionOrder = defaultMessageProtectionOrder;
+        private bool _requireIntegrity = true;
+        private bool _requireConfidentiality = true;
 
         protected MessageSecurityProtocolFactory()
         {
@@ -29,28 +30,30 @@ namespace CoreWCF.Security
             : base(factory)
         {
             if (factory == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(factory));
+            }
 
-            this.applyIntegrity = factory.applyIntegrity;
-            this.applyConfidentiality = factory.applyConfidentiality;
-            this.identityVerifier = factory.identityVerifier;
-            this.protectionRequirements = new ChannelProtectionRequirements(factory.protectionRequirements);
-            this.messageProtectionOrder = factory.messageProtectionOrder;
-            this.requireIntegrity = factory.requireIntegrity;
-            this.requireConfidentiality = factory.requireConfidentiality;
-            this.doRequestSignatureConfirmation = factory.doRequestSignatureConfirmation;
+            _applyIntegrity = factory._applyIntegrity;
+            _applyConfidentiality = factory._applyConfidentiality;
+            _identityVerifier = factory._identityVerifier;
+            ProtectionRequirements = new ChannelProtectionRequirements(factory.ProtectionRequirements);
+            _messageProtectionOrder = factory._messageProtectionOrder;
+            _requireIntegrity = factory._requireIntegrity;
+            _requireConfidentiality = factory._requireConfidentiality;
+            _doRequestSignatureConfirmation = factory._doRequestSignatureConfirmation;
         }
 
         public bool ApplyConfidentiality
         {
             get
             {
-                return this.applyConfidentiality;
+                return _applyConfidentiality;
             }
             set
             {
                 ThrowIfImmutable();
-                this.applyConfidentiality = value;
+                _applyConfidentiality = value;
             }
         }
 
@@ -58,12 +61,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.applyIntegrity;
+                return _applyIntegrity;
             }
             set
             {
                 ThrowIfImmutable();
-                this.applyIntegrity = value;
+                _applyIntegrity = value;
             }
         }
 
@@ -71,12 +74,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.doRequestSignatureConfirmation;
+                return _doRequestSignatureConfirmation;
             }
             set
             {
                 ThrowIfImmutable();
-                this.doRequestSignatureConfirmation = value;
+                _doRequestSignatureConfirmation = value;
             }
         }
 
@@ -84,33 +87,27 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.identityVerifier;
+                return _identityVerifier;
             }
             set
             {
                 ThrowIfImmutable();
-                this.identityVerifier = value;
+                _identityVerifier = value;
             }
         }
 
-        public ChannelProtectionRequirements ProtectionRequirements
-        {
-            get
-            {
-                return this.protectionRequirements;
-            }
-        }
+        public ChannelProtectionRequirements ProtectionRequirements { get; } = new ChannelProtectionRequirements();
 
         public MessageProtectionOrder MessageProtectionOrder
         {
             get
             {
-                return this.messageProtectionOrder;
+                return _messageProtectionOrder;
             }
             set
             {
                 ThrowIfImmutable();
-                this.messageProtectionOrder = value;
+                _messageProtectionOrder = value;
             }
         }
 
@@ -118,12 +115,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.requireIntegrity;
+                return _requireIntegrity;
             }
             set
             {
                 ThrowIfImmutable();
-                this.requireIntegrity = value;
+                _requireIntegrity = value;
             }
         }
 
@@ -131,32 +128,26 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.requireConfidentiality;
+                return _requireConfidentiality;
             }
             set
             {
                 ThrowIfImmutable();
-                this.requireConfidentiality = value;
+                _requireConfidentiality = value;
             }
         }
 
-        internal List<SecurityTokenAuthenticator> WrappedKeySecurityTokenAuthenticator
-        {
-            get
-            {
-                return this.wrappedKeyTokenAuthenticator;
-            }
-        }
+        internal List<SecurityTokenAuthenticator> WrappedKeySecurityTokenAuthenticator { get; private set; }
 
         protected virtual void ValidateCorrelationSecuritySettings()
         {
-            if (this.ActAsInitiator && this.SupportsRequestReply)
+            if (ActAsInitiator && SupportsRequestReply)
             {
-                bool savesCorrelationTokenOnRequest = this.ApplyIntegrity || this.ApplyConfidentiality;
-                bool needsCorrelationTokenOnReply = this.RequireIntegrity || this.RequireConfidentiality;
+                bool savesCorrelationTokenOnRequest = ApplyIntegrity || ApplyConfidentiality;
+                bool needsCorrelationTokenOnReply = RequireIntegrity || RequireConfidentiality;
                 if (!savesCorrelationTokenOnRequest && needsCorrelationTokenOnReply)
                 {
-                    OnPropertySettingsError("ApplyIntegrity", false);
+                    OnPropertySettingsError(nameof(ApplyIntegrity), false);
                 }
             }
         }
@@ -164,16 +155,16 @@ namespace CoreWCF.Security
         public override Task OnOpenAsync(TimeSpan timeout)
         {
             base.OnOpenAsync(timeout);
-            this.protectionRequirements.MakeReadOnly();
+            ProtectionRequirements.MakeReadOnly();
 
-            if (this.DetectReplays && !this.RequireIntegrity)
+            if (DetectReplays && !RequireIntegrity)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(RequireIntegrity), SR.ForReplayDetectionToBeDoneRequireIntegrityMustBeSet);
             }
 
-            if (this.DoRequestSignatureConfirmation)
+            if (DoRequestSignatureConfirmation)
             {
-                if (!this.SupportsRequestReply)
+                if (!SupportsRequestReply)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.SignatureConfirmationRequiresRequestReply);
                 }
@@ -184,9 +175,9 @@ namespace CoreWCF.Security
                 //}
             }
 
-            this.wrappedKeyTokenAuthenticator = new List<SecurityTokenAuthenticator>(1);
+            WrappedKeySecurityTokenAuthenticator = new List<SecurityTokenAuthenticator>(1);
             SecurityTokenAuthenticator authenticator = new NonValidatingSecurityTokenAuthenticator<WrappedKeySecurityToken>();
-            this.wrappedKeyTokenAuthenticator.Add(authenticator);
+            WrappedKeySecurityTokenAuthenticator.Add(authenticator);
 
             ValidateCorrelationSecuritySettings();
             return Task.CompletedTask;
@@ -195,9 +186,7 @@ namespace CoreWCF.Security
         private static MessagePartSpecification ExtractMessageParts(string action,
             ScopedMessagePartSpecification scopedParts, bool isForSignature)
         {
-            MessagePartSpecification parts = null;
-
-            if (scopedParts.TryGetParts(action, out parts))
+            if (scopedParts.TryGetParts(action, out MessagePartSpecification parts))
             {
                 return parts;
             }
@@ -224,12 +213,16 @@ namespace CoreWCF.Security
 
         internal MessagePartSpecification GetIncomingEncryptionParts(string action)
         {
-            if (this.RequireConfidentiality)
+            if (RequireConfidentiality)
             {
-                if (this.IsDuplexReply)
-                    return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingEncryptionParts, false);
+                if (IsDuplexReply)
+                {
+                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingEncryptionParts, false);
+                }
                 else
-                    return ExtractMessageParts(action, (this.ActAsInitiator) ? this.ProtectionRequirements.OutgoingEncryptionParts : this.ProtectionRequirements.IncomingEncryptionParts, false);
+                {
+                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.OutgoingEncryptionParts : ProtectionRequirements.IncomingEncryptionParts, false);
+                }
             }
             else
             {
@@ -239,12 +232,16 @@ namespace CoreWCF.Security
 
         internal MessagePartSpecification GetIncomingSignatureParts(string action)
         {
-            if (this.RequireIntegrity)
+            if (RequireIntegrity)
             {
-                if (this.IsDuplexReply)
-                    return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingSignatureParts, true);
+                if (IsDuplexReply)
+                {
+                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingSignatureParts, true);
+                }
                 else
-                    return ExtractMessageParts(action, (this.ActAsInitiator) ? this.ProtectionRequirements.OutgoingSignatureParts : this.ProtectionRequirements.IncomingSignatureParts, true);
+                {
+                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.OutgoingSignatureParts : ProtectionRequirements.IncomingSignatureParts, true);
+                }
             }
             else
             {
@@ -254,12 +251,16 @@ namespace CoreWCF.Security
 
         internal MessagePartSpecification GetOutgoingEncryptionParts(string action)
         {
-            if (this.ApplyConfidentiality)
+            if (ApplyConfidentiality)
             {
-                if (this.IsDuplexReply)
-                    return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingEncryptionParts, false);
+                if (IsDuplexReply)
+                {
+                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingEncryptionParts, false);
+                }
                 else
-                    return ExtractMessageParts(action, (this.ActAsInitiator) ? this.ProtectionRequirements.IncomingEncryptionParts : this.ProtectionRequirements.OutgoingEncryptionParts, false);
+                {
+                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.IncomingEncryptionParts : ProtectionRequirements.OutgoingEncryptionParts, false);
+                }
             }
             else
             {
@@ -269,12 +270,16 @@ namespace CoreWCF.Security
 
         internal MessagePartSpecification GetOutgoingSignatureParts(string action)
         {
-            if (this.ApplyIntegrity)
+            if (ApplyIntegrity)
             {
-                if (this.IsDuplexReply)
-                    return ExtractMessageParts(action, this.ProtectionRequirements.OutgoingSignatureParts, true);
+                if (IsDuplexReply)
+                {
+                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingSignatureParts, true);
+                }
                 else
-                    return ExtractMessageParts(action, (this.ActAsInitiator) ? this.ProtectionRequirements.IncomingSignatureParts : this.ProtectionRequirements.OutgoingSignatureParts, true);
+                {
+                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.IncomingSignatureParts : ProtectionRequirements.OutgoingSignatureParts, true);
+                }
             }
             else
             {

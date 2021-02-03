@@ -1,6 +1,8 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 namespace CoreWCF.Security.Tokens
 {
-    using System;
     using System.ComponentModel;
 
     public enum SecurityTokenReferenceStyle
@@ -9,7 +11,7 @@ namespace CoreWCF.Security.Tokens
         External = 1,
     }
 
-    static class TokenReferenceStyleHelper
+    internal static class TokenReferenceStyleHelper
     {
         public static bool IsDefined(SecurityTokenReferenceStyle value)
         {
@@ -24,7 +26,6 @@ namespace CoreWCF.Security.Tokens
                     typeof(SecurityTokenReferenceStyle)));
             }
         }
-
     }
 }
 

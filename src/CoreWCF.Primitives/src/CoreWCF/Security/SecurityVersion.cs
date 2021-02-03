@@ -1,7 +1,10 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.Description;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.Description;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
 
 namespace CoreWCF.Security
@@ -52,13 +55,12 @@ namespace CoreWCF.Security
 
         internal bool DoesMessageContainSecurityHeader(Message message)
         {
-            return message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value) >= 0;
+            return message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value) >= 0;
         }
 
         internal int FindIndexOfSecurityHeader(Message message, string[] actors)
         {
-            return message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value, actors);
-
+            return message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, actors);
         }
 
         internal virtual bool IsReaderAtSignatureConfirmation(XmlDictionaryReader reader)
@@ -73,10 +75,10 @@ namespace CoreWCF.Security
             SecurityStandardsManager standardsManager,
             SecurityAlgorithmSuite algorithmSuite, MessageDirection direction)
         {
-            int headerIndex = message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value, actor);
-            if (headerIndex < 0 && String.IsNullOrEmpty(actor))
+            int headerIndex = message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, actor);
+            if (headerIndex < 0 && string.IsNullOrEmpty(actor))
             {
-                headerIndex = message.Headers.FindHeader(this.HeaderName.Value, this.HeaderNamespace.Value, message.Version.Envelope.UltimateDestinationActorValues);
+                headerIndex = message.Headers.FindHeader(HeaderName.Value, HeaderNamespace.Value, message.Version.Envelope.UltimateDestinationActorValues);
             }
 
             if (headerIndex < 0)
@@ -98,22 +100,21 @@ namespace CoreWCF.Security
 
         internal void WriteStartHeader(XmlDictionaryWriter writer)
         {
-            writer.WriteStartElement(this.HeaderPrefix.Value, this.HeaderName, this.HeaderNamespace);
+            writer.WriteStartElement(HeaderPrefix.Value, HeaderName, HeaderNamespace);
         }
 
         internal virtual ISignatureValueSecurityElement ReadSignatureConfirmation(XmlDictionaryReader reader)
         {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SignatureConfirmationNotSupported));
         }
-        class SecurityVersion10 : SecurityVersion
-        {
-            static readonly SecurityVersion10 instance = new SecurityVersion10();
 
+        private class SecurityVersion10 : SecurityVersion
+        {
             protected SecurityVersion10() : base(XD.SecurityJan2004Dictionary.Security, XD.SecurityJan2004Dictionary.Namespace, XD.SecurityJan2004Dictionary.Prefix)
             {
             }
 
-            public static SecurityVersion10 Instance => instance;
+            public static SecurityVersion10 Instance { get; } = new SecurityVersion10();
 
             internal override SendSecurityHeader CreateSendSecurityHeader(Message message,
                 string actor, bool mustUnderstand, bool relay,
@@ -148,16 +149,14 @@ namespace CoreWCF.Security
             internal override XmlDictionaryString InvalidSecurityFaultCode => XD.SecurityJan2004Dictionary.InvalidSecurityFaultCode;
         }
 
-        sealed class SecurityVersion11 : SecurityVersion10
+        private sealed class SecurityVersion11 : SecurityVersion10
         {
-            static readonly SecurityVersion11 instance = new SecurityVersion11();
-
-            SecurityVersion11()
+            private SecurityVersion11()
                 : base()
             {
             }
 
-            public new static SecurityVersion11 Instance => instance;
+            public static new SecurityVersion11 Instance { get; } = new SecurityVersion11();
 
             internal bool SupportsSignatureConfirmation => true;
 
@@ -187,7 +186,7 @@ namespace CoreWCF.Security
             {
                 return reader.IsStartElement(XD.SecurityXXX2005Dictionary.SignatureConfirmation, XD.SecurityXXX2005Dictionary.Namespace);
             }
-            
+
             internal override ISignatureValueSecurityElement ReadSignatureConfirmation(XmlDictionaryReader reader)
             {
                 reader.MoveToStartElement(XD.SecurityXXX2005Dictionary.SignatureConfirmation, XD.SecurityXXX2005Dictionary.Namespace);
@@ -206,11 +205,11 @@ namespace CoreWCF.Security
             {
                 if (id == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("id");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
                 }
                 if (signature == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("signature");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(signature));
                 }
                 writer.WriteStartElement(XD.SecurityXXX2005Dictionary.Prefix.Value, XD.SecurityXXX2005Dictionary.SignatureConfirmation, XD.SecurityXXX2005Dictionary.Namespace);
                 writer.WriteAttributeString(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace, id);

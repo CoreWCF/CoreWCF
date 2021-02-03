@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,18 +30,14 @@ namespace System.Xml.XmlDiff
 
     public class XmlDiff
     {
-        XmlDiffDocument _SourceDoc;
-        XmlDiffDocument _TargetDoc;
-
-        XmlTextWriter _Writer;     // Writer to write out the result
-        StringBuilder _Output;
-
-        // Option Flags
-        XmlDiffOption _XmlDiffOption = XmlDiffOption.None;
+        private XmlDiffDocument _SourceDoc;
+        private XmlDiffDocument _TargetDoc;
+        private XmlTextWriter _Writer;     // Writer to write out the result
+        private StringBuilder _Output;
 
         public XmlDiff()
         {
-            _XmlDiffOption = XmlDiffOption.IgnoreEmptyElement |
+            Option = XmlDiffOption.IgnoreEmptyElement |
                              XmlDiffOption.IgnoreWhitespace |
                              XmlDiffOption.IgnoreAttributeOrder |
                              XmlDiffOption.IgnoreNS |
@@ -47,89 +46,83 @@ namespace System.Xml.XmlDiff
                              XmlDiffOption.IgnoreChildOrder;
         }
 
-        public XmlDiffOption Option
-        {
-            get
-            {
-                return _XmlDiffOption;
-            }
-            set
-            {
-                _XmlDiffOption = value;
-            }
-        }
+        public XmlDiffOption Option { get; set; } = XmlDiffOption.None;
 
         internal bool IgnoreEmptyElement
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreEmptyElement) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreEmptyElement) != 0); }
         }
 
         internal bool IgnoreComments
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreComments) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreComments) != 0); }
         }
 
         internal bool IgnoreAttributeOrder
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreAttributeOrder) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreAttributeOrder) != 0); }
         }
 
         internal bool IgnoreWhitespace
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreWhitespace) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreWhitespace) != 0); }
         }
 
         internal bool IgnoreNS
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreNS) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreNS) != 0); }
         }
 
         internal bool IgnorePrefix
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnorePrefix) != 0); }
+            get { return ((Option & XmlDiffOption.IgnorePrefix) != 0); }
         }
 
         internal bool IgnoreDTD
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreDTD) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreDTD) != 0); }
         }
 
         internal bool IgnoreChildOrder
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.IgnoreChildOrder) != 0); }
+            get { return ((Option & XmlDiffOption.IgnoreChildOrder) != 0); }
         }
 
         internal bool ConcatenateAdjacentTextNodes
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.ConcatenateAdjacentTextNodes) != 0); }
+            get { return ((Option & XmlDiffOption.ConcatenateAdjacentTextNodes) != 0); }
         }
 
         internal bool TreatWhitespaceTextAsWSNode
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.TreatWhitespaceTextAsWSNode) != 0); }
+            get { return ((Option & XmlDiffOption.TreatWhitespaceTextAsWSNode) != 0); }
         }
 
         internal bool ParseAttributeValuesAsQName
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.ParseAttributeValuesAsQName) != 0); }
+            get { return ((Option & XmlDiffOption.ParseAttributeValuesAsQName) != 0); }
         }
 
         internal bool DontWriteMatchingNodesToOutput
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.DontWriteMatchingNodesToOutput) != 0); }
+            get { return ((Option & XmlDiffOption.DontWriteMatchingNodesToOutput) != 0); }
         }
 
         internal bool DontWriteAnythingToOutput
         {
-            get { return ((_XmlDiffOption & XmlDiffOption.DontWriteAnythingToOutput) != 0); }
+            get { return ((Option & XmlDiffOption.DontWriteAnythingToOutput) != 0); }
         }
 
         private void InitFiles()
         {
-            _SourceDoc = new XmlDiffDocument();
-            _SourceDoc.Option = this._XmlDiffOption;
-            _TargetDoc = new XmlDiffDocument();
-            _TargetDoc.Option = this.Option;
+            _SourceDoc = new XmlDiffDocument
+            {
+                Option = Option
+            };
+            _TargetDoc = new XmlDiffDocument
+            {
+                Option = Option
+            };
             _Output = new StringBuilder(string.Empty);
         }
 
@@ -160,7 +153,7 @@ namespace System.Xml.XmlDiff
             if (!string.IsNullOrEmpty(advOptions.IgnoreChildOrderExpr))
             {
                 XPathExpression expr = GenerateXPathExpression(
-                    advOptions.IgnoreChildOrderExpr, 
+                    advOptions.IgnoreChildOrderExpr,
                     advOptions,
                     nav);
 
@@ -183,7 +176,7 @@ namespace System.Xml.XmlDiff
             {
                 XPathExpression expr = GenerateXPathExpression(
                     advOptions.IgnoreValuesExpr,
-                    advOptions, 
+                    advOptions,
                     nav);
 
                 _SourceDoc.IgnoreValues(expr);
@@ -256,7 +249,9 @@ namespace System.Xml.XmlDiff
                             WriteResult(sourceChild, targetChild, DiffType.Success);
                             // Check whether this Node has  Children, if it does call CompareChildren recursively
                             if (sourceChild.FirstChild != null)
+                            {
                                 tempFlag = CompareChildren(sourceChild, targetChild);
+                            }
                             else if (targetChild.FirstChild != null)
                             {
                                 WriteResult(null, targetChild, DiffType.TargetExtra);
@@ -437,8 +432,16 @@ namespace System.Xml.XmlDiff
         /// to the value of this node</param>
         private void DoConcatenateAdjacentTextNodes(XmlDiffCharacterData node)
         {
-            if (node.NextSibling == null) return;
-            if (!(node.NextSibling is XmlDiffCharacterData)) return;
+            if (node.NextSibling == null)
+            {
+                return;
+            }
+
+            if (!(node.NextSibling is XmlDiffCharacterData))
+            {
+                return;
+            }
+
             StringBuilder sb = new StringBuilder();
             sb.Append(node.Value);
             XmlDiffCharacterData nextNode = (node.NextSibling as XmlDiffCharacterData);
@@ -562,7 +565,10 @@ namespace System.Xml.XmlDiff
         // This function writes the result in XML format so that it can be used by other applications to display the diff
         private void WriteResult(XmlDiffNode sourceNode, XmlDiffNode targetNode, DiffType result)
         {
-            if (DontWriteAnythingToOutput) return;
+            if (DontWriteAnythingToOutput)
+            {
+                return;
+            }
 
             if (result != DiffType.Success || !DontWriteMatchingNodesToOutput)
             {
@@ -652,7 +658,10 @@ namespace System.Xml.XmlDiff
             {
                 case XmlDiffNodeType.Element:
                     if (result == DiffType.SourceExtra || result == DiffType.TargetExtra)
+                    {
                         return diffNode.OuterXml;
+                    }
+
                     StringWriter str = new StringWriter();
                     XmlTextWriter writer = new XmlTextWriter(str);
                     XmlDiffElement diffElem = diffNode as XmlDiffElement;
@@ -692,10 +701,14 @@ namespace System.Xml.XmlDiff
             Debug.Assert(sourceElem != null);
             Debug.Assert(targetElem != null);
             if (sourceElem.AttributeCount != targetElem.AttributeCount)
+            {
                 return false;
+            }
 
             if (sourceElem.AttributeCount == 0)
+            {
                 return true;
+            }
 
             XmlDiffAttribute sourceAttr = sourceElem.FirstAttribute;
             XmlDiffAttribute targetAttr = targetElem.FirstAttribute;
@@ -745,11 +758,17 @@ namespace System.Xml.XmlDiff
                             {
                                 if (sourceAttr.ValueAsQName != null)
                                 {
-                                    if (!sourceAttr.ValueAsQName.Equals(targetAttr.ValueAsQName)) return false;
+                                    if (!sourceAttr.ValueAsQName.Equals(targetAttr.ValueAsQName))
+                                    {
+                                        return false;
+                                    }
                                 }
                                 else
                                 {
-                                    if (targetAttr.ValueAsQName != null) return false;
+                                    if (targetAttr.ValueAsQName != null)
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
                             else
@@ -820,11 +839,17 @@ namespace System.Xml.XmlDiff
                         {
                             if (sourceAttr.ValueAsQName != null)
                             {
-                                if (!sourceAttr.ValueAsQName.Equals(targetAttr.ValueAsQName)) return false;
+                                if (!sourceAttr.ValueAsQName.Equals(targetAttr.ValueAsQName))
+                                {
+                                    return false;
+                                }
                             }
                             else
                             {
-                                if (targetAttr.ValueAsQName != null) return false;
+                                if (targetAttr.ValueAsQName != null)
+                                {
+                                    return false;
+                                }
                             }
                         }
                         else
@@ -840,7 +865,10 @@ namespace System.Xml.XmlDiff
         public string ToXml()
         {
             if (_Output != null)
+            {
                 return _Output.ToString();
+            }
+
             return string.Empty;
         }
 

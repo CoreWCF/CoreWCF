@@ -1,4 +1,7 @@
-﻿namespace CoreWCF.Channels
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+namespace CoreWCF.Channels
 {
     public enum BasicHttpSecurityMode
     {
@@ -9,7 +12,7 @@
         TransportCredentialOnly
     }
 
-    static class BasicHttpSecurityModeHelper
+    internal static class BasicHttpSecurityModeHelper
     {
         internal static bool IsDefined(BasicHttpSecurityMode value)
         {

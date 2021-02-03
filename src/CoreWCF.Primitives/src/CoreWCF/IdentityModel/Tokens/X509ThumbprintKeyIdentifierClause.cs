@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Globalization;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
@@ -23,10 +23,12 @@ namespace CoreWCF.IdentityModel.Tokens
         {
         }
 
-        static byte[] GetHash(X509Certificate2 certificate)
+        private static byte[] GetHash(X509Certificate2 certificate)
         {
             if (certificate == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
+            }
             //TODO  switch to stronger hash algorithm once we're no longer on netstandard2.0
             return certificate.GetCertHash();
         }
@@ -39,7 +41,9 @@ namespace CoreWCF.IdentityModel.Tokens
         public bool Matches(X509Certificate2 certificate)
         {
             if (certificate == null)
+            {
                 return false;
+            }
 
             return Matches(GetHash(certificate));
         }

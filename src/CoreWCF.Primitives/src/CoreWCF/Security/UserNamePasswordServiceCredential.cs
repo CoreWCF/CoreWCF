@@ -1,10 +1,10 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Text;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -15,15 +15,14 @@ namespace CoreWCF.Security
         internal const int DefaultMaxCachedLogonTokens = 128;
         internal const string DefaultCachedLogonTokenLifetimeString = "00:15:00";
         internal static readonly TimeSpan DefaultCachedLogonTokenLifetime = TimeSpan.Parse(DefaultCachedLogonTokenLifetimeString, CultureInfo.InvariantCulture);
-
-        UserNamePasswordValidationMode validationMode = DefaultUserNamePasswordValidationMode;
-        UserNamePasswordValidator validator;
-        object membershipProvider;
-        bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
-        bool cacheLogonTokens = DefaultCacheLogonTokens;
-        int maxCachedLogonTokens = DefaultMaxCachedLogonTokens;
-        TimeSpan cachedLogonTokenLifetime = DefaultCachedLogonTokenLifetime;
-        bool isReadOnly;
+        private UserNamePasswordValidationMode _validationMode = DefaultUserNamePasswordValidationMode;
+        private UserNamePasswordValidator _validator;
+        private readonly object _membershipProvider;
+        private bool _includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
+        private bool _cacheLogonTokens = DefaultCacheLogonTokens;
+        private int _maxCachedLogonTokens = DefaultMaxCachedLogonTokens;
+        private TimeSpan _cachedLogonTokenLifetime = DefaultCachedLogonTokenLifetime;
+        private bool _isReadOnly;
 
         internal UserNamePasswordServiceCredential()
         {
@@ -32,32 +31,32 @@ namespace CoreWCF.Security
 
         internal UserNamePasswordServiceCredential(UserNamePasswordServiceCredential other)
         {
-            includeWindowsGroups = other.includeWindowsGroups;
-            membershipProvider = other.membershipProvider;
-            validationMode = other.validationMode;
-            validator = other.validator;
-            cacheLogonTokens = other.cacheLogonTokens;
-            maxCachedLogonTokens = other.maxCachedLogonTokens;
-            cachedLogonTokenLifetime = other.cachedLogonTokenLifetime;
-            isReadOnly = other.isReadOnly;
+            _includeWindowsGroups = other._includeWindowsGroups;
+            _membershipProvider = other._membershipProvider;
+            _validationMode = other._validationMode;
+            _validator = other._validator;
+            _cacheLogonTokens = other._cacheLogonTokens;
+            _maxCachedLogonTokens = other._maxCachedLogonTokens;
+            _cachedLogonTokenLifetime = other._cachedLogonTokenLifetime;
+            _isReadOnly = other._isReadOnly;
         }
 
         public UserNamePasswordValidationMode UserNamePasswordValidationMode
         {
             get
             {
-                return validationMode;
+                return _validationMode;
             }
             set
             {
                 UserNamePasswordValidationModeHelper.Validate(value);
                 ThrowIfImmutable();
-                if(value == UserNamePasswordValidationMode.MembershipProvider)
+                if (value == UserNamePasswordValidationMode.MembershipProvider)
                 {
                     throw new PlatformNotSupportedException("MembershipProvider not supported");
                 }
 
-                validationMode = value;
+                _validationMode = value;
             }
         }
 
@@ -65,12 +64,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return validator;
+                return _validator;
             }
             set
             {
                 ThrowIfImmutable();
-                validator = value;
+                _validator = value;
             }
         }
 
@@ -78,12 +77,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return includeWindowsGroups;
+                return _includeWindowsGroups;
             }
             set
             {
                 ThrowIfImmutable();
-                includeWindowsGroups = value;
+                _includeWindowsGroups = value;
             }
         }
 
@@ -91,12 +90,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return cacheLogonTokens;
+                return _cacheLogonTokens;
             }
             set
             {
                 ThrowIfImmutable();
-                cacheLogonTokens = value;
+                _cacheLogonTokens = value;
             }
         }
 
@@ -104,16 +103,16 @@ namespace CoreWCF.Security
         {
             get
             {
-                return maxCachedLogonTokens;
+                return _maxCachedLogonTokens;
             }
             set
             {
                 if (value <= 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.ValueMustBeGreaterThanZero));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeGreaterThanZero));
                 }
                 ThrowIfImmutable();
-                maxCachedLogonTokens = value;
+                _maxCachedLogonTokens = value;
             }
         }
 
@@ -121,38 +120,38 @@ namespace CoreWCF.Security
         {
             get
             {
-                return cachedLogonTokenLifetime;
+                return _cachedLogonTokenLifetime;
             }
             set
             {
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.TimeSpanMustBeGreaterThanTimeSpanZero));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", value,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
                 ThrowIfImmutable();
-                cachedLogonTokenLifetime = value;
+                _cachedLogonTokenLifetime = value;
             }
         }
 
         internal UserNamePasswordValidator GetUserNamePasswordValidator()
         {
-            if (validationMode == UserNamePasswordValidationMode.MembershipProvider)
+            if (_validationMode == UserNamePasswordValidationMode.MembershipProvider)
             {
                 throw new PlatformNotSupportedException("MembershipProvider not supported");
             }
-            else if (validationMode == UserNamePasswordValidationMode.Custom)
+            else if (_validationMode == UserNamePasswordValidationMode.Custom)
             {
-                if (validator == null)
+                if (_validator == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.MissingCustomUserNamePasswordValidator));
                 }
-                return validator;
+                return _validator;
             }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
@@ -160,16 +159,15 @@ namespace CoreWCF.Security
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
         }
-
     }
 }

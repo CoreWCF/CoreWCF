@@ -1,15 +1,17 @@
-﻿using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Security.Cryptography;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
     internal class RsaSecurityToken : SecurityToken
     {
-        string id;
-        DateTime effectiveTime;
-        RSA rsa;
+        private readonly string _id;
+        private readonly DateTime _effectiveTime;
 
         public RsaSecurityToken(RSA rsa)
             : this(rsa, SecurityUniqueId.Create().Value)
@@ -18,23 +20,19 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public RsaSecurityToken(RSA rsa, string id)
         {
-            if (rsa == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
-            if (id == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
-            this.rsa = rsa;
-            this.id = id;
-            effectiveTime = DateTime.UtcNow;
+            Rsa = rsa ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
+            _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
+            _effectiveTime = DateTime.UtcNow;
         }
 
         public override string Id
         {
-            get { return id; }
+            get { return _id; }
         }
 
         public override DateTime ValidFrom
         {
-            get { return effectiveTime; }
+            get { return _effectiveTime; }
         }
 
         public override DateTime ValidTo
@@ -51,9 +49,6 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        public RSA Rsa
-        {
-            get { return rsa; }
-        }
+        public RSA Rsa { get; }
     }
 }

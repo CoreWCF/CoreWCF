@@ -1,22 +1,25 @@
-﻿using CoreWCF;
-using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF;
+using CoreWCF.Channels;
 
 namespace Helpers
 {
     public static class TestHelper
     {
         private const string EchoAction = "http://tempuri.org/ISimpleService/Echo";
-        private static string s_echoPrefix = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private static readonly string s_echoPrefix = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"">
   <s:Body>
     <Echo xmlns = ""http://tempuri.org/"">
       <echo>";
-        private static string s_echoSuffix = @"</echo>
+        private static readonly string s_echoSuffix = @"</echo>
     </Echo>
   </s:Body>
 </s:Envelope>";
@@ -32,16 +35,16 @@ namespace Helpers
 
         internal static System.ServiceModel.Channels.Message ConvertMessage(Message message)
         {
-            var ms = SerializeMessageToStream(message);
-            var convertedMessage = DeserialzieMessageFromStream(ms, ConvertMessageVersion(message.Version));
+            MemoryStream ms = SerializeMessageToStream(message);
+            System.ServiceModel.Channels.Message convertedMessage = DeserialzieMessageFromStream(ms, ConvertMessageVersion(message.Version));
             convertedMessage.Headers.To = message.Headers.To;
             return convertedMessage;
         }
 
         internal static Message ConvertMessage(System.ServiceModel.Channels.Message message)
         {
-            var ms = SerializeMessageToStream(message);
-            var convertedMessage = DeserialzieMessageFromStreamAsync(ms, ConvertMessageVersion(message.Version)).Result;
+            MemoryStream ms = SerializeMessageToStream(message);
+            Message convertedMessage = DeserialzieMessageFromStreamAsync(ms, ConvertMessageVersion(message.Version)).Result;
             convertedMessage.Headers.To = message.Headers.To;
             return convertedMessage;
         }
@@ -114,19 +117,23 @@ namespace Helpers
 
         private static Task<Message> DeserialzieMessageFromStreamAsync(MemoryStream ms, MessageVersion messageVersion)
         {
-            var bmebe = new BinaryMessageEncodingBindingElement();
-            bmebe.MessageVersion = messageVersion;
-            bmebe.ReaderQuotas = XmlDictionaryReaderQuotas.Max;
-            var bmef = bmebe.CreateMessageEncoderFactory();
+            var bmebe = new BinaryMessageEncodingBindingElement
+            {
+                MessageVersion = messageVersion,
+                ReaderQuotas = XmlDictionaryReaderQuotas.Max
+            };
+            MessageEncoderFactory bmef = bmebe.CreateMessageEncoderFactory();
             return bmef.Encoder.ReadMessageAsync(ms, int.MaxValue);
         }
 
         private static MemoryStream SerializeMessageToStream(System.ServiceModel.Channels.Message requestMessage)
         {
-            var bmebe = new System.ServiceModel.Channels.BinaryMessageEncodingBindingElement();
-            bmebe.MessageVersion = requestMessage.Version;
-            bmebe.ReaderQuotas = XmlDictionaryReaderQuotas.Max;
-            var bmef = bmebe.CreateMessageEncoderFactory();
+            var bmebe = new System.ServiceModel.Channels.BinaryMessageEncodingBindingElement
+            {
+                MessageVersion = requestMessage.Version,
+                ReaderQuotas = XmlDictionaryReaderQuotas.Max
+            };
+            System.ServiceModel.Channels.MessageEncoderFactory bmef = bmebe.CreateMessageEncoderFactory();
             var ms = new MemoryStream(64 * 1024); // 64K to keep out of LOH
             bmef.Encoder.WriteMessage(requestMessage, ms);
             ms.Position = 0;
@@ -135,19 +142,23 @@ namespace Helpers
 
         private static System.ServiceModel.Channels.Message DeserialzieMessageFromStream(MemoryStream ms, System.ServiceModel.Channels.MessageVersion messageVersion)
         {
-            var bmebe = new System.ServiceModel.Channels.BinaryMessageEncodingBindingElement();
-            bmebe.MessageVersion = messageVersion;
-            bmebe.ReaderQuotas = XmlDictionaryReaderQuotas.Max;
-            var bmef = bmebe.CreateMessageEncoderFactory();
+            var bmebe = new System.ServiceModel.Channels.BinaryMessageEncodingBindingElement
+            {
+                MessageVersion = messageVersion,
+                ReaderQuotas = XmlDictionaryReaderQuotas.Max
+            };
+            System.ServiceModel.Channels.MessageEncoderFactory bmef = bmebe.CreateMessageEncoderFactory();
             return bmef.Encoder.ReadMessage(ms, int.MaxValue);
         }
 
         private static MemoryStream SerializeMessageToStream(Message requestMessage)
         {
-            var bmebe = new BinaryMessageEncodingBindingElement();
-            bmebe.MessageVersion = requestMessage.Version;
-            bmebe.ReaderQuotas = XmlDictionaryReaderQuotas.Max;
-            var bmef = bmebe.CreateMessageEncoderFactory();
+            var bmebe = new BinaryMessageEncodingBindingElement
+            {
+                MessageVersion = requestMessage.Version,
+                ReaderQuotas = XmlDictionaryReaderQuotas.Max
+            };
+            MessageEncoderFactory bmef = bmebe.CreateMessageEncoderFactory();
             var ms = new MemoryStream(64 * 1024); // 64K to keep out of LOH
             bmef.Encoder.WriteMessageAsync(requestMessage, ms);
             ms.Position = 0;

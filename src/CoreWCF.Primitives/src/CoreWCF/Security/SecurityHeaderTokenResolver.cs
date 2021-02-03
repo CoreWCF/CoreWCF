@@ -1,22 +1,23 @@
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
     internal sealed class SecurityHeaderTokenResolver : SecurityTokenResolver
     {
         private const int InitialTokenArraySize = 10;
-        private int tokenCount;
-        private SecurityTokenEntry[] tokens;
-        private SecurityToken expectedWrapper;
-        private SecurityTokenParameters expectedWrapperTokenParameters;
-        private ReceiveSecurityHeader securityHeader;
+        private int _tokenCount;
+        private SecurityTokenEntry[] _tokens;
+        private readonly ReceiveSecurityHeader _securityHeader;
 
         public SecurityHeaderTokenResolver()
             : this(null)
@@ -25,21 +26,13 @@ namespace CoreWCF.Security
 
         public SecurityHeaderTokenResolver(ReceiveSecurityHeader securityHeader)
         {
-            this.tokens = new SecurityTokenEntry[InitialTokenArraySize];
-            this.securityHeader = securityHeader;
+            _tokens = new SecurityTokenEntry[InitialTokenArraySize];
+            _securityHeader = securityHeader;
         }
 
-        public SecurityToken ExpectedWrapper
-        {
-            get { return this.expectedWrapper; }
-            set { this.expectedWrapper = value; }
-        }
+        public SecurityToken ExpectedWrapper { get; set; }
 
-        public SecurityTokenParameters ExpectedWrapperTokenParameters
-        {
-            get { return this.expectedWrapperTokenParameters; }
-            set { this.expectedWrapperTokenParameters = value; }
-        }
+        public SecurityTokenParameters ExpectedWrapperTokenParameters { get; set; }
 
         public void Add(SecurityToken token)
         {
@@ -59,29 +52,29 @@ namespace CoreWCF.Security
             }
 
             EnsureCapacityToAddToken();
-            this.tokens[this.tokenCount++] = new SecurityTokenEntry(token, tokenParameters, allowedReferenceStyle);
+            _tokens[_tokenCount++] = new SecurityTokenEntry(token, tokenParameters, allowedReferenceStyle);
         }
 
         private void EnsureCapacityToAddToken()
         {
-            if (this.tokenCount == this.tokens.Length)
+            if (_tokenCount == _tokens.Length)
             {
-                SecurityTokenEntry[] newTokens = new SecurityTokenEntry[this.tokens.Length * 2];
-                Array.Copy(this.tokens, 0, newTokens, 0, this.tokenCount);
-                this.tokens = newTokens;
+                SecurityTokenEntry[] newTokens = new SecurityTokenEntry[_tokens.Length * 2];
+                Array.Copy(_tokens, 0, newTokens, 0, _tokenCount);
+                _tokens = newTokens;
             }
         }
 
         public bool CheckExternalWrapperMatch(SecurityKeyIdentifier keyIdentifier)
         {
-            if (this.expectedWrapper == null || this.expectedWrapperTokenParameters == null)
+            if (ExpectedWrapper == null || ExpectedWrapperTokenParameters == null)
             {
                 return false;
             }
 
             for (int i = 0; i < keyIdentifier.Count; i++)
             {
-                if (this.expectedWrapperTokenParameters.MatchesKeyIdentifierClause(this.expectedWrapper, keyIdentifier[i], SecurityTokenReferenceStyle.External))
+                if (ExpectedWrapperTokenParameters.MatchesKeyIdentifierClause(ExpectedWrapper, keyIdentifier[i], SecurityTokenReferenceStyle.External))
                 {
                     return true;
                 }
@@ -93,7 +86,7 @@ namespace CoreWCF.Security
         {
             if (keyIdentifier == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifier");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifier));
             }
             for (int i = 0; i < keyIdentifier.Count; i++)
             {
@@ -110,13 +103,13 @@ namespace CoreWCF.Security
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("keyIdentifierClause"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(keyIdentifierClause)));
             }
 
             SecurityKey securityKey;
-            for (int i = 0; i < this.tokenCount; i++)
+            for (int i = 0; i < _tokenCount; i++)
             {
-                securityKey = this.tokens[i].Token.ResolveKeyIdentifierClause(keyIdentifierClause);
+                securityKey = _tokens[i].Token.ResolveKeyIdentifierClause(keyIdentifierClause);
                 if (securityKey != null)
                 {
                     return securityKey;
@@ -125,8 +118,7 @@ namespace CoreWCF.Security
 
             if (createIntrinsicKeys)
             {
-
-               if (SecurityUtils.TryCreateKeyFromIntrinsicKeyClause(keyIdentifierClause, this, out securityKey))
+                if (SecurityUtils.TryCreateKeyFromIntrinsicKeyClause(keyIdentifierClause, this, out securityKey))
                 {
                     return securityKey;
                 }
@@ -137,8 +129,11 @@ namespace CoreWCF.Security
 
         private bool MatchDirectReference(SecurityToken token, SecurityKeyIdentifierClause keyClause)
         {
-            LocalIdKeyIdentifierClause localClause = keyClause as LocalIdKeyIdentifierClause;
-            if (localClause == null) return false;
+            if (!(keyClause is LocalIdKeyIdentifierClause localClause))
+            {
+                return false;
+            }
+
             return token.MatchesKeyIdentifierClause(localClause);
         }
 
@@ -146,27 +141,27 @@ namespace CoreWCF.Security
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
 
             SecurityToken resolvedToken = null;
-            for (int i = 0; i < this.tokenCount; i++)
+            for (int i = 0; i < _tokenCount; i++)
             {
-                if (matchOnlyExternal && tokens[i].AllowedReferenceStyle != SecurityTokenReferenceStyle.External)
+                if (matchOnlyExternal && _tokens[i].AllowedReferenceStyle != SecurityTokenReferenceStyle.External)
                 {
                     continue;
                 }
 
-                SecurityToken token = tokens[i].Token;
-                if (tokens[i].TokenParameters != null && tokens[i].TokenParameters.MatchesKeyIdentifierClause(token, keyIdentifierClause, tokens[i].AllowedReferenceStyle))
+                SecurityToken token = _tokens[i].Token;
+                if (_tokens[i].TokenParameters != null && _tokens[i].TokenParameters.MatchesKeyIdentifierClause(token, keyIdentifierClause, _tokens[i].AllowedReferenceStyle))
                 {
                     resolvedToken = token;
                     break;
                 }
-                else if (tokens[i].TokenParameters == null)
+                else if (_tokens[i].TokenParameters == null)
                 {
                     // match it according to the allowed reference style
-                    if (tokens[i].AllowedReferenceStyle == SecurityTokenReferenceStyle.Internal && MatchDirectReference(token, keyIdentifierClause))
+                    if (_tokens[i].AllowedReferenceStyle == SecurityTokenReferenceStyle.Internal && MatchDirectReference(token, keyIdentifierClause))
                     {
                         resolvedToken = token;
                         break;
@@ -179,17 +174,22 @@ namespace CoreWCF.Security
                 EncryptedKeyIdentifierClause keyClause = (EncryptedKeyIdentifierClause)keyIdentifierClause;
                 SecurityKeyIdentifier wrappingTokenReference = keyClause.EncryptingKeyIdentifier;
                 SecurityToken unwrappingToken;
-                if (this.expectedWrapper != null 
+                if (ExpectedWrapper != null
                     && CheckExternalWrapperMatch(wrappingTokenReference))
-                    unwrappingToken = this.expectedWrapper;
+                {
+                    unwrappingToken = ExpectedWrapper;
+                }
                 else
+                {
                     unwrappingToken = ResolveToken(wrappingTokenReference, true, resolveIntrinsicKeyClause);
+                }
+
                 if (unwrappingToken != null)
                 {
                     resolvedToken = SecurityUtils.CreateTokenFromEncryptedKeyClause(keyClause, unwrappingToken);
                 }
             }
-           if ((resolvedToken == null) && (keyIdentifierClause is X509RawDataKeyIdentifierClause) && (!matchOnlyExternal) && (resolveIntrinsicKeyClause))
+            if ((resolvedToken == null) && (keyIdentifierClause is X509RawDataKeyIdentifierClause) && (!matchOnlyExternal) && (resolveIntrinsicKeyClause))
             {
                 resolvedToken = new X509SecurityToken(new X509Certificate2(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()));
             }
@@ -205,21 +205,23 @@ namespace CoreWCF.Security
                 }
 
                 int derivationLength = (keyIdentifierClause.DerivationLength == 0) ? DerivedKeySecurityToken.DefaultDerivedKeyLength : keyIdentifierClause.DerivationLength;
-                if (derivationLength > this.securityHeader.MaxDerivedKeyLength)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.DerivedKeyLengthSpecifiedInImplicitDerivedKeyClauseTooLong, keyIdentifierClause.ToString(), derivationLength, this.securityHeader.MaxDerivedKeyLength)));
-                bool alreadyDerived = false;
-                for (int i = 0; i < this.tokenCount; ++i)
+                if (derivationLength > _securityHeader.MaxDerivedKeyLength)
                 {
-                    DerivedKeySecurityToken derivedKeyToken = this.tokens[i].Token as DerivedKeySecurityToken;
-                    if (derivedKeyToken != null)
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.DerivedKeyLengthSpecifiedInImplicitDerivedKeyClauseTooLong, keyIdentifierClause.ToString(), derivationLength, _securityHeader.MaxDerivedKeyLength)));
+                }
+
+                bool alreadyDerived = false;
+                for (int i = 0; i < _tokenCount; ++i)
+                {
+                    if (_tokens[i].Token is DerivedKeySecurityToken derivedKeyToken)
                     {
                         if ((derivedKeyToken.Length == derivationLength) &&
-                            (CryptoHelper.IsEqual(derivedKeyToken.Nonce, derivationNonce)) && 
+                            (CryptoHelper.IsEqual(derivedKeyToken.Nonce, derivationNonce)) &&
                             (derivedKeyToken.TokenToDerive.MatchesKeyIdentifierClause(keyIdentifierClause)))
                         {
                             // This is a implcit derived key for which we have already derived the
                             // token.
-                            resolvedToken = this.tokens[i].Token;
+                            resolvedToken = _tokens[i].Token;
                             alreadyDerived = true;
                             break;
                         }
@@ -228,12 +230,12 @@ namespace CoreWCF.Security
 
                 if (!alreadyDerived)
                 {
-                    string psha1Algorithm = SecurityUtils.GetKeyDerivationAlgorithm(this.securityHeader.StandardsManager.MessageSecurityVersion.SecureConversationVersion);
+                    string psha1Algorithm = SecurityUtils.GetKeyDerivationAlgorithm(_securityHeader.StandardsManager.MessageSecurityVersion.SecureConversationVersion);
 
                     resolvedToken = new DerivedKeySecurityToken(-1, 0, derivationLength, null, derivationNonce, resolvedToken, keyIdentifierClause, psha1Algorithm, SecurityUtils.GenerateId());
                     ((DerivedKeySecurityToken)resolvedToken).InitializeDerivedKey(derivationLength);
                     Add(resolvedToken, SecurityTokenReferenceStyle.Internal, null);
-                    this.securityHeader.EnsureDerivedKeyLimitNotReached();
+                    _securityHeader.EnsureDerivedKeyLimitNotReached();
                 }
             }
 
@@ -246,11 +248,11 @@ namespace CoreWCF.Security
             {
                 writer.WriteLine("SecurityTokenResolver");
                 writer.WriteLine("    (");
-                writer.WriteLine("    TokenCount = {0},", this.tokenCount);
-                for (int i = 0; i < this.tokenCount; i++)
+                writer.WriteLine("    TokenCount = {0},", _tokenCount);
+                for (int i = 0; i < _tokenCount; i++)
                 {
                     writer.WriteLine("    TokenEntry[{0}] = (AllowedReferenceStyle={1}, Token={2}, Parameters={3})",
-                        i, this.tokens[i].AllowedReferenceStyle, this.tokens[i].Token.GetType(), tokens[i].TokenParameters);
+                        i, _tokens[i].AllowedReferenceStyle, _tokens[i].Token.GetType(), _tokens[i].TokenParameters);
                 }
                 writer.WriteLine("    )");
                 return writer.ToString();
@@ -285,9 +287,9 @@ namespace CoreWCF.Security
         {
             if (keyIdentifierClause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("keyIdentifierClause");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(keyIdentifierClause));
             }
-            key = this.ResolveSecurityKeyCore(keyIdentifierClause, createIntrinsicKeys);
+            key = ResolveSecurityKeyCore(keyIdentifierClause, createIntrinsicKeys);
             return key != null;
         }
 
@@ -299,22 +301,18 @@ namespace CoreWCF.Security
 
         private struct SecurityTokenEntry
         {
-            private SecurityTokenParameters tokenParameters;
-            private SecurityToken token;
-            private SecurityTokenReferenceStyle allowedReferenceStyle;
-
             public SecurityTokenEntry(SecurityToken token, SecurityTokenParameters tokenParameters, SecurityTokenReferenceStyle allowedReferenceStyle)
             {
-                this.token = token;
-                this.tokenParameters = tokenParameters;
-                this.allowedReferenceStyle = allowedReferenceStyle; 
+                Token = token;
+                TokenParameters = tokenParameters;
+                AllowedReferenceStyle = allowedReferenceStyle;
             }
 
-            public SecurityToken Token => this.token;
+            public SecurityToken Token { get; }
 
-            public SecurityTokenParameters TokenParameters => this.tokenParameters;
+            public SecurityTokenParameters TokenParameters { get; }
 
-            public SecurityTokenReferenceStyle AllowedReferenceStyle => this.allowedReferenceStyle;
+            public SecurityTokenReferenceStyle AllowedReferenceStyle { get; }
         }
     }
 }

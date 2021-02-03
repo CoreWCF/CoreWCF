@@ -1,15 +1,17 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using CoreWCF.Channels;
-using CoreWCF.IdentityModel.Selectors;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Channels;
+using CoreWCF.IdentityModel.Selectors;
 
 namespace CoreWCF.Security
 {
     internal class WrapperSecurityCommunicationObject : CommunicationObject
     {
-        private ISecurityCommunicationObject _innerCommunicationObject;
+        private readonly ISecurityCommunicationObject _innerCommunicationObject;
 
         public WrapperSecurityCommunicationObject(ISecurityCommunicationObject innerCommunicationObject) : base()
         {
@@ -36,7 +38,7 @@ namespace CoreWCF.Security
             base.OnFaulted();
         }
 
-        new internal void ThrowIfDisposedOrImmutable()
+        internal new void ThrowIfDisposedOrImmutable()
         {
             base.ThrowIfDisposedOrImmutable();
         }
@@ -103,7 +105,7 @@ namespace CoreWCF.Security
             CommunicationObject.Abort();
         }
 
-       
+
         public virtual void OnClose(TimeSpan timeout)
         {
         }
@@ -132,7 +134,7 @@ namespace CoreWCF.Security
             return Task.CompletedTask;
         }
 
-        public virtual  Task CloseAsync(CancellationToken token)
+        public virtual Task CloseAsync(CancellationToken token)
         {
             return Task.CompletedTask;
         }
@@ -149,7 +151,6 @@ namespace CoreWCF.Security
 
         public void OnAbort()
         {
-            
         }
 
         public void OnClosed()

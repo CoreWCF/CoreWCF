@@ -1,8 +1,8 @@
-﻿using CoreWCF.IdentityModel.Tokens;
-using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.IdentityModel
 {
@@ -14,10 +14,7 @@ namespace CoreWCF.IdentityModel
 
     public abstract class SecurityKeyIdentifierClause
     {
-        readonly string clauseType;
-        byte[] derivationNonce;
-        int derivationLength;
-        string id = null;
+        private readonly byte[] _derivationNonce;
 
         protected SecurityKeyIdentifierClause(string clauseType)
             : this(clauseType, null, 0)
@@ -26,9 +23,9 @@ namespace CoreWCF.IdentityModel
 
         protected SecurityKeyIdentifierClause(string clauseType, byte[] nonce, int length)
         {
-            this.clauseType = clauseType;
-            derivationNonce = nonce;
-            derivationLength = length;
+            ClauseType = clauseType;
+            _derivationNonce = nonce;
+            DerivationLength = length;
         }
 
         public virtual bool CanCreateKey
@@ -36,16 +33,9 @@ namespace CoreWCF.IdentityModel
             get { return false; }
         }
 
-        public string ClauseType
-        {
-            get { return clauseType; }
-        }
+        public string ClauseType { get; }
 
-        public string Id
-        {
-            get { return id; }
-            set { id = value; }
-        }
+        public string Id { get; set; } = null;
 
         public virtual SecurityKey CreateKey()
         {
@@ -59,13 +49,9 @@ namespace CoreWCF.IdentityModel
 
         public byte[] GetDerivationNonce()
         {
-            return (derivationNonce != null) ? (byte[])derivationNonce.Clone() : null;
+            return (_derivationNonce != null) ? (byte[])_derivationNonce.Clone() : null;
         }
 
-        public int DerivationLength
-        {
-            get { return derivationLength; }
-        }
+        public int DerivationLength { get; }
     }
-
 }

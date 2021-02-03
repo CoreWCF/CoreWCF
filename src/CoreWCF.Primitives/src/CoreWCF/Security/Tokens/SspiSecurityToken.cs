@@ -1,19 +1,20 @@
-﻿using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Net;
 using System.Security.Principal;
-using System.Text;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security.Tokens
 {
     public class SspiSecurityToken : SecurityToken
     {
-        string _id;
-        DateTime _effectiveTime;
-        DateTime _expirationTime;
+        private string _id;
+        private readonly DateTime _effectiveTime;
+        private readonly DateTime _expirationTime;
 
         public SspiSecurityToken(TokenImpersonationLevel impersonationLevel, bool allowNtlm, NetworkCredential networkCredential)
         {
@@ -38,7 +39,10 @@ namespace CoreWCF.Security.Tokens
             get
             {
                 if (_id == null)
+                {
                     _id = SecurityUniqueId.Create().Value;
+                }
+
                 return _id;
             }
         }

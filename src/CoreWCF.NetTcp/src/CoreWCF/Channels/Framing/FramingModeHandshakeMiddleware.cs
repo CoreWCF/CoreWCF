@@ -1,19 +1,17 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Configuration;
-using System.Threading.Tasks;
-using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Threading;
-using CoreWCF.Runtime;
-using System.Diagnostics;
-using System.IO.Pipelines;
+using System.Threading.Tasks;
+using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Hosting;
 
 namespace CoreWCF.Channels.Framing
 {
     internal class FramingModeHandshakeMiddleware
     {
-        private HandshakeDelegate _next;
-        private IApplicationLifetime _appLifetime;
+        private readonly HandshakeDelegate _next;
+        private readonly IApplicationLifetime _appLifetime;
 
         public FramingModeHandshakeMiddleware(HandshakeDelegate next, IApplicationLifetime appLifetime)
         {
@@ -32,7 +30,7 @@ namespace CoreWCF.Channels.Framing
                 IConnectionReuseHandler reuseHandler = null;
                 do
                 {
-                    var inputPipe = connection.Input;
+                    System.IO.Pipelines.PipeReader inputPipe = connection.Input;
                     var modeDecoder = new ServerModeDecoder();
                     try
                     {
@@ -44,8 +42,7 @@ namespace CoreWCF.Channels.Framing
                     catch (CommunicationException e)
                     {
                         // see if we need to send back a framing fault
-                        string framingFault;
-                        if (FramingEncodingString.TryGetFaultString(e, out framingFault))
+                        if (FramingEncodingString.TryGetFaultString(e, out string framingFault))
                         {
                             // TODO: Timeouts
                             await connection.SendFaultAsync(framingFault, Timeout.InfiniteTimeSpan/*GetRemainingTimeout()*/,

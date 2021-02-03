@@ -1,15 +1,18 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
 using KeyIdentifierEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.KeyIdentifierEntry;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
     internal class XmlDsigSep2000 : SecurityTokenSerializer.SerializerEntries
     {
-        private KeyInfoSerializer _securityTokenSerializer;
+        private readonly KeyInfoSerializer _securityTokenSerializer;
 
         public XmlDsigSep2000(KeyInfoSerializer securityTokenSerializer)
         {
@@ -28,7 +31,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         internal class KeyInfoEntry : KeyIdentifierEntry
         {
-            private KeyInfoSerializer _securityTokenSerializer;
+            private readonly KeyInfoSerializer _securityTokenSerializer;
 
             public KeyInfoEntry(KeyInfoSerializer securityTokenSerializer)
             {
@@ -130,8 +133,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 {
                     if (ski == null && reader.IsStartElement(CoreWCF.XD.XmlSignatureDictionary.X509Certificate, NamespaceUri))
                     {
-                        X509Certificate2 certificate = null;
-                        if (!SecurityUtils.TryCreateX509CertificateFromRawData(reader.ReadElementContentAsBase64(), out certificate))
+                        if (!SecurityUtils.TryCreateX509CertificateFromRawData(reader.ReadElementContentAsBase64(), out X509Certificate2 certificate))
                         {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityMessageSerializationException(SR.InvalidX509RawData));
                         }
@@ -172,9 +174,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
             public override void WriteKeyIdentifierClauseCore(XmlDictionaryWriter writer, SecurityKeyIdentifierClause keyIdentifierClause)
             {
-                X509RawDataKeyIdentifierClause x509Clause = keyIdentifierClause as X509RawDataKeyIdentifierClause;
-
-                if (x509Clause != null)
+                if (keyIdentifierClause is X509RawDataKeyIdentifierClause x509Clause)
                 {
                     writer.WriteStartElement(CoreWCF.XD.XmlSignatureDictionary.Prefix.Value, CoreWCF.XD.XmlSignatureDictionary.X509Data, NamespaceUri);
 
@@ -186,8 +186,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     writer.WriteEndElement();
                 }
 
-                X509IssuerSerialKeyIdentifierClause issuerSerialClause = keyIdentifierClause as X509IssuerSerialKeyIdentifierClause;
-                if (issuerSerialClause != null)
+                if (keyIdentifierClause is X509IssuerSerialKeyIdentifierClause issuerSerialClause)
                 {
                     writer.WriteStartElement(CoreWCF.XD.XmlSignatureDictionary.Prefix.Value, CoreWCF.XD.XmlSignatureDictionary.X509Data, CoreWCF.XD.XmlSignatureDictionary.Namespace);
                     writer.WriteStartElement(CoreWCF.XD.XmlSignatureDictionary.Prefix.Value, CoreWCF.XD.XmlSignatureDictionary.X509IssuerSerial, CoreWCF.XD.XmlSignatureDictionary.Namespace);
@@ -198,8 +197,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     return;
                 }
 
-                X509SubjectKeyIdentifierClause skiClause = keyIdentifierClause as X509SubjectKeyIdentifierClause;
-                if (skiClause != null)
+                if (keyIdentifierClause is X509SubjectKeyIdentifierClause skiClause)
                 {
                     writer.WriteStartElement(XmlSignatureConstants.Prefix, XmlSignatureConstants.Elements.X509Data, XmlSignatureConstants.Namespace);
                     writer.WriteStartElement(XmlSignatureConstants.Prefix, XmlSignatureConstants.Elements.X509SKI, XmlSignatureConstants.Namespace);

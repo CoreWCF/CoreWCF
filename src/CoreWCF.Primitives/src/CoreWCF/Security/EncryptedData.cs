@@ -1,32 +1,35 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Security.Cryptography;
 using System.Xml;
 
 namespace CoreWCF.Security
 {
-    class EncryptedData : EncryptedType
+    internal class EncryptedData : EncryptedType
     {
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.EncryptedData;
         internal static readonly string ElementType = XmlEncryptionStrings.ElementType;
         internal static readonly string ContentType = XmlEncryptionStrings.ContentType;
-        SymmetricAlgorithm algorithm;
-        byte[] decryptedBuffer;
-        ArraySegment<byte> buffer;
-        byte[] iv;
-        byte[] cipherText;
+        private SymmetricAlgorithm _algorithm;
+        private byte[] _decryptedBuffer;
+        private ArraySegment<byte> _buffer;
+        private byte[] _iv;
+        private byte[] _cipherText;
 
         protected override XmlDictionaryString OpeningElementName
         {
             get { return ElementName; }
         }
 
-        void EnsureDecryptionSet()
+        private void EnsureDecryptionSet()
         {
-            if (this.State == EncryptionState.DecryptionSetup)
+            if (State == EncryptionState.DecryptionSetup)
             {
                 SetPlainText();
             }
-            else if (this.State != EncryptionState.Decrypted)
+            else if (State != EncryptionState.Decrypted)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
@@ -34,66 +37,60 @@ namespace CoreWCF.Security
 
         protected override void ForceEncryption()
         {
-            CryptoHelper.GenerateIVAndEncrypt(this.algorithm, this.buffer, out this.iv, out this.cipherText);
-            this.State = EncryptionState.Encrypted;
-            this.buffer = new ArraySegment<byte>(CryptoHelper.EmptyBuffer);
+            CryptoHelper.GenerateIVAndEncrypt(_algorithm, _buffer, out _iv, out _cipherText);
+            State = EncryptionState.Encrypted;
+            _buffer = new ArraySegment<byte>(CryptoHelper.EmptyBuffer);
         }
 
         public byte[] GetDecryptedBuffer()
         {
             EnsureDecryptionSet();
-            return this.decryptedBuffer;
+            return _decryptedBuffer;
         }
 
         protected override void ReadCipherData(XmlDictionaryReader reader)
         {
-            this.cipherText = reader.ReadContentAsBase64();
+            _cipherText = reader.ReadContentAsBase64();
         }
 
         protected override void ReadCipherData(XmlDictionaryReader reader, long maxBufferSize)
         {
-            this.cipherText = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
+            _cipherText = SecurityUtils.ReadContentAsBase64(reader, maxBufferSize);
         }
 
-        void SetPlainText()
+        private void SetPlainText()
         {
-            this.decryptedBuffer = CryptoHelper.ExtractIVAndDecrypt(this.algorithm, this.cipherText, 0, this.cipherText.Length);
-            this.State = EncryptionState.Decrypted;
+            _decryptedBuffer = CryptoHelper.ExtractIVAndDecrypt(_algorithm, _cipherText, 0, _cipherText.Length);
+            State = EncryptionState.Decrypted;
         }
 
         public void SetUpDecryption(SymmetricAlgorithm algorithm)
         {
-            if (this.State != EncryptionState.Read)
+            if (State != EncryptionState.Read)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
-            if (algorithm == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
-            }
-            this.algorithm = algorithm;
-            this.State = EncryptionState.DecryptionSetup;
+
+            _algorithm = algorithm ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
+            State = EncryptionState.DecryptionSetup;
         }
 
         public void SetUpEncryption(SymmetricAlgorithm algorithm, ArraySegment<byte> buffer)
         {
-            if (this.State != EncryptionState.New)
+            if (State != EncryptionState.New)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.BadEncryptionState));
             }
-            if (algorithm == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
-            }
-            this.algorithm = algorithm;
-            this.buffer = buffer;
-            this.State = EncryptionState.EncryptionSetup;
+
+            _algorithm = algorithm ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithm));
+            _buffer = buffer;
+            State = EncryptionState.EncryptionSetup;
         }
 
         protected override void WriteCipherData(XmlDictionaryWriter writer)
         {
-            writer.WriteBase64(this.iv, 0, this.iv.Length);
-            writer.WriteBase64(this.cipherText, 0, this.cipherText.Length);
+            writer.WriteBase64(_iv, 0, _iv.Length);
+            writer.WriteBase64(_cipherText, 0, _cipherText.Length);
         }
     }
 }

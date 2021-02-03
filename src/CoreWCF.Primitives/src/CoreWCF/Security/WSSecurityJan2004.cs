@@ -1,13 +1,14 @@
-﻿
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 using HexBinary = CoreWCF.Security.SoapHexBinary;
 using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
@@ -23,7 +24,7 @@ namespace CoreWCF.Security
 
         public WSSecurityTokenSerializer WSSecurityTokenSerializer { get; }
 
-        public SamlSerializer SamlSerializer     { get; }
+        public SamlSerializer SamlSerializer { get; }
 
         protected void PopulateJan2004TokenEntries(IList<TokenEntry> tokenEntryList)
         {
@@ -46,8 +47,8 @@ namespace CoreWCF.Security
             internal const string EncodingTypeValueHexBinary = SecurityJan2004Strings.EncodingTypeValueHexBinary;
             internal static readonly XmlDictionaryString ValueTypeAttribute = XD.SecurityJan2004Dictionary.ValueType;
 
-            private WSSecurityTokenSerializer _tokenSerializer;
-            private string[] _valueTypeUris = null;
+            private readonly WSSecurityTokenSerializer _tokenSerializer;
+            private readonly string[] _valueTypeUris = null;
 
             protected BinaryTokenEntry(WSSecurityTokenSerializer tokenSerializer, string valueTypeUri)
             {
@@ -152,10 +153,7 @@ namespace CoreWCF.Security
 
             public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
             {
-                string id;
-                byte[] rawData;
-
-                WriteBinaryCore(token, out id, out rawData);
+                WriteBinaryCore(token, out string id, out byte[] rawData);
 
                 if (rawData == null)
                 {
@@ -216,8 +214,7 @@ namespace CoreWCF.Security
 
             public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
             {
-                BufferedGenericXmlSecurityToken bufferedXmlToken = token as BufferedGenericXmlSecurityToken;
-                if (bufferedXmlToken != null && bufferedXmlToken.TokenXmlBuffer != null)
+                if (token is BufferedGenericXmlSecurityToken bufferedXmlToken && bufferedXmlToken.TokenXmlBuffer != null)
                 {
                     using (XmlDictionaryReader reader = bufferedXmlToken.TokenXmlBuffer.GetReader(0))
                     {
@@ -234,7 +231,7 @@ namespace CoreWCF.Security
 
         private class UserNamePasswordTokenEntry : TokenEntry
         {
-            private WSSecurityTokenSerializer _tokenSerializer;
+            private readonly WSSecurityTokenSerializer _tokenSerializer;
 
             public UserNamePasswordTokenEntry(WSSecurityTokenSerializer tokenSerializer)
             {
@@ -266,11 +263,7 @@ namespace CoreWCF.Security
 
             public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
             {
-                string id;
-                string userName;
-                string password;
-
-                ParseToken(reader, out id, out userName, out password);
+                ParseToken(reader, out string id, out string userName, out string password);
 
                 if (id == null)
                 {
@@ -321,7 +314,6 @@ namespace CoreWCF.Security
 
             private static void ParseToken(XmlDictionaryReader reader, out string id, out string userName, out string password)
             {
-                id = null;
                 userName = null;
                 password = null;
 
@@ -352,7 +344,7 @@ namespace CoreWCF.Security
                     else
                     {
                         throw new NotImplementedException();
-                      //  XmlHelper.OnUnexpectedChildNodeError(SecurityJan2004Strings.UserNameTokenElement, reader);
+                        //  XmlHelper.OnUnexpectedChildNodeError(SecurityJan2004Strings.UserNameTokenElement, reader);
                     }
                 }
                 reader.ReadEndElement();
@@ -360,7 +352,7 @@ namespace CoreWCF.Security
                 if (userName == null)
                 {
                     throw new NotImplementedException();
-                  //  XmlHelper.OnRequiredElementMissing(SecurityJan2004Strings.UserNameElement, SecurityJan2004Strings.Namespace);
+                    //  XmlHelper.OnRequiredElementMissing(SecurityJan2004Strings.UserNameElement, SecurityJan2004Strings.Namespace);
                 }
             }
         }
@@ -383,8 +375,7 @@ namespace CoreWCF.Security
 
             public override SecurityToken ReadBinaryCore(string id, string valueTypeUri, byte[] rawData)
             {
-                X509Certificate2 certificate;
-                if (!SecurityUtils.TryCreateX509CertificateFromRawData(rawData, out certificate))
+                if (!SecurityUtils.TryCreateX509CertificateFromRawData(rawData, out X509Certificate2 certificate))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.InvalidX509RawData));
                 }
@@ -394,8 +385,7 @@ namespace CoreWCF.Security
             public override void WriteBinaryCore(SecurityToken token, out string id, out byte[] rawData)
             {
                 id = token.Id;
-                X509SecurityToken x509Token = token as X509SecurityToken;
-                if (x509Token != null)
+                if (token is X509SecurityToken x509Token)
                 {
                     rawData = x509Token.Certificate.GetRawCertData();
                 }

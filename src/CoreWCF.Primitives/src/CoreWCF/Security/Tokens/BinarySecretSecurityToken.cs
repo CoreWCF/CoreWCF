@@ -1,16 +1,19 @@
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security.Tokens
 {
     public class BinarySecretSecurityToken : SecurityToken
     {
-        private string _id;
-        private DateTime _effectiveTime;
-        private byte[] _key;
-        private ReadOnlyCollection<SecurityKey> _securityKeys;
+        private readonly string _id;
+        private readonly DateTime _effectiveTime;
+        private readonly byte[] _key;
+        private readonly ReadOnlyCollection<SecurityKey> _securityKeys;
 
         public BinarySecretSecurityToken(int keySizeInBits)
             : this(SecurityUniqueId.Create().Value, keySizeInBits)
@@ -40,7 +43,9 @@ namespace CoreWCF.Security.Tokens
         protected BinarySecretSecurityToken(string id, byte[] key, bool allowCrypto)
         {
             if (key == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("key");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
+            }
 
             _id = id;
             _effectiveTime = DateTime.UtcNow;

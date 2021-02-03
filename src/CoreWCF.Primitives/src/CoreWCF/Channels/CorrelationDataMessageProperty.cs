@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using CoreWCF.Runtime;
 
@@ -6,18 +9,18 @@ namespace CoreWCF.Channels
 {
     internal class CorrelationDataMessageProperty : IMessageProperty
     {
-        const string PropertyName = "CorrelationDataMessageProperty";
-        Dictionary<string, DataProviderEntry> dataProviders;
+        private const string PropertyName = "CorrelationDataMessageProperty";
+        private Dictionary<string, DataProviderEntry> _dataProviders;
 
         public CorrelationDataMessageProperty()
         {
         }
 
-        CorrelationDataMessageProperty(IDictionary<string, DataProviderEntry> dataProviders)
+        private CorrelationDataMessageProperty(IDictionary<string, DataProviderEntry> dataProviders)
         {
             if (dataProviders != null && dataProviders.Count > 0)
             {
-                this.dataProviders = new Dictionary<string, DataProviderEntry>(dataProviders);
+                _dataProviders = new Dictionary<string, DataProviderEntry>(dataProviders);
             }
         }
 
@@ -38,18 +41,18 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dataProvider));
             }
 
-            if (dataProviders == null)
+            if (_dataProviders == null)
             {
-                dataProviders = new Dictionary<string, DataProviderEntry>();
+                _dataProviders = new Dictionary<string, DataProviderEntry>();
             }
-            dataProviders.Add(name, new DataProviderEntry(dataProvider));
+            _dataProviders.Add(name, new DataProviderEntry(dataProvider));
         }
 
         public bool Remove(string name)
         {
-            if (dataProviders != null)
+            if (_dataProviders != null)
             {
-                return dataProviders.Remove(name);
+                return _dataProviders.Remove(name);
             }
             else
             {
@@ -59,8 +62,7 @@ namespace CoreWCF.Channels
 
         public bool TryGetValue(string name, out string value)
         {
-            DataProviderEntry entry;
-            if (dataProviders != null && dataProviders.TryGetValue(name, out entry))
+            if (_dataProviders != null && _dataProviders.TryGetValue(name, out DataProviderEntry entry))
             {
                 value = entry.Data;
                 return true;
@@ -83,8 +85,7 @@ namespace CoreWCF.Channels
 
         public static bool TryGet(MessageProperties properties, out CorrelationDataMessageProperty property)
         {
-            object value = null;
-            if (properties.TryGetValue(PropertyName, out value))
+            if (properties.TryGetValue(PropertyName, out object value))
             {
                 property = value as CorrelationDataMessageProperty;
             }
@@ -108,8 +109,7 @@ namespace CoreWCF.Channels
             }
 
             CorrelationDataMessageProperty data = null;
-            object value = null;
-            if (message.Properties.TryGetValue(PropertyName, out value))
+            if (message.Properties.TryGetValue(PropertyName, out object value))
             {
                 data = value as CorrelationDataMessageProperty;
             }
@@ -131,35 +131,34 @@ namespace CoreWCF.Channels
 
         public IMessageProperty CreateCopy()
         {
-            return new CorrelationDataMessageProperty(dataProviders);
+            return new CorrelationDataMessageProperty(_dataProviders);
         }
 
-        class DataProviderEntry
+        private class DataProviderEntry
         {
-            string resolvedData;
-            Func<string> dataProvider;
+            private string _resolvedData;
+            private Func<string> _dataProvider;
 
             public DataProviderEntry(Func<string> dataProvider)
             {
                 Fx.Assert(dataProvider != null, "dataProvider required");
-                this.dataProvider = dataProvider;
-                resolvedData = null;
+                _dataProvider = dataProvider;
+                _resolvedData = null;
             }
 
             public string Data
             {
                 get
                 {
-                    if (dataProvider != null)
+                    if (_dataProvider != null)
                     {
-                        resolvedData = dataProvider();
-                        dataProvider = null;
+                        _resolvedData = _dataProvider();
+                        _dataProvider = null;
                     }
 
-                    return resolvedData;
+                    return _resolvedData;
                 }
             }
         }
     }
-
 }

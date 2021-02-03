@@ -1,36 +1,21 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml;
 
 namespace CoreWCF.Security
 {
     public abstract class SecurityPolicyVersion
     {
-        readonly String spNamespace;
-        readonly String prefix;
-
-        internal SecurityPolicyVersion(String ns, String prefix)
+        internal SecurityPolicyVersion(string ns, string prefix)
         {
-            this.spNamespace = ns;
-            this.prefix = prefix;
+            Namespace = ns;
+            Prefix = prefix;
         }
 
-        public String Namespace
-        {
-            get
-            {
-                return this.spNamespace;
-            }
-        }
+        public string Namespace { get; }
 
-        public String Prefix
-        {
-            get
-            {
-                return this.prefix;
-            }
-        }
+        public string Prefix { get; }
 
         public static SecurityPolicyVersion WSSecurityPolicy11
         {
@@ -42,12 +27,12 @@ namespace CoreWCF.Security
             get { return WSSecurityPolicyVersion12.Instance; }
         }
 
-        class WSSecurityPolicyVersion11 : SecurityPolicyVersion
+        private class WSSecurityPolicyVersion11 : SecurityPolicyVersion
         {
-            static readonly WSSecurityPolicyVersion11 instance = new WSSecurityPolicyVersion11();
+            private static readonly WSSecurityPolicyVersion11 s_instance = new WSSecurityPolicyVersion11();
 
             protected WSSecurityPolicyVersion11()
-                : base(CoreWCF.Security.WSSecurityPolicy11.WsspNamespace, WSSecurityPolicy.WsspPrefix)
+                : base(Security.WSSecurityPolicy11.WsspNamespace, WSSecurityPolicy.WsspPrefix)
             {
             }
 
@@ -55,17 +40,17 @@ namespace CoreWCF.Security
             {
                 get
                 {
-                    return instance;
+                    return s_instance;
                 }
             }
         }
 
-        class WSSecurityPolicyVersion12 : SecurityPolicyVersion
+        private class WSSecurityPolicyVersion12 : SecurityPolicyVersion
         {
-            static readonly WSSecurityPolicyVersion12 instance = new WSSecurityPolicyVersion12();
+            private static readonly WSSecurityPolicyVersion12 s_instance = new WSSecurityPolicyVersion12();
 
             protected WSSecurityPolicyVersion12()
-                : base(CoreWCF.Security.WSSecurityPolicy12.WsspNamespace, WSSecurityPolicy.WsspPrefix)
+                : base(Security.WSSecurityPolicy12.WsspNamespace, WSSecurityPolicy.WsspPrefix)
             {
             }
 
@@ -73,10 +58,9 @@ namespace CoreWCF.Security
             {
                 get
                 {
-                    return instance;
+                    return s_instance;
                 }
             }
         }
-
     }
 }

@@ -1,84 +1,92 @@
-using CoreWCF.Channels;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections;
 using System.IO;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-
     [XmlSchemaProvider("GetSchema")]
     [XmlRoot(AddressingStrings.EndpointReference, Namespace = Addressing10Strings.Namespace)]
     public class EndpointAddress10 : IXmlSerializable
     {
-        static XmlQualifiedName eprType;
-
-        EndpointAddress address;
+        private static XmlQualifiedName s_eprType;
+        private EndpointAddress _address;
 
         // for IXmlSerializable
-        EndpointAddress10()
+        private EndpointAddress10()
         {
-            this.address = null;
+            _address = null;
         }
 
-        EndpointAddress10(EndpointAddress address)
+        private EndpointAddress10(EndpointAddress address)
         {
-            this.address = address;
+            _address = address;
         }
 
         public static EndpointAddress10 FromEndpointAddress(EndpointAddress address)
         {
             if (address == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("address");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
             }
             return new EndpointAddress10(address);
         }
 
         public EndpointAddress ToEndpointAddress()
         {
-            return this.address;
+            return _address;
         }
 
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            this.address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressing10, XmlDictionaryReader.CreateDictionaryReader(reader));
+            _address = EndpointAddress.ReadFrom(AddressingVersion.WSAddressing10, XmlDictionaryReader.CreateDictionaryReader(reader));
         }
 
         void IXmlSerializable.WriteXml(XmlWriter writer)
         {
-            this.address.WriteContentsTo(AddressingVersion.WSAddressing10, XmlDictionaryWriter.CreateDictionaryWriter(writer));
+            _address.WriteContentsTo(AddressingVersion.WSAddressing10, XmlDictionaryWriter.CreateDictionaryWriter(writer));
         }
 
-        static XmlQualifiedName EprType
+        private static XmlQualifiedName EprType
         {
             get
             {
-                if (eprType == null)
-                    eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing10Strings.Namespace);
-                return eprType;
+                if (s_eprType == null)
+                {
+                    s_eprType = new XmlQualifiedName(AddressingStrings.EndpointReferenceType, Addressing10Strings.Namespace);
+                }
+
+                return s_eprType;
             }
         }
 
-        static XmlSchema GetEprSchema()
+        private static XmlSchema GetEprSchema()
         {
             using (XmlTextReader reader = new XmlTextReader(new StringReader(Schema)) { DtdProcessing = DtdProcessing.Prohibit })
             {
                 return XmlSchema.Read(reader, null);
             }
-
         }
 
         public static XmlQualifiedName GetSchema(XmlSchemaSet xmlSchemaSet)
         {
             if (xmlSchemaSet == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("xmlSchemaSet");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlSchemaSet));
+            }
+
             XmlQualifiedName eprType = EprType;
             XmlSchema eprSchema = GetEprSchema();
             ICollection schemas = xmlSchemaSet.Schemas(Addressing10Strings.Namespace);
             if (schemas == null || schemas.Count == 0)
+            {
                 xmlSchemaSet.Add(eprSchema);
+            }
             else
             {
                 XmlSchema schemaToAdd = null;
@@ -90,14 +98,22 @@ namespace CoreWCF
                         break;
                     }
                     else
+                    {
                         schemaToAdd = xmlSchema;
+                    }
                 }
                 if (schemaToAdd != null)
                 {
                     foreach (XmlQualifiedName prefixNsPair in eprSchema.Namespaces.ToArray())
+                    {
                         schemaToAdd.Namespaces.Add(prefixNsPair.Name, prefixNsPair.Namespace);
+                    }
+
                     foreach (XmlSchemaObject schemaObject in eprSchema.Items)
+                    {
                         schemaToAdd.Items.Add(schemaObject);
+                    }
+
                     xmlSchemaSet.Reprocess(schemaToAdd);
                 }
             }
@@ -109,7 +125,7 @@ namespace CoreWCF
             return null;
         }
 
-        const string Schema =
+        private const string Schema =
 @"<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns:wsa='http://www.w3.org/2005/08/addressing' targetNamespace='http://www.w3.org/2005/08/addressing' blockDefault='#all' elementFormDefault='qualified' finalDefault='' attributeFormDefault='unqualified'>
     
     <!-- Constructs from the WS-Addressing Core -->

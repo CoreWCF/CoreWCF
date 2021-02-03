@@ -1,8 +1,10 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Xml;
+using CoreWCF.Security.Tokens;
 using static CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer;
 
 namespace CoreWCF.IdentityModel.Tokens
@@ -17,32 +19,32 @@ namespace CoreWCF.IdentityModel.Tokens
         public override void PopulateStrEntries(IList<StrEntry> strEntries)
         {
             PopulateJan2004StrEntries(strEntries);
-         //  strEntries.Add(new SamlDirectStrEntry());
-            strEntries.Add(new X509ThumbprintStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
-            strEntries.Add(new EncryptedKeyHashStrEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes));
+            //  strEntries.Add(new SamlDirectStrEntry());
+            strEntries.Add(new X509ThumbprintStrEntry(SecurityTokenSerializer.EmitBspRequiredAttributes));
+            strEntries.Add(new EncryptedKeyHashStrEntry(SecurityTokenSerializer.EmitBspRequiredAttributes));
         }
 
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
         {
             PopulateJan2004TokenEntries(tokenEntryList);
             tokenEntryList.Add(new WSSecurityXXX2005.WrappedKeyTokenEntry());
-           // tokenEntryList.Add(new WSSecurityXXX2005.SamlTokenEntry());
+            // tokenEntryList.Add(new WSSecurityXXX2005.SamlTokenEntry());
         }
 
         public override void PopulateKeyIdentifierClauseEntries(IList<KeyIdentifierClauseEntry> clauseEntries)
         {
             List<StrEntry> strEntries = new List<StrEntry>();
-            this.SecurityTokenSerializer.PopulateStrEntries(strEntries);
-            SecurityTokenReferenceXXX2005ClauseEntry strClause = new SecurityTokenReferenceXXX2005ClauseEntry(this.SecurityTokenSerializer.EmitBspRequiredAttributes, strEntries);
+            SecurityTokenSerializer.PopulateStrEntries(strEntries);
+            SecurityTokenReferenceXXX2005ClauseEntry strClause = new SecurityTokenReferenceXXX2005ClauseEntry(SecurityTokenSerializer.EmitBspRequiredAttributes, strEntries);
             clauseEntries.Add(strClause);
         }
 
-        new class WrappedKeyTokenEntry : WSSecurityJan2004.WrappedKeyTokenEntry
+        private new class WrappedKeyTokenEntry : WSSecurityJan2004.WrappedKeyTokenEntry
         {
             public override string TokenTypeUri { get { return SecurityXXX2005Strings.EncryptedKeyTokenType; } }
         }
 
-        class SecurityTokenReferenceXXX2005ClauseEntry : SecurityTokenReferenceJan2004ClauseEntry
+        private class SecurityTokenReferenceXXX2005ClauseEntry : SecurityTokenReferenceJan2004ClauseEntry
         {
             public SecurityTokenReferenceXXX2005ClauseEntry(bool emitBspRequiredAttributes, IList<StrEntry> strEntries)
                 : base(emitBspRequiredAttributes, strEntries)
@@ -56,19 +58,19 @@ namespace CoreWCF.IdentityModel.Tokens
 
             public override void WriteKeyIdentifierClauseCore(XmlDictionaryWriter writer, SecurityKeyIdentifierClause keyIdentifierClause)
             {
-                for (int i = 0; i < this.StrEntries.Count; ++i)
+                for (int i = 0; i < StrEntries.Count; ++i)
                 {
-                    if (this.StrEntries[i].SupportsCore(keyIdentifierClause))
+                    if (StrEntries[i].SupportsCore(keyIdentifierClause))
                     {
                         writer.WriteStartElement(CoreWCF.XD.SecurityJan2004Dictionary.Prefix.Value, CoreWCF.XD.SecurityJan2004Dictionary.SecurityTokenReference, CoreWCF.XD.SecurityJan2004Dictionary.Namespace);
 
-                        string tokenTypeUri = this.GetTokenTypeUri(this.StrEntries[i], keyIdentifierClause);
+                        string tokenTypeUri = GetTokenTypeUri(StrEntries[i], keyIdentifierClause);
                         if (tokenTypeUri != null)
                         {
                             writer.WriteAttributeString(CoreWCF.XD.SecurityXXX2005Dictionary.Prefix.Value, CoreWCF.XD.SecurityXXX2005Dictionary.TokenTypeAttribute, CoreWCF.XD.SecurityXXX2005Dictionary.Namespace, tokenTypeUri);
                         }
 
-                        this.StrEntries[i].WriteContent(writer, keyIdentifierClause);
+                        StrEntries[i].WriteContent(writer, keyIdentifierClause);
                         writer.WriteEndElement();
                         return;
                     }
@@ -78,7 +80,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
             private string GetTokenTypeUri(StrEntry str, SecurityKeyIdentifierClause keyIdentifierClause)
             {
-                bool emitTokenType = this.EmitTokenType(str);
+                bool emitTokenType = EmitTokenType(str);
                 if (emitTokenType)
                 {
                     string tokenTypeUri;
@@ -116,7 +118,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 bool emitTokenType = false;
                 // we emit tokentype always for SAML and Encrypted Key Tokens 
                 if (
-                    //(str is SamlJan2004KeyIdentifierStrEntry)
+                        //(str is SamlJan2004KeyIdentifierStrEntry)
                         //||
                         (str is EncryptedKeyHashStrEntry)
                        // || (str is SamlDirectStrEntry)
@@ -124,7 +126,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 {
                     emitTokenType = true;
                 }
-                else if (this.EmitBspRequiredAttributes)
+                else if (EmitBspRequiredAttributes)
                 {
                     if (
                         //(str is KerberosHashStrEntry)
@@ -138,7 +140,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        class EncryptedKeyHashStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
+        private class EncryptedKeyHashStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
         {
             protected override Type ClauseType { get { return typeof(EncryptedKeyHashIdentifierClause); } }
             public override Type TokenType { get { return typeof(WrappedKeySecurityToken); } }
@@ -170,7 +172,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        class X509ThumbprintStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
+        private class X509ThumbprintStrEntry : WSSecurityJan2004.KeyIdentifierStrEntry
         {
             protected override Type ClauseType { get { return typeof(X509ThumbprintKeyIdentifierClause); } }
             public override Type TokenType { get { return typeof(X509SecurityToken); } }

@@ -1,12 +1,15 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
     public abstract class NonceCache
     {
-        TimeSpan cachingTime;
-        int maxCachedNonces;
+        private TimeSpan _cachingTime;
+        private int _maxCachedNonces;
 
         /// <summary>
         /// TThe max timespan after which a Nonce is deleted from the NonceCache. This value should be atleast twice the maxclock Skew added to the replayWindow size.
@@ -15,7 +18,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.cachingTime;
+                return _cachingTime;
             }
             set
             {
@@ -31,7 +34,7 @@ namespace CoreWCF.Security
                         SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
-                this.cachingTime = value;
+                _cachingTime = value;
             }
         }
 
@@ -42,7 +45,7 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.maxCachedNonces;
+                return _maxCachedNonces;
             }
             set
             {
@@ -51,8 +54,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBeNonNegative));
                 }
-                this.maxCachedNonces = value;
-
+                _maxCachedNonces = value;
             }
         }
 

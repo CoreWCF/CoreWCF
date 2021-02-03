@@ -1,11 +1,11 @@
-﻿
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
 using System;
 using System.Collections.ObjectModel;
 using System.Xml;
+using CoreWCF.IdentityModel;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -105,8 +105,7 @@ namespace CoreWCF.Security
                 requestedUnattachedReference = null;
                 for (int i = 0; i < rstrXml.ChildNodes.Count; ++i)
                 {
-                    XmlElement child = rstrXml.ChildNodes[i] as XmlElement;
-                    if (child != null)
+                    if (rstrXml.ChildNodes[i] is XmlElement child)
                     {
                         if (child.LocalName == DriverDictionary.RequestedSecurityToken.Value && child.NamespaceURI == DriverDictionary.Namespace.Value)
                         {
@@ -202,7 +201,7 @@ namespace CoreWCF.Security
             {
                 if (rstr.IsRequestedTokenClosed)
                 {
-                    writer.WriteElementString(DriverDictionary.RequestedTokenClosed, DriverDictionary.Namespace, String.Empty);
+                    writer.WriteElementString(DriverDictionary.RequestedTokenClosed, DriverDictionary.Namespace, string.Empty);
                 }
             }
 
@@ -223,5 +222,5 @@ namespace CoreWCF.Security
                 }
             }
         }
-        }
+    }
 }

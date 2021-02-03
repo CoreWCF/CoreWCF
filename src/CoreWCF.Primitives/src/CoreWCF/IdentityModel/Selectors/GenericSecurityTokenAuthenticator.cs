@@ -1,13 +1,13 @@
-﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.ObjectModel;
-using System.Text;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
-    class GenericSecurityTokenAuthenticator : SecurityTokenAuthenticator
+    internal class GenericSecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
         public GenericSecurityTokenAuthenticator()
         {

@@ -1,13 +1,16 @@
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Threading.Tasks;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
     internal class SessionSymmetricTransportSecurityProtocolFactory : TransportSecurityProtocolFactory
     {
-        private SecurityTokenParameters securityTokenParameters;
-        private SessionDerivedKeySecurityTokenParameters derivedKeyTokenParameters;
+        private SecurityTokenParameters _securityTokenParameters;
+        private SessionDerivedKeySecurityTokenParameters _derivedKeyTokenParameters;
 
         public SessionSymmetricTransportSecurityProtocolFactory() : base()
         {
@@ -19,54 +22,53 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.securityTokenParameters;
+                return _securityTokenParameters;
             }
             set
             {
                 ThrowIfImmutable();
-                this.securityTokenParameters = value;
+                _securityTokenParameters = value;
             }
         }
 
         internal override SecurityProtocol OnCreateSecurityProtocol(EndpointAddress target, Uri via, TimeSpan timeout)
         {
-            if (this.SecurityTokenParameters == null)
+            if (SecurityTokenParameters == null)
             {
-                OnPropertySettingsError("SecurityTokenParameters", true);
+                OnPropertySettingsError(nameof(SecurityTokenParameters), true);
             }
-            if (this.SecurityTokenParameters.RequireDerivedKeys)
+            if (SecurityTokenParameters.RequireDerivedKeys)
             {
-                this.ExpectKeyDerivation = true;
-                this.derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(this.ActAsInitiator);
+                ExpectKeyDerivation = true;
+                _derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
             }
             return new AcceptorSessionSymmetricTransportSecurityProtocol(this);
-
         }
 
         public override Task OnOpenAsync(TimeSpan timeout)
         {
             base.OnOpenAsync(timeout);
-            if (this.SecurityTokenParameters == null)
+            if (SecurityTokenParameters == null)
             {
-                OnPropertySettingsError("SecurityTokenParameters", true);
+                OnPropertySettingsError(nameof(SecurityTokenParameters), true);
             }
-            if (this.SecurityTokenParameters.RequireDerivedKeys)
+            if (SecurityTokenParameters.RequireDerivedKeys)
             {
-                this.ExpectKeyDerivation = true;
-                this.derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(this.ActAsInitiator);
+                ExpectKeyDerivation = true;
+                _derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
             }
             return Task.CompletedTask;
         }
 
         internal SecurityTokenParameters GetTokenParameters()
         {
-            if (this.derivedKeyTokenParameters != null)
+            if (_derivedKeyTokenParameters != null)
             {
-                return this.derivedKeyTokenParameters;
+                return _derivedKeyTokenParameters;
             }
             else
             {
-                return this.securityTokenParameters;
+                return _securityTokenParameters;
             }
         }
     }

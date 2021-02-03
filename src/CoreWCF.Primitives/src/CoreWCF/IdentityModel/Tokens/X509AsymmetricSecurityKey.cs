@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
@@ -7,7 +10,7 @@ namespace CoreWCF.IdentityModel.Tokens
 {
     public class X509AsymmetricSecurityKey : AsymmetricSecurityKey
     {
-        private X509Certificate2 _certificate;
+        private readonly X509Certificate2 _certificate;
         private AsymmetricAlgorithm _privateKey;
         private bool _privateKeyAvailabilityDetermined;
         private AsymmetricAlgorithm _publicKey;
@@ -34,14 +37,15 @@ namespace CoreWCF.IdentityModel.Tokens
                         _privateKey = _certificate.GetRSAPrivateKey();
                         if (_privateKey != null)
                         {
-                            RSACryptoServiceProvider rsaCsp = _privateKey as RSACryptoServiceProvider;
                             // ProviderType == 1 is PROV_RSA_FULL provider type that only supports SHA1. Change it to PROV_RSA_AES=24 that supports SHA2 also.
-                            if (rsaCsp != null && rsaCsp.CspKeyContainerInfo.ProviderType == 1)
+                            if (_privateKey is RSACryptoServiceProvider rsaCsp && rsaCsp.CspKeyContainerInfo.ProviderType == 1)
                             {
-                                CspParameters csp = new CspParameters();
-                                csp.ProviderType = 24;
-                                csp.KeyContainerName = rsaCsp.CspKeyContainerInfo.KeyContainerName;
-                                csp.KeyNumber = (int)rsaCsp.CspKeyContainerInfo.KeyNumber;
+                                CspParameters csp = new CspParameters
+                                {
+                                    ProviderType = 24,
+                                    KeyContainerName = rsaCsp.CspKeyContainerInfo.KeyContainerName,
+                                    KeyNumber = (int)rsaCsp.CspKeyContainerInfo.KeyNumber
+                                };
                                 if (rsaCsp.CspKeyContainerInfo.MachineKeyStore)
                                 {
                                     csp.Flags = CspProviderFlags.UseMachineKeyStore;
@@ -97,7 +101,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        private Object ThisLock { get; } = new Object();
+        private object ThisLock { get; } = new object();
 
         public override byte[] DecryptKey(string algorithm, byte[] keyData)
         {
@@ -189,14 +193,12 @@ namespace CoreWCF.IdentityModel.Tokens
 
             if (algorithmObject != null)
             {
-                SignatureDescription description = algorithmObject as SignatureDescription;
-                if (description != null)
+                if (algorithmObject is SignatureDescription description)
                 {
                     return description.CreateDigest();
                 }
 
-                HashAlgorithm hashAlgorithm = algorithmObject as HashAlgorithm;
-                if (hashAlgorithm != null)
+                if (algorithmObject is HashAlgorithm hashAlgorithm)
                 {
                     return hashAlgorithm;
                 }
@@ -231,16 +233,14 @@ namespace CoreWCF.IdentityModel.Tokens
             object algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
             if (algorithmObject != null)
             {
-                SignatureDescription description = algorithmObject as SignatureDescription;
-                if (description != null)
+                if (algorithmObject is SignatureDescription description)
                 {
                     return description.CreateDeformatter(PublicKey);
                 }
 
                 try
                 {
-                    AsymmetricSignatureDeformatter asymmetricSignatureDeformatter = algorithmObject as AsymmetricSignatureDeformatter;
-                    if (asymmetricSignatureDeformatter != null)
+                    if (algorithmObject is AsymmetricSignatureDeformatter asymmetricSignatureDeformatter)
                     {
                         asymmetricSignatureDeformatter.SetKey(PublicKey);
                         return asymmetricSignatureDeformatter;
@@ -306,16 +306,14 @@ namespace CoreWCF.IdentityModel.Tokens
             object algorithmObject = CryptoHelper.GetAlgorithmFromConfig(algorithm);
             if (algorithmObject != null)
             {
-                SignatureDescription description = algorithmObject as SignatureDescription;
-                if (description != null)
+                if (algorithmObject is SignatureDescription description)
                 {
                     return description.CreateFormatter(privateKey);
                 }
 
                 try
                 {
-                    AsymmetricSignatureFormatter asymmetricSignatureFormatter = algorithmObject as AsymmetricSignatureFormatter;
-                    if (asymmetricSignatureFormatter != null)
+                    if (algorithmObject is AsymmetricSignatureFormatter asymmetricSignatureFormatter)
                     {
                         asymmetricSignatureFormatter.SetKey(privateKey);
                         return asymmetricSignatureFormatter;
@@ -390,14 +388,12 @@ namespace CoreWCF.IdentityModel.Tokens
 
             if (algorithmObject != null)
             {
-                SignatureDescription signatureDescription = algorithmObject as SignatureDescription;
-                if (signatureDescription != null)
+                if (algorithmObject is SignatureDescription signatureDescription)
                 {
                     return true;
                 }
 
-                AsymmetricAlgorithm asymmetricAlgorithm = algorithmObject as AsymmetricAlgorithm;
-                if (asymmetricAlgorithm != null)
+                if (algorithmObject is AsymmetricAlgorithm asymmetricAlgorithm)
                 {
                     return true;
                 }
@@ -419,6 +415,5 @@ namespace CoreWCF.IdentityModel.Tokens
                     return false;
             }
         }
-
     }
 }

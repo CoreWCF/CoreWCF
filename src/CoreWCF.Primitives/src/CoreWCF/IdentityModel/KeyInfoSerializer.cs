@@ -1,10 +1,11 @@
-﻿using CoreWCF.IdentityModel.Selectors;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
+using System.Xml;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Runtime;
-using System.Xml;
-using CoreWCF;
-using System;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
@@ -47,10 +48,11 @@ namespace CoreWCF.IdentityModel.Tokens
             EmitBspRequiredAttributes = emitBspRequiredAttributes;
             _innerSecurityTokenSerializer = innerSecurityTokenSerializer;
 
-            _serializerEntries = new List<SerializerEntries>();
-
-            _serializerEntries.Add(new XmlDsigSep2000(this));
-            _serializerEntries.Add(new Security.WSTrust(this, trustDictionary));
+            _serializerEntries = new List<SerializerEntries>
+            {
+                new XmlDsigSep2000(this),
+                new Security.WSTrust(this, trustDictionary)
+            };
             if (additionalEntries != null)
             {
                 foreach (SerializerEntries entries in additionalEntries(this))
@@ -98,7 +100,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             get
             {
-                return _innerSecurityTokenSerializer == null ? this : _innerSecurityTokenSerializer;
+                return _innerSecurityTokenSerializer ?? this;
             }
             set
             {

@@ -1,8 +1,6 @@
-using CoreWCF.Dispatcher;
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,23 +8,24 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Xml;
+using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security.Tokens
 {
     internal struct SecurityContextCookieSerializer
     {
         private const int SupportedPersistanceVersion = 1;
-        private SecurityStateEncoder securityStateEncoder;
-        private IList<Type> knownTypes;
+        private readonly SecurityStateEncoder _securityStateEncoder;
+        private readonly IList<Type> _knownTypes;
 
         public SecurityContextCookieSerializer(SecurityStateEncoder securityStateEncoder, IList<Type> knownTypes)
         {
-            if (securityStateEncoder == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(securityStateEncoder));
-            }
-            this.securityStateEncoder = securityStateEncoder;
-            this.knownTypes = knownTypes ?? new List<Type>();
+            _securityStateEncoder = securityStateEncoder ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(securityStateEncoder));
+            _knownTypes = knownTypes ?? new List<Type>();
         }
 
         private SecurityContextSecurityToken DeserializeContext(byte[] serializedContext, byte[] cookieBlob, string id, XmlDictionaryReaderQuotas quotas)
@@ -88,20 +87,20 @@ namespace CoreWCF.Security.Tokens
                 }
                 else if (reader.IsStartElement(dictionary.Identities, dictionary.EmptyString))
                 {
-                    identities = SctClaimSerializer.DeserializeIdentities(reader, dictionary, DataContractSerializerDefaults.CreateSerializer(typeof(IIdentity), this.knownTypes, int.MaxValue));
+                    identities = SctClaimSerializer.DeserializeIdentities(reader, dictionary, DataContractSerializerDefaults.CreateSerializer(typeof(IIdentity), _knownTypes, int.MaxValue));
                 }
                 else if (reader.IsStartElement(dictionary.ClaimSets, dictionary.EmptyString))
                 {
                     reader.ReadStartElement();
 
-                    DataContractSerializer claimSetSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(ClaimSet), this.knownTypes, int.MaxValue);
-                    DataContractSerializer claimSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(Claim), this.knownTypes, int.MaxValue);
+                    DataContractSerializer claimSetSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(ClaimSet), _knownTypes, int.MaxValue);
+                    DataContractSerializer claimSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(Claim), _knownTypes, int.MaxValue);
                     claimSets = new List<ClaimSet>(1);
                     while (reader.IsStartElement())
                     {
                         claimSets.Add(SctClaimSerializer.DeserializeClaimSet(reader, dictionary, claimSetSerializer, claimSerializer));
                     }
-                    
+
                     reader.ReadEndElement();
                 }
                 else if (reader.IsStartElement(dictionary.IsCookieMode, dictionary.EmptyString))
@@ -133,15 +132,17 @@ namespace CoreWCF.Security.Tokens
             List<IAuthorizationPolicy> authorizationPolicies;
             if (claimSets != null)
             {
-                authorizationPolicies = new List<IAuthorizationPolicy>(1);
-                authorizationPolicies.Add(new SctUnconditionalPolicy(identities, claimSets, expiryTime));
+                authorizationPolicies = new List<IAuthorizationPolicy>(1)
+                {
+                    new SctUnconditionalPolicy(identities, claimSets, expiryTime)
+                };
             }
             else
             {
                 authorizationPolicies = null;
             }
             return new SecurityContextSecurityToken(cookieContextId, localId, key, effectiveTime, expiryTime,
-                authorizationPolicies != null ? authorizationPolicies.AsReadOnly() : null, isCookie, cookieBlob, keyGeneration, keyEffectiveTime, keyExpirationTime);
+                authorizationPolicies?.AsReadOnly(), isCookie, cookieBlob, keyGeneration, keyEffectiveTime, keyExpirationTime);
         }
 
         public byte[] CreateCookieFromSecurityContext(UniqueId contextId, string id, byte[] key, DateTime tokenEffectiveTime,
@@ -150,12 +151,12 @@ namespace CoreWCF.Security.Tokens
         {
             if (contextId == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("contextId");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
 
             if (key == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("key");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
             }
 
             MemoryStream stream = new MemoryStream();
@@ -167,7 +168,10 @@ namespace CoreWCF.Security.Tokens
             writer.WriteValue(SupportedPersistanceVersion);
             writer.WriteEndElement();
             if (id != null)
+            {
                 writer.WriteElementString(dictionary.Id, dictionary.EmptyString, id);
+            }
+
             XmlHelper.WriteElementStringAsUniqueId(writer, dictionary.ContextId, dictionary.EmptyString, contextId);
 
             writer.WriteStartElement(dictionary.Key, dictionary.EmptyString);
@@ -186,13 +190,15 @@ namespace CoreWCF.Security.Tokens
 
             AuthorizationContext authContext = null;
             if (authorizationPolicies != null)
+            {
                 authContext = AuthorizationContext.CreateDefaultAuthorizationContext(authorizationPolicies);
+            }
 
             if (authContext != null && authContext.ClaimSets.Count != 0)
             {
-                DataContractSerializer identitySerializer = DataContractSerializerDefaults.CreateSerializer(typeof(IIdentity), this.knownTypes, int.MaxValue);
-                DataContractSerializer claimSetSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(ClaimSet), this.knownTypes, int.MaxValue);
-                DataContractSerializer claimSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(Claim), this.knownTypes, int.MaxValue);
+                DataContractSerializer identitySerializer = DataContractSerializerDefaults.CreateSerializer(typeof(IIdentity), _knownTypes, int.MaxValue);
+                DataContractSerializer claimSetSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(ClaimSet), _knownTypes, int.MaxValue);
+                DataContractSerializer claimSerializer = DataContractSerializerDefaults.CreateSerializer(typeof(Claim), _knownTypes, int.MaxValue);
                 SctClaimSerializer.SerializeIdentities(authContext, dictionary, writer, identitySerializer);
 
                 writer.WriteStartElement(dictionary.ClaimSets, dictionary.EmptyString);
@@ -207,7 +213,7 @@ namespace CoreWCF.Security.Tokens
             writer.Flush();
 
             byte[] serializedContext = stream.ToArray();
-            return this.securityStateEncoder.EncodeSecurityState(serializedContext);
+            return _securityStateEncoder.EncodeSecurityState(serializedContext);
         }
 
         public SecurityContextSecurityToken CreateSecurityContextFromCookie(byte[] encodedCookie, UniqueId contextId, UniqueId generation, string id, XmlDictionaryReaderQuotas quotas)
@@ -216,7 +222,7 @@ namespace CoreWCF.Security.Tokens
 
             try
             {
-                cookie = this.securityStateEncoder.DecodeSecurityState(encodedCookie);
+                cookie = _securityStateEncoder.DecodeSecurityState(encodedCookie);
             }
             catch (Exception e)
             {
@@ -238,7 +244,7 @@ namespace CoreWCF.Security.Tokens
 
             return sct;
         }
-        
+
         internal static void OnInvalidCookieFailure(string reason)
         {
             OnInvalidCookieFailure(reason, null);
@@ -249,55 +255,53 @@ namespace CoreWCF.Security.Tokens
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.InvalidSecurityContextCookie, reason), e));
         }
 
-       internal class SctUnconditionalPolicy : IAuthorizationPolicy
-       {
-            private SecurityUniqueId id = SecurityUniqueId.Create();
-            private IList<IIdentity> identities;
-            private IList<ClaimSet> claimSets;
-            private DateTime expirationTime;
+        internal class SctUnconditionalPolicy : IAuthorizationPolicy
+        {
+            private readonly SecurityUniqueId _id = SecurityUniqueId.Create();
+            private readonly IList<IIdentity> _identities;
+            private readonly IList<ClaimSet> _claimSets;
+            private readonly DateTime _expirationTime;
 
             public SctUnconditionalPolicy(IList<IIdentity> identities, IList<ClaimSet> claimSets, DateTime expirationTime)
             {
-                this.identities = identities;
-                this.claimSets = claimSets;
-                this.expirationTime = expirationTime;
+                _identities = identities;
+                _claimSets = claimSets;
+                _expirationTime = expirationTime;
             }
 
             public string Id
             {
-                get { return this.id.Value; }
+                get { return _id.Value; }
             }
 
-            public ClaimSet Issuer 
-            { 
-                get { return ClaimSet.System; } 
+            public ClaimSet Issuer
+            {
+                get { return ClaimSet.System; }
             }
 
             public bool Evaluate(EvaluationContext evaluationContext, ref object state)
             {
-                for (int i = 0; i < this.claimSets.Count; ++i)
+                for (int i = 0; i < _claimSets.Count; ++i)
                 {
-                    evaluationContext.AddClaimSet(this, this.claimSets[i]);
+                    evaluationContext.AddClaimSet(this, _claimSets[i]);
                 }
 
-                if (this.identities != null)
+                if (_identities != null)
                 {
-                    object obj;
-                    if (!evaluationContext.Properties.TryGetValue(SecurityUtils.Identities, out obj))
+                    if (!evaluationContext.Properties.TryGetValue(SecurityUtils.Identities, out object obj))
                     {
-                        evaluationContext.Properties.Add(SecurityUtils.Identities, this.identities);
+                        evaluationContext.Properties.Add(SecurityUtils.Identities, _identities);
                     }
                     else
                     {
                         // null if other overrides the property with something else
-                        List<IIdentity> dstIdentities = obj as List<IIdentity>;
-                        if (dstIdentities != null)
+                        if (obj is List<IIdentity> dstIdentities)
                         {
-                            dstIdentities.AddRange(this.identities);
+                            dstIdentities.AddRange(_identities);
                         }
                     }
                 }
-                evaluationContext.RecordExpirationTime(this.expirationTime);
+                evaluationContext.RecordExpirationTime(_expirationTime);
                 return true;
             }
         }

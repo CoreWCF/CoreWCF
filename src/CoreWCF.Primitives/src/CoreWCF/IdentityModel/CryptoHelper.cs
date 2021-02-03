@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -14,21 +17,21 @@ namespace CoreWCF.IdentityModel
         private const string SHA1String = "SHA1";
         private const string SHA256String = "SHA256";
         private const string SystemSecurityCryptographySha1String = "System.Security.Cryptography.SHA1";
-        static byte[] emptyBuffer;
+        private static byte[] s_emptyBuffer;
 
-        private static Dictionary<string, Func<object>> s_algorithmDelegateDictionary = new Dictionary<string, Func<object>>();
-        private static object s_algorithmDictionaryLock = new object();
+        private static readonly Dictionary<string, Func<object>> s_algorithmDelegateDictionary = new Dictionary<string, Func<object>>();
+        private static readonly object s_algorithmDictionaryLock = new object();
 
         internal static byte[] EmptyBuffer
         {
             get
             {
-                if (emptyBuffer == null)
+                if (s_emptyBuffer == null)
                 {
-                    byte[] tmp = new byte[0];
-                    emptyBuffer = tmp;
+                    byte[] tmp = Array.Empty<byte>();
+                    s_emptyBuffer = tmp;
                 }
-                return emptyBuffer;
+                return s_emptyBuffer;
             }
         }
 
@@ -47,8 +50,8 @@ namespace CoreWCF.IdentityModel
                 return false;
             }
 
-            var result = 0;
-            var length = a.Length;
+            int result = 0;
+            int length = a.Length;
 
             for (int i = 0; i < length; i++)
             {
@@ -94,8 +97,7 @@ namespace CoreWCF.IdentityModel
 
             if (algorithmObject != null)
             {
-                KeyedHashAlgorithm keyedHashAlgorithm = algorithmObject as KeyedHashAlgorithm;
-                if (keyedHashAlgorithm != null)
+                if (algorithmObject is KeyedHashAlgorithm keyedHashAlgorithm)
                 {
                     keyedHashAlgorithm.Key = key;
                     return keyedHashAlgorithm;
@@ -239,8 +241,7 @@ namespace CoreWCF.IdentityModel
 
             if (algorithmObject != null)
             {
-                HashAlgorithm hashAlgorithm = algorithmObject as HashAlgorithm;
-                if (hashAlgorithm != null)
+                if (algorithmObject is HashAlgorithm hashAlgorithm)
                 {
                     return hashAlgorithm;
                 }
@@ -320,9 +321,8 @@ namespace CoreWCF.IdentityModel
 
             object algorithmObject = null;
             object defaultObject = null;
-            Func<object> delegateFunction = null;
 
-            if (!s_algorithmDelegateDictionary.TryGetValue(algorithm, out delegateFunction))
+            if (!s_algorithmDelegateDictionary.TryGetValue(algorithm, out Func<object> delegateFunction))
             {
                 lock (s_algorithmDictionaryLock)
                 {
@@ -408,7 +408,7 @@ namespace CoreWCF.IdentityModel
 
         internal static KeyedHashAlgorithm NewHmacSha1KeyedHashAlgorithm(byte[] key)
         {
-            return CryptoHelper.CreateKeyedHashAlgorithm(key, SecurityAlgorithms.HmacSha1Signature);
+            return CreateKeyedHashAlgorithm(key, SecurityAlgorithms.HmacSha1Signature);
         }
     }
 }

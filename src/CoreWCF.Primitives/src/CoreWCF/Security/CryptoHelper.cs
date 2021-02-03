@@ -1,17 +1,20 @@
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Runtime;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Security.Cryptography;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
 using CryptoAlgorithms = CoreWCF.IdentityModel.CryptoHelper;
 
 namespace CoreWCF.Security
 {
-    static class CryptoHelper
+    internal static class CryptoHelper
     {
-        static byte[] emptyBuffer;
-        static readonly RandomNumberGenerator random = new RNGCryptoServiceProvider();
+        private static byte[] s_emptyBuffer;
+        private static readonly RandomNumberGenerator s_random = new RNGCryptoServiceProvider();
 
-        enum CryptoAlgorithmType
+        private enum CryptoAlgorithmType
         {
             Unknown,
             Symmetric,
@@ -22,23 +25,23 @@ namespace CoreWCF.Security
         {
             get
             {
-                if (emptyBuffer == null)
+                if (s_emptyBuffer == null)
                 {
-                    byte[] tmp = new byte[0];
-                    emptyBuffer = tmp;
+                    byte[] tmp = Array.Empty<byte>();
+                    s_emptyBuffer = tmp;
                 }
-                return emptyBuffer;
+                return s_emptyBuffer;
             }
         }
 
         internal static HashAlgorithm NewSha1HashAlgorithm()
         {
-            return CryptoHelper.CreateHashAlgorithm(SecurityAlgorithms.Sha1Digest);
+            return CreateHashAlgorithm(SecurityAlgorithms.Sha1Digest);
         }
 
         internal static HashAlgorithm NewSha256HashAlgorithm()
         {
-            return CryptoHelper.CreateHashAlgorithm(SecurityAlgorithms.Sha256Digest);
+            return CreateHashAlgorithm(SecurityAlgorithms.Sha256Digest);
         }
 
         internal static HashAlgorithm CreateHashAlgorithm(string digestMethod)
@@ -46,21 +49,22 @@ namespace CoreWCF.Security
             object algorithmObject = CryptoAlgorithms.GetAlgorithmFromConfig(digestMethod);
             if (algorithmObject != null)
             {
-                HashAlgorithm hashAlgorithm = algorithmObject as HashAlgorithm;
-                if (hashAlgorithm != null)
+                if (algorithmObject is HashAlgorithm hashAlgorithm)
+                {
                     return hashAlgorithm;
+                }
+
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.CustomCryptoAlgorithmIsNotValidHashAlgorithm, digestMethod)));
             }
 
             switch (digestMethod)
             {
                 case SecurityAlgorithms.Sha1Digest:
-                        return SHA1.Create();
+                    return SHA1.Create();
                 case SecurityAlgorithms.Sha256Digest:
-                        return SHA256.Create();
+                    return SHA256.Create();
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.UnsupportedCryptoAlgorithm, digestMethod)));
-
             }
         }
 
@@ -70,18 +74,21 @@ namespace CoreWCF.Security
             if (algorithmObject != null)
             {
                 HashAlgorithm hashAlgorithm;
-                SignatureDescription signatureDescription = algorithmObject as SignatureDescription;
 
-                if (signatureDescription != null)
+                if (algorithmObject is SignatureDescription signatureDescription)
                 {
                     hashAlgorithm = signatureDescription.CreateDigest();
                     if (hashAlgorithm != null)
+                    {
                         return hashAlgorithm;
+                    }
                 }
 
                 hashAlgorithm = algorithmObject as HashAlgorithm;
                 if (hashAlgorithm != null)
+                {
                     return hashAlgorithm;
+                }
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.CustomCryptoAlgorithmIsNotValidAsymmetricSignature, signatureMethod)));
             }
@@ -90,7 +97,7 @@ namespace CoreWCF.Security
             {
                 case SecurityAlgorithms.RsaSha1Signature:
                 case SecurityAlgorithms.DsaSha1Signature:
-                        return SHA1.Create();
+                    return SHA1.Create();
                 case SecurityAlgorithms.RsaSha256Signature:
                     return SHA256.Create();
                 default:
@@ -107,7 +114,6 @@ namespace CoreWCF.Security
             if (count < 0 || count > cipherText.Length)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), SR.Format(SR.ValueMustBeInRange, 0, cipherText.Length)));
-
             }
             if (offset < 0 || offset > cipherText.Length - count)
             {
@@ -134,35 +140,40 @@ namespace CoreWCF.Security
 
         internal static void FillRandomBytes(byte[] buffer)
         {
-            random.GetBytes(buffer);
+            s_random.GetBytes(buffer);
         }
 
-        static CryptoAlgorithmType GetAlgorithmType(string algorithm)
+        private static CryptoAlgorithmType GetAlgorithmType(string algorithm)
         {
-            object algorithmObject = null;
-
+            object algorithmObject;
             try
             {
                 algorithmObject = CryptoAlgorithms.GetAlgorithmFromConfig(algorithm);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (InvalidOperationException)
             {
                 algorithmObject = null;
                 // We swallow the exception and continue.
             }
+#pragma warning restore CA1031 // Do not catch general exception types
             if (algorithmObject != null)
             {
                 SymmetricAlgorithm symmetricAlgorithm = algorithmObject as SymmetricAlgorithm;
                 KeyedHashAlgorithm keyedHashAlgorithm = algorithmObject as KeyedHashAlgorithm;
                 if (symmetricAlgorithm != null || keyedHashAlgorithm != null)
+                {
                     return CryptoAlgorithmType.Symmetric;
+                }
 
                 // NOTE: A KeyedHashAlgorithm is symmetric in nature.
 
                 AsymmetricAlgorithm asymmetricAlgorithm = algorithmObject as AsymmetricAlgorithm;
                 SignatureDescription signatureDescription = algorithmObject as SignatureDescription;
                 if (asymmetricAlgorithm != null || signatureDescription != null)
+                {
                     return CryptoAlgorithmType.Asymmetric;
+                }
 
                 return CryptoAlgorithmType.Unknown;
             }
@@ -195,9 +206,7 @@ namespace CoreWCF.Security
 
         internal static byte[] GenerateIVAndEncrypt(SymmetricAlgorithm algorithm, byte[] plainText, int offset, int count)
         {
-            byte[] iv;
-            byte[] cipherText;
-            GenerateIVAndEncrypt(algorithm, new ArraySegment<byte>(plainText, offset, count), out iv, out cipherText);
+            GenerateIVAndEncrypt(algorithm, new ArraySegment<byte>(plainText, offset, count), out byte[] iv, out byte[] cipherText);
             byte[] output = Fx.AllocateByteArray(checked(iv.Length + cipherText.Length));
             Buffer.BlockCopy(iv, 0, output, 0, iv.Length);
             Buffer.BlockCopy(cipherText, 0, output, iv.Length, cipherText.Length);
@@ -242,23 +251,26 @@ namespace CoreWCF.Security
         internal static bool IsSymmetricSupportedAlgorithm(string algorithm, int keySize)
         {
             bool found = false;
-            object algorithmObject = null;
-
+            object algorithmObject;
             try
             {
                 algorithmObject = CryptoAlgorithms.GetAlgorithmFromConfig(algorithm);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (InvalidOperationException)
             {
                 algorithmObject = null;
                 // We swallow the exception and continue.
             }
+#pragma warning restore CA1031 // Do not catch general exception types
             if (algorithmObject != null)
             {
                 SymmetricAlgorithm symmetricAlgorithm = algorithmObject as SymmetricAlgorithm;
                 KeyedHashAlgorithm keyedHashAlgorithm = algorithmObject as KeyedHashAlgorithm;
                 if (symmetricAlgorithm != null || keyedHashAlgorithm != null)
+                {
                     found = true;
+                }
             }
 
             switch (algorithm)
@@ -288,7 +300,10 @@ namespace CoreWCF.Security
                     return keySize == 128 || keySize == 192;
                 default:
                     if (found)
+                    {
                         return true;
+                    }
+
                     return false;
             }
         }
@@ -322,6 +337,5 @@ namespace CoreWCF.Security
                    SR.Format(SR.KeyLengthMustBeMultipleOfEight, keyLength)));
             }
         }
-
     }
 }

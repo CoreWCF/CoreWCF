@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security;
 
@@ -109,12 +112,7 @@ namespace CoreWCF
 
         internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion();
-
-            public static MessageSecurityVersion Instance
-            {
-                get { return instance; }
-            }
+            public static MessageSecurityVersion Instance { get; } = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11MessageSecurityVersion();
 
             public override BasicSecurityProfileVersion BasicSecurityProfileVersion
             {
@@ -137,14 +135,9 @@ namespace CoreWCF
             }
         }
 
-       internal class WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
+        internal class WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
-
-            public static MessageSecurityVersion Instance
-            {
-                get { return instance; }
-            }
+            public static MessageSecurityVersion Instance { get; } = new WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
 
             public override BasicSecurityProfileVersion BasicSecurityProfileVersion
             {
@@ -167,14 +160,9 @@ namespace CoreWCF
             }
         }
 
-       internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
+        internal class WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
-
-            public static MessageSecurityVersion Instance
-            {
-                get { return instance; }
-            }
+            public static MessageSecurityVersion Instance { get; } = new WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10MessageSecurityVersion();
 
             public override SecurityPolicyVersion SecurityPolicyVersion
             {
@@ -197,14 +185,9 @@ namespace CoreWCF
             }
         }
 
-       internal class WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
+        internal class WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
-
-            public static MessageSecurityVersion Instance
-            {
-                get { return instance; }
-            }
+            public static MessageSecurityVersion Instance { get; } = new WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
 
             public override SecurityPolicyVersion SecurityPolicyVersion
             {
@@ -229,12 +212,7 @@ namespace CoreWCF
 
         internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion();
-
-            public static MessageSecurityVersion Instance
-            {
-                get { return instance; }
-            }
+            public static MessageSecurityVersion Instance { get; } = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12MessageSecurityVersion();
 
             public override SecurityPolicyVersion SecurityPolicyVersion
             {
@@ -257,14 +235,9 @@ namespace CoreWCF
             }
         }
 
-       internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
+        internal class WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion : MessageSecurityVersion
         {
-            static MessageSecurityVersion instance = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
-
-            public static MessageSecurityVersion Instance
-            {
-                get { return instance; }
-            }
+            public static MessageSecurityVersion Instance { get; } = new WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10MessageSecurityVersion();
 
             public override SecurityPolicyVersion SecurityPolicyVersion
             {

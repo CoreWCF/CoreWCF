@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Xml;
@@ -6,22 +9,22 @@ namespace CoreWCF.Channels
 {
     public abstract class TransportBindingElement : BindingElement
     {
-        bool manualAddressing;
-        long maxBufferPoolSize;
-        long maxReceivedMessageSize;
+        private bool _manualAddressing;
+        private long _maxBufferPoolSize;
+        private long _maxReceivedMessageSize;
 
         protected TransportBindingElement()
         {
-            manualAddressing = TransportDefaults.ManualAddressing;
-            maxBufferPoolSize = TransportDefaults.MaxBufferPoolSize;
-            maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
+            _manualAddressing = TransportDefaults.ManualAddressing;
+            _maxBufferPoolSize = TransportDefaults.MaxBufferPoolSize;
+            _maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
         }
 
         protected TransportBindingElement(TransportBindingElement elementToBeCloned)
         {
-            manualAddressing = elementToBeCloned.manualAddressing;
-            maxBufferPoolSize = elementToBeCloned.maxBufferPoolSize;
-            maxReceivedMessageSize = elementToBeCloned.maxReceivedMessageSize;
+            _manualAddressing = elementToBeCloned._manualAddressing;
+            _maxBufferPoolSize = elementToBeCloned._maxBufferPoolSize;
+            _maxReceivedMessageSize = elementToBeCloned._maxReceivedMessageSize;
         }
 
         [System.ComponentModel.DefaultValueAttribute(false)]
@@ -29,12 +32,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return manualAddressing;
+                return _manualAddressing;
             }
 
             set
             {
-                manualAddressing = value;
+                _manualAddressing = value;
             }
         }
 
@@ -42,7 +45,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxBufferPoolSize;
+                return _maxBufferPoolSize;
             }
             set
             {
@@ -51,7 +54,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.ValueMustBeNonNegative));
                 }
-                maxBufferPoolSize = value;
+                _maxBufferPoolSize = value;
             }
         }
 
@@ -60,7 +63,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return maxReceivedMessageSize;
+                return _maxReceivedMessageSize;
             }
             set
             {
@@ -69,7 +72,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.ValueMustBePositive));
                 }
-                maxReceivedMessageSize = value;
+                _maxReceivedMessageSize = value;
             }
         }
 
@@ -86,18 +89,17 @@ namespace CoreWCF.Channels
             // to cover all our bases, let's iterate through the BindingParameters to make sure
             // we haven't missed a query (since we're the Transport and we're at the bottom)
             Collection<BindingElement> bindingElements = new Collection<BindingElement>();
-            foreach (var param in context.BindingParameters)
+            foreach (object param in context.BindingParameters)
             {
-                if (param is BindingElement)
+                if (param is BindingElement element)
                 {
-                    bindingElements.Add((BindingElement)param);
+                    bindingElements.Add(element);
                 }
             }
 
-            T result = default(T);
             for (int i = 0; i < bindingElements.Count; i++)
             {
-                result = bindingElements[i].GetIndividualProperty<T>();
+                T result = bindingElements[i].GetIndividualProperty<T>();
                 if (result != default(T))
                 {
                     return result;
@@ -123,16 +125,15 @@ namespace CoreWCF.Channels
             {
                 return false;
             }
-            TransportBindingElement transport = b as TransportBindingElement;
-            if (transport == null)
+            if (!(b is TransportBindingElement transport))
             {
                 return false;
             }
-            if (maxBufferPoolSize != transport.MaxBufferPoolSize)
+            if (_maxBufferPoolSize != transport.MaxBufferPoolSize)
             {
                 return false;
             }
-            if (maxReceivedMessageSize != transport.MaxReceivedMessageSize)
+            if (_maxReceivedMessageSize != transport.MaxReceivedMessageSize)
             {
                 return false;
             }

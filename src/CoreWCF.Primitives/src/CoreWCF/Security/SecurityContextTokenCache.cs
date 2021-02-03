@@ -1,10 +1,13 @@
-using CoreWCF.Runtime;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Xml;
+using CoreWCF.Runtime;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -12,34 +15,34 @@ namespace CoreWCF.Security
     internal sealed class SecurityContextTokenCache : TimeBoundedCache
     {
         // if there are less than lowWaterMark entries, no purging is done
-        private static int lowWaterMark = 50;
+        private const int LowWaterMark = 50;
 
         // frequency of purging the cache of stale entries
         // this is set to 10 mins as SCTs are expected to have long lifetimes
-        private static TimeSpan purgingInterval = TimeSpan.FromMinutes(10);
-        private static double pruningFactor = 0.20;
-        private bool replaceOldestEntries = true;
-        private static SctEffectiveTimeComparer sctEffectiveTimeComparer = new SctEffectiveTimeComparer();
-        private TimeSpan clockSkew;
+        private static TimeSpan s_purgingInterval = TimeSpan.FromMinutes(10);
+        private const double PruningFactor = 0.20;
+        private readonly bool _replaceOldestEntries = true;
+        private static readonly SctEffectiveTimeComparer s_sctEffectiveTimeComparer = new SctEffectiveTimeComparer();
+        private TimeSpan _clockSkew;
 
-        public SecurityContextTokenCache( int capacity, bool replaceOldestEntries )
-            : this( capacity, replaceOldestEntries, SecurityProtocolFactory.defaultMaxClockSkew )
+        public SecurityContextTokenCache(int capacity, bool replaceOldestEntries)
+            : this(capacity, replaceOldestEntries, SecurityProtocolFactory.defaultMaxClockSkew)
         {
         }
 
         public SecurityContextTokenCache(int capacity, bool replaceOldestEntries, TimeSpan clockSkew)
-            : base(lowWaterMark, capacity, null, PurgingMode.TimerBasedPurge, purgingInterval, true)
+            : base(LowWaterMark, capacity, null, PurgingMode.TimerBasedPurge, s_purgingInterval, true)
 
         {
-            this.replaceOldestEntries = replaceOldestEntries;
-            this.clockSkew = clockSkew;
+            _replaceOldestEntries = replaceOldestEntries;
+            _clockSkew = clockSkew;
         }
 
         public void AddContext(SecurityContextSecurityToken token)
         {
             TryAddContext(token, true);
         }
-        
+
         public bool TryAddContext(SecurityContextSecurityToken token)
         {
             return TryAddContext(token, false);
@@ -52,32 +55,44 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
 
-            if ( !SecurityUtils.IsCurrentlyTimeEffective( token.ValidFrom, token.ValidTo, this.clockSkew ) )
+            if (!SecurityUtils.IsCurrentlyTimeEffective(token.ValidFrom, token.ValidTo, _clockSkew))
             {
                 if (token.KeyGeneration == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SecurityContextExpiredNoKeyGeneration, token.ContextId));
+                }
                 else
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SecurityContextExpired, token.ContextId, token.KeyGeneration.ToString()));
+                }
             }
 
-            if ( !SecurityUtils.IsCurrentlyTimeEffective( token.KeyEffectiveTime, token.KeyExpirationTime, this.clockSkew ) )
+            if (!SecurityUtils.IsCurrentlyTimeEffective(token.KeyEffectiveTime, token.KeyExpirationTime, _clockSkew))
             {
                 if (token.KeyGeneration == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SecurityContextKeyExpiredNoKeyGeneration, token.ContextId));
+                }
                 else
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SecurityContextKeyExpired, token.ContextId, token.KeyGeneration.ToString()));
+                }
             }
 
             object hashKey = GetHashKey(token.ContextId, token.KeyGeneration);
-            bool wasTokenAdded = base.TryAddItem(hashKey, (SecurityContextSecurityToken)token.Clone(), false);
+            bool wasTokenAdded = TryAddItem(hashKey, (SecurityContextSecurityToken)token.Clone(), false);
             if (!wasTokenAdded)
             {
                 if (throwOnFailure)
                 {
                     if (token.KeyGeneration == null)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ContextAlreadyRegisteredNoKeyGeneration, token.ContextId)));
+                    }
                     else
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ContextAlreadyRegistered, token.ContextId, token.KeyGeneration.ToString())));
+                    }
                 }
             }
             return wasTokenAdded;
@@ -97,7 +112,7 @@ namespace CoreWCF.Security
 
         public void ClearContexts()
         {
-            base.ClearItems();
+            ClearItems();
         }
 
         public SecurityContextSecurityToken GetContext(UniqueId contextId, UniqueId generation)
@@ -107,7 +122,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
             object hashKey = GetHashKey(contextId, generation);
-            SecurityContextSecurityToken sct = (SecurityContextSecurityToken)base.GetItem(hashKey);
+            SecurityContextSecurityToken sct = (SecurityContextSecurityToken)GetItem(hashKey);
             return sct != null ? (SecurityContextSecurityToken)sct.Clone() : null;
         }
 
@@ -118,12 +133,16 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contextId));
             }
             object hashKey = GetHashKey(contextId, generation);
-            if (!base.TryRemoveItem(hashKey) && throwIfNotPresent)
+            if (!TryRemoveItem(hashKey) && throwIfNotPresent)
             {
                 if (generation == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ContextNotPresentNoKeyGeneration, contextId)));
+                }
                 else
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ContextNotPresent, contextId, generation.ToString())));
+                }
             }
         }
 
@@ -141,12 +160,12 @@ namespace CoreWCF.Security
                 try { }
                 finally
                 {
-                    base.CacheLock.AcquireReaderLock(-1);
+                    CacheLock.AcquireReaderLock(-1);
                     lockHeld = true;
                 }
-                foreach (object key in this.Entries.Keys)
+                foreach (object key in Entries.Keys)
                 {
-                    bool isMatch = false;
+                    bool isMatch;
                     if (key is UniqueId)
                     {
                         isMatch = (((UniqueId)key) == contextId);
@@ -165,7 +184,7 @@ namespace CoreWCF.Security
             {
                 if (lockHeld)
                 {
-                    base.CacheLock.ReleaseReaderLock();
+                    CacheLock.ReleaseReaderLock();
                 }
             }
             return matchingKeys;
@@ -176,9 +195,8 @@ namespace CoreWCF.Security
             ArrayList matchingKeys = GetMatchingKeys(contextId);
             for (int i = 0; i < matchingKeys.Count; ++i)
             {
-                base.TryRemoveItem(matchingKeys[i]);
+                TryRemoveItem(matchingKeys[i]);
             }
-
         }
 
         public void UpdateContextCachingTime(SecurityContextSecurityToken token, DateTime expirationTime)
@@ -187,7 +205,7 @@ namespace CoreWCF.Security
             {
                 return;
             }
-            base.TryReplaceItem(GetHashKey(token.ContextId, token.KeyGeneration), token, expirationTime);
+            TryReplaceItem(GetHashKey(token.ContextId, token.KeyGeneration), token, expirationTime);
         }
 
         public Collection<SecurityContextSecurityToken> GetAllContexts(UniqueId contextId)
@@ -197,8 +215,7 @@ namespace CoreWCF.Security
             Collection<SecurityContextSecurityToken> matchingContexts = new Collection<SecurityContextSecurityToken>();
             for (int i = 0; i < matchingKeys.Count; ++i)
             {
-                SecurityContextSecurityToken token = base.GetItem(matchingKeys[i]) as SecurityContextSecurityToken;
-                if (token != null)
+                if (GetItem(matchingKeys[i]) is SecurityContextSecurityToken token)
                 {
                     matchingContexts.Add(token);
                 }
@@ -208,7 +225,7 @@ namespace CoreWCF.Security
 
         protected override ArrayList OnQuotaReached(Hashtable cacheTable)
         {
-            if (!this.replaceOldestEntries)
+            if (!_replaceOldestEntries)
             {
                 //SecurityTraceRecordHelper.TraceSecurityContextTokenCacheFull(this.Capacity, 0);
                 return base.OnQuotaReached(cacheTable);
@@ -221,16 +238,16 @@ namespace CoreWCF.Security
                     SecurityContextSecurityToken token = (SecurityContextSecurityToken)ExtractItem(value);
                     tokens.Add(token);
                 }
-                tokens.Sort(sctEffectiveTimeComparer);
-                int pruningAmount = (int)(((double)this.Capacity) * pruningFactor);
-                pruningAmount = pruningAmount <= 0 ? this.Capacity : pruningAmount;
+                tokens.Sort(s_sctEffectiveTimeComparer);
+                int pruningAmount = (int)(((double)Capacity) * PruningFactor);
+                pruningAmount = pruningAmount <= 0 ? Capacity : pruningAmount;
                 ArrayList keys = new ArrayList(pruningAmount);
                 for (int i = 0; i < pruningAmount; ++i)
                 {
                     keys.Add(GetHashKey(tokens[i].ContextId, tokens[i].KeyGeneration));
                     OnRemove(tokens[i]);
                 }
-              //  SecurityTraceRecordHelper.TraceSecurityContextTokenCacheFull(this.Capacity, pruningAmount);
+                //  SecurityTraceRecordHelper.TraceSecurityContextTokenCacheFull(this.Capacity, pruningAmount);
                 return keys;
             }
         }
@@ -278,43 +295,27 @@ namespace CoreWCF.Security
 
         private struct ContextAndGenerationKey
         {
-            private UniqueId contextId;
-            private UniqueId generation;
-
             public ContextAndGenerationKey(UniqueId contextId, UniqueId generation)
             {
                 Fx.Assert(contextId != null && generation != null, "");
-                this.contextId = contextId;
-                this.generation = generation;
+                ContextId = contextId;
+                Generation = generation;
             }
 
-            public UniqueId ContextId
-            {
-                get
-                {
-                    return this.contextId;
-                }
-            }
+            public UniqueId ContextId { get; }
 
-            public UniqueId Generation
-            {
-                get
-                {
-                    return this.generation;
-                }
-            }
+            public UniqueId Generation { get; }
 
             public override int GetHashCode()
             {
-                return this.contextId.GetHashCode() ^ this.generation.GetHashCode();
+                return ContextId.GetHashCode() ^ Generation.GetHashCode();
             }
 
             public override bool Equals(object obj)
             {
-                if (obj is ContextAndGenerationKey)
+                if (obj is ContextAndGenerationKey key2)
                 {
-                    ContextAndGenerationKey key2 = ((ContextAndGenerationKey)obj);
-                    return (key2.ContextId == this.contextId && key2.Generation == this.generation);
+                    return (key2.ContextId == ContextId && key2.Generation == Generation);
                 }
                 else
                 {
@@ -324,9 +325,9 @@ namespace CoreWCF.Security
 
             public static bool operator ==(ContextAndGenerationKey a, ContextAndGenerationKey b)
             {
-                if (object.ReferenceEquals(a, null))
+                if (ReferenceEquals(a, null))
                 {
-                    return object.ReferenceEquals(b, null);
+                    return ReferenceEquals(b, null);
                 }
 
                 return (a.Equals(b));

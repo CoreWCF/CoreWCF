@@ -1,12 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
-using System.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
@@ -14,20 +17,15 @@ namespace CoreWCF
     {
         internal static Action<InstanceContext> NotifyEmptyCallback = NotifyEmpty;
         internal static Action<InstanceContext> NotifyIdleCallback = NotifyIdle;
-
-        private bool _autoClose;
         private InstanceBehavior _behavior;
-        private ServiceChannelManager _channels;
+        private readonly ServiceChannelManager _channels;
         private ConcurrencyInstanceContextFacet _concurrency;
         private ExtensionCollection<InstanceContext> _extensions;
         private readonly ServiceHostBase _host;
-        ServiceThrottle serviceThrottle;
-        private int _instanceContextManagerIndex;
-        private object _serviceInstanceLock = new object();
+        private ServiceThrottle _serviceThrottle;
+        private readonly object _serviceInstanceLock = new object();
         private SynchronizationContext _synchronizationContext;
         private object _userObject;
-        private bool _wellKnown;
-        private bool _isUserCreated;
 
         public InstanceContext(object implementation)
             : this(null, implementation)
@@ -50,42 +48,26 @@ namespace CoreWCF
             if (implementation != null)
             {
                 _userObject = implementation;
-                _wellKnown = wellKnown;
+                IsWellKnown = wellKnown;
             }
-            _autoClose = false;
+            AutoClose = false;
             _channels = new ServiceChannelManager(this);
-            _isUserCreated = isUserCreated;
+            IsUserCreated = isUserCreated;
         }
 
         internal InstanceContext(ServiceHostBase host, bool isUserCreated)
         {
-            if (host == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
-            }
-
-            _host = host;
-            _autoClose = true;
+            _host = host ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(host));
+            AutoClose = true;
             _channels = new ServiceChannelManager(this, NotifyEmptyCallback);
-            _isUserCreated = isUserCreated;
+            IsUserCreated = isUserCreated;
         }
 
-        internal bool IsUserCreated
-        {
-            get { return _isUserCreated; }
-            set { _isUserCreated = value; }
-        }
+        internal bool IsUserCreated { get; set; }
 
-        internal bool IsWellKnown
-        {
-            get { return _wellKnown; }
-        }
+        internal bool IsWellKnown { get; }
 
-        internal bool AutoClose
-        {
-            get { return _autoClose; }
-            set { _autoClose = value; }
-        }
+        internal bool AutoClose { get; set; }
 
         internal InstanceBehavior Behavior
         {
@@ -108,7 +90,9 @@ namespace CoreWCF
                     lock (ThisLock)
                     {
                         if (_concurrency == null)
+                        {
                             _concurrency = new ConcurrencyInstanceContextFacet();
+                        }
                     }
                 }
 
@@ -148,7 +132,10 @@ namespace CoreWCF
                 lock (ThisLock)
                 {
                     if (_extensions == null)
+                    {
                         _extensions = new ExtensionCollection<InstanceContext>(this, ThisLock);
+                    }
+
                     return _extensions;
                 }
             }
@@ -168,12 +155,15 @@ namespace CoreWCF
             get
             {
                 if (State == CommunicationState.Closed)
+                {
                     return false;
+                }
+
                 return _channels.IsBusy;
             }
         }
 
-        bool IsSingleton
+        private bool IsSingleton
         {
             get
             {
@@ -210,20 +200,16 @@ namespace CoreWCF
 
         internal ServiceThrottle ServiceThrottle
         {
-            get { return serviceThrottle; }
+            get { return _serviceThrottle; }
             set
             {
                 ThrowIfDisposed();
-                serviceThrottle = value;
+                _serviceThrottle = value;
             }
         }
 
-        internal int InstanceContextManagerIndex
-        {
-            get { return _instanceContextManagerIndex; }
-            set { _instanceContextManagerIndex = value; }
-        }
-        
+        internal int InstanceContextManagerIndex { get; set; }
+
         public SynchronizationContext SynchronizationContext
         {
             get { return _synchronizationContext; }
@@ -289,19 +275,27 @@ namespace CoreWCF
             }
 
             if (State != CommunicationState.Opened)
+            {
                 return;
+            }
 
             if (IsBusy)
+            {
                 return;
+            }
 
             if (_behavior.CanUnload(this) == false)
+            {
                 return;
+            }
 
             try
             {
                 // TODO: Make this call and it's chain async
                 if (State == CommunicationState.Opened)
+                {
                     CloseAsync().GetAwaiter().GetResult();
+                }
             }
             catch (ObjectDisposedException e)
             {
@@ -325,14 +319,16 @@ namespace CoreWCF
             }
         }
 
-        QuotaThrottle EnsureQuotaThrottle()
+        private QuotaThrottle EnsureQuotaThrottle()
         {
             lock (ThisLock)
             {
                 if (QuotaThrottle == null)
                 {
-                    QuotaThrottle = new QuotaThrottle(ThisLock);
-                    QuotaThrottle.Owner = "InstanceContext";
+                    QuotaThrottle = new QuotaThrottle(ThisLock)
+                    {
+                        Owner = "InstanceContext"
+                    };
                 }
                 return QuotaThrottle;
             }
@@ -405,7 +401,7 @@ namespace CoreWCF
 
         private static void NotifyEmpty(InstanceContext instanceContext)
         {
-            if (instanceContext._autoClose)
+            if (instanceContext.AutoClose)
             {
                 instanceContext.CloseIfNotBusy();
             }
@@ -425,7 +421,7 @@ namespace CoreWCF
         protected override void OnClosed()
         {
             base.OnClosed();
-            serviceThrottle?.DeactivateInstanceContext();
+            _serviceThrottle?.DeactivateInstanceContext();
         }
 
         protected override void OnFaulted()
@@ -464,7 +460,7 @@ namespace CoreWCF
 
         private void SetUserObject(object newUserObject)
         {
-            if (_behavior != null && !_wellKnown)
+            if (_behavior != null && !IsWellKnown)
             {
                 object oldUserObject = Interlocked.Exchange(ref _userObject, newUserObject);
 
@@ -483,7 +479,7 @@ namespace CoreWCF
             }
         }
 
-        void Unload()
+        private void Unload()
         {
             SetUserObject(null);
 

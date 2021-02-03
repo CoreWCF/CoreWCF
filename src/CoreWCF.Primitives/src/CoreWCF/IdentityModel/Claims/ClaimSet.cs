@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using CoreWCF;
 using System.Security.Principal;
 
 namespace CoreWCF.IdentityModel.Claims
@@ -9,22 +11,24 @@ namespace CoreWCF.IdentityModel.Claims
     [DataContract(Namespace = XsiConstants.Namespace)]
     public abstract class ClaimSet : IEnumerable<Claim>
     {
-        static ClaimSet system;
-        static ClaimSet windows;
-        static ClaimSet anonymous;
+        private static ClaimSet s_system;
+        private static ClaimSet s_windows;
+        private static ClaimSet s_anonymous;
 
         public static ClaimSet System
         {
             get
             {
-                if (system == null)
+                if (s_system == null)
                 {
-                    List<Claim> claims = new List<Claim>(2);
-                    claims.Add(Claim.System);
-                    claims.Add(new Claim(ClaimTypes.System, XsiConstants.System, Rights.PossessProperty));
-                    system = new DefaultClaimSet(claims);
+                    List<Claim> claims = new List<Claim>(2)
+                    {
+                        Claim.System,
+                        new Claim(ClaimTypes.System, XsiConstants.System, Rights.PossessProperty)
+                    };
+                    s_system = new DefaultClaimSet(claims);
                 }
-                return system;
+                return s_system;
             }
         }
 
@@ -32,15 +36,15 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (windows == null)
+                if (s_windows == null)
                 {
                     List<Claim> claims = new List<Claim>(2);
                     SecurityIdentifier sid = new SecurityIdentifier(WellKnownSidType.NTAuthoritySid, null);
                     claims.Add(new Claim(ClaimTypes.Sid, sid, Rights.Identity));
                     claims.Add(Claim.CreateWindowsSidClaim(sid));
-                    windows = new DefaultClaimSet(claims);
+                    s_windows = new DefaultClaimSet(claims);
                 }
-                return windows;
+                return s_windows;
             }
         }
 
@@ -48,14 +52,16 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (anonymous == null)
-                    anonymous = new DefaultClaimSet();
+                if (s_anonymous == null)
+                {
+                    s_anonymous = new DefaultClaimSet();
+                }
 
-                return anonymous;
+                return s_anonymous;
             }
         }
 
-        static internal bool SupportedRight(string right)
+        internal static bool SupportedRight(string right)
         {
             return right == null ||
                 Rights.Identity.Equals(right) ||
@@ -66,9 +72,14 @@ namespace CoreWCF.IdentityModel.Claims
         public virtual bool ContainsClaim(Claim claim, IEqualityComparer<Claim> comparer)
         {
             if (claim == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
+            }
+
             if (comparer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(comparer));
+            }
 
             IEnumerable<Claim> claims = FindClaims(null, null);
             if (claims != null)
@@ -76,7 +87,9 @@ namespace CoreWCF.IdentityModel.Claims
                 foreach (Claim matchingClaim in claims)
                 {
                     if (comparer.Equals(claim, matchingClaim))
+                    {
                         return true;
+                    }
                 }
             }
             return false;
@@ -85,7 +98,9 @@ namespace CoreWCF.IdentityModel.Claims
         public virtual bool ContainsClaim(Claim claim)
         {
             if (claim == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
+            }
 
             IEnumerable<Claim> claims = FindClaims(claim.ClaimType, claim.Right);
             if (claims != null)
@@ -93,7 +108,9 @@ namespace CoreWCF.IdentityModel.Claims
                 foreach (Claim matchingClaim in claims)
                 {
                     if (claim.Equals(matchingClaim))
+                    {
                         return true;
+                    }
                 }
             }
             return false;
@@ -106,7 +123,5 @@ namespace CoreWCF.IdentityModel.Claims
         public abstract IEnumerable<Claim> FindClaims(string claimType, string right);
         public abstract IEnumerator<Claim> GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
-
     }
-
 }

@@ -1,4 +1,9 @@
-﻿using ClientContract;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.ServiceModel.Channels;
+using ClientContract;
 //using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
@@ -6,8 +11,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
-using System;
-using System.ServiceModel.Channels;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +18,7 @@ namespace CoreWCF.Http.Tests
 {
     public class OpActionReplyActionBehaviorTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public OpActionReplyActionBehaviorTests(ITestOutputHelper output)
         {
@@ -37,14 +40,14 @@ namespace CoreWCF.Http.Tests
         [InlineData("untypedreplyaction")]
         public void OperationContractActionReplyActionBehaviorTests(string variation)
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOpActionReplyActionBehavior>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/OpActionReplyActionBehaviorService.svc")));
-                var channel = factory.CreateChannel();
+                IOpActionReplyActionBehavior channel = factory.CreateChannel();
 
                 switch (variation)
                 {
@@ -60,7 +63,7 @@ namespace CoreWCF.Http.Tests
                     case "customreplyaction":
                         CallCheckCustomReplyAction(channel);
                         break;
-                    case "uriaction": 
+                    case "uriaction":
                         CallCheckUriAction(channel);
                         break;
                     case "urireplyaction":

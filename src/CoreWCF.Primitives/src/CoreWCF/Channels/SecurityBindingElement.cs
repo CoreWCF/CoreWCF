@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using System.Xml;
@@ -19,105 +22,78 @@ namespace CoreWCF.Channels
         internal const bool defaultRequireSignatureConfirmation = false;
         internal const bool defaultEnableUnsecuredResponse = false;
         internal const bool defaultProtectTokens = false;
-
-        SecurityAlgorithmSuite defaultAlgorithmSuite;
-        SupportingTokenParameters endpointSupportingTokenParameters;
-        SupportingTokenParameters optionalEndpointSupportingTokenParameters;
-        bool includeTimestamp;
-        SecurityKeyEntropyMode keyEntropyMode;
-        Dictionary<string, SupportingTokenParameters> operationSupportingTokenParameters;
-        Dictionary<string, SupportingTokenParameters> optionalOperationSupportingTokenParameters;
-        LocalServiceSecuritySettings localServiceSettings;
-        MessageSecurityVersion messageSecurityVersion;
-        SecurityHeaderLayout securityHeaderLayout;
-        // InternalDuplexBindingElement internalDuplexBindingElement;
-        long maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
-        XmlDictionaryReaderQuotas readerQuotas;
-        bool doNotEmitTrust = false; // true if user create a basic http standard binding, the custombinding equivalent will not set this flag 
-        bool supportsExtendedProtectionPolicy;
-        bool allowInsecureTransport;
-        bool enableUnsecuredResponse;
-        bool protectTokens = defaultProtectTokens;
+        private SecurityAlgorithmSuite _defaultAlgorithmSuite;
+        private SecurityKeyEntropyMode _keyEntropyMode;
+        private readonly Dictionary<string, SupportingTokenParameters> _operationSupportingTokenParameters;
+        private readonly Dictionary<string, SupportingTokenParameters> _optionalOperationSupportingTokenParameters;
+        private MessageSecurityVersion _messageSecurityVersion;
+        private SecurityHeaderLayout _securityHeaderLayout;
 
         internal SecurityBindingElement()
             : base()
         {
-            this.messageSecurityVersion = MessageSecurityVersion.Default;
-            this.keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy; // AcceleratedTokenProvider.defaultKeyEntropyMode;
-            this.includeTimestamp = defaultIncludeTimestamp;
-            this.defaultAlgorithmSuite = defaultDefaultAlgorithmSuite;
-            this.localServiceSettings = new LocalServiceSecuritySettings();
-            this.endpointSupportingTokenParameters = new SupportingTokenParameters();
-            this.optionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
-            this.operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
-            this.optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
-            this.securityHeaderLayout = SecurityHeaderLayout.Strict; // SecurityProtocolFactory.defaultSecurityHeaderLayout;
-            this.allowInsecureTransport = defaultAllowInsecureTransport;
-            this.enableUnsecuredResponse = defaultEnableUnsecuredResponse;
-            this.protectTokens = defaultProtectTokens;
+            _messageSecurityVersion = MessageSecurityVersion.Default;
+            _keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy; // AcceleratedTokenProvider.defaultKeyEntropyMode;
+            IncludeTimestamp = defaultIncludeTimestamp;
+            _defaultAlgorithmSuite = defaultDefaultAlgorithmSuite;
+            LocalServiceSettings = new LocalServiceSecuritySettings();
+            EndpointSupportingTokenParameters = new SupportingTokenParameters();
+            OptionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
+            _operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            _optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            _securityHeaderLayout = SecurityHeaderLayout.Strict; // SecurityProtocolFactory.defaultSecurityHeaderLayout;
+            AllowInsecureTransport = defaultAllowInsecureTransport;
+            EnableUnsecuredResponse = defaultEnableUnsecuredResponse;
+            ProtectTokens = defaultProtectTokens;
         }
 
         internal SecurityBindingElement(SecurityBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
             if (elementToBeCloned == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementToBeCloned");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elementToBeCloned));
+            }
 
-            this.defaultAlgorithmSuite = elementToBeCloned.defaultAlgorithmSuite;
-            this.includeTimestamp = elementToBeCloned.includeTimestamp;
-            this.keyEntropyMode = elementToBeCloned.keyEntropyMode;
-            this.messageSecurityVersion = elementToBeCloned.messageSecurityVersion;
-            this.securityHeaderLayout = elementToBeCloned.securityHeaderLayout;
-            this.endpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.endpointSupportingTokenParameters.Clone();
-            this.optionalEndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.optionalEndpointSupportingTokenParameters.Clone();
-            this.operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
-            foreach (string key in elementToBeCloned.operationSupportingTokenParameters.Keys)
+            _defaultAlgorithmSuite = elementToBeCloned._defaultAlgorithmSuite;
+            IncludeTimestamp = elementToBeCloned.IncludeTimestamp;
+            _keyEntropyMode = elementToBeCloned._keyEntropyMode;
+            _messageSecurityVersion = elementToBeCloned._messageSecurityVersion;
+            _securityHeaderLayout = elementToBeCloned._securityHeaderLayout;
+            EndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.EndpointSupportingTokenParameters.Clone();
+            OptionalEndpointSupportingTokenParameters = (SupportingTokenParameters)elementToBeCloned.OptionalEndpointSupportingTokenParameters.Clone();
+            _operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            foreach (string key in elementToBeCloned._operationSupportingTokenParameters.Keys)
             {
-                this.operationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned.operationSupportingTokenParameters[key].Clone();
+                _operationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned._operationSupportingTokenParameters[key].Clone();
             }
-            this.optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
-            foreach (string key in elementToBeCloned.optionalOperationSupportingTokenParameters.Keys)
+            _optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
+            foreach (string key in elementToBeCloned._optionalOperationSupportingTokenParameters.Keys)
             {
-                this.optionalOperationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned.optionalOperationSupportingTokenParameters[key].Clone();
+                _optionalOperationSupportingTokenParameters[key] = (SupportingTokenParameters)elementToBeCloned._optionalOperationSupportingTokenParameters[key].Clone();
             }
-            this.localServiceSettings = (LocalServiceSecuritySettings)elementToBeCloned.localServiceSettings.Clone();
+            LocalServiceSettings = (LocalServiceSecuritySettings)elementToBeCloned.LocalServiceSettings.Clone();
             // this.internalDuplexBindingElement = elementToBeCloned.internalDuplexBindingElement;
-            this.maxReceivedMessageSize = elementToBeCloned.maxReceivedMessageSize;
-            this.readerQuotas = elementToBeCloned.readerQuotas;
-            this.doNotEmitTrust = elementToBeCloned.doNotEmitTrust;
-            this.allowInsecureTransport = elementToBeCloned.allowInsecureTransport;
-            this.enableUnsecuredResponse = elementToBeCloned.enableUnsecuredResponse;
-            this.supportsExtendedProtectionPolicy = elementToBeCloned.supportsExtendedProtectionPolicy;
-            this.protectTokens = elementToBeCloned.protectTokens;
+            MaxReceivedMessageSize = elementToBeCloned.MaxReceivedMessageSize;
+            ReaderQuotas = elementToBeCloned.ReaderQuotas;
+            DoNotEmitTrust = elementToBeCloned.DoNotEmitTrust;
+            AllowInsecureTransport = elementToBeCloned.AllowInsecureTransport;
+            EnableUnsecuredResponse = elementToBeCloned.EnableUnsecuredResponse;
+            SupportsExtendedProtectionPolicy = elementToBeCloned.SupportsExtendedProtectionPolicy;
+            ProtectTokens = elementToBeCloned.ProtectTokens;
         }
 
-        internal bool SupportsExtendedProtectionPolicy
-        {
-            get { return this.supportsExtendedProtectionPolicy; }
-            set { this.supportsExtendedProtectionPolicy = value; }
-        }
+        internal bool SupportsExtendedProtectionPolicy { get; set; }
 
-        public SupportingTokenParameters EndpointSupportingTokenParameters
-        {
-            get
-            {
-                return this.endpointSupportingTokenParameters;
-            }
-        }
+        public SupportingTokenParameters EndpointSupportingTokenParameters { get; }
 
-        public SupportingTokenParameters OptionalEndpointSupportingTokenParameters
-        {
-            get
-            {
-                return this.optionalEndpointSupportingTokenParameters;
-            }
-        }
+        public SupportingTokenParameters OptionalEndpointSupportingTokenParameters { get; }
 
         public IDictionary<string, SupportingTokenParameters> OperationSupportingTokenParameters
         {
             get
             {
-                return this.operationSupportingTokenParameters;
+                return _operationSupportingTokenParameters;
             }
         }
 
@@ -125,7 +101,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return this.optionalOperationSupportingTokenParameters;
+                return _optionalOperationSupportingTokenParameters;
             }
         }
 
@@ -133,14 +109,16 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return this.securityHeaderLayout;
+                return _securityHeaderLayout;
             }
             set
             {
                 if (!SecurityHeaderLayoutHelper.IsDefined(value))
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                }
 
-                this.securityHeaderLayout = value;
+                _securityHeaderLayout = value;
             }
         }
 
@@ -148,91 +126,41 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return this.messageSecurityVersion;
+                return _messageSecurityVersion;
             }
             set
             {
-                if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                this.messageSecurityVersion = value;
+                _messageSecurityVersion = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
-        public bool EnableUnsecuredResponse
-        {
-            get
-            {
-                return this.enableUnsecuredResponse;
-            }
-            set
-            {
-                this.enableUnsecuredResponse = value;
-            }
-        }
+        public bool EnableUnsecuredResponse { get; set; }
 
-        public bool IncludeTimestamp
-        {
-            get
-            {
-                return this.includeTimestamp;
-            }
-            set
-            {
-                this.includeTimestamp = value;
-            }
-        }
+        public bool IncludeTimestamp { get; set; }
 
-        public bool AllowInsecureTransport
-        {
-            get
-            {
-                return this.allowInsecureTransport;
-            }
-            set
-            {
-                this.allowInsecureTransport = value;
-            }
-        }
+        public bool AllowInsecureTransport { get; set; }
 
         public SecurityAlgorithmSuite DefaultAlgorithmSuite
         {
             get
             {
-                return this.defaultAlgorithmSuite;
+                return _defaultAlgorithmSuite;
             }
             set
             {
-                if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                this.defaultAlgorithmSuite = value;
+                _defaultAlgorithmSuite = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
-        public bool ProtectTokens
-        {
-            get
-            {
-                return this.protectTokens;
-            }
-            set
-            {
-                this.protectTokens = value;
-            }
-        }
+        public bool ProtectTokens { get; set; } = defaultProtectTokens;
 
-        public LocalServiceSecuritySettings LocalServiceSettings
-        {
-            get
-            {
-                return this.localServiceSettings;
-            }
-        }
+        public LocalServiceSecuritySettings LocalServiceSettings { get; }
 
         public SecurityKeyEntropyMode KeyEntropyMode
         {
             get
             {
-                return this.keyEntropyMode;
+                return _keyEntropyMode;
             }
             set
             {
@@ -240,7 +168,7 @@ namespace CoreWCF.Channels
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
-                this.keyEntropyMode = value;
+                _keyEntropyMode = value;
             }
         }
 
@@ -259,59 +187,50 @@ namespace CoreWCF.Channels
             get { return false; }
         }
 
-        internal long MaxReceivedMessageSize
-        {
-            get { return this.maxReceivedMessageSize; }
-            set { this.maxReceivedMessageSize = value; }
-        }
+        internal long MaxReceivedMessageSize { get; set; } = TransportDefaults.MaxReceivedMessageSize;
 
-        internal bool DoNotEmitTrust
-        {
-            get { return this.doNotEmitTrust; }
-            set { this.doNotEmitTrust = value; }
-        }
+        internal bool DoNotEmitTrust { get; set; } = false;
 
-        internal XmlDictionaryReaderQuotas ReaderQuotas
-        {
-            get { return this.readerQuotas; }
-            set { this.readerQuotas = value; }
-        }
+        internal XmlDictionaryReaderQuotas ReaderQuotas { get; set; }
 
-        void GetSupportingTokensCapabilities(ICollection<SecurityTokenParameters> parameters, out bool supportsClientAuth, out bool supportsWindowsIdentity)
+        private void GetSupportingTokensCapabilities(ICollection<SecurityTokenParameters> parameters, out bool supportsClientAuth, out bool supportsWindowsIdentity)
         {
             supportsClientAuth = false;
             supportsWindowsIdentity = false;
             foreach (SecurityTokenParameters p in parameters)
             {
                 if (p.SupportsClientAuthentication)
+                {
                     supportsClientAuth = true;
+                }
+
                 if (p.SupportsClientWindowsIdentity)
+                {
                     supportsWindowsIdentity = true;
+                }
             }
         }
 
-        void GetSupportingTokensCapabilities(SupportingTokenParameters requirements, out bool supportsClientAuth, out bool supportsWindowsIdentity)
+        private void GetSupportingTokensCapabilities(SupportingTokenParameters requirements, out bool supportsClientAuth, out bool supportsWindowsIdentity)
         {
             supportsClientAuth = false;
             supportsWindowsIdentity = false;
-            bool tmpSupportsClientAuth;
-            bool tmpSupportsWindowsIdentity;
-            this.GetSupportingTokensCapabilities(requirements.Endorsing, out tmpSupportsClientAuth, out tmpSupportsWindowsIdentity);
+            GetSupportingTokensCapabilities(requirements.Endorsing, out bool tmpSupportsClientAuth, out bool tmpSupportsWindowsIdentity);
             supportsClientAuth = supportsClientAuth || tmpSupportsClientAuth;
             supportsWindowsIdentity = supportsWindowsIdentity || tmpSupportsWindowsIdentity;
 
-            this.GetSupportingTokensCapabilities(requirements.SignedEndorsing, out tmpSupportsClientAuth, out tmpSupportsWindowsIdentity);
+            GetSupportingTokensCapabilities(requirements.SignedEndorsing, out tmpSupportsClientAuth, out tmpSupportsWindowsIdentity);
             supportsClientAuth = supportsClientAuth || tmpSupportsClientAuth;
             supportsWindowsIdentity = supportsWindowsIdentity || tmpSupportsWindowsIdentity;
 
-            this.GetSupportingTokensCapabilities(requirements.SignedEncrypted, out tmpSupportsClientAuth, out tmpSupportsWindowsIdentity);
+            GetSupportingTokensCapabilities(requirements.SignedEncrypted, out tmpSupportsClientAuth, out tmpSupportsWindowsIdentity);
             supportsClientAuth = supportsClientAuth || tmpSupportsClientAuth;
             supportsWindowsIdentity = supportsWindowsIdentity || tmpSupportsWindowsIdentity;
         }
 
         internal void GetSupportingTokensCapabilities(out bool supportsClientAuth, out bool supportsWindowsIdentity)
         {
-            this.GetSupportingTokensCapabilities(this.EndpointSupportingTokenParameters, out supportsClientAuth, out supportsWindowsIdentity);
+            GetSupportingTokensCapabilities(EndpointSupportingTokenParameters, out supportsClientAuth, out supportsWindowsIdentity);
         }
 
         internal void ApplyPropertiesOnDemuxer(ChannelBuilder builder, BindingContext context)
@@ -487,7 +406,7 @@ namespace CoreWCF.Channels
             }
             return false;
         }
-        
+
         internal bool IsUnderlyingDispatcherDuplex<TChannel>(BindingContext context)
         {
             return ((typeof(TChannel) == typeof(IDuplexSessionChannel)) && context.CanBuildNextServiceDispatcher<IDuplexChannel>()
@@ -497,28 +416,34 @@ namespace CoreWCF.Channels
         internal void ConfigureProtocolFactory(SecurityProtocolFactory factory, SecurityCredentialsManager credentialsManager, bool isForService, BindingContext issuerBindingContext, Binding binding)
         {
             if (factory == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(factory)));
-            if (credentialsManager == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(credentialsManager)));
-            factory.AddTimestamp = this.IncludeTimestamp;
-            factory.IncomingAlgorithmSuite = this.DefaultAlgorithmSuite;
-            factory.OutgoingAlgorithmSuite = this.DefaultAlgorithmSuite;
-            factory.SecurityHeaderLayout = this.SecurityHeaderLayout;
-            factory.TimestampValidityDuration = this.LocalServiceSettings.TimestampValidityDuration;
-            factory.DetectReplays = this.LocalServiceSettings.DetectReplays;
-            factory.MaxCachedNonces = this.LocalServiceSettings.ReplayCacheSize;
-            factory.MaxClockSkew = this.LocalServiceSettings.MaxClockSkew;
-            factory.ReplayWindow = this.LocalServiceSettings.ReplayWindow;
-
-            if (this.LocalServiceSettings.DetectReplays)
             {
-                factory.NonceCache = this.LocalServiceSettings.NonceCache;
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(factory)));
             }
-            factory.SecurityBindingElement = (SecurityBindingElement)this.Clone();
+
+            if (credentialsManager == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(credentialsManager)));
+            }
+
+            factory.AddTimestamp = IncludeTimestamp;
+            factory.IncomingAlgorithmSuite = DefaultAlgorithmSuite;
+            factory.OutgoingAlgorithmSuite = DefaultAlgorithmSuite;
+            factory.SecurityHeaderLayout = SecurityHeaderLayout;
+            factory.TimestampValidityDuration = LocalServiceSettings.TimestampValidityDuration;
+            factory.DetectReplays = LocalServiceSettings.DetectReplays;
+            factory.MaxCachedNonces = LocalServiceSettings.ReplayCacheSize;
+            factory.MaxClockSkew = LocalServiceSettings.MaxClockSkew;
+            factory.ReplayWindow = LocalServiceSettings.ReplayWindow;
+
+            if (LocalServiceSettings.DetectReplays)
+            {
+                factory.NonceCache = LocalServiceSettings.NonceCache;
+            }
+            factory.SecurityBindingElement = (SecurityBindingElement)Clone();
             factory.SecurityBindingElement.SetIssuerBindingContextIfRequired(issuerBindingContext);
             factory.SecurityTokenManager = credentialsManager.CreateSecurityTokenManager();
-            SecurityTokenSerializer tokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(this.messageSecurityVersion.SecurityTokenVersion);
-            factory.StandardsManager = new SecurityStandardsManager(this.messageSecurityVersion, tokenSerializer);
+            SecurityTokenSerializer tokenSerializer = factory.SecurityTokenManager.CreateSecurityTokenSerializer(_messageSecurityVersion.SecurityTokenVersion);
+            factory.StandardsManager = new SecurityStandardsManager(_messageSecurityVersion, tokenSerializer);
         }
 
         internal abstract SecurityProtocolFactory CreateSecurityProtocolFactory<TChannel>(BindingContext context, SecurityCredentialsManager credentialsManager,
@@ -527,33 +452,42 @@ namespace CoreWCF.Channels
         public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
         {
             if (context == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
 
-            if (!this.CanBuildServiceDispatcher<TChannel>(context))
+            if (!CanBuildServiceDispatcher<TChannel>(context))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.ChannelTypeNotSupported, typeof(TChannel)), "TChannel"));
             }
 
-            this.readerQuotas = context.GetInnerProperty<XmlDictionaryReaderQuotas>();
-            if (readerQuotas == null)
+            ReaderQuotas = context.GetInnerProperty<XmlDictionaryReaderQuotas>();
+            if (ReaderQuotas == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.EncodingBindingElementDoesNotHandleReaderQuotas)));
             }
 
             TransportBindingElement transportBindingElement = null;
             if (context.RemainingBindingElements != null)
+            {
                 transportBindingElement = context.RemainingBindingElements.Find<TransportBindingElement>();
+            }
 
             if (transportBindingElement != null)
-                this.maxReceivedMessageSize = transportBindingElement.MaxReceivedMessageSize;
-            return this.BuildServiceDispatcherCore<TChannel>(context, innerDispatcher);
+            {
+                MaxReceivedMessageSize = transportBindingElement.MaxReceivedMessageSize;
+            }
+
+            return BuildServiceDispatcherCore<TChannel>(context, innerDispatcher);
         }
         protected abstract IServiceDispatcher BuildServiceDispatcherCore<TChannel>(BindingContext context, IServiceDispatcher serviceDispatcher)
             where TChannel : class, IChannel;
         public override bool CanBuildServiceDispatcher<TChannel>(BindingContext context)
         {
             if (context == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
 
             // InternalDuplexBindingElement.AddDuplexListenerSupport(context, ref this.internalDuplexBindingElement);
 
@@ -568,18 +502,21 @@ namespace CoreWCF.Channels
             }
 
             return typeof(TChannel) == typeof(IInputChannel) || typeof(TChannel) == typeof(IInputSessionChannel) ||
-                (this.SupportsDuplex && (typeof(TChannel) == typeof(IDuplexChannel) || typeof(TChannel) == typeof(IDuplexSessionChannel))) ||
-                (this.SupportsRequestReply && (typeof(TChannel) == typeof(IReplyChannel) || typeof(TChannel) == typeof(IReplySessionChannel)));
+                (SupportsDuplex && (typeof(TChannel) == typeof(IDuplexChannel) || typeof(TChannel) == typeof(IDuplexSessionChannel))) ||
+                (SupportsRequestReply && (typeof(TChannel) == typeof(IReplyChannel) || typeof(TChannel) == typeof(IReplySessionChannel)));
         }
 
 
         public virtual void SetKeyDerivation(bool requireDerivedKeys)
         {
-            this.EndpointSupportingTokenParameters.SetKeyDerivation(requireDerivedKeys);
-            this.OptionalEndpointSupportingTokenParameters.SetKeyDerivation(requireDerivedKeys);
-            foreach (SupportingTokenParameters t in this.OperationSupportingTokenParameters.Values)
+            EndpointSupportingTokenParameters.SetKeyDerivation(requireDerivedKeys);
+            OptionalEndpointSupportingTokenParameters.SetKeyDerivation(requireDerivedKeys);
+            foreach (SupportingTokenParameters t in OperationSupportingTokenParameters.Values)
+            {
                 t.SetKeyDerivation(requireDerivedKeys);
-            foreach (SupportingTokenParameters t in this.OptionalOperationSupportingTokenParameters.Values)
+            }
+
+            foreach (SupportingTokenParameters t in OptionalOperationSupportingTokenParameters.Values)
             {
                 t.SetKeyDerivation(requireDerivedKeys);
             }
@@ -588,11 +525,13 @@ namespace CoreWCF.Channels
         internal ChannelProtectionRequirements GetProtectionRequirements(AddressingVersion addressing, ProtectionLevel defaultProtectionLevel)
         {
             if (addressing == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("addressing");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressing));
+            }
 
             ChannelProtectionRequirements result = new ChannelProtectionRequirements();
-            ProtectionLevel supportedRequestProtectionLevel = this.GetIndividualProperty<ISecurityCapabilities>().SupportedRequestProtectionLevel;
-            ProtectionLevel supportedResponseProtectionLevel = this.GetIndividualProperty<ISecurityCapabilities>().SupportedResponseProtectionLevel;
+            ProtectionLevel supportedRequestProtectionLevel = GetIndividualProperty<ISecurityCapabilities>().SupportedRequestProtectionLevel;
+            ProtectionLevel supportedResponseProtectionLevel = GetIndividualProperty<ISecurityCapabilities>().SupportedResponseProtectionLevel;
 
             bool canSupportMoreThanTheDefault =
                 (ProtectionLevelHelper.IsStrongerOrEqual(supportedRequestProtectionLevel, defaultProtectionLevel)
@@ -639,14 +578,25 @@ namespace CoreWCF.Channels
 
         public override T GetProperty<T>(BindingContext context)
         {
-            return context.GetInnerProperty<T>();
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+            if (typeof(T) == typeof(ISecurityCapabilities))
+            {
+                return (T)(object)GetSecurityCapabilities(context);
+            }
+            else
+            {
+                return context.GetInnerProperty<T>();
+            }
         }
 
         internal abstract ISecurityCapabilities GetIndividualISecurityCapabilities();
 
-        ISecurityCapabilities GetSecurityCapabilities(BindingContext context)
+        private ISecurityCapabilities GetSecurityCapabilities(BindingContext context)
         {
-            ISecurityCapabilities thisSecurityCapability = this.GetIndividualISecurityCapabilities();
+            ISecurityCapabilities thisSecurityCapability = GetIndividualISecurityCapabilities();
             ISecurityCapabilities lowerSecurityCapability = context.GetInnerProperty<ISecurityCapabilities>();
             if (lowerSecurityCapability == null)
             {
@@ -662,20 +612,21 @@ namespace CoreWCF.Channels
                 return new SecurityCapabilities(supportsClientAuth, supportsServerAuth, supportsClientWindowsIdentity, requestProtectionLevel, responseProtectionLevel);
             }
         }
-        void SetIssuerBindingContextIfRequired(BindingContext issuerBindingContext)
+
+        private void SetIssuerBindingContextIfRequired(BindingContext issuerBindingContext)
         {
-            SetIssuerBindingContextIfRequired(this.EndpointSupportingTokenParameters, issuerBindingContext);
-            SetIssuerBindingContextIfRequired(this.OptionalEndpointSupportingTokenParameters, issuerBindingContext);
-            foreach (SupportingTokenParameters parameters in this.OperationSupportingTokenParameters.Values)
+            SetIssuerBindingContextIfRequired(EndpointSupportingTokenParameters, issuerBindingContext);
+            SetIssuerBindingContextIfRequired(OptionalEndpointSupportingTokenParameters, issuerBindingContext);
+            foreach (SupportingTokenParameters parameters in OperationSupportingTokenParameters.Values)
             {
                 SetIssuerBindingContextIfRequired(parameters, issuerBindingContext);
             }
-            foreach (SupportingTokenParameters parameters in this.OptionalOperationSupportingTokenParameters.Values)
+            foreach (SupportingTokenParameters parameters in OptionalOperationSupportingTokenParameters.Values)
             {
                 SetIssuerBindingContextIfRequired(parameters, issuerBindingContext);
             }
         }
-       
+
 
         protected static void SetIssuerBindingContextIfRequired(SecurityTokenParameters parameters, BindingContext issuerBindingContext)
         {
@@ -686,12 +637,12 @@ namespace CoreWCF.Channels
             }
             else if (parameters is SspiSecurityTokenParameters)
             {
-                 throw new NotImplementedException();
+                throw new NotImplementedException();
                 // ((SspiSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
             }
         }
 
-        static void SetIssuerBindingContextIfRequired(SupportingTokenParameters supportingParameters, BindingContext issuerBindingContext)
+        private static void SetIssuerBindingContextIfRequired(SupportingTokenParameters supportingParameters, BindingContext issuerBindingContext)
         {
             for (int i = 0; i < supportingParameters.Endorsing.Count; ++i)
             {
@@ -713,7 +664,7 @@ namespace CoreWCF.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsUserNameOverTransportBinding() method.
-        static public TransportSecurityBindingElement CreateUserNameOverTransportBindingElement()
+        public static TransportSecurityBindingElement CreateUserNameOverTransportBindingElement()
         {
             TransportSecurityBindingElement result = new TransportSecurityBindingElement();
             result.EndpointSupportingTokenParameters.SignedEncrypted.Add(
@@ -726,30 +677,30 @@ namespace CoreWCF.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSecureConversationBinding() method.
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity)
+        public static SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity)
         {
             return CreateSecureConversationBindingElement(bootstrapSecurity, SecureConversationSecurityTokenParameters.defaultRequireCancellation, null);
         }
 
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation)
+        public static SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation)
         {
             return CreateSecureConversationBindingElement(bootstrapSecurity, requireCancellation, null);
         }
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsCertificateOverTransportBinding() method.
-        static public TransportSecurityBindingElement CreateCertificateOverTransportBindingElement()
+        public static TransportSecurityBindingElement CreateCertificateOverTransportBindingElement()
         {
             return CreateCertificateOverTransportBindingElement(MessageSecurityVersion.Default);
         }
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsCertificateOverTransportBinding() method.
-        static public TransportSecurityBindingElement CreateCertificateOverTransportBindingElement(MessageSecurityVersion version)
+        public static TransportSecurityBindingElement CreateCertificateOverTransportBindingElement(MessageSecurityVersion version)
         {
             if (version == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             }
             X509KeyIdentifierClauseType x509ReferenceType;
 
@@ -771,7 +722,7 @@ namespace CoreWCF.Channels
                 x509Parameters
                 );
             result.IncludeTimestamp = true;
-           // result.LocalClientSettings.DetectReplays = false;
+            // result.LocalClientSettings.DetectReplays = false;
             result.LocalServiceSettings.DetectReplays = false;
             result.MessageSecurityVersion = version;
 
@@ -783,21 +734,30 @@ namespace CoreWCF.Channels
         {
             // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
             if (!sbe.IncludeTimestamp)
+            {
                 return false;
+            }
 
             if (!(sbe is TransportSecurityBindingElement))
+            {
                 return false;
+            }
 
             SupportingTokenParameters parameters = sbe.EndpointSupportingTokenParameters;
             if (parameters.Signed.Count != 0 || parameters.SignedEncrypted.Count != 0 || parameters.Endorsing.Count != 1 || parameters.SignedEndorsing.Count != 0)
+            {
                 return false;
+            }
 
-            X509SecurityTokenParameters x509Parameters = parameters.Endorsing[0] as X509SecurityTokenParameters;
-            if (x509Parameters == null)
+            if (!(parameters.Endorsing[0] is X509SecurityTokenParameters x509Parameters))
+            {
                 return false;
+            }
 
             if (x509Parameters.InclusionMode != SecurityTokenInclusionMode.AlwaysToRecipient)
+            {
                 return false;
+            }
 
             return x509Parameters.X509ReferenceStyle == X509KeyIdentifierClauseType.Any || x509Parameters.X509ReferenceStyle == X509KeyIdentifierClauseType.Thumbprint;
         }
@@ -805,10 +765,12 @@ namespace CoreWCF.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSecureConversationBinding() method.
-        static public SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation, ChannelProtectionRequirements bootstrapProtectionRequirements)
+        public static SecurityBindingElement CreateSecureConversationBindingElement(SecurityBindingElement bootstrapSecurity, bool requireCancellation, ChannelProtectionRequirements bootstrapProtectionRequirements)
         {
             if (bootstrapSecurity == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bootstrapBinding");
+            }
 
             SecurityBindingElement result;
 
@@ -819,11 +781,13 @@ namespace CoreWCF.Channels
                 SecureConversationSecurityTokenParameters scParameters = new SecureConversationSecurityTokenParameters(
                         bootstrapSecurity,
                         requireCancellation,
-                        bootstrapProtectionRequirements);
-                scParameters.RequireDerivedKeys = false;
+                        bootstrapProtectionRequirements)
+                {
+                    RequireDerivedKeys = false
+                };
                 primary.EndpointSupportingTokenParameters.Endorsing.Add(
                     scParameters);
-               // primary.LocalClientSettings.DetectReplays = false;
+                // primary.LocalClientSettings.DetectReplays = false;
                 primary.LocalServiceSettings.DetectReplays = false;
                 primary.IncludeTimestamp = true;
                 result = primary;
@@ -834,9 +798,11 @@ namespace CoreWCF.Channels
                     new SecureConversationSecurityTokenParameters(
                         bootstrapSecurity,
                         requireCancellation,
-                        bootstrapProtectionRequirements));
-                // there is no need for signature confirmation on the steady state binding
-                primary.RequireSignatureConfirmation = false;
+                        bootstrapProtectionRequirements))
+                {
+                    // there is no need for signature confirmation on the steady state binding
+                    RequireSignatureConfirmation = false
+                };
                 result = primary;
             }
             return result;

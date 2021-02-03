@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.ObjectModel;
 
 namespace CoreWCF.Dispatcher
@@ -6,9 +9,6 @@ namespace CoreWCF.Dispatcher
     //[Serializable]
     internal class MultipleFilterMatchesException : Exception //SystemException
     {
-        //[NonSerialized]
-        Collection<MessageFilter> filters;
-
         //protected MultipleFilterMatchesException(SerializationInfo info, StreamingContext context)
         //    : base(info, context)
         //{
@@ -38,16 +38,9 @@ namespace CoreWCF.Dispatcher
         public MultipleFilterMatchesException(string message, Exception innerException, Collection<MessageFilter> filters)
             : base(message, innerException)
         {
-            this.filters = filters;
+            Filters = filters;
         }
 
-        public Collection<MessageFilter> Filters
-        {
-            get
-            {
-                return filters;
-            }
-        }
+        public Collection<MessageFilter> Filters { get; }
     }
-
 }

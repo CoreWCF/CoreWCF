@@ -1,10 +1,13 @@
-﻿using CoreWCF;
-using CoreWCF.Channels;
-using CoreWCF.Description;
-using CoreWCF.Dispatcher;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using CoreWCF;
+using CoreWCF.Channels;
+using CoreWCF.Description;
+using CoreWCF.Dispatcher;
 
 namespace Extensibility
 {
@@ -18,10 +21,10 @@ namespace Extensibility
 
         public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
-            foreach (var cdb in serviceHostBase.ChannelDispatchers)
+            foreach (ChannelDispatcherBase cdb in serviceHostBase.ChannelDispatchers)
             {
                 var dispatcher = cdb as ChannelDispatcher;
-                foreach (var endpointDispatcher in dispatcher.Endpoints)
+                foreach (EndpointDispatcher endpointDispatcher in dispatcher.Endpoints)
                 {
                     if (!endpointDispatcher.IsSystemEndpoint)
                     {
@@ -38,9 +41,9 @@ namespace Extensibility
                 }
             }
 
-            foreach(var endpoint in serviceDescription.Endpoints)
+            foreach (ServiceEndpoint endpoint in serviceDescription.Endpoints)
             {
-                foreach(var operation in endpoint.Contract.Operations)
+                foreach (OperationDescription operation in endpoint.Contract.Operations)
                 {
                     operation.OperationBehaviors.Add(new TestOperationBehavior(this));
                 }
@@ -52,7 +55,7 @@ namespace Extensibility
 
     internal class TestOperationBehavior : IOperationBehavior
     {
-        private TestServiceBehavior _parent;
+        private readonly TestServiceBehavior _parent;
 
         public TestOperationBehavior(TestServiceBehavior testServiceBehavior)
         {
@@ -76,7 +79,7 @@ namespace Extensibility
 
     internal class MyInvoker : IOperationInvoker
     {
-        private IOperationInvoker _invoker;
+        private readonly IOperationInvoker _invoker;
 
         public MyInvoker(IOperationInvoker invoker)
         {

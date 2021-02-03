@@ -1,23 +1,20 @@
-﻿//------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-//------------------------------------------------------------
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Security.Authentication.ExtendedProtection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Primitives;
 
 namespace CoreWCF.Channels
@@ -28,41 +25,36 @@ namespace CoreWCF.Channels
         private const string multipartRelatedMediaType = "multipart/related";
         private const string startInfoHeaderParam = "start-info";
         private const string defaultContentType = "application/octet-stream";
-        private BufferManager bufferManager;
-        private bool isRequest;
-        private MessageEncoder messageEncoder;
-        private IHttpTransportFactorySettings settings;
-        private bool streamed;
-        private WebException webException;
-        private Stream inputStream;
-        private bool enableChannelBinding;
-        private bool errorGettingInputStream;
+        private readonly BufferManager _bufferManager;
+        private readonly bool _isRequest;
+        private readonly MessageEncoder _messageEncoder;
+        private readonly IHttpTransportFactorySettings _settings;
+        private readonly bool _streamed;
+        private Stream _inputStream;
+        private readonly bool _enableChannelBinding;
+        private bool _errorGettingInputStream;
 
         protected HttpInput(IHttpTransportFactorySettings settings, bool isRequest, bool enableChannelBinding)
         {
-            this.settings = settings;
-            this.bufferManager = settings.BufferManager;
-            this.messageEncoder = settings.MessageEncoderFactory.Encoder;
-            this.webException = null;
-            this.isRequest = isRequest;
-            this.inputStream = null;
-            this.enableChannelBinding = enableChannelBinding;
+            _settings = settings;
+            _bufferManager = settings.BufferManager;
+            _messageEncoder = settings.MessageEncoderFactory.Encoder;
+            WebException = null;
+            _isRequest = isRequest;
+            _inputStream = null;
+            _enableChannelBinding = enableChannelBinding;
 
             if (isRequest)
             {
-                this.streamed = TransferModeHelper.IsRequestStreamed(settings.TransferMode);
+                _streamed = TransferModeHelper.IsRequestStreamed(settings.TransferMode);
             }
             else
             {
-                this.streamed = TransferModeHelper.IsResponseStreamed(settings.TransferMode);
+                _streamed = TransferModeHelper.IsResponseStreamed(settings.TransferMode);
             }
         }
 
-        internal WebException WebException
-        {
-            get { return webException; }
-            set { webException = value; }
-        }
+        internal WebException WebException { get; set; }
 
         // Note: This method will return null in the case where throwOnError is false, and a non-fatal error occurs.
         // Please exercise caution when passing in throwOnError = false.  This should basically only be done in error
@@ -70,16 +62,16 @@ namespace CoreWCF.Channels
         // When passing in throwOnError = false, please handle the case where this method returns null.
         public Stream GetInputStream(bool throwOnError)
         {
-            if (inputStream == null && (throwOnError || !this.errorGettingInputStream))
+            if (_inputStream == null && (throwOnError || !_errorGettingInputStream))
             {
                 try
                 {
-                    inputStream = GetInputStream();
-                    this.errorGettingInputStream = false;
+                    _inputStream = GetInputStream();
+                    _errorGettingInputStream = false;
                 }
                 catch (Exception e)
                 {
-                    this.errorGettingInputStream = true;
+                    _errorGettingInputStream = true;
                     if (throwOnError || Fx.IsFatal(e))
                     {
                         throw;
@@ -89,7 +81,7 @@ namespace CoreWCF.Channels
                 }
             }
 
-            return inputStream;
+            return _inputStream;
         }
 
         // -1 if chunked
@@ -117,13 +109,13 @@ namespace CoreWCF.Channels
 
         private void ThrowMaxReceivedMessageSizeExceeded()
         {
-            if (isRequest)
+            if (_isRequest)
             {
-                ThrowHttpProtocolException(SR.Format(SR.MaxReceivedMessageSizeExceeded, settings.MaxReceivedMessageSize), HttpStatusCode.RequestEntityTooLarge);
+                ThrowHttpProtocolException(SR.Format(SR.MaxReceivedMessageSizeExceeded, _settings.MaxReceivedMessageSize), HttpStatusCode.RequestEntityTooLarge);
             }
             else
             {
-                string message = SR.Format(SR.MaxReceivedMessageSizeExceeded, settings.MaxReceivedMessageSize);
+                string message = SR.Format(SR.MaxReceivedMessageSizeExceeded, _settings.MaxReceivedMessageSize);
                 Exception inner = new QuotaExceededException(message);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(message, inner));
             }
@@ -134,7 +126,7 @@ namespace CoreWCF.Channels
             try
             {
                 // if we're chunked, make sure we've consumed the whole body
-                if (ContentLength == -1 && buffer.Count == settings.MaxReceivedMessageSize)
+                if (ContentLength == -1 && buffer.Count == _settings.MaxReceivedMessageSize)
                 {
                     byte[] extraBuffer = new byte[1];
                     int extraReceived = await inputStream.ReadAsync(extraBuffer, 0, 1);
@@ -146,7 +138,7 @@ namespace CoreWCF.Channels
 
                 try
                 {
-                    return messageEncoder.ReadMessage(buffer, bufferManager, ContentType);
+                    return _messageEncoder.ReadMessage(buffer, _bufferManager, ContentType);
                 }
                 catch (XmlException xmlException)
                 {
@@ -191,7 +183,7 @@ namespace CoreWCF.Channels
         {
             try
             {
-                return messageEncoder.ReadMessage(await BufferMessageStreamAsync(inputStream, bufferManager, settings.MaxBufferSize), bufferManager, ContentType);
+                return _messageEncoder.ReadMessage(await BufferMessageStreamAsync(inputStream, _bufferManager, _settings.MaxBufferSize), _bufferManager, ContentType);
             }
             catch (XmlException xmlException)
             {
@@ -202,11 +194,11 @@ namespace CoreWCF.Channels
 
         private async Task<Message> ReadStreamedMessageAsync(Stream inputStream)
         {
-            MaxMessageSizeStream maxMessageSizeStream = new MaxMessageSizeStream(inputStream, settings.MaxReceivedMessageSize);
+            MaxMessageSizeStream maxMessageSizeStream = new MaxMessageSizeStream(inputStream, _settings.MaxReceivedMessageSize);
 
             try
             {
-                return await messageEncoder.ReadMessageAsync(maxMessageSizeStream, settings.MaxBufferSize, ContentType);
+                return await _messageEncoder.ReadMessageAsync(maxMessageSizeStream, _settings.MaxBufferSize, ContentType);
             }
             catch (XmlException xmlException)
             {
@@ -254,9 +246,9 @@ namespace CoreWCF.Channels
 
         private void ApplyChannelBinding(Message message)
         {
-            if (this.enableChannelBinding)
+            if (_enableChannelBinding)
             {
-                ChannelBindingUtility.TryAddToMessage(this.ChannelBinding, message, true);
+                ChannelBindingUtility.TryAddToMessage(ChannelBinding, message, true);
             }
         }
 
@@ -309,7 +301,7 @@ namespace CoreWCF.Channels
                 message.Headers.To = message.Properties.Via;
             }
 
-            if (isRequest)
+            if (_isRequest)
             {
                 string action = null;
 
@@ -317,7 +309,7 @@ namespace CoreWCF.Channels
                 {
                     action = SoapActionHeader;
                 }
-                else if (message.Version.Envelope == EnvelopeVersion.Soap12 && !String.IsNullOrEmpty(ContentType))
+                else if (message.Version.Envelope == EnvelopeVersion.Soap12 && !string.IsNullOrEmpty(ContentType))
                 {
                     ContentType parsedContentType = new ContentType(ContentType);
 
@@ -349,13 +341,11 @@ namespace CoreWCF.Channels
 
                     try
                     {
-
                         if (action.Length > 0 && string.Compare(message.Headers.Action, action, StringComparison.Ordinal) != 0)
                         {
                             result = new ActionMismatchAddressingException(SR.Format(SR.HttpSoapActionMismatchFault,
                                 message.Headers.Action, action), message.Headers.Action, action);
                         }
-
                     }
                     catch (XmlException e)
                     {
@@ -376,31 +366,33 @@ namespace CoreWCF.Channels
         private void ValidateContentType()
         {
             if (!HasContent)
+            {
                 return;
+            }
 
             if (string.IsNullOrEmpty(ContentType))
             {
                 ThrowHttpProtocolException(SR.HttpContentTypeHeaderRequired, HttpStatusCode.UnsupportedMediaType, HttpChannelUtilities.StatusDescriptionStrings.HttpContentTypeMissing);
             }
-            if (!messageEncoder.IsContentTypeSupported(ContentType))
+            if (!_messageEncoder.IsContentTypeSupported(ContentType))
             {
-                string statusDescription = string.Format(CultureInfo.InvariantCulture, HttpChannelUtilities.StatusDescriptionStrings.HttpContentTypeMismatch, ContentType, messageEncoder.ContentType);
-                ThrowHttpProtocolException(SR.Format(SR.ContentTypeMismatch, ContentType, messageEncoder.ContentType), HttpStatusCode.UnsupportedMediaType, statusDescription);
+                string statusDescription = string.Format(CultureInfo.InvariantCulture, HttpChannelUtilities.StatusDescriptionStrings.HttpContentTypeMismatch, ContentType, _messageEncoder.ContentType);
+                ThrowHttpProtocolException(SR.Format(SR.ContentTypeMismatch, ContentType, _messageEncoder.ContentType), HttpStatusCode.UnsupportedMediaType, statusDescription);
             }
         }
 
         public async Task<(Message message, Exception requestException)> ParseIncomingMessageAsync()
         {
-            Message message = null;
             Exception requestException = null;
             bool throwing = true;
             try
             {
                 ValidateContentType();
 
-                if (!this.HasContent)
+                Message message;
+                if (!HasContent)
                 {
-                    if (this.messageEncoder.MessageVersion == MessageVersion.None)
+                    if (_messageEncoder.MessageVersion == MessageVersion.None)
                     {
                         message = new NullMessage();
                     }
@@ -411,12 +403,12 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
-                    Stream stream = this.GetInputStream(true);
-                    if (streamed)
+                    Stream stream = GetInputStream(true);
+                    if (_streamed)
                     {
                         message = await ReadStreamedMessageAsync(stream);
                     }
-                    else if (this.ContentLength == -1)
+                    else if (ContentLength == -1)
                     {
                         message = await ReadChunkedBufferedMessageAsync(stream);
                     }
@@ -447,7 +439,7 @@ namespace CoreWCF.Channels
 
         private void ThrowHttpProtocolException(string message, HttpStatusCode statusCode, string statusDescription)
         {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateHttpProtocolException(message, statusCode, statusDescription, webException));
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateHttpProtocolException(message, statusCode, statusDescription, WebException));
         }
 
         internal static ProtocolException CreateHttpProtocolException(string message, HttpStatusCode statusCode, string statusDescription, Exception innerException)
@@ -471,54 +463,48 @@ namespace CoreWCF.Channels
             long count = ContentLength;
             int bufferSize;
 
-            if (count > settings.MaxReceivedMessageSize)
+            if (count > _settings.MaxReceivedMessageSize)
             {
                 ThrowMaxReceivedMessageSizeExceeded();
             }
 
             bufferSize = (int)count;
 
-            return new ArraySegment<byte>(bufferManager.TakeBuffer(bufferSize), 0, bufferSize);
+            return new ArraySegment<byte>(_bufferManager.TakeBuffer(bufferSize), 0, bufferSize);
         }
     }
 
     // abstract out the common functionality of an "HttpOutput"
     internal abstract class HttpOutput
     {
-        private const string DefaultMimeVersion = "1.0";
-        private HttpAbortReason abortReason;
-        private bool isDisposed;
-        private bool isRequest;
-        private Message message;
-        private IHttpTransportFactorySettings settings;
-        private byte[] bufferToRecycle;
-        private BufferManager bufferManager;
-        private MessageEncoder messageEncoder;
-        private bool streamed;
-        private static Action<object> onStreamSendTimeout;
-        private string mtomBoundary;
-        private Stream outputStream;
-        private bool supportsConcurrentIO;
-        private bool canSendCompressedResponses;
+        private HttpAbortReason _abortReason;
+        private bool _isDisposed;
+        private readonly bool _isRequest;
+        private readonly Message _message;
+        private readonly IHttpTransportFactorySettings _settings;
+        private byte[] _bufferToRecycle;
+        private readonly BufferManager _bufferManager;
+        private readonly MessageEncoder _messageEncoder;
+        private readonly bool _streamed;
+        private static Action<object> s_onStreamSendTimeout;
+        private Stream _outputStream;
 
-        protected HttpOutput(IHttpTransportFactorySettings settings, Message message, bool isRequest, bool supportsConcurrentIO)
+        protected HttpOutput(IHttpTransportFactorySettings settings, Message message, bool isRequest)
         {
-            this.settings = settings;
-            this.message = message;
-            this.isRequest = isRequest;
-            this.bufferManager = settings.BufferManager;
-            this.messageEncoder = settings.MessageEncoderFactory.Encoder;
-            ICompressedMessageEncoder compressedMessageEncoder = this.messageEncoder as ICompressedMessageEncoder;
-            this.canSendCompressedResponses = compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled;
+            _settings = settings;
+            _message = message;
+            _isRequest = isRequest;
+            _bufferManager = settings.BufferManager;
+            _messageEncoder = settings.MessageEncoderFactory.Encoder;
+            CanSendCompressedResponses = _messageEncoder is ICompressedMessageEncoder compressedMessageEncoder && compressedMessageEncoder.CompressionEnabled;
             if (isRequest)
             {
-                this.streamed = TransferModeHelper.IsRequestStreamed(settings.TransferMode);
+                _streamed = TransferModeHelper.IsRequestStreamed(settings.TransferMode);
             }
             else
             {
-                this.streamed = TransferModeHelper.IsResponseStreamed(settings.TransferMode);
+                _streamed = TransferModeHelper.IsResponseStreamed(settings.TransferMode);
             }
-            this.supportsConcurrentIO = supportsConcurrentIO;
         }
 
         protected virtual bool IsChannelBindingSupportEnabled { get { return false; } }
@@ -531,28 +517,28 @@ namespace CoreWCF.Channels
 
         public virtual void Abort(HttpAbortReason reason)
         {
-            if (isDisposed)
+            if (_isDisposed)
             {
                 return;
             }
 
-            this.abortReason = reason;
+            _abortReason = reason;
 
             CleanupBuffer();
         }
 
         public Task CloseAsync()
         {
-            if (isDisposed)
+            if (_isDisposed)
             {
                 return Task.CompletedTask;
             }
 
             try
             {
-                if (outputStream != null)
+                if (_outputStream != null)
                 {
-                    outputStream.Close();
+                    _outputStream.Close();
                 }
             }
             finally
@@ -565,13 +551,13 @@ namespace CoreWCF.Channels
 
         private void CleanupBuffer()
         {
-            byte[] bufferToRecycleSnapshot = Interlocked.Exchange<byte[]>(ref this.bufferToRecycle, null);
+            byte[] bufferToRecycleSnapshot = Interlocked.Exchange<byte[]>(ref _bufferToRecycle, null);
             if (bufferToRecycleSnapshot != null)
             {
-                bufferManager.ReturnBuffer(bufferToRecycleSnapshot);
+                _bufferManager.ReturnBuffer(bufferToRecycleSnapshot);
             }
 
-            isDisposed = true;
+            _isDisposed = true;
         }
 
         protected abstract void AddMimeVersion(string version);
@@ -594,9 +580,9 @@ namespace CoreWCF.Channels
 
         private void ApplyChannelBinding()
         {
-            if (this.IsChannelBindingSupportEnabled)
+            if (IsChannelBindingSupportEnabled)
             {
-                ChannelBindingUtility.TryAddToMessage(this.ChannelBinding, this.message, this.CleanupChannelBinding);
+                ChannelBindingUtility.TryAddToMessage(ChannelBinding, _message, CleanupChannelBinding);
             }
         }
 
@@ -607,10 +593,7 @@ namespace CoreWCF.Channels
             get { return true; }
         }
 
-        protected bool CanSendCompressedResponses
-        {
-            get { return this.canSendCompressedResponses; }
-        }
+        protected bool CanSendCompressedResponses { get; }
 
         protected virtual bool PrepareHttpSend(Message message)
         {
@@ -626,14 +609,13 @@ namespace CoreWCF.Channels
 
             if (message.Version == MessageVersion.None)
             {
-                object property = null;
-                if (message.Properties.TryGetValue(HttpResponseMessageProperty.Name, out property))
+                if (message.Properties.TryGetValue(HttpResponseMessageProperty.Name, out object property))
                 {
                     HttpResponseMessageProperty responseProperty = (HttpResponseMessageProperty)property;
                     if (!string.IsNullOrEmpty(responseProperty.Headers[HttpResponseHeader.ContentType]))
                     {
                         contentType = responseProperty.Headers[HttpResponseHeader.ContentType];
-                        if (!messageEncoder.IsContentTypeSupported(contentType))
+                        if (!_messageEncoder.IsContentTypeSupported(contentType))
                         {
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                 new ProtocolException(SR.Format(SR.ResponseContentTypeNotSupported,
@@ -648,7 +630,7 @@ namespace CoreWCF.Channels
                 //MtomMessageEncoder mtomMessageEncoder = messageEncoder as MtomMessageEncoder;
                 //if (mtomMessageEncoder == null)
                 //{
-                contentType = messageEncoder.ContentType;
+                contentType = _messageEncoder.ContentType;
                 //}
                 //else
                 //{
@@ -675,7 +657,7 @@ namespace CoreWCF.Channels
             //MtomMessageEncoder mtomMessageEncoder = messageEncoder as MtomMessageEncoder;
             //if (mtomMessageEncoder == null)
             //{
-            result = messageEncoder.WriteMessage(message, int.MaxValue, bufferManager);
+            result = _messageEncoder.WriteMessage(message, int.MaxValue, _bufferManager);
             //}
             //else
             //{
@@ -686,7 +668,7 @@ namespace CoreWCF.Channels
             {
                 // Only set this.bufferToRecycle if the HttpOutput owns the buffer, we will clean it up upon httpOutput.Close()
                 // Otherwise, caller of SerializeBufferedMessage assumes responsibility for returning the buffer to the buffer pool
-                this.bufferToRecycle = result.Array;
+                _bufferToRecycle = result.Array;
             }
             return result;
         }
@@ -702,18 +684,18 @@ namespace CoreWCF.Channels
             // TODO: Evaluate whether we need to buffer the output stream and if concurrent io is supported
             //return supportsConcurrentIO ? (Stream)new BufferedOutputAsyncStream(outputStream, BufferSize, BufferCount) : new BufferedStream(outputStream, ChunkSize);
             //return this.supportsConcurrentIO ? (Stream)new BufferedOutputAsyncStream(this.outputStream, BufferSize, BufferCount) : new BufferedStream(this.outputStream, ChunkSize);
-            return new BufferedStream(outputStream, ChunkSize);
+            return new BufferedStream(_outputStream, ChunkSize);
         }
 
         private async Task WriteStreamedMessageAsync(CancellationToken token)
         {
-            this.outputStream = GetWrappedOutputStream();
+            _outputStream = GetWrappedOutputStream();
 
             // Since HTTP streams don't support timeouts, we can't just use TimeoutStream here. 
             // Rather, we need to run a timer to bound the overall operation
-            if (onStreamSendTimeout == null)
+            if (s_onStreamSendTimeout == null)
             {
-                onStreamSendTimeout = OnStreamSendTimeout;
+                s_onStreamSendTimeout = OnStreamSendTimeout;
             }
 
             // TODO: Verify that the cancellation token is honored for timeout
@@ -725,7 +707,7 @@ namespace CoreWCF.Channels
                 //MtomMessageEncoder mtomMessageEncoder = messageEncoder as MtomMessageEncoder;
                 //if (mtomMessageEncoder == null)
                 //{
-                await messageEncoder.WriteMessageAsync(this.message, this.outputStream);
+                await _messageEncoder.WriteMessageAsync(_message, _outputStream);
                 //}
                 //else
                 //{
@@ -751,52 +733,52 @@ namespace CoreWCF.Channels
 
         public async Task SendAsync(CancellationToken token)
         {
-            bool suppressEntityBody = PrepareHttpSend(message);
+            bool suppressEntityBody = PrepareHttpSend(_message);
 
             if (suppressEntityBody)
             {
                 // requests can't always support an output stream (for GET, etc)
-                if (!isRequest)
+                if (!_isRequest)
                 {
-                    outputStream = GetOutputStream();
+                    _outputStream = GetOutputStream();
                 }
                 else
                 {
-                    this.SetContentLength(0);
+                    SetContentLength(0);
                 }
             }
-            else if (streamed)
+            else if (_streamed)
             {
-                outputStream = GetOutputStream();
+                _outputStream = GetOutputStream();
                 ApplyChannelBinding();
                 await WriteStreamedMessageAsync(token);
             }
             else
             {
-                if (this.IsChannelBindingSupportEnabled)
+                if (IsChannelBindingSupportEnabled)
                 {
                     //need to get the Channel binding token (CBT), apply channel binding info to the message and then write the message                    
                     //CBT is only enabled when message security is in the stack, which also requires an HTTP entity body, so we 
                     //should be safe to always get the stream.
-                    outputStream = GetOutputStream();
+                    _outputStream = GetOutputStream();
 
                     ApplyChannelBinding();
 
-                    ArraySegment<byte> buffer = SerializeBufferedMessage(message);
+                    ArraySegment<byte> buffer = SerializeBufferedMessage(_message);
 
                     Fx.Assert(buffer.Count != 0, "We should always have an entity body in this case...");
-                    await outputStream.WriteAsync(buffer.Array, buffer.Offset, buffer.Count);
+                    await _outputStream.WriteAsync(buffer.Array, buffer.Offset, buffer.Count);
                 }
                 else
                 {
-                    ArraySegment<byte> buffer = SerializeBufferedMessage(message);
+                    ArraySegment<byte> buffer = SerializeBufferedMessage(_message);
                     SetContentLength(buffer.Count);
 
                     // requests can't always support an output stream (for GET, etc)
-                    if (!isRequest || buffer.Count > 0)
+                    if (!_isRequest || buffer.Count > 0)
                     {
-                        outputStream = GetOutputStream();
-                        await outputStream.WriteAsync(buffer.Array, buffer.Offset, buffer.Count);
+                        _outputStream = GetOutputStream();
+                        await _outputStream.WriteAsync(buffer.Array, buffer.Offset, buffer.Count);
                     }
                 }
             }
@@ -809,62 +791,61 @@ namespace CoreWCF.Channels
 
         private class AspNetCoreHttpOutput : HttpOutput
         {
-            private HttpResponse httpResponse;
-            private HttpContext httpContext;
-            private string httpMethod;
+            private readonly HttpResponse _httpResponse;
+            private readonly HttpContext _httpContext;
+            private readonly string _httpMethod;
 
             public AspNetCoreHttpOutput(HttpContext httpContext, IHttpTransportFactorySettings settings, Message message, string httpMethod)
-                : base(settings, message, false, true)
+                : base(settings, message, false)
             {
-                this.httpResponse = httpContext.Response;
-                this.httpContext = httpContext;
-                this.httpMethod = httpMethod;
+                _httpResponse = httpContext.Response;
+                _httpContext = httpContext;
+                _httpMethod = httpMethod;
 
                 if (message.IsFault)
                 {
-                    this.SetStatusCode(HttpStatusCode.InternalServerError);
+                    SetStatusCode(HttpStatusCode.InternalServerError);
                 }
                 else
                 {
-                    this.SetStatusCode(HttpStatusCode.OK);
+                    SetStatusCode(HttpStatusCode.OK);
                 }
             }
 
-            protected override string HttpMethod => httpMethod;
+            protected override string HttpMethod => _httpMethod;
 
             public override void Abort(HttpAbortReason abortReason)
             {
-                httpContext.Abort();
+                _httpContext.Abort();
                 base.Abort(abortReason);
             }
 
             protected override void AddMimeVersion(string version)
             {
-                httpResponse.Headers[HttpChannelUtilities.MIMEVersionHeader] = version;
+                _httpResponse.Headers[HttpChannelUtilities.MIMEVersionHeader] = version;
             }
 
             protected override bool PrepareHttpSend(Message message)
             {
                 bool result = base.PrepareHttpSend(message);
 
-                if (this.CanSendCompressedResponses)
+                if (CanSendCompressedResponses)
                 {
-                    string contentType = httpResponse.ContentType;
-                    string contentEncoding;
-                    if (HttpChannelUtilities.GetHttpResponseTypeAndEncodingForCompression(ref contentType, out contentEncoding))
+                    string contentType = _httpResponse.ContentType;
+                    if (HttpChannelUtilities.GetHttpResponseTypeAndEncodingForCompression(ref contentType, out string contentEncoding))
                     {
-                        if (contentType != this.httpResponse.ContentType)
+                        if (contentType != _httpResponse.ContentType)
                         {
-                            this.SetContentType(contentType);
+                            SetContentType(contentType);
                         }
-                        this.SetContentEncoding(contentEncoding);
+                        SetContentEncoding(contentEncoding);
                     }
                 }
 
                 message.Properties.TryGetValue(HttpResponseMessageProperty.Name, out object responsePropertyObj);
                 HttpResponseMessageProperty responseProperty = (HttpResponseMessageProperty)responsePropertyObj;
                 bool httpResponseMessagePropertyFound = responseProperty != null;
-                bool httpMethodIsHead = string.Compare(httpMethod, "HEAD", StringComparison.OrdinalIgnoreCase) == 0;
+                bool httpMethodIsHead = string.Compare(_httpMethod, "HEAD", StringComparison.OrdinalIgnoreCase) == 0;
 
                 if (httpMethodIsHead ||
                     httpResponseMessagePropertyFound && responseProperty.SuppressEntityBody)
@@ -878,10 +859,10 @@ namespace CoreWCF.Channels
 
                 if (httpResponseMessagePropertyFound)
                 {
-                    this.SetStatusCode(responseProperty.StatusCode);
+                    SetStatusCode(responseProperty.StatusCode);
                     if (responseProperty.StatusDescription != null)
                     {
-                        this.SetStatusDescription(responseProperty.StatusDescription);
+                        SetStatusDescription(responseProperty.StatusDescription);
                     }
 
                     WebHeaderCollection responseHeaders = responseProperty.Headers;
@@ -891,11 +872,10 @@ namespace CoreWCF.Channels
                         string value = responseHeaders[i];
                         if (string.Compare(name, "content-length", StringComparison.OrdinalIgnoreCase) == 0)
                         {
-                            int contentLength = -1;
                             if (httpMethodIsHead &&
-                                int.TryParse(value, out contentLength))
+                                int.TryParse(value, out int contentLength))
                             {
-                                this.SetContentLength(contentLength);
+                                SetContentLength(contentLength);
                             }
                         }
                         else if (string.Compare(name, "content-type", StringComparison.OrdinalIgnoreCase) == 0)
@@ -903,7 +883,7 @@ namespace CoreWCF.Channels
                             if (httpMethodIsHead ||
                                 !responseProperty.SuppressEntityBody)
                             {
-                                this.SetContentType(value);
+                                SetContentType(value);
                             }
                         }
                         else if (string.Compare(name, "connection", StringComparison.OrdinalIgnoreCase) == 0)
@@ -912,7 +892,7 @@ namespace CoreWCF.Channels
                         }
                         else
                         {
-                            this.AddHeader(name, value);
+                            AddHeader(name, value);
                         }
                     }
                 }
@@ -924,18 +904,18 @@ namespace CoreWCF.Channels
             {
                 if (string.Compare(name, "WWW-Authenticate", StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    httpResponse.Headers[name] = value;
+                    _httpResponse.Headers[name] = value;
                 }
                 else
                 {
-                    if(httpResponse.Headers.ContainsKey(name))
+                    if (_httpResponse.Headers.ContainsKey(name))
                     {
-                        var previousValues = httpResponse.Headers[name];
-                        httpResponse.Headers[name] = StringValues.Concat(previousValues, value);
+                        StringValues previousValues = _httpResponse.Headers[name];
+                        _httpResponse.Headers[name] = StringValues.Concat(previousValues, value);
                     }
                     else
                     {
-                        httpResponse.Headers[name] = value;
+                        _httpResponse.Headers[name] = value;
                     }
                 }
             }
@@ -944,11 +924,11 @@ namespace CoreWCF.Channels
             {
                 if ((connectionValue.Equals("keep-alive", StringComparison.OrdinalIgnoreCase) ||
                     connectionValue.Equals("close", StringComparison.OrdinalIgnoreCase)) &&
-                    httpResponse.Headers.ContainsKey("Connection"))
+                    _httpResponse.Headers.ContainsKey("Connection"))
                 {
                     // Need to remove existing keep-alive and/or close values
                     StringValues connectionHeaderValue;
-                    var previousValues = httpResponse.Headers["Connection"];
+                    StringValues previousValues = _httpResponse.Headers["Connection"];
                     for (int i = 0; i < previousValues.Count; i++)
                     {
                         if (previousValues[i].Equals("keep-alive", StringComparison.OrdinalIgnoreCase) ||
@@ -961,7 +941,7 @@ namespace CoreWCF.Channels
                     }
 
                     connectionHeaderValue = StringValues.Concat(connectionHeaderValue, connectionValue);
-                    httpResponse.Headers["Connection"] = connectionHeaderValue;
+                    _httpResponse.Headers["Connection"] = connectionHeaderValue;
                 }
                 else
                 {
@@ -971,32 +951,32 @@ namespace CoreWCF.Channels
 
             protected override void SetContentType(string contentType)
             {
-                httpResponse.ContentType = contentType;
+                _httpResponse.ContentType = contentType;
             }
 
             protected override void SetContentEncoding(string contentEncoding)
             {
-                httpResponse.Headers[HttpChannelUtilities.ContentEncodingHeader] = contentEncoding;
+                _httpResponse.Headers[HttpChannelUtilities.ContentEncodingHeader] = contentEncoding;
             }
 
             protected override void SetContentLength(int contentLength)
             {
-                httpResponse.ContentLength = contentLength;
+                _httpResponse.ContentLength = contentLength;
             }
 
             protected override void SetStatusCode(HttpStatusCode statusCode)
             {
-                httpResponse.StatusCode = (int)statusCode;
+                _httpResponse.StatusCode = (int)statusCode;
             }
 
             protected override void SetStatusDescription(string statusDescription)
             {
-                httpResponse.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = statusDescription;
+                _httpResponse.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = statusDescription;
             }
 
             protected override Stream GetOutputStream()
             {
-                return httpResponse.Body;
+                return _httpResponse.Body;
             }
         }
     }
@@ -1012,8 +992,8 @@ namespace CoreWCF.Channels
     {
         internal static class StatusDescriptionStrings
         {
-                    internal const string HttpContentTypeMissing = "Missing Content Type";
-                    internal const string HttpContentTypeMismatch = "Cannot process the message because the content type '{0}' was not the expected type '{1}'.";
+            internal const string HttpContentTypeMissing = "Missing Content Type";
+            internal const string HttpContentTypeMismatch = "Cannot process the message because the content type '{0}' was not the expected type '{1}'.";
         }
 
         internal const string HttpStatusCodeKey = "HttpStatusCode";
@@ -1886,8 +1866,7 @@ namespace CoreWCF.Channels
 
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            int bytesRead;
-            if (ReadFromBuffer(buffer, offset, count, out bytesRead))
+            if (ReadFromBuffer(buffer, offset, count, out int bytesRead))
             {
                 return Task.FromResult(bytesRead);
             }
@@ -1897,8 +1876,7 @@ namespace CoreWCF.Channels
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int bytesRead;
-            if (ReadFromBuffer(buffer, offset, count, out bytesRead))
+            if (ReadFromBuffer(buffer, offset, count, out int bytesRead))
             {
                 return bytesRead;
             }

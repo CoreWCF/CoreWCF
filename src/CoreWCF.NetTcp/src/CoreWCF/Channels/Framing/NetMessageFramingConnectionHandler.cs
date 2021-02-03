@@ -1,12 +1,15 @@
-﻿using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -43,8 +46,8 @@ namespace CoreWCF.Channels.Framing
                     configuration.UseMiddleware<DuplexFramingMiddleware>();
                     configuration.Use(next => async (connection) =>
                     {
-                        var addressTable = configuration.HandshakeServices.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
-                        var serviceHandshake = GetServiceHandshakeDelegate(addressTable, connection.Via);
+                        UriPrefixTable<HandshakeDelegate> addressTable = configuration.HandshakeServices.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
+                        HandshakeDelegate serviceHandshake = GetServiceHandshakeDelegate(addressTable, connection.Via);
                         await serviceHandshake(connection);
                         await next(connection);
                     });
@@ -57,8 +60,8 @@ namespace CoreWCF.Channels.Framing
                     configuration.UseMiddleware<SingletonFramingMiddleware>();
                     configuration.Use(next => async (connection) =>
                     {
-                        var addressTable = configuration.HandshakeServices.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
-                        var serviceHandshake = GetServiceHandshakeDelegate(addressTable, connection.Via);
+                        UriPrefixTable<HandshakeDelegate> addressTable = configuration.HandshakeServices.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
+                        HandshakeDelegate serviceHandshake = GetServiceHandshakeDelegate(addressTable, connection.Via);
                         await serviceHandshake(connection);
                         await next(connection);
                     });
@@ -70,14 +73,14 @@ namespace CoreWCF.Channels.Framing
 
         internal static UriPrefixTable<HandshakeDelegate> BuildAddressTable(IServiceProvider services)
         {
-            var logger = services.GetRequiredService <ILogger<NetMessageFramingConnectionHandler>>();
-            var serviceBuilder = services.GetRequiredService<IServiceBuilder>();
-            var dispatcherBuilder = services.GetRequiredService<IDispatcherBuilder>();
+            ILogger<NetMessageFramingConnectionHandler> logger = services.GetRequiredService<ILogger<NetMessageFramingConnectionHandler>>();
+            IServiceBuilder serviceBuilder = services.GetRequiredService<IServiceBuilder>();
+            IDispatcherBuilder dispatcherBuilder = services.GetRequiredService<IDispatcherBuilder>();
             var addressTable = new UriPrefixTable<HandshakeDelegate>();
-            foreach (var serviceType in serviceBuilder.Services)
+            foreach (Type serviceType in serviceBuilder.Services)
             {
-                var dispatchers = dispatcherBuilder.BuildDispatchers(serviceType);
-                foreach (var dispatcher in dispatchers)
+                List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(serviceType);
+                foreach (IServiceDispatcher dispatcher in dispatchers)
                 {
                     if (dispatcher.BaseAddress == null)
                     {
@@ -86,15 +89,15 @@ namespace CoreWCF.Channels.Framing
                     }
 
                     // TODO: Limit to specifically TcpTransportBindingElement if net.tcp etc
-                    var be = dispatcher.Binding.CreateBindingElements();
-                    var cotbe = be.Find<ConnectionOrientedTransportBindingElement>();
+                    BindingElementCollection be = dispatcher.Binding.CreateBindingElements();
+                    ConnectionOrientedTransportBindingElement cotbe = be.Find<ConnectionOrientedTransportBindingElement>();
                     if (cotbe == null)
                     {
                         // TODO: Should we throw? Ignore?
                         continue;
                     }
 
-                    var handshake = BuildHandshakeDelegateForDispatcher(dispatcher);
+                    HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(dispatcher);
                     logger.LogDebug($"Registering URI {dispatcher.BaseAddress} with NetMessageFramingConnectionHandler");
                     addressTable.RegisterUri(dispatcher.BaseAddress, cotbe.HostNameComparisonMode, handshake);
                 }
@@ -105,15 +108,15 @@ namespace CoreWCF.Channels.Framing
 
         private static HandshakeDelegate BuildHandshakeDelegateForDispatcher(IServiceDispatcher dispatcher)
         {
-            var be = dispatcher.Binding.CreateBindingElements();
-            var mebe = be.Find<MessageEncodingBindingElement>();
+            BindingElementCollection be = dispatcher.Binding.CreateBindingElements();
+            MessageEncodingBindingElement mebe = be.Find<MessageEncodingBindingElement>();
             MessageEncoderFactory mefact = mebe.CreateMessageEncoderFactory();
-            var tbe = be.Find<ConnectionOrientedTransportBindingElement>();
+            ConnectionOrientedTransportBindingElement tbe = be.Find<ConnectionOrientedTransportBindingElement>();
             int maxReceivedMessageSize = (int)Math.Min(tbe.MaxReceivedMessageSize, int.MaxValue);
             int maxBufferSize = tbe.MaxBufferSize;
             var bufferManager = BufferManager.CreateBufferManager(tbe.MaxBufferPoolSize, maxReceivedMessageSize);
-            var connectionBufferSize = tbe.ConnectionBufferSize;
-            var transferMode = tbe.TransferMode;
+            int connectionBufferSize = tbe.ConnectionBufferSize;
+            TransferMode transferMode = tbe.TransferMode;
             var upgradeBindingElements = (from element in be where element is StreamUpgradeBindingElement select element).Cast<StreamUpgradeBindingElement>().ToList();
             StreamUpgradeProvider streamUpgradeProvider = null;
             ISecurityCapabilities securityCapabilities = null;
@@ -144,10 +147,9 @@ namespace CoreWCF.Channels.Framing
             };
         }
 
-        internal static HandshakeDelegate GetServiceHandshakeDelegate(UriPrefixTable<HandshakeDelegate>  addressTable, Uri via)
+        internal static HandshakeDelegate GetServiceHandshakeDelegate(UriPrefixTable<HandshakeDelegate> addressTable, Uri via)
         {
-            HandshakeDelegate handshake = null;
-            if (addressTable.TryLookupUri(via, HostNameComparisonMode.StrongWildcard, out handshake))
+            if (addressTable.TryLookupUri(via, HostNameComparisonMode.StrongWildcard, out HandshakeDelegate handshake))
             {
                 return handshake;
             }

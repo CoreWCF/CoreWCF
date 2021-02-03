@@ -1,17 +1,18 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.Security.Cryptography;
-using CoreWCF;
-using System;
 
 namespace CoreWCF.IdentityModel
 {
-    sealed class HashStream : Stream
+    internal sealed class HashStream : Stream
     {
-        HashAlgorithm hash;
-        long length;
-        bool disposed;
-        bool hashNeedsReset;
-        MemoryStream logStream;
+        private long _length;
+        private bool _disposed;
+        private bool _hashNeedsReset;
+        private MemoryStream _logStream;
 
         /// <summary>
         /// Constructor for HashStream. The HashAlgorithm instance is owned by the caller.
@@ -19,7 +20,9 @@ namespace CoreWCF.IdentityModel
         public HashStream(HashAlgorithm hash)
         {
             if (hash == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("hash");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(hash));
+            }
 
             Reset(hash);
         }
@@ -39,19 +42,16 @@ namespace CoreWCF.IdentityModel
             get { return false; }
         }
 
-        public HashAlgorithm Hash
-        {
-            get { return this.hash; }
-        }
+        public HashAlgorithm Hash { get; private set; }
 
         public override long Length
         {
-            get { return this.length; }
+            get { return _length; }
         }
 
         public override long Position
         {
-            get { return this.length; }
+            get { return _length; }
             set
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
@@ -69,8 +69,7 @@ namespace CoreWCF.IdentityModel
 
         public void FlushHash(MemoryStream preCanonicalBytes)
         {
-
-            this.hash.TransformFinalBlock(CryptoHelper.EmptyBuffer, 0, 0);
+            Hash.TransformFinalBlock(CryptoHelper.EmptyBuffer, 0, 0);
             //TODO logs Pii data
             //if (DigestTraceRecordHelper.ShouldTraceDigest)
             //    DigestTraceRecordHelper.TraceDigest(this.logStream, this.hash);
@@ -84,7 +83,7 @@ namespace CoreWCF.IdentityModel
         public byte[] FlushHashAndGetValue(MemoryStream preCanonicalBytes)
         {
             FlushHash(preCanonicalBytes);
-            return this.hash.Hash;
+            return Hash.Hash;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -94,35 +93,34 @@ namespace CoreWCF.IdentityModel
 
         public void Reset()
         {
-            if (this.hashNeedsReset)
+            if (_hashNeedsReset)
             {
-                this.hash.Initialize();
-                this.hashNeedsReset = false;
+                Hash.Initialize();
+                _hashNeedsReset = false;
             }
-            this.length = 0;
+            _length = 0;
 
-           // if (DigestTraceRecordHelper.ShouldTraceDigest)
-           //     this.logStream = new MemoryStream();
-
+            // if (DigestTraceRecordHelper.ShouldTraceDigest)
+            //     this.logStream = new MemoryStream();
         }
 
         public void Reset(HashAlgorithm hash)
         {
-            this.hash = hash;
-            this.hashNeedsReset = false;
-            this.length = 0;
+            Hash = hash;
+            _hashNeedsReset = false;
+            _length = 0;
 
-          //  if (DigestTraceRecordHelper.ShouldTraceDigest)
-           //     this.logStream = new MemoryStream();
+            //  if (DigestTraceRecordHelper.ShouldTraceDigest)
+            //     this.logStream = new MemoryStream();
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            this.hash.TransformBlock(buffer, offset, count, buffer, offset);
-            this.length += count;
-            this.hashNeedsReset = true;
+            Hash.TransformBlock(buffer, offset, count, buffer, offset);
+            _length += count;
+            _hashNeedsReset = true;
 
-           // if (DigestTraceRecordHelper.ShouldTraceDigest)
+            // if (DigestTraceRecordHelper.ShouldTraceDigest)
             //    this.logStream.Write(buffer, offset, count);
         }
 
@@ -142,7 +140,7 @@ namespace CoreWCF.IdentityModel
         {
             base.Dispose(disposing);
 
-            if (this.disposed)
+            if (_disposed)
             {
                 return;
             }
@@ -153,16 +151,16 @@ namespace CoreWCF.IdentityModel
                 // Free all of our managed resources
                 //
 
-                if (this.logStream != null)
+                if (_logStream != null)
                 {
-                    this.logStream.Dispose();
-                    this.logStream = null;
+                    _logStream.Dispose();
+                    _logStream = null;
                 }
             }
 
             // Free native resources, if any.
 
-            this.disposed = true;
+            _disposed = true;
         }
 
         #endregion

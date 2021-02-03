@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Net;
@@ -13,7 +16,7 @@ namespace CoreWCF.Channels.Framing
 {
     public class FramingConnection
     {
-        private ConnectionContext _context;
+        private readonly ConnectionContext _context;
         public FramingConnection(ConnectionContext context)
         {
             _context = context;
@@ -32,8 +35,11 @@ namespace CoreWCF.Channels.Framing
         public Uri Via => FramingDecoder?.Via;
         internal FramingMode FramingMode { get; set; }
         public MessageEncoder MessageEncoder { get; internal set; }
-        public SecurityMessageProperty SecurityMessageProperty { get; 
-            internal set; }
+        public SecurityMessageProperty SecurityMessageProperty
+        {
+            get;
+            internal set;
+        }
         public bool EOF { get; internal set; }
         public Memory<byte> EnvelopeBuffer { get; internal set; }
         public int EnvelopeOffset { get; internal set; }
@@ -48,7 +54,7 @@ namespace CoreWCF.Channels.Framing
         {
             get
             {
-                var connectionFeature = _context.Features.Get<IHttpConnectionFeature>();
+                IHttpConnectionFeature connectionFeature = _context.Features.Get<IHttpConnectionFeature>();
                 if (connectionFeature == null)
                 {
                     return null;
@@ -101,7 +107,7 @@ namespace CoreWCF.Channels.Framing
             //}
             var encodedFault = new EncodedFault(faultString);
             var timeoutHelper = new TimeoutHelper(sendTimeout);
-            var ct = timeoutHelper.GetCancellationToken();
+            System.Threading.CancellationToken ct = timeoutHelper.GetCancellationToken();
             try
             {
                 await Output.WriteAsync(encodedFault.EncodedBytes, ct);
@@ -173,7 +179,9 @@ namespace CoreWCF.Channels.Framing
                 }
 
                 if (readResult.IsCompleted)
+                {
                     break;
+                }
 
                 readTotal += readResult.Buffer.Length;
                 Input.AdvanceTo(readResult.Buffer.End);

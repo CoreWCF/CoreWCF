@@ -1,17 +1,18 @@
-using Microsoft.Extensions.DependencyInjection;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
     // tracks StreamUpgradeProvider so that the channel can outlive the Listener
-    class ConnectionOrientedTransportReplyChannel : ReplyChannel
+    internal class ConnectionOrientedTransportReplyChannel : ReplyChannel
     {
-        StreamUpgradeProvider _upgrade;
-        private IServiceProvider _serviceProvider;
+        private StreamUpgradeProvider _upgrade;
+        private readonly IServiceProvider _serviceProvider;
 
         public ConnectionOrientedTransportReplyChannel(ITransportFactorySettings settings, EndpointAddress localAddress, IServiceProvider serviceProvider)
             : base(settings, localAddress)

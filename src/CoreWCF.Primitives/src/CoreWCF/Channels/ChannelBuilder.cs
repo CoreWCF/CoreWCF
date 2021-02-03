@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
@@ -6,80 +9,76 @@ namespace CoreWCF.Channels
 {
     internal class ChannelBuilder
     {
-        private CustomBinding binding;
-        private BindingContext context;
-        private BindingParameterCollection bindingParameters;
-        private Uri listenUri;
-        private ChannelDemuxer channelDemuxer;
-        private bool isChannelDemuxerRequired = false;
+        private BindingContext _context;
+        private readonly bool _isChannelDemuxerRequired = false;
 
         public ChannelBuilder(BindingContext context, bool addChannelDemuxerIfRequired)
         {
-            this.context = context;
-            isChannelDemuxerRequired = addChannelDemuxerIfRequired;
-            if (isChannelDemuxerRequired)
-                channelDemuxer = new ChannelDemuxer();
-            this.binding = new CustomBinding(context.Binding, context.RemainingBindingElements);
-            this.bindingParameters = context.BindingParameters;
+            _context = context;
+            _isChannelDemuxerRequired = addChannelDemuxerIfRequired;
+            if (_isChannelDemuxerRequired)
+            {
+                ChannelDemuxer = new ChannelDemuxer();
+            }
+
+            Binding = new CustomBinding(context.Binding, context.RemainingBindingElements);
+            BindingParameters = context.BindingParameters;
         }
 
         public ChannelBuilder(Binding binding, BindingParameterCollection bindingParameters, bool addChannelDemuxerIfRequired)
         {
-            this.binding = new CustomBinding(binding);
-            this.bindingParameters = bindingParameters;
-            isChannelDemuxerRequired = addChannelDemuxerIfRequired;
-
+            Binding = new CustomBinding(binding);
+            BindingParameters = bindingParameters;
+            _isChannelDemuxerRequired = addChannelDemuxerIfRequired;
         }
 
-        public CustomBinding Binding
-        {
-            get { return this.binding; }
-            set { this.binding = value; }
-        }
+        public CustomBinding Binding { get; set; }
 
-        public BindingParameterCollection BindingParameters
+        public BindingParameterCollection BindingParameters { get; set; }
+
+        public ChannelDemuxer ChannelDemuxer { get; }
+        public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
-            get { return this.bindingParameters; }
-            set { this.bindingParameters = value; }
-        }
-        
-        public ChannelDemuxer ChannelDemuxer
-        {
-            get { return channelDemuxer; }
-        }
-        public  IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
-        {
-            if (!isChannelDemuxerRequired)
+            if (!_isChannelDemuxerRequired)
+            {
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher);
+            }
+
+            return ChannelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher);
         }
 
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter) where TChannel : class, IChannel
         {
-            if (!isChannelDemuxerRequired)
+            if (!_isChannelDemuxerRequired)
+            {
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            return channelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter);
+            }
+
+            return ChannelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter);
         }
 
         public void RemoveServiceDispatcher<TChannel>(MessageFilter filter) where TChannel : class, IChannel
         {
-            if (channelDemuxer == null)
+            if (ChannelDemuxer == null)
+            {
                 throw new Exception("Demuxer can't be null");
-            channelDemuxer.RemoveServiceDispatcher<TChannel>(filter);
+            }
+
+            ChannelDemuxer.RemoveServiceDispatcher<TChannel>(filter);
         }
 
         public IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
-            if (this.context != null)
+            if (_context != null)
             {
-                IServiceDispatcher listener = this.context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);// .BuildInnerChannelListener<TChannel>();
+                IServiceDispatcher listener = _context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);// .BuildInnerChannelListener<TChannel>();
                 // this.listenUri = listener.Uri;
-                this.context = null;
+                _context = null;
                 return listener;
             }
             else
             {
-                return this.binding.BuildServiceDispatcher<TChannel>(this.bindingParameters, innerDispatcher);
+                return Binding.BuildServiceDispatcher<TChannel>(BindingParameters, innerDispatcher);
             }
         }
     }

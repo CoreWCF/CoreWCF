@@ -1,13 +1,14 @@
-﻿using CoreWCF.IdentityModel.Claims;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Text;
 using System.Xml;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF
 {
@@ -18,11 +19,11 @@ namespace CoreWCF
 
         // Double-checked locking pattern requires volatile for read/write synchronization
         private bool _hasSpnSidBeenComputed;
-        private object _thisLock = new object();
-        private static object s_typeLock = new object();
+        private readonly object _thisLock = new object();
+        private static readonly object s_typeLock = new object();
 
         // Double-checked locking pattern requires volatile for read/write synchronization
-        private static DirectoryEntry directoryEntry;
+        private static DirectoryEntry s_directoryEntry;
 
         public static TimeSpan SpnLookupTime
         {
@@ -44,26 +45,34 @@ namespace CoreWCF
         public SpnEndpointIdentity(string spnName)
         {
             if (spnName == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(spnName));
+            }
 
-            base.Initialize(Claim.CreateSpnClaim(spnName));
+            Initialize(Claim.CreateSpnClaim(spnName));
         }
 
         public SpnEndpointIdentity(Claim identity)
         {
             if (identity == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(identity));
+            }
 
             if (!ClaimTypes.Spn.Equals(identity.ClaimType))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.UnrecognizedClaimTypeForIdentity, identity.ClaimType, ClaimTypes.Spn));
+            }
 
-            base.Initialize(identity);
+            Initialize(identity);
         }
 
         internal override void WriteContentsTo(XmlDictionaryWriter writer)
         {
             if (writer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
+            }
 
             writer.WriteElementString(XD.AddressingDictionary.Spn, XD.AddressingDictionary.IdentityExtensionNamespace, (string)IdentityClaim.Resource);
         }
@@ -80,7 +89,6 @@ namespace CoreWCF
                         string spn = null;
                         try
                         {
-
                             if (ClaimTypes.Dns.Equals(IdentityClaim.ClaimType))
                             {
                                 spn = "host/" + (string)IdentityClaim.Resource;
@@ -118,10 +126,15 @@ namespace CoreWCF
                         catch (Exception e)
                         {
                             // Always immediately rethrow fatal exceptions.
-                            if (Fx.IsFatal(e)) throw;
+                            if (Fx.IsFatal(e))
+                            {
+                                throw;
+                            }
 
                             if (e is NullReferenceException || e is SEHException)
+                            {
                                 throw;
+                            }
 
                             //SecurityTraceRecordHelper.TraceSpnToSidMappingFailure(spn, e);
                         }
@@ -137,20 +150,19 @@ namespace CoreWCF
 
         private static DirectoryEntry GetDirectoryEntry()
         {
-            if (directoryEntry == null)
+            if (s_directoryEntry == null)
             {
                 lock (s_typeLock)
                 {
-                    if (directoryEntry == null)
+                    if (s_directoryEntry == null)
                     {
                         DirectoryEntry tmp = new DirectoryEntry(@"LDAP://" + SecurityUtils.GetPrimaryDomain());
                         tmp.RefreshCache(new string[] { "name" });
-                        directoryEntry = tmp;
+                        s_directoryEntry = tmp;
                     }
                 }
             }
-            return directoryEntry;
+            return s_directoryEntry;
         }
     }
-
 }

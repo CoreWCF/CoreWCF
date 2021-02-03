@@ -1,18 +1,21 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
     internal class RequestReplyCorrelator : IRequestReplyCorrelator
     {
-        IDictionary<Key,object>  states;
+        private readonly IDictionary<Key, object> _states;
 
         internal RequestReplyCorrelator()
         {
-            states = new Dictionary<Key, object>();
+            _states = new Dictionary<Key, object>();
         }
 
         void IRequestReplyCorrelator.Add<T>(Message request, T state)
@@ -23,15 +26,14 @@ namespace CoreWCF.Channels
 
             // add the correlator key to the request, this will be needed for cleaning up the correlator table in case of 
             // channel aborting or faulting while there are pending requests
-            ICorrelatorKey value = state as ICorrelatorKey;
-            if (value != null)
+            if (state is ICorrelatorKey value)
             {
                 value.RequestCorrelatorKey = key;
             }
 
-            lock (states)
+            lock (_states)
             {
-                states.Add(key, state);
+                _states.Add(key, state);
             }
         }
 
@@ -42,12 +44,14 @@ namespace CoreWCF.Channels
             Key key = new Key(relatesTo, stateType);
             T value;
 
-            lock (states)
+            lock (_states)
             {
-                value = (T)states[key];
+                value = (T)_states[key];
 
                 if (remove)
-                    states.Remove(key);
+                {
+                    _states.Remove(key);
+                }
             }
 
             return value;
@@ -61,25 +65,28 @@ namespace CoreWCF.Channels
             Fx.Assert(request != null, "request cannot be null");
             if (request.RequestCorrelatorKey != null)
             {
-                lock (states)
+                lock (_states)
                 {
-                    states.Remove(request.RequestCorrelatorKey);
+                    _states.Remove(request.RequestCorrelatorKey);
                 }
             }
         }
 
-        UniqueId GetRelatesTo(Message reply)
+        private UniqueId GetRelatesTo(Message reply)
         {
             UniqueId relatesTo = reply.Headers.RelatesTo;
             if (relatesTo == null)
+            {
                 throw TraceUtility.ThrowHelperError(new ArgumentException(SR.SuppliedMessageIsNotAReplyItHasNoRelatesTo0), reply);
+            }
+
             return relatesTo;
         }
 
         internal static bool AddressReply(Message reply, Message request)
         {
-            ReplyToInfo info = RequestReplyCorrelator.ExtractReplyToInfo(request);
-            return RequestReplyCorrelator.AddressReply(reply, info);
+            ReplyToInfo info = ExtractReplyToInfo(request);
+            return AddressReply(reply, info);
         }
 
         internal static bool AddressReply(Message reply, ReplyToInfo info)
@@ -129,12 +136,14 @@ namespace CoreWCF.Channels
 
         internal static void PrepareReply(Message reply, UniqueId messageId)
         {
-            if (object.ReferenceEquals(messageId, null))
+            if (ReferenceEquals(messageId, null))
+            {
                 throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.MissingMessageID), reply);
+            }
 
             MessageHeaders replyHeaders = reply.Headers;
 
-            if (object.ReferenceEquals(replyHeaders.RelatesTo, null))
+            if (ReferenceEquals(replyHeaders.RelatesTo, null))
             {
                 replyHeaders.RelatesTo = messageId;
             }
@@ -153,7 +162,7 @@ namespace CoreWCF.Channels
             {
                 MessageHeaders replyHeaders = reply.Headers;
 
-                if (object.ReferenceEquals(replyHeaders.RelatesTo, null))
+                if (ReferenceEquals(replyHeaders.RelatesTo, null))
                 {
                     replyHeaders.RelatesTo = messageId;
                 }
@@ -173,7 +182,7 @@ namespace CoreWCF.Channels
                 ReplyTo = message.Headers.ReplyTo;
                 if (message.Version.Addressing == AddressingVersion.WSAddressingAugust2004)
                 {
-                    this.From = message.Headers.From;
+                    From = message.Headers.From;
                 }
                 else
                 {
@@ -202,7 +211,7 @@ namespace CoreWCF.Channels
 
             internal EndpointAddress ReplyTo { get; }
 
-            bool IsTrivial(EndpointAddress address)
+            private bool IsTrivial(EndpointAddress address)
             {
                 // Note: even if address.IsAnonymous, it may have identity, reference parameters, etc.
                 return (address == null) || (address == EndpointAddress.AnonymousAddress);
@@ -222,9 +231,11 @@ namespace CoreWCF.Channels
 
             public override bool Equals(object obj)
             {
-                Key other = obj as Key;
-                if (other == null)
+                if (!(obj is Key other))
+                {
                     return false;
+                }
+
                 return other.MessageId == MessageId && other.StateType == StateType;
             }
 

@@ -1,3 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
+using System.Text;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
@@ -5,12 +14,6 @@ using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.IO;
-using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
-using System.Text;
-using System.Xml;
 using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
@@ -21,7 +24,6 @@ namespace CoreWCF.Security
     {
         private HashStream _hashStream;
         private SignedXml _signedXml;
-        ReferenceList referenceList;
         private KeyedHashAlgorithm _signingKey;
         private MessagePartSpecification _effectiveSignatureParts;
 
@@ -56,8 +58,7 @@ namespace CoreWCF.Security
 
         private void AddSignatureReference(SecurityToken token, int position, SecurityTokenAttachmentMode mode)
         {
-            SecurityKeyIdentifierClause keyIdentifierClause = null;
-            bool strTransformEnabled = ShouldUseStrTransformForToken(token, position, mode, out keyIdentifierClause);
+            bool strTransformEnabled = ShouldUseStrTransformForToken(token, position, mode, out SecurityKeyIdentifierClause keyIdentifierClause);
             AddTokenSignatureReference(token, keyIdentifierClause, strTransformEnabled);
         }
 
@@ -71,8 +72,10 @@ namespace CoreWCF.Security
         // 2. Else if strtransform is enabled it adds a reference the security token's keyIdentifier's id.
         private void AddTokenSignatureReference(SecurityToken token, SecurityKeyIdentifierClause keyIdentifierClause, bool strTransformEnabled)
         {
-            if(strTransformEnabled)
+            if (strTransformEnabled)
+            {
                 throw new PlatformNotSupportedException();
+            }
         }
 
         private void AddSignatureReference(SendSecurityHeaderElement[] elements)
@@ -81,18 +84,15 @@ namespace CoreWCF.Security
             {
                 for (int i = 0; i < elements.Length; ++i)
                 {
-                    SecurityKeyIdentifierClause keyIdentifierClause = null;
-                    TokenElement signedEncryptedTokenElement = elements[i].Item as TokenElement;
-
                     // signedEncryptedTokenElement can either be a TokenElement ( in SignThenEncrypt case) or EncryptedData ( in !SignThenEncryptCase)
                     // STR-Transform does not make sense in !SignThenEncrypt case .
                     // note: signedEncryptedTokenElement can also be SignatureConfirmation but we do not care about it here.
-                    bool useStrTransform = signedEncryptedTokenElement != null
+                    bool useStrTransform = elements[i].Item is TokenElement signedEncryptedTokenElement
                                            && SignThenEncrypt
                                            && ShouldUseStrTransformForToken(signedEncryptedTokenElement.Token,
                                                                                  i,
                                                                                  SecurityTokenAttachmentMode.SignedEncrypted,
-                                                                                 out keyIdentifierClause);
+                                                                                 out SecurityKeyIdentifierClause keyIdentifierClause);
 
                     if (!useStrTransform && elements[i].Id == null)
                     {
@@ -113,17 +113,6 @@ namespace CoreWCF.Security
                     {
                         AddReference("#" + elements[i].Id, stream);
                     }
-                }
-            }
-        }
-
-        private void AddSignatureReference(SecurityToken[] tokens, SecurityTokenAttachmentMode mode)
-        {
-            if (tokens != null)
-            {
-                for (int i = 0; i < tokens.Length; ++i)
-                {
-                    AddSignatureReference(tokens[i], i, mode);
                 }
             }
         }
@@ -218,9 +207,11 @@ namespace CoreWCF.Security
 
         private void AddReference(string id, Stream contents)
         {
-            var reference = new System.Security.Cryptography.Xml.Reference(contents);
-            reference.Uri = id;
-            reference.DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm;
+            var reference = new System.Security.Cryptography.Xml.Reference(contents)
+            {
+                Uri = id,
+                DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm
+            };
             reference.AddTransform(new XmlDsigExcC14NTransform());
             _signedXml.AddReference(reference);
         }
@@ -228,12 +219,13 @@ namespace CoreWCF.Security
         private void AddSignatureReference(MessageHeader header, string headerId, IPrefixGenerator prefixGenerator, XmlDictionaryWriter writer)
         {
             // No transforms added to Reference as the digest value has already been calculated
-            byte[] hashValue;
-            headerId = GetSignatureHash(header, headerId, prefixGenerator, writer, out hashValue);
-            var reference = new System.Security.Cryptography.Xml.Reference();
-            reference.DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm;
-            reference.DigestValue = hashValue;
-            reference.Id = headerId;
+            headerId = GetSignatureHash(header, headerId, prefixGenerator, writer, out byte[] hashValue);
+            var reference = new System.Security.Cryptography.Xml.Reference
+            {
+                DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm,
+                DigestValue = hashValue,
+                Id = headerId
+            };
             _signedXml.AddReference(reference);
         }
 
@@ -246,8 +238,7 @@ namespace CoreWCF.Security
                 {
                     if (_toHeaderStream == null)
                     {
-                        Stream headerStream;
-                        headerId = GetSignatureStream(header, headerId, prefixGenerator, writer, out headerStream);
+                        headerId = GetSignatureStream(header, headerId, prefixGenerator, writer, out Stream headerStream);
                         _toHeaderStream = headerStream;
                         _toHeaderId = headerId;
                     }
@@ -273,7 +264,7 @@ namespace CoreWCF.Security
                 case MessagePartProtectionMode.SignThenEncrypt:
                 case MessagePartProtectionMode.Encrypt:
                 case MessagePartProtectionMode.EncryptThenSign:
-                    throw new PlatformNotSupportedException(); 
+                    throw new PlatformNotSupportedException();
                 default:
                     Fx.Assert("Invalid MessagePartProtectionMode");
                     return;
@@ -302,7 +293,7 @@ namespace CoreWCF.Security
 
                 if (header != this)
                 {
-                    ApplySecurityAndWriteHeader(header, headerIds == null ? null : headerIds[i], writer, prefixGenerator);
+                    ApplySecurityAndWriteHeader(header, headerIds?[i], writer, prefixGenerator);
                 }
             }
         }
@@ -313,8 +304,7 @@ namespace CoreWCF.Security
             {
                 return false;
             }
-            IFragmentCapableXmlDictionaryWriter fragmentingWriter = writer as IFragmentCapableXmlDictionaryWriter;
-            return fragmentingWriter != null && fragmentingWriter.CanFragment;
+            return writer is IFragmentCapableXmlDictionaryWriter fragmentingWriter && fragmentingWriter.CanFragment;
         }
 
         public override void ApplyBodySecurity(XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
@@ -369,7 +359,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.TimestampToSignHasNoId));
                 }
 
-                var buffer = new byte[64];
+                byte[] buffer = new byte[64];
                 var ms = new MemoryStream();
                 StandardsManager.WSUtilitySpecificationVersion.WriteTimestampCanonicalForm(
                     ms, timestamp, buffer);
@@ -429,7 +419,7 @@ namespace CoreWCF.Security
 
         internal class SignatureValue : ISignatureValueSecurityElement
         {
-            private Signature _signature;
+            private readonly Signature _signature;
 
             public SignatureValue(Signature signature)
             {
@@ -459,7 +449,7 @@ namespace CoreWCF.Security
 
         private HashStream TakeHashStream()
         {
-            HashStream hashStream = null;
+            HashStream hashStream;
             if (_hashStream == null)
             {
                 _hashStream = hashStream = new HashStream(CryptoHelper.CreateHashAlgorithm(AlgorithmSuite.DefaultDigestAlgorithm));
@@ -501,12 +491,8 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     new MessageSecurityException(SR.Format(SR.UnsupportedCanonicalizationAlgorithm, suite.DefaultCanonicalizationAlgorithm)));
             }
-            string signatureAlgorithm;
-            XmlDictionaryString signatureAlgorithmDictionaryString;
-            SecurityKey signatureKey;
-            suite.GetSignatureAlgorithmAndKey(token, out signatureAlgorithm, out signatureKey, out signatureAlgorithmDictionaryString);
-            AsymmetricAlgorithm asymmetricAlgorithm = null;
-            GetSigningAlgorithm(signatureKey, signatureAlgorithm, out _signingKey, out asymmetricAlgorithm);
+            suite.GetSignatureAlgorithmAndKey(token, out string signatureAlgorithm, out SecurityKey signatureKey, out XmlDictionaryString signatureAlgorithmDictionaryString);
+            GetSigningAlgorithm(signatureKey, signatureAlgorithm, out _signingKey, out AsymmetricAlgorithm asymmetricAlgorithm);
 
             _signedXml = new SignedXml();
             _signedXml.SignedInfo.CanonicalizationMethod = canonicalizationAlgorithm;
@@ -539,8 +525,7 @@ namespace CoreWCF.Security
         {
             symmetricAlgorithm = null;
             asymmetricAlgorithm = null;
-            SymmetricSecurityKey symmetricKey = signatureKey as SymmetricSecurityKey;
-            if (symmetricKey != null)
+            if (signatureKey is SymmetricSecurityKey symmetricKey)
             {
                 _signingKey = symmetricKey.GetKeyedHashAlgorithm(algorithmName);
                 if (_signingKey == null)
@@ -551,8 +536,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                AsymmetricSecurityKey asymmetricKey = signatureKey as AsymmetricSecurityKey;
-                if (asymmetricKey == null)
+                if (!(signatureKey is AsymmetricSecurityKey asymmetricKey))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                         SR.Format(SR.UnknownICryptoType, _signingKey)));
@@ -577,10 +561,7 @@ namespace CoreWCF.Security
 
         protected override ISignatureValueSecurityElement CreateSupportingSignature(SecurityToken token, SecurityKeyIdentifier identifier, ISecurityElement elementToSign)
         {
-            string signatureAlgorithm;
-            XmlDictionaryString signatureAlgorithmDictionaryString;
-            SecurityKey signatureKey;
-            AlgorithmSuite.GetSignatureAlgorithmAndKey(token, out signatureAlgorithm, out signatureKey, out signatureAlgorithmDictionaryString);
+            AlgorithmSuite.GetSignatureAlgorithmAndKey(token, out string signatureAlgorithm, out SecurityKey signatureKey, out XmlDictionaryString signatureAlgorithmDictionaryString);
 
             SignedXml signedXml = new SignedXml();
             SignedInfo signedInfo = signedXml.SignedInfo;
@@ -600,9 +581,7 @@ namespace CoreWCF.Security
             stream.Position = 0;
             AddReference("#" + elementToSign.Id, stream);
 
-            AsymmetricAlgorithm asymmetricAlgorithm = null;
-            KeyedHashAlgorithm keyedHashAlgorithm = null;
-            GetSigningAlgorithm(signatureKey, signatureAlgorithm, out keyedHashAlgorithm, out asymmetricAlgorithm);
+            GetSigningAlgorithm(signatureKey, signatureAlgorithm, out KeyedHashAlgorithm keyedHashAlgorithm, out AsymmetricAlgorithm asymmetricAlgorithm);
             if (keyedHashAlgorithm != null)
             {
                 signedXml.ComputeSignature(keyedHashAlgorithm);
@@ -648,21 +627,17 @@ namespace CoreWCF.Security
 
         protected override ISecurityElement CompleteEncryptionCore(SendSecurityHeaderElement primarySignature, SendSecurityHeaderElement[] basicTokens, SendSecurityHeaderElement[] signatureConfirmations, SendSecurityHeaderElement[] endorsingSignatures)
         {
-            if (this.referenceList == null)
-            {
-                return null;
-            }
-            throw new NotImplementedException();
+            return null;
         }
     }
 
     internal class WrappedXmlDictionaryWriter : XmlDictionaryWriter
     {
-        private XmlDictionaryWriter _innerWriter;
+        private readonly XmlDictionaryWriter _innerWriter;
         private int _index;
         private bool _insertId;
         private bool _isStrReferenceElement;
-        private string _id;
+        private readonly string _id;
 
         public WrappedXmlDictionaryWriter(XmlDictionaryWriter writer, string id)
         {

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +10,7 @@ namespace CoreWCF.Channels
 {
     internal class MaxMessageSizeStream : DelegatingStream
     {
-        private long _maxMessageSize;
+        private readonly long _maxMessageSize;
         private long _totalBytesRead;
         private long _bytesWritten;
 
@@ -41,7 +44,10 @@ namespace CoreWCF.Channels
             PrepareRead(1);
             int i = base.ReadByte();
             if (i != -1)
+            {
                 FinishRead(1);
+            }
+
             return i;
         }
 

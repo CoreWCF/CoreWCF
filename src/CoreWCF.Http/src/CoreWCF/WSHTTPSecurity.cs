@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.ComponentModel;
 using CoreWCF.Channels;
 
@@ -7,10 +10,9 @@ namespace CoreWCF
     public sealed class WSHTTPSecurity
     {
         internal const SecurityMode DefaultMode = SecurityMode.Message;
-
-        SecurityMode mode;
-        HttpTransportSecurity transportSecurity;
-        NonDualMessageSecurityOverHttp messageSecurity;
+        private SecurityMode _mode;
+        private HttpTransportSecurity _transportSecurity;
+        private NonDualMessageSecurityOverHttp _messageSecurity;
 
         public WSHTTPSecurity()
             : this(DefaultMode, GetDefaultHttpTransportSecurity(), new NonDualMessageSecurityOverHttp())
@@ -19,66 +21,60 @@ namespace CoreWCF
 
         internal WSHTTPSecurity(SecurityMode mode, HttpTransportSecurity transportSecurity, NonDualMessageSecurityOverHttp messageSecurity)
         {
-            this.mode = mode;
-            this.transportSecurity = transportSecurity == null ? GetDefaultHttpTransportSecurity() : transportSecurity;
-            this.messageSecurity = messageSecurity == null ? new NonDualMessageSecurityOverHttp() : messageSecurity;
+            _mode = mode;
+            _transportSecurity = transportSecurity ?? GetDefaultHttpTransportSecurity();
+            _messageSecurity = messageSecurity ?? new NonDualMessageSecurityOverHttp();
         }
 
         internal static HttpTransportSecurity GetDefaultHttpTransportSecurity()
         {
-            HttpTransportSecurity transportSecurity = new HttpTransportSecurity();
-            transportSecurity.ClientCredentialType = HttpClientCredentialType.Windows;
+            HttpTransportSecurity transportSecurity = new HttpTransportSecurity
+            {
+                ClientCredentialType = HttpClientCredentialType.Windows
+            };
             return transportSecurity;
         }
 
         public SecurityMode Mode
         {
-            get { return this.mode; }
+            get { return _mode; }
             set
             {
                 if (!SecurityModeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
-                this.mode = value;
+                _mode = value;
             }
         }
 
         public HttpTransportSecurity Transport
         {
-            get { return this.transportSecurity; }
+            get { return _transportSecurity; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                }
-                this.transportSecurity = value;
+                _transportSecurity = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
         public NonDualMessageSecurityOverHttp Message
         {
-            get { return this.messageSecurity; }
+            get { return _messageSecurity; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
-                }
-                this.messageSecurity = value;
+                _messageSecurity = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
             }
         }
 
         internal void ApplyTransportSecurity(HttpsTransportBindingElement https)
         {
-            if (this.mode == SecurityMode.TransportWithMessageCredential)
+            if (_mode == SecurityMode.TransportWithMessageCredential)
             {
-                this.transportSecurity.ConfigureTransportProtectionOnly(https);
+                _transportSecurity.ConfigureTransportProtectionOnly(https);
             }
             else
             {
-                this.transportSecurity.ConfigureTransportProtectionAndAuthentication(https);
+                _transportSecurity.ConfigureTransportProtectionAndAuthentication(https);
             }
         }
 
@@ -89,9 +85,9 @@ namespace CoreWCF
 
         internal SecurityBindingElement CreateMessageSecurity(bool isReliableSessionEnabled, MessageSecurityVersion version)
         {
-            if (this.mode == SecurityMode.Message || this.mode == SecurityMode.TransportWithMessageCredential)
+            if (_mode == SecurityMode.Message || _mode == SecurityMode.TransportWithMessageCredential)
             {
-                return this.messageSecurity.CreateSecurityBindingElement(this.Mode == SecurityMode.TransportWithMessageCredential, isReliableSessionEnabled, version);
+                return _messageSecurity.CreateSecurityBindingElement(Mode == SecurityMode.TransportWithMessageCredential, isReliableSessionEnabled, version);
             }
             else
             {
@@ -127,8 +123,7 @@ namespace CoreWCF
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ShouldSerializeMode()
         {
-            return this.Mode != DefaultMode;
+            return Mode != DefaultMode;
         }
-
     }
 }

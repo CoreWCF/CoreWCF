@@ -1,3 +1,11 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel.Policy;
@@ -5,11 +13,6 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CoreWCF.Security
 {
@@ -24,7 +27,7 @@ namespace CoreWCF.Security
             SecurityProtocolFactory = factory;
             Target = target;
             Via = via;
-           CommunicationObject = new WrapperSecurityCommunicationObject(this);
+            CommunicationObject = new WrapperSecurityCommunicationObject(this);
         }
 
         protected WrapperSecurityCommunicationObject CommunicationObject { get; }
@@ -64,7 +67,7 @@ namespace CoreWCF.Security
 
         public Task OpenAsync(TimeSpan timeout)
         {
-            return this.CommunicationObject.OpenAsync();
+            return CommunicationObject.OpenAsync();
         }
 
         public void OnClosed() { }
@@ -97,12 +100,14 @@ namespace CoreWCF.Security
 
         protected InitiatorServiceModelSecurityTokenRequirement CreateInitiatorSecurityTokenRequirement()
         {
-            InitiatorServiceModelSecurityTokenRequirement requirement = new InitiatorServiceModelSecurityTokenRequirement();
-            requirement.TargetAddress = Target;
-            requirement.Via = Via;
-            requirement.SecurityBindingElement = SecurityProtocolFactory.SecurityBindingElement;
-            requirement.SecurityAlgorithmSuite = SecurityProtocolFactory.OutgoingAlgorithmSuite;
-            requirement.MessageSecurityVersion = SecurityProtocolFactory.MessageSecurityVersion.SecurityTokenVersion;
+            InitiatorServiceModelSecurityTokenRequirement requirement = new InitiatorServiceModelSecurityTokenRequirement
+            {
+                TargetAddress = Target,
+                Via = Via,
+                SecurityBindingElement = SecurityProtocolFactory.SecurityBindingElement,
+                SecurityAlgorithmSuite = SecurityProtocolFactory.OutgoingAlgorithmSuite,
+                MessageSecurityVersion = SecurityProtocolFactory.MessageSecurityVersion.SecurityTokenVersion
+            };
             return requirement;
         }
 
@@ -283,8 +288,7 @@ namespace CoreWCF.Security
                 foreach (string action in SecurityProtocolFactory.SecurityBindingElement.OptionalOperationSupportingTokenParameters.Keys)
                 {
                     Collection<SupportingTokenProviderSpecification> providerSpecList;
-                    ICollection<SupportingTokenProviderSpecification> existingList;
-                    if (ScopedSupportingTokenProviderSpecification.TryGetValue(action, out existingList))
+                    if (ScopedSupportingTokenProviderSpecification.TryGetValue(action, out ICollection<SupportingTokenProviderSpecification> existingList))
                     {
                         providerSpecList = ((Collection<SupportingTokenProviderSpecification>)existingList);
                     }
@@ -306,9 +310,10 @@ namespace CoreWCF.Security
                     else
                     {
                         SecurityProtocolFactory.ExpectSupportingTokens = true;
+                        CancellationToken cancellationToken = timeoutHelper.GetCancellationToken();
                         foreach (SupportingTokenProviderSpecification tokenProviderSpec in ChannelSupportingTokenProviderSpecification)
                         {
-                            SecurityUtils.OpenTokenProviderIfRequiredAsync(tokenProviderSpec.TokenProvider, timeoutHelper.GetCancellationToken());
+                            await SecurityUtils.OpenTokenProviderIfRequiredAsync(tokenProviderSpec.TokenProvider, cancellationToken);
                             if (tokenProviderSpec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.Endorsing || tokenProviderSpec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.SignedEndorsing)
                             {
                                 if (tokenProviderSpec.TokenParameters.RequireDerivedKeys && !tokenProviderSpec.TokenParameters.HasAsymmetricKey)
@@ -330,7 +335,6 @@ namespace CoreWCF.Security
         {
             if (SecurityProtocolFactory.ActAsInitiator)
             {
-
                 foreach (SupportingTokenProviderSpecification spec in ChannelSupportingTokenProviderSpecification)
                 {
                     SecurityUtils.AbortTokenProviderIfRequired(spec.TokenProvider);
@@ -551,8 +555,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenProviderCannotGetTokensForTarget, target)));
             }
 
-            SecurityToken token = null;
-
+            SecurityToken token;
             try
             {
                 token = await provider.GetTokenAsync(new TimeoutHelper(timeout).GetCancellationToken());
@@ -572,7 +575,7 @@ namespace CoreWCF.Security
         public abstract Message SecureOutgoingMessage(Message message, CancellationToken token);
 
         // subclasses that offer correlation should override this version
-        public virtual (SecurityProtocolCorrelationState, Message) SecureOutgoingMessage(Message message , CancellationToken token, SecurityProtocolCorrelationState correlationState)
+        public virtual (SecurityProtocolCorrelationState, Message) SecureOutgoingMessage(Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
         {
             return (null, SecureOutgoingMessage(message, token));
         }
@@ -604,16 +607,12 @@ namespace CoreWCF.Security
         protected IList<SupportingTokenAuthenticatorSpecification> GetSupportingTokenAuthenticatorsAndSetExpectationFlags(SecurityProtocolFactory factory, Message message,
     ReceiveSecurityHeader securityHeader)
         {
-
             if (message == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
-            bool expectBasicTokens;
-            bool expectSignedTokens;
-            bool expectEndorsingTokens;
             IList<SupportingTokenAuthenticatorSpecification> authenticators = factory.GetSupportingTokenAuthenticators(message.Headers.Action,
-                out expectSignedTokens, out expectBasicTokens, out expectEndorsingTokens);
+                out bool expectSignedTokens, out bool expectBasicTokens, out bool expectEndorsingTokens);
             securityHeader.ExpectBasicTokens = expectBasicTokens;
             securityHeader.ExpectEndorsingTokens = expectEndorsingTokens;
             securityHeader.ExpectSignedTokens = expectSignedTokens;
@@ -624,13 +623,13 @@ namespace CoreWCF.Security
         {
             if (aborted)
             {
-                this.CommunicationObject.Abort();
+                CommunicationObject.Abort();
             }
             else
             {
-              this.CommunicationObject.CloseAsync();
+                CommunicationObject.CloseAsync();
             }
-           return Task.CompletedTask;
+            return Task.CompletedTask;
         }
         public Task OnCloseAsync(TimeSpan timeout)
         {

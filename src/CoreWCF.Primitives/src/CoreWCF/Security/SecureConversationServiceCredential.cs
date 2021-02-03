@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 
@@ -5,55 +8,51 @@ namespace CoreWCF.Security
 {
     public sealed class SecureConversationServiceCredential
     {
-        static readonly SecurityStateEncoder defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
-        SecurityStateEncoder securityStateEncoder;
-        Collection<Type> securityContextClaimTypes;
-        bool isReadOnly;
+        private static readonly SecurityStateEncoder s_defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
+        private SecurityStateEncoder _securityStateEncoder;
+        private bool _isReadOnly;
 
         internal SecureConversationServiceCredential()
         {
-            this.securityStateEncoder = defaultSecurityStateEncoder;
-            securityContextClaimTypes = new Collection<Type>();
+            _securityStateEncoder = s_defaultSecurityStateEncoder;
+            SecurityContextClaimTypes = new Collection<Type>();
             // SamlAssertion.AddSamlClaimTypes(securityContextClaimTypes);
         }
 
         internal SecureConversationServiceCredential(SecureConversationServiceCredential other)
         {
-            this.securityStateEncoder = other.securityStateEncoder;
-            this.securityContextClaimTypes = new Collection<Type>();
-            for (int i = 0; i < other.securityContextClaimTypes.Count; ++i)
+            _securityStateEncoder = other._securityStateEncoder;
+            SecurityContextClaimTypes = new Collection<Type>();
+            for (int i = 0; i < other.SecurityContextClaimTypes.Count; ++i)
             {
-                this.securityContextClaimTypes.Add(other.securityContextClaimTypes[i]);
+                SecurityContextClaimTypes.Add(other.SecurityContextClaimTypes[i]);
             }
-            this.isReadOnly = other.isReadOnly;
+            _isReadOnly = other._isReadOnly;
         }
 
         public SecurityStateEncoder SecurityStateEncoder
         {
             get
             {
-                return this.securityStateEncoder;
+                return _securityStateEncoder;
             }
             set
             {
                 ThrowIfImmutable();
-                this.securityStateEncoder = value;
+                _securityStateEncoder = value;
             }
         }
 
-        public Collection<Type> SecurityContextClaimTypes
-        {
-            get { return this.securityContextClaimTypes; }
-        }
+        public Collection<Type> SecurityContextClaimTypes { get; }
 
         internal void MakeReadOnly()
         {
-            this.isReadOnly = true;
+            _isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (this.isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }

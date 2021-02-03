@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -6,9 +9,9 @@ namespace CoreWCF.IdentityModel
 {
     internal class IdentityModelDictionary : IXmlDictionary
     {
-        static public readonly IdentityModelDictionary Version1 = new IdentityModelDictionary(new IdentityModelStringsVersion1());
-        private IdentityModelStrings _strings;
-        private int _count;
+        public static readonly IdentityModelDictionary Version1 = new IdentityModelDictionary(new IdentityModelStringsVersion1());
+        private readonly IdentityModelStrings _strings;
+        private readonly int _count;
         private XmlDictionaryString[] _dictionaryStrings;
         private Dictionary<string, int> _dictionary;
         private XmlDictionaryString[] _versionedDictionaryStrings;
@@ -19,7 +22,7 @@ namespace CoreWCF.IdentityModel
             _count = strings.Count;
         }
 
-        static public IdentityModelDictionary CurrentVersion
+        public static IdentityModelDictionary CurrentVersion
         {
             get
             {
@@ -35,17 +38,25 @@ namespace CoreWCF.IdentityModel
         public bool TryLookup(string key, out XmlDictionaryString value)
         {
             if (key == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("key"));
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
+            }
+
             if (_dictionary == null)
             {
                 Dictionary<string, int> dictionary = new Dictionary<string, int>(_count);
                 for (int i = 0; i < _count; i++)
+                {
                     dictionary.Add(_strings[i], i);
+                }
+
                 _dictionary = dictionary;
             }
-            int id;
-            if (_dictionary.TryGetValue(key, out id))
+            if (_dictionary.TryGetValue(key, out int id))
+            {
                 return TryLookup(id, out value);
+            }
+
             value = null;
             return false;
         }
@@ -58,7 +69,10 @@ namespace CoreWCF.IdentityModel
                 return false;
             }
             if (_dictionaryStrings == null)
+            {
                 _dictionaryStrings = new XmlDictionaryString[_count];
+            }
+
             XmlDictionaryString s = _dictionaryStrings[key];
             if (s == null)
             {
@@ -72,7 +86,10 @@ namespace CoreWCF.IdentityModel
         public bool TryLookup(XmlDictionaryString key, out XmlDictionaryString value)
         {
             if (key == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("key"));
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
+            }
+
             if (key.Dictionary == this)
             {
                 value = key;
@@ -81,7 +98,10 @@ namespace CoreWCF.IdentityModel
             if (key.Dictionary == CurrentVersion)
             {
                 if (_versionedDictionaryStrings == null)
+                {
                     _versionedDictionaryStrings = new XmlDictionaryString[CurrentVersion._count];
+                }
+
                 XmlDictionaryString s = _versionedDictionaryStrings[key.Key];
                 if (s == null)
                 {

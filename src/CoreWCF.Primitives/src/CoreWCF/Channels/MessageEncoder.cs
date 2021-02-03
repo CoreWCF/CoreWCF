@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
 using System.Net.Http.Headers;
@@ -16,9 +19,9 @@ namespace CoreWCF.Channels
 
         public virtual T GetProperty<T>() where T : class
         {
-            if (typeof (T) == typeof (FaultConverter))
+            if (typeof(T) == typeof(FaultConverter))
             {
-                return (T) (object) FaultConverter.GetDefaultFaultConverter(MessageVersion);
+                return (T)(object)FaultConverter.GetDefaultFaultConverter(MessageVersion);
             }
 
             return null;
@@ -63,7 +66,7 @@ namespace CoreWCF.Channels
                             MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
                     }
 
-                    currentBufferSize = Math.Min(currentBufferSize*2, maxBufferSize);
+                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
                     byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
                     Buffer.BlockCopy(buffer, 0, temp, 0, offset);
                     bufferManager.ReturnBuffer(buffer);
@@ -100,7 +103,9 @@ namespace CoreWCF.Channels
         public virtual bool IsContentTypeSupported(string contentType)
         {
             if (contentType == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("contentType"));
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(contentType)));
+            }
 
             return IsContentTypeSupported(contentType, ContentType, MediaType);
         }
@@ -108,12 +113,16 @@ namespace CoreWCF.Channels
         internal bool IsContentTypeSupported(string contentType, string supportedContentType, string supportedMediaType)
         {
             if (supportedContentType == contentType)
+            {
                 return true;
+            }
 
             if (contentType.Length > supportedContentType.Length &&
                 contentType.StartsWith(supportedContentType, StringComparison.Ordinal) &&
                 contentType[supportedContentType.Length] == ';')
+            {
                 return true;
+            }
 
             // now check case-insensitively
             if (contentType.StartsWith(supportedContentType, StringComparison.OrdinalIgnoreCase))
@@ -149,12 +158,17 @@ namespace CoreWCF.Channels
                         {
                             ch = contentType[i];
                             if (ch != ' ' && ch != '\t')
+                            {
                                 break;
+                            }
+
                             ++i;
                         }
                     }
                     if (ch == ';' || i == contentType.Length)
+                    {
                         return true;
+                    }
                 }
             }
 
@@ -165,10 +179,14 @@ namespace CoreWCF.Channels
                 MediaTypeHeaderValue parsedContentType = MediaTypeHeaderValue.Parse(contentType);
 
                 if (supportedMediaType.Length > 0 && !supportedMediaType.Equals(parsedContentType.MediaType, StringComparison.OrdinalIgnoreCase))
+                {
                     return false;
+                }
 
                 if (!IsCharSetSupported(parsedContentType.CharSet))
+                {
                     return false;
+                }
             }
             catch (FormatException)
             {

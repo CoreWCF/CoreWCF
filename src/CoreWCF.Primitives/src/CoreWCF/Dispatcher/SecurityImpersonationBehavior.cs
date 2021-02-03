@@ -1,3 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.DirectoryServices;
+using System.Runtime.CompilerServices;
+using System.Security.Principal;
+using System.Threading;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel.Claims;
@@ -5,12 +14,6 @@ using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.DirectoryServices;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
-using System.Threading;
 using ClaimsIdentity = System.Security.Claims.ClaimsIdentity;
 using ClaimsPrincipal = System.Security.Claims.ClaimsPrincipal;
 
@@ -18,29 +21,28 @@ namespace CoreWCF.Dispatcher
 {
     internal sealed class SecurityImpersonationBehavior
     {
-        PrincipalPermissionMode principalPermissionMode;
-        object roleProvider;
-        bool impersonateCallerForAllOperations;
-        Dictionary<string, string> ncNameMap;
-        //Dictionary<string, string> domainNameMap;
-        Random random;
-        const int maxDomainNameMapSize = 5;
+        private readonly PrincipalPermissionMode _principalPermissionMode;
+        private readonly bool _impersonateCallerForAllOperations;
+        private readonly Dictionary<string, string> _ncNameMap;
 
-        static WindowsPrincipal anonymousWindowsPrincipal;
-        static string s_directoryServerName = null;
+        //Dictionary<string, string> domainNameMap;
+        private Random _random;
+        private const int maxDomainNameMapSize = 5;
+        private static WindowsPrincipal s_anonymousWindowsPrincipal;
+        private static string s_directoryServerName = null;
 
         //AuditLevel auditLevel = ServiceSecurityAuditBehavior.defaultMessageAuthenticationAuditLevel;
         //AuditLogLocation auditLogLocation = ServiceSecurityAuditBehavior.defaultAuditLogLocation;
         //bool suppressAuditFailure = ServiceSecurityAuditBehavior.defaultSuppressAuditFailure;
 
-        SecurityImpersonationBehavior(DispatchRuntime dispatch)
+        private SecurityImpersonationBehavior(DispatchRuntime dispatch)
         {
-            principalPermissionMode = dispatch.PrincipalPermissionMode;
-            impersonateCallerForAllOperations = dispatch.ImpersonateCallerForAllOperations;
+            _principalPermissionMode = dispatch.PrincipalPermissionMode;
+            _impersonateCallerForAllOperations = dispatch.ImpersonateCallerForAllOperations;
             //this.auditLevel = dispatch.MessageAuthenticationAuditLevel;
             //this.auditLogLocation = dispatch.SecurityAuditLogLocation;
             //this.suppressAuditFailure = dispatch.SuppressAuditFailure;
-            ncNameMap = new Dictionary<string, string>(maxDomainNameMapSize, StringComparer.OrdinalIgnoreCase);
+            _ncNameMap = new Dictionary<string, string>(maxDomainNameMapSize, StringComparer.OrdinalIgnoreCase);
         }
 
         public static SecurityImpersonationBehavior CreateIfNecessary(DispatchRuntime dispatch)
@@ -55,18 +57,20 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        static WindowsPrincipal AnonymousWindowsPrincipal
+        private static WindowsPrincipal AnonymousWindowsPrincipal
         {
             get
             {
-                if (anonymousWindowsPrincipal == null)
-                    anonymousWindowsPrincipal = new WindowsPrincipal(WindowsIdentity.GetAnonymous());
+                if (s_anonymousWindowsPrincipal == null)
+                {
+                    s_anonymousWindowsPrincipal = new WindowsPrincipal(WindowsIdentity.GetAnonymous());
+                }
 
-                return anonymousWindowsPrincipal;
+                return s_anonymousWindowsPrincipal;
             }
         }
 
-        static bool IsSecurityBehaviorNeeded(DispatchRuntime dispatch)
+        private static bool IsSecurityBehaviorNeeded(DispatchRuntime dispatch)
         {
             if (dispatch.PrincipalPermissionMode != PrincipalPermissionMode.None)
             {
@@ -96,17 +100,19 @@ namespace CoreWCF.Dispatcher
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        IPrincipal SetCurrentThreadPrincipal(ServiceSecurityContext securityContext, out bool isThreadPrincipalSet)
+        private IPrincipal SetCurrentThreadPrincipal(ServiceSecurityContext securityContext, out bool isThreadPrincipalSet)
         {
             IPrincipal result = null;
             IPrincipal principal = null;
 
             ClaimsPrincipal claimsPrincipal = OperationContext.Current.ClaimsPrincipal;
 
-            if (principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
+            if (_principalPermissionMode == PrincipalPermissionMode.UseWindowsGroups)
             {
                 if (claimsPrincipal is WindowsPrincipal)
+                {
                     principal = claimsPrincipal;
+                }
                 else if (securityContext.PrimaryIdentity != null && securityContext.PrimaryIdentity is GenericIdentity)
                 {
                     principal = new ClaimsPrincipal(securityContext.PrimaryIdentity);
@@ -116,11 +122,11 @@ namespace CoreWCF.Dispatcher
                     principal = GetWindowsPrincipal(securityContext);
                 }
             }
-            else if (principalPermissionMode == PrincipalPermissionMode.Custom)
+            else if (_principalPermissionMode == PrincipalPermissionMode.Custom)
             {
                 principal = GetCustomPrincipal(securityContext);
             }
-            else if (principalPermissionMode == PrincipalPermissionMode.Always)
+            else if (_principalPermissionMode == PrincipalPermissionMode.Always)
             {
                 principal = claimsPrincipal ?? new ClaimsPrincipal(new ClaimsIdentity());
             }
@@ -140,42 +146,51 @@ namespace CoreWCF.Dispatcher
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static IPrincipal GetCustomPrincipal(ServiceSecurityContext securityContext)
+        private static IPrincipal GetCustomPrincipal(ServiceSecurityContext securityContext)
         {
-            object customPrincipal;
-            if (securityContext.AuthorizationContext.Properties.TryGetValue(SecurityUtils.Principal, out customPrincipal) && customPrincipal is IPrincipal)
-                return (IPrincipal)customPrincipal;
+            if (securityContext.AuthorizationContext.Properties.TryGetValue(SecurityUtils.Principal, out object obj) && obj is IPrincipal customPrincipal)
+            {
+                return customPrincipal;
+            }
             else
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.NoPrincipalSpecifiedInAuthorizationContext));
+            }
         }
 
         internal bool IsSecurityContextImpersonationRequired(MessageRpc rpc)
         {
             return ((rpc.Operation.Impersonation == ImpersonationOption.Required)
-                || ((rpc.Operation.Impersonation == ImpersonationOption.Allowed) && impersonateCallerForAllOperations));
+                || ((rpc.Operation.Impersonation == ImpersonationOption.Allowed) && _impersonateCallerForAllOperations));
         }
 
         internal bool IsImpersonationEnabledOnCurrentOperation(MessageRpc rpc)
         {
             return IsSecurityContextImpersonationRequired(rpc) ||
-                    principalPermissionMode != PrincipalPermissionMode.None;
+                    _principalPermissionMode != PrincipalPermissionMode.None;
         }
 
         public T RunImpersonated<T>(MessageRpc rpc, Func<T> func)
         {
-            T returnValue = default(T);
+            T returnValue = default;
             IPrincipal originalPrincipal = null;
             bool isThreadPrincipalSet = false;
             ServiceSecurityContext securityContext;
-            bool setThreadPrincipal = principalPermissionMode != PrincipalPermissionMode.None;
+            bool setThreadPrincipal = _principalPermissionMode != PrincipalPermissionMode.None;
             bool isSecurityContextImpersonationOn = IsSecurityContextImpersonationRequired(rpc);
             if (setThreadPrincipal || isSecurityContextImpersonationOn)
+            {
                 securityContext = GetAndCacheSecurityContext(rpc);
+            }
             else
+            {
                 securityContext = null;
+            }
 
             if (setThreadPrincipal && securityContext != null)
+            {
                 originalPrincipal = SetCurrentThreadPrincipal(securityContext, out isThreadPrincipalSet);
+            }
 
             try
             {
@@ -201,13 +216,15 @@ namespace CoreWCF.Dispatcher
 
         private T RunImpersonated2<T>(MessageRpc rpc, ServiceSecurityContext securityContext, bool isSecurityContextImpersonationOn, Func<T> func)
         {
-            T returnValue = default(T);
+            T returnValue = default;
             try
             {
                 if (isSecurityContextImpersonationOn)
                 {
                     if (securityContext == null)
+                    {
                         throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.SFxSecurityContextPropertyMissingFromRequestMessage), rpc.Request);
+                    }
 
                     WindowsIdentity impersonationToken = securityContext.WindowsIdentity;
                     if (impersonationToken.User != null)
@@ -233,7 +250,9 @@ namespace CoreWCF.Dispatcher
                         }
                     }
                     else
+                    {
                         throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityContextDoesNotAllowImpersonation, rpc.Operation.Action)), rpc.Request);
+                    }
                 }
 
                 //SecurityTraceRecordHelper.TraceImpersonationSucceeded(rpc.EventTraceActivity, rpc.Operation);
@@ -257,48 +276,51 @@ namespace CoreWCF.Dispatcher
                 // Update the impersonation failure audit
                 // Copy SecurityAuthorizationBehavior.Audit level to here!!!
                 //
-//                if (AuditLevel.Failure == (this.auditLevel & AuditLevel.Failure))
-//                {
-//                    try
-//                    {
-//                        string primaryIdentity;
-//                        if (securityContext != null)
-//                            primaryIdentity = SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext);
-//                        else
-//                            primaryIdentity = SecurityUtils.AnonymousIdentity.Name;
+                //                if (AuditLevel.Failure == (this.auditLevel & AuditLevel.Failure))
+                //                {
+                //                    try
+                //                    {
+                //                        string primaryIdentity;
+                //                        if (securityContext != null)
+                //                            primaryIdentity = SecurityUtils.GetIdentityNamesFromContext(securityContext.AuthorizationContext);
+                //                        else
+                //                            primaryIdentity = SecurityUtils.AnonymousIdentity.Name;
 
-//                        SecurityAuditHelper.WriteImpersonationFailureEvent(this.auditLogLocation,
-//                            this.suppressAuditFailure, rpc.Operation.Name, primaryIdentity, ex);
-//                    }
-//#pragma warning suppress 56500
-//                    catch (Exception auditException)
-//                    {
-//                        if (Fx.IsFatal(auditException))
-//                            throw;
+                //                        SecurityAuditHelper.WriteImpersonationFailureEvent(this.auditLogLocation,
+                //                            this.suppressAuditFailure, rpc.Operation.Name, primaryIdentity, ex);
+                //                    }
+                //#pragma warning suppress 56500
+                //                    catch (Exception auditException)
+                //                    {
+                //                        if (Fx.IsFatal(auditException))
+                //                            throw;
 
-//                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
-//                    }
-//                }
+                //                        DiagnosticUtility.TraceHandledException(auditException, TraceEventType.Error);
+                //                    }
+                //                }
                 throw;
             }
 
             return returnValue;
         }
 
-        IPrincipal GetWindowsPrincipal(ServiceSecurityContext securityContext)
+        private IPrincipal GetWindowsPrincipal(ServiceSecurityContext securityContext)
         {
             WindowsIdentity wid = securityContext.WindowsIdentity;
             if (!wid.IsAnonymous)
+            {
                 return new WindowsPrincipal(wid);
+            }
 
-            WindowsSidIdentity wsid = securityContext.PrimaryIdentity as WindowsSidIdentity;
-            if (wsid != null)
+            if (securityContext.PrimaryIdentity is WindowsSidIdentity wsid)
+            {
                 return new WindowsSidPrincipal(wsid, securityContext);
+            }
 
             return AnonymousWindowsPrincipal;
         }
 
-        ServiceSecurityContext GetAndCacheSecurityContext(MessageRpc rpc)
+        private ServiceSecurityContext GetAndCacheSecurityContext(MessageRpc rpc)
         {
             ServiceSecurityContext securityContext = rpc.SecurityContext;
 
@@ -306,12 +328,16 @@ namespace CoreWCF.Dispatcher
             {
                 SecurityMessageProperty securityContextProperty = rpc.Request.Properties.Security;
                 if (securityContextProperty == null)
+                {
                     securityContext = null; // SecurityContext.Anonymous
+                }
                 else
                 {
                     securityContext = securityContextProperty.ServiceSecurityContext;
                     if (securityContext == null)
+                    {
                         throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecurityContextMissing, rpc.Operation.Name)), rpc.Request);
+                    }
                 }
 
                 rpc.SecurityContext = securityContext;
@@ -321,7 +347,7 @@ namespace CoreWCF.Dispatcher
             return securityContext;
         }
 
-        string GetUpnFromDownlevelName(string downlevelName)
+        private string GetUpnFromDownlevelName(string downlevelName)
         {
             // On Desktop this code calls SECUR32.DLL!TranslateName to translate just the domain part of the downlevel name (DOMAIN\username) to a canonical name.
             // It then removes the trailing slash and joines username, '@' and the canonical name to create the Upn name. It then caches the DOMAIN -> canonical mapping
@@ -353,9 +379,9 @@ namespace CoreWCF.Dispatcher
             bool found;
 
             // 1) Read from cache
-            lock (ncNameMap)
+            lock (_ncNameMap)
             {
-                found = ncNameMap.TryGetValue(shortDomainName, out ncName);
+                found = _ncNameMap.TryGetValue(shortDomainName, out ncName);
             }
 
             // 2) Not found, do expensive look up
@@ -376,8 +402,10 @@ namespace CoreWCF.Dispatcher
                         string configNC = rootDse.Properties["configurationNamingContext"].Value.ToString();
 
                         DirectoryEntry configSearchRoot = new DirectoryEntry("LDAP://" + configNC);
-                        DirectorySearcher configSearch = new DirectorySearcher(configSearchRoot);
-                        configSearch.Filter = $"(&(NETBIOSName={shortDomainName})(objectClass=crossRef))";
+                        DirectorySearcher configSearch = new DirectorySearcher(configSearchRoot)
+                        {
+                            Filter = $"(&(NETBIOSName={shortDomainName})(objectClass=crossRef))"
+                        };
 
                         // Configure search to return ncname attribute
                         configSearch.PropertiesToLoad.Add("ncname");
@@ -391,26 +419,26 @@ namespace CoreWCF.Dispatcher
                         ncName = forestPartition.Properties["ncname"][0].ToString();
 
                         // Save in cache (remove a random item if cache is full)
-                        lock (ncNameMap)
+                        lock (_ncNameMap)
                         {
-                            if (ncNameMap.Count >= maxDomainNameMapSize)
+                            if (_ncNameMap.Count >= maxDomainNameMapSize)
                             {
-                                if (random == null)
+                                if (_random == null)
                                 {
-                                    random = new Random(unchecked((int)DateTime.Now.Ticks));
+                                    _random = new Random(unchecked((int)DateTime.Now.Ticks));
                                 }
-                                int victim = random.Next() % ncNameMap.Count;
-                                foreach (string key in ncNameMap.Keys)
+                                int victim = _random.Next() % _ncNameMap.Count;
+                                foreach (string key in _ncNameMap.Keys)
                                 {
                                     if (victim <= 0)
                                     {
-                                        ncNameMap.Remove(key);
+                                        _ncNameMap.Remove(key);
                                         break;
                                     }
                                     --victim;
                                 }
                             }
-                            ncNameMap[shortDomainName] = ncName;
+                            _ncNameMap[shortDomainName] = ncName;
                         }
                     }
                 }
@@ -436,35 +464,39 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class WindowsSidPrincipal : IPrincipal
+        private class WindowsSidPrincipal : IPrincipal
         {
-            WindowsSidIdentity identity;
-            ServiceSecurityContext securityContext;
+            private readonly WindowsSidIdentity _identity;
+            private readonly ServiceSecurityContext _securityContext;
 
             public WindowsSidPrincipal(WindowsSidIdentity identity, ServiceSecurityContext securityContext)
             {
-                this.identity = identity;
-                this.securityContext = securityContext;
+                _identity = identity;
+                _securityContext = securityContext;
             }
 
             public IIdentity Identity
             {
-                get { return identity; }
+                get { return _identity; }
             }
 
             public bool IsInRole(string role)
             {
                 if (role == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("role");
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(role));
+                }
 
                 NTAccount account = new NTAccount(role);
                 Claim claim = Claim.CreateWindowsSidClaim((SecurityIdentifier)account.Translate(typeof(SecurityIdentifier)));
-                AuthorizationContext authContext = securityContext.AuthorizationContext;
+                AuthorizationContext authContext = _securityContext.AuthorizationContext;
                 for (int i = 0; i < authContext.ClaimSets.Count; i++)
                 {
                     ClaimSet claimSet = authContext.ClaimSets[i];
                     if (claimSet.ContainsClaim(claim))
+                    {
                         return true;
+                    }
                 }
                 return false;
             }

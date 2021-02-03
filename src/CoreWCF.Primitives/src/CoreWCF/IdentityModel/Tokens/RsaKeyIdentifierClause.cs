@@ -1,26 +1,25 @@
-﻿using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Xml;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
     public class RsaKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        static string clauseType = XmlSignatureStrings.Namespace + XmlSignatureStrings.RsaKeyValue;
-        readonly RSA rsa;
-        readonly RSAParameters rsaParameters;
-        RsaSecurityKey rsaSecurityKey;
+        private static readonly string s_clauseType = XmlSignatureStrings.Namespace + XmlSignatureStrings.RsaKeyValue;
+        private readonly RSAParameters _rsaParameters;
+        private RsaSecurityKey _rsaSecurityKey;
 
         public RsaKeyIdentifierClause(RSA rsa)
-            : base(clauseType)
+            : base(s_clauseType)
         {
-            if (rsa == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
-
-            this.rsa = rsa;
-            this.rsaParameters = rsa.ExportParameters(false);
+            Rsa = rsa ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rsa));
+            _rsaParameters = rsa.ExportParameters(false);
         }
 
         public override bool CanCreateKey
@@ -28,51 +27,50 @@ namespace CoreWCF.IdentityModel.Tokens
             get { return true; }
         }
 
-        public RSA Rsa
-        {
-            get { return this.rsa; }
-        }
+        public RSA Rsa { get; }
 
         public override SecurityKey CreateKey()
         {
-            if (this.rsaSecurityKey == null)
+            if (_rsaSecurityKey == null)
             {
-                this.rsaSecurityKey = new RsaSecurityKey(this.rsa);
+                _rsaSecurityKey = new RsaSecurityKey(Rsa);
             }
-            return this.rsaSecurityKey;
+            return _rsaSecurityKey;
         }
 
         public byte[] GetExponent()
         {
-            return SecurityUtils.CloneBuffer(this.rsaParameters.Exponent);
+            return SecurityUtils.CloneBuffer(_rsaParameters.Exponent);
         }
 
         public byte[] GetModulus()
         {
-            return SecurityUtils.CloneBuffer(this.rsaParameters.Modulus);
+            return SecurityUtils.CloneBuffer(_rsaParameters.Modulus);
         }
 
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             RsaKeyIdentifierClause that = keyIdentifierClause as RsaKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(this.rsa));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(Rsa));
         }
 
         public bool Matches(RSA rsa)
         {
             if (rsa == null)
+            {
                 return false;
+            }
 
             RSAParameters rsaParameters = rsa.ExportParameters(false);
-            return SecurityUtils.MatchesBuffer(this.rsaParameters.Modulus, rsaParameters.Modulus) &&
-                SecurityUtils.MatchesBuffer(this.rsaParameters.Exponent, rsaParameters.Exponent);
+            return SecurityUtils.MatchesBuffer(_rsaParameters.Modulus, rsaParameters.Modulus) &&
+                SecurityUtils.MatchesBuffer(_rsaParameters.Exponent, rsaParameters.Exponent);
         }
 
         public override string ToString()
         {
             return string.Format(CultureInfo.InvariantCulture, "RsaKeyIdentifierClause(Modulus = {0}, Exponent = {1})",
-                Convert.ToBase64String(this.rsaParameters.Modulus),
-                Convert.ToBase64String(this.rsaParameters.Exponent));
+                Convert.ToBase64String(_rsaParameters.Modulus),
+                Convert.ToBase64String(_rsaParameters.Exponent));
         }
 
         public void WriteExponentAsBase64(XmlWriter writer)
@@ -81,7 +79,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
-            writer.WriteBase64(this.rsaParameters.Exponent, 0, this.rsaParameters.Exponent.Length);
+            writer.WriteBase64(_rsaParameters.Exponent, 0, _rsaParameters.Exponent.Length);
         }
 
         public void WriteModulusAsBase64(XmlWriter writer)
@@ -90,7 +88,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
             }
-            writer.WriteBase64(this.rsaParameters.Modulus, 0, this.rsaParameters.Modulus.Length);
+            writer.WriteBase64(_rsaParameters.Modulus, 0, _rsaParameters.Modulus.Length);
         }
     }
 }

@@ -1,9 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Net.Security;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Description;
-using System.Net.Security;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -11,8 +14,6 @@ namespace CoreWCF.Security
     // to allow minimal changes to ported code.
     public class ChannelProtectionRequirements
     {
-        bool _isReadOnly;
-
         public ChannelProtectionRequirements()
         {
             IncomingSignatureParts = new ScopedMessagePartSpecification();
@@ -21,12 +22,14 @@ namespace CoreWCF.Security
             OutgoingEncryptionParts = new ScopedMessagePartSpecification();
         }
 
-        public bool IsReadOnly => _isReadOnly;
+        public bool IsReadOnly { get; private set; }
 
         public ChannelProtectionRequirements(ChannelProtectionRequirements other)
         {
             if (other == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
+            }
 
             IncomingSignatureParts = new ScopedMessagePartSpecification(other.IncomingSignatureParts);
             IncomingEncryptionParts = new ScopedMessagePartSpecification(other.IncomingEncryptionParts);
@@ -37,7 +40,9 @@ namespace CoreWCF.Security
         internal ChannelProtectionRequirements(ChannelProtectionRequirements other, ProtectionLevel newBodyProtectionLevel)
         {
             if (other == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
+            }
 
             IncomingSignatureParts = new ScopedMessagePartSpecification(other.IncomingSignatureParts, newBodyProtectionLevel != ProtectionLevel.None);
             IncomingEncryptionParts = new ScopedMessagePartSpecification(other.IncomingEncryptionParts, newBodyProtectionLevel == ProtectionLevel.EncryptAndSign);
@@ -62,16 +67,29 @@ namespace CoreWCF.Security
         public void Add(ChannelProtectionRequirements protectionRequirements, bool channelScopeOnly)
         {
             if (protectionRequirements == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(protectionRequirements));
+            }
 
             if (protectionRequirements.IncomingSignatureParts != null)
+            {
                 IncomingSignatureParts.AddParts(protectionRequirements.IncomingSignatureParts.ChannelParts);
+            }
+
             if (protectionRequirements.IncomingEncryptionParts != null)
+            {
                 IncomingEncryptionParts.AddParts(protectionRequirements.IncomingEncryptionParts.ChannelParts);
+            }
+
             if (protectionRequirements.OutgoingSignatureParts != null)
+            {
                 OutgoingSignatureParts.AddParts(protectionRequirements.OutgoingSignatureParts.ChannelParts);
+            }
+
             if (protectionRequirements.OutgoingEncryptionParts != null)
+            {
                 OutgoingEncryptionParts.AddParts(protectionRequirements.OutgoingEncryptionParts.ChannelParts);
+            }
 
             if (!channelScopeOnly)
             {
@@ -82,25 +100,26 @@ namespace CoreWCF.Security
             }
         }
 
-        static void AddActionParts(ScopedMessagePartSpecification to, ScopedMessagePartSpecification from)
+        private static void AddActionParts(ScopedMessagePartSpecification to, ScopedMessagePartSpecification from)
         {
-            foreach (var action in from.Actions)
+            foreach (string action in from.Actions)
             {
-                MessagePartSpecification p;
-                if (from.TryGetParts(action, true, out p))
+                if (from.TryGetParts(action, true, out MessagePartSpecification p))
+                {
                     to.AddParts(p, action);
+                }
             }
         }
 
         public void MakeReadOnly()
         {
-            if (!_isReadOnly)
+            if (!IsReadOnly)
             {
                 IncomingSignatureParts.MakeReadOnly();
                 IncomingEncryptionParts.MakeReadOnly();
                 OutgoingSignatureParts.MakeReadOnly();
                 OutgoingEncryptionParts.MakeReadOnly();
-                _isReadOnly = true;
+                IsReadOnly = true;
             }
         }
 
@@ -109,19 +128,18 @@ namespace CoreWCF.Security
             return CreateFromContract(contract, bindingElement.SupportedRequestProtectionLevel, bindingElement.SupportedResponseProtectionLevel);
         }
 
-        static MessagePartSpecification UnionMessagePartSpecifications(ScopedMessagePartSpecification actionParts)
+        private static MessagePartSpecification UnionMessagePartSpecifications(ScopedMessagePartSpecification actionParts)
         {
             var result = new MessagePartSpecification(false);
-            foreach (var action in actionParts.Actions)
+            foreach (string action in actionParts.Actions)
             {
-                MessagePartSpecification parts;
-                if (actionParts.TryGetParts(action, out parts))
+                if (actionParts.TryGetParts(action, out MessagePartSpecification parts))
                 {
                     if (parts.IsBodyIncluded)
                     {
                         result.IsBodyIncluded = true;
                     }
-                    foreach (var headerType in parts.HeaderTypes)
+                    foreach (XmlQualifiedName headerType in parts.HeaderTypes)
                     {
                         if (!result.IsHeaderIncluded(headerType.Name, headerType.Namespace))
                         {
@@ -135,7 +153,7 @@ namespace CoreWCF.Security
 
         internal static ChannelProtectionRequirements CreateFromContractAndUnionResponseProtectionRequirements(ContractDescription contract, ISecurityCapabilities bindingElement)
         {
-            var contractRequirements = CreateFromContract(contract, bindingElement.SupportedRequestProtectionLevel, bindingElement.SupportedResponseProtectionLevel);
+            ChannelProtectionRequirements contractRequirements = CreateFromContract(contract, bindingElement.SupportedRequestProtectionLevel, bindingElement.SupportedResponseProtectionLevel);
             var result = new ChannelProtectionRequirements();
 
             result.OutgoingEncryptionParts.AddParts(UnionMessagePartSpecifications(contractRequirements.OutgoingEncryptionParts), MessageHeaders.WildcardAction);
@@ -148,12 +166,14 @@ namespace CoreWCF.Security
         internal static ChannelProtectionRequirements CreateFromContract(ContractDescription contract, ProtectionLevel defaultRequestProtectionLevel, ProtectionLevel defaultResponseProtectionLevel)
         {
             if (contract == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
+            }
 
             var requirements = new ChannelProtectionRequirements();
 
-            var contractScopeDefaultRequestProtectionLevel = ProtectionLevel.None;
-            var contractScopeDefaultResponseProtectionLevel = ProtectionLevel.None;
+            ProtectionLevel contractScopeDefaultRequestProtectionLevel = ProtectionLevel.None;
+            ProtectionLevel contractScopeDefaultResponseProtectionLevel = ProtectionLevel.None;
             if (contract.HasProtectionLevel) // Currently always false
             {
                 //contractScopeDefaultRequestProtectionLevel = contract.ProtectionLevel;
@@ -165,10 +185,10 @@ namespace CoreWCF.Security
                 contractScopeDefaultResponseProtectionLevel = defaultResponseProtectionLevel;
             }
 
-            foreach (var operation in contract.Operations)
+            foreach (OperationDescription operation in contract.Operations)
             {
-                var operationScopeDefaultRequestProtectionLevel = ProtectionLevel.None;
-                var operationScopeDefaultResponseProtectionLevel = ProtectionLevel.None;
+                ProtectionLevel operationScopeDefaultRequestProtectionLevel = ProtectionLevel.None;
+                ProtectionLevel operationScopeDefaultResponseProtectionLevel = ProtectionLevel.None;
                 if (operation.HasProtectionLevel) // Currently always false
                 {
                     //operationScopeDefaultRequestProtectionLevel = operation.ProtectionLevel;
@@ -179,9 +199,9 @@ namespace CoreWCF.Security
                     operationScopeDefaultRequestProtectionLevel = contractScopeDefaultRequestProtectionLevel;
                     operationScopeDefaultResponseProtectionLevel = contractScopeDefaultResponseProtectionLevel;
                 }
-                foreach (var message in operation.Messages)
+                foreach (MessageDescription message in operation.Messages)
                 {
-                    var messageScopeDefaultProtectionLevel = ProtectionLevel.None;
+                    ProtectionLevel messageScopeDefaultProtectionLevel = ProtectionLevel.None;
                     if (message.HasProtectionLevel)
                     {
                         //messageScopeDefaultProtectionLevel = message.ProtectionLevel;
@@ -199,7 +219,7 @@ namespace CoreWCF.Security
                     var encryptedParts = new MessagePartSpecification();
 
                     // determine header protection requirements for message
-                    foreach (var header in message.Headers)
+                    foreach (MessageHeaderDescription header in message.Headers)
                     {
                         AddHeaderProtectionRequirements(header, signedParts, encryptedParts, messageScopeDefaultProtectionLevel);
                     }
@@ -231,20 +251,24 @@ namespace CoreWCF.Security
                     // determine body protection requirements for message
                     if (message.Body.Parts.Count > 0)
                     {
-                        foreach (var body in message.Body.Parts)
+                        foreach (MessagePartDescription body in message.Body.Parts)
                         {
-                            var partProtectionLevel = messageScopeDefaultProtectionLevel; // MessagePartDescription.HasProtectionLevel currently always false
+                            ProtectionLevel partProtectionLevel = messageScopeDefaultProtectionLevel; // MessagePartDescription.HasProtectionLevel currently always false
                             //ProtectionLevel partProtectionLevel = body.HasProtectionLevel ? body.ProtectionLevel : messageScopeDefaultProtectionLevel;
                             bodyProtectionLevel = ProtectionLevelHelper.Max(bodyProtectionLevel, partProtectionLevel);
                             if (bodyProtectionLevel == ProtectionLevel.EncryptAndSign)
+                            {
                                 break;
+                            }
                         }
                     }
                     if (bodyProtectionLevel != ProtectionLevel.None)
                     {
                         signedParts.IsBodyIncluded = true;
                         if (bodyProtectionLevel == ProtectionLevel.EncryptAndSign)
+                        {
                             encryptedParts.IsBodyIncluded = true;
+                        }
                     }
 
                     // add requirements for message 
@@ -275,10 +299,10 @@ namespace CoreWCF.Security
             return requirements;
         }
 
-        static void AddHeaderProtectionRequirements(MessageHeaderDescription header, MessagePartSpecification signedParts,
+        private static void AddHeaderProtectionRequirements(MessageHeaderDescription header, MessagePartSpecification signedParts,
             MessagePartSpecification encryptedParts, ProtectionLevel defaultProtectionLevel)
         {
-            var p = defaultProtectionLevel; //header.HasProtectionLevel currently is always false;
+            ProtectionLevel p = defaultProtectionLevel; //header.HasProtectionLevel currently is always false;
             //ProtectionLevel p = header.HasProtectionLevel ? header.ProtectionLevel : defaultProtectionLevel;
 
             if (p != ProtectionLevel.None)
@@ -286,22 +310,29 @@ namespace CoreWCF.Security
                 var headerName = new XmlQualifiedName(header.Name, header.Namespace);
                 signedParts.HeaderTypes.Add(headerName);
                 if (p == ProtectionLevel.EncryptAndSign)
+                {
                     encryptedParts.HeaderTypes.Add(headerName);
+                }
             }
         }
 
-        static void AddFaultProtectionRequirements(FaultDescriptionCollection faults, ChannelProtectionRequirements requirements, ProtectionLevel defaultProtectionLevel, bool addToIncoming)
+        private static void AddFaultProtectionRequirements(FaultDescriptionCollection faults, ChannelProtectionRequirements requirements, ProtectionLevel defaultProtectionLevel, bool addToIncoming)
         {
             if (faults == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faults));
-            if (requirements == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(requirements));
+            }
 
-            foreach (var fault in faults)
+            if (requirements == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(requirements));
+            }
+
+            foreach (FaultDescription fault in faults)
             {
                 var signedParts = new MessagePartSpecification();
                 var encryptedParts = new MessagePartSpecification();
-                var p = defaultProtectionLevel; // FaultDescription.HasProtectionLevel currently is always false
+                ProtectionLevel p = defaultProtectionLevel; // FaultDescription.HasProtectionLevel currently is always false
                 //ProtectionLevel p = fault.HasProtectionLevel ? fault.ProtectionLevel : defaultProtectionLevel;
                 if (p != ProtectionLevel.None)
                 {
@@ -323,6 +354,5 @@ namespace CoreWCF.Security
                 }
             }
         }
-
     }
 }

@@ -1,39 +1,42 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Xml;
 
 namespace CoreWCF.Security
 {
-    sealed class AcceptorSessionSymmetricTransportSecurityProtocol : TransportSecurityProtocol, IAcceptorSecuritySessionProtocol
+    internal sealed class AcceptorSessionSymmetricTransportSecurityProtocol : TransportSecurityProtocol, IAcceptorSecuritySessionProtocol
     {
-        SecurityToken outgoingSessionToken;
-        SecurityTokenAuthenticator sessionTokenAuthenticator;
-        SecurityTokenResolver sessionTokenResolver;
-        ReadOnlyCollection<SecurityTokenResolver> sessionTokenResolverList;
-        UniqueId sessionId;
-        Collection<SupportingTokenAuthenticatorSpecification> sessionTokenAuthenticatorSpecificationList;
-        bool requireDerivedKeys;
+        private SecurityToken _outgoingSessionToken;
+        private SecurityTokenAuthenticator _sessionTokenAuthenticator;
+        private SecurityTokenResolver _sessionTokenResolver;
+        private ReadOnlyCollection<SecurityTokenResolver> _sessionTokenResolverList;
+        private UniqueId _sessionId;
+        private Collection<SupportingTokenAuthenticatorSpecification> _sessionTokenAuthenticatorSpecificationList;
+        private readonly bool _requireDerivedKeys;
 
         public AcceptorSessionSymmetricTransportSecurityProtocol(SessionSymmetricTransportSecurityProtocolFactory factory) : base(factory, null, null)
         {
             if (factory.ActAsInitiator == true)
             {
                 Fx.Assert("This protocol can only be used at the recipient.");
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ProtocolMustBeRecipient, this.GetType().ToString())));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ProtocolMustBeRecipient, GetType().ToString())));
             }
-            this.requireDerivedKeys = factory.SecurityTokenParameters.RequireDerivedKeys;
+            _requireDerivedKeys = factory.SecurityTokenParameters.RequireDerivedKeys;
         }
 
-        SessionSymmetricTransportSecurityProtocolFactory Factory
+        private SessionSymmetricTransportSecurityProtocolFactory Factory
         {
-            get { return (SessionSymmetricTransportSecurityProtocolFactory)this.SecurityProtocolFactory; }
+            get { return (SessionSymmetricTransportSecurityProtocolFactory)SecurityProtocolFactory; }
         }
 
         public bool ReturnCorrelationState
@@ -49,60 +52,60 @@ namespace CoreWCF.Security
 
         public void SetSessionTokenAuthenticator(UniqueId sessionId, SecurityTokenAuthenticator sessionTokenAuthenticator, SecurityTokenResolver sessionTokenResolver)
         {
-            this.CommunicationObject.ThrowIfDisposedOrImmutable();
-            this.sessionId = sessionId;
-            this.sessionTokenResolver = sessionTokenResolver;
-            Collection<SecurityTokenResolver> tmp = new Collection<SecurityTokenResolver>();
-            tmp.Add(this.sessionTokenResolver);
-            this.sessionTokenResolverList = new ReadOnlyCollection<SecurityTokenResolver>(tmp);
-            this.sessionTokenAuthenticator = sessionTokenAuthenticator;
-            SupportingTokenAuthenticatorSpecification spec = new SupportingTokenAuthenticatorSpecification(this.sessionTokenAuthenticator, this.sessionTokenResolver, SecurityTokenAttachmentMode.Endorsing, this.Factory.SecurityTokenParameters);
-            this.sessionTokenAuthenticatorSpecificationList = new Collection<SupportingTokenAuthenticatorSpecification>();
-            this.sessionTokenAuthenticatorSpecificationList.Add(spec);
+            CommunicationObject.ThrowIfDisposedOrImmutable();
+            _sessionId = sessionId;
+            _sessionTokenResolver = sessionTokenResolver;
+            Collection<SecurityTokenResolver> tmp = new Collection<SecurityTokenResolver>
+            {
+                _sessionTokenResolver
+            };
+            _sessionTokenResolverList = new ReadOnlyCollection<SecurityTokenResolver>(tmp);
+            _sessionTokenAuthenticator = sessionTokenAuthenticator;
+            SupportingTokenAuthenticatorSpecification spec = new SupportingTokenAuthenticatorSpecification(_sessionTokenAuthenticator, _sessionTokenResolver, SecurityTokenAttachmentMode.Endorsing, Factory.SecurityTokenParameters);
+            _sessionTokenAuthenticatorSpecificationList = new Collection<SupportingTokenAuthenticatorSpecification>
+            {
+                spec
+            };
         }
 
         public SecurityToken GetOutgoingSessionToken()
         {
-            return this.outgoingSessionToken;
+            return _outgoingSessionToken;
         }
 
         public void SetOutgoingSessionToken(SecurityToken token)
         {
-            if (token == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
-            }
-            this.outgoingSessionToken = token;
+            _outgoingSessionToken = token ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
         }
 
         protected override void VerifyIncomingMessageCore(ref Message message, TimeSpan timeout)
         {
             string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
-            ReceiveSecurityHeader securityHeader = this.Factory.StandardsManager.TryCreateReceiveSecurityHeader(message, actor,
-                this.Factory.IncomingAlgorithmSuite, MessageDirection.Input);
+            ReceiveSecurityHeader securityHeader = Factory.StandardsManager.TryCreateReceiveSecurityHeader(message, actor,
+                Factory.IncomingAlgorithmSuite, MessageDirection.Input);
             securityHeader.RequireMessageProtection = false;
-            securityHeader.ReaderQuotas = this.Factory.SecurityBindingElement.ReaderQuotas;
-            IList<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = GetSupportingTokenAuthenticatorsAndSetExpectationFlags(this.Factory, message, securityHeader);
-            ReadOnlyCollection<SecurityTokenResolver> mergedTokenResolvers = MergeOutOfBandResolvers(supportingAuthenticators, this.sessionTokenResolverList);
+            securityHeader.ReaderQuotas = Factory.SecurityBindingElement.ReaderQuotas;
+            IList<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = GetSupportingTokenAuthenticatorsAndSetExpectationFlags(Factory, message, securityHeader);
+            ReadOnlyCollection<SecurityTokenResolver> mergedTokenResolvers = MergeOutOfBandResolvers(supportingAuthenticators, _sessionTokenResolverList);
             if (supportingAuthenticators != null && supportingAuthenticators.Count > 0)
             {
                 supportingAuthenticators = new List<SupportingTokenAuthenticatorSpecification>(supportingAuthenticators);
-                supportingAuthenticators.Insert(0, this.sessionTokenAuthenticatorSpecificationList[0]);
+                supportingAuthenticators.Insert(0, _sessionTokenAuthenticatorSpecificationList[0]);
             }
             else
             {
-                supportingAuthenticators = this.sessionTokenAuthenticatorSpecificationList;
+                supportingAuthenticators = _sessionTokenAuthenticatorSpecificationList;
             }
             securityHeader.ConfigureTransportBindingServerReceiveHeader(supportingAuthenticators);
             securityHeader.ConfigureOutOfBandTokenResolver(mergedTokenResolvers);
             securityHeader.ExpectEndorsingTokens = true;
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            
-            securityHeader.ReplayDetectionEnabled = this.Factory.DetectReplays;
-            securityHeader.SetTimeParameters(this.Factory.NonceCache, this.Factory.ReplayWindow, this.Factory.MaxClockSkew);
+
+            securityHeader.ReplayDetectionEnabled = Factory.DetectReplays;
+            securityHeader.SetTimeParameters(Factory.NonceCache, Factory.ReplayWindow, Factory.MaxClockSkew);
             // do not enforce key derivation requirement for Cancel messages due to WSE interop
-            securityHeader.EnforceDerivedKeyRequirement = (message.Headers.Action != this.Factory.StandardsManager.SecureConversationDriver.CloseAction.Value);
-            securityHeader.Process(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), this.Factory.ExtendedProtectionPolicy);
+            securityHeader.EnforceDerivedKeyRequirement = (message.Headers.Action != Factory.StandardsManager.SecureConversationDriver.CloseAction.Value);
+            securityHeader.Process(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), Factory.ExtendedProtectionPolicy);
             if (securityHeader.Timestamp == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.RequiredTimestampMissingInSecurityHeader)));
@@ -113,7 +116,7 @@ namespace CoreWCF.Security
                 for (int i = 0; i < securityHeader.EndorsingSupportingTokens.Count; ++i)
                 {
                     SecurityContextSecurityToken signingSct = (securityHeader.EndorsingSupportingTokens[i] as SecurityContextSecurityToken);
-                    if (signingSct != null && signingSct.ContextId == this.sessionId)
+                    if (signingSct != null && signingSct.ContextId == _sessionId)
                     {
                         didSessionSctEndorse = true;
                         break;
@@ -127,7 +130,7 @@ namespace CoreWCF.Security
             message = securityHeader.ProcessedMessage;
             AttachRecipientSecurityProperty(message, securityHeader.BasicSupportingTokens, securityHeader.EndorsingSupportingTokens,
                 securityHeader.SignedEndorsingSupportingTokens, securityHeader.SignedSupportingTokens, securityHeader.SecurityTokenAuthorizationPoliciesMapping);
-            base.OnIncomingMessageVerified(message);
+            OnIncomingMessageVerified(message);
         }
     }
 }

@@ -1,21 +1,23 @@
-using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Channels;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF.Channels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Configuration
 {
     internal class ServiceBuilder : CommunicationObject, IServiceBuilder
     {
-        private IServiceProvider _serviceProvider;
-        private IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
-        private TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
+        private readonly TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public ServiceBuilder(IServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider;
+            ServiceProvider = serviceProvider;
         }
 
         public ICollection<IServiceConfiguration> ServiceConfigurations => _services.Values;
@@ -24,7 +26,7 @@ namespace CoreWCF.Configuration
 
         ICollection<Type> IServiceBuilder.Services => _services.Keys;
 
-        public IServiceProvider ServiceProvider => _serviceProvider;
+        public IServiceProvider ServiceProvider { get; }
 
         protected override TimeSpan DefaultCloseTimeout => TimeSpan.FromMinutes(1);
 
@@ -41,7 +43,7 @@ namespace CoreWCF.Configuration
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(service)));
             }
-            var serviceConfig = (IServiceConfiguration)_serviceProvider.GetRequiredService(
+            var serviceConfig = (IServiceConfiguration)ServiceProvider.GetRequiredService(
                 typeof(IServiceConfiguration<>).MakeGenericType(service));
             _services[serviceConfig.ServiceType] = serviceConfig;
             return this;

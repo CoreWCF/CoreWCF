@@ -1,10 +1,13 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 
 namespace CoreWCF.Dispatcher
 {
     internal class SharedRuntimeState
     {
-        bool _isImmutable;
+        private bool _isImmutable;
 
         internal SharedRuntimeState(bool isOnServer)
         {
@@ -37,5 +40,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

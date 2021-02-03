@@ -1,69 +1,71 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.IO;
 using System.Security.Cryptography;
-using CoreWCF.IdentityModel.Tokens;
-using System.Xml;
 using System.Text;
+using System.Xml;
 
 namespace CoreWCF.IdentityModel
 {
     // for sequential use by one thread
-    sealed class SignatureResourcePool
+    internal sealed class SignatureResourcePool
     {
-        const int BufferSize = 64;
-        HashStream hashStream;
-        HashAlgorithm hashAlgorithm;
-        XmlDictionaryWriter utf8Writer;
-        byte[] encodingBuffer;
-        char[] base64Buffer;
+        private const int BufferSize = 64;
+        private HashStream _hashStream;
+        private HashAlgorithm _hashAlgorithm;
+        private XmlDictionaryWriter _utf8Writer;
+        private byte[] _encodingBuffer;
+        private char[] _base64Buffer;
 
         public char[] TakeBase64Buffer()
         {
-            if (this.base64Buffer == null)
+            if (_base64Buffer == null)
             {
-                this.base64Buffer = new char[BufferSize];
+                _base64Buffer = new char[BufferSize];
             }
-            return this.base64Buffer;
+            return _base64Buffer;
         }
 
         public byte[] TakeEncodingBuffer()
         {
-            if (this.encodingBuffer == null)
+            if (_encodingBuffer == null)
             {
-                this.encodingBuffer = new byte[BufferSize];
+                _encodingBuffer = new byte[BufferSize];
             }
-            return this.encodingBuffer;
+            return _encodingBuffer;
         }
 
         public HashAlgorithm TakeHashAlgorithm(string algorithm)
         {
-            if (this.hashAlgorithm == null)
+            if (_hashAlgorithm == null)
             {
                 if (string.IsNullOrEmpty(algorithm))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(algorithm, SR.Format("EmptyOrNullArgumentString", "algorithm"));
                 }
 
-                this.hashAlgorithm = CryptoHelper.CreateHashAlgorithm(algorithm);
+                _hashAlgorithm = CryptoHelper.CreateHashAlgorithm(algorithm);
             }
             else
             {
-                this.hashAlgorithm.Initialize();
+                _hashAlgorithm.Initialize();
             }
 
-            return this.hashAlgorithm;
+            return _hashAlgorithm;
         }
 
         public HashStream TakeHashStream(HashAlgorithm hash)
         {
-            if (this.hashStream == null)
+            if (_hashStream == null)
             {
-                this.hashStream = new HashStream(hash);
+                _hashStream = new HashStream(hash);
             }
             else
             {
-                this.hashStream.Reset(hash);
+                _hashStream.Reset(hash);
             }
-            return this.hashStream;
+            return _hashStream;
         }
 
         public HashStream TakeHashStream(string algorithm)
@@ -92,15 +94,15 @@ namespace CoreWCF.IdentityModel
 
         public XmlDictionaryWriter TakeUtf8Writer()
         {
-            if (this.utf8Writer == null)
+            if (_utf8Writer == null)
             {
-                this.utf8Writer = XmlDictionaryWriter.CreateTextWriter(Stream.Null, Encoding.UTF8, false);
+                _utf8Writer = XmlDictionaryWriter.CreateTextWriter(Stream.Null, Encoding.UTF8, false);
             }
             else
             {
-                ((IXmlTextWriterInitializer)this.utf8Writer).SetOutput(Stream.Null, Encoding.UTF8, false);
+                ((IXmlTextWriterInitializer)_utf8Writer).SetOutput(Stream.Null, Encoding.UTF8, false);
             }
-            return this.utf8Writer;
+            return _utf8Writer;
         }
     }
 }

@@ -1,54 +1,44 @@
-﻿using CoreWCF.Configuration;
-using CoreWCF.Dispatcher;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class ChannelDemuxer
+    internal class ChannelDemuxer
     {
-        public readonly static TimeSpan UseDefaultReceiveTimeout = TimeSpan.MinValue;
-        TypedChannelDemuxer inputDemuxer;
-        TypedChannelDemuxer replyDemuxer;
-        Dictionary<Type, TypedChannelDemuxer> typeDemuxers;
-        TimeSpan peekTimeout;
-        int maxPendingSessions;
+        public static readonly TimeSpan UseDefaultReceiveTimeout = TimeSpan.MinValue;
+        //private TypedChannelDemuxer _inputDemuxer;
+        private TypedChannelDemuxer _replyDemuxer;
+        private TimeSpan _peekTimeout;
 
         public ChannelDemuxer()
         {
-            this.peekTimeout = ChannelDemuxer.UseDefaultReceiveTimeout; //use the default receive timeout (original behavior)
-            this.maxPendingSessions = 10;
-            this.typeDemuxers = new Dictionary<Type, TypedChannelDemuxer>();
+            _peekTimeout = UseDefaultReceiveTimeout; //use the default receive timeout (original behavior)
+            MaxPendingSessions = 10;
         }
 
         public TimeSpan PeekTimeout
         {
             get
             {
-                return this.peekTimeout;
+                return _peekTimeout;
             }
             set
             {
-                this.peekTimeout = value;
+                _peekTimeout = value;
             }
         }
 
-        public int MaxPendingSessions
-        {
-            get
-            {
-                return this.maxPendingSessions;
-            }
-            set
-            {
-                this.maxPendingSessions = value;
-            }
-        }
+        public int MaxPendingSessions { get; set; }
 
-       internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
+        internal IServiceDispatcher CreaterServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
         {
             return GetTypedServiceDispatcher<TChannel>().AddDispatcher(innerDispatcher, filter);
         }
@@ -60,12 +50,12 @@ namespace CoreWCF.Channels
 
         internal void RemoveServiceDispatcher<TChannel>(MessageFilter filter)
         {
-             GetTypedServiceDispatcher<TChannel>().RemoveDispatcher(filter);
+            GetTypedServiceDispatcher<TChannel>().RemoveDispatcher(filter);
         }
+
         internal TypedChannelDemuxer GetTypedServiceDispatcher<TChannel>()
         {
             TypedChannelDemuxer typeDemuxer = null;
-            bool createdDemuxer = false;
 
             //if (typeof(TChannel) == typeof(IInputChannel))
             //{
@@ -82,12 +72,12 @@ namespace CoreWCF.Channels
             //else
             if (typeof(TChannel) == typeof(IReplyChannel))
             {
-                if (this.replyDemuxer == null)
+                if (_replyDemuxer == null)
                 {
-                    this.inputDemuxer = this.replyDemuxer = new ReplyChannelDemuxer();
-                    createdDemuxer = true;
+                    /*_inputDemuxer = */_replyDemuxer = new ReplyChannelDemuxer();
                 }
-                typeDemuxer = this.replyDemuxer;
+
+                typeDemuxer = _replyDemuxer;
             }
             //else if (!this.typeDemuxers.TryGetValue(channelType, out typeDemuxer))
             //{
@@ -105,7 +95,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    abstract class TypedChannelDemuxer : IServiceDispatcher
+    internal abstract class TypedChannelDemuxer : IServiceDispatcher
     {
         public abstract Uri BaseAddress { get; }
         public abstract Binding Binding { get; }
@@ -162,53 +152,42 @@ namespace CoreWCF.Channels
     // Datagram demuxers
     //
 
-    abstract class DatagramChannelDemuxer<TInnerChannel, TInnerItem> : TypedChannelDemuxer
+    internal abstract class DatagramChannelDemuxer<TInnerChannel, TInnerItem> : TypedChannelDemuxer
         where TInnerChannel : class, IChannel
         where TInnerItem : class, IDisposable
     {
-        MessageFilterTable<IServiceDispatcher> filterTable;
-        TInnerChannel innerChannel;
-        IServiceDispatcher innerDispatcher;
-       IChannelDemuxFailureHandler demuxFailureHandler;
+        private readonly MessageFilterTable<IServiceDispatcher> _filterTable;
+
         // since the OnOuterListenerOpen method will be called for every outer listener and we will open
         // the inner listener only once, we need to ensure that all the outer listeners wait till the 
         // inner listener is opened.
         public DatagramChannelDemuxer()
         {
-           filterTable = new MessageFilterTable<IServiceDispatcher>();
+            _filterTable = new MessageFilterTable<IServiceDispatcher>();
         }
 
         public DatagramChannelDemuxer(IChannelDemuxFailureHandler demuxFailureHandlerPassed)
         {
-            filterTable = new MessageFilterTable<IServiceDispatcher>();
-            demuxFailureHandler = demuxFailureHandlerPassed;
+            _filterTable = new MessageFilterTable<IServiceDispatcher>();
+            DemuxFailureHandler = demuxFailureHandlerPassed;
         }
 
-        protected TInnerChannel InnerChannel
-        {
-            get { return this.innerChannel; }
-        }
+        protected TInnerChannel InnerChannel { get; }
 
-        protected IServiceDispatcher InnerDispatcher
-        {
-            get { return this.innerDispatcher; }
-        }
+        protected IServiceDispatcher InnerDispatcher { get; }
 
         protected object ThisLock
         {
             get { return this; }
         }
 
-        protected IChannelDemuxFailureHandler DemuxFailureHandler
-        {
-            get { return this.demuxFailureHandler; }
-        }
+        protected IChannelDemuxFailureHandler DemuxFailureHandler { get; }
 
         public override IServiceDispatcher AddDispatcher(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
         {
-            lock (this.ThisLock)
+            lock (ThisLock)
             {
-                this.filterTable.Add(filter.Filter, innerDispatcher, filter.Priority);
+                _filterTable.Add(filter.Filter, innerDispatcher, filter.Priority);
             }
 
             return this;
@@ -216,9 +195,9 @@ namespace CoreWCF.Channels
 
         public override void RemoveDispatcher(MessageFilter filter)
         {
-            lock (this.ThisLock)
+            lock (ThisLock)
             {
-                this.filterTable.Remove(filter);
+                _filterTable.Remove(filter);
             }
         }
 
@@ -229,9 +208,9 @@ namespace CoreWCF.Channels
         protected IServiceDispatcher MatchDispatcher(Message message)
         {
             IServiceDispatcher matchingDispatcher = null;
-            lock (this.ThisLock)
+            lock (ThisLock)
             {
-                if (this.filterTable.GetMatchingValue(message, out matchingDispatcher))
+                if (_filterTable.GetMatchingValue(message, out matchingDispatcher))
                 {
                     return matchingDispatcher;
                 }
@@ -440,9 +419,9 @@ namespace CoreWCF.Channels
     //    }
     //}
 
-    class ReplyChannelDemuxer : DatagramChannelDemuxer<IReplyChannel, RequestContext>
+    internal class ReplyChannelDemuxer : DatagramChannelDemuxer<IReplyChannel, RequestContext>
     {
-        private static IList<Type> s_supportedChannelTypes = new List<Type> { typeof(IReplyChannel) };
+        private static readonly IList<Type> s_supportedChannelTypes = new List<Type> { typeof(IReplyChannel) };
 
         public override Uri BaseAddress => throw new NotImplementedException();
 
@@ -524,26 +503,26 @@ namespace CoreWCF.Channels
 
         internal class ReplyChannelDispatcher : IServiceChannelDispatcher
         {
-            private ReplyChannelDemuxer demuxer;
-            private IChannel channel;
+            private readonly ReplyChannelDemuxer _demuxer;
+            private readonly IChannel _channel;
 
             public ReplyChannelDispatcher(ReplyChannelDemuxer replyChannelDemuxer, IChannel channel)
             {
-                this.demuxer = replyChannelDemuxer;
-                this.channel = channel;
+                _demuxer = replyChannelDemuxer;
+                _channel = channel;
             }
 
             public async Task DispatchAsync(RequestContext context)
             {
                 // TODO: Find way to avoid instantiating a new ServiceChannelDispatcher each time
-                var serviceDispatcher = demuxer.MatchDispatcher(context.RequestMessage);
+                IServiceDispatcher serviceDispatcher = _demuxer.MatchDispatcher(context.RequestMessage);
                 if (serviceDispatcher == null)
                 {
-                    CoreWCF.Dispatcher.ErrorBehavior.ThrowAndCatch(
+                    ErrorBehavior.ThrowAndCatch(
                         new EndpointNotFoundException(SR.Format(SR.UnableToDemuxChannel, context.RequestMessage.Headers.Action)), context.RequestMessage);
                 }
                 // TODO: if serviceDispatcher == null, use the EndpointNotFound code path
-                var serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
+                IServiceChannelDispatcher serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(_channel);
                 await serviceChannelDispatcher.DispatchAsync(context);
             }
 
@@ -554,35 +533,25 @@ namespace CoreWCF.Channels
         }
     }
 
-    interface IChannelDemuxerFilter
+    internal interface IChannelDemuxerFilter
     {
         ChannelDemuxerFilter Filter { get; }
     }
 
-    class ChannelDemuxerFilter
+    internal class ChannelDemuxerFilter
     {
-        MessageFilter filter;
-        int priority;
-
         public ChannelDemuxerFilter(MessageFilter filter, int priority)
         {
-            this.filter = filter;
-            this.priority = priority;
+            Filter = filter;
+            Priority = priority;
         }
 
-        public MessageFilter Filter
-        {
-            get { return this.filter; }
-        }
+        public MessageFilter Filter { get; }
 
-        public int Priority
-        {
-            get { return this.priority; }
-        }
+        public int Priority { get; }
     }
 
-
-    interface IChannelDemuxFailureHandler
+    internal interface IChannelDemuxFailureHandler
     {
         Task HandleDemuxFailureAsync(Message message);
         Task HandleDemuxFailureAsync(Message message, RequestContext faultContext);

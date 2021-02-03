@@ -1,6 +1,6 @@
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Security.Tokens;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Net.Mail;
@@ -9,39 +9,45 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Xml;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    static class SctClaimSerializer
+    internal static class SctClaimSerializer
     {
-        static void SerializeSid(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
+        private static void SerializeSid(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
         {
             byte[] sidBytes = new byte[sid.BinaryLength];
             sid.GetBinaryForm(sidBytes, 0);
             writer.WriteBase64(sidBytes, 0, sidBytes.Length);
         }
 
-        static void WriteRightAttribute(Claim claim, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
+        private static void WriteRightAttribute(Claim claim, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
         {
             if (Rights.PossessProperty.Equals(claim.Right))
+            {
                 return;
+            }
+
             writer.WriteAttributeString(dictionary.Right, dictionary.EmptyString, claim.Right);
         }
 
-        static string ReadRightAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
+        private static string ReadRightAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
         {
             string right = reader.GetAttribute(dictionary.Right, dictionary.EmptyString);
-            return String.IsNullOrEmpty(right) ? Rights.PossessProperty : right;
+            return string.IsNullOrEmpty(right) ? Rights.PossessProperty : right;
         }
 
-        static void WriteSidAttribute(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
+        private static void WriteSidAttribute(SecurityIdentifier sid, SctClaimDictionary dictionary, XmlDictionaryWriter writer)
         {
             byte[] sidBytes = new byte[sid.BinaryLength];
             sid.GetBinaryForm(sidBytes, 0);
             writer.WriteAttributeString(dictionary.Sid, dictionary.EmptyString, Convert.ToBase64String(sidBytes));
         }
 
-        static SecurityIdentifier ReadSidAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
+        private static SecurityIdentifier ReadSidAttribute(XmlDictionaryReader reader, SctClaimDictionary dictionary)
         {
             byte[] sidBytes = Convert.FromBase64String(reader.GetAttribute(dictionary.Sid, dictionary.EmptyString));
             return new SecurityIdentifier(sidBytes, 0);
@@ -178,15 +184,15 @@ namespace CoreWCF.Security
             }
             else if (claimSet == ClaimSet.System)
             {
-                writer.WriteElementString(dictionary.SystemClaimSet, dictionary.EmptyString, String.Empty);
+                writer.WriteElementString(dictionary.SystemClaimSet, dictionary.EmptyString, string.Empty);
             }
             else if (claimSet == ClaimSet.Windows)
             {
-                writer.WriteElementString(dictionary.WindowsClaimSet, dictionary.EmptyString, String.Empty);
+                writer.WriteElementString(dictionary.WindowsClaimSet, dictionary.EmptyString, string.Empty);
             }
             else if (claimSet == ClaimSet.Anonymous)
             {
-                writer.WriteElementString(dictionary.AnonymousClaimSet, dictionary.EmptyString, String.Empty);
+                writer.WriteElementString(dictionary.AnonymousClaimSet, dictionary.EmptyString, string.Empty);
             }
             else if (claimSet is WindowsClaimSet || claimSet is DefaultClaimSet)
             {
@@ -393,9 +399,8 @@ namespace CoreWCF.Security
 
         public static void SerializeIdentities(AuthorizationContext authContext, SctClaimDictionary dictionary, XmlDictionaryWriter writer, XmlObjectSerializer serializer)
         {
-            object obj;
             IList<IIdentity> identities;
-            if (authContext.Properties.TryGetValue(SecurityUtils.Identities, out obj))
+            if (authContext.Properties.TryGetValue(SecurityUtils.Identities, out object obj))
             {
                 identities = obj as IList<IIdentity>;
                 if (identities != null && identities.Count > 0)
@@ -410,7 +415,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static void SerializePrimaryIdentity(IIdentity identity, SctClaimDictionary dictionary, XmlDictionaryWriter writer, XmlObjectSerializer serializer)
+        private static void SerializePrimaryIdentity(IIdentity identity, SctClaimDictionary dictionary, XmlDictionaryWriter writer, XmlObjectSerializer serializer)
         {
             if (identity != null && identity != SecurityUtils.AnonymousIdentity)
             {
@@ -426,15 +431,18 @@ namespace CoreWCF.Security
                     using (WindowsIdentity self = WindowsIdentity.GetCurrent())
                     {
                         // is owner or admin?  AuthenticationType could throw un-authorized exception
-                        if ((self.User == wid.Owner) || 
-                            (wid.Owner != null && self.Groups.Contains(wid.Owner)) || 
+                        if ((self.User == wid.Owner) ||
+                            (wid.Owner != null && self.Groups.Contains(wid.Owner)) ||
                             (wid.Owner != SecurityUtils.AdministratorsSid && self.Groups.Contains(SecurityUtils.AdministratorsSid)))
                         {
                             authenticationType = wid.AuthenticationType;
                         }
                     }
-                    if (!String.IsNullOrEmpty(authenticationType))
+                    if (!string.IsNullOrEmpty(authenticationType))
+                    {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, authenticationType);
+                    }
+
                     writer.WriteString(wid.Name);
                     writer.WriteEndElement();
                 }
@@ -443,8 +451,11 @@ namespace CoreWCF.Security
                     WindowsSidIdentity wsid = (WindowsSidIdentity)identity;
                     writer.WriteStartElement(dictionary.WindowsSidIdentity, dictionary.EmptyString);
                     WriteSidAttribute(wsid.SecurityIdentifier, dictionary, writer);
-                    if (!String.IsNullOrEmpty(wsid.AuthenticationType))
+                    if (!string.IsNullOrEmpty(wsid.AuthenticationType))
+                    {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, wsid.AuthenticationType);
+                    }
+
                     writer.WriteString(wsid.Name);
                     writer.WriteEndElement();
                 }
@@ -452,8 +463,11 @@ namespace CoreWCF.Security
                 {
                     GenericIdentity genericIdentity = (GenericIdentity)identity;
                     writer.WriteStartElement(dictionary.GenericIdentity, dictionary.EmptyString);
-                    if (!String.IsNullOrEmpty(genericIdentity.AuthenticationType))
+                    if (!string.IsNullOrEmpty(genericIdentity.AuthenticationType))
+                    {
                         writer.WriteAttributeString(dictionary.AuthenticationType, dictionary.EmptyString, genericIdentity.AuthenticationType);
+                    }
+
                     writer.WriteString(genericIdentity.Name);
                     writer.WriteEndElement();
                 }
@@ -485,7 +499,7 @@ namespace CoreWCF.Security
             return identities;
         }
 
-        static IIdentity DeserializePrimaryIdentity(XmlDictionaryReader reader, SctClaimDictionary dictionary, XmlObjectSerializer serializer)
+        private static IIdentity DeserializePrimaryIdentity(XmlDictionaryReader reader, SctClaimDictionary dictionary, XmlObjectSerializer serializer)
         {
             IIdentity identity = null;
             if (reader.IsStartElement(dictionary.PrimaryIdentity, dictionary.EmptyString))
@@ -497,7 +511,7 @@ namespace CoreWCF.Security
                     string authenticationType = reader.GetAttribute(dictionary.AuthenticationType, dictionary.EmptyString);
                     reader.ReadStartElement();
                     string name = reader.ReadContentAsString();
-                    identity = new WindowsSidIdentity(sid, name, authenticationType ?? String.Empty);
+                    identity = new WindowsSidIdentity(sid, name, authenticationType ?? string.Empty);
                     reader.ReadEndElement();
                 }
                 else if (reader.IsStartElement(dictionary.GenericIdentity, dictionary.EmptyString))
@@ -505,7 +519,7 @@ namespace CoreWCF.Security
                     string authenticationType = reader.GetAttribute(dictionary.AuthenticationType, dictionary.EmptyString);
                     reader.ReadStartElement();
                     string name = reader.ReadContentAsString();
-                    identity = SecurityUtils.CreateIdentity(name, authenticationType ?? String.Empty);
+                    identity = SecurityUtils.CreateIdentity(name, authenticationType ?? string.Empty);
                     reader.ReadEndElement();
                 }
                 else

@@ -1,55 +1,55 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CoreWCF.IdentityModel
 {
-    struct MostlySingletonList<T> where T : class
+    internal struct MostlySingletonList<T> where T : class
     {
-        int count;
-        T singleton;
-        List<T> list;
+        private T _singleton;
+        private List<T> _list;
 
         public T this[int index]
         {
             get
             {
-                if (this.list == null)
+                if (_list == null)
                 {
                     EnsureValidSingletonIndex(index);
-                    return this.singleton;
+                    return _singleton;
                 }
                 else
                 {
-                    return this.list[index];
+                    return _list[index];
                 }
             }
         }
 
-        public int Count
-        {
-            get { return this.count; }
-        }
+        public int Count { get; private set; }
 
         public void Add(T item)
         {
-            if (this.list == null)
+            if (_list == null)
             {
-                if (this.count == 0)
+                if (Count == 0)
                 {
-                    this.singleton = item;
-                    this.count = 1;
+                    _singleton = item;
+                    Count = 1;
                     return;
                 }
-                this.list = new List<T>();
-                this.list.Add(this.singleton);
-                this.singleton = null;
+                _list = new List<T>
+                {
+                    _singleton
+                };
+                _singleton = null;
             }
-            this.list.Add(item);
-            this.count++;
+            _list.Add(item);
+            Count++;
         }
 
-        static bool Compare(T x, T y)
+        private static bool Compare(T x, T y)
         {
             return x == null ? y == null : x.Equals(y);
         }
@@ -59,45 +59,44 @@ namespace CoreWCF.IdentityModel
             return IndexOf(item) >= 0;
         }
 
-        void EnsureValidSingletonIndex(int index)
+        private void EnsureValidSingletonIndex(int index)
         {
-            if (this.count != 1)
+            if (Count != 1)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("count", SR.Format("ValueMustBeOne")));
             }
 
             if (index != 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("index", SR.Format("ValueMustBeZero")));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), SR.Format("ValueMustBeZero")));
             }
-
         }
 
-        bool MatchesSingleton(T item)
+        private bool MatchesSingleton(T item)
         {
-            return this.count == 1 && Compare(this.singleton, item);
+            return Count == 1 && Compare(_singleton, item);
         }
 
         public int IndexOf(T item)
         {
-            if (this.list == null)
+            if (_list == null)
             {
                 return MatchesSingleton(item) ? 0 : -1;
             }
             else
             {
-                return this.list.IndexOf(item);
+                return _list.IndexOf(item);
             }
         }
 
         public bool Remove(T item)
         {
-            if (this.list == null)
+            if (_list == null)
             {
                 if (MatchesSingleton(item))
                 {
-                    this.singleton = null;
-                    this.count = 0;
+                    _singleton = null;
+                    Count = 0;
                     return true;
                 }
                 else
@@ -107,10 +106,10 @@ namespace CoreWCF.IdentityModel
             }
             else
             {
-                bool result = this.list.Remove(item);
+                bool result = _list.Remove(item);
                 if (result)
                 {
-                    this.count--;
+                    Count--;
                 }
                 return result;
             }
@@ -118,16 +117,16 @@ namespace CoreWCF.IdentityModel
 
         public void RemoveAt(int index)
         {
-            if (this.list == null)
+            if (_list == null)
             {
                 EnsureValidSingletonIndex(index);
-                this.singleton = null;
-                this.count = 0;
+                _singleton = null;
+                Count = 0;
             }
             else
             {
-                this.list.RemoveAt(index);
-                this.count--;
+                _list.RemoveAt(index);
+                Count--;
             }
         }
     }

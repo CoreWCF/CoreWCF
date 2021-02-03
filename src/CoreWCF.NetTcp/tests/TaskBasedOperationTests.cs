@@ -1,13 +1,16 @@
-﻿using CoreWCF.Configuration;
-using Helpers;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Linq;
 using System.ServiceModel.Channels;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Helpers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +18,7 @@ namespace AsyncServices
 {
     public class TaskBasedOperationTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public TaskBasedOperationTests(ITestOutputHelper output)
         {
@@ -26,7 +29,7 @@ namespace AsyncServices
         public async Task BufferedSynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -34,7 +37,7 @@ namespace AsyncServices
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.BufferedRelatveAddress));
                     channel = factory.CreateChannel();
@@ -54,7 +57,7 @@ namespace AsyncServices
         public async Task BufferedAsynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -62,7 +65,7 @@ namespace AsyncServices
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.BufferedRelatveAddress));
                     channel = factory.CreateChannel();
@@ -82,7 +85,7 @@ namespace AsyncServices
         public async Task StreamedSynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -90,7 +93,7 @@ namespace AsyncServices
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.StreamedRelatveAddress));
                     channel = factory.CreateChannel();
@@ -110,7 +113,7 @@ namespace AsyncServices
         public async Task StreamedAsynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -118,7 +121,7 @@ namespace AsyncServices
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<Contract.ITaskService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.StreamedRelatveAddress));
                     channel = factory.CreateChannel();

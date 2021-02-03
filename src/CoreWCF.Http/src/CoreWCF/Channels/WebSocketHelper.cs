@@ -1,9 +1,12 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -67,20 +70,17 @@ namespace CoreWCF.Channels
 
         internal static Exception ConvertAndTraceException(Exception ex, TimeSpan timeout, string operation)
         {
-            var objectDisposedException = ex as ObjectDisposedException;
-            if (objectDisposedException != null)
+            if (ex is ObjectDisposedException objectDisposedException)
             {
                 var communicationObjectAbortedException = new CommunicationObjectAbortedException(ex.Message, ex);
                 Fx.Exception.AsWarning(communicationObjectAbortedException);
                 return communicationObjectAbortedException;
             }
 
-            var aggregationException = ex as AggregateException;
-            if (aggregationException != null)
+            if (ex is AggregateException aggregationException)
             {
                 Exception exception = Fx.Exception.AsError<OperationCanceledException>(aggregationException);
-                var operationCanceledException = exception as OperationCanceledException;
-                if (operationCanceledException != null)
+                if (exception is OperationCanceledException operationCanceledException)
                 {
                     TimeoutException timeoutException = GetTimeoutException(exception, timeout, operation);
                     Fx.Exception.AsWarning(timeoutException);
@@ -101,8 +101,7 @@ namespace CoreWCF.Channels
                 }
             }
 
-            var webSocketException = ex as WebSocketException;
-            if (webSocketException != null)
+            if (ex is WebSocketException webSocketException)
             {
                 switch (webSocketException.WebSocketErrorCode)
                 {
@@ -123,8 +122,7 @@ namespace CoreWCF.Channels
         internal static Exception ConvertAggregateExceptionToCommunicationException(AggregateException ex)
         {
             Exception exception = Fx.Exception.AsError<WebSocketException>(ex);
-            var webSocketException = exception as WebSocketException;
-            if (webSocketException != null && webSocketException.InnerException != null)
+            if (exception is WebSocketException webSocketException && webSocketException.InnerException != null)
             {
                 // TODO: Find out is AspNetCore has some specific exception type they throw
                 //HttpListenerException httpListenerException = webSocketException.InnerException as HttpListenerException;
@@ -134,8 +132,7 @@ namespace CoreWCF.Channels
                 //}
             }
 
-            var objectDisposedException = exception as ObjectDisposedException;
-            if (objectDisposedException != null)
+            if (exception is ObjectDisposedException objectDisposedException)
             {
                 return new CommunicationObjectAbortedException(exception.Message, exception);
             }

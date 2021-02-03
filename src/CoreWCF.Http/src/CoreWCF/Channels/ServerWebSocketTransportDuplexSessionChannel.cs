@@ -1,22 +1,25 @@
-﻿using CoreWCF.Runtime;
-using CoreWCF.Security;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
     internal class ServerWebSocketTransportDuplexSessionChannel : WebSocketTransportDuplexSessionChannel
     {
-        WebSocketContext _webSocketContext;
-        HttpContext _httpContext;
-        private IHttpTransportFactorySettings _transportSettings;
-        private IServiceProvider _serviceProvider;
-        WebSocketMessageSource webSocketMessageSource;
-        SessionOpenNotification sessionOpenNotification;
+        private WebSocketContext _webSocketContext;
+        private readonly HttpContext _httpContext;
+        private readonly IHttpTransportFactorySettings _transportSettings;
+        private readonly IServiceProvider _serviceProvider;
+        private WebSocketMessageSource _webSocketMessageSource;
+        private SessionOpenNotification _sessionOpenNotification;
 
         public ServerWebSocketTransportDuplexSessionChannel(HttpContext httpContext, WebSocketContext webSocketContext, HttpTransportSettings settings, Uri localVia, IServiceProvider serviceProvider)
             : base(settings, new EndpointAddress(localVia), localVia)
@@ -29,19 +32,19 @@ namespace CoreWCF.Channels
 
         protected override bool IsStreamedOutput
         {
-            get { return TransferModeHelper.IsResponseStreamed(this.TransferMode); }
+            get { return TransferModeHelper.IsResponseStreamed(TransferMode); }
         }
 
         public override T GetProperty<T>()
         {
             if (typeof(T) == typeof(SessionOpenNotification))
             {
-                if (this.sessionOpenNotification == null)
+                if (_sessionOpenNotification == null)
                 {
-                    this.sessionOpenNotification = new SessionOpenNotificationHelper(this);
+                    _sessionOpenNotification = new SessionOpenNotificationHelper(this);
                 }
 
-                return (T)(object)this.sessionOpenNotification;
+                return (T)(object)_sessionOpenNotification;
             }
 
             T service = _serviceProvider.GetService<T>();
@@ -56,25 +59,25 @@ namespace CoreWCF.Channels
         internal void SetWebSocketInfo(WebSocketContext webSocketContext, RemoteEndpointMessageProperty remoteEndpointMessageProperty, SecurityMessageProperty handshakeSecurityMessageProperty, bool shouldDisposeWebSocketAfterClosed, HttpContext httpContext)
         {
             Fx.Assert(webSocketContext != null, "webSocketContext should not be null.");
-            this.ShouldDisposeWebSocketAfterClosed = shouldDisposeWebSocketAfterClosed;
-            this._webSocketContext = webSocketContext;
-            this.WebSocket = webSocketContext.WebSocket;
+            ShouldDisposeWebSocketAfterClosed = shouldDisposeWebSocketAfterClosed;
+            _webSocketContext = webSocketContext;
+            WebSocket = webSocketContext.WebSocket;
 
             if (handshakeSecurityMessageProperty != null)
             {
-                this.RemoteSecurity = handshakeSecurityMessageProperty;
+                RemoteSecurity = handshakeSecurityMessageProperty;
             }
 
-            bool inputUseStreaming = TransferModeHelper.IsRequestStreamed(this.TransferMode);
-            this.webSocketMessageSource = new WebSocketMessageSource(
+            bool inputUseStreaming = TransferModeHelper.IsRequestStreamed(TransferMode);
+            _webSocketMessageSource = new WebSocketMessageSource(
                             this,
-                            this._webSocketContext,
+                            _webSocketContext,
                             inputUseStreaming,
                             remoteEndpointMessageProperty,
                             this,
                             httpContext);
 
-            this.SetMessageSource(this.webSocketMessageSource);
+            SetMessageSource(_webSocketMessageSource);
         }
 
         protected override void OnClosed()
@@ -82,7 +85,7 @@ namespace CoreWCF.Channels
             base.OnClosed();
         }
 
-        protected override async Task OnOpenAsync(CancellationToken token)
+        protected override Task OnOpenAsync(CancellationToken token)
         {
             RemoteEndpointMessageProperty remoteEndpointMessageProperty = null;
             if (_httpContext.Connection.RemoteIpAddress != null)
@@ -97,11 +100,13 @@ namespace CoreWCF.Channels
             //        this._httpContext.EventTraceActivity,
             //        this.WebSocket != null ? this.WebSocket.GetHashCode() : -1);
             //}
+
+            return Task.CompletedTask;
         }
 
         private SecurityMessageProperty ProcessAuthentication()
         {
-            if (this.ShouldProcessAuthentication())
+            if (ShouldProcessAuthentication())
             {
                 // TODO: Create SecurityMessageProperty further up stack
                 return null;
@@ -113,33 +118,33 @@ namespace CoreWCF.Channels
             }
         }
 
-        bool ShouldProcessAuthentication()
+        private bool ShouldProcessAuthentication()
         {
             Fx.Assert(_transportSettings != null, "IsAuthenticated should only be called if _transportSettings != null");
             Fx.Assert(_httpContext != null, "IsAuthenticated should only be called if _httpContext != null");
             return _transportSettings.IsAuthenticationRequired || (_transportSettings.IsAuthenticationSupported && _httpContext.User.Identity.IsAuthenticated);
         }
 
-        class SessionOpenNotificationHelper : SessionOpenNotification
+        private class SessionOpenNotificationHelper : SessionOpenNotification
         {
-            readonly ServerWebSocketTransportDuplexSessionChannel channel;
+            private readonly ServerWebSocketTransportDuplexSessionChannel _channel;
 
             public SessionOpenNotificationHelper(ServerWebSocketTransportDuplexSessionChannel channel)
             {
-                this.channel = channel;
+                _channel = channel;
             }
 
             public override bool IsEnabled
             {
                 get
                 {
-                    return this.channel.WebSocketSettings.CreateNotificationOnConnection;
+                    return _channel.WebSocketSettings.CreateNotificationOnConnection;
                 }
             }
 
             public override void UpdateMessageProperties(MessageProperties inboundMessageProperties)
             {
-                this.channel.webSocketMessageSource.UpdateOpenNotificationMessageProperties(inboundMessageProperties);
+                _channel._webSocketMessageSource.UpdateOpenNotificationMessageProperties(inboundMessageProperties);
             }
         }
     }

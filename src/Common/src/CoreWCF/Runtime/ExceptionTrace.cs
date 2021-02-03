@@ -1,5 +1,7 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using CoreWCF.Runtime.Diagnostics;
@@ -8,8 +10,8 @@ namespace CoreWCF.Runtime
 {
     internal class ExceptionTrace
     {
-        private string _eventSourceName;
-        private EtwDiagnosticTrace _diagnosticTrace;
+        private readonly string _eventSourceName;
+        private readonly EtwDiagnosticTrace _diagnosticTrace;
 
         internal ExceptionTrace(string eventSourceName, EtwDiagnosticTrace diagnosticTrace)
         {
@@ -28,15 +30,13 @@ namespace CoreWCF.Runtime
         public Exception AsError(Exception exception)
         {
             // AggregateExceptions are automatically unwrapped.
-            AggregateException aggregateException = exception as AggregateException;
-            if (aggregateException != null)
+            if (exception is AggregateException aggregateException)
             {
                 return AsError<Exception>(aggregateException);
             }
 
             // TargetInvocationExceptions are automatically unwrapped.
-            TargetInvocationException targetInvocationException = exception as TargetInvocationException;
-            if (targetInvocationException != null && targetInvocationException.InnerException != null)
+            if (exception is TargetInvocationException targetInvocationException && targetInvocationException.InnerException != null)
             {
                 return AsError(targetInvocationException.InnerException);
             }
@@ -62,7 +62,7 @@ namespace CoreWCF.Runtime
 
             // Collapse possibly nested graph into a flat list.
             // Empty inner exception list is unlikely but possible via public api.
-            var innerExceptions = aggregateException.Flatten().InnerExceptions;
+            System.Collections.ObjectModel.ReadOnlyCollection<Exception> innerExceptions = aggregateException.Flatten().InnerExceptions;
             if (innerExceptions.Count == 0)
             {
                 return TraceException(aggregateException, eventSource);
@@ -73,9 +73,8 @@ namespace CoreWCF.Runtime
             foreach (Exception nextInnerException in innerExceptions)
             {
                 // AggregateException may wrap TargetInvocationException, so unwrap those as well
-                TargetInvocationException targetInvocationException = nextInnerException as TargetInvocationException;
 
-                Exception innerException = (targetInvocationException != null && targetInvocationException.InnerException != null)
+                Exception innerException = (nextInnerException is TargetInvocationException targetInvocationException && targetInvocationException.InnerException != null)
                                                 ? targetInvocationException.InnerException
                                                 : nextInnerException;
 
@@ -107,13 +106,13 @@ namespace CoreWCF.Runtime
             return TraceException(new ArgumentNullException(paramName));
         }
 
-        TException TraceException<TException>(TException exception)
+        private TException TraceException<TException>(TException exception)
             where TException : Exception
         {
             return TraceException<TException>(exception, _eventSourceName);
         }
 
-        TException TraceException<TException>(TException exception, string eventSource)
+        private TException TraceException<TException>(TException exception, string eventSource)
     where TException : Exception
         {
             //if (TraceCore.ThrowingExceptionIsEnabled(this.diagnosticTrace))

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Xml;
 using CoreWCF.Runtime;
 
@@ -7,17 +10,12 @@ namespace CoreWCF.Channels
     // TODO: This needed to be made public for NetTcp, investigate making it internal again
     public abstract class AddressingHeader : DictionaryHeader, IMessageHeaderWithSharedNamespace
     {
-        AddressingVersion version;
-
         protected AddressingHeader(AddressingVersion version)
         {
-            this.version = version;
+            Version = version;
         }
 
-        internal AddressingVersion Version
-        {
-            get { return version; }
-        }
+        internal AddressingVersion Version { get; }
 
         XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedPrefix
         {
@@ -26,30 +24,26 @@ namespace CoreWCF.Channels
 
         XmlDictionaryString IMessageHeaderWithSharedNamespace.SharedNamespace
         {
-            get { return version.DictionaryNamespace; }
+            get { return Version.DictionaryNamespace; }
         }
 
         public override XmlDictionaryString DictionaryNamespace
         {
-            get { return version.DictionaryNamespace; }
+            get { return Version.DictionaryNamespace; }
         }
     }
 
-    class ActionHeader : AddressingHeader
+    internal class ActionHeader : AddressingHeader
     {
-        string action;
-        const bool mustUnderstandValue = true;
+        private const bool mustUnderstandValue = true;
 
-        ActionHeader(string action, AddressingVersion version)
+        private ActionHeader(string action, AddressingVersion version)
             : base(version)
         {
-            this.action = action;
+            Action = action;
         }
 
-        public string Action
-        {
-            get { return action; }
-        }
+        public string Action { get; }
 
         public override bool MustUnderstand
         {
@@ -64,24 +58,36 @@ namespace CoreWCF.Channels
         public static ActionHeader Create(string action, AddressingVersion addressingVersion)
         {
             if (action == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
+            }
+
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
             return new ActionHeader(action, addressingVersion);
         }
 
         public static ActionHeader Create(XmlDictionaryString dictionaryAction, AddressingVersion addressingVersion)
         {
             if (dictionaryAction == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(Action));
+            }
+
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
             return new DictionaryActionHeader(dictionaryAction, addressingVersion);
         }
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            writer.WriteString(action);
+            writer.WriteString(Action);
         }
 
         public static string ReadHeaderValue(XmlDictionaryReader reader, AddressingVersion addressingVersion)
@@ -90,7 +96,9 @@ namespace CoreWCF.Channels
             string act = reader.ReadElementContentAsString();
 
             if (act.Length > 0 && (act[0] <= 32 || act[act.Length - 1] <= 32))
+            {
                 act = XmlUtil.Trim(act);
+            }
 
             return act;
         }
@@ -110,68 +118,64 @@ namespace CoreWCF.Channels
             }
         }
 
-        class DictionaryActionHeader : ActionHeader
+        private class DictionaryActionHeader : ActionHeader
         {
-            XmlDictionaryString dictionaryAction;
+            private readonly XmlDictionaryString _dictionaryAction;
 
             public DictionaryActionHeader(XmlDictionaryString dictionaryAction, AddressingVersion version)
                 : base(dictionaryAction.Value, version)
             {
-                this.dictionaryAction = dictionaryAction;
+                _dictionaryAction = dictionaryAction;
             }
 
             protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
-                writer.WriteString(dictionaryAction);
+                writer.WriteString(_dictionaryAction);
             }
         }
 
-        class FullActionHeader : ActionHeader
+        private class FullActionHeader : ActionHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullActionHeader(string action, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(action, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
 
-    class FromHeader : AddressingHeader
+    internal class FromHeader : AddressingHeader
     {
-        EndpointAddress from;
-        const bool mustUnderstandValue = false;
+        private const bool mustUnderstandValue = false;
 
-        FromHeader(EndpointAddress from, AddressingVersion version)
+        private FromHeader(EndpointAddress from, AddressingVersion version)
             : base(version)
         {
-            this.from = from;
+            From = from;
         }
 
-        public EndpointAddress From
-        {
-            get { return from; }
-        }
+        public EndpointAddress From { get; }
 
         public override XmlDictionaryString DictionaryName
         {
@@ -186,15 +190,21 @@ namespace CoreWCF.Channels
         public static FromHeader Create(EndpointAddress from, AddressingVersion addressingVersion)
         {
             if (from == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(from));
+            }
+
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
             return new FromHeader(from, addressingVersion);
         }
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            from.WriteContentsTo(Version, writer);
+            From.WriteContentsTo(Version, writer);
         }
 
         public static FromHeader ReadHeader(XmlDictionaryReader reader, AddressingVersion version,
@@ -218,52 +228,48 @@ namespace CoreWCF.Channels
             return EndpointAddress.ReadFrom(addressingVersion, reader);
         }
 
-        class FullFromHeader : FromHeader
+        private class FullFromHeader : FromHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullFromHeader(EndpointAddress from, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(from, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
 
-    class FaultToHeader : AddressingHeader
+    internal class FaultToHeader : AddressingHeader
     {
-        EndpointAddress faultTo;
-        const bool mustUnderstandValue = false;
+        private const bool mustUnderstandValue = false;
 
-        FaultToHeader(EndpointAddress faultTo, AddressingVersion version)
+        private FaultToHeader(EndpointAddress faultTo, AddressingVersion version)
             : base(version)
         {
-            this.faultTo = faultTo;
+            FaultTo = faultTo;
         }
 
-        public EndpointAddress FaultTo
-        {
-            get { return faultTo; }
-        }
+        public EndpointAddress FaultTo { get; }
 
         public override XmlDictionaryString DictionaryName
         {
@@ -277,15 +283,21 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            faultTo.WriteContentsTo(Version, writer);
+            FaultTo.WriteContentsTo(Version, writer);
         }
 
         public static FaultToHeader Create(EndpointAddress faultTo, AddressingVersion addressingVersion)
         {
             if (faultTo == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultTo));
+            }
+
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
             return new FaultToHeader(faultTo, addressingVersion);
         }
 
@@ -310,33 +322,33 @@ namespace CoreWCF.Channels
             return EndpointAddress.ReadFrom(version, reader);
         }
 
-        class FullFaultToHeader : FaultToHeader
+        private class FullFaultToHeader : FaultToHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullFaultToHeader(EndpointAddress faultTo, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(faultTo, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
@@ -344,25 +356,26 @@ namespace CoreWCF.Channels
     // TODO: This needed to be made public for NetTcp, investigate making it internal again
     public class ToHeader : AddressingHeader
     {
-        Uri to;
-        const bool mustUnderstandValue = true;
-
-        static ToHeader anonymousToHeader10;
+        private const bool mustUnderstandValue = true;
+        private static ToHeader s_anonymousToHeader10;
         //static ToHeader anonymousToHeader200408;
 
         protected ToHeader(Uri to, AddressingVersion version)
             : base(version)
         {
-            this.to = to;
+            To = to;
         }
 
-        static ToHeader AnonymousTo10
+        private static ToHeader AnonymousTo10
         {
             get
             {
-                if (anonymousToHeader10 == null)
-                    anonymousToHeader10 = new AnonymousToHeader(AddressingVersion.WSAddressing10);
-                return anonymousToHeader10;
+                if (s_anonymousToHeader10 == null)
+                {
+                    s_anonymousToHeader10 = new AnonymousToHeader(AddressingVersion.WSAddressing10);
+                }
+
+                return s_anonymousToHeader10;
             }
         }
 
@@ -386,23 +399,26 @@ namespace CoreWCF.Channels
             get { return mustUnderstandValue; }
         }
 
-        public Uri To
-        {
-            get { return to; }
-        }
+        public Uri To { get; }
 
         public static ToHeader Create(Uri toUri, XmlDictionaryString dictionaryTo, AddressingVersion addressingVersion)
         {
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
 
             if (((object)toUri == (object)addressingVersion.AnonymousUri))
             {
                 if (addressingVersion == AddressingVersion.WSAddressing10)
+                {
                     return AnonymousTo10;
+                }
                 else
+                {
                     //return AnonymousTo200408;
                     throw new PlatformNotSupportedException($"Unsupported addressing version {addressingVersion.ToString()}");
+                }
             }
             else
             {
@@ -419,10 +435,14 @@ namespace CoreWCF.Channels
             else if ((object)to == (object)addressingVersion.AnonymousUri)
             {
                 if (addressingVersion == AddressingVersion.WSAddressing10)
+                {
                     return AnonymousTo10;
+                }
                 else
+                {
                     throw new PlatformNotSupportedException($"Unsupported addressing version {addressingVersion.ToString()}");
-                    //return AnonymousTo200408;
+                }
+                //return AnonymousTo200408;
             }
             else
             {
@@ -432,7 +452,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            writer.WriteString(to.AbsoluteUri);
+            writer.WriteString(To.AbsoluteUri);
         }
 
         public static Uri ReadHeaderValue(XmlDictionaryReader reader, AddressingVersion version)
@@ -469,10 +489,14 @@ namespace CoreWCF.Channels
                 if ((object)to == (object)version.AnonymousUri)
                 {
                     if (version == AddressingVersion.WSAddressing10)
+                    {
                         return AnonymousTo10;
+                    }
                     else
+                    {
                         throw new PlatformNotSupportedException($"Unsupported addressing version {version}");
-                        //return AnonymousTo200408;
+                    }
+                    //return AnonymousTo200408;
                 }
                 else
                 {
@@ -485,7 +509,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        class AnonymousToHeader : ToHeader
+        private class AnonymousToHeader : ToHeader
         {
             public AnonymousToHeader(AddressingVersion version)
                 : base(version.AnonymousUri, version)
@@ -498,69 +522,65 @@ namespace CoreWCF.Channels
             }
         }
 
-        class DictionaryToHeader : ToHeader
+        private class DictionaryToHeader : ToHeader
         {
-            XmlDictionaryString dictionaryTo;
+            private readonly XmlDictionaryString _dictionaryTo;
 
             public DictionaryToHeader(Uri to, XmlDictionaryString dictionaryTo, AddressingVersion version)
                 : base(to, version)
             {
-                this.dictionaryTo = dictionaryTo;
+                _dictionaryTo = dictionaryTo;
             }
 
             protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
             {
-                writer.WriteString(dictionaryTo);
+                writer.WriteString(_dictionaryTo);
             }
         }
 
-        class FullToHeader : ToHeader
+        private class FullToHeader : ToHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullToHeader(Uri to, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(to, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
 
-    class ReplyToHeader : AddressingHeader
+    internal class ReplyToHeader : AddressingHeader
     {
-        EndpointAddress replyTo;
-        const bool mustUnderstandValue = false;
-        static ReplyToHeader anonymousReplyToHeader10;
+        private const bool mustUnderstandValue = false;
+        private static ReplyToHeader s_anonymousReplyToHeader10;
 
-        ReplyToHeader(EndpointAddress replyTo, AddressingVersion version)
+        private ReplyToHeader(EndpointAddress replyTo, AddressingVersion version)
             : base(version)
         {
-            this.replyTo = replyTo;
+            ReplyTo = replyTo;
         }
 
-        public EndpointAddress ReplyTo
-        {
-            get { return replyTo; }
-        }
+        public EndpointAddress ReplyTo { get; }
 
         public override XmlDictionaryString DictionaryName
         {
@@ -576,9 +596,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (anonymousReplyToHeader10 == null)
-                    anonymousReplyToHeader10 = new ReplyToHeader(EndpointAddress.AnonymousAddress, AddressingVersion.WSAddressing10);
-                return anonymousReplyToHeader10;
+                if (s_anonymousReplyToHeader10 == null)
+                {
+                    s_anonymousReplyToHeader10 = new ReplyToHeader(EndpointAddress.AnonymousAddress, AddressingVersion.WSAddressing10);
+                }
+
+                return s_anonymousReplyToHeader10;
             }
         }
 
@@ -595,15 +618,21 @@ namespace CoreWCF.Channels
         public static ReplyToHeader Create(EndpointAddress replyTo, AddressingVersion addressingVersion)
         {
             if (replyTo == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(replyTo));
+            }
+
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
             return new ReplyToHeader(replyTo, addressingVersion);
         }
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            replyTo.WriteContentsTo(Version, writer);
+            ReplyTo.WriteContentsTo(Version, writer);
         }
 
         public static ReplyToHeader ReadHeader(XmlDictionaryReader reader, AddressingVersion version,
@@ -616,10 +645,14 @@ namespace CoreWCF.Channels
                 if ((object)replyTo == (object)EndpointAddress.AnonymousAddress)
                 {
                     if (version == AddressingVersion.WSAddressing10)
+                    {
                         return AnonymousReplyTo10;
+                    }
                     else
+                    {
                         //return AnonymousReplyTo200408;
                         throw new PlatformNotSupportedException($"Addressing version {version.ToString()} not supported");
+                    }
                 }
                 return new ReplyToHeader(replyTo, version);
             }
@@ -635,46 +668,45 @@ namespace CoreWCF.Channels
             return EndpointAddress.ReadFrom(version, reader);
         }
 
-        class FullReplyToHeader : ReplyToHeader
+        private class FullReplyToHeader : ReplyToHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullReplyToHeader(EndpointAddress replyTo, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(replyTo, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
 
-    class MessageIDHeader : AddressingHeader
+    internal class MessageIDHeader : AddressingHeader
     {
-        UniqueId messageId;
-        const bool mustUnderstandValue = false;
+        private const bool mustUnderstandValue = false;
 
-        MessageIDHeader(UniqueId messageId, AddressingVersion version)
+        private MessageIDHeader(UniqueId messageId, AddressingVersion version)
             : base(version)
         {
-            this.messageId = messageId;
+            MessageId = messageId;
         }
 
         public override XmlDictionaryString DictionaryName
@@ -682,10 +714,7 @@ namespace CoreWCF.Channels
             get { return XD.AddressingDictionary.MessageId; }
         }
 
-        public UniqueId MessageId
-        {
-            get { return messageId; }
-        }
+        public UniqueId MessageId { get; }
 
         public override bool MustUnderstand
         {
@@ -694,16 +723,22 @@ namespace CoreWCF.Channels
 
         public static MessageIDHeader Create(UniqueId messageId, AddressingVersion addressingVersion)
         {
-            if (object.ReferenceEquals(messageId, null))
+            if (ReferenceEquals(messageId, null))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
+            }
+
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
             return new MessageIDHeader(messageId, addressingVersion);
         }
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            writer.WriteValue(messageId);
+            writer.WriteValue(MessageId);
         }
 
         public static UniqueId ReadHeaderValue(XmlDictionaryReader reader, AddressingVersion version)
@@ -727,47 +762,46 @@ namespace CoreWCF.Channels
             }
         }
 
-        class FullMessageIDHeader : MessageIDHeader
+        private class FullMessageIDHeader : MessageIDHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public FullMessageIDHeader(UniqueId messageId, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(messageId, version)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
         }
     }
 
-    class RelatesToHeader : AddressingHeader
+    internal class RelatesToHeader : AddressingHeader
     {
-        UniqueId messageId;
-        const bool mustUnderstandValue = false;
+        private const bool mustUnderstandValue = false;
         internal static readonly Uri ReplyRelationshipType = new Uri(Addressing10Strings.ReplyRelationship);
 
-        RelatesToHeader(UniqueId messageId, AddressingVersion version)
+        private RelatesToHeader(UniqueId messageId, AddressingVersion version)
             : base(version)
         {
-            this.messageId = messageId;
+            UniqueId = messageId;
         }
 
         public override XmlDictionaryString DictionaryName
@@ -775,10 +809,7 @@ namespace CoreWCF.Channels
             get { return XD.AddressingDictionary.RelatesTo; }
         }
 
-        public UniqueId UniqueId
-        {
-            get { return messageId; }
-        }
+        public UniqueId UniqueId { get; }
 
         public override bool MustUnderstand
         {
@@ -792,21 +823,36 @@ namespace CoreWCF.Channels
 
         public static RelatesToHeader Create(UniqueId messageId, AddressingVersion addressingVersion)
         {
-            if (object.ReferenceEquals(messageId, null))
+            if (ReferenceEquals(messageId, null))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
+            }
+
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
             return new RelatesToHeader(messageId, addressingVersion);
         }
 
         public static RelatesToHeader Create(UniqueId messageId, AddressingVersion addressingVersion, Uri relationshipType)
         {
-            if (object.ReferenceEquals(messageId, null))
+            if (ReferenceEquals(messageId, null))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(messageId));
+            }
+
             if (addressingVersion == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
             if (relationshipType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(relationshipType));
+            }
+
             if (relationshipType == ReplyRelationshipType)
             {
                 return new RelatesToHeader(messageId, addressingVersion);
@@ -819,7 +865,7 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
-            writer.WriteValue(messageId);
+            writer.WriteValue(UniqueId);
         }
 
         public static void ReadHeaderValue(XmlDictionaryReader reader, AddressingVersion version, out Uri relationshipType, out UniqueId messageId)
@@ -846,9 +892,7 @@ namespace CoreWCF.Channels
         public static RelatesToHeader ReadHeader(XmlDictionaryReader reader, AddressingVersion version,
             string actor, bool mustUnderstand, bool relay)
         {
-            UniqueId messageId;
-            Uri relationship;
-            ReadHeaderValue(reader, version, out relationship, out messageId);
+            ReadHeaderValue(reader, version, out Uri relationship, out UniqueId messageId);
 
             if (actor.Length == 0 && mustUnderstand == mustUnderstandValue && !relay && (object)relationship == (object)ReplyRelationshipType)
             {
@@ -860,30 +904,30 @@ namespace CoreWCF.Channels
             }
         }
 
-        class FullRelatesToHeader : RelatesToHeader
+        private class FullRelatesToHeader : RelatesToHeader
         {
-            string actor;
-            bool mustUnderstand;
-            bool relay;
+            private readonly string _actor;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
             //Uri relationship;
 
             public FullRelatesToHeader(UniqueId messageId, string actor, bool mustUnderstand, bool relay, AddressingVersion version)
                 : base(messageId, version)
             {
                 //this.relationship = relationship;
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             /*
@@ -895,7 +939,7 @@ namespace CoreWCF.Channels
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
 
             protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
@@ -909,9 +953,8 @@ namespace CoreWCF.Channels
                     writer.WriteEndAttribute();
                 }
                 */
-                writer.WriteValue(messageId);
+                writer.WriteValue(UniqueId);
             }
         }
     }
-
 }

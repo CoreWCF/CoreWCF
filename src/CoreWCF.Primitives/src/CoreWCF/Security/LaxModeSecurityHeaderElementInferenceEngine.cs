@@ -1,18 +1,16 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Security.Cryptography.Xml;
 using System.Xml;
 
 namespace CoreWCF.Security
 {
-    class LaxModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
+    internal class LaxModeSecurityHeaderElementInferenceEngine : SecurityHeaderElementInferenceEngine
     {
-        static LaxModeSecurityHeaderElementInferenceEngine instance = new LaxModeSecurityHeaderElementInferenceEngine();
-
         protected LaxModeSecurityHeaderElementInferenceEngine() { }
 
-        internal static LaxModeSecurityHeaderElementInferenceEngine Instance
-        {
-            get { return instance; }
-        }
+        internal static LaxModeSecurityHeaderElementInferenceEngine Instance { get; } = new LaxModeSecurityHeaderElementInferenceEngine();
 
         public override void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader)
         {
@@ -40,8 +38,7 @@ namespace CoreWCF.Security
             bool primarySignatureFound = false;
             for (int position = 0; position < elementManager.Count; position++)
             {
-                ReceiveSecurityHeaderEntry entry;
-                elementManager.GetElementEntry(position, out entry);
+                elementManager.GetElementEntry(position, out ReceiveSecurityHeaderEntry entry);
                 if (entry.elementCategory == ReceiveSecurityHeaderElementCategory.Signature)
                 {
                     if (!messageSecurityMode)
@@ -50,12 +47,12 @@ namespace CoreWCF.Security
                         continue;
                     }
                     SignedXml signedXml = (SignedXml)entry.element;
-    
+
                     SignedInfo signedInfo = signedXml.Signature.SignedInfo;
                     bool targetsSignature = false;
                     if (signedInfo.References.Count == 1)
                     {
-                        Reference signedXmlReference = (Reference) signedInfo.References[0];
+                        Reference signedXmlReference = (Reference)signedInfo.References[0];
                         string uri = signedXmlReference.Uri;
                         string id;
                         if (uri != null && uri.Length > 1 && uri[0] == '#')
@@ -69,8 +66,7 @@ namespace CoreWCF.Security
                         }
                         for (int j = 0; j < elementManager.Count; j++)
                         {
-                            ReceiveSecurityHeaderEntry inner;
-                            elementManager.GetElementEntry(j, out inner);
+                            elementManager.GetElementEntry(j, out ReceiveSecurityHeaderEntry inner);
                             if (j != position && inner.elementCategory == ReceiveSecurityHeaderElementCategory.Signature && inner.id == id)
                             {
                                 targetsSignature = true;

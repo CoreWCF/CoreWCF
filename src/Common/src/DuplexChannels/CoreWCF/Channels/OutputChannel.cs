@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,7 +28,7 @@ namespace CoreWCF.Channels
                 return baseProperty;
             }
 
-            return default(T);
+            return default;
         }
 
         protected abstract Task OnSendAsync(Message message, CancellationToken token);
@@ -38,12 +41,16 @@ namespace CoreWCF.Channels
         public Task SendAsync(Message message, CancellationToken token)
         {
             if (message == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
 
             // TODO: Fix exception message as a negative timeout wasn't passed, a cancelled token was
             if (token.IsCancellationRequested)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     new ArgumentException(SR.SFxTimeoutOutOfRange0, nameof(token)));
+            }
 
             ThrowIfDisposedOrNotOpen();
 

@@ -1,21 +1,24 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections.Generic;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
-using System.Collections.Generic;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 
 namespace CoreWCF.Security
 {
     internal class SendSecurityHeaderElementContainer
     {
-        private List<SecurityToken> signedSupportingTokens = null;
-        private List<SendSecurityHeaderElement> basicSupportingTokens = null;
-        private List<SecurityToken> endorsingSupportingTokens = null;
-        private List<SecurityToken> endorsingDerivedSupportingTokens = null;
-        private List<SecurityToken> signedEndorsingSupportingTokens = null;
-        private List<SecurityToken> signedEndorsingDerivedSupportingTokens = null;
-        private List<SendSecurityHeaderElement> signatureConfirmations = null;
-        private List<SendSecurityHeaderElement> endorsingSignatures = null;
-        private Dictionary<SecurityToken, SecurityKeyIdentifierClause> securityTokenMappedToIdentifierClause = null;
+        private List<SecurityToken> _signedSupportingTokens = null;
+        private List<SendSecurityHeaderElement> _basicSupportingTokens = null;
+        private List<SecurityToken> _endorsingSupportingTokens = null;
+        private List<SecurityToken> _endorsingDerivedSupportingTokens = null;
+        private List<SecurityToken> _signedEndorsingSupportingTokens = null;
+        private List<SecurityToken> _signedEndorsingDerivedSupportingTokens = null;
+        private List<SendSecurityHeaderElement> _signatureConfirmations = null;
+        private List<SendSecurityHeaderElement> _endorsingSignatures = null;
+        private Dictionary<SecurityToken, SecurityKeyIdentifierClause> _securityTokenMappedToIdentifierClause = null;
 
         public SecurityTimestamp Timestamp;
         public SecurityToken PrerequisiteToken;
@@ -38,63 +41,63 @@ namespace CoreWCF.Security
 
         public SecurityToken[] GetSignedSupportingTokens()
         {
-            return (this.signedSupportingTokens != null) ? this.signedSupportingTokens.ToArray() : null;
+            return _signedSupportingTokens?.ToArray();
         }
 
-        public void AddSignedSupportingToken(SecurityToken token) => Add<SecurityToken>(ref this.signedSupportingTokens, token);
+        public void AddSignedSupportingToken(SecurityToken token) => Add<SecurityToken>(ref _signedSupportingTokens, token);
 
-        public List<SecurityToken> EndorsingSupportingTokens => this.endorsingSupportingTokens;
+        public List<SecurityToken> EndorsingSupportingTokens => _endorsingSupportingTokens;
 
-        public SendSecurityHeaderElement[] GetBasicSupportingTokens() => (this.basicSupportingTokens != null) ? this.basicSupportingTokens.ToArray() : null;
+        public SendSecurityHeaderElement[] GetBasicSupportingTokens() => _basicSupportingTokens?.ToArray();
 
-        public void AddBasicSupportingToken(SendSecurityHeaderElement tokenElement) => Add<SendSecurityHeaderElement>(ref this.basicSupportingTokens, tokenElement);
+        public void AddBasicSupportingToken(SendSecurityHeaderElement tokenElement) => Add<SendSecurityHeaderElement>(ref _basicSupportingTokens, tokenElement);
 
         public SecurityToken[] GetSignedEndorsingSupportingTokens()
         {
-            return (this.signedEndorsingSupportingTokens != null) ? this.signedEndorsingSupportingTokens.ToArray() : null;
+            return _signedEndorsingSupportingTokens?.ToArray();
         }
 
         public void AddSignedEndorsingSupportingToken(SecurityToken token)
         {
-            Add<SecurityToken>(ref this.signedEndorsingSupportingTokens, token);
+            Add<SecurityToken>(ref _signedEndorsingSupportingTokens, token);
         }
 
         public SecurityToken[] GetSignedEndorsingDerivedSupportingTokens()
         {
-            return (this.signedEndorsingDerivedSupportingTokens != null) ? this.signedEndorsingDerivedSupportingTokens.ToArray() : null;
+            return _signedEndorsingDerivedSupportingTokens?.ToArray();
         }
 
         public void AddSignedEndorsingDerivedSupportingToken(SecurityToken token)
         {
-            Add<SecurityToken>(ref this.signedEndorsingDerivedSupportingTokens, token);
+            Add<SecurityToken>(ref _signedEndorsingDerivedSupportingTokens, token);
         }
 
-        public SecurityToken[] GetEndorsingSupportingTokens() => (this.endorsingSupportingTokens != null) ? this.endorsingSupportingTokens.ToArray() : null;
+        public SecurityToken[] GetEndorsingSupportingTokens() => _endorsingSupportingTokens?.ToArray();
 
-        public void AddEndorsingSupportingToken(SecurityToken token) => Add<SecurityToken>(ref this.endorsingSupportingTokens, token);
+        public void AddEndorsingSupportingToken(SecurityToken token) => Add<SecurityToken>(ref _endorsingSupportingTokens, token);
 
-        public SecurityToken[] GetEndorsingDerivedSupportingTokens() => (this.endorsingDerivedSupportingTokens != null) ? this.endorsingDerivedSupportingTokens.ToArray() : null;
+        public SecurityToken[] GetEndorsingDerivedSupportingTokens() => _endorsingDerivedSupportingTokens?.ToArray();
 
-        public void AddEndorsingDerivedSupportingToken(SecurityToken token) => Add<SecurityToken>(ref this.endorsingDerivedSupportingTokens, token);
+        public void AddEndorsingDerivedSupportingToken(SecurityToken token) => Add<SecurityToken>(ref _endorsingDerivedSupportingTokens, token);
 
-        public SendSecurityHeaderElement[] GetSignatureConfirmations() => (this.signatureConfirmations != null) ? this.signatureConfirmations.ToArray() : null;
+        public SendSecurityHeaderElement[] GetSignatureConfirmations() => _signatureConfirmations?.ToArray();
 
-        public void AddSignatureConfirmation(SendSecurityHeaderElement confirmation) => Add<SendSecurityHeaderElement>(ref this.signatureConfirmations, confirmation);
+        public void AddSignatureConfirmation(SendSecurityHeaderElement confirmation) => Add<SendSecurityHeaderElement>(ref _signatureConfirmations, confirmation);
 
-        public SendSecurityHeaderElement[] GetEndorsingSignatures() => (this.endorsingSignatures != null) ? this.endorsingSignatures.ToArray() : null;
+        public SendSecurityHeaderElement[] GetEndorsingSignatures() => _endorsingSignatures?.ToArray();
 
-        public void AddEndorsingSignature(SendSecurityHeaderElement signature) => Add<SendSecurityHeaderElement>(ref this.endorsingSignatures, signature);
+        public void AddEndorsingSignature(SendSecurityHeaderElement signature) => Add<SendSecurityHeaderElement>(ref _endorsingSignatures, signature);
 
         public void MapSecurityTokenToStrClause(SecurityToken securityToken, SecurityKeyIdentifierClause keyIdentifierClause)
         {
-            if (this.securityTokenMappedToIdentifierClause == null)
+            if (_securityTokenMappedToIdentifierClause == null)
             {
-                this.securityTokenMappedToIdentifierClause = new Dictionary<SecurityToken, SecurityKeyIdentifierClause>();
+                _securityTokenMappedToIdentifierClause = new Dictionary<SecurityToken, SecurityKeyIdentifierClause>();
             }
 
-            if (!this.securityTokenMappedToIdentifierClause.ContainsKey(securityToken))
+            if (!_securityTokenMappedToIdentifierClause.ContainsKey(securityToken))
             {
-                this.securityTokenMappedToIdentifierClause.Add(securityToken, keyIdentifierClause);
+                _securityTokenMappedToIdentifierClause.Add(securityToken, keyIdentifierClause);
             }
         }
 
@@ -102,12 +105,12 @@ namespace CoreWCF.Security
         {
             keyIdentifierClause = null;
             if (securityToken == null
-                || this.securityTokenMappedToIdentifierClause == null
-                || !this.securityTokenMappedToIdentifierClause.TryGetValue(securityToken, out keyIdentifierClause))
+                || _securityTokenMappedToIdentifierClause == null
+                || !_securityTokenMappedToIdentifierClause.TryGetValue(securityToken, out keyIdentifierClause))
             {
                 return false;
             }
             return true;
-        }       
+        }
     }
 }

@@ -1,24 +1,23 @@
-using CoreWCF.Channels;
-using CoreWCF.Description;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
+using CoreWCF.Channels;
+using CoreWCF.Description;
 
 namespace CoreWCF.Security
 {
     internal abstract class SecurityHeader : MessageHeader
     {
-        private readonly string actor;
-        private readonly SecurityAlgorithmSuite algorithmSuite;
-        private bool encryptedKeyContainsReferenceList = true;
-        private Message message;
-        private readonly bool mustUnderstand;
-        private readonly bool relay;
-        private bool requireMessageProtection = true;
-        private bool processingStarted;
-        private bool maintainSignatureConfirmationState;
-        private readonly SecurityStandardsManager standardsManager;
-        private MessageDirection transferDirection;
-        private SecurityHeaderLayout layout = SecurityHeaderLayout.Strict;
+        private readonly string _actor;
+        private bool _encryptedKeyContainsReferenceList = true;
+        private readonly bool _mustUnderstand;
+        private readonly bool _relay;
+        private bool _requireMessageProtection = true;
+        private bool _processingStarted;
+        private bool _maintainSignatureConfirmationState;
+        private SecurityHeaderLayout _layout = SecurityHeaderLayout.Strict;
 
         public SecurityHeader(Message message,
             string actor, bool mustUnderstand, bool relay,
@@ -26,103 +25,82 @@ namespace CoreWCF.Security
             , SecurityAlgorithmSuite algorithmSuite,
             MessageDirection transferDirection)
         {
-            if (message == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
-            }
-            if (actor == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
-            }
-            if (standardsManager == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
-            }
-            if (algorithmSuite == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithmSuite));
-            }
-
-            this.message = message;
-            this.actor = actor;
-            this.mustUnderstand = mustUnderstand;
-            this.relay = relay;
-            this.standardsManager = standardsManager;
-            this.algorithmSuite = algorithmSuite;
-            this.transferDirection = transferDirection;
+            Message = message ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            _actor = actor ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(actor));
+            _mustUnderstand = mustUnderstand;
+            _relay = relay;
+            StandardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
+            AlgorithmSuite = algorithmSuite ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(algorithmSuite));
+            MessageDirection = transferDirection;
         }
 
-        public override string Actor => this.actor;
+        public override string Actor => _actor;
 
-        public SecurityAlgorithmSuite AlgorithmSuite => this.algorithmSuite;
+        public SecurityAlgorithmSuite AlgorithmSuite { get; }
 
         public bool EncryptedKeyContainsReferenceList
         {
-            get { return this.encryptedKeyContainsReferenceList; }
+            get { return _encryptedKeyContainsReferenceList; }
             set
             {
                 ThrowIfProcessingStarted();
-                this.encryptedKeyContainsReferenceList = value;
+                _encryptedKeyContainsReferenceList = value;
             }
         }
 
         public bool RequireMessageProtection
         {
-            get { return this.requireMessageProtection; }
+            get { return _requireMessageProtection; }
             set
             {
                 ThrowIfProcessingStarted();
-                this.requireMessageProtection = value;
+                _requireMessageProtection = value;
             }
         }
 
         public bool MaintainSignatureConfirmationState
         {
-            get { return this.maintainSignatureConfirmationState; }
+            get { return _maintainSignatureConfirmationState; }
             set
             {
                 ThrowIfProcessingStarted();
-                this.maintainSignatureConfirmationState = value;
+                _maintainSignatureConfirmationState = value;
             }
         }
 
-        protected Message Message
-        {
-            get { return this.message; }
-            set { this.message = value; }
-        }
+        protected Message Message { get; set; }
 
-        public override bool MustUnderstand => this.mustUnderstand;
+        public override bool MustUnderstand => _mustUnderstand;
 
-        public override bool Relay => this.relay;
+        public override bool Relay => _relay;
 
         public SecurityHeaderLayout Layout
         {
             get
             {
-                return this.layout;
+                return _layout;
             }
             set
             {
                 ThrowIfProcessingStarted();
-                this.layout = value;
+                _layout = value;
             }
         }
 
-        public SecurityStandardsManager StandardsManager => this.standardsManager;
+        public SecurityStandardsManager StandardsManager { get; }
 
-        public MessageDirection MessageDirection => this.transferDirection;
+        public MessageDirection MessageDirection { get; }
 
-        protected MessageVersion Version => this.message.Version;
+        protected MessageVersion Version => Message.Version;
 
         protected void SetProcessingStarted()
         {
-            this.processingStarted = true;
+            _processingStarted = true;
         }
 
         protected void ThrowIfProcessingStarted()
         {
-            if (this.processingStarted)
+            if (_processingStarted)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.OperationCannotBeDoneAfterProcessingIsStarted));
             }
@@ -130,7 +108,7 @@ namespace CoreWCF.Security
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.InvariantCulture, "{0}(Actor = '{1}')", GetType().Name, this.Actor);
+            return string.Format(CultureInfo.InvariantCulture, "{0}(Actor = '{1}')", GetType().Name, Actor);
         }
     }
 }

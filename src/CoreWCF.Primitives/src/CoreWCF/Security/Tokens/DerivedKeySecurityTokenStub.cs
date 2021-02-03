@@ -1,36 +1,38 @@
-﻿using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security.Tokens
 {
     internal sealed class DerivedKeySecurityTokenStub : SecurityToken
     {
-        private string id;
-        private string derivationAlgorithm;
-        private string label;
-        private int length;
-        private byte[] nonce;
-        private int offset;
-        private int generation;
-        private SecurityKeyIdentifierClause tokenToDeriveIdentifier;
+        private readonly string _id;
+        private readonly string _derivationAlgorithm;
+        private readonly string _label;
+        private readonly int _length;
+        private readonly byte[] _nonce;
+        private readonly int _offset;
+        private readonly int _generation;
 
         public DerivedKeySecurityTokenStub(int generation, int offset, int length,
             string label, byte[] nonce,
             SecurityKeyIdentifierClause tokenToDeriveIdentifier, string derivationAlgorithm, string id)
         {
-            this.id = id;
-            this.generation = generation;
-            this.offset = offset;
-            this.length = length;
-            this.label = label;
-            this.nonce = nonce;
-            this.tokenToDeriveIdentifier = tokenToDeriveIdentifier;
-            this.derivationAlgorithm = derivationAlgorithm;
+            _id = id;
+            _generation = generation;
+            _offset = offset;
+            _length = length;
+            _label = label;
+            _nonce = nonce;
+            TokenToDeriveIdentifier = tokenToDeriveIdentifier;
+            _derivationAlgorithm = derivationAlgorithm;
         }
 
-        public override string Id => this.id;
+        public override string Id => _id;
 
         public override DateTime ValidFrom => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotImplementedException());
 
@@ -38,12 +40,12 @@ namespace CoreWCF.Security.Tokens
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys => null;
 
-        public SecurityKeyIdentifierClause TokenToDeriveIdentifier => this.tokenToDeriveIdentifier;
+        public SecurityKeyIdentifierClause TokenToDeriveIdentifier { get; }
 
         public DerivedKeySecurityToken CreateToken(SecurityToken tokenToDerive, int maxKeyLength)
         {
-            DerivedKeySecurityToken result = new DerivedKeySecurityToken(this.generation, this.offset, this.length,
-                this.label, this.nonce, tokenToDerive, this.tokenToDeriveIdentifier, this.derivationAlgorithm, this.Id);
+            DerivedKeySecurityToken result = new DerivedKeySecurityToken(_generation, _offset, _length,
+                _label, _nonce, tokenToDerive, TokenToDeriveIdentifier, _derivationAlgorithm, Id);
             result.InitializeDerivedKey(maxKeyLength);
             return result;
         }

@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Globalization;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    sealed class EncryptedKeyHashIdentifierClause : BinaryKeyIdentifierClause
+    internal sealed class EncryptedKeyHashIdentifierClause : BinaryKeyIdentifierClause
     {
         public EncryptedKeyHashIdentifierClause(byte[] encryptedKeyHash)
             : this(encryptedKeyHash, true)

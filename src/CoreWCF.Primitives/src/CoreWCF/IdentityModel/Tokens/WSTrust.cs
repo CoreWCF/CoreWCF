@@ -1,33 +1,29 @@
-﻿namespace CoreWCF.IdentityModel.Security
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+namespace CoreWCF.IdentityModel.Security
 {
     using System;
     using System.Collections.Generic;
+    using System.Xml;
     using CoreWCF.IdentityModel;
     using CoreWCF.IdentityModel.Selectors;
     using CoreWCF.IdentityModel.Tokens;
     using CoreWCF.Security;
     using CoreWCF.Security.Tokens;
-    using System.Xml;
     using KeyIdentifierClauseEntry = CoreWCF.IdentityModel.Selectors.SecurityTokenSerializer.KeyIdentifierClauseEntry;
 
     internal class WSTrust : SecurityTokenSerializer.SerializerEntries
     {
-        KeyInfoSerializer securityTokenSerializer;
-        TrustDictionary serializerDictionary;
+        private readonly KeyInfoSerializer _securityTokenSerializer;
 
         public WSTrust(KeyInfoSerializer securityTokenSerializer, TrustDictionary serializerDictionary)
         {
-            this.securityTokenSerializer = securityTokenSerializer;
-            this.serializerDictionary = serializerDictionary;
+            _securityTokenSerializer = securityTokenSerializer;
+            SerializerDictionary = serializerDictionary;
         }
 
-        public TrustDictionary SerializerDictionary
-        {
-            get
-            {
-                return this.serializerDictionary;
-            }
-        }
+        public TrustDictionary SerializerDictionary { get; }
 
         public override void PopulateTokenEntries(IList<SecurityTokenSerializer.TokenEntry> tokenEntryList)
         {
@@ -40,57 +36,58 @@
             keyIdentifierClauseEntries.Add(new GenericXmlSecurityKeyIdentifierClauseEntry(this));
         }
 
-        class BinarySecretTokenEntry : SecurityTokenSerializer.TokenEntry
+        private class BinarySecretTokenEntry : SecurityTokenSerializer.TokenEntry
         {
-            WSTrust parent;
+            private readonly WSTrust _parent;
 
             public BinarySecretTokenEntry(WSTrust parent)
             {
-                this.parent = parent;
+                _parent = parent;
             }
 
-            protected override XmlDictionaryString LocalName { get { return parent.SerializerDictionary.BinarySecret; } }
-            protected override XmlDictionaryString NamespaceUri { get { return parent.SerializerDictionary.Namespace; } }
+            protected override XmlDictionaryString LocalName { get { return _parent.SerializerDictionary.BinarySecret; } }
+            protected override XmlDictionaryString NamespaceUri { get { return _parent.SerializerDictionary.Namespace; } }
             protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(BinarySecretSecurityToken) }; }
             public override string TokenTypeUri { get { return null; } }
             protected override string ValueTypeUri { get { return null; } }
-
         }
 
         internal class BinarySecretClauseEntry : KeyIdentifierClauseEntry
         {
-            WSTrust parent;
-            TrustDictionary otherDictionary = null;
+            private readonly WSTrust _parent;
+            private readonly TrustDictionary _otherDictionary = null;
 
             public BinarySecretClauseEntry(WSTrust parent)
             {
-                this.parent = parent;
+                _parent = parent;
 
-                this.otherDictionary = null;
+                _otherDictionary = null;
 
                 if (parent.SerializerDictionary is TrustDec2005Dictionary)
                 {
-                    this.otherDictionary = parent.securityTokenSerializer.DictionaryManager.TrustFeb2005Dictionary;
+                    _otherDictionary = parent._securityTokenSerializer.DictionaryManager.TrustFeb2005Dictionary;
                 }
 
                 if (parent.SerializerDictionary is TrustFeb2005Dictionary)
                 {
-                    this.otherDictionary = parent.securityTokenSerializer.DictionaryManager.TrustDec2005Dictionary;
+                    _otherDictionary = parent._securityTokenSerializer.DictionaryManager.TrustDec2005Dictionary;
                 }
 
                 // always set it, so we don't have to worry about null
-                if (this.otherDictionary == null)
-                    this.otherDictionary = this.parent.SerializerDictionary;
+                if (_otherDictionary == null)
+                {
+                    _otherDictionary = _parent.SerializerDictionary;
+                }
             }
 
             protected override XmlDictionaryString LocalName
             {
-                get { return this.parent.SerializerDictionary.BinarySecret; }
+                get { return _parent.SerializerDictionary.BinarySecret; }
             }
 
             protected override XmlDictionaryString NamespaceUri
             {
-                get { return this.parent.SerializerDictionary.Namespace; }
+                get { return _parent.SerializerDictionary.Namespace; }
             }
 
             public override SecurityKeyIdentifierClause ReadKeyIdentifierClauseCore(XmlDictionaryReader reader)
@@ -106,14 +103,14 @@
 
             public override bool CanReadKeyIdentifierClauseCore(XmlDictionaryReader reader)
             {
-                return (reader.IsStartElement(this.LocalName, this.NamespaceUri) || reader.IsStartElement(this.LocalName, this.otherDictionary.Namespace));
+                return (reader.IsStartElement(LocalName, NamespaceUri) || reader.IsStartElement(LocalName, _otherDictionary.Namespace));
             }
 
             public override void WriteKeyIdentifierClauseCore(XmlDictionaryWriter writer, SecurityKeyIdentifierClause keyIdentifierClause)
             {
                 BinarySecretKeyIdentifierClause skic = keyIdentifierClause as BinarySecretKeyIdentifierClause;
                 byte[] secret = skic.GetKeyBytes();
-                writer.WriteStartElement(this.parent.SerializerDictionary.Prefix.Value, this.parent.SerializerDictionary.BinarySecret, this.parent.SerializerDictionary.Namespace);
+                writer.WriteStartElement(_parent.SerializerDictionary.Prefix.Value, _parent.SerializerDictionary.BinarySecret, _parent.SerializerDictionary.Namespace);
                 writer.WriteBase64(secret, 0, secret.Length);
                 writer.WriteEndElement();
             }
@@ -121,11 +118,11 @@
 
         internal class GenericXmlSecurityKeyIdentifierClauseEntry : KeyIdentifierClauseEntry
         {
-            private WSTrust parent;
+            private readonly WSTrust _parent;
 
             public GenericXmlSecurityKeyIdentifierClauseEntry(WSTrust parent)
             {
-                this.parent = parent;
+                _parent = parent;
             }
 
             protected override XmlDictionaryString LocalName
@@ -164,7 +161,10 @@
         {
             value = null;
             if (element.LocalName != name || element.NamespaceURI != ns)
+            {
                 return false;
+            }
+
             if (element.FirstChild is XmlText)
             {
                 value = ((XmlText)element.FirstChild).Value;

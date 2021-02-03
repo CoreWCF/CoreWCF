@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
@@ -15,9 +18,9 @@ namespace CoreWCF.Channels
     internal class RequestDelegateHandler
     {
         internal const long DefaultMaxBufferPoolSize = 512 * 1024;
-        private IServiceDispatcher _serviceDispatcher;
-        private IDefaultCommunicationTimeouts _timeouts;
-        private IServiceScopeFactory _servicesScopeFactory;
+        private readonly IServiceDispatcher _serviceDispatcher;
+        private readonly IDefaultCommunicationTimeouts _timeouts;
+        private readonly IServiceScopeFactory _servicesScopeFactory;
         private HttpTransportSettings _httpSettings;
         private AspNetCoreReplyChannel _replyChannel;
         private Task<IServiceChannelDispatcher> _replyChannelDispatcherTask;
@@ -35,34 +38,36 @@ namespace CoreWCF.Channels
 
         private void BuildHandler()
         {
-            var be = _serviceDispatcher.Binding.CreateBindingElements();
-            var mebe = be.Find<MessageEncodingBindingElement>();
+            BindingElementCollection be = _serviceDispatcher.Binding.CreateBindingElements();
+            MessageEncodingBindingElement mebe = be.Find<MessageEncodingBindingElement>();
             if (mebe == null)
             {
                 throw new ArgumentException("Must provide a MessageEncodingBindingElement", nameof(_serviceDispatcher.Binding));
             }
 
-            var tbe = be.Find<HttpTransportBindingElement>();
+            HttpTransportBindingElement tbe = be.Find<HttpTransportBindingElement>();
             if (tbe == null)
             {
                 throw new ArgumentException("Must provide a HttpTransportBindingElement", nameof(_serviceDispatcher.Binding));
             }
 
-            var httpSettings = new HttpTransportSettings();
-            httpSettings.BufferManager = BufferManager.CreateBufferManager(DefaultMaxBufferPoolSize, tbe.MaxBufferSize);
-            httpSettings.OpenTimeout = _serviceDispatcher.Binding.OpenTimeout;
-            httpSettings.ReceiveTimeout = _serviceDispatcher.Binding.ReceiveTimeout;
-            httpSettings.SendTimeout = _serviceDispatcher.Binding.SendTimeout;
-            httpSettings.CloseTimeout = _serviceDispatcher.Binding.CloseTimeout;
-            httpSettings.MaxBufferSize = tbe.MaxBufferSize;
-            httpSettings.MaxReceivedMessageSize = tbe.MaxReceivedMessageSize;
-            httpSettings.MessageEncoderFactory = mebe.CreateMessageEncoderFactory();
-            httpSettings.ManualAddressing = tbe.ManualAddressing;
-            httpSettings.TransferMode = tbe.TransferMode;
-            httpSettings.KeepAliveEnabled = tbe.KeepAliveEnabled;
-            httpSettings.AnonymousUriPrefixMatcher = new HttpAnonymousUriPrefixMatcher();
-            httpSettings.AuthenticationScheme = tbe.AuthenticationScheme;
-            httpSettings.WebSocketSettings = tbe.WebSocketSettings.Clone();
+            var httpSettings = new HttpTransportSettings
+            {
+                BufferManager = BufferManager.CreateBufferManager(DefaultMaxBufferPoolSize, tbe.MaxBufferSize),
+                OpenTimeout = _serviceDispatcher.Binding.OpenTimeout,
+                ReceiveTimeout = _serviceDispatcher.Binding.ReceiveTimeout,
+                SendTimeout = _serviceDispatcher.Binding.SendTimeout,
+                CloseTimeout = _serviceDispatcher.Binding.CloseTimeout,
+                MaxBufferSize = tbe.MaxBufferSize,
+                MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
+                MessageEncoderFactory = mebe.CreateMessageEncoderFactory(),
+                ManualAddressing = tbe.ManualAddressing,
+                TransferMode = tbe.TransferMode,
+                KeepAliveEnabled = tbe.KeepAliveEnabled,
+                AnonymousUriPrefixMatcher = new HttpAnonymousUriPrefixMatcher(),
+                AuthenticationScheme = tbe.AuthenticationScheme,
+                WebSocketSettings = tbe.WebSocketSettings.Clone()
+            };
 
             _httpSettings = httpSettings;
             WebSocketOptions = CreateWebSocketOptions(tbe);
@@ -70,7 +75,7 @@ namespace CoreWCF.Channels
             if (WebSocketOptions == null)
             {
                 _replyChannel = new AspNetCoreReplyChannel(_servicesScopeFactory.CreateScope().ServiceProvider, _httpSettings);
-                _replyChannelDispatcherTask =  _serviceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
+                _replyChannelDispatcherTask = _serviceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
             }
         }
 
@@ -104,14 +109,14 @@ namespace CoreWCF.Channels
             }
             else
             {
-                var openTimeoutToken = new TimeoutHelper(((IDefaultCommunicationTimeouts)_httpSettings).OpenTimeout).GetCancellationToken();
-                var webSocketContext = await AcceptWebSocketAsync(context, openTimeoutToken);
+                CancellationToken openTimeoutToken = new TimeoutHelper(((IDefaultCommunicationTimeouts)_httpSettings).OpenTimeout).GetCancellationToken();
+                WebSocketContext webSocketContext = await AcceptWebSocketAsync(context, openTimeoutToken);
                 if (webSocketContext == null)
                 {
                     return;
                 }
 
-                var channel = new ServerWebSocketTransportDuplexSessionChannel(context, webSocketContext, _httpSettings, _serviceDispatcher.BaseAddress,_servicesScopeFactory.CreateScope().ServiceProvider);
+                var channel = new ServerWebSocketTransportDuplexSessionChannel(context, webSocketContext, _httpSettings, _serviceDispatcher.BaseAddress, _servicesScopeFactory.CreateScope().ServiceProvider);
                 channel.ChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
                 await channel.StartReceivingAsync();
             }
@@ -189,7 +194,6 @@ namespace CoreWCF.Channels
             if (context.WebSockets.IsWebSocketRequest)
             {
                 WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                
             }
         }
     }

@@ -1,33 +1,21 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Xml;
 
 namespace CoreWCF.Security
 {
     public abstract class SecureConversationVersion
     {
-        readonly XmlDictionaryString scNamespace;
-        readonly XmlDictionaryString prefix;
-        
         internal SecureConversationVersion(XmlDictionaryString ns, XmlDictionaryString prefix)
         {
-            this.scNamespace = ns;
-            this.prefix = prefix;
+            Namespace = ns;
+            Prefix = prefix;
         }
 
-        public XmlDictionaryString Namespace
-        {
-            get
-            {
-                return this.scNamespace;
-            }
-        }
+        public XmlDictionaryString Namespace { get; }
 
-        public XmlDictionaryString Prefix
-        {
-            get
-            {
-                return this.prefix;
-            }
-        }
+        public XmlDictionaryString Prefix { get; }
 
         public static SecureConversationVersion Default
         {
@@ -44,9 +32,9 @@ namespace CoreWCF.Security
             get { return WSSecureConversationVersion13.Instance; }
         }
 
-        class WSSecureConversationVersionFeb2005 : SecureConversationVersion
+        private class WSSecureConversationVersionFeb2005 : SecureConversationVersion
         {
-            static readonly WSSecureConversationVersionFeb2005 instance = new WSSecureConversationVersionFeb2005();
+            private static readonly WSSecureConversationVersionFeb2005 s_instance = new WSSecureConversationVersionFeb2005();
 
             protected WSSecureConversationVersionFeb2005()
                 : base(XD.SecureConversationFeb2005Dictionary.Namespace, XD.SecureConversationFeb2005Dictionary.Prefix)
@@ -57,14 +45,14 @@ namespace CoreWCF.Security
             {
                 get
                 {
-                    return instance;
+                    return s_instance;
                 }
             }
         }
 
-        class WSSecureConversationVersion13 : SecureConversationVersion
+        private class WSSecureConversationVersion13 : SecureConversationVersion
         {
-            static readonly WSSecureConversationVersion13 instance = new WSSecureConversationVersion13();
+            private static readonly WSSecureConversationVersion13 s_instance = new WSSecureConversationVersion13();
 
             protected WSSecureConversationVersion13()
                 : base(DXD.SecureConversationDec2005Dictionary.Namespace, DXD.SecureConversationDec2005Dictionary.Prefix)
@@ -75,7 +63,7 @@ namespace CoreWCF.Security
             {
                 get
                 {
-                    return instance;
+                    return s_instance;
                 }
             }
         }

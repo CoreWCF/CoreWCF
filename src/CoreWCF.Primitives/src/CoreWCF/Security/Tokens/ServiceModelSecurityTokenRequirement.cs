@@ -1,48 +1,48 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Channels;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Globalization;
 using System.Text;
+using CoreWCF.Channels;
+using CoreWCF.IdentityModel.Selectors;
 
 namespace CoreWCF.Security.Tokens
 {
     public abstract class ServiceModelSecurityTokenRequirement : SecurityTokenRequirement
     {
         protected const string Namespace = "http://schemas.microsoft.com/ws/2006/05/servicemodel/securitytokenrequirement";
-        const string securityAlgorithmSuiteProperty = Namespace + "/SecurityAlgorithmSuite";
-        const string securityBindingElementProperty = Namespace + "/SecurityBindingElement";
-        const string issuerAddressProperty = Namespace + "/IssuerAddress";
-        const string issuerBindingProperty = Namespace + "/IssuerBinding";
-        const string secureConversationSecurityBindingElementProperty = Namespace + "/SecureConversationSecurityBindingElement";
-        const string supportSecurityContextCancellationProperty = Namespace + "/SupportSecurityContextCancellation";
-        const string messageSecurityVersionProperty = Namespace + "/MessageSecurityVersion";
-        const string defaultMessageSecurityVersionProperty = Namespace + "/DefaultMessageSecurityVersion";
-        const string issuerBindingContextProperty = Namespace + "/IssuerBindingContext";
-        const string transportSchemeProperty = Namespace + "/TransportScheme";
-        const string isInitiatorProperty = Namespace + "/IsInitiator";
-        const string targetAddressProperty = Namespace + "/TargetAddress";
-        const string viaProperty = Namespace + "/Via";
-        const string listenUriProperty = Namespace + "/ListenUri";
-        const string auditLogLocationProperty = Namespace + "/AuditLogLocation";
-        const string suppressAuditFailureProperty = Namespace + "/SuppressAuditFailure";
-        const string messageAuthenticationAuditLevelProperty = Namespace + "/MessageAuthenticationAuditLevel";
-        const string isOutOfBandTokenProperty = Namespace + "/IsOutOfBandToken";
-        const string preferSslCertificateAuthenticatorProperty = Namespace + "/PreferSslCertificateAuthenticator";
+        private const string securityAlgorithmSuiteProperty = Namespace + "/SecurityAlgorithmSuite";
+        private const string securityBindingElementProperty = Namespace + "/SecurityBindingElement";
+        private const string issuerAddressProperty = Namespace + "/IssuerAddress";
+        private const string issuerBindingProperty = Namespace + "/IssuerBinding";
+        private const string secureConversationSecurityBindingElementProperty = Namespace + "/SecureConversationSecurityBindingElement";
+        private const string supportSecurityContextCancellationProperty = Namespace + "/SupportSecurityContextCancellation";
+        private const string messageSecurityVersionProperty = Namespace + "/MessageSecurityVersion";
+        private const string defaultMessageSecurityVersionProperty = Namespace + "/DefaultMessageSecurityVersion";
+        private const string issuerBindingContextProperty = Namespace + "/IssuerBindingContext";
+        private const string transportSchemeProperty = Namespace + "/TransportScheme";
+        private const string isInitiatorProperty = Namespace + "/IsInitiator";
+        private const string targetAddressProperty = Namespace + "/TargetAddress";
+        private const string viaProperty = Namespace + "/Via";
+        private const string listenUriProperty = Namespace + "/ListenUri";
+        private const string auditLogLocationProperty = Namespace + "/AuditLogLocation";
+        private const string suppressAuditFailureProperty = Namespace + "/SuppressAuditFailure";
+        private const string messageAuthenticationAuditLevelProperty = Namespace + "/MessageAuthenticationAuditLevel";
+        private const string isOutOfBandTokenProperty = Namespace + "/IsOutOfBandToken";
+        private const string preferSslCertificateAuthenticatorProperty = Namespace + "/PreferSslCertificateAuthenticator";
 
         // the following properties dont have top level OM properties but are part of the property bag
-        const string supportingTokenAttachmentModeProperty = Namespace + "/SupportingTokenAttachmentMode";
-        const string messageDirectionProperty = Namespace + "/MessageDirection";
-        const string httpAuthenticationSchemeProperty = Namespace + "/HttpAuthenticationScheme";
-        const string issuedSecurityTokenParametersProperty = Namespace + "/IssuedSecurityTokenParameters";
-        const string privacyNoticeUriProperty = Namespace + "/PrivacyNoticeUri";
-        const string privacyNoticeVersionProperty = Namespace + "/PrivacyNoticeVersion";
-        const string duplexClientLocalAddressProperty = Namespace + "/DuplexClientLocalAddress";
-        const string endpointFilterTableProperty = Namespace + "/EndpointFilterTable";
-        const string channelParametersCollectionProperty = Namespace + "/ChannelParametersCollection";
-        const string extendedProtectionPolicy = Namespace + "/ExtendedProtectionPolicy";
-
-        const bool defaultSupportSecurityContextCancellation = false;
+        private const string supportingTokenAttachmentModeProperty = Namespace + "/SupportingTokenAttachmentMode";
+        private const string messageDirectionProperty = Namespace + "/MessageDirection";
+        private const string httpAuthenticationSchemeProperty = Namespace + "/HttpAuthenticationScheme";
+        private const string issuedSecurityTokenParametersProperty = Namespace + "/IssuedSecurityTokenParameters";
+        private const string privacyNoticeUriProperty = Namespace + "/PrivacyNoticeUri";
+        private const string privacyNoticeVersionProperty = Namespace + "/PrivacyNoticeVersion";
+        private const string duplexClientLocalAddressProperty = Namespace + "/DuplexClientLocalAddress";
+        private const string endpointFilterTableProperty = Namespace + "/EndpointFilterTable";
+        private const string channelParametersCollectionProperty = Namespace + "/ChannelParametersCollection";
+        private const string extendedProtectionPolicy = Namespace + "/ExtendedProtectionPolicy";
+        private const bool defaultSupportSecurityContextCancellation = false;
 
         protected ServiceModelSecurityTokenRequirement()
             : base()
@@ -50,36 +50,36 @@ namespace CoreWCF.Security.Tokens
             Properties[SupportSecurityContextCancellationProperty] = defaultSupportSecurityContextCancellation;
         }
 
-        static public string SecurityAlgorithmSuiteProperty { get { return securityAlgorithmSuiteProperty; } }
-        static public string SecurityBindingElementProperty { get { return securityBindingElementProperty; } }
-        static public string IssuerAddressProperty { get { return issuerAddressProperty; } }
-        static public string IssuerBindingProperty { get { return issuerBindingProperty; } }
-        static public string SecureConversationSecurityBindingElementProperty { get { return secureConversationSecurityBindingElementProperty; } }
-        static public string SupportSecurityContextCancellationProperty { get { return supportSecurityContextCancellationProperty; } }
-        static public string MessageSecurityVersionProperty { get { return messageSecurityVersionProperty; } }
-        static internal string DefaultMessageSecurityVersionProperty { get { return defaultMessageSecurityVersionProperty; } }
-        static public string IssuerBindingContextProperty { get { return issuerBindingContextProperty; } }
-        static public string TransportSchemeProperty { get { return transportSchemeProperty; } }
-        static public string IsInitiatorProperty { get { return isInitiatorProperty; } }
-        static public string TargetAddressProperty { get { return targetAddressProperty; } }
-        static public string ViaProperty { get { return viaProperty; } }
-        static public string ListenUriProperty { get { return listenUriProperty; } }
-        static public string AuditLogLocationProperty { get { return auditLogLocationProperty; } }
-        static public string SuppressAuditFailureProperty { get { return suppressAuditFailureProperty; } }
-        static public string MessageAuthenticationAuditLevelProperty { get { return messageAuthenticationAuditLevelProperty; } }
-        static public string IsOutOfBandTokenProperty { get { return isOutOfBandTokenProperty; } }
-        static public string PreferSslCertificateAuthenticatorProperty { get { return preferSslCertificateAuthenticatorProperty; } }
+        public static string SecurityAlgorithmSuiteProperty { get { return securityAlgorithmSuiteProperty; } }
+        public static string SecurityBindingElementProperty { get { return securityBindingElementProperty; } }
+        public static string IssuerAddressProperty { get { return issuerAddressProperty; } }
+        public static string IssuerBindingProperty { get { return issuerBindingProperty; } }
+        public static string SecureConversationSecurityBindingElementProperty { get { return secureConversationSecurityBindingElementProperty; } }
+        public static string SupportSecurityContextCancellationProperty { get { return supportSecurityContextCancellationProperty; } }
+        public static string MessageSecurityVersionProperty { get { return messageSecurityVersionProperty; } }
+        internal static string DefaultMessageSecurityVersionProperty { get { return defaultMessageSecurityVersionProperty; } }
+        public static string IssuerBindingContextProperty { get { return issuerBindingContextProperty; } }
+        public static string TransportSchemeProperty { get { return transportSchemeProperty; } }
+        public static string IsInitiatorProperty { get { return isInitiatorProperty; } }
+        public static string TargetAddressProperty { get { return targetAddressProperty; } }
+        public static string ViaProperty { get { return viaProperty; } }
+        public static string ListenUriProperty { get { return listenUriProperty; } }
+        public static string AuditLogLocationProperty { get { return auditLogLocationProperty; } }
+        public static string SuppressAuditFailureProperty { get { return suppressAuditFailureProperty; } }
+        public static string MessageAuthenticationAuditLevelProperty { get { return messageAuthenticationAuditLevelProperty; } }
+        public static string IsOutOfBandTokenProperty { get { return isOutOfBandTokenProperty; } }
+        public static string PreferSslCertificateAuthenticatorProperty { get { return preferSslCertificateAuthenticatorProperty; } }
 
-        static public string SupportingTokenAttachmentModeProperty { get { return supportingTokenAttachmentModeProperty; } }
-        static public string MessageDirectionProperty { get { return messageDirectionProperty; } }
-        static public string HttpAuthenticationSchemeProperty { get { return httpAuthenticationSchemeProperty; } }
-        static public string IssuedSecurityTokenParametersProperty { get { return issuedSecurityTokenParametersProperty; } }
-        static public string PrivacyNoticeUriProperty { get { return privacyNoticeUriProperty; } }
-        static public string PrivacyNoticeVersionProperty { get { return privacyNoticeVersionProperty; } }
-        static public string DuplexClientLocalAddressProperty { get { return duplexClientLocalAddressProperty; } }
-        static public string EndpointFilterTableProperty { get { return endpointFilterTableProperty; } }
-        static public string ChannelParametersCollectionProperty { get { return channelParametersCollectionProperty; } }
-        static public string ExtendedProtectionPolicy { get { return extendedProtectionPolicy; } }
+        public static string SupportingTokenAttachmentModeProperty { get { return supportingTokenAttachmentModeProperty; } }
+        public static string MessageDirectionProperty { get { return messageDirectionProperty; } }
+        public static string HttpAuthenticationSchemeProperty { get { return httpAuthenticationSchemeProperty; } }
+        public static string IssuedSecurityTokenParametersProperty { get { return issuedSecurityTokenParametersProperty; } }
+        public static string PrivacyNoticeUriProperty { get { return privacyNoticeUriProperty; } }
+        public static string PrivacyNoticeVersionProperty { get { return privacyNoticeVersionProperty; } }
+        public static string DuplexClientLocalAddressProperty { get { return duplexClientLocalAddressProperty; } }
+        public static string EndpointFilterTableProperty { get { return endpointFilterTableProperty; } }
+        public static string ChannelParametersCollectionProperty { get { return channelParametersCollectionProperty; } }
+        public static string ExtendedProtectionPolicy { get { return extendedProtectionPolicy; } }
 
         public bool IsInitiator
         {
@@ -109,7 +109,7 @@ namespace CoreWCF.Security.Tokens
             }
             set
             {
-                this.Properties[SecurityBindingElementProperty] = value;
+                Properties[SecurityBindingElementProperty] = value;
             }
         }
 
@@ -145,7 +145,7 @@ namespace CoreWCF.Security.Tokens
             }
             set
             {
-                this.Properties[SecureConversationSecurityBindingElementProperty] = value;
+                Properties[SecureConversationSecurityBindingElementProperty] = value;
             }
         }
 
@@ -157,7 +157,7 @@ namespace CoreWCF.Security.Tokens
             }
             set
             {
-                this.Properties[MessageSecurityVersionProperty] = value;
+                Properties[MessageSecurityVersionProperty] = value;
             }
         }
 
@@ -165,12 +165,11 @@ namespace CoreWCF.Security.Tokens
         {
             get
             {
-                MessageSecurityVersion messageSecurityVersion;
-                return (this.TryGetProperty<MessageSecurityVersion>(DefaultMessageSecurityVersionProperty, out messageSecurityVersion)) ? messageSecurityVersion : null;
+                return (TryGetProperty<MessageSecurityVersion>(DefaultMessageSecurityVersionProperty, out MessageSecurityVersion messageSecurityVersion)) ? messageSecurityVersion : null;
             }
             set
             {
-                this.Properties[DefaultMessageSecurityVersionProperty] = (object)value;
+                Properties[DefaultMessageSecurityVersionProperty] = (object)value;
             }
         }
 
@@ -212,8 +211,7 @@ namespace CoreWCF.Security.Tokens
 
         internal TValue GetPropertyOrDefault<TValue>(string propertyName, TValue defaultValue)
         {
-            TValue result;
-            if (!TryGetProperty<TValue>(propertyName, out result))
+            if (!TryGetProperty<TValue>(propertyName, out TValue result))
             {
                 result = defaultValue;
             }
@@ -235,5 +233,4 @@ namespace CoreWCF.Security.Tokens
             return sb.ToString().Trim();
         }
     }
-
 }

@@ -1,14 +1,17 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.Configuration;
-using Helpers;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Channels;
+using CoreWCF.Configuration;
+using Helpers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,7 +19,7 @@ namespace CoreWCF.Http.Tests
 {
     public class LargeRequestTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public LargeRequestTests(ITestOutputHelper output)
         {
@@ -28,14 +31,14 @@ namespace CoreWCF.Http.Tests
         public void EchoRoundtrip(Type startupType, System.ServiceModel.TransferMode clientTransferMode, int requestSize)
         {
             string testString = new string('a', requestSize);
-            var host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
             using (host)
             {
                 host.Start();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(Startup.GetClientBinding(clientTransferMode),
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-                var channel = factory.CreateChannel();
-                var result = channel.EchoString(testString);
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
                 ((System.ServiceModel.Channels.IChannel)channel).Close();
                 factory.Close();
@@ -44,11 +47,11 @@ namespace CoreWCF.Http.Tests
 
         public static IEnumerable<object[]> GetTestVariations()
         {
-            foreach (var requestSize in new int[] { 1024, 1024 * 1024, 10 * 1024 * 1024 })
+            foreach (int requestSize in new int[] { 1024, 1024 * 1024, 10 * 1024 * 1024 })
             {
-                foreach (var transferMode in new TransferMode[] { TransferMode.Buffered, TransferMode.Streamed })
+                foreach (TransferMode transferMode in new TransferMode[] { TransferMode.Buffered, TransferMode.Streamed })
                 {
-                    foreach (var clientTransferMode in new System.ServiceModel.TransferMode[] { System.ServiceModel.TransferMode.Buffered, System.ServiceModel.TransferMode.Streamed })
+                    foreach (System.ServiceModel.TransferMode clientTransferMode in new System.ServiceModel.TransferMode[] { System.ServiceModel.TransferMode.Buffered, System.ServiceModel.TransferMode.Streamed })
                     {
                         switch (transferMode)
                         {

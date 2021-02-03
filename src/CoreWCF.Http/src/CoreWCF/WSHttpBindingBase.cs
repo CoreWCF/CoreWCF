@@ -1,11 +1,14 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.ComponentModel;
 using System.Xml;
 using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-    public abstract class  WSHttpBindingBase : Binding //, IBindingRuntimePreferences
+    public abstract class WSHttpBindingBase : Binding //, IBindingRuntimePreferences
     {
         private TextMessageEncodingBindingElement _textEncoding;
 
@@ -36,7 +39,7 @@ namespace CoreWCF
             }
         }
 
-       // [DefaultValue(TransportDefaults.MaxBufferPoolSize)]
+        // [DefaultValue(TransportDefaults.MaxBufferPoolSize)]
         public long MaxBufferPoolSize
         {
             get { return HttpTransport.MaxBufferPoolSize; }
@@ -102,8 +105,10 @@ namespace CoreWCF
         {
             HttpTransport = new HttpTransportBindingElement();
             HttpsTransport = new HttpsTransportBindingElement();
-            _textEncoding = new TextMessageEncodingBindingElement();
-            _textEncoding.MessageVersion = MessageVersion.Soap12WSAddressing10;
+            _textEncoding = new TextMessageEncodingBindingElement
+            {
+                MessageVersion = MessageVersion.Soap12WSAddressing10
+            };
         }
 
         public override BindingElementCollection CreateBindingElements()
@@ -118,7 +123,7 @@ namespace CoreWCF
             {
                 bindingElements.Add(wsSecurity);
             }
-            
+
             // add encoding
             bindingElements.Add(_textEncoding);
 
@@ -131,5 +136,4 @@ namespace CoreWCF
         protected abstract TransportBindingElement GetTransport();
         protected abstract SecurityBindingElement CreateMessageSecurity();
     }
-
 }

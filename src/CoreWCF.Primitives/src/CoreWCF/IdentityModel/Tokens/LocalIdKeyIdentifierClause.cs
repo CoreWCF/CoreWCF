@@ -1,12 +1,14 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Globalization;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
     public class LocalIdKeyIdentifierClause : SecurityKeyIdentifierClause
     {
-        readonly string localId;
-        readonly Type[] ownerTypes;
+        private readonly Type[] _ownerTypes;
 
         public LocalIdKeyIdentifierClause(string localId)
             : this(localId, (Type[])null)
@@ -39,46 +41,53 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.LocalIdCannotBeEmpty);
             }
-            this.localId = localId;
-            this.ownerTypes = ownerTypes;
+            LocalId = localId;
+            _ownerTypes = ownerTypes;
         }
 
-        public string LocalId
-        {
-            get { return this.localId; }
-        }
+        public string LocalId { get; }
 
         public Type OwnerType
         {
-            get { return (this.ownerTypes == null || this.ownerTypes.Length == 0) ? null : this.ownerTypes[0]; }
+            get { return (_ownerTypes == null || _ownerTypes.Length == 0) ? null : _ownerTypes[0]; }
         }
 
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             LocalIdKeyIdentifierClause that = keyIdentifierClause as LocalIdKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(this.localId, this.OwnerType));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(LocalId, OwnerType));
         }
 
         public bool Matches(string localId, Type ownerType)
         {
             if (string.IsNullOrEmpty(localId))
-                return false;
-            if (this.localId != localId)
-                return false;
-            if (this.ownerTypes == null || ownerType == null)
-                return true;
-
-            for (int i = 0; i < this.ownerTypes.Length; ++i)
             {
-                if (this.ownerTypes[i] == null || this.ownerTypes[i] == ownerType)
+                return false;
+            }
+
+            if (LocalId != localId)
+            {
+                return false;
+            }
+
+            if (_ownerTypes == null || ownerType == null)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < _ownerTypes.Length; ++i)
+            {
+                if (_ownerTypes[i] == null || _ownerTypes[i] == ownerType)
+                {
                     return true;
+                }
             }
             return false;
         }
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.InvariantCulture, "LocalIdKeyIdentifierClause(LocalId = '{0}', Owner = '{1}')", this.LocalId, this.OwnerType);
+            return string.Format(CultureInfo.InvariantCulture, "LocalIdKeyIdentifierClause(LocalId = '{0}', Owner = '{1}')", LocalId, OwnerType);
         }
     }
 }

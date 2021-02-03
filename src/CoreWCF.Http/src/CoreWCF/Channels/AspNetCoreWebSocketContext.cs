@@ -1,20 +1,22 @@
-﻿using CoreWCF.Runtime;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
 using System.Net.WebSockets;
 using System.Security.Principal;
-using System.Text;
+using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace CoreWCF.Channels
 {
     internal class AspNetCoreWebSocketContext : WebSocketContext
     {
-        private HttpContext _httpContext;
-        private WebSocket _webSocket;
+        private readonly HttpContext _httpContext;
+        private readonly WebSocket _webSocket;
         private CookieCollection _cookieCollection;
         private NameValueCollection _headers;
         private bool? _isLocal;
@@ -35,7 +37,7 @@ namespace CoreWCF.Channels
                 if (_cookieCollection == null)
                 {
                     var cookieContainer = new CookieContainer();
-                    foreach(var item in _httpContext.Request.Cookies)
+                    foreach (KeyValuePair<string, string> item in _httpContext.Request.Cookies)
                     {
                         cookieContainer.SetCookies(RequestUri, item.Value);
                     }
@@ -54,10 +56,11 @@ namespace CoreWCF.Channels
                 if (_headers == null)
                 {
                     var headers = new NameValueCollection();
-                    foreach(var header in _httpContext.Request.Headers)
+                    foreach (KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues> header in _httpContext.Request.Headers)
                     {
                         headers.Add(header.Key, header.Value);
                     }
+                    _headers = headers;
                 }
 
                 return _headers;
@@ -72,7 +75,7 @@ namespace CoreWCF.Channels
             {
                 if (!_isLocal.HasValue)
                 {
-                    var connection = _httpContext.Connection;
+                    ConnectionInfo connection = _httpContext.Connection;
                     if (connection.RemoteIpAddress != null)
                     {
                         if (connection.RemoteIpAddress.Equals(connection.LocalIpAddress))

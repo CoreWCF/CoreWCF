@@ -1,49 +1,40 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using CoreWCF.Collections.Generic;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Description;
-using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
-using System.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
     public abstract class ServiceHostBase : CommunicationObject, IExtensibleObject<ServiceHostBase>, IDisposable
     {
         internal static readonly Uri EmptyUri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
+        private bool _initializeDescriptionHasFinished;
+        private TimeSpan _closeTimeout = ServiceDefaults.ServiceHostCloseTimeout;
+        private readonly ExtensionCollection<ServiceHostBase> _extensions;
+        private ReadOnlyCollection<Uri> _externalBaseAddresses;
+        private IDictionary<string, ContractDescription> _implementedContracts;
+        private readonly IInstanceContextManager _instances;
+        private TimeSpan _openTimeout = ServiceDefaults.OpenTimeout;
 
-        bool initializeDescriptionHasFinished;
-        UriSchemeKeyedCollection baseAddresses;
-        ChannelDispatcherCollection channelDispatchers;
-        TimeSpan closeTimeout = ServiceDefaults.ServiceHostCloseTimeout;
-        ServiceDescription description;
-        ExtensionCollection<ServiceHostBase> extensions;
-        ReadOnlyCollection<Uri> externalBaseAddresses;
-        IDictionary<string, ContractDescription> implementedContracts;
-        IInstanceContextManager instances;
-        TimeSpan openTimeout = ServiceDefaults.OpenTimeout;
-        ServiceCredentials readOnlyCredentials;
-        ServiceAuthorizationBehavior readOnlyAuthorization;
         //ServiceAuthenticationBehavior readOnlyAuthentication;
-        Dictionary<DispatcherBuilder.ListenUriInfo, Collection<ServiceEndpoint>> endpointsByListenUriInfo;
-        int busyCount;
         //EventTraceActivity eventTraceActivity;
 
+#pragma warning disable CS0067 // The event is never used - see issue #288
         public event EventHandler<UnknownMessageReceivedEventArgs> UnknownMessageReceived;
+#pragma warning restore CS0067 // The event is never used
 
         protected ServiceHostBase()
         {
-            baseAddresses = new UriSchemeKeyedCollection(ThisLock);
-            channelDispatchers = new ChannelDispatcherCollection(this, ThisLock);
-            extensions = new ExtensionCollection<ServiceHostBase>(this, ThisLock);
-            instances = new InstanceContextManager(ThisLock);
+            InternalBaseAddresses = new UriSchemeKeyedCollection(ThisLock);
+            ChannelDispatchers = new ChannelDispatcherCollection(this, ThisLock);
+            _extensions = new ExtensionCollection<ServiceHostBase>(this, ThisLock);
+            _instances = new InstanceContextManager(ThisLock);
         }
 
         public ServiceAuthorizationBehavior Authorization
@@ -60,7 +51,7 @@ namespace CoreWCF
                 }
                 else
                 {
-                    return readOnlyAuthorization;
+                    return null;
                 }
             }
         }
@@ -89,35 +80,32 @@ namespace CoreWCF
         {
             get
             {
-                externalBaseAddresses = new ReadOnlyCollection<Uri>(new List<Uri>(baseAddresses));
-                return externalBaseAddresses;
+                _externalBaseAddresses = new ReadOnlyCollection<Uri>(new List<Uri>(InternalBaseAddresses));
+                return _externalBaseAddresses;
             }
         }
 
-        public ChannelDispatcherCollection ChannelDispatchers
-        {
-            get { return channelDispatchers; }
-        }
+        public ChannelDispatcherCollection ChannelDispatchers { get; }
 
         public TimeSpan CloseTimeout
         {
-            get { return closeTimeout; }
+            get { return _closeTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
                 {
                     string message = SR.SFxTimeoutOutOfRange0;
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", message));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), message));
                 }
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.SFxTimeoutOutOfRangeTooBig));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 lock (ThisLock)
                 {
                     ThrowIfClosedOrOpened();
-                    closeTimeout = value;
+                    _closeTimeout = value;
                 }
             }
         }
@@ -136,7 +124,7 @@ namespace CoreWCF
                 }
                 else
                 {
-                    return readOnlyCredentials;
+                    return null;
                 }
             }
         }
@@ -151,25 +139,19 @@ namespace CoreWCF
             get { return OpenTimeout; }
         }
 
-        public ServiceDescription Description
-        {
-            get { return description; }
-        }
+        public ServiceDescription Description { get; private set; }
 
         public IExtensionCollection<ServiceHostBase> Extensions
         {
-            get { return extensions; }
+            get { return _extensions; }
         }
 
         protected internal IDictionary<string, ContractDescription> ImplementedContracts
         {
-            get { return implementedContracts; }
+            get { return _implementedContracts; }
         }
 
-        internal UriSchemeKeyedCollection InternalBaseAddresses
-        {
-            get { return baseAddresses; }
-        }
+        internal UriSchemeKeyedCollection InternalBaseAddresses { get; }
 
         public int ManualFlowControlLimit
         {
@@ -179,23 +161,23 @@ namespace CoreWCF
 
         public TimeSpan OpenTimeout
         {
-            get { return openTimeout; }
+            get { return _openTimeout; }
             set
             {
                 if (value < TimeSpan.Zero)
                 {
                     string message = SR.SFxTimeoutOutOfRange0;
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", message));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), message));
                 }
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value", SR.SFxTimeoutOutOfRangeTooBig));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 lock (ThisLock)
                 {
                     ThrowIfClosedOrOpened();
-                    openTimeout = value;
+                    _openTimeout = value;
                 }
             }
         }
@@ -210,57 +192,17 @@ namespace CoreWCF
 
         protected void AddBaseAddress(Uri baseAddress)
         {
-            if (initializeDescriptionHasFinished)
+            if (_initializeDescriptionHasFinished)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.SFxCannotCallAddBaseAddress));
             }
-            baseAddresses.Add(baseAddress);
-        }
-
-        public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, string address)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, string address, Uri listenUri)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, Uri address)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public ServiceEndpoint AddServiceEndpoint(string implementedContract, Binding binding, Uri address, Uri listenUri)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public virtual void AddServiceEndpoint(ServiceEndpoint endpoint)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public void SetEndpointAddress(ServiceEndpoint endpoint, string relativeAddress)
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        protected virtual void ApplyConfiguration()
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        public virtual ReadOnlyCollection<ServiceEndpoint> AddDefaultEndpoints()
-        {
-            throw new PlatformNotSupportedException();
+            InternalBaseAddresses.Add(baseAddress);
         }
 
         internal virtual void BindInstance(InstanceContext instance)
         {
-            instances.Add(instance);
+            _instances.Add(instance);
             //if (null != this.servicePerformanceCounters)
             //{
             //    lock (this.ThisLock)
@@ -285,7 +227,7 @@ namespace CoreWCF
             throw new PlatformNotSupportedException();
         }
 
-        ServiceAuthorizationBehavior EnsureAuthorization(ServiceDescription description)
+        private ServiceAuthorizationBehavior EnsureAuthorization(ServiceDescription description)
         {
             Fx.Assert(State == CommunicationState.Created || State == CommunicationState.Opening, "");
             ServiceAuthorizationBehavior a = description.Behaviors.Find<ServiceAuthorizationBehavior>();
@@ -312,7 +254,7 @@ namespace CoreWCF
         //    return a;
         //}
 
-        ServiceCredentials EnsureCredentials(ServiceDescription description)
+        private ServiceCredentials EnsureCredentials(ServiceDescription description)
         {
             Fx.Assert(State == CommunicationState.Created || State == CommunicationState.Opening, "");
             ServiceCredentials c = description.Behaviors.Find<ServiceCredentials>();
@@ -326,21 +268,20 @@ namespace CoreWCF
             return c;
         }
 
-        public int IncrementManualFlowControlLimit(int incrementBy)
-        {
-            throw new PlatformNotSupportedException();
-        }
+        //public int IncrementManualFlowControlLimit(int incrementBy)
+        //{
+        //    throw new PlatformNotSupportedException();
+        //}
 
         protected void InitializeDescription(UriSchemeKeyedCollection baseAddresses)
         {
             foreach (Uri baseAddress in baseAddresses)
             {
-                this.baseAddresses.Add(baseAddress);
+                InternalBaseAddresses.Add(baseAddress);
             }
 
-            description = CreateDescription(out implementedContracts);
-            ApplyConfiguration();
-            initializeDescriptionHasFinished = true;
+            Description = CreateDescription(out _implementedContracts);
+            _initializeDescriptionHasFinished = true;
         }
 
         // Configuration
@@ -368,19 +309,19 @@ namespace CoreWCF
             }
         }
 
-        void OnChannelDispatcherFaulted(object sender, EventArgs e)
+        private void OnChannelDispatcherFaulted(object sender, EventArgs e)
         {
             Fault();
         }
 
-        protected void ReleasePerformanceCounters()
-        {
-            throw new PlatformNotSupportedException();
-        }
+        //protected void ReleasePerformanceCounters()
+        //{
+        //    throw new PlatformNotSupportedException();
+        //}
 
         internal virtual void UnbindInstance(InstanceContext instance)
         {
-            instances.Remove(instance);
+            _instances.Remove(instance);
             //if (null != this.servicePerformanceCounters)
             //{
             //    lock (this.ThisLock)
@@ -393,44 +334,40 @@ namespace CoreWCF
             //}
         }
 
-        class ImplementedContractsContractResolver : IContractResolver
+        private class ImplementedContractsContractResolver : IContractResolver
         {
-            IDictionary<string, ContractDescription> implementedContracts;
+            private readonly IDictionary<string, ContractDescription> _implementedContracts;
 
             public ImplementedContractsContractResolver(IDictionary<string, ContractDescription> implementedContracts)
             {
-                this.implementedContracts = implementedContracts;
+                _implementedContracts = implementedContracts;
             }
 
             public ContractDescription ResolveContract(string contractName)
             {
-                return implementedContracts != null && implementedContracts.ContainsKey(contractName) ? implementedContracts[contractName] : null;
+                return _implementedContracts != null && _implementedContracts.ContainsKey(contractName) ? _implementedContracts[contractName] : null;
             }
         }
 
         internal class ServiceAndBehaviorsContractResolver : IContractResolver
         {
-            IContractResolver serviceResolver;
-            Dictionary<string, ContractDescription> behaviorContracts;
+            private readonly IContractResolver _serviceResolver;
 
-            public Dictionary<string, ContractDescription> BehaviorContracts
-            {
-                get { return behaviorContracts; }
-            }
+            public Dictionary<string, ContractDescription> BehaviorContracts { get; }
 
             public ServiceAndBehaviorsContractResolver(IContractResolver serviceResolver)
             {
-                this.serviceResolver = serviceResolver;
-                behaviorContracts = new Dictionary<string, ContractDescription>();
+                _serviceResolver = serviceResolver;
+                BehaviorContracts = new Dictionary<string, ContractDescription>();
             }
 
             public ContractDescription ResolveContract(string contractName)
             {
-                ContractDescription contract = serviceResolver.ResolveContract(contractName);
+                ContractDescription contract = _serviceResolver.ResolveContract(contractName);
 
                 if (contract == null)
                 {
-                    contract = behaviorContracts.ContainsKey(contractName) ? behaviorContracts[contractName] : null;
+                    contract = BehaviorContracts.ContainsKey(contractName) ? BehaviorContracts[contractName] : null;
                 }
 
                 return contract;

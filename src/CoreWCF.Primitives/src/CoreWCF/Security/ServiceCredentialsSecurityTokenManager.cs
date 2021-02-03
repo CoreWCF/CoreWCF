@@ -1,11 +1,14 @@
-﻿using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Net;
+using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Net;
 
 namespace CoreWCF.Security
 {
@@ -13,11 +16,7 @@ namespace CoreWCF.Security
     {
         public ServiceCredentialsSecurityTokenManager(ServiceCredentials parent)
         {
-            if (parent == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            }
-            this.ServiceCredentials = parent;
+            ServiceCredentials = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
         }
 
         public ServiceCredentials ServiceCredentials { get; }
@@ -28,8 +27,7 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
             }
-            MessageSecurityTokenVersion wsVersion = version as MessageSecurityTokenVersion;
-            if (wsVersion != null)
+            if (version is MessageSecurityTokenVersion wsVersion)
             {
                 SamlSerializer samlSerializer = null;
                 //TODO this will be implemented when we add WS-Federation support
@@ -50,7 +48,10 @@ namespace CoreWCF.Security
         {
             SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
             if (securityBindingElement == null)
-                throw CoreWCF.DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, (object)recipientRequirement));
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.TokenAuthenticatorRequiresSecurityBindingElement, (object)recipientRequirement));
+            }
+
             bool flag = !recipientRequirement.SupportSecurityContextCancellation;
             LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
             IMessageFilterTable<EndpointAddress> propertyOrDefault = recipientRequirement.GetPropertyOrDefault<IMessageFilterTable<EndpointAddress>>(ServiceModelSecurityTokenRequirement.EndpointFilterTableProperty, (IMessageFilterTable<EndpointAddress>)null);
@@ -100,10 +101,10 @@ namespace CoreWCF.Security
             tokenAuthenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
             tokenAuthenticator.EndpointFilterTable = propertyOrDefault;
             return (SecurityTokenAuthenticator)tokenAuthenticator;*/
-           
+
         }
 
-        SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
+        private SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
         {
             throw new PlatformNotSupportedException("SpnegoSecurityTokenAuthenticator");
             //SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
@@ -150,7 +151,7 @@ namespace CoreWCF.Security
             //return authenticator;
         }
 
-        SecurityTokenAuthenticator CreateTlsnegoClientX509TokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
+        private SecurityTokenAuthenticator CreateTlsnegoClientX509TokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
             throw new PlatformNotSupportedException("TlsnegoClientX509Token");
             //RecipientServiceModelSecurityTokenRequirement clientX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
@@ -163,7 +164,7 @@ namespace CoreWCF.Security
             //return this.CreateSecurityTokenAuthenticator(clientX509Requirement, out dummy);
         }
 
-        SecurityTokenProvider CreateTlsnegoServerX509TokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
+        private SecurityTokenProvider CreateTlsnegoServerX509TokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
             throw new PlatformNotSupportedException("TlsnegoServerX509Token");
             //RecipientServiceModelSecurityTokenRequirement serverX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
@@ -175,7 +176,7 @@ namespace CoreWCF.Security
             //return this.CreateSecurityTokenProvider(serverX509Requirement);
         }
 
-        SecurityTokenAuthenticator CreateTlsnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool requireClientCertificate, out SecurityTokenResolver sctResolver)
+        private SecurityTokenAuthenticator CreateTlsnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool requireClientCertificate, out SecurityTokenResolver sctResolver)
         {
             throw new PlatformNotSupportedException("TlsnegoSecurityToken");
             //SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
@@ -221,7 +222,7 @@ namespace CoreWCF.Security
             //return authenticator;
         }
 
-        X509SecurityTokenAuthenticator CreateClientX509TokenAuthenticator()
+        private X509SecurityTokenAuthenticator CreateClientX509TokenAuthenticator()
         {
             X509ClientCertificateAuthentication authentication = ServiceCredentials.ClientCertificate.Authentication;
             return new X509SecurityTokenAuthenticator(authentication.GetCertificateValidator(), authentication.MapClientCertificateToWindowsAccount, authentication.IncludeWindowsGroups);
@@ -284,7 +285,7 @@ namespace CoreWCF.Security
         //    return ssta;
         //}
 
-        X509SecurityTokenProvider CreateServerX509TokenProvider()
+        private X509SecurityTokenProvider CreateServerX509TokenProvider()
         {
             if (ServiceCredentials.ServiceCertificate.Certificate == null)
             {
@@ -318,8 +319,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            RecipientServiceModelSecurityTokenRequirement recipientRequirement = tokenRequirement as RecipientServiceModelSecurityTokenRequirement;
-            if (recipientRequirement == null)
+            if (!(tokenRequirement is RecipientServiceModelSecurityTokenRequirement recipientRequirement))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SecurityTokenManagerCannotCreateAuthenticatorForRequirement, tokenRequirement)));
             }
@@ -371,9 +371,7 @@ namespace CoreWCF.Security
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.SecureConversation)
             {
-               
                 result = CreateSecureConversationTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
-
             }
             else if ((tokenType == SecurityTokenTypes.Saml)
                 || (tokenType == SecurityXXX2005Strings.SamlTokenType)
@@ -385,12 +383,14 @@ namespace CoreWCF.Security
             }
 
             if (result == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SecurityTokenManagerCannotCreateAuthenticatorForRequirement, tokenRequirement)));
+            }
 
             return result;
         }
 
-        SecurityTokenProvider CreateLocalSecurityTokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
+        private SecurityTokenProvider CreateLocalSecurityTokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
             string tokenType = recipientRequirement.TokenType;
             SecurityTokenProvider result = null;
@@ -401,8 +401,7 @@ namespace CoreWCF.Security
             else if (tokenType == ServiceModelSecurityTokenTypes.SspiCredential)
             {
                 // if Transport Security, AuthenticationSchemes.Basic will look at parent.UserNameAuthentication settings.
-                AuthenticationSchemes authenticationScheme;
-                bool authenticationSchemeIdentified = recipientRequirement.TryGetProperty<AuthenticationSchemes>(ServiceModelSecurityTokenRequirement.HttpAuthenticationSchemeProperty, out authenticationScheme);
+                bool authenticationSchemeIdentified = recipientRequirement.TryGetProperty<AuthenticationSchemes>(ServiceModelSecurityTokenRequirement.HttpAuthenticationSchemeProperty, out AuthenticationSchemes authenticationScheme);
                 if (authenticationSchemeIdentified &&
                     authenticationScheme.IsSet(AuthenticationSchemes.Basic) &&
                     authenticationScheme.IsNotSet(AuthenticationSchemes.Digest | AuthenticationSchemes.Ntlm | AuthenticationSchemes.Negotiate))
@@ -429,7 +428,7 @@ namespace CoreWCF.Security
             return result;
         }
 
-        SecurityTokenProvider CreateUncorrelatedDuplexSecurityTokenProvider(InitiatorServiceModelSecurityTokenRequirement initiatorRequirement)
+        private SecurityTokenProvider CreateUncorrelatedDuplexSecurityTokenProvider(InitiatorServiceModelSecurityTokenRequirement initiatorRequirement)
         {
             string tokenType = initiatorRequirement.TokenType;
             SecurityTokenProvider result = null;
@@ -461,9 +460,8 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(requirement));
             }
 
-            RecipientServiceModelSecurityTokenRequirement recipientRequirement = requirement as RecipientServiceModelSecurityTokenRequirement;
             SecurityTokenProvider result = null;
-            if (recipientRequirement != null)
+            if (requirement is RecipientServiceModelSecurityTokenRequirement recipientRequirement)
             {
                 result = CreateLocalSecurityTokenProvider(recipientRequirement);
             }

@@ -1,21 +1,22 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Xml;
 
 namespace CoreWCF.Security
 {
     internal class SecurityStandardsManager
     {
         private static SecurityStandardsManager s_instance;
-        private readonly SecurityTokenSerializer _tokenSerializer;
         private WSSecurityTokenSerializer _wsSecurityTokenSerializer;
-        readonly TrustDriver trustDriver;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public SecurityStandardsManager()
@@ -31,10 +32,10 @@ namespace CoreWCF.Security
         public SecurityStandardsManager(MessageSecurityVersion messageSecurityVersion, SecurityTokenSerializer tokenSerializer)
         {
             MessageSecurityVersion = messageSecurityVersion ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(messageSecurityVersion)));
-            _tokenSerializer = tokenSerializer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
+            SecurityTokenSerializer = tokenSerializer ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenSerializer));
             if (messageSecurityVersion.SecureConversationVersion == SecureConversationVersion.WSSecureConversation13)
             {
-                 SecureConversationDriver = new WSSecureConversationDec2005.DriverDec2005();
+                SecureConversationDriver = new WSSecureConversationDec2005.DriverDec2005();
             }
             else
             {
@@ -52,9 +53,13 @@ namespace CoreWCF.Security
 
             WSUtilitySpecificationVersion = WSUtilitySpecificationVersion.Default;
             if (messageSecurityVersion.MessageSecurityTokenVersion.TrustVersion == TrustVersion.WSTrust13)
-                this.trustDriver = new WSTrustDec2005.DriverDec2005(this);
+            {
+                TrustDriver = new WSTrustDec2005.DriverDec2005(this);
+            }
             else
-                this.trustDriver = new WSTrustFeb2005.DriverFeb2005(this);
+            {
+                TrustDriver = new WSTrustFeb2005.DriverFeb2005(this);
+            }
         }
 
         public static SecurityStandardsManager DefaultInstance
@@ -82,10 +87,7 @@ namespace CoreWCF.Security
             get { return MessageSecurityVersion?.TrustVersion; }
         }
 
-        internal SecurityTokenSerializer SecurityTokenSerializer
-        {
-            get { return _tokenSerializer; }
-        }
+        internal SecurityTokenSerializer SecurityTokenSerializer { get; }
 
         internal WSUtilitySpecificationVersion WSUtilitySpecificationVersion { get; }
 
@@ -93,7 +95,7 @@ namespace CoreWCF.Security
 
         internal SecureConversationDriver SecureConversationDriver { get; }
 
-        internal TrustDriver TrustDriver { get { return trustDriver; } }
+        internal TrustDriver TrustDriver { get; }
 
         private WSSecurityTokenSerializer WSSecurityTokenSerializer
         {
@@ -101,8 +103,7 @@ namespace CoreWCF.Security
             {
                 if (_wsSecurityTokenSerializer == null)
                 {
-                    WSSecurityTokenSerializer wsSecurityTokenSerializer = _tokenSerializer as WSSecurityTokenSerializer;
-                    if (wsSecurityTokenSerializer == null)
+                    if (!(SecurityTokenSerializer is WSSecurityTokenSerializer wsSecurityTokenSerializer))
                     {
                         wsSecurityTokenSerializer = new WSSecurityTokenSerializer(SecurityVersion);
                     }
@@ -149,8 +150,8 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(results));
             }
-            SecureConversationDriver driver = this.SecureConversationDriver;
-            int securityHeaderIndex = this.SecurityVersion.FindIndexOfSecurityHeader(message, actors);
+            SecureConversationDriver driver = SecureConversationDriver;
+            int securityHeaderIndex = SecurityVersion.FindIndexOfSecurityHeader(message, actors);
             if (securityHeaderIndex < 0)
             {
                 return false;

@@ -1,12 +1,15 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Xml;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace CoreWCF.Security
 {
@@ -18,11 +21,9 @@ namespace CoreWCF.Security
 
         private static WSSecurityTokenSerializer s_instance;
         private readonly List<SerializerEntries> _serializerEntries;
-        private WSSecureConversation _secureConversation;
+        private readonly WSSecureConversation _secureConversation;
         private readonly List<TokenEntry> _tokenEntries = new List<TokenEntry>();
-        private int _maximumKeyDerivationNonceLength;
-
-        private KeyInfoSerializer _keyInfoSerializer;
+        private readonly KeyInfoSerializer _keyInfoSerializer;
 
         public WSSecurityTokenSerializer()
             : this(SecurityVersion.WSSecurity11)
@@ -84,7 +85,7 @@ namespace CoreWCF.Security
             SecurityVersion = securityVersion ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(securityVersion)));
             EmitBspRequiredAttributes = emitBspRequiredAttributes;
             MaximumKeyDerivationOffset = maximumKeyDerivationOffset;
-            _maximumKeyDerivationNonceLength = maximumKeyDerivationNonceLength;
+            MaximumKeyDerivationNonceLength = maximumKeyDerivationNonceLength;
             MaximumKeyDerivationLabelLength = maximumKeyDerivationLabelLength;
 
             _serializerEntries = new List<SerializerEntries>();
@@ -140,9 +141,11 @@ namespace CoreWCF.Security
                 serializerEntry.PopulateTokenEntries(_tokenEntries);
             }
 
-          DictionaryManager dictionaryManager = new DictionaryManager(ServiceModelDictionary.CurrentVersion);
-            dictionaryManager.SecureConversationDec2005Dictionary = DXD.SecureConversationDec2005Dictionary;
-            dictionaryManager.SecurityAlgorithmDec2005Dictionary = DXD.SecurityAlgorithmDec2005Dictionary;
+            DictionaryManager dictionaryManager = new DictionaryManager(ServiceModelDictionary.CurrentVersion)
+            {
+                SecureConversationDec2005Dictionary = DXD.SecureConversationDec2005Dictionary,
+                SecurityAlgorithmDec2005Dictionary = DXD.SecurityAlgorithmDec2005Dictionary
+            };
 
             _keyInfoSerializer = new WSKeyInfoSerializer(EmitBspRequiredAttributes, dictionaryManager, trustDictionary, this, securityVersion, secureConversationVersion);
         }
@@ -168,7 +171,7 @@ namespace CoreWCF.Security
 
         public int MaximumKeyDerivationLabelLength { get; }
 
-        public int MaximumKeyDerivationNonceLength => _maximumKeyDerivationNonceLength;
+        public int MaximumKeyDerivationNonceLength { get; }
 
         private bool ShouldWrapException(Exception e)
         {
@@ -418,7 +421,7 @@ namespace CoreWCF.Security
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.CannotReadToken, element.LocalName, element.NamespaceURI, element.GetAttribute(SecurityJan2004Strings.ValueType, null))));
         }
 
-        internal abstract new class TokenEntry
+        internal new abstract class TokenEntry
         {
             private Type[] _tokenTypes = null;
             protected abstract XmlDictionaryString LocalName { get; }
@@ -497,14 +500,14 @@ namespace CoreWCF.Security
             public abstract void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token);
         }
 
-        internal abstract new class SerializerEntries
+        internal new abstract class SerializerEntries
         {
             public virtual void PopulateTokenEntries(IList<TokenEntry> tokenEntries) { }
         }
 
         internal class CollectionDictionary : IXmlDictionary
         {
-            private List<XmlDictionaryString> _dictionaryStrings;
+            private readonly List<XmlDictionaryString> _dictionaryStrings;
 
             public CollectionDictionary(List<XmlDictionaryString> dictionaryStrings)
             {

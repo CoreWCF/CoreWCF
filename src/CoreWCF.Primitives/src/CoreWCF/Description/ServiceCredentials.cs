@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.ObjectModel;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
@@ -9,28 +12,19 @@ namespace CoreWCF.Description
 {
     public class ServiceCredentials : SecurityCredentialsManager, IServiceBehavior
     {
-        UserNamePasswordServiceCredential userName;
-        X509CertificateInitiatorServiceCredential clientCertificate;
-        X509CertificateRecipientServiceCredential serviceCertificate;
-        WindowsServiceCredential windows;
-        IssuedTokenServiceCredential issuedToken;
-        SecureConversationServiceCredential secureConversation;
-        bool useIdentityConfiguration = false;
-
-        bool isReadOnly = false;
-        bool saveBootstrapTokenInSession = true;
-
-        ExceptionMapper exceptionMapper;
+        private bool _isReadOnly = false;
+        private readonly bool _saveBootstrapTokenInSession = true;
+        private ExceptionMapper _exceptionMapper;
 
         public ServiceCredentials()
         {
-            userName = new UserNamePasswordServiceCredential();
-            clientCertificate = new X509CertificateInitiatorServiceCredential();
-            serviceCertificate = new X509CertificateRecipientServiceCredential();
-            windows = new WindowsServiceCredential();
-            this.issuedToken = new IssuedTokenServiceCredential();
-            this.secureConversation = new SecureConversationServiceCredential();
-            exceptionMapper = new ExceptionMapper();
+            UserNameAuthentication = new UserNamePasswordServiceCredential();
+            ClientCertificate = new X509CertificateInitiatorServiceCredential();
+            ServiceCertificate = new X509CertificateRecipientServiceCredential();
+            WindowsAuthentication = new WindowsServiceCredential();
+            IssuedTokenAuthentication = new IssuedTokenServiceCredential();
+            SecureConversationAuthentication = new SecureConversationServiceCredential();
+            _exceptionMapper = new ExceptionMapper();
         }
 
         protected ServiceCredentials(ServiceCredentials other)
@@ -39,63 +33,27 @@ namespace CoreWCF.Description
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
             }
-            userName = new UserNamePasswordServiceCredential(other.userName);
-            clientCertificate = new X509CertificateInitiatorServiceCredential(other.clientCertificate);
-            serviceCertificate = new X509CertificateRecipientServiceCredential(other.serviceCertificate);
-            windows = new WindowsServiceCredential(other.windows);
-            this.issuedToken = new IssuedTokenServiceCredential(other.issuedToken);
-            this.secureConversation = new SecureConversationServiceCredential(other.secureConversation);
-            saveBootstrapTokenInSession = other.saveBootstrapTokenInSession;
-            exceptionMapper = other.exceptionMapper;
+            UserNameAuthentication = new UserNamePasswordServiceCredential(other.UserNameAuthentication);
+            ClientCertificate = new X509CertificateInitiatorServiceCredential(other.ClientCertificate);
+            ServiceCertificate = new X509CertificateRecipientServiceCredential(other.ServiceCertificate);
+            WindowsAuthentication = new WindowsServiceCredential(other.WindowsAuthentication);
+            IssuedTokenAuthentication = new IssuedTokenServiceCredential(other.IssuedTokenAuthentication);
+            SecureConversationAuthentication = new SecureConversationServiceCredential(other.SecureConversationAuthentication);
+            _saveBootstrapTokenInSession = other._saveBootstrapTokenInSession;
+            _exceptionMapper = other._exceptionMapper;
         }
 
-        public UserNamePasswordServiceCredential UserNameAuthentication
-        {
-            get
-            {
-                return userName;
-            }
-        }
+        public UserNamePasswordServiceCredential UserNameAuthentication { get; }
 
-        public X509CertificateInitiatorServiceCredential ClientCertificate
-        {
-            get
-            {
-                return clientCertificate;
-            }
-        }
+        public X509CertificateInitiatorServiceCredential ClientCertificate { get; }
 
-        public X509CertificateRecipientServiceCredential ServiceCertificate
-        {
-            get
-            {
-                return serviceCertificate;
-            }
-        }
+        public X509CertificateRecipientServiceCredential ServiceCertificate { get; }
 
-        public WindowsServiceCredential WindowsAuthentication
-        {
-            get
-            {
-                return windows;
-            }
-        }
+        public WindowsServiceCredential WindowsAuthentication { get; }
 
-        public IssuedTokenServiceCredential IssuedTokenAuthentication
-        {
-            get
-            {
-                return this.issuedToken;
-            }
-        }
+        public IssuedTokenServiceCredential IssuedTokenAuthentication { get; }
 
-        public SecureConversationServiceCredential SecureConversationAuthentication
-        {
-            get
-            {
-                return this.secureConversation;
-            }
-        }
+        public SecureConversationServiceCredential SecureConversationAuthentication { get; }
 
         /// <summary>
         /// Gets or sets the ExceptionMapper to be used when throwing exceptions.
@@ -104,16 +62,12 @@ namespace CoreWCF.Description
         {
             get
             {
-                return exceptionMapper;
+                return _exceptionMapper;
             }
             set
             {
                 ThrowIfImmutable();
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-                exceptionMapper = value;
+                _exceptionMapper = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -165,37 +119,35 @@ namespace CoreWCF.Description
         {
             for (int i = 0; i < serviceHostBase.ChannelDispatchers.Count; i++)
             {
-                ChannelDispatcher channelDispatcher = serviceHostBase.ChannelDispatchers[i] as ChannelDispatcher;
                 // TODO: ServiceMetadataBehavior
-                //if (channelDispatcher != null && !ServiceMetadataBehavior.IsHttpGetMetadataDispatcher(description, channelDispatcher))
-                //{
-                //    foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
-                //    {
-                //        DispatchRuntime behavior = endpointDispatcher.DispatchRuntime;
-                //        behavior.RequireClaimsPrincipalOnOperationContext = this.useIdentityConfiguration;
-                //    }
-                //}
+                if (serviceHostBase.ChannelDispatchers[i] is ChannelDispatcher channelDispatcher /*&& !ServiceMetadataBehavior.IsHttpGetMetadataDispatcher(description, channelDispatcher)*/)
+                {
+                    foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
+                    {
+                        DispatchRuntime behavior = endpointDispatcher.DispatchRuntime;
+                        behavior.RequireClaimsPrincipalOnOperationContext = false; // _useIdentityConfiguration;
+                    }
+                }
             }
         }
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
             ClientCertificate.MakeReadOnly();
-            this.IssuedTokenAuthentication.MakeReadOnly();
-            this.SecureConversationAuthentication.MakeReadOnly();
+            IssuedTokenAuthentication.MakeReadOnly();
+            SecureConversationAuthentication.MakeReadOnly();
             ServiceCertificate.MakeReadOnly();
             UserNameAuthentication.MakeReadOnly();
             WindowsAuthentication.MakeReadOnly();
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
         }
-
     }
 }

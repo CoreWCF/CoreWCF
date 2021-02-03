@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -6,19 +9,19 @@ using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 
 namespace CoreWCF.Security
 {
-    sealed class ReferenceList : ISecurityElement
-   {
+    internal sealed class ReferenceList : ISecurityElement
+    {
         internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.ReferenceList;
-        const string NamespacePrefix = XmlEncryptionStrings.Prefix;
+        private const string NamespacePrefix = XmlEncryptionStrings.Prefix;
         internal static readonly XmlDictionaryString NamespaceUri = XD.XmlEncryptionDictionary.Namespace;// EncryptedType.NamespaceUri;
         internal static readonly XmlDictionaryString UriAttribute = XD.XmlEncryptionDictionary.URI;
-        List<string> referredIds = new List<string>();
+        private readonly List<string> _referredIds = new List<string>();
 
         public ReferenceList()
         {
         }
 
-        public int DataReferenceCount => this.referredIds.Count;
+        public int DataReferenceCount => _referredIds.Count;
 
         public bool HasId => false;
 
@@ -28,23 +31,23 @@ namespace CoreWCF.Security
         {
             if (id == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(id)));
             }
-            this.referredIds.Add(id);
+            _referredIds.Add(id);
         }
 
         public bool ContainsReferredId(string id)
         {
             if (id == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(id)));
             }
-            return this.referredIds.Contains(id);
+            return _referredIds.Contains(id);
         }
 
         public string GetReferredId(int index)
         {
-            return this.referredIds[index];
+            return _referredIds[index];
         }
 
         public void ReadFrom(XmlDictionaryReader reader)
@@ -53,15 +56,15 @@ namespace CoreWCF.Security
             while (reader.IsStartElement())
             {
                 string id = DataReference.ReadFrom(reader);
-                if (this.referredIds.Contains(id))
+                if (_referredIds.Contains(id))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                         new Exception(SR.Format("InvalidDataReferenceInReferenceList", "#" + id)));
                 }
-                this.referredIds.Add(id);
+                _referredIds.Add(id);
             }
             reader.ReadEndElement(); // ReferenceList
-            if (this.DataReferenceCount == 0)
+            if (DataReferenceCount == 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new Exception(SR.Format("ReferenceListCannotBeEmpty")));
             }
@@ -71,26 +74,26 @@ namespace CoreWCF.Security
         {
             if (id == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("id"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(id)));
             }
-            return this.referredIds.Remove(id);
+            return _referredIds.Remove(id);
         }
 
         public void WriteTo(XmlDictionaryWriter writer, DictionaryManager dictionaryManager)
         {
-            if (this.DataReferenceCount == 0)
+            if (DataReferenceCount == 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format("ReferenceListCannotBeEmpty")));
             }
             writer.WriteStartElement(NamespacePrefix, ElementName, NamespaceUri);
-            for (int i = 0; i < this.DataReferenceCount; i++)
+            for (int i = 0; i < DataReferenceCount; i++)
             {
-                DataReference.WriteTo(writer, this.referredIds[i]);
+                DataReference.WriteTo(writer, _referredIds[i]);
             }
             writer.WriteEndElement(); // ReferenceList
         }
 
-        static class DataReference
+        private static class DataReference
         {
             internal static readonly XmlDictionaryString ElementName = XD.XmlEncryptionDictionary.DataReference;
             internal static readonly XmlDictionaryString NamespaceUri = XD.XmlEncryptionDictionary.Namespace;
@@ -111,7 +114,7 @@ namespace CoreWCF.Security
             public static void WriteTo(XmlDictionaryWriter writer, string referredId)
             {
                 writer.WriteStartElement(XD.XmlEncryptionDictionary.Prefix.Value, ElementName, NamespaceUri);
-                writer.WriteStartAttribute(ReferenceList.UriAttribute, null);
+                writer.WriteStartAttribute(UriAttribute, null);
                 writer.WriteString("#");
                 writer.WriteString(referredId);
                 writer.WriteEndAttribute();

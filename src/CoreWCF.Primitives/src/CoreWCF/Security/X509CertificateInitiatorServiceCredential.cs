@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace CoreWCF.Security
 {
@@ -10,43 +11,35 @@ namespace CoreWCF.Security
         internal const StoreLocation DefaultStoreLocation = StoreLocation.LocalMachine;
         internal const StoreName DefaultStoreName = StoreName.My;
         internal const X509FindType DefaultFindType = X509FindType.FindBySubjectDistinguishedName;
-
-        X509Certificate2 certificate;
-        X509ClientCertificateAuthentication authentication;
-        bool isReadOnly;
+        private X509Certificate2 _certificate;
+        private bool _isReadOnly;
 
         internal X509CertificateInitiatorServiceCredential()
         {
-            authentication = new X509ClientCertificateAuthentication();
+            Authentication = new X509ClientCertificateAuthentication();
         }
 
         internal X509CertificateInitiatorServiceCredential(X509CertificateInitiatorServiceCredential other)
         {
-            certificate = other.certificate;
-            authentication = new X509ClientCertificateAuthentication(other.authentication);
-            isReadOnly = other.isReadOnly;
+            _certificate = other._certificate;
+            Authentication = new X509ClientCertificateAuthentication(other.Authentication);
+            _isReadOnly = other._isReadOnly;
         }
 
         public X509Certificate2 Certificate
         {
             get
             {
-                return certificate;
+                return _certificate;
             }
             set
             {
                 ThrowIfImmutable();
-                certificate = value;
+                _certificate = value;
             }
         }
 
-        public X509ClientCertificateAuthentication Authentication
-        {
-            get
-            {
-                return authentication;
-            }
-        }
+        public X509ClientCertificateAuthentication Authentication { get; }
 
         public void SetCertificate(string subjectName, StoreLocation storeLocation, StoreName storeName)
         {
@@ -64,18 +57,18 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(findValue));
             }
             ThrowIfImmutable();
-            certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);
+            _certificate = SecurityUtils.GetCertificateFromStore(storeName, storeLocation, findType, findValue, null);
         }
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
             Authentication.MakeReadOnly();
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }

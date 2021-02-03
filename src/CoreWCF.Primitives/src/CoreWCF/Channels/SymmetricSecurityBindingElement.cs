@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
 using System.Net.Security;
@@ -11,16 +14,17 @@ namespace CoreWCF.Channels
     public sealed class SymmetricSecurityBindingElement : SecurityBindingElement //, IPolicyExportExtension
     {
         private MessageProtectionOrder _messageProtectionOrder;
-        private SecurityTokenParameters _protectionTokenParameters;
-        private bool _requireSignatureConfirmation;
 
         private SymmetricSecurityBindingElement(SymmetricSecurityBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
             _messageProtectionOrder = elementToBeCloned._messageProtectionOrder;
-            if (elementToBeCloned._protectionTokenParameters != null)
-                _protectionTokenParameters = (SecurityTokenParameters)elementToBeCloned._protectionTokenParameters.Clone();
-            _requireSignatureConfirmation = elementToBeCloned._requireSignatureConfirmation;
+            if (elementToBeCloned.ProtectionTokenParameters != null)
+            {
+                ProtectionTokenParameters = (SecurityTokenParameters)elementToBeCloned.ProtectionTokenParameters.Clone();
+            }
+
+            RequireSignatureConfirmation = elementToBeCloned.RequireSignatureConfirmation;
         }
 
         public SymmetricSecurityBindingElement()
@@ -32,22 +36,12 @@ namespace CoreWCF.Channels
         public SymmetricSecurityBindingElement(SecurityTokenParameters protectionTokenParameters)
             : base()
         {
-            _messageProtectionOrder = SecurityBindingElement.defaultMessageProtectionOrder;
-            _requireSignatureConfirmation = SecurityBindingElement.defaultRequireSignatureConfirmation;
-            _protectionTokenParameters = protectionTokenParameters;
+            _messageProtectionOrder = defaultMessageProtectionOrder;
+            RequireSignatureConfirmation = defaultRequireSignatureConfirmation;
+            ProtectionTokenParameters = protectionTokenParameters;
         }
 
-        public bool RequireSignatureConfirmation
-        {
-            get
-            {
-                return _requireSignatureConfirmation;
-            }
-            set
-            {
-                _requireSignatureConfirmation = value;
-            }
-        }
+        public bool RequireSignatureConfirmation { get; set; }
 
         public MessageProtectionOrder MessageProtectionOrder
         {
@@ -58,29 +52,20 @@ namespace CoreWCF.Channels
             set
             {
                 if (!MessageProtectionOrderHelper.IsDefined(value))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                }
+
                 _messageProtectionOrder = value;
             }
         }
 
-        public SecurityTokenParameters ProtectionTokenParameters
-        {
-            get
-            {
-                return _protectionTokenParameters;
-            }
-            set
-            {
-                _protectionTokenParameters = value;
-            }
-        }
+        public SecurityTokenParameters ProtectionTokenParameters { get; set; }
 
         internal override ISecurityCapabilities GetIndividualISecurityCapabilities()
         {
             bool supportsServerAuthentication = false;
-            bool supportsClientAuthentication;
-            bool supportsClientWindowsIdentity;
-            GetSupportingTokensCapabilities(out supportsClientAuthentication, out supportsClientWindowsIdentity);
+            GetSupportingTokensCapabilities(out bool supportsClientAuthentication, out bool supportsClientWindowsIdentity);
             if (ProtectionTokenParameters != null)
             {
                 supportsClientAuthentication = supportsClientAuthentication || ProtectionTokenParameters.SupportsClientAuthentication;
@@ -104,17 +89,20 @@ namespace CoreWCF.Channels
         {
             get
             {
-                SecureConversationSecurityTokenParameters secureConversationTokenParameters = this.ProtectionTokenParameters as SecureConversationSecurityTokenParameters;
-                if (secureConversationTokenParameters != null)
+                if (ProtectionTokenParameters is SecureConversationSecurityTokenParameters secureConversationTokenParameters)
+                {
                     return secureConversationTokenParameters.RequireCancellation;
+                }
                 else
+                {
                     return false;
+                }
             }
         }
 
         internal override bool SupportsDuplex
         {
-            get { return this.SessionMode; }
+            get { return SessionMode; }
         }
 
         internal override bool SupportsRequestReply
@@ -125,14 +113,18 @@ namespace CoreWCF.Channels
         public override void SetKeyDerivation(bool requireDerivedKeys)
         {
             base.SetKeyDerivation(requireDerivedKeys);
-            if (_protectionTokenParameters != null)
-                _protectionTokenParameters.RequireDerivedKeys = requireDerivedKeys;
+            if (ProtectionTokenParameters != null)
+            {
+                ProtectionTokenParameters.RequireDerivedKeys = requireDerivedKeys;
+            }
         }
 
         public override T GetProperty<T>(BindingContext context)
         {
             if (context == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
 
             if (typeof(T) == typeof(ChannelProtectionRequirements))
             {
@@ -142,7 +134,7 @@ namespace CoreWCF.Channels
                 {
                     addressing = encoding.MessageVersion.Addressing;
                 }
-                ChannelProtectionRequirements myRequirements = base.GetProtectionRequirements(addressing, ProtectionLevel.EncryptAndSign);
+                ChannelProtectionRequirements myRequirements = GetProtectionRequirements(addressing, ProtectionLevel.EncryptAndSign);
                 myRequirements.Add(context.GetInnerProperty<ChannelProtectionRequirements>() ?? new ChannelProtectionRequirements());
                 return (T)(object)myRequirements;
             }
@@ -157,13 +149,17 @@ namespace CoreWCF.Channels
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(base.ToString());
 
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "MessageProtectionOrder: {0}", _messageProtectionOrder.ToString()));
-            sb.AppendLine(String.Format(CultureInfo.InvariantCulture, "RequireSignatureConfirmation: {0}", _requireSignatureConfirmation.ToString()));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "MessageProtectionOrder: {0}", _messageProtectionOrder.ToString()));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "RequireSignatureConfirmation: {0}", RequireSignatureConfirmation.ToString()));
             sb.Append("ProtectionTokenParameters: ");
-            if (_protectionTokenParameters != null)
-                sb.AppendLine(_protectionTokenParameters.ToString().Trim().Replace("\n", "\n  "));
+            if (ProtectionTokenParameters != null)
+            {
+                sb.AppendLine(ProtectionTokenParameters.ToString().Trim().Replace("\n", "\n  "));
+            }
             else
+            {
                 sb.AppendLine("null");
+            }
 
             return sb.ToString().Trim();
         }

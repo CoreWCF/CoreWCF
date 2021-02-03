@@ -1,5 +1,5 @@
-
-
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Text;
@@ -110,9 +110,7 @@ namespace CoreWCF.Security
 
         internal static XmlQualifiedName GetValueAsQName(XmlReader reader, string value)
         {
-            string prefix;
-            string name;
-            SplitIntoPrefixAndName(value, out prefix, out name);
+            SplitIntoPrefixAndName(value, out string prefix, out string name);
             string ns = reader.LookupNamespace(prefix);
             if (ns == null && prefix.Length > 0)
             {
@@ -241,16 +239,16 @@ namespace CoreWCF.Security
             string value = reader.GetAttribute(name, ns);
             if (value == null || value.Length == 0)
             {
-                OnRequiredAttributeMissing(name.Value, reader == null ? null : reader.Name);
+                OnRequiredAttributeMissing(name.Value, reader?.Name);
             }
             return value;
         }
 
         internal static byte[] GetRequiredBase64Attribute(XmlDictionaryReader reader, XmlDictionaryString name, XmlDictionaryString ns)
         {
-            if (!reader.MoveToAttribute(name.Value, ns == null ? null : ns.Value))
+            if (!reader.MoveToAttribute(name.Value, ns?.Value))
             {
-                OnRequiredAttributeMissing(name.Value, ns == null ? null : ns.Value);
+                OnRequiredAttributeMissing(name.Value, ns?.Value);
             }
             byte[] value = reader.ReadContentAsBase64();
             if (value == null || value.Length == 0)
@@ -308,7 +306,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(idPrefix), SR.ValueMustBeGreaterThanZero));
             }
 
-            if ((!Char.IsLetter(idPrefix[0]) && idPrefix[0] != '_'))
+            if ((!char.IsLetter(idPrefix[0]) && idPrefix[0] != '_'))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(idPrefix), SR.Format(SR.InValidateIdPrefix, idPrefix[0])));
             }
@@ -316,7 +314,7 @@ namespace CoreWCF.Security
             for (int i = 1; i < idPrefix.Length; i++)
             {
                 char c = idPrefix[i];
-                if (!Char.IsLetter(c) && !Char.IsNumber(c) && c != '.' && c != '_' && c != '-')
+                if (!char.IsLetter(c) && !char.IsNumber(c) && c != '.' && c != '_' && c != '-')
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(idPrefix), SR.Format(SR.InValidateId, idPrefix[i])));
                 }
@@ -325,7 +323,7 @@ namespace CoreWCF.Security
 
         internal static UniqueId GetAttributeAsUniqueId(XmlDictionaryReader reader, XmlDictionaryString localName, XmlDictionaryString ns)
         {
-            return GetAttributeAsUniqueId(reader, localName.Value, (ns != null ? ns.Value : null));
+            return GetAttributeAsUniqueId(reader, localName.Value, (ns?.Value));
         }
 
         private static UniqueId GetAttributeAsUniqueId(XmlDictionaryReader reader, string name, string ns)
@@ -341,47 +339,47 @@ namespace CoreWCF.Security
             return id;
         }
 
-        static public void WriteAttributeStringAsUniqueId(XmlDictionaryWriter writer, string prefix, XmlDictionaryString localName, XmlDictionaryString ns, UniqueId id)
+        public static void WriteAttributeStringAsUniqueId(XmlDictionaryWriter writer, string prefix, XmlDictionaryString localName, XmlDictionaryString ns, UniqueId id)
         {
             writer.WriteStartAttribute(prefix, localName, ns);
             writer.WriteValue(id);
             writer.WriteEndAttribute();
         }
 
-        static public void WriteElementStringAsUniqueId(XmlWriter writer, string localName, UniqueId id)
+        public static void WriteElementStringAsUniqueId(XmlWriter writer, string localName, UniqueId id)
         {
             writer.WriteStartElement(localName);
             writer.WriteValue(id);
             writer.WriteEndElement();
         }
-        static public void WriteElementStringAsUniqueId(XmlDictionaryWriter writer, XmlDictionaryString localName, XmlDictionaryString ns, UniqueId id)
+        public static void WriteElementStringAsUniqueId(XmlDictionaryWriter writer, XmlDictionaryString localName, XmlDictionaryString ns, UniqueId id)
         {
             writer.WriteStartElement(localName, ns);
             writer.WriteValue(id);
             writer.WriteEndElement();
         }
 
-        static public void WriteElementContentAsInt64(XmlDictionaryWriter writer, XmlDictionaryString localName, XmlDictionaryString ns, Int64 value)
+        public static void WriteElementContentAsInt64(XmlDictionaryWriter writer, XmlDictionaryString localName, XmlDictionaryString ns, long value)
         {
             writer.WriteStartElement(localName, ns);
             writer.WriteValue(value);
             writer.WriteEndElement();
         }
 
-        static public Int64 ReadElementContentAsInt64(XmlDictionaryReader reader)
+        public static long ReadElementContentAsInt64(XmlDictionaryReader reader)
         {
             reader.ReadFullStartElement();
-            Int64 i = reader.ReadContentAsLong();
+            long i = reader.ReadContentAsLong();
             reader.ReadEndElement();
             return i;
         }
 
-        static public void WriteStringAsUniqueId(XmlDictionaryWriter writer, UniqueId id)
+        public static void WriteStringAsUniqueId(XmlDictionaryWriter writer, UniqueId id)
         {
             writer.WriteValue(id);
         }
 
-        static public UniqueId ReadElementStringAsUniqueId(XmlDictionaryReader reader, XmlDictionaryString localName, XmlDictionaryString ns)
+        public static UniqueId ReadElementStringAsUniqueId(XmlDictionaryReader reader, XmlDictionaryString localName, XmlDictionaryString ns)
         {
             if (reader.IsStartElement(localName, ns) && reader.IsEmptyElement)
             {
@@ -395,7 +393,7 @@ namespace CoreWCF.Security
             return id;
         }
 
-        static public UniqueId ReadElementStringAsUniqueId(XmlDictionaryReader reader)
+        public static UniqueId ReadElementStringAsUniqueId(XmlDictionaryReader reader)
         {
             if (reader.IsStartElement() && reader.IsEmptyElement)
             {
@@ -409,7 +407,7 @@ namespace CoreWCF.Security
             return id;
         }
 
-        static public UniqueId ReadTextElementAsUniqueId(XmlElement element)
+        public static UniqueId ReadTextElementAsUniqueId(XmlElement element)
         {
             return new UniqueId(ReadTextElementAsTrimmedString(element));
         }

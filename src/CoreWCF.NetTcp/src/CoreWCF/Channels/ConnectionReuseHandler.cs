@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels.Framing;
@@ -9,13 +9,12 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class ConnectionReuseHandler : IConnectionReuseHandler
+    internal class ConnectionReuseHandler : IConnectionReuseHandler
     {
-        private TcpTransportBindingElement _bindingElement;
+        private readonly TcpTransportBindingElement _bindingElement;
         private int _maxPooledConnections;
         private TimeSpan _idleTimeout;
-        private int _pooledConnectionCount;
-        private SemaphoreSlim _connectionPoolSemaphore;
+        private readonly SemaphoreSlim _connectionPoolSemaphore;
 
         public ConnectionReuseHandler(TcpTransportBindingElement bindingElement)
         {
@@ -26,7 +25,7 @@ namespace CoreWCF.Channels
 
         private void Initialize(TcpTransportBindingElement bindingElement)
         {
-            var maxOutboundConnectionsPerEndpoint = bindingElement.ConnectionPoolSettings.MaxOutboundConnectionsPerEndpoint;
+            int maxOutboundConnectionsPerEndpoint = bindingElement.ConnectionPoolSettings.MaxOutboundConnectionsPerEndpoint;
             if (maxOutboundConnectionsPerEndpoint == ConnectionOrientedTransportDefaults.MaxOutboundConnectionsPerEndpoint)
             {
                 _maxPooledConnections = ConnectionOrientedTransportDefaults.GetMaxConnections();
@@ -39,6 +38,7 @@ namespace CoreWCF.Channels
             _idleTimeout = bindingElement.ConnectionPoolSettings.IdleTimeout;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Any exception means don't reuse connection, nothing else to do")]
         public async Task<bool> ReuseConnectionAsync(FramingConnection connection, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -46,7 +46,7 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            if(!_connectionPoolSemaphore.Wait(0))
+            if (!_connectionPoolSemaphore.Wait(0))
             {
                 //if (DiagnosticUtility.ShouldTraceWarning)
                 //{
@@ -69,13 +69,13 @@ namespace CoreWCF.Channels
             try
             {
                 connection.Reset();
-                
-                var ct = new TimeoutHelper(_idleTimeout).GetCancellationToken();
+
+                CancellationToken ct = new TimeoutHelper(_idleTimeout).GetCancellationToken();
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                     new TimeoutHelper(_idleTimeout).GetCancellationToken(),
                     cancellationToken))
                 {
-                    var readResult = await connection.Input.ReadAsync(linkedCts.Token);
+                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync(linkedCts.Token);
                     connection.Input.AdvanceTo(readResult.Buffer.Start); // Don't consume any bytes. The pending read is to know when a new client connects.
                     if (readResult.Buffer.IsEmpty && !readResult.IsCompleted && !readResult.IsCanceled)
                     {

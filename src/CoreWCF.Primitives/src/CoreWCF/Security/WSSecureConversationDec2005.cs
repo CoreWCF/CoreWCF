@@ -1,3 +1,5 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -8,10 +10,10 @@ using TokenEntry = CoreWCF.Security.WSSecurityTokenSerializer.TokenEntry;
 
 namespace CoreWCF.Security
 {
-    class WSSecureConversationDec2005 : WSSecureConversation
+    internal class WSSecureConversationDec2005 : WSSecureConversation
     {
-        SecurityStateEncoder securityStateEncoder;
-        IList<Type> knownClaimTypes;
+        private readonly SecurityStateEncoder _securityStateEncoder;
+        private readonly IList<Type> _knownClaimTypes;
 
         public WSSecureConversationDec2005(WSSecurityTokenSerializer tokenSerializer, SecurityStateEncoder securityStateEncoder, IEnumerable<Type> knownTypes,
             int maxKeyDerivationOffset, int maxKeyDerivationLabelLength, int maxKeyDerivationNonceLength)
@@ -19,20 +21,20 @@ namespace CoreWCF.Security
         {
             if (securityStateEncoder != null)
             {
-                this.securityStateEncoder = securityStateEncoder;
+                _securityStateEncoder = securityStateEncoder;
             }
             else
             {
-                this.securityStateEncoder = new DataProtectionSecurityStateEncoder();
+                _securityStateEncoder = new DataProtectionSecurityStateEncoder();
             }
 
-            this.knownClaimTypes = new List<Type>();
+            _knownClaimTypes = new List<Type>();
             if (knownTypes != null)
             {
                 // Clone this collection.
                 foreach (Type knownType in knownTypes)
                 {
-                    this.knownClaimTypes.Add(knownType);
+                    _knownClaimTypes.Add(knownType);
                 }
             }
         }
@@ -45,7 +47,7 @@ namespace CoreWCF.Security
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
         {
             base.PopulateTokenEntries(tokenEntryList);
-            tokenEntryList.Add(new SecurityContextTokenEntryDec2005(this, this.securityStateEncoder, this.knownClaimTypes));
+            tokenEntryList.Add(new SecurityContextTokenEntryDec2005(this, _securityStateEncoder, _knownClaimTypes));
         }
 
         public override string DerivationAlgorithm
@@ -56,7 +58,7 @@ namespace CoreWCF.Security
             }
         }
 
-        class SecurityContextTokenEntryDec2005 : SecurityContextTokenEntry
+        private class SecurityContextTokenEntryDec2005 : SecurityContextTokenEntry
         {
             public SecurityContextTokenEntryDec2005(WSSecureConversationDec2005 parent, SecurityStateEncoder securityStateEncoder, IList<Type> knownClaimTypes)
                 : base(parent, securityStateEncoder, knownClaimTypes)

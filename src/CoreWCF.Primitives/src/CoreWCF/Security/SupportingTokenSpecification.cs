@@ -1,14 +1,15 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections.ObjectModel;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security.Tokens;
-using System.Collections.ObjectModel;
 
 namespace CoreWCF.Security
 {
     public class SupportingTokenSpecification : SecurityTokenSpecification
     {
-        SecurityTokenParameters tokenParameters;
-
         public SupportingTokenSpecification(SecurityToken token, ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies, SecurityTokenAttachmentMode attachmentMode)
             : this(token, tokenPolicies, attachmentMode, null)
         { }
@@ -17,15 +18,12 @@ namespace CoreWCF.Security
             : base(token, tokenPolicies)
         {
             SecurityTokenAttachmentModeHelper.Validate(attachmentMode);
-            this.SecurityTokenAttachmentMode = attachmentMode;
-            this.tokenParameters = tokenParameters;
+            SecurityTokenAttachmentMode = attachmentMode;
+            SecurityTokenParameters = tokenParameters;
         }
 
         public SecurityTokenAttachmentMode SecurityTokenAttachmentMode { get; }
 
-        internal SecurityTokenParameters SecurityTokenParameters
-        {
-            get { return this.tokenParameters; }
-        }
+        internal SecurityTokenParameters SecurityTokenParameters { get; }
     }
 }

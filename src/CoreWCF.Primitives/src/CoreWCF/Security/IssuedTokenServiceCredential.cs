@@ -1,7 +1,10 @@
-using CoreWCF.IdentityModel.Selectors;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using CoreWCF.IdentityModel.Selectors;
 
 namespace CoreWCF.Security
 {
@@ -12,46 +15,49 @@ namespace CoreWCF.Security
         internal const X509CertificateValidationMode DefaultCertificateValidationMode = X509CertificateValidationMode.ChainTrust;
         internal const X509RevocationMode DefaultRevocationMode = X509RevocationMode.Online;
         internal const StoreLocation DefaultTrustedStoreLocation = StoreLocation.LocalMachine;
-
-        List<string> allowedAudienceUris;
-        AudienceUriMode audienceUriMode = DefaultAudienceUriMode;
-        List<X509Certificate2> knownCertificates;
-        SamlSerializer samlSerializer;
-        X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
-        X509RevocationMode revocationMode = DefaultRevocationMode;
-        StoreLocation trustedStoreLocation = DefaultTrustedStoreLocation;
-        X509CertificateValidator customCertificateValidator = null;
-        bool allowUntrustedRsaIssuers = DefaultAllowUntrustedRsaIssuers;
-        bool isReadOnly;
+        private readonly List<string> _allowedAudienceUris;
+        private AudienceUriMode _audienceUriMode = DefaultAudienceUriMode;
+        private readonly List<X509Certificate2> _knownCertificates;
+        private SamlSerializer _samlSerializer;
+        private X509CertificateValidationMode _certificateValidationMode = DefaultCertificateValidationMode;
+        private X509RevocationMode _revocationMode = DefaultRevocationMode;
+        private StoreLocation _trustedStoreLocation = DefaultTrustedStoreLocation;
+        private X509CertificateValidator _customCertificateValidator = null;
+        private bool _allowUntrustedRsaIssuers = DefaultAllowUntrustedRsaIssuers;
+        private bool _isReadOnly;
 
         internal IssuedTokenServiceCredential()
         {
-            this.allowedAudienceUris = new List<string>();
-            this.knownCertificates = new List<X509Certificate2>();
+            _allowedAudienceUris = new List<string>();
+            _knownCertificates = new List<X509Certificate2>();
         }
 
         internal IssuedTokenServiceCredential(IssuedTokenServiceCredential other)
         {
-            this.audienceUriMode = other.audienceUriMode;
-            this.allowedAudienceUris = new List<string>(other.allowedAudienceUris);
-            this.samlSerializer = other.samlSerializer;
-            this.knownCertificates = new List<X509Certificate2>(other.knownCertificates);
-            this.certificateValidationMode = other.certificateValidationMode;
-            this.customCertificateValidator = other.customCertificateValidator;
-            this.trustedStoreLocation = other.trustedStoreLocation;
-            this.revocationMode = other.revocationMode;
-            this.allowUntrustedRsaIssuers = other.allowUntrustedRsaIssuers;
-            this.isReadOnly = other.isReadOnly;
+            _audienceUriMode = other._audienceUriMode;
+            _allowedAudienceUris = new List<string>(other._allowedAudienceUris);
+            _samlSerializer = other._samlSerializer;
+            _knownCertificates = new List<X509Certificate2>(other._knownCertificates);
+            _certificateValidationMode = other._certificateValidationMode;
+            _customCertificateValidator = other._customCertificateValidator;
+            _trustedStoreLocation = other._trustedStoreLocation;
+            _revocationMode = other._revocationMode;
+            _allowUntrustedRsaIssuers = other._allowUntrustedRsaIssuers;
+            _isReadOnly = other._isReadOnly;
         }
 
         public IList<string> AllowedAudienceUris
         {
             get
             {
-                if (this.isReadOnly)
-                    return this.allowedAudienceUris.AsReadOnly();
+                if (_isReadOnly)
+                {
+                    return _allowedAudienceUris.AsReadOnly();
+                }
                 else
-                    return this.allowedAudienceUris;
+                {
+                    return _allowedAudienceUris;
+                }
             }
         }
 
@@ -59,52 +65,56 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.audienceUriMode;
+                return _audienceUriMode;
             }
             set
             {
                 ThrowIfImmutable();
-                AudienceUriModeValidationHelper.Validate(audienceUriMode);
-                this.audienceUriMode = value;
+                AudienceUriModeValidationHelper.Validate(_audienceUriMode);
+                _audienceUriMode = value;
             }
         }
 
 
-        public IList<X509Certificate2> KnownCertificates 
-        { 
-            get 
+        public IList<X509Certificate2> KnownCertificates
+        {
+            get
             {
-                if (this.isReadOnly)
-                    return this.knownCertificates.AsReadOnly();
+                if (_isReadOnly)
+                {
+                    return _knownCertificates.AsReadOnly();
+                }
                 else
-                    return this.knownCertificates; 
+                {
+                    return _knownCertificates;
+                }
             }
         }
-        
+
         public SamlSerializer SamlSerializer
-        { 
-            get 
-            { 
-                return this.samlSerializer; 
-            } 
-            set 
+        {
+            get
+            {
+                return _samlSerializer;
+            }
+            set
             {
                 ThrowIfImmutable();
-                this.samlSerializer = value;
-            } 
+                _samlSerializer = value;
+            }
         }
 
         public X509CertificateValidationMode CertificateValidationMode
         {
             get
             {
-                return this.certificateValidationMode;
+                return _certificateValidationMode;
             }
             set
             {
                 X509CertificateValidationModeHelper.Validate(value);
                 ThrowIfImmutable();
-                this.certificateValidationMode = value;
+                _certificateValidationMode = value;
             }
         }
 
@@ -112,12 +122,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.revocationMode;
+                return _revocationMode;
             }
             set
             {
                 ThrowIfImmutable();
-                this.revocationMode = value;
+                _revocationMode = value;
             }
         }
 
@@ -125,12 +135,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.trustedStoreLocation;
+                return _trustedStoreLocation;
             }
             set
             {
                 ThrowIfImmutable();
-                this.trustedStoreLocation = value;
+                _trustedStoreLocation = value;
             }
         }
 
@@ -138,12 +148,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.customCertificateValidator;
+                return _customCertificateValidator;
             }
             set
             {
                 ThrowIfImmutable();
-                this.customCertificateValidator = value;
+                _customCertificateValidator = value;
             }
         }
 
@@ -151,39 +161,41 @@ namespace CoreWCF.Security
         {
             get
             {
-                return this.allowUntrustedRsaIssuers;
+                return _allowUntrustedRsaIssuers;
             }
             set
             {
                 ThrowIfImmutable();
-                this.allowUntrustedRsaIssuers = value;
+                _allowUntrustedRsaIssuers = value;
             }
         }
 
         internal X509CertificateValidator GetCertificateValidator()
         {
-            if (this.certificateValidationMode == X509CertificateValidationMode.None)
+            if (_certificateValidationMode == X509CertificateValidationMode.None)
             {
                 return X509CertificateValidator.None;
             }
-            else if (this.certificateValidationMode == X509CertificateValidationMode.PeerTrust)
+            else if (_certificateValidationMode == X509CertificateValidationMode.PeerTrust)
             {
                 return X509CertificateValidator.PeerTrust;
             }
-            else if (this.certificateValidationMode == X509CertificateValidationMode.Custom)
+            else if (_certificateValidationMode == X509CertificateValidationMode.Custom)
             {
-                if (this.customCertificateValidator == null)
+                if (_customCertificateValidator == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.MissingCustomCertificateValidator)));
                 }
-                return this.customCertificateValidator;
+                return _customCertificateValidator;
             }
             else
             {
-                bool useMachineContext = this.trustedStoreLocation == StoreLocation.LocalMachine;
-                X509ChainPolicy chainPolicy = new X509ChainPolicy();
-                chainPolicy.RevocationMode = this.revocationMode;
-                if (this.certificateValidationMode == X509CertificateValidationMode.ChainTrust)
+                bool useMachineContext = _trustedStoreLocation == StoreLocation.LocalMachine;
+                X509ChainPolicy chainPolicy = new X509ChainPolicy
+                {
+                    RevocationMode = _revocationMode
+                };
+                if (_certificateValidationMode == X509CertificateValidationMode.ChainTrust)
                 {
                     return X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
                 }
@@ -196,12 +208,12 @@ namespace CoreWCF.Security
 
         internal void MakeReadOnly()
         {
-            this.isReadOnly = true;
+            _isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (this.isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ObjectIsReadOnly)));
             }

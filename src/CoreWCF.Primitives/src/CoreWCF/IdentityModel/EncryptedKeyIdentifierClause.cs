@@ -1,12 +1,13 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    sealed public class EncryptedKeyIdentifierClause : BinaryKeyIdentifierClause
+    public sealed class EncryptedKeyIdentifierClause : BinaryKeyIdentifierClause
     {
-        private readonly string _encryptionMethod;
-
         public EncryptedKeyIdentifierClause(byte[] encryptedKey, string encryptionMethod)
             : this(encryptedKey, encryptionMethod, null)
         {
@@ -31,7 +32,7 @@ namespace CoreWCF.IdentityModel.Tokens
             : base("http://www.w3.org/2001/04/xmlenc#EncryptedKey", encryptedKey, cloneBuffer, derivationNonce, derivationLength)
         {
             CarriedKeyName = carriedKeyName;
-            _encryptionMethod = encryptionMethod ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(encryptionMethod));
+            EncryptionMethod = encryptionMethod ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(encryptionMethod));
             EncryptingKeyIdentifier = encryptingKeyIdentifier;
         }
 
@@ -39,20 +40,17 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public SecurityKeyIdentifier EncryptingKeyIdentifier { get; }
 
-        public string EncryptionMethod
-        {
-            get { return _encryptionMethod; }
-        }
+        public string EncryptionMethod { get; }
 
         public override bool Matches(SecurityKeyIdentifierClause keyIdentifierClause)
         {
             EncryptedKeyIdentifierClause that = keyIdentifierClause as EncryptedKeyIdentifierClause;
-            return ReferenceEquals(this, that) || (that != null && that.Matches(GetRawBuffer(), _encryptionMethod, CarriedKeyName));
+            return ReferenceEquals(this, that) || (that != null && that.Matches(GetRawBuffer(), EncryptionMethod, CarriedKeyName));
         }
 
         public bool Matches(byte[] encryptedKey, string encryptionMethod, string carriedKeyName)
         {
-            return Matches(encryptedKey) && _encryptionMethod == encryptionMethod && CarriedKeyName == carriedKeyName;
+            return Matches(encryptedKey) && EncryptionMethod == encryptionMethod && CarriedKeyName == carriedKeyName;
         }
 
         public byte[] GetEncryptedKey()

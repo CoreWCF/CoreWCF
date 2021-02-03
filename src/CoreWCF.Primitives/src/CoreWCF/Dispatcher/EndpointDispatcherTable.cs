@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
@@ -7,29 +9,25 @@ namespace CoreWCF.Dispatcher
 {
     internal class EndpointDispatcherTable
     {
-        MessageFilterTable<EndpointDispatcher> filters;
-        object thisLock;
-        const int optimizationThreshold = 2;
-        List<EndpointDispatcher> cachedEndpoints;
+        private MessageFilterTable<EndpointDispatcher> _filters;
+        private const int optimizationThreshold = 2;
+        private List<EndpointDispatcher> _cachedEndpoints;
 
         public EndpointDispatcherTable(object thisLock)
         {
-            this.thisLock = thisLock;
+            ThisLock = thisLock;
         }
 
         public int Count
         {
             get
             {
-                return ((cachedEndpoints != null) ? cachedEndpoints.Count : 0) +
-                    ((filters != null) ? filters.Count : 0);
+                return ((_cachedEndpoints != null) ? _cachedEndpoints.Count : 0) +
+                    ((_filters != null) ? _filters.Count : 0);
             }
         }
 
-        object ThisLock
-        {
-            get { return thisLock; }
-        }
+        private object ThisLock { get; }
 
         public void AddEndpoint(EndpointDispatcher endpoint)
         {
@@ -38,33 +36,33 @@ namespace CoreWCF.Dispatcher
                 MessageFilter filter = endpoint.EndpointFilter;
                 int priority = endpoint.FilterPriority;
 
-                if (filters == null)
+                if (_filters == null)
                 {
-                    if (cachedEndpoints == null)
+                    if (_cachedEndpoints == null)
                     {
-                        cachedEndpoints = new List<EndpointDispatcher>(optimizationThreshold);
+                        _cachedEndpoints = new List<EndpointDispatcher>(optimizationThreshold);
                     }
 
-                    if (cachedEndpoints.Count < optimizationThreshold)
+                    if (_cachedEndpoints.Count < optimizationThreshold)
                     {
-                        cachedEndpoints.Add(endpoint);
+                        _cachedEndpoints.Add(endpoint);
                     }
                     else
                     {
-                        filters = new MessageFilterTable<EndpointDispatcher>();
-                        for (int i = 0; i < cachedEndpoints.Count; i++)
+                        _filters = new MessageFilterTable<EndpointDispatcher>();
+                        for (int i = 0; i < _cachedEndpoints.Count; i++)
                         {
-                            int cachedPriority = cachedEndpoints[i].FilterPriority;
-                            MessageFilter cachedFilter = cachedEndpoints[i].EndpointFilter;
-                            filters.Add(cachedFilter, cachedEndpoints[i], cachedPriority);
+                            int cachedPriority = _cachedEndpoints[i].FilterPriority;
+                            MessageFilter cachedFilter = _cachedEndpoints[i].EndpointFilter;
+                            _filters.Add(cachedFilter, _cachedEndpoints[i], cachedPriority);
                         }
-                        filters.Add(filter, endpoint, priority);
-                        cachedEndpoints = null;
+                        _filters.Add(filter, endpoint, priority);
+                        _cachedEndpoints = null;
                     }
                 }
                 else
                 {
-                    filters.Add(filter, endpoint, priority);
+                    _filters.Add(filter, endpoint, priority);
                 }
             }
         }
@@ -73,42 +71,40 @@ namespace CoreWCF.Dispatcher
         {
             lock (ThisLock)
             {
-                if (filters == null)
+                if (_filters == null)
                 {
-                    if (cachedEndpoints != null && cachedEndpoints.Contains(endpoint))
+                    if (_cachedEndpoints != null && _cachedEndpoints.Contains(endpoint))
                     {
-                        cachedEndpoints.Remove(endpoint);
+                        _cachedEndpoints.Remove(endpoint);
                     }
                 }
                 else
                 {
                     MessageFilter filter = endpoint.EndpointFilter;
-                    filters.Remove(filter);
+                    _filters.Remove(filter);
                 }
             }
         }
 
-        EndpointDispatcher LookupInCache(Message message, out bool addressMatched)
+        private EndpointDispatcher LookupInCache(Message message, out bool addressMatched)
         {
             EndpointDispatcher result = null;
             int priority = int.MinValue;
             bool duplicatePriority = false;
             addressMatched = false;
 
-            if (cachedEndpoints != null && cachedEndpoints.Count > 0)
+            if (_cachedEndpoints != null && _cachedEndpoints.Count > 0)
             {
-                for (int i = 0; i < cachedEndpoints.Count; i++)
+                for (int i = 0; i < _cachedEndpoints.Count; i++)
                 {
-                    EndpointDispatcher cachedEndpoint = cachedEndpoints[i];
+                    EndpointDispatcher cachedEndpoint = _cachedEndpoints[i];
                     int cachedPriority = cachedEndpoint.FilterPriority;
                     MessageFilter cachedFilter = cachedEndpoint.EndpointFilter;
 
                     bool matchResult;
-                    AndMessageFilter andFilter = cachedFilter as AndMessageFilter;
-                    if (andFilter != null)
+                    if (cachedFilter is AndMessageFilter andFilter)
                     {
-                        bool addressResult;
-                        matchResult = andFilter.Match(message, out addressResult);
+                        matchResult = andFilter.Match(message, out bool addressResult);
                         addressMatched |= addressResult;
                     }
                     else
@@ -143,19 +139,16 @@ namespace CoreWCF.Dispatcher
 
         public EndpointDispatcher Lookup(Message message, out bool addressMatched)
         {
-            EndpointDispatcher data = null;
-
-            data = LookupInCache(message, out addressMatched);
-
+            EndpointDispatcher data = LookupInCache(message, out addressMatched);
             if (data == null)
             {
                 lock (ThisLock)
                 {
                     data = LookupInCache(message, out addressMatched);
 
-                    if (data == null && filters != null)
+                    if (data == null && _filters != null)
                     {
-                        filters.GetMatchingValue(message, out data, out addressMatched);
+                        _filters.GetMatchingValue(message, out data, out addressMatched);
                     }
                 }
             }
@@ -163,5 +156,4 @@ namespace CoreWCF.Dispatcher
             return data;
         }
     }
-
 }

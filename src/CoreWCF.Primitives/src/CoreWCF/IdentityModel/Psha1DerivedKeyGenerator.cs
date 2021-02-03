@@ -1,12 +1,15 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Security.Cryptography;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.IdentityModel
 {
     internal sealed class Psha1DerivedKeyGenerator
     {
-        private byte[] _key;
+        private readonly byte[] _key;
 
         public Psha1DerivedKeyGenerator(byte[] key)
         {
@@ -32,13 +35,13 @@ namespace CoreWCF.IdentityModel
         private sealed class ManagedPsha1
         {
             private byte[] _aValue;
-            private byte[] _buffer;
+            private readonly byte[] _buffer;
             private byte[] _chunk;
-            private KeyedHashAlgorithm _hmac;
+            private readonly KeyedHashAlgorithm _hmac;
             private int _index;
             private int _position;
-            private byte[] _secret;
-            private byte[] _seed;
+            private readonly byte[] _secret;
+            private readonly byte[] _seed;
 
             // assume arguments are already validated
             public ManagedPsha1(byte[] secret, byte[] label, byte[] seed)
@@ -49,12 +52,12 @@ namespace CoreWCF.IdentityModel
                 seed.CopyTo(_seed, label.Length);
 
                 _aValue = _seed;
-                _chunk = new byte[0];
+                _chunk = Array.Empty<byte>();
                 _index = 0;
                 _position = 0;
                 _hmac = CryptoHelper.NewHmacSha1KeyedHashAlgorithm(secret);
 
-                _buffer =  Fx.AllocateByteArray(checked(_hmac.HashSize / 8 + _seed.Length));
+                _buffer = Fx.AllocateByteArray(checked(_hmac.HashSize / 8 + _seed.Length));
             }
 
             public byte[] GetDerivedKey(int derivedKeySize, int position)

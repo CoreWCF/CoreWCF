@@ -1,9 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Channels;
 
 namespace CoreWCF
 {
-    public class WSHttpBinding: WSHttpBindingBase
+    public class WSHttpBinding : WSHttpBindingBase
     {
         private static readonly MessageSecurityVersion s_WSMessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
 
@@ -20,7 +23,7 @@ namespace CoreWCF
 
         internal WSHttpBinding(WSHTTPSecurity security, bool reliableSessionEnabled) : base(reliableSessionEnabled)
         {
-            _security = security == null ? new WSHTTPSecurity() : security;
+            _security = security ?? new WSHTTPSecurity();
         }
 
         public WSHTTPSecurity Security
@@ -41,13 +44,13 @@ namespace CoreWCF
         {
             if (_security.Mode == SecurityMode.None || _security.Mode == SecurityMode.Message)
             {
-                this.HttpTransport.ExtendedProtectionPolicy = _security.Transport.ExtendedProtectionPolicy;
-                return this.HttpTransport;
+                HttpTransport.ExtendedProtectionPolicy = _security.Transport.ExtendedProtectionPolicy;
+                return HttpTransport;
             }
             else
             {
-                _security.ApplyTransportSecurity(this.HttpsTransport);
-                return this.HttpsTransport;
+                _security.ApplyTransportSecurity(HttpsTransport);
+                return HttpsTransport;
             }
         }
 

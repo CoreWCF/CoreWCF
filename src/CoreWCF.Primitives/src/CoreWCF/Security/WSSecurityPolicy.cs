@@ -1,8 +1,12 @@
-using CoreWCF.Description;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Xml;
+using CoreWCF.Description;
+
 namespace CoreWCF.Security
 {
-    abstract class WSSecurityPolicy
+    internal abstract class WSSecurityPolicy
     {
         public static ContractDescription NullContract = new ContractDescription("null");
         public static ServiceEndpoint NullServiceEndpoint = new ServiceEndpoint(NullContract);
@@ -102,16 +106,10 @@ namespace CoreWCF.Security
         public const string HttpsTokenName = "HttpsToken";
         public const string HttpBasicAuthenticationName = "HttpBasicAuthentication";
         public const string HttpDigestAuthenticationName = "HttpDigestAuthentication";
-
-        bool _mustSupportRefKeyIdentifierName = false;
-        bool _mustSupportRefIssuerSerialName = false;
-        bool _mustSupportRefThumbprintName = false;
-        bool _protectionTokenHasAsymmetricKey = false;
     }
 
-    static class SecurityPolicyStrings
+    internal static class SecurityPolicyStrings
     {
         public const string SecureConversationBootstrapBindingElementsBelowSecurityKey = "SecureConversationBootstrapBindingElementsBelowSecurityKey";
     }
-
 }

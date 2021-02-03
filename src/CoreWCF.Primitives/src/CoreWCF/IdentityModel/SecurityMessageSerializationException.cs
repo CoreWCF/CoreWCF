@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 
 namespace CoreWCF.IdentityModel
 {
@@ -10,12 +13,12 @@ namespace CoreWCF.IdentityModel
         {
         }
 
-        public SecurityMessageSerializationException(String message)
+        public SecurityMessageSerializationException(string message)
             : base(message)
         {
         }
 
-        public SecurityMessageSerializationException(String message, Exception innerException)
+        public SecurityMessageSerializationException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
@@ -24,6 +27,5 @@ namespace CoreWCF.IdentityModel
             : base(info, context)
         {
         }
-
     }
 }
