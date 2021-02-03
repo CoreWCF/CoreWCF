@@ -23,7 +23,7 @@ namespace CoreWCF.Security.NegotiateInternal
         private static readonly MethodInfo _protocol;
         private static readonly MethodInfo _getIdentity;
         private static readonly MethodInfo _closeContext;
-        private static readonly MethodInfo _getContext;
+        //private static readonly MethodInfo _getContext;
         private static readonly MethodInfo _encrypt;
 
         private static readonly FieldInfo _statusCode;

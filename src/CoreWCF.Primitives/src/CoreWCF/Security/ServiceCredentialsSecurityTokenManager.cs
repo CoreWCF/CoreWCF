@@ -3,6 +3,7 @@
 
 using System;
 using System.Net;
+using System.Security.Authentication.ExtendedProtection;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
@@ -104,9 +105,9 @@ namespace CoreWCF.Security
 
         }
 
-        private SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
+        SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
         {
-            
+
             SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
             if (securityBindingElement == null)
             {
@@ -120,8 +121,8 @@ namespace CoreWCF.Security
 
             SpnegoTokenAuthenticator authenticator = new SpnegoTokenAuthenticator();
             authenticator.ExtendedProtectionPolicy = extendedProtectionPolicy;
-            authenticator.AllowUnauthenticatedCallers = parent.WindowsAuthentication.AllowAnonymousLogons;
-            authenticator.ExtractGroupsForWindowsAccounts = parent.WindowsAuthentication.IncludeWindowsGroups;
+            authenticator.AllowUnauthenticatedCallers = ServiceCredentials.WindowsAuthentication.AllowAnonymousLogons;
+            authenticator.ExtractGroupsForWindowsAccounts = ServiceCredentials.WindowsAuthentication.IncludeWindowsGroups;
             authenticator.IsClientAnonymous = false;
             authenticator.EncryptStateInServiceToken = isCookieMode;
             authenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
@@ -130,8 +131,8 @@ namespace CoreWCF.Security
             authenticator.ListenUri = recipientRequirement.ListenUri;
             authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
             authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
-            authenticator.SecurityStateEncoder = parent.SecureConversationAuthentication.SecurityStateEncoder;
-            authenticator.KnownTypes = parent.SecureConversationAuthentication.SecurityContextClaimTypes;
+            authenticator.SecurityStateEncoder = ServiceCredentials.SecureConversationAuthentication.SecurityStateEncoder;
+            authenticator.KnownTypes = ServiceCredentials.SecureConversationAuthentication.SecurityContextClaimTypes;
             // if the SPNEGO is being done in mixed-mode, the nego blobs are from an anonymous client and so there size bound needs to be enforced.
             if (securityBindingElement is TransportSecurityBindingElement)
             {

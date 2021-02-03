@@ -241,9 +241,9 @@ namespace CoreWCF
         {
             get
             {
-                if (this.channel != null)
+                if (InternalServiceChannel != null)
                 {
-                    IChannel inner = this.channel.InnerChannel;
+                    IChannel inner = InternalServiceChannel.InnerChannel;
                     if (inner != null)
                     {
                         ISessionChannel<IDuplexSession> duplex = inner as ISessionChannel<IDuplexSession>;

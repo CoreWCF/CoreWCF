@@ -174,16 +174,6 @@ namespace CoreWCF.Security
             }
         }
 
-        public static SecurityIdentifier AdministratorsSid
-        {
-            get
-            {
-                if (administratorsSid == null)
-                    administratorsSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
-                return administratorsSid;
-            }
-        }
-
         internal static X509SecurityTokenAuthenticator NonValidatingX509Authenticator
         {
             get
@@ -473,19 +463,6 @@ namespace CoreWCF.Security
             byte[] unwrappedKey = unwrappingSecurityKey.DecryptKey(wrappingAlgorithm, wrappedKey);
             //TODO, check value for XmlDictionaryString Symmetric or else 
             return new WrappedKeySecurityToken(SecurityUtils.GenerateId(), unwrappedKey, wrappingAlgorithm,
-               XmlDictionaryString.Empty, unwrappingToken, wrappingTokenReference, wrappedKey, unwrappingSecurityKey
-                    );
-        }
-
-        public static WrappedKeySecurityToken CreateTokenFromEncryptedKeyClause(EncryptedKeyIdentifierClause keyClause, SecurityToken unwrappingToken)
-        {
-            SecurityKeyIdentifier wrappingTokenReference = keyClause.EncryptingKeyIdentifier;
-            byte[] wrappedKey = keyClause.GetEncryptedKey();
-            SecurityKey unwrappingSecurityKey = unwrappingToken.SecurityKeys[0];
-            string wrappingAlgorithm = keyClause.EncryptionMethod;
-            byte[] unwrappedKey = unwrappingSecurityKey.DecryptKey(wrappingAlgorithm, wrappedKey);
-            //TODO, check value for XmlDictionaryString Symmetric or else 
-            return new WrappedKeySecurityToken(GenerateId(), unwrappedKey, wrappingAlgorithm,
                XmlDictionaryString.Empty, unwrappingToken, wrappingTokenReference, wrappedKey, unwrappingSecurityKey
                     );
         }

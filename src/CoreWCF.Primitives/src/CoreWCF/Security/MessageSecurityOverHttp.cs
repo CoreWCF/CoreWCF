@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.InteropServices;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
-using System.Globalization;
-using System;
-using System.Runtime.InteropServices;
+using CoreWCF.Security;
 
 namespace CoreWCF
 {
@@ -17,6 +16,7 @@ namespace CoreWCF
         private MessageCredentialType _clientCredentialType;
         private SecurityAlgorithmSuite _algorithmSuite;
         private static readonly TimeSpan s_defaultServerIssuedTransitionTokenLifetime = TimeSpan.FromMinutes(15);
+        private const string NetFrameworkFrameworkName = ".NET Framework";
         public MessageSecurityOverHttp()
         {
             _clientCredentialType = DefaultClientCredentialType;
@@ -44,7 +44,7 @@ namespace CoreWCF
                     }
                 }
 
-                this.clientCredentialType = value;
+                this._clientCredentialType = value;
             }
         }
 

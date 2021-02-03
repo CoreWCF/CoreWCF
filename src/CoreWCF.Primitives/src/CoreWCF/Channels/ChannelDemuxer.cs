@@ -163,10 +163,7 @@ namespace CoreWCF.Channels
         public DatagramChannelDemuxer(BindingContext context)
         {
             _filterTable = new MessageFilterTable<IServiceDispatcher>();
-            if (context.BindingParameters != null)
-            {
-                this.demuxFailureHandler = context.BindingParameters.Find<IChannelDemuxFailureHandler>();
-            }
+            DemuxFailureHandler = context.BindingParameters?.Find<IChannelDemuxFailureHandler>();
         }
         protected TInnerChannel InnerChannel { get; }
 
@@ -505,7 +502,7 @@ namespace CoreWCF.Channels
                 {
                     ErrorBehavior.ThrowAndCatch(
                         new EndpointNotFoundException(SR.Format(SR.UnableToDemuxChannel, context.RequestMessage.Headers.Action)), context.RequestMessage);
-                    await this.demuxer.EndpointNotFoundAsync(context);
+                    await _demuxer.EndpointNotFoundAsync(context);
                     return;
                 }
                 // TODO: if serviceDispatcher == null, use the EndpointNotFound code path

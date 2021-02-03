@@ -199,7 +199,7 @@ namespace CoreWCF.Dispatcher
             //Initialization path start
             if (outerChannel.ChannelDispatcher == null)
             {
-                TypedChannelDemuxer typedChannelDemuxer = ChannelBuilder.ChannelDemuxer.GetTypedServiceDispatcher<IReplyChannel>();
+                TypedChannelDemuxer typedChannelDemuxer = ChannelBuilder.GetTypedChannelDemuxer<IReplyChannel>();
                 IServiceChannelDispatcher channelDispatcher = await typedChannelDemuxer.CreateServiceChannelDispatcherAsync(outerChannel);
                 return channelDispatcher;
             }
@@ -268,7 +268,7 @@ namespace CoreWCF.Dispatcher
             else*/
             if (outerChannel is IReplyChannel replyChannel)
             {
-                securityChannelDispatcher = new SecurityReplyChannelDispatcher(this, replyChannel, securityProtocol);
+                securityChannelDispatcher = new SecurityReplyChannelDispatcher(this, replyChannel, securityProtocol, _settingsLifetimeManager);
             }
             /* else if (listener.SupportsRequestReply && typeof(TChannel) == typeof(IReplySessionChannel))
              {
@@ -294,17 +294,15 @@ namespace CoreWCF.Dispatcher
     internal abstract class ServerSecurityChannelDispatcher<UChannel> : IServiceChannelDispatcher where UChannel : class
     {
         private static MessageFault s_secureConversationCloseNotSupportedFault;
-        private readonly string _secureConversationCloseAction;
-        private SecurityListenerSettingsLifetimeManager settingsLifetimeManager;
-        private bool hasSecurityStateReference;
-        private readonly IServiceProvider serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
+        private string _secureConversationCloseAction;
 
         protected ServerSecurityChannelDispatcher(SecurityServiceDispatcher securityServiceDispatcher, UChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
         {
-            settingsLifetimeManager = settingsLifetimeManager;
             SecurityProtocol = securityProtocol;
             OuterChannel = (IReplyChannel)innerChannel;
-            serviceProvider = this.OuterChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
+            _serviceProvider = this.OuterChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
+            _secureConversationCloseAction = securityProtocol.SecurityProtocolFactory.StandardsManager.SecureConversationDriver.CloseAction.Value;
         }
 
         internal SecurityProtocol SecurityProtocol { get; set; }
@@ -313,7 +311,7 @@ namespace CoreWCF.Dispatcher
 
         public T GetProperty<T>() where T : class
         {
-            var tObj = serviceProvider.GetService<T>();
+            var tObj = _serviceProvider.GetService<T>();
             if (tObj == null)
                 return OuterChannel.GetProperty<T>();
             else return tObj;

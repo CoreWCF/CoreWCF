@@ -20,6 +20,31 @@ namespace CoreWCF.Security.Tokens
         private byte[] _wrappedKeyHash;
         private readonly XmlDictionaryString _wrappingAlgorithmDictionaryString;
 
+        internal WrappedKeySecurityToken(string id, byte[] keyToWrap, ISspiNegotiation wrappingSspiContext)
+            : this(id, keyToWrap, (wrappingSspiContext != null) ? (wrappingSspiContext.KeyEncryptionAlgorithm) : null, wrappingSspiContext, null)
+        {
+
+        }
+
+        internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, ISspiNegotiation wrappingSspiContext, byte[] wrappedKey)
+        : this(id, keyToWrap, wrappingAlgorithm, null)
+        {
+            if (wrappingSspiContext == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappingSspiContext));
+            }
+            //this.wrappingSspiContext = wrappingSspiContext;
+            if (wrappedKey == null)
+            {
+                _wrappedKey = wrappingSspiContext.Encrypt(keyToWrap);
+            }
+            else
+            {
+                _wrappedKey = wrappedKey;
+            }
+           _serializeCarriedKeyName = false;
+        }
+
         internal WrappedKeySecurityToken(string id, byte[] keyToWrap, string wrappingAlgorithm, XmlDictionaryString wrappingAlgorithmDictionaryString, SecurityToken wrappingToken, SecurityKeyIdentifier wrappingTokenReference)
             : this(id, keyToWrap, wrappingAlgorithm, wrappingAlgorithmDictionaryString, wrappingToken, wrappingTokenReference, null, null)
         {
@@ -54,6 +79,18 @@ namespace CoreWCF.Security.Tokens
             _securityKey = SecurityUtils.CreateSymmetricSecurityKeys(keyToWrap);
             WrappingAlgorithm = wrappingAlgorithm ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappingAlgorithm));
             _wrappingAlgorithmDictionaryString = wrappingAlgorithmDictionaryString;
+        }
+
+        internal WrappedKeySecurityToken(
+          string id,
+          byte[] keyToWrap,
+          string wrappingAlgorithm,
+          SecurityToken wrappingToken,
+          SecurityKeyIdentifier wrappingTokenReference,
+          byte[] wrappedKey,
+          SecurityKey wrappingSecurityKey)
+          : this(id, keyToWrap, wrappingAlgorithm, (XmlDictionaryString)null, wrappingToken, wrappingTokenReference, wrappedKey, wrappingSecurityKey)
+        {
         }
 
         public override string Id => _id;
