@@ -228,6 +228,7 @@ namespace CoreWCF.Security
                 }
             }
         }
+
         protected class WrappedKeyTokenEntry : TokenEntry
         {
             WSSecurityTokenSerializer tokenSerializer;
@@ -348,6 +349,7 @@ namespace CoreWCF.Security
                 wrappedKeyToken.EncryptedKey.WriteTo(writer, ServiceModelDictionaryManager.Instance);
             }
         }
+
         private class UserNamePasswordTokenEntry : TokenEntry
         {
             private readonly WSSecurityTokenSerializer _tokenSerializer;

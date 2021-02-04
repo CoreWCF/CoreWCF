@@ -366,11 +366,13 @@ namespace CoreWCF.Dispatcher
         private readonly bool _sendUnsecuredFaults;
         internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
 
+#pragma warning disable CS0067
         public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
+#pragma warning restore CS0067
 
         public SecurityReplyChannelDispatcher(SecurityServiceDispatcher securityServiceDispatcher, IReplyChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
                 : base(securityServiceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)

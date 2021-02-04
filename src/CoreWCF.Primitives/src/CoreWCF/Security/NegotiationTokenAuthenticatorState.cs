@@ -1,41 +1,29 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    class NegotiationTokenAuthenticatorState : IDisposable
+    internal class NegotiationTokenAuthenticatorState : IDisposable
     {
-        bool isNegotiationCompleted;
-        SecurityContextSecurityToken serviceToken;
-        Object thisLock;
+        private bool _isNegotiationCompleted;
+        private SecurityContextSecurityToken _serviceToken;
+        private readonly object _thisLock;
 
-        public NegotiationTokenAuthenticatorState()
-        {
-            thisLock = new Object();
-        }
+        public NegotiationTokenAuthenticatorState() => _thisLock = new object();
 
-        public Object ThisLock
-        {
-            get
-            {
-                return thisLock;
-            }
-        }
+        public object ThisLock => _thisLock;
 
-        public bool IsNegotiationCompleted
-        {
-            get
-            {
-                return this.isNegotiationCompleted;
-            }
-        }
+        public bool IsNegotiationCompleted => _isNegotiationCompleted;
 
         public SecurityContextSecurityToken ServiceToken
         {
             get
             {
                 CheckCompleted();
-                return this.serviceToken;
+                return _serviceToken;
             }
         }
 
@@ -45,24 +33,24 @@ namespace CoreWCF.Security
         {
             if (token == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("token");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
-            this.serviceToken = token;
-            this.isNegotiationCompleted = true;
+            _serviceToken = token;
+            _isNegotiationCompleted = true;
         }
 
         public virtual string GetRemoteIdentityName()
         {
-            if (this.isNegotiationCompleted)
+            if (_isNegotiationCompleted)
             {
-                return SecurityUtils.GetIdentityNamesFromPolicies(this.serviceToken.AuthorizationPolicies);
+                return SecurityUtils.GetIdentityNamesFromPolicies(_serviceToken.AuthorizationPolicies);
             }
-            return String.Empty;
+            return string.Empty;
         }
 
-        void CheckCompleted()
+        private void CheckCompleted()
         {
-            if (!this.isNegotiationCompleted)
+            if (!_isNegotiationCompleted)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.NegotiationIsNotCompleted)));
             }

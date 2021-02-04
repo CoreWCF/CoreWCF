@@ -105,7 +105,7 @@ namespace CoreWCF.Security
 
         }
 
-        SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
+        private SecurityTokenAuthenticator CreateSpnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver sctResolver)
         {
 
             SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;

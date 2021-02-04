@@ -810,7 +810,7 @@ namespace CoreWCF.Channels
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSspiNegotiationOverTransportBinding() method.
-        static public TransportSecurityBindingElement CreateSspiNegotiationOverTransportBindingElement(bool requireCancellation)
+        public static TransportSecurityBindingElement CreateSspiNegotiationOverTransportBindingElement(bool requireCancellation)
         {
             TransportSecurityBindingElement result = new TransportSecurityBindingElement();
             SspiSecurityTokenParameters sspiParameters = new SspiSecurityTokenParameters(requireCancellation);

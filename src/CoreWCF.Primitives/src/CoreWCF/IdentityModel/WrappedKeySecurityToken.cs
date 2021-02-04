@@ -33,7 +33,7 @@ namespace CoreWCF.Security.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappingSspiContext));
             }
-            //this.wrappingSspiContext = wrappingSspiContext;
+
             if (wrappedKey == null)
             {
                 _wrappedKey = wrappingSspiContext.Encrypt(keyToWrap);

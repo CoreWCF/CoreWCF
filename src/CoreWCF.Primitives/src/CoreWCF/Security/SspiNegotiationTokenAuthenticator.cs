@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
@@ -18,48 +21,39 @@ using Psha1DerivedKeyGenerator = CoreWCF.IdentityModel.Psha1DerivedKeyGenerator;
 
 namespace CoreWCF.Security
 {
-    abstract class SspiNegotiationTokenAuthenticator : NegotiationTokenAuthenticator<SspiNegotiationTokenAuthenticatorState>
+    internal abstract class SspiNegotiationTokenAuthenticator : NegotiationTokenAuthenticator<SspiNegotiationTokenAuthenticatorState>
     {
-        ExtendedProtectionPolicy extendedProtectionPolicy;
-        string defaultServiceBinding;
-        Object thisLock = new Object();
+        private string _defaultServiceBinding;
 
         protected SspiNegotiationTokenAuthenticator()
             : base()
         {
         }
 
-        public ExtendedProtectionPolicy ExtendedProtectionPolicy
-        {
-            get { return this.extendedProtectionPolicy; }
-            set { this.extendedProtectionPolicy = value; }
-        }
+        public ExtendedProtectionPolicy ExtendedProtectionPolicy { get; set; }
 
-        protected Object ThisLock
-        {
-            get { return this.thisLock; }
-        }
+        protected Object ThisLock { get; } = new Object();
 
         public string DefaultServiceBinding
         {
             get
             {
-                if (this.defaultServiceBinding == null)
+                if (this._defaultServiceBinding == null)
                 {
                     lock (ThisLock)
                     {
-                        if (this.defaultServiceBinding == null)
+                        if (this._defaultServiceBinding == null)
                         {
-                            this.defaultServiceBinding = SecurityUtils.GetSpnFromIdentity(
+                            this._defaultServiceBinding = SecurityUtils.GetSpnFromIdentity(
                                                             SecurityUtils.CreateWindowsIdentity(),
                                                             new EndpointAddress(ListenUri));
                         }
                     }
                 }
 
-                return this.defaultServiceBinding;
+                return this._defaultServiceBinding;
             }
-            set { this.defaultServiceBinding = value; }
+            set { this._defaultServiceBinding = value; }
         }
 
         // abstract methods
@@ -103,7 +97,7 @@ namespace CoreWCF.Security
             return new BinaryNegotiation(this.NegotiationValueType, outgoingBlob);
         }
 
-        static void AddToDigest(HashAlgorithm negotiationDigest, Stream stream)
+        private static void AddToDigest(HashAlgorithm negotiationDigest, Stream stream)
         {
             stream.Flush();
             stream.Seek(0, SeekOrigin.Begin);
@@ -116,7 +110,7 @@ namespace CoreWCF.Security
             }
         }
 
-        static void AddToDigest(SspiNegotiationTokenAuthenticatorState sspiState, RequestSecurityToken rst)
+        private static void AddToDigest(SspiNegotiationTokenAuthenticatorState sspiState, RequestSecurityToken rst)
         {
             MemoryStream stream = new MemoryStream();
             XmlDictionaryWriter writer = XmlDictionaryWriter.CreateTextWriter(stream);
@@ -125,7 +119,7 @@ namespace CoreWCF.Security
             AddToDigest(sspiState.NegotiationDigest, stream);
         }
 
-        static void AddToDigest(SspiNegotiationTokenAuthenticatorState sspiState, RequestSecurityTokenResponse rstr, bool wasReceived)
+        private static void AddToDigest(SspiNegotiationTokenAuthenticatorState sspiState, RequestSecurityTokenResponse rstr, bool wasReceived)
         {
             MemoryStream stream = new MemoryStream();
             XmlDictionaryWriter writer = XmlDictionaryWriter.CreateTextWriter(stream);
@@ -141,7 +135,7 @@ namespace CoreWCF.Security
             AddToDigest(sspiState.NegotiationDigest, stream);
         }
 
-        static byte[] ComputeAuthenticator(SspiNegotiationTokenAuthenticatorState sspiState, byte[] key)
+        private static byte[] ComputeAuthenticator(SspiNegotiationTokenAuthenticatorState sspiState, byte[] key)
         {
             byte[] negotiationHash;
             lock (sspiState.NegotiationDigest)
@@ -243,13 +237,13 @@ namespace CoreWCF.Security
             return ProcessNegotiation(negotiationState, request, incomingNego);
         }
 
-        BodyWriter ProcessNegotiation(SspiNegotiationTokenAuthenticatorState negotiationState, Message incomingMessage, BinaryNegotiation incomingNego)
+        private BodyWriter ProcessNegotiation(SspiNegotiationTokenAuthenticatorState negotiationState, Message incomingMessage, BinaryNegotiation incomingNego)
         {
             ISspiNegotiation sspiNegotiation = negotiationState.SspiNegotiation;
 
             byte[] outgoingBlob = sspiNegotiation.GetOutgoingBlob(incomingNego.GetNegotiationData(),
                                                             SecurityUtils.GetChannelBindingFromMessage(incomingMessage),
-                                                            this.extendedProtectionPolicy);
+                                                            this.ExtendedProtectionPolicy);
 
             if (sspiNegotiation.IsValidContext == false)
             {
@@ -375,9 +369,9 @@ namespace CoreWCF.Security
             return replyBody;
         }
 
-        class SspiNegotiationFilter : HeaderFilter
+        private class SspiNegotiationFilter : HeaderFilter
         {
-            SspiNegotiationTokenAuthenticator authenticator;
+            private SspiNegotiationTokenAuthenticator authenticator;
 
             public SspiNegotiationFilter(SspiNegotiationTokenAuthenticator authenticator)
             {

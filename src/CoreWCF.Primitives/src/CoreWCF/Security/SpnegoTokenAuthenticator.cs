@@ -1,8 +1,6 @@
-using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.NegotiateInternal;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Net;
@@ -10,16 +8,22 @@ using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.NegotiateInternal;
 
 namespace CoreWCF.Security
 {
-    sealed class SpnegoTokenAuthenticator : SspiNegotiationTokenAuthenticator
+    internal sealed class SpnegoTokenAuthenticator : SspiNegotiationTokenAuthenticator
     {
-        bool extractGroupsForWindowsAccounts;
-        NetworkCredential serverCredential;
-        bool allowUnauthenticatedCallers;
+        private bool _extractGroupsForWindowsAccounts;
+        private NetworkCredential _serverCredential;
+        private bool _allowUnauthenticatedCallers;
+
         // SafeFreeCredentials credentialsHandle;
-        NegotiateInternalState negotiateHandler;
+        private NegotiateInternalState negotiateHandler;
         public SpnegoTokenAuthenticator()
             : base()
         {
@@ -29,57 +33,45 @@ namespace CoreWCF.Security
         // settings        
         public bool ExtractGroupsForWindowsAccounts
         {
-            get
-            {
-                return this.extractGroupsForWindowsAccounts;
-            }
+            get => _extractGroupsForWindowsAccounts;
             set
             {
-                this.CommunicationObject.ThrowIfDisposedOrImmutable();
-                this.extractGroupsForWindowsAccounts = value;
+                CommunicationObject.ThrowIfDisposedOrImmutable();
+                _extractGroupsForWindowsAccounts = value;
             }
         }
 
         public NetworkCredential ServerCredential
         {
-            get
-            {
-                return this.serverCredential;
-            }
+            get => _serverCredential;
             set
             {
-                this.CommunicationObject.ThrowIfDisposedOrImmutable();
-                this.serverCredential = value;
+                CommunicationObject.ThrowIfDisposedOrImmutable();
+                _serverCredential = value;
             }
         }
 
         public bool AllowUnauthenticatedCallers
         {
-            get
-            {
-                return this.allowUnauthenticatedCallers;
-            }
+            get => _allowUnauthenticatedCallers;
             set
             {
-                this.CommunicationObject.ThrowIfDisposedOrImmutable();
-                this.allowUnauthenticatedCallers = value;
+                CommunicationObject.ThrowIfDisposedOrImmutable();
+                _allowUnauthenticatedCallers = value;
             }
         }
 
         // overrides
-        public override XmlDictionaryString NegotiationValueType
-        {
-            get
-            {
-                return XD.TrustApr2004Dictionary.SpnegoValueTypeUri;
-            }
-        }
+        public override XmlDictionaryString NegotiationValueType => XD.TrustApr2004Dictionary.SpnegoValueTypeUri;
 
         public override Task OpenAsync(CancellationToken token)
         {
-          base.OpenAsync(token);
-          if(this.negotiateHandler == null)
-                this.negotiateHandler = (NegotiateInternal.NegotiateInternalState)new NegotiateInternal.NegotiateInternalStateFactory().CreateInstance();
+            base.OpenAsync(token);
+            if (negotiateHandler == null)
+            {
+                negotiateHandler = (NegotiateInternal.NegotiateInternalState)new NegotiateInternal.NegotiateInternalStateFactory().CreateInstance();
+            }
+
             return Task.CompletedTask;
         }
 
@@ -99,18 +91,15 @@ namespace CoreWCF.Security
             finally
             {
                 FreeCredentialsHandle();
-            } 
+            }
         }
 
-        void FreeCredentialsHandle()
+        private void FreeCredentialsHandle()
         {
-            //if (this.credentialsHandle != null)
-            //{
-            //    this.credentialsHandle.Close();
-            //    this.credentialsHandle = null;
-            //}
-            if (this.negotiateHandler != null)
-                this.negotiateHandler.Dispose();
+            if (negotiateHandler != null)
+            {
+                negotiateHandler.Dispose();
+            }
         }
 
         protected override SspiNegotiationTokenAuthenticatorState CreateSspiState(byte[] incomingBlob, string incomingValueTypeUri)
@@ -126,8 +115,8 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new SecurityNegotiationException(SR.Format(SR.InvalidSspiNegotiation)));
             }
-           // SecurityTraceRecordHelper.TraceServiceSpnego(windowsNegotiation);
-            if (this.IsClientAnonymous)
+            // SecurityTraceRecordHelper.TraceServiceSpnego(windowsNegotiation);
+            if (IsClientAnonymous)
             {
                 return EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
             }
@@ -137,10 +126,12 @@ namespace CoreWCF.Security
                 return GetAuthorizationPolicies(identity);
             }
             else
+            {
                 throw new Exception("Identity can't be determined.");
+            }
         }
 
-        ReadOnlyCollection<IAuthorizationPolicy> GetAuthorizationPolicies(IIdentity identity)
+        private ReadOnlyCollection<IAuthorizationPolicy> GetAuthorizationPolicies(IIdentity identity)
         {
             IIdentity remoteIdentity = identity;
             SecurityToken token;
@@ -148,8 +139,8 @@ namespace CoreWCF.Security
             if (remoteIdentity is WindowsIdentity)
             {
                 WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
-                Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, this.allowUnauthenticatedCallers);
-                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
+                Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, _allowUnauthenticatedCallers);
+                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts);
                 token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
                 authorizationPolicies = authenticator.ValidateToken(token);
             }
@@ -162,9 +153,6 @@ namespace CoreWCF.Security
             return authorizationPolicies;
         }
 
-        private NegotiateInternalState GetNegotiateState()
-        {
-            return (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();
-        }
+        private NegotiateInternalState GetNegotiateState() => (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();
     }
 }

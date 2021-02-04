@@ -1,17 +1,15 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System;
 
 namespace CoreWCF.Security
 {
-    class SspiNegotiationTokenAuthenticatorState : NegotiationTokenAuthenticatorState
+    internal class SspiNegotiationTokenAuthenticatorState : NegotiationTokenAuthenticatorState
     {
-        ISspiNegotiation sspiNegotiation;
-        HashAlgorithm negotiationDigest;
-        string context;
-        int requestedKeySize;
-        EndpointAddress appliesTo;
-        DataContractSerializer appliesToSerializer;
+        private DataContractSerializer _appliesToSerializer;
 
         public SspiNegotiationTokenAuthenticatorState(ISspiNegotiation sspiNegotiation)
             : base()
@@ -20,79 +18,37 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("sspiNegotiation");
             }
-            this.sspiNegotiation = sspiNegotiation;
-            this.negotiationDigest = CryptoHelper.NewSha1HashAlgorithm();
+            this.SspiNegotiation = sspiNegotiation;
+            this.NegotiationDigest = CryptoHelper.NewSha1HashAlgorithm();
         }
 
-        public ISspiNegotiation SspiNegotiation
-        {
-            get
-            {
-                return this.sspiNegotiation;
-            }
-        }
+        public ISspiNegotiation SspiNegotiation { get; }
 
-        internal int RequestedKeySize
-        {
-            get
-            {
-                return this.requestedKeySize;
-            }
-            set
-            {
-                this.requestedKeySize = value;
-            }
-        }
+        internal int RequestedKeySize { get; set; }
 
-        internal HashAlgorithm NegotiationDigest
-        {
-            get
-            {
-                return this.negotiationDigest;
-            }
-        }
+        internal HashAlgorithm NegotiationDigest { get; }
 
-        internal string Context
-        {
-            get
-            {
-                return this.context;
-            }
-            set
-            {
-                this.context = value;
-            }
-        }
+        internal string Context { get; set; }
 
-        internal EndpointAddress AppliesTo
-        {
-            get
-            {
-                return this.appliesTo;
-            }
-            set
-            {
-                this.appliesTo = value;
-            }
-        }
+        internal EndpointAddress AppliesTo { get; set; }
 
         internal DataContractSerializer AppliesToSerializer
         {
             get
             {
-                return this.appliesToSerializer;
+                return this._appliesToSerializer;
             }
             set
             {
-                this.appliesToSerializer = value;
+                this._appliesToSerializer = value;
             }
         }
 
         public override string GetRemoteIdentityName()
         {
-            if (this.sspiNegotiation != null && !this.IsNegotiationCompleted)
+            if (this.SspiNegotiation != null && !this.IsNegotiationCompleted)
             {
-                return this.sspiNegotiation.GetRemoteIdentityName();
+                return this.SspiNegotiation.GetRemoteIdentityName();
             }
             return base.GetRemoteIdentityName();
         }
@@ -103,14 +59,14 @@ namespace CoreWCF.Security
             {
                 lock (ThisLock)
                 {
-                    if (this.sspiNegotiation != null)
+                    if (this.SspiNegotiation != null)
                     {
-                        this.sspiNegotiation.Dispose();
+                        this.SspiNegotiation.Dispose();
 
                     }
-                    if (this.negotiationDigest != null)
+                    if (this.NegotiationDigest != null)
                     {
-                        ((IDisposable)this.negotiationDigest).Dispose();
+                        ((IDisposable)this.NegotiationDigest).Dispose();
                     }
                 }
             }
