@@ -36,8 +36,8 @@ namespace CoreWCF.Channels
         public SymmetricSecurityBindingElement(SecurityTokenParameters protectionTokenParameters)
             : base()
         {
-            _messageProtectionOrder = defaultMessageProtectionOrder;
-            RequireSignatureConfirmation = defaultRequireSignatureConfirmation;
+            _messageProtectionOrder = DefaultMessageProtectionOrder;
+            RequireSignatureConfirmation = DefaultRequireSignatureConfirmation;
             ProtectionTokenParameters = protectionTokenParameters;
         }
 

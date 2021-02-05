@@ -133,6 +133,7 @@ namespace CoreWCF.Security
     {
         public const string Principal = "Principal";
         public const string Identities = "Identities";
+        public const string AuthTypeCertMap = "SSL/PCT";
         private static SecurityIdentifier s_administratorsSid;
         internal static byte[] ReadContentAsBase64(XmlDictionaryReader reader, long maxBufferSize)
         {
@@ -149,6 +150,17 @@ namespace CoreWCF.Security
         private static string s_currentDomain;
         private static IIdentity s_anonymousIdentity;
         private static X509SecurityTokenAuthenticator s_nonValidatingX509Authenticator;
+        private static byte[] s_combinedHashLabel;
+
+        internal static byte[] CombinedHashLabel
+        {
+            get
+            {
+                if (s_combinedHashLabel == null)
+                    s_combinedHashLabel = Encoding.UTF8.GetBytes(TrustApr2004Strings.CombinedHashLabel);
+                return s_combinedHashLabel;
+            }
+        }
 
         internal static IIdentity AnonymousIdentity
         {
@@ -193,9 +205,15 @@ namespace CoreWCF.Security
             }
         }
 
-        internal static ReadOnlyCollection<SecurityKey> CreateSymmetricSecurityKeys(byte[] keyToWrap)
+    
+
+        internal static ReadOnlyCollection<SecurityKey> CreateSymmetricSecurityKeys(byte[] key)
         {
-            throw new PlatformNotSupportedException();
+            List<SecurityKey> temp = new List<SecurityKey>(1)
+            {
+                new InMemorySymmetricSecurityKey(key)
+            };
+            return temp.AsReadOnly();
         }
 
         internal static IIdentity CreateIdentity(string name)
@@ -227,6 +245,35 @@ namespace CoreWCF.Security
             {
                 return CreateWindowsIdentity();
             }
+        }
+
+        internal static string GetSpnFromIdentity(EndpointIdentity identity, EndpointAddress target)
+        {
+            bool foundSpn = false;
+            string spn = null;
+            if (identity != null)
+            {
+                if (ClaimTypes.Spn.Equals(identity.IdentityClaim.ClaimType))
+                {
+                    spn = (string)identity.IdentityClaim.Resource;
+                    foundSpn = true;
+                }
+                else if (ClaimTypes.Upn.Equals(identity.IdentityClaim.ClaimType))
+                {
+                    spn = (string)identity.IdentityClaim.Resource;
+                    foundSpn = true;
+                }
+                else if (ClaimTypes.Dns.Equals(identity.IdentityClaim.ClaimType))
+                {
+                    spn = string.Format(CultureInfo.InvariantCulture, "host/{0}", (string)identity.IdentityClaim.Resource);
+                    foundSpn = true;
+                }
+            }
+            if (!foundSpn)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.CannotDetermineSPNBasedOnAddress, target)));
+            }
+            return spn;
         }
 
         private static bool IsSystemAccount(WindowsIdentity self)
@@ -261,6 +308,27 @@ namespace CoreWCF.Security
             }
 
             return identity;
+        }
+
+        internal static int GetMaxNegotiationBufferSize(BindingContext bindingContext)
+        {
+            TransportBindingElement transport = bindingContext.RemainingBindingElements.Find<TransportBindingElement>();
+            Fx.Assert(transport != null, "TransportBindingElement is null!");
+            int maxNegoMessageSize;
+            //TODO move below binding elements to Primitives
+            //if (transport is ConnectionOrientedTransportBindingElement)
+            //{
+            //    maxNegoMessageSize = ((ConnectionOrientedTransportBindingElement)transport).MaxBufferSize;
+            //}
+            //else if (transport is HttpTransportBindingElement)
+            //{
+            //    maxNegoMessageSize = ((HttpTransportBindingElement)transport).MaxBufferSize;
+            //}
+            //else
+            //{
+                maxNegoMessageSize = TransportDefaults.MaxBufferSize;
+           // }
+            return maxNegoMessageSize;
         }
 
         internal static WindowsIdentity CloneWindowsIdentityIfNecessary(WindowsIdentity wid)
@@ -396,7 +464,7 @@ namespace CoreWCF.Security
             string wrappingAlgorithm = keyClause.EncryptionMethod;
             byte[] unwrappedKey = unwrappingSecurityKey.DecryptKey(wrappingAlgorithm, wrappedKey);
             //TODO, check value for XmlDictionaryString Symmetric or else 
-            return new WrappedKeySecurityToken(GenerateId(), unwrappedKey, wrappingAlgorithm,
+            return new WrappedKeySecurityToken(SecurityUtils.GenerateId(), unwrappedKey, wrappingAlgorithm,
                XmlDictionaryString.Empty, unwrappingToken, wrappingTokenReference, wrappedKey, unwrappingSecurityKey
                     );
         }
@@ -430,6 +498,27 @@ namespace CoreWCF.Security
                 (X509KeyUsageFlags.KeyAgreement | X509KeyUsageFlags.KeyEncipherment |
                     X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.DataEncipherment)) != X509KeyUsageFlags.None;
             return canDoKeyExchange;
+        }
+
+        internal static byte[] DecryptKey(SecurityToken unwrappingToken, string encryptionMethod, byte[] wrappedKey, out SecurityKey unwrappingSecurityKey)
+        {
+            unwrappingSecurityKey = null;
+            if (unwrappingToken.SecurityKeys != null)
+            {
+                for (int i = 0; i < unwrappingToken.SecurityKeys.Count; ++i)
+                {
+                    if (unwrappingToken.SecurityKeys[i].IsSupportedAlgorithm(encryptionMethod))
+                    {
+                        unwrappingSecurityKey = unwrappingToken.SecurityKeys[i];
+                        break;
+                    }
+                }
+            }
+            if (unwrappingSecurityKey == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.CannotFindMatchingCrypto, encryptionMethod)));
+            }
+            return unwrappingSecurityKey.DecryptKey(encryptionMethod, wrappedKey);
         }
 
         internal static MessageFault CreateSecurityContextNotFoundFault(SecurityStandardsManager standardsManager, string action)
@@ -565,6 +654,17 @@ namespace CoreWCF.Security
         {
             byte[] copy = Fx.AllocateByteArray(buffer.Length);
             Buffer.BlockCopy(buffer, 0, copy, 0, buffer.Length);
+            return copy;
+        }
+
+        internal static byte[] CloneBuffer(byte[] buffer, int offset, int len)
+        {
+            DiagnosticUtility.DebugAssert(offset >= 0, "Negative offset passed to CloneBuffer.");
+            DiagnosticUtility.DebugAssert(len >= 0, "Negative len passed to CloneBuffer.");
+            DiagnosticUtility.DebugAssert(buffer.Length - offset >= len, "Invalid parameters to CloneBuffer.");
+
+            byte[] copy = Fx.AllocateByteArray(len);
+            Buffer.BlockCopy(buffer, offset, copy, 0, len);
             return copy;
         }
 
@@ -1152,17 +1252,126 @@ namespace CoreWCF.Security
             return false;
         }
 
-        public const string AuthTypeCertMap = "SSL/PCT"; // mapped from a cert
-
-        internal static byte[] CloneBuffer(byte[] buffer, int offset, int len)
+        internal static string GetIdentityNamesFromPolicies(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
-            DiagnosticUtility.DebugAssert(offset >= 0, "Negative offset passed to CloneBuffer.");
-            DiagnosticUtility.DebugAssert(len >= 0, "Negative len passed to CloneBuffer.");
-            DiagnosticUtility.DebugAssert(buffer.Length - offset >= len, "Invalid parameters to CloneBuffer.");
+            return GetIdentityNamesFromContext(AuthorizationContext.CreateDefaultAuthorizationContext(authorizationPolicies));
+        }
 
-            byte[] copy = Fx.AllocateByteArray(len);
-            Buffer.BlockCopy(buffer, offset, copy, 0, len);
-            return copy;
+        internal static string GetIdentityNamesFromContext(AuthorizationContext authContext)
+        {
+            if (authContext == null)
+                return string.Empty;
+
+            StringBuilder str = new StringBuilder(256);
+            for (int i = 0; i < authContext.ClaimSets.Count; ++i)
+            {
+                ClaimSet claimSet = authContext.ClaimSets[i];
+
+                // Windows
+                if (claimSet is WindowsClaimSet windows)
+                {
+                    if (str.Length > 0)
+                        str.Append(", ");
+
+                    AppendIdentityName(str, windows.WindowsIdentity);
+                }
+                else
+                {
+                    // X509
+                    if (claimSet is X509CertificateClaimSet x509)
+                    {
+                        if (str.Length > 0)
+                            str.Append(", ");
+
+                        AppendCertificateIdentityName(str, x509.X509Certificate);
+                    }
+                }
+            }
+
+            if (str.Length <= 0)
+            {
+                List<IIdentity> identities = null;
+                if (authContext.Properties.TryGetValue(SecurityUtils.Identities, out object obj))
+                {
+                    identities = obj as List<IIdentity>;
+                }
+                if (identities != null)
+                {
+                    for (int i = 0; i < identities.Count; ++i)
+                    {
+                        IIdentity identity = identities[i];
+                        if (identity != null)
+                        {
+                            if (str.Length > 0)
+                                str.Append(", ");
+
+                            AppendIdentityName(str, identity);
+                        }
+                    }
+                }
+            }
+            return str.Length <= 0 ? string.Empty : str.ToString();
+        }
+
+        internal static void AppendIdentityName(StringBuilder str, IIdentity identity)
+        {
+            string name = null;
+            try
+            {
+                name = identity.Name;
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+                // suppress exception, this is just info.
+            }
+
+            str.Append(string.IsNullOrEmpty(name) ? "<null>" : name);
+
+            if (identity is WindowsIdentity windows)
+            {
+                if (windows.User != null)
+                {
+                    str.Append("; ");
+                    str.Append(windows.User.ToString());
+                }
+            }
+            else
+            {
+                if (identity is WindowsSidIdentity sid)
+                {
+                    str.Append("; ");
+                    str.Append(sid.SecurityIdentifier.ToString());
+                }
+            }
+        }
+
+        internal static void AppendCertificateIdentityName(StringBuilder str, X509Certificate2 certificate)
+        {
+            string value = certificate.SubjectName.Name;
+            if (string.IsNullOrEmpty(value))
+            {
+                value = certificate.GetNameInfo(X509NameType.DnsName, false);
+                if (string.IsNullOrEmpty(value))
+                {
+                    value = certificate.GetNameInfo(X509NameType.SimpleName, false);
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        value = certificate.GetNameInfo(X509NameType.EmailName, false);
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            value = certificate.GetNameInfo(X509NameType.UpnName, false);
+                        }
+                    }
+                }
+            }
+            // Same format as X509Identity
+            str.Append(string.IsNullOrEmpty(value) ? "<x509>" : value);
+            str.Append("; ");
+            str.Append(certificate.Thumbprint);
         }
 
         internal static string GetCertificateId(X509Certificate2 certificate)

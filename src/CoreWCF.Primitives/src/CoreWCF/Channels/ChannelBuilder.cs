@@ -37,24 +37,24 @@ namespace CoreWCF.Channels
         public BindingParameterCollection BindingParameters { get; set; }
 
         public ChannelDemuxer ChannelDemuxer { get; }
-        public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
+
+        public TypedChannelDemuxer GetTypedChannelDemuxer<TChannel>() where TChannel : class, IChannel
+        {
+            return ChannelDemuxer.GetTypedServiceDispatcher<TChannel>(_context);
+        }
+
+        public  IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             if (!_isChannelDemuxerRequired)
-            {
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            }
-
-            return ChannelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher);
+            return ChannelDemuxer.CreateServiceDispatcher<TChannel>(innerDispatcher, _context);
         }
 
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter) where TChannel : class, IChannel
         {
             if (!_isChannelDemuxerRequired)
-            {
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            }
-
-            return ChannelDemuxer.CreaterServiceDispatcher<TChannel>(innerDispatcher, filter);
+            return ChannelDemuxer.CreateServiceDispatcher<TChannel>(innerDispatcher, filter, _context);
         }
 
         public void RemoveServiceDispatcher<TChannel>(MessageFilter filter) where TChannel : class, IChannel
@@ -63,8 +63,7 @@ namespace CoreWCF.Channels
             {
                 throw new Exception("Demuxer can't be null");
             }
-
-            ChannelDemuxer.RemoveServiceDispatcher<TChannel>(filter);
+            ChannelDemuxer.RemoveServiceDispatcher<TChannel>(filter, _context);
         }
 
         public IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel

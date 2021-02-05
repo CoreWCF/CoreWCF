@@ -73,6 +73,40 @@ namespace WSHttp
             }
         }
 
+        [Fact , Description("Demuxer-failure")]
+        public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
+        {
+            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
+                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                clientCredentials.UserName.UserName = "testuser@corewcf";
+                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                Thread.Sleep(6000);
+                try
+                {
+                    channel.EchoString(testString);
+                }catch(Exception ex)
+                {
+                    Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
+                    Assert.Contains("expired security context token", ex.InnerException.Message);
+                }
+            }
+        }
+
         [Fact, Description("transport-security-with-basic-authentication")]
         public void WSHttpRequestReplyWithTransportMessageEchoString()
         {
@@ -176,6 +210,17 @@ namespace WSHttp
             }
         }
 
+        internal class WSHttpTransportWithMessageCredentialWithUserNameExpire : WSHttpTransportWithMessageCredentialWithUserName
+        {
+            public override CoreWCF.Channels.Binding ChangeBinding(WSHttpBinding binding)
+            {
+               CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding(binding);
+               CoreWCF.Channels.SecurityBindingElement security = customBinding.Elements.Find<CoreWCF.Channels.SecurityBindingElement>();
+               security.LocalServiceSettings.InactivityTimeout = TimeSpan.FromSeconds(3);
+               return customBinding;
+            }
+        }
+
         internal class WSHttpTransportWithMessageCredentialWithUserName : StartupWSHttpBase
         {
             public WSHttpTransportWithMessageCredentialWithUserName() :
@@ -199,49 +244,48 @@ namespace WSHttp
             public WSHttpTransportSecurityOnly() : base(SecurityMode.Transport, MessageCredentialType.None)
             {
             }
-
-            public override void ChangeHostBehavior(ServiceHostBase host)
-            {
-                //nothing to do
-            }
         }
 
         internal class WSHttpNoSecurity : StartupWSHttpBase
         {
             public WSHttpNoSecurity() : base(SecurityMode.None, MessageCredentialType.None)
             {
-            }
-
-            public override void ChangeHostBehavior(ServiceHostBase host)
-            {
-                //nothing to do
+               
             }
         }
 
         internal abstract class StartupWSHttpBase
         {
-            private readonly CoreWCF.SecurityMode wsHttpSecurityMode;
-            private readonly MessageCredentialType credentialType;
+            private readonly CoreWCF.SecurityMode _wsHttpSecurityMode;
+            private readonly MessageCredentialType _credentialType;
             public StartupWSHttpBase(CoreWCF.SecurityMode securityMode, MessageCredentialType credentialType)
             {
-                wsHttpSecurityMode = securityMode;
-                this.credentialType = credentialType;
+                _wsHttpSecurityMode = securityMode;
+                _credentialType = credentialType;
             }
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
             }
 
-            public abstract void ChangeHostBehavior(ServiceHostBase host);
+            public virtual void ChangeHostBehavior(ServiceHostBase host)
+            {
 
+            }
+
+            public virtual CoreWCF.Channels.Binding ChangeBinding(WSHttpBinding wsBInding)
+            {
+                return wsBInding;
+            }
+           
             public void Configure(IApplicationBuilder app, IHostingEnvironment env)
             {
-                CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(wsHttpSecurityMode);
-                serverBinding.Security.Message.ClientCredentialType = credentialType;
+                CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(_wsHttpSecurityMode);
+                serverBinding.Security.Message.ClientCredentialType = _credentialType;
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.EchoService>();
-                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(serverBinding, "/WSHttpWcfService/basichttp.svc");
+                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(ChangeBinding(serverBinding), "/WSHttpWcfService/basichttp.svc");
                     Action<ServiceHostBase> serviceHost = host => ChangeHostBehavior(host);
                     builder.ConfigureServiceHostBase<Services.EchoService>(serviceHost);
                 });

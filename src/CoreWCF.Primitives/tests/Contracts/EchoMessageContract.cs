@@ -28,4 +28,31 @@ namespace CoreWCF.Primitives.Tests.Contracts
         public string SayHi { get; set; }
     }
 
+    [MessageContract(IsWrapped = true,
+                WrapperName = "CoreEchoMessageRequestObj",
+                WrapperNamespace = "http://EchoNamespace.org/Echo")]
+    public class CoreEchoMessageRequest
+    {
+        [MessageBodyMember(Namespace = "http://EchoNamespace.org/Echo")]
+        public string Text { get; set; }
+
+        [MessageHeader(Namespace = "http://EchoNamespace.org/Echo", Name = "DevKey")]
+        public string APIKey { get; set; }
+    }
+
+
+    [MessageContract(IsWrapped = true,
+                    WrapperName = "CoreEchoMessageResponseObj",
+                    WrapperNamespace = "http://EchoNamespace.org/Echo")]
+    public class CoreEchoMessageResponse
+    {
+        [MessageBodyMember(Namespace = "http://EchoNamespace.org/Echo")]
+        public string SayHello { get; set; }
+
+        [MessageHeader(Namespace = "http://EchoNamespace.org/Echo")]
+        public string SayHi { get; set; }
+    }
+
+
+
 }

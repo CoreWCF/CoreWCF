@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.InteropServices;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
@@ -15,6 +16,7 @@ namespace CoreWCF
         private MessageCredentialType _clientCredentialType;
         private SecurityAlgorithmSuite _algorithmSuite;
         private static readonly TimeSpan s_defaultServerIssuedTransitionTokenLifetime = TimeSpan.FromMinutes(15);
+        private const string NetFrameworkFrameworkName = ".NET Framework";
         public MessageSecurityOverHttp()
         {
             _clientCredentialType = DefaultClientCredentialType;
@@ -31,6 +33,17 @@ namespace CoreWCF
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
+
+                if(value is MessageCredentialType.Windows)
+                {
+                    //TODO Remove this after .net 5+
+                    string frameworkDescription = RuntimeInformation.FrameworkDescription;
+                    if (frameworkDescription.IndexOf(NetFrameworkFrameworkName, StringComparison.Ordinal) >= 0)
+                    {
+                        throw new PlatformNotSupportedException("Windows auth only supported on .NET Core");
+                    }
+                }
+
                 _clientCredentialType = value;
             }
         }
@@ -76,9 +89,9 @@ namespace CoreWCF
                     case MessageCredentialType.Certificate:
                         oneShotSecurity = SecurityBindingElement.CreateCertificateOverTransportBindingElement();
                         break;
-                    //case MessageCredentialType.Windows:
-                    //    oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
-                    //    break;
+                    case MessageCredentialType.Windows:
+                        oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
+                        break;
                     //case MessageCredentialType.IssuedToken:
                     //    oneShotSecurity = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes: true)), this.algorithmSuite));
                     //    break;

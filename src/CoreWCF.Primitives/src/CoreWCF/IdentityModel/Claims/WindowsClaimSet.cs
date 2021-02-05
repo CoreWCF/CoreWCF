@@ -244,7 +244,13 @@ namespace CoreWCF.IdentityModel.Claims
 
         public static bool TryCreateWindowsSidClaim(WindowsIdentity windowsIdentity, out Claim claim)
         {
-            throw new PlatformNotSupportedException("CreateWindowsSidClaim is not yet supported");
+            if (windowsIdentity.User != null && windowsIdentity.User.IsAccountSid())
+            {
+                claim = Claim.CreateWindowsSidClaim(new SecurityIdentifier(windowsIdentity.User.Value));
+                return true;
+            }
+            claim = null;
+            return false;
         }
     }
 }

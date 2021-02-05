@@ -181,7 +181,7 @@ namespace CoreWCF
             }
         }
 
-        internal ServiceHostBase Host
+        public ServiceHostBase Host
         {
             get
             {

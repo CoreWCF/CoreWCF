@@ -18,7 +18,7 @@ namespace CoreWCF
         private bool _closeClientReply;
         private ExtensionCollection<OperationContext> _extensions;
         private Message _request;
-        internal IPrincipal threadPrincipal;
+        internal IPrincipal _threadPrincipal;
         private MessageProperties _outgoingMessageProperties;
         private MessageHeaders _outgoingMessageHeaders;
 
@@ -237,10 +237,33 @@ namespace CoreWCF
             }
         }
 
+        public string SessionId
+        {
+            get
+            {
+                if (InternalServiceChannel != null)
+                {
+                    IChannel inner = InternalServiceChannel.InnerChannel;
+                    if (inner != null)
+                    {
+                        if ((inner is ISessionChannel<IDuplexSession> duplex) && (duplex.Session != null))
+                            return duplex.Session.Id;
+
+                        if ((inner is ISessionChannel<IInputSession> input) && (input.Session != null))
+                            return input.Session.Id;
+
+                        if ((inner is ISessionChannel<IOutputSession> output) && (output.Session != null))
+                            return output.Session.Id;
+                    }
+                }
+                return null;
+            }
+        }
+
         internal IPrincipal ThreadPrincipal
         {
-            get { return threadPrincipal; }
-            set { threadPrincipal = value; }
+            get { return _threadPrincipal; }
+            set { _threadPrincipal = value; }
         }
 
         public ClaimsPrincipal ClaimsPrincipal
@@ -301,7 +324,7 @@ namespace CoreWCF
             _request = null;
             _extensions = null;
             InstanceContext = null;
-            threadPrincipal = null;
+            _threadPrincipal = null;
             SetClientReply(null, false);
         }
 
