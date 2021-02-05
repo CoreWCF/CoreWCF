@@ -12,6 +12,7 @@
   },
   "publicReleaseRefSpec": [
     "^refs/heads/master$",
+    "^refs/heads/main$",
     "^refs/heads/release/v\\d+\\.\\d+\\.\\d+$"
   ],
   "cloudBuild": {
