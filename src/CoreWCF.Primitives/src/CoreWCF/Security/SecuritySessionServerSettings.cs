@@ -1997,7 +1997,7 @@ namespace CoreWCF.Security
         //Failure Demuxer handler
         internal class SecuritySessionDemuxFailureHandler : IChannelDemuxFailureHandler
         {
-            SecurityStandardsManager standardsManager;
+            private readonly SecurityStandardsManager _standardsManager;
 
             public SecuritySessionDemuxFailureHandler(SecurityStandardsManager standardsManager)
             {
@@ -2005,7 +2005,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
                 }
-                this.standardsManager = standardsManager;
+                this._standardsManager = standardsManager;
             }
 
             public void HandleDemuxFailure(Message message)
@@ -2018,7 +2018,7 @@ namespace CoreWCF.Security
 
             public Message CreateSessionDemuxFaultMessage(Message message)
             {
-                MessageFault fault = SecurityUtils.CreateSecurityContextNotFoundFault(this.standardsManager, message.Headers.Action);
+                MessageFault fault = SecurityUtils.CreateSecurityContextNotFoundFault(this._standardsManager, message.Headers.Action);
                 Message faultMessage = Message.CreateMessage(message.Version, fault, message.Version.Addressing.DefaultFaultAction);
                 if (message.Headers.MessageId != null)
                 {

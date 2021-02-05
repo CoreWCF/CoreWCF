@@ -1,11 +1,10 @@
-﻿using CoreWCF.Security.NegotiateInternal;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Security.Authentication.ExtendedProtection;
-using System.Text;
-using System.Net.Security;
-using System.IO;
 using System.Security.Principal;
+using CoreWCF.Security.NegotiateInternal;
 
 namespace CoreWCF.Security
 {
@@ -16,59 +15,46 @@ namespace CoreWCF.Security
     /// Using another layer of abstraction in NegotiateInternal.NegotiateInternalState to call most of the API using reflection.
     /// 
     /// </summary>
-    class WindowsSspiNegotiation : ISspiNegotiation
+    internal class WindowsSspiNegotiation : ISspiNegotiation
     {
-        private string package;
-        private string defaultServiceBinding;
-        NegotiateInternalState negotiateState;
-        bool isCompleted;
+        private readonly string _package;
+        private readonly string _defaultServiceBinding;
+        private readonly NegotiateInternalState _negotiateState;
+        private bool _isCompleted;
 
-        public WindowsSspiNegotiation(string package, string defaultServiceBinding, NegotiateInternalState passedNegotiateState )
+        public WindowsSspiNegotiation(string package, string defaultServiceBinding, NegotiateInternalState passedNegotiateState)
         {
-            this.package = package;
-            this.defaultServiceBinding = defaultServiceBinding;
-            this.negotiateState = passedNegotiateState;
+            this._package = package;
+            this._defaultServiceBinding = defaultServiceBinding;
+            _negotiateState = passedNegotiateState;
         }
 
-        public bool IsCompleted => this.isCompleted;
+        public bool IsCompleted => _isCompleted;
 
-        public bool IsValidContext => this.negotiateState.IsValidContext;
+        public bool IsValidContext => _negotiateState.IsValidContext;
 
-        public string KeyEncryptionAlgorithm
-        {
-            get
-            {
-                return SecurityAlgorithmStrings.WindowsSspiKeyWrap;
-            }
-        }
+        public string KeyEncryptionAlgorithm => SecurityAlgorithmStrings.WindowsSspiKeyWrap;
 
-        public byte[] Decrypt(byte[] encryptedData)
-        {
-            throw new NotImplementedException();
-        }
+        public byte[] Decrypt(byte[] encryptedData) => throw new NotImplementedException();
 
         public void Dispose()
         {
-            if (this.negotiateState != null)
-                this.negotiateState.Dispose();
+            if (_negotiateState != null)
+            {
+                _negotiateState.Dispose();
+            }
         }
 
-        public byte[] Encrypt(byte[] input)
-        {
-            return this.negotiateState.Encrypt(input);
-
-        }
+        public byte[] Encrypt(byte[] input) => _negotiateState.Encrypt(input);
 
         public byte[] GetOutgoingBlob(byte[] incomingBlob, ChannelBinding channelbinding, ExtendedProtectionPolicy protectionPolicy)
         {
-            NegotiateInternal.BlobErrorType errorType;
-            Exception exception;
-            var outGoingBlob = this.negotiateState.GetOutgoingBlob(incomingBlob, out errorType, out exception);
+            byte[] outGoingBlob = _negotiateState.GetOutgoingBlob(incomingBlob, out BlobErrorType errorType, out Exception exception);
             if (errorType != BlobErrorType.None)
             {
                 throw exception;
             }
-            this.isCompleted = this.negotiateState.IsCompleted;
+            _isCompleted = _negotiateState.IsCompleted;
             return outGoingBlob;
         }
 
@@ -76,9 +62,11 @@ namespace CoreWCF.Security
         {
             if (IsValidContext)
             {
-                IIdentity identity = this.negotiateState.GetIdentity();
+                IIdentity identity = _negotiateState.GetIdentity();
                 if (identity != null)
+                {
                     return identity.Name;
+                }
             }
             return string.Empty;
         }
@@ -86,7 +74,10 @@ namespace CoreWCF.Security
         public IIdentity GetIdentity()
         {
             if (IsValidContext)
-                return this.negotiateState.GetIdentity();
+            {
+                return _negotiateState.GetIdentity();
+            }
+
             return null;
         }
     }

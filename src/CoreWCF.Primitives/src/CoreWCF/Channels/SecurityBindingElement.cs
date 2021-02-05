@@ -288,6 +288,7 @@ namespace CoreWCF.Channels
                 return new BindingContext(binding, new BindingParameterCollection(issuerBindingContext.BindingParameters));
             }
         }
+
         /*
         protected static void SetIssuerBindingContextIfRequired(SecurityTokenParameters parameters, BindingContext issuerBindingContext)
         {

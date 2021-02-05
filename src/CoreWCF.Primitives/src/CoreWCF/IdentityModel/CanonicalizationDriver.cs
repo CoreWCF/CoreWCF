@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Xml;
@@ -7,20 +10,20 @@ namespace CoreWCF.IdentityModel
 {
     internal sealed class CanonicalizationDriver
     {
-        private bool closeReadersAfterProcessing;
-        private XmlReader reader;
-        private string[] inclusivePrefixes;
-        private bool includeComments;
+        private bool _closeReadersAfterProcessing;
+        private XmlReader _reader;
+        private string[] _inclusivePrefixes;
+        private bool _includeComments;
 
         public bool CloseReadersAfterProcessing
         {
             get
             {
-                return this.closeReadersAfterProcessing;
+                return this._closeReadersAfterProcessing;
             }
             set
             {
-                this.closeReadersAfterProcessing = value;
+                this._closeReadersAfterProcessing = value;
             }
         }
 
@@ -28,41 +31,41 @@ namespace CoreWCF.IdentityModel
         {
             get
             {
-                return this.includeComments;
+                return this._includeComments;
             }
             set
             {
-                this.includeComments = value;
+                this._includeComments = value;
             }
         }
 
         public string[] GetInclusivePrefixes()
         {
-            return this.inclusivePrefixes;
+            return this._inclusivePrefixes;
         }
 
         public void Reset()
         {
-            this.reader = (XmlReader)null;
+            this._reader = (XmlReader)null;
         }
 
         public void SetInclusivePrefixes(string[] inclusivePrefixes)
         {
-            this.inclusivePrefixes = inclusivePrefixes;
+            this._inclusivePrefixes = inclusivePrefixes;
         }
 
         public void SetInput(Stream stream)
         {
             if (stream == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
-            this.reader = XmlReader.Create(stream);
+            this._reader = XmlReader.Create(stream);
         }
 
         public void SetInput(XmlReader reader)
         {
             if (reader == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
-            this.reader = reader;
+            this._reader = reader;
         }
 
         public byte[] GetBytes()
@@ -85,43 +88,43 @@ namespace CoreWCF.IdentityModel
 
         public void WriteTo(Stream canonicalStream)
         {
-            if (this.reader == null)
+            if (this._reader == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((Exception)new InvalidOperationException(SR.Format("NoInputIsSetForCanonicalization")));
-            if (this.reader is XmlDictionaryReader reader && reader.CanCanonicalize)
+            if (this._reader is XmlDictionaryReader reader && reader.CanCanonicalize)
             {
                 int content = (int)reader.MoveToContent();
-                reader.StartCanonicalization(canonicalStream, this.includeComments, this.inclusivePrefixes);
+                reader.StartCanonicalization(canonicalStream, this._includeComments, this._inclusivePrefixes);
                 reader.Skip();
                 reader.EndCanonicalization();
             }
             else
             {
                 XmlDictionaryWriter textWriter = XmlDictionaryWriter.CreateTextWriter(Stream.Null);
-                if (this.inclusivePrefixes != null)
+                if (this._inclusivePrefixes != null)
                 {
-                    textWriter.WriteStartElement("a", this.reader.LookupNamespace(string.Empty));
-                    for (int index = 0; index < this.inclusivePrefixes.Length; ++index)
+                    textWriter.WriteStartElement("a", this._reader.LookupNamespace(string.Empty));
+                    for (int index = 0; index < this._inclusivePrefixes.Length; ++index)
                     {
-                        string namespaceUri = this.reader.LookupNamespace(this.inclusivePrefixes[index]);
+                        string namespaceUri = this._reader.LookupNamespace(this._inclusivePrefixes[index]);
                         if (namespaceUri != null)
-                            textWriter.WriteXmlnsAttribute(this.inclusivePrefixes[index], namespaceUri);
+                            textWriter.WriteXmlnsAttribute(this._inclusivePrefixes[index], namespaceUri);
                     }
                 }
-                textWriter.StartCanonicalization(canonicalStream, this.includeComments, this.inclusivePrefixes);
+                textWriter.StartCanonicalization(canonicalStream, this._includeComments, this._inclusivePrefixes);
                 //TODO check the use of wrappedreader
                 // if (this.reader is WrappedReader)
                 //  ((WrappedReader) this.reader).XmlTokens.GetWriter().WriteTo(textWriter, new DictionaryManager());
                 // else
-                textWriter.WriteNode(this.reader, false);
+                textWriter.WriteNode(this._reader, false);
                 textWriter.Flush();
                 textWriter.EndCanonicalization();
-                if (this.inclusivePrefixes != null)
+                if (this._inclusivePrefixes != null)
                     textWriter.WriteEndElement();
                 textWriter.Close();
             }
-            if (this.closeReadersAfterProcessing)
-                this.reader.Close();
-            this.reader = (XmlReader)null;
+            if (this._closeReadersAfterProcessing)
+                this._reader.Close();
+            this._reader = (XmlReader)null;
         }
     }
 }

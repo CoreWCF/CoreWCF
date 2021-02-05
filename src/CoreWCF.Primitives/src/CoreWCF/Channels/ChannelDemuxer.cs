@@ -52,6 +52,7 @@ namespace CoreWCF.Channels
         {
              GetTypedServiceDispatcher<TChannel>(context).RemoveDispatcher(filter);
         }
+
         internal TypedChannelDemuxer GetTypedServiceDispatcher<TChannel>(BindingContext context)
         {
             TypedChannelDemuxer typeDemuxer = null;
@@ -165,6 +166,7 @@ namespace CoreWCF.Channels
             _filterTable = new MessageFilterTable<IServiceDispatcher>();
             DemuxFailureHandler = context.BindingParameters?.Find<IChannelDemuxFailureHandler>();
         }
+
         protected TInnerChannel InnerChannel { get; }
 
         protected IServiceDispatcher InnerDispatcher { get; }

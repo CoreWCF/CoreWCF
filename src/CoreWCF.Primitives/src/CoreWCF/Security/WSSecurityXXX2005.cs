@@ -21,6 +21,7 @@ namespace CoreWCF.Security
             tokenEntryList.Add(new WSSecurityXXX2005.WrappedKeyTokenEntry(this.WSSecurityTokenSerializer));
            // tokenEntryList.Add(new WSSecurityXXX2005.SamlTokenEntry(this.WSSecurityTokenSerializer, this.SamlSerializer));
         }
+
         //private new class SamlTokenEntry : WSSecurityJan2004.SamlTokenEntry
         //{
         //    public SamlTokenEntry(

@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
@@ -10,7 +12,7 @@ using System.Security.Principal;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
-   internal class NegotiateInternalState : INegotiateInternalState
+    internal class NegotiateInternalState : INegotiateInternalState
     {
         // https://www.gnu.org/software/gss/reference/gss.pdf
         private const uint GSS_S_NO_CRED = 7 << 16;
@@ -36,8 +38,8 @@ namespace CoreWCF.Security.NegotiateInternal
 
         static NegotiateInternalState()
         {
-            var secAssembly = typeof(AuthenticationException).Assembly;
-            var ntAuthType = secAssembly.GetType("System.Net.NTAuthentication", throwOnError: true);
+            Assembly secAssembly = typeof(AuthenticationException).Assembly;
+            Type ntAuthType = secAssembly.GetType("System.Net.NTAuthentication", throwOnError: true);
             _constructor = ntAuthType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
             _getOutgoingBlob = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
                 info.Name.Equals("GetOutgoingBlob") && info.GetParameters().Count() == 3).Single();
@@ -47,10 +49,10 @@ namespace CoreWCF.Security.NegotiateInternal
                 info.Name.Equals("get_ProtocolName")).Single();
             _closeContext = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
                 info.Name.Equals("CloseContext")).Single();
-           
+
             //Added these 2 new call
-         //   _getContext = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-         //       info.Name.Equals("GetContext")).Single();
+            //   _getContext = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
+            //       info.Name.Equals("GetContext")).Single();
             _encrypt = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
                 info.Name.Equals("Encrypt")).Single();
             _isValidContext = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
@@ -58,20 +60,20 @@ namespace CoreWCF.Security.NegotiateInternal
             //end 
 
             //TODO this fails in framework
-            var securityStatusType = secAssembly.GetType("System.Net.SecurityStatusPal", throwOnError: true);
-           // securityStatusType.get
+            Type securityStatusType = secAssembly.GetType("System.Net.SecurityStatusPal", throwOnError: true);
+            // securityStatusType.get
             _statusCode = securityStatusType.GetField("ErrorCode");
             _statusException = securityStatusType.GetField("Exception");
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var interopType = secAssembly.GetType("Interop", throwOnError: true);
-                var netNativeType = interopType.GetNestedType("NetSecurityNative", BindingFlags.NonPublic | BindingFlags.Static);
+                Type interopType = secAssembly.GetType("Interop", throwOnError: true);
+                Type netNativeType = interopType.GetNestedType("NetSecurityNative", BindingFlags.NonPublic | BindingFlags.Static);
                 _gssExceptionType = netNativeType.GetNestedType("GssApiException", BindingFlags.NonPublic);
                 _gssMinorStatus = _gssExceptionType.GetField("_minorStatus", BindingFlags.Instance | BindingFlags.NonPublic);
             }
 
-            var negoStreamPalType = secAssembly.GetType("System.Net.Security.NegotiateStreamPal", throwOnError: true);
+            Type negoStreamPalType = secAssembly.GetType("System.Net.Security.NegotiateStreamPal", throwOnError: true);
             _getIdentity = negoStreamPalType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(info =>
                 info.Name.Equals("GetIdentity")).Single();
             _getException = negoStreamPalType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(info =>
@@ -80,9 +82,9 @@ namespace CoreWCF.Security.NegotiateInternal
 
         public NegotiateInternalState()
         {
-           
-                var credential = CredentialCache.DefaultCredentials;
-                _instance = _constructor.Invoke(new object[] { true, "Negotiate", credential, null, 0, null });
+
+            ICredentials credential = CredentialCache.DefaultCredentials;
+            _instance = _constructor.Invoke(new object[] { true, "Negotiate", credential, null, 0, null });
         }
 
         // Copied rather than reflected to remove the IsCompleted -> CloseContext check.
@@ -113,10 +115,10 @@ namespace CoreWCF.Security.NegotiateInternal
             try
             {
                 // byte[] GetOutgoingBlob(byte[] incomingBlob, bool throwOnError, out SecurityStatusPal statusCode)
-                var parameters = new object[] { incomingBlob, false, null };
-                var blob = (byte[])_getOutgoingBlob.Invoke(_instance, parameters);
+                object[] parameters = new object[] { incomingBlob, false, null };
+                byte[] blob = (byte[])_getOutgoingBlob.Invoke(_instance, parameters);
 
-                var securityStatus = parameters[2];
+                object securityStatus = parameters[2];
                 // TODO: Update after corefx changes
                 error = (Exception)(_statusException.GetValue(securityStatus)
                     ?? _getException.Invoke(null, new[] { securityStatus }));
@@ -128,8 +130,8 @@ namespace CoreWCF.Security.NegotiateInternal
                     && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                     && _gssExceptionType.IsInstanceOfType(error))
                 {
-                    var majorStatus = (uint)error.HResult;
-                    var minorStatus = (uint)_gssMinorStatus.GetValue(error);
+                    uint majorStatus = (uint)error.HResult;
+                    uint minorStatus = (uint)_gssMinorStatus.GetValue(error);
 
                     // Remap specific errors
                     if (majorStatus == GSS_S_NO_CRED && minorStatus == 0)
@@ -169,25 +171,13 @@ namespace CoreWCF.Security.NegotiateInternal
             }
         }
 
-        public bool IsCompleted
-        {
-            get => (bool)_isCompleted.Invoke(_instance, Array.Empty<object>());
-        }
+        public bool IsCompleted => (bool)_isCompleted.Invoke(_instance, Array.Empty<object>());
 
-        public string Protocol
-        {
-            get => (string)_protocol.Invoke(_instance, Array.Empty<object>());
-        }
+        public string Protocol => (string)_protocol.Invoke(_instance, Array.Empty<object>());
 
-        public bool IsValidContext
-        {
-            get => (bool)_isValidContext.Invoke(_instance, Array.Empty<object>());
-        }
+        public bool IsValidContext => (bool)_isValidContext.Invoke(_instance, Array.Empty<object>());
 
-        public IIdentity GetIdentity()
-        {
-            return (IIdentity)_getIdentity.Invoke(obj: null, parameters: new object[] { _instance });
-        }
+        public IIdentity GetIdentity() => (IIdentity)_getIdentity.Invoke(obj: null, parameters: new object[] { _instance });
 
         public byte[] Encrypt(byte[] input)
         {
@@ -201,23 +191,21 @@ namespace CoreWCF.Security.NegotiateInternal
       uint sequenceNumber)
              */
             if (input == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("input");
+            }
+
             byte[] _writeBuffer = new byte[4];
-            var parameters = new object[] { input, 0, input.Length , _writeBuffer, 0U};
-          int totalBytes = (int)  _encrypt.Invoke(_instance, parameters);
-            byte[] result = new byte[totalBytes-4];
+            object[] parameters = new object[] { input, 0, input.Length, _writeBuffer, 0U };
+            int totalBytes = (int)_encrypt.Invoke(_instance, parameters);
+            byte[] result = new byte[totalBytes - 4];
             Buffer.BlockCopy((byte[])parameters[3], 4, result, 0, result.Length);
             return result;
         }
 
-        public void Dispose()
-        {
-            _closeContext.Invoke(_instance, Array.Empty<object>());
-        }
+        public void Dispose() => _closeContext.Invoke(_instance, Array.Empty<object>());
 
-        private bool IsCredentialError(NegotiateInternalSecurityStatusErrorCode error)
-        {
-            return error == NegotiateInternalSecurityStatusErrorCode.LogonDenied ||
+        private bool IsCredentialError(NegotiateInternalSecurityStatusErrorCode error) => error == NegotiateInternalSecurityStatusErrorCode.LogonDenied ||
                 error == NegotiateInternalSecurityStatusErrorCode.UnknownCredentials ||
                 error == NegotiateInternalSecurityStatusErrorCode.NoImpersonation ||
                 error == NegotiateInternalSecurityStatusErrorCode.NoAuthenticatingAuthority ||
@@ -225,11 +213,8 @@ namespace CoreWCF.Security.NegotiateInternal
                 error == NegotiateInternalSecurityStatusErrorCode.CertExpired ||
                 error == NegotiateInternalSecurityStatusErrorCode.SmartcardLogonRequired ||
                 error == NegotiateInternalSecurityStatusErrorCode.BadBinding;
-        }
 
-        private bool IsClientError(NegotiateInternalSecurityStatusErrorCode error)
-        {
-            return error == NegotiateInternalSecurityStatusErrorCode.InvalidToken ||
+        private bool IsClientError(NegotiateInternalSecurityStatusErrorCode error) => error == NegotiateInternalSecurityStatusErrorCode.InvalidToken ||
                 error == NegotiateInternalSecurityStatusErrorCode.CannotPack ||
                 error == NegotiateInternalSecurityStatusErrorCode.QopNotSupported ||
                 error == NegotiateInternalSecurityStatusErrorCode.NoCredentials ||
@@ -244,6 +229,5 @@ namespace CoreWCF.Security.NegotiateInternal
                 error == NegotiateInternalSecurityStatusErrorCode.AlgorithmMismatch ||
                 error == NegotiateInternalSecurityStatusErrorCode.SecurityQosFailed ||
                 error == NegotiateInternalSecurityStatusErrorCode.UnsupportedPreauth;
-        }
-}
+    }
 }

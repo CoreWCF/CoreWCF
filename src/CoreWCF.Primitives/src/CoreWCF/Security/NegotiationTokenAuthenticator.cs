@@ -33,67 +33,60 @@ namespace CoreWCF.Security
         internal const bool defaultServerMaintainState = true;
         internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
         internal static readonly SecurityStateEncoder defaultSecurityStateEncoder = new DataProtectionSecurityStateEncoder();
-        private NegotiationTokenAuthenticatorStateCache<T> stateCache;
-        private RenewedSecurityTokenHandler renewedSecurityTokenHandler;
-        private NegotiationHost negotiationHost;
-        private bool encryptStateInServiceToken;
-        private TimeSpan serviceTokenLifetime;
-        private int maximumCachedNegotiationState;
-        private TimeSpan negotiationTimeout;
-        private bool isClientAnonymous;
-        private SecurityStandardsManager standardsManager;
-        private SecurityAlgorithmSuite securityAlgorithmSuite;
-        private SecurityTokenParameters issuedSecurityTokenParameters;
-        private ISecurityContextSecurityTokenCache issuedTokenCache;
-        private BindingContext issuerBindingContext;
-        private Uri listenUri;
-        private string sctUri;
+        private NegotiationTokenAuthenticatorStateCache<T> _stateCache;
+        private RenewedSecurityTokenHandler _renewedSecurityTokenHandler;
+        private NegotiationHost _negotiationHost;
+        private bool _encryptStateInServiceToken;
+        private TimeSpan _serviceTokenLifetime;
+        private int _maximumCachedNegotiationState;
+        private TimeSpan _negotiationTimeout;
+        private bool _isClientAnonymous;
+        private SecurityStandardsManager _standardsManager;
+        private SecurityAlgorithmSuite _securityAlgorithmSuite;
+        private SecurityTokenParameters _issuedSecurityTokenParameters;
+        private ISecurityContextSecurityTokenCache _issuedTokenCache;
+        private BindingContext _issuerBindingContext;
+        private Uri _listenUri;
 
         // AuditLogLocation auditLogLocation;
-        private bool suppressAuditFailure;
+        private bool _suppressAuditFailure;
 
         // AuditLevel messageAuthenticationAuditLevel;
-        private SecurityStateEncoder securityStateEncoder;
-        private SecurityContextCookieSerializer cookieSerializer;
-        private IMessageFilterTable<EndpointAddress> endpointFilterTable;
-        private IssuedSecurityTokenHandler issuedSecurityTokenHandler;
-        private int maxMessageSize;
-        private IList<Type> knownTypes;
-        private int maximumConcurrentNegotiations;
-        private List<IChannel> activeNegotiationChannels1;
-        private List<IChannel> activeNegotiationChannels2;
-        private IOThreadTimer idlingNegotiationSessionTimer;
-        private bool isTimerCancelled;
+        private SecurityStateEncoder _securityStateEncoder;
+        private SecurityContextCookieSerializer _cookieSerializer;
+        private IMessageFilterTable<EndpointAddress> _endpointFilterTable;
+        private int _maxMessageSize;
+        private IList<Type> _knownTypes;
+        private int _maximumConcurrentNegotiations;
+        private List<IChannel> _activeNegotiationChannels1;
+        private List<IChannel> _activeNegotiationChannels2;
+        private IOThreadTimer _idlingNegotiationSessionTimer;
+        private bool _isTimerCancelled;
 
         protected NegotiationTokenAuthenticator() : base() => InitializeDefaults();
 
-        public IssuedSecurityTokenHandler IssuedSecurityTokenHandler
-        {
-            get => issuedSecurityTokenHandler;
-            set => issuedSecurityTokenHandler = value;
-
-        }
+        public IssuedSecurityTokenHandler IssuedSecurityTokenHandler { get; set; }
 
         public RenewedSecurityTokenHandler RenewedSecurityTokenHandler
         {
-            get => renewedSecurityTokenHandler;
-            set => renewedSecurityTokenHandler = value;
+            get => _renewedSecurityTokenHandler;
+            set => _renewedSecurityTokenHandler = value;
         }
 
         // settings
         public bool EncryptStateInServiceToken
         {
-            get => encryptStateInServiceToken;
+            get => _encryptStateInServiceToken;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                encryptStateInServiceToken = value;
+                _encryptStateInServiceToken = value;
             }
         }
 
         public TimeSpan ServiceTokenLifetime
         {
-            get => serviceTokenLifetime;
+            get => _serviceTokenLifetime;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
@@ -107,13 +100,13 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
-                serviceTokenLifetime = value;
+                _serviceTokenLifetime = value;
             }
         }
 
         public int MaximumCachedNegotiationState
         {
-            get => maximumCachedNegotiationState;
+            get => _maximumCachedNegotiationState;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
@@ -121,13 +114,13 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.Format(SR.ValueMustBeNonNegative)));
                 }
-                maximumCachedNegotiationState = value;
+                _maximumCachedNegotiationState = value;
             }
         }
 
         public int MaximumConcurrentNegotiations
         {
-            get => maximumConcurrentNegotiations;
+            get => _maximumConcurrentNegotiations;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
@@ -135,13 +128,13 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.Format(SR.ValueMustBeNonNegative)));
                 }
-                maximumConcurrentNegotiations = value;
+                _maximumConcurrentNegotiations = value;
             }
         }
 
         public TimeSpan NegotiationTimeout
         {
-            get => negotiationTimeout;
+            get => _negotiationTimeout;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
@@ -155,37 +148,37 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                         SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
                 }
-                negotiationTimeout = value;
+                _negotiationTimeout = value;
             }
         }
 
         public bool IsClientAnonymous
         {
-            get => isClientAnonymous;
+            get => _isClientAnonymous;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                isClientAnonymous = value;
+                _isClientAnonymous = value;
             }
         }
 
         public SecurityAlgorithmSuite SecurityAlgorithmSuite
         {
-            get => securityAlgorithmSuite;
+            get => _securityAlgorithmSuite;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                securityAlgorithmSuite = value;
+                _securityAlgorithmSuite = value;
             }
         }
 
         public IMessageFilterTable<EndpointAddress> EndpointFilterTable
         {
-            get => endpointFilterTable;
+            get => _endpointFilterTable;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                endpointFilterTable = value;
+                _endpointFilterTable = value;
             }
         }
 
@@ -199,31 +192,31 @@ namespace CoreWCF.Security
 
         public SecurityStandardsManager StandardsManager
         {
-            get => standardsManager;
+            get => _standardsManager;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                standardsManager = (value != null ? value : SecurityStandardsManager.DefaultInstance);
+                _standardsManager = (value != null ? value : SecurityStandardsManager.DefaultInstance);
             }
         }
 
         public SecurityTokenParameters IssuedSecurityTokenParameters
         {
-            get => issuedSecurityTokenParameters;
+            get => _issuedSecurityTokenParameters;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                issuedSecurityTokenParameters = value;
+                _issuedSecurityTokenParameters = value;
             }
         }
 
         public ISecurityContextSecurityTokenCache IssuedTokenCache
         {
-            get => issuedTokenCache;
+            get => _issuedTokenCache;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                issuedTokenCache = value;
+                _issuedTokenCache = value;
             }
         }
 
@@ -242,11 +235,11 @@ namespace CoreWCF.Security
 
         public bool SuppressAuditFailure
         {
-            get => suppressAuditFailure;
+            get => _suppressAuditFailure;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                suppressAuditFailure = value;
+                _suppressAuditFailure = value;
             }
         }
 
@@ -265,7 +258,7 @@ namespace CoreWCF.Security
 
         public BindingContext IssuerBindingContext
         {
-            get => issuerBindingContext;
+            get => _issuerBindingContext;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
@@ -273,60 +266,58 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
-                issuerBindingContext = value.Clone();
+                _issuerBindingContext = value.Clone();
             }
         }
 
         public Uri ListenUri
         {
-            get => listenUri;
+            get => _listenUri;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                listenUri = value;
+                _listenUri = value;
             }
         }
 
         public SecurityStateEncoder SecurityStateEncoder
         {
-            get => securityStateEncoder;
+            get => _securityStateEncoder;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                securityStateEncoder = value;
+                _securityStateEncoder = value;
             }
         }
 
         public IList<Type> KnownTypes
         {
-            get => knownTypes;
+            get => _knownTypes;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value != null)
                 {
-                    knownTypes = new Collection<Type>(value);
+                    _knownTypes = new Collection<Type>(value);
                 }
                 else
                 {
-                    knownTypes = null;
+                    _knownTypes = null;
                 }
             }
         }
 
         public int MaxMessageSize
         {
-            get => maxMessageSize;
+            get => _maxMessageSize;
             set
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
-                maxMessageSize = value;
+                _maxMessageSize = value;
             }
         }
 
-        protected string SecurityContextTokenUri =>
-                // this.CommunicationObject.ThrowIfNotOpened();
-                sctUri;
+        protected string SecurityContextTokenUri { get; private set; }
 
         private object ThisLock => CommunicationObject;
 
@@ -341,11 +332,11 @@ namespace CoreWCF.Security
             DateTime keyExpirationTime, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, bool isCookieMode)
         {
             //  this.CommunicationObject.ThrowIfClosedOrNotOpen();
-            if (securityStateEncoder == null && isCookieMode)
+            if (_securityStateEncoder == null && isCookieMode)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SctCookieNotSupported)));
             }
-            byte[] cookieBlob = (isCookieMode) ? cookieSerializer.CreateCookieFromSecurityContext(contextId, id, key, tokenEffectiveTime, tokenExpirationTime, keyGeneration,
+            byte[] cookieBlob = (isCookieMode) ? _cookieSerializer.CreateCookieFromSecurityContext(contextId, id, key, tokenEffectiveTime, tokenExpirationTime, keyGeneration,
                                 keyEffectiveTime, keyExpirationTime, authorizationPolicies) : null;
 
             SecurityContextSecurityToken issuedToken = new SecurityContextSecurityToken(contextId, id, key, tokenEffectiveTime, tokenExpirationTime,
@@ -355,33 +346,33 @@ namespace CoreWCF.Security
 
         private void InitializeDefaults()
         {
-            encryptStateInServiceToken = !defaultServerMaintainState;
-            serviceTokenLifetime = defaultServerIssuedTokenLifetime;
-            maximumCachedNegotiationState = defaultServerMaxActiveNegotiations;
-            negotiationTimeout = defaultServerMaxNegotiationLifetime;
-            isClientAnonymous = false;
-            standardsManager = defaultStandardsManager;
-            securityStateEncoder = defaultSecurityStateEncoder;
-            maximumConcurrentNegotiations = defaultServerMaxActiveNegotiations;
+            _encryptStateInServiceToken = !defaultServerMaintainState;
+            _serviceTokenLifetime = defaultServerIssuedTokenLifetime;
+            _maximumCachedNegotiationState = defaultServerMaxActiveNegotiations;
+            _negotiationTimeout = defaultServerMaxNegotiationLifetime;
+            _isClientAnonymous = false;
+            _standardsManager = defaultStandardsManager;
+            _securityStateEncoder = defaultSecurityStateEncoder;
+            _maximumConcurrentNegotiations = defaultServerMaxActiveNegotiations;
             // we rely on the transport encoders to enforce the message size except in the 
             // mixed mode nego case, where the client is unauthenticated and the maxMessageSize is too
             // large to be a mitigation
-            maxMessageSize = int.MaxValue;
+            _maxMessageSize = int.MaxValue;
         }
 
         public override Task CloseAsync(CancellationToken token)
         {
-            if (negotiationHost != null)
+            if (_negotiationHost != null)
             {
-                negotiationHost = null;
+                _negotiationHost = null;
             }
 
             lock (ThisLock)
             {
-                if (idlingNegotiationSessionTimer != null && !isTimerCancelled)
+                if (_idlingNegotiationSessionTimer != null && !_isTimerCancelled)
                 {
-                    isTimerCancelled = true;
-                    idlingNegotiationSessionTimer.Cancel();
+                    _isTimerCancelled = true;
+                    _idlingNegotiationSessionTimer.Cancel();
                 }
             }
             return base.CloseAsync(token); ;
@@ -389,18 +380,18 @@ namespace CoreWCF.Security
 
         public override void OnAbort()
         {
-            if (negotiationHost != null)
+            if (_negotiationHost != null)
             {
                 // this.negotiationHost.Abort();
-                negotiationHost = null;
+                _negotiationHost = null;
             }
 
             lock (ThisLock)
             {
-                if (idlingNegotiationSessionTimer != null && !isTimerCancelled)
+                if (_idlingNegotiationSessionTimer != null && !_isTimerCancelled)
                 {
-                    isTimerCancelled = true;
-                    idlingNegotiationSessionTimer.Cancel();
+                    _isTimerCancelled = true;
+                    _idlingNegotiationSessionTimer.Cancel();
                 }
             }
             base.OnAbort();
@@ -425,26 +416,26 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.IssuedTokenCacheNotSet, GetType())));
             }
             SetupServiceHost();
-            if (negotiationHost != null)
+            if (_negotiationHost != null)
             {
-                negotiationHost.InitializeRuntime();
+                _negotiationHost.InitializeRuntime();
             }
 
-            stateCache = new NegotiationTokenAuthenticatorStateCache<T>(NegotiationTimeout, MaximumCachedNegotiationState);
-            sctUri = StandardsManager.SecureConversationDriver.TokenTypeUri;
+            _stateCache = new NegotiationTokenAuthenticatorStateCache<T>(NegotiationTimeout, MaximumCachedNegotiationState);
+            SecurityContextTokenUri = StandardsManager.SecureConversationDriver.TokenTypeUri;
             if (SecurityStateEncoder != null)
             {
-                cookieSerializer = new SecurityContextCookieSerializer(SecurityStateEncoder, KnownTypes);
+                _cookieSerializer = new SecurityContextCookieSerializer(SecurityStateEncoder, KnownTypes);
             }
-            if (negotiationTimeout < TimeSpan.MaxValue)
+            if (_negotiationTimeout < TimeSpan.MaxValue)
             {
                 lock (ThisLock)
                 {
-                    activeNegotiationChannels1 = new List<IChannel>();
-                    activeNegotiationChannels2 = new List<IChannel>();
-                    idlingNegotiationSessionTimer = new IOThreadTimer(new Action<object>(OnIdlingNegotiationSessionTimer), this, false);
-                    isTimerCancelled = false;
-                    idlingNegotiationSessionTimer.Set(negotiationTimeout);
+                    _activeNegotiationChannels1 = new List<IChannel>();
+                    _activeNegotiationChannels2 = new List<IChannel>();
+                    _idlingNegotiationSessionTimer = new IOThreadTimer(new Action<object>(OnIdlingNegotiationSessionTimer), this, false);
+                    _isTimerCancelled = false;
+                    _idlingNegotiationSessionTimer.Set(_negotiationTimeout);
                 }
             }
             return base.OpenAsync();
@@ -468,7 +459,7 @@ namespace CoreWCF.Security
             //   channelBuilder.Binding.Elements.Insert(0, new ReplyAdapterBindingElement());
             // channelBuilder.Binding = new CustomBinding(this.GetNegotiationBinding(channelBuilder.Binding));
             ChannelBuilder channelBuilder = IssuerBindingContext.BindingParameters.Find<ChannelBuilder>();
-            negotiationHost = new NegotiationHost(this, ListenUri, channelBuilder, GetListenerFilter());
+            _negotiationHost = new NegotiationHost(this, ListenUri, channelBuilder, GetListenerFilter());
         }
 
 
@@ -524,9 +515,9 @@ namespace CoreWCF.Security
 
         private void OnTokenIssued(SecurityToken token)
         {
-            if (issuedSecurityTokenHandler != null)
+            if (IssuedSecurityTokenHandler != null)
             {
-                issuedSecurityTokenHandler(token, null);
+                IssuedSecurityTokenHandler(token, null);
             }
         }
 
@@ -538,19 +529,19 @@ namespace CoreWCF.Security
             }
             lock (ThisLock)
             {
-                if (idlingNegotiationSessionTimer == null)
+                if (_idlingNegotiationSessionTimer == null)
                 {
                     return;
                 }
                 IChannel channel = OperationContext.Current.Channel;
-                if (!activeNegotiationChannels1.Contains(channel) && !activeNegotiationChannels2.Contains(channel))
+                if (!_activeNegotiationChannels1.Contains(channel) && !_activeNegotiationChannels2.Contains(channel))
                 {
-                    activeNegotiationChannels1.Add(channel);
+                    _activeNegotiationChannels1.Add(channel);
                 }
-                if (isTimerCancelled)
+                if (_isTimerCancelled)
                 {
-                    isTimerCancelled = false;
-                    idlingNegotiationSessionTimer.Set(negotiationTimeout);
+                    _isTimerCancelled = false;
+                    _idlingNegotiationSessionTimer.Set(_negotiationTimeout);
                 }
             }
         }
@@ -563,17 +554,17 @@ namespace CoreWCF.Security
             }
             lock (ThisLock)
             {
-                if (idlingNegotiationSessionTimer == null)
+                if (_idlingNegotiationSessionTimer == null)
                 {
                     return;
                 }
                 IChannel channel = OperationContext.Current.Channel;
-                activeNegotiationChannels1.Remove(channel);
-                activeNegotiationChannels2.Remove(channel);
-                if (activeNegotiationChannels1.Count == 0 && activeNegotiationChannels2.Count == 0)
+                _activeNegotiationChannels1.Remove(channel);
+                _activeNegotiationChannels2.Remove(channel);
+                if (_activeNegotiationChannels1.Count == 0 && _activeNegotiationChannels2.Count == 0)
                 {
-                    isTimerCancelled = true;
-                    idlingNegotiationSessionTimer.Cancel();
+                    _isTimerCancelled = true;
+                    _idlingNegotiationSessionTimer.Cancel();
                 }
             }
         }
@@ -582,21 +573,21 @@ namespace CoreWCF.Security
         {
             lock (ThisLock)
             {
-                if (isTimerCancelled || (CommunicationObject.State != CommunicationState.Opened && CommunicationObject.State != CommunicationState.Opening))
+                if (_isTimerCancelled || (CommunicationObject.State != CommunicationState.Opened && CommunicationObject.State != CommunicationState.Opening))
                 {
                     return;
                 }
 
                 try
                 {
-                    for (int i = 0; i < activeNegotiationChannels2.Count; ++i)
+                    for (int i = 0; i < _activeNegotiationChannels2.Count; ++i)
                     {
-                        activeNegotiationChannels2[i].Abort();
+                        _activeNegotiationChannels2[i].Abort();
                     }
-                    List<IChannel> temp = activeNegotiationChannels2;
+                    List<IChannel> temp = _activeNegotiationChannels2;
                     temp.Clear();
-                    activeNegotiationChannels2 = activeNegotiationChannels1;
-                    activeNegotiationChannels1 = temp;
+                    _activeNegotiationChannels2 = _activeNegotiationChannels1;
+                    _activeNegotiationChannels1 = temp;
                 }
                 catch (Exception e)
                 {
@@ -609,14 +600,14 @@ namespace CoreWCF.Security
                 {
                     if (CommunicationObject.State == CommunicationState.Opened || CommunicationObject.State == CommunicationState.Opening)
                     {
-                        if (activeNegotiationChannels1.Count == 0 && activeNegotiationChannels2.Count == 0)
+                        if (_activeNegotiationChannels1.Count == 0 && _activeNegotiationChannels2.Count == 0)
                         {
-                            isTimerCancelled = true;
-                            idlingNegotiationSessionTimer.Cancel();
+                            _isTimerCancelled = true;
+                            _idlingNegotiationSessionTimer.Cancel();
                         }
                         else
                         {
-                            idlingNegotiationSessionTimer.Set(negotiationTimeout);
+                            _idlingNegotiationSessionTimer.Set(_negotiationTimeout);
                         }
                     }
                 }
@@ -640,12 +631,12 @@ namespace CoreWCF.Security
             try
             {
                 // validate the message size if needed
-                if (maxMessageSize < int.MaxValue)
+                if (_maxMessageSize < int.MaxValue)
                 {
                     string action = request.Headers.Action;
                     try
                     {
-                        using (MessageBuffer buffer = request.CreateBufferedCopy(maxMessageSize))
+                        using (MessageBuffer buffer = request.CreateBufferedCopy(_maxMessageSize))
                         {
                             request = buffer.CreateMessage();
                             disposeRequest = true;
@@ -653,7 +644,7 @@ namespace CoreWCF.Security
                     }
                     catch (QuotaExceededException e)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.SecurityNegotiationMessageTooLarge, action, maxMessageSize), e));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.SecurityNegotiationMessageTooLarge, action, _maxMessageSize), e));
                     }
                 }
                 try
@@ -663,7 +654,7 @@ namespace CoreWCF.Security
                     // check if there is existing state
                     if (context != null)
                     {
-                        negotiationState = stateCache.GetState(context);
+                        negotiationState = _stateCache.GetState(context);
                     }
                     else
                     {
@@ -695,7 +686,7 @@ namespace CoreWCF.Security
                                 }
                                 else
                                 {
-                                    stateCache.AddState(context, negotiationState);
+                                    _stateCache.AddState(context, negotiationState);
                                     disposeState = false;
                                 }
                                 AddNegotiationChannelForIdleTracking();
@@ -781,7 +772,7 @@ namespace CoreWCF.Security
                             {
                                 if (context != null)
                                 {
-                                    stateCache.RemoveState(context);
+                                    _stateCache.RemoveState(context);
                                 }
                                 negotiationState.Dispose();
                             }
