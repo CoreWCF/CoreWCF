@@ -444,11 +444,11 @@ namespace CoreWCF.Channels
             bool abortItem = true;
             try
             {
-                if (this.DemuxFailureHandler != null)
+                if (DemuxFailureHandler != null)
                 {
                     try
                     {
-                       await this.DemuxFailureHandler.HandleDemuxFailureAsync(request.RequestMessage, request);
+                       await DemuxFailureHandler.HandleDemuxFailureAsync(request.RequestMessage, request);
                        abortItem = false;
                     }
                     catch (CommunicationException e)
@@ -474,7 +474,7 @@ namespace CoreWCF.Channels
             {
                 if (abortItem)
                 {
-                    this.AbortItem(request);
+                    AbortItem(request);
                 }
             }
         }

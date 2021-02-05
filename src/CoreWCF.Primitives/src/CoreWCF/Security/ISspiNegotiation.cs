@@ -33,7 +33,7 @@ namespace CoreWCF.Security
         string GetRemoteIdentityName();
     }
 
-    interface ISspiNegotiationInfo
+    internal interface ISspiNegotiationInfo
     {
         ISspiNegotiation SspiNegotiation { get; }
     }

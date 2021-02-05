@@ -14,14 +14,14 @@ namespace CoreWCF.Channels
 {
     public abstract class SecurityBindingElement : BindingElement
     {
-        internal const string defaultAlgorithmSuiteString = "Default";
-        internal static readonly SecurityAlgorithmSuite defaultDefaultAlgorithmSuite = SecurityAlgorithmSuite.Default;
-        internal const bool defaultIncludeTimestamp = true;
-        internal const bool defaultAllowInsecureTransport = false;
-        internal const MessageProtectionOrder defaultMessageProtectionOrder = MessageProtectionOrder.SignBeforeEncryptAndEncryptSignature;
-        internal const bool defaultRequireSignatureConfirmation = false;
-        internal const bool defaultEnableUnsecuredResponse = false;
-        internal const bool defaultProtectTokens = false;
+        internal const string DefaultAlgorithmSuiteString = "Default";
+        internal static readonly SecurityAlgorithmSuite s_defaultDefaultAlgorithmSuite = SecurityAlgorithmSuite.Default;
+        internal const bool DefaultIncludeTimestamp = true;
+        internal const bool DefaultAllowInsecureTransport = false;
+        internal const MessageProtectionOrder DefaultMessageProtectionOrder = MessageProtectionOrder.SignBeforeEncryptAndEncryptSignature;
+        internal const bool DefaultRequireSignatureConfirmation = false;
+        internal const bool DefaultEnableUnsecuredResponse = false;
+        internal const bool DefaultProtectTokens = false;
         private SecurityAlgorithmSuite _defaultAlgorithmSuite;
         private SecurityKeyEntropyMode _keyEntropyMode;
         private readonly Dictionary<string, SupportingTokenParameters> _operationSupportingTokenParameters;
@@ -34,17 +34,17 @@ namespace CoreWCF.Channels
         {
             _messageSecurityVersion = MessageSecurityVersion.Default;
             _keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy; // AcceleratedTokenProvider.defaultKeyEntropyMode;
-            IncludeTimestamp = defaultIncludeTimestamp;
-            _defaultAlgorithmSuite = defaultDefaultAlgorithmSuite;
+            IncludeTimestamp = DefaultIncludeTimestamp;
+            _defaultAlgorithmSuite = s_defaultDefaultAlgorithmSuite;
             LocalServiceSettings = new LocalServiceSecuritySettings();
             EndpointSupportingTokenParameters = new SupportingTokenParameters();
             OptionalEndpointSupportingTokenParameters = new SupportingTokenParameters();
             _operationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             _optionalOperationSupportingTokenParameters = new Dictionary<string, SupportingTokenParameters>();
             _securityHeaderLayout = SecurityHeaderLayout.Strict; // SecurityProtocolFactory.defaultSecurityHeaderLayout;
-            AllowInsecureTransport = defaultAllowInsecureTransport;
-            EnableUnsecuredResponse = defaultEnableUnsecuredResponse;
-            ProtectTokens = defaultProtectTokens;
+            AllowInsecureTransport = DefaultAllowInsecureTransport;
+            EnableUnsecuredResponse = DefaultEnableUnsecuredResponse;
+            ProtectTokens = DefaultProtectTokens;
         }
 
         internal SecurityBindingElement(SecurityBindingElement elementToBeCloned)
@@ -152,7 +152,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public bool ProtectTokens { get; set; } = defaultProtectTokens;
+        public bool ProtectTokens { get; set; } = DefaultProtectTokens;
 
         public LocalServiceSecuritySettings LocalServiceSettings { get; }
 
@@ -250,7 +250,7 @@ namespace CoreWCF.Channels
              }*/
         }
 
-        static BindingContext CreateIssuerBindingContextForNegotiation(BindingContext issuerBindingContext)
+        private static BindingContext CreateIssuerBindingContextForNegotiation(BindingContext issuerBindingContext)
         {
             TransportBindingElement transport = issuerBindingContext.RemainingBindingElements.Find<TransportBindingElement>();
             if (transport == null)
@@ -270,14 +270,18 @@ namespace CoreWCF.Channels
             //{
             //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.ChannelDemuxerBindingElementNotFound)));
             //}
-            BindingElementCollection negotiationBindingElements = new BindingElementCollection();
-            //negotiationBindingElements.Add(demuxer.Clone());
-            negotiationBindingElements.Add(transport.Clone());
-            CustomBinding binding = new CustomBinding(negotiationBindingElements);
-            binding.OpenTimeout = issuerBindingContext.Binding.OpenTimeout;
-            binding.CloseTimeout = issuerBindingContext.Binding.CloseTimeout;
-            binding.SendTimeout = issuerBindingContext.Binding.SendTimeout;
-            binding.ReceiveTimeout = issuerBindingContext.Binding.ReceiveTimeout;
+            BindingElementCollection negotiationBindingElements = new BindingElementCollection
+            {
+                //negotiationBindingElements.Add(demuxer.Clone());
+                transport.Clone()
+            };
+            CustomBinding binding = new CustomBinding(negotiationBindingElements)
+            {
+                OpenTimeout = issuerBindingContext.Binding.OpenTimeout,
+                CloseTimeout = issuerBindingContext.Binding.CloseTimeout,
+                SendTimeout = issuerBindingContext.Binding.SendTimeout,
+                ReceiveTimeout = issuerBindingContext.Binding.ReceiveTimeout
+            };
             if (issuerBindingContext.ListenUriBaseAddress != null)
             {
                 return new BindingContext(binding, new BindingParameterCollection(issuerBindingContext.BindingParameters), issuerBindingContext.ListenUriBaseAddress,
@@ -814,8 +818,10 @@ namespace CoreWCF.Channels
         public static TransportSecurityBindingElement CreateSspiNegotiationOverTransportBindingElement(bool requireCancellation)
         {
             TransportSecurityBindingElement result = new TransportSecurityBindingElement();
-            SspiSecurityTokenParameters sspiParameters = new SspiSecurityTokenParameters(requireCancellation);
-            sspiParameters.RequireDerivedKeys = false;
+            SspiSecurityTokenParameters sspiParameters = new SspiSecurityTokenParameters(requireCancellation)
+            {
+                RequireDerivedKeys = false
+            };
             result.EndpointSupportingTokenParameters.Endorsing.Add(
                 sspiParameters);
             result.IncludeTimestamp = true;

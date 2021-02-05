@@ -24,11 +24,11 @@ namespace CoreWCF.Security
 {
     internal sealed class SecuritySessionServerSettings : IServiceDispatcherSecureConversationSessionSettings, ISecurityCommunicationObject
     {
-        internal static readonly TimeSpan defaultKeyRenewalInterval = TimeSpan.FromHours(15);
-        internal static readonly TimeSpan defaultKeyRolloverInterval = TimeSpan.FromMinutes(5);
-        internal const bool defaultTolerateTransportFailures = true;
-        internal const int defaultMaximumPendingSessions = 128;
-        internal static readonly TimeSpan defaultInactivityTimeout = TimeSpan.FromMinutes(2);
+        internal static readonly TimeSpan s_defaultKeyRenewalInterval = TimeSpan.FromHours(15);
+        internal static readonly TimeSpan s_defaultKeyRolloverInterval = TimeSpan.FromMinutes(5);
+        internal const bool DefaultTolerateTransportFailures = true;
+        internal const int DefaultMaximumPendingSessions = 128;
+        internal static readonly TimeSpan s_defaultInactivityTimeout = TimeSpan.FromMinutes(2);
         private int _maximumPendingSessions;
         private Dictionary<UniqueId, SecurityContextSecurityToken> _pendingSessions1;
         private Dictionary<UniqueId, SecurityContextSecurityToken> _pendingSessions2;
@@ -53,12 +53,12 @@ namespace CoreWCF.Security
         public SecuritySessionServerSettings()
         {
             _activeSessions = new Dictionary<UniqueId, IServerSecuritySessionChannel>();
-            _maximumKeyRenewalInterval = defaultKeyRenewalInterval;
+            _maximumKeyRenewalInterval = s_defaultKeyRenewalInterval;
             _maximumPendingKeysPerSession = 5;
-            _keyRolloverInterval = defaultKeyRolloverInterval;
-            _inactivityTimeout = defaultInactivityTimeout;
-            _tolerateTransportFailures = defaultTolerateTransportFailures;
-            _maximumPendingSessions = defaultMaximumPendingSessions;
+            _keyRolloverInterval = s_defaultKeyRolloverInterval;
+            _inactivityTimeout = s_defaultInactivityTimeout;
+            _tolerateTransportFailures = DefaultTolerateTransportFailures;
+            _maximumPendingSessions = DefaultMaximumPendingSessions;
             WrapperCommunicationObj = new WrapperSecurityCommunicationObject(this);
         }
 
@@ -1166,7 +1166,8 @@ namespace CoreWCF.Security
                             innerRequestContext.Abort();
                         }
                     }
-                    Message requestMessage = ProcessRequestContext(innerRequestContext, timeoutHelper.RemainingTime(), out SecurityProtocolCorrelationState correlationState, out bool isSecurityProcessingFailure);
+
+                    Message requestMessage = ProcessRequestContext(innerRequestContext, timeoutHelper.RemainingTime(), out SecurityProtocolCorrelationState correlationState, out _);
                     if (requestMessage != null)
                     {
                         requestContext = new SecuritySessionRequestContext(innerRequestContext, requestMessage, correlationState, this);
@@ -2001,11 +2002,7 @@ namespace CoreWCF.Security
 
             public SecuritySessionDemuxFailureHandler(SecurityStandardsManager standardsManager)
             {
-                if (standardsManager == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
-                }
-                this._standardsManager = standardsManager;
+                _standardsManager = standardsManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(standardsManager));
             }
 
             public void HandleDemuxFailure(Message message)
@@ -2018,7 +2015,7 @@ namespace CoreWCF.Security
 
             public Message CreateSessionDemuxFaultMessage(Message message)
             {
-                MessageFault fault = SecurityUtils.CreateSecurityContextNotFoundFault(this._standardsManager, message.Headers.Action);
+                MessageFault fault = SecurityUtils.CreateSecurityContextNotFoundFault(_standardsManager, message.Headers.Action);
                 Message faultMessage = Message.CreateMessage(message.Version, fault, message.Version.Addressing.DefaultFaultAction);
                 if (message.Headers.MessageId != null)
                 {
@@ -2034,7 +2031,7 @@ namespace CoreWCF.Security
 
             public Task HandleDemuxFailureAsync(Message message, RequestContext faultContext)
             {
-                this.HandleDemuxFailure(message);
+                HandleDemuxFailure(message);
                 Message faultMessage = CreateSessionDemuxFaultMessage(message);
                 try
                 {

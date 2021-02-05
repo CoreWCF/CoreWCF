@@ -32,28 +32,28 @@ namespace CoreWCF.Security
 
         public ExtendedProtectionPolicy ExtendedProtectionPolicy { get; set; }
 
-        protected Object ThisLock { get; } = new Object();
+        protected object ThisLock { get; } = new object();
 
         public string DefaultServiceBinding
         {
             get
             {
-                if (this._defaultServiceBinding == null)
+                if (_defaultServiceBinding == null)
                 {
                     lock (ThisLock)
                     {
-                        if (this._defaultServiceBinding == null)
+                        if (_defaultServiceBinding == null)
                         {
-                            this._defaultServiceBinding = SecurityUtils.GetSpnFromIdentity(
+                            _defaultServiceBinding = SecurityUtils.GetSpnFromIdentity(
                                                             SecurityUtils.CreateWindowsIdentity(),
                                                             new EndpointAddress(ListenUri));
                         }
                     }
                 }
 
-                return this._defaultServiceBinding;
+                return _defaultServiceBinding;
             }
-            set { this._defaultServiceBinding = value; }
+            set { _defaultServiceBinding = value; }
         }
 
         // abstract methods
@@ -69,7 +69,7 @@ namespace CoreWCF.Security
             string id = SecurityUtils.GenerateId();
             if (sspiState.RequestedKeySize == 0)
             {
-                issuedKeySize = this.SecurityAlgorithmSuite.DefaultSymmetricKeyLength;
+                issuedKeySize = SecurityAlgorithmSuite.DefaultSymmetricKeyLength;
             }
             else
             {
@@ -78,8 +78,8 @@ namespace CoreWCF.Security
             byte[] key = new byte[issuedKeySize / 8];
             CryptoHelper.FillRandomBytes(key);
             DateTime effectiveTime = DateTime.UtcNow;
-            DateTime expirationTime = TimeoutHelper.Add(effectiveTime, this.ServiceTokenLifetime);
-            serviceToken = IssueSecurityContextToken(contextId, id, key, effectiveTime, expirationTime, authorizationPolicies, this.EncryptStateInServiceToken);
+            DateTime expirationTime = TimeoutHelper.Add(effectiveTime, ServiceTokenLifetime);
+            serviceToken = IssueSecurityContextToken(contextId, id, key, effectiveTime, expirationTime, authorizationPolicies, EncryptStateInServiceToken);
             proofToken = new WrappedKeySecurityToken(string.Empty, key, sspiState.SspiNegotiation);
         }
 
@@ -89,12 +89,12 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.NoBinaryNegoToReceive)));
             }
-            incomingNego.Validate(this.NegotiationValueType);
+            incomingNego.Validate(NegotiationValueType);
         }
 
         protected virtual BinaryNegotiation GetOutgoingBinaryNegotiation(ISspiNegotiation sspiNegotiation, byte[] outgoingBlob)
         {
-            return new BinaryNegotiation(this.NegotiationValueType, outgoingBlob);
+            return new BinaryNegotiation(NegotiationValueType, outgoingBlob);
         }
 
         private static void AddToDigest(HashAlgorithm negotiationDigest, Stream stream)
@@ -176,7 +176,7 @@ namespace CoreWCF.Security
             {
                 throw TraceUtility.ThrowHelperArgumentNull(nameof(requestSecurityToken), request);
             }
-            if (requestSecurityToken.RequestType != null && requestSecurityToken.RequestType != this.StandardsManager.TrustDriver.RequestTypeIssue)
+            if (requestSecurityToken.RequestType != null && requestSecurityToken.RequestType != StandardsManager.TrustDriver.RequestTypeIssue)
             {
                 throw TraceUtility.ThrowHelperWarning(new SecurityNegotiationException(SR.Format(SR.InvalidRstRequestType, requestSecurityToken.RequestType)), request);
             }
@@ -187,11 +187,11 @@ namespace CoreWCF.Security
             negotiationState.Context = requestSecurityToken.Context;
             if (requestSecurityToken.KeySize != 0)
             {
-                WSTrust.Driver.ValidateRequestedKeySize(requestSecurityToken.KeySize, this.SecurityAlgorithmSuite);
+                WSTrust.Driver.ValidateRequestedKeySize(requestSecurityToken.KeySize, SecurityAlgorithmSuite);
             }
             negotiationState.RequestedKeySize = requestSecurityToken.KeySize;
-            string appliesToName;
             string appliesToNamespace;
+            string appliesToName;
             requestSecurityToken.GetAppliesToQName(out appliesToName, out appliesToNamespace);
             if (appliesToName == AddressingStrings.EndpointReference && appliesToNamespace == request.Version.Addressing.Namespace)
             {
@@ -243,7 +243,7 @@ namespace CoreWCF.Security
 
             byte[] outgoingBlob = sspiNegotiation.GetOutgoingBlob(incomingNego.GetNegotiationData(),
                                                             SecurityUtils.GetChannelBindingFromMessage(incomingMessage),
-                                                            this.ExtendedProtectionPolicy);
+                                                            ExtendedProtectionPolicy);
 
             if (sspiNegotiation.IsValidContext == false)
             {
@@ -273,13 +273,15 @@ namespace CoreWCF.Security
                 IssueServiceToken(negotiationState, authorizationPolicies, out serviceToken, out proofToken, out issuedKeySize);
                 negotiationState.SetServiceToken(serviceToken);
 
-                SecurityKeyIdentifierClause externalTokenReference = this.IssuedSecurityTokenParameters.CreateKeyIdentifierClause(serviceToken, SecurityTokenReferenceStyle.External);
-                SecurityKeyIdentifierClause internalTokenReference = this.IssuedSecurityTokenParameters.CreateKeyIdentifierClause(serviceToken, SecurityTokenReferenceStyle.Internal);
+                SecurityKeyIdentifierClause externalTokenReference = IssuedSecurityTokenParameters.CreateKeyIdentifierClause(serviceToken, SecurityTokenReferenceStyle.External);
+                SecurityKeyIdentifierClause internalTokenReference = IssuedSecurityTokenParameters.CreateKeyIdentifierClause(serviceToken, SecurityTokenReferenceStyle.Internal);
 
-                RequestSecurityTokenResponse dummyRstr = new RequestSecurityTokenResponse(this.StandardsManager);
-                dummyRstr.Context = negotiationState.Context;
-                dummyRstr.KeySize = issuedKeySize;
-                dummyRstr.TokenType = this.SecurityContextTokenUri;
+                RequestSecurityTokenResponse dummyRstr = new RequestSecurityTokenResponse(StandardsManager)
+                {
+                    Context = negotiationState.Context,
+                    KeySize = issuedKeySize,
+                    TokenType = SecurityContextTokenUri
+                };
                 if (outgoingBinaryNegotiation != null)
                 {
                     dummyRstr.SetBinaryNegotiation(outgoingBinaryNegotiation);
@@ -309,13 +311,15 @@ namespace CoreWCF.Security
                 }
                 dummyRstr.MakeReadOnly();
                 AddToDigest(negotiationState, dummyRstr, false);
-                RequestSecurityTokenResponse negotiationRstr = new RequestSecurityTokenResponse(this.StandardsManager);
-                negotiationRstr.RequestedSecurityToken = serviceToken;
+                RequestSecurityTokenResponse negotiationRstr = new RequestSecurityTokenResponse(StandardsManager)
+                {
+                    RequestedSecurityToken = serviceToken,
 
-                negotiationRstr.RequestedProofToken = proofToken;
-                negotiationRstr.Context = negotiationState.Context;
-                negotiationRstr.KeySize = issuedKeySize;
-                negotiationRstr.TokenType = this.SecurityContextTokenUri;
+                    RequestedProofToken = proofToken,
+                    Context = negotiationState.Context,
+                    KeySize = issuedKeySize,
+                    TokenType = SecurityContextTokenUri
+                };
                 if (outgoingBinaryNegotiation != null)
                 {
                     negotiationRstr.SetBinaryNegotiation(outgoingBinaryNegotiation);
@@ -345,21 +349,27 @@ namespace CoreWCF.Security
                 negotiationRstr.MakeReadOnly();
 
                 byte[] authenticator = ComputeAuthenticator(negotiationState, serviceToken.GetKeyBytes());
-                RequestSecurityTokenResponse authenticatorRstr = new RequestSecurityTokenResponse(this.StandardsManager);
-                authenticatorRstr.Context = negotiationState.Context;
+                RequestSecurityTokenResponse authenticatorRstr = new RequestSecurityTokenResponse(StandardsManager)
+                {
+                    Context = negotiationState.Context
+                };
                 authenticatorRstr.SetAuthenticator(authenticator);
                 authenticatorRstr.MakeReadOnly();
 
-                List<RequestSecurityTokenResponse> rstrList = new List<RequestSecurityTokenResponse>(2);
-                rstrList.Add(negotiationRstr);
-                rstrList.Add(authenticatorRstr);
-                replyBody = new RequestSecurityTokenResponseCollection(rstrList, this.StandardsManager);
+                List<RequestSecurityTokenResponse> rstrList = new List<RequestSecurityTokenResponse>(2)
+                {
+                    negotiationRstr,
+                    authenticatorRstr
+                };
+                replyBody = new RequestSecurityTokenResponseCollection(rstrList, StandardsManager);
 
             }
             else
             {
-                RequestSecurityTokenResponse rstr = new RequestSecurityTokenResponse(this.StandardsManager);
-                rstr.Context = negotiationState.Context;
+                RequestSecurityTokenResponse rstr = new RequestSecurityTokenResponse(StandardsManager)
+                {
+                    Context = negotiationState.Context
+                };
                 rstr.SetBinaryNegotiation(outgoingBinaryNegotiation);
                 rstr.MakeReadOnly();
                 AddToDigest(negotiationState, rstr, false);
@@ -371,17 +381,17 @@ namespace CoreWCF.Security
 
         private class SspiNegotiationFilter : HeaderFilter
         {
-            private SspiNegotiationTokenAuthenticator authenticator;
+            private readonly SspiNegotiationTokenAuthenticator _authenticator;
 
             public SspiNegotiationFilter(SspiNegotiationTokenAuthenticator authenticator)
             {
-                this.authenticator = authenticator;
+                _authenticator = authenticator;
             }
 
             public override bool Match(Message message)
             {
-                if (message.Headers.Action == authenticator.RequestSecurityTokenAction.Value
-                    || message.Headers.Action == authenticator.RequestSecurityTokenResponseAction.Value)
+                if (message.Headers.Action == _authenticator.RequestSecurityTokenAction.Value
+                    || message.Headers.Action == _authenticator.RequestSecurityTokenResponseAction.Value)
                 {
                     return !SecurityVersion.Default.DoesMessageContainSecurityHeader(message);
                 }

@@ -150,15 +150,15 @@ namespace CoreWCF.Security
         private static string s_currentDomain;
         private static IIdentity s_anonymousIdentity;
         private static X509SecurityTokenAuthenticator s_nonValidatingX509Authenticator;
-        static byte[] combinedHashLabel;
+        private static byte[] s_combinedHashLabel;
 
         internal static byte[] CombinedHashLabel
         {
             get
             {
-                if (combinedHashLabel == null)
-                    combinedHashLabel = Encoding.UTF8.GetBytes(TrustApr2004Strings.CombinedHashLabel);
-                return combinedHashLabel;
+                if (s_combinedHashLabel == null)
+                    s_combinedHashLabel = Encoding.UTF8.GetBytes(TrustApr2004Strings.CombinedHashLabel);
+                return s_combinedHashLabel;
             }
         }
 
@@ -209,8 +209,10 @@ namespace CoreWCF.Security
 
         internal static ReadOnlyCollection<SecurityKey> CreateSymmetricSecurityKeys(byte[] key)
         {
-            List<SecurityKey> temp = new List<SecurityKey>(1);
-            temp.Add(new InMemorySymmetricSecurityKey(key));
+            List<SecurityKey> temp = new List<SecurityKey>(1)
+            {
+                new InMemorySymmetricSecurityKey(key)
+            };
             return temp.AsReadOnly();
         }
 
@@ -263,7 +265,7 @@ namespace CoreWCF.Security
                 }
                 else if (ClaimTypes.Dns.Equals(identity.IdentityClaim.ClaimType))
                 {
-                    spn = String.Format(CultureInfo.InvariantCulture, "host/{0}", (string)identity.IdentityClaim.Resource);
+                    spn = string.Format(CultureInfo.InvariantCulture, "host/{0}", (string)identity.IdentityClaim.Resource);
                     foundSpn = true;
                 }
             }
@@ -1258,7 +1260,7 @@ namespace CoreWCF.Security
         internal static string GetIdentityNamesFromContext(AuthorizationContext authContext)
         {
             if (authContext == null)
-                return String.Empty;
+                return string.Empty;
 
             StringBuilder str = new StringBuilder(256);
             for (int i = 0; i < authContext.ClaimSets.Count; ++i)
@@ -1266,8 +1268,7 @@ namespace CoreWCF.Security
                 ClaimSet claimSet = authContext.ClaimSets[i];
 
                 // Windows
-                WindowsClaimSet windows = claimSet as WindowsClaimSet;
-                if (windows != null)
+                if (claimSet is WindowsClaimSet windows)
                 {
                     if (str.Length > 0)
                         str.Append(", ");
@@ -1277,8 +1278,7 @@ namespace CoreWCF.Security
                 else
                 {
                     // X509
-                    X509CertificateClaimSet x509 = claimSet as X509CertificateClaimSet;
-                    if (x509 != null)
+                    if (claimSet is X509CertificateClaimSet x509)
                     {
                         if (str.Length > 0)
                             str.Append(", ");
@@ -1291,8 +1291,7 @@ namespace CoreWCF.Security
             if (str.Length <= 0)
             {
                 List<IIdentity> identities = null;
-                object obj;
-                if (authContext.Properties.TryGetValue(SecurityUtils.Identities, out obj))
+                if (authContext.Properties.TryGetValue(SecurityUtils.Identities, out object obj))
                 {
                     identities = obj as List<IIdentity>;
                 }
@@ -1311,7 +1310,7 @@ namespace CoreWCF.Security
                     }
                 }
             }
-            return str.Length <= 0 ? String.Empty : str.ToString();
+            return str.Length <= 0 ? string.Empty : str.ToString();
         }
 
         internal static void AppendIdentityName(StringBuilder str, IIdentity identity)
@@ -1330,10 +1329,9 @@ namespace CoreWCF.Security
                 // suppress exception, this is just info.
             }
 
-            str.Append(String.IsNullOrEmpty(name) ? "<null>" : name);
+            str.Append(string.IsNullOrEmpty(name) ? "<null>" : name);
 
-            WindowsIdentity windows = identity as WindowsIdentity;
-            if (windows != null)
+            if (identity is WindowsIdentity windows)
             {
                 if (windows.User != null)
                 {
@@ -1343,8 +1341,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                WindowsSidIdentity sid = identity as WindowsSidIdentity;
-                if (sid != null)
+                if (identity is WindowsSidIdentity sid)
                 {
                     str.Append("; ");
                     str.Append(sid.SecurityIdentifier.ToString());
@@ -1355,16 +1352,16 @@ namespace CoreWCF.Security
         internal static void AppendCertificateIdentityName(StringBuilder str, X509Certificate2 certificate)
         {
             string value = certificate.SubjectName.Name;
-            if (String.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(value))
             {
                 value = certificate.GetNameInfo(X509NameType.DnsName, false);
-                if (String.IsNullOrEmpty(value))
+                if (string.IsNullOrEmpty(value))
                 {
                     value = certificate.GetNameInfo(X509NameType.SimpleName, false);
-                    if (String.IsNullOrEmpty(value))
+                    if (string.IsNullOrEmpty(value))
                     {
                         value = certificate.GetNameInfo(X509NameType.EmailName, false);
-                        if (String.IsNullOrEmpty(value))
+                        if (string.IsNullOrEmpty(value))
                         {
                             value = certificate.GetNameInfo(X509NameType.UpnName, false);
                         }
@@ -1372,7 +1369,7 @@ namespace CoreWCF.Security
                 }
             }
             // Same format as X509Identity
-            str.Append(String.IsNullOrEmpty(value) ? "<x509>" : value);
+            str.Append(string.IsNullOrEmpty(value) ? "<x509>" : value);
             str.Append("; ");
             str.Append(certificate.Thumbprint);
         }

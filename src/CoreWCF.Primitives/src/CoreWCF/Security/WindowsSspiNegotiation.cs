@@ -20,16 +20,15 @@ namespace CoreWCF.Security
         private readonly string _package;
         private readonly string _defaultServiceBinding;
         private readonly NegotiateInternalState _negotiateState;
-        private bool _isCompleted;
 
         public WindowsSspiNegotiation(string package, string defaultServiceBinding, NegotiateInternalState passedNegotiateState)
         {
-            this._package = package;
-            this._defaultServiceBinding = defaultServiceBinding;
+            _package = package;
+            _defaultServiceBinding = defaultServiceBinding;
             _negotiateState = passedNegotiateState;
         }
 
-        public bool IsCompleted => _isCompleted;
+        public bool IsCompleted { get; private set; }
 
         public bool IsValidContext => _negotiateState.IsValidContext;
 
@@ -54,7 +53,7 @@ namespace CoreWCF.Security
             {
                 throw exception;
             }
-            _isCompleted = _negotiateState.IsCompleted;
+            IsCompleted = _negotiateState.IsCompleted;
             return outGoingBlob;
         }
 

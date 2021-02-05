@@ -18,7 +18,7 @@ namespace CoreWCF.Security
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
         {
             PopulateJan2004TokenEntries(tokenEntryList);
-            tokenEntryList.Add(new WSSecurityXXX2005.WrappedKeyTokenEntry(this.WSSecurityTokenSerializer));
+            tokenEntryList.Add(new WSSecurityXXX2005.WrappedKeyTokenEntry(WSSecurityTokenSerializer));
            // tokenEntryList.Add(new WSSecurityXXX2005.SamlTokenEntry(this.WSSecurityTokenSerializer, this.SamlSerializer));
         }
 

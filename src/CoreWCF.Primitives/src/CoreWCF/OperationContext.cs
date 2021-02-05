@@ -18,7 +18,7 @@ namespace CoreWCF
         private bool _closeClientReply;
         private ExtensionCollection<OperationContext> _extensions;
         private Message _request;
-        internal IPrincipal threadPrincipal;
+        internal IPrincipal _threadPrincipal;
         private MessageProperties _outgoingMessageProperties;
         private MessageHeaders _outgoingMessageHeaders;
 
@@ -246,16 +246,13 @@ namespace CoreWCF
                     IChannel inner = InternalServiceChannel.InnerChannel;
                     if (inner != null)
                     {
-                        ISessionChannel<IDuplexSession> duplex = inner as ISessionChannel<IDuplexSession>;
-                        if ((duplex != null) && (duplex.Session != null))
+                        if ((inner is ISessionChannel<IDuplexSession> duplex) && (duplex.Session != null))
                             return duplex.Session.Id;
 
-                        ISessionChannel<IInputSession> input = inner as ISessionChannel<IInputSession>;
-                        if ((input != null) && (input.Session != null))
+                        if ((inner is ISessionChannel<IInputSession> input) && (input.Session != null))
                             return input.Session.Id;
 
-                        ISessionChannel<IOutputSession> output = inner as ISessionChannel<IOutputSession>;
-                        if ((output != null) && (output.Session != null))
+                        if ((inner is ISessionChannel<IOutputSession> output) && (output.Session != null))
                             return output.Session.Id;
                     }
                 }
@@ -265,8 +262,8 @@ namespace CoreWCF
 
         internal IPrincipal ThreadPrincipal
         {
-            get { return threadPrincipal; }
-            set { threadPrincipal = value; }
+            get { return _threadPrincipal; }
+            set { _threadPrincipal = value; }
         }
 
         public ClaimsPrincipal ClaimsPrincipal
@@ -327,7 +324,7 @@ namespace CoreWCF
             _request = null;
             _extensions = null;
             InstanceContext = null;
-            threadPrincipal = null;
+            _threadPrincipal = null;
             SetClientReply(null, false);
         }
 

@@ -23,7 +23,7 @@ namespace CoreWCF.Security
         private bool _allowUnauthenticatedCallers;
 
         // SafeFreeCredentials credentialsHandle;
-        private NegotiateInternalState negotiateHandler;
+        private NegotiateInternalState _negotiateHandler;
         public SpnegoTokenAuthenticator()
             : base()
         {
@@ -67,9 +67,9 @@ namespace CoreWCF.Security
         public override Task OpenAsync(CancellationToken token)
         {
             base.OpenAsync(token);
-            if (negotiateHandler == null)
+            if (_negotiateHandler == null)
             {
-                negotiateHandler = (NegotiateInternal.NegotiateInternalState)new NegotiateInternal.NegotiateInternalStateFactory().CreateInstance();
+                _negotiateHandler = (NegotiateInternal.NegotiateInternalState)new NegotiateInternal.NegotiateInternalStateFactory().CreateInstance();
             }
 
             return Task.CompletedTask;
@@ -96,9 +96,9 @@ namespace CoreWCF.Security
 
         private void FreeCredentialsHandle()
         {
-            if (negotiateHandler != null)
+            if (_negotiateHandler != null)
             {
-                negotiateHandler.Dispose();
+                _negotiateHandler.Dispose();
             }
         }
 

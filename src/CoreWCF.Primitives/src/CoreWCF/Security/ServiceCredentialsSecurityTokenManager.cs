@@ -116,23 +116,24 @@ namespace CoreWCF.Security
             bool isCookieMode = !recipientRequirement.SupportSecurityContextCancellation;
             LocalServiceSecuritySettings localServiceSettings = securityBindingElement.LocalServiceSettings;
             sctResolver = new SecurityContextSecurityTokenResolver(localServiceSettings.MaxCachedCookies, true);
-            ExtendedProtectionPolicy extendedProtectionPolicy = null;
-            recipientRequirement.TryGetProperty<ExtendedProtectionPolicy>(ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy, out extendedProtectionPolicy);
+            recipientRequirement.TryGetProperty<ExtendedProtectionPolicy>(ServiceModelSecurityTokenRequirement.ExtendedProtectionPolicy, out _);
 
-            SpnegoTokenAuthenticator authenticator = new SpnegoTokenAuthenticator();
-            authenticator.ExtendedProtectionPolicy = extendedProtectionPolicy;
-            authenticator.AllowUnauthenticatedCallers = ServiceCredentials.WindowsAuthentication.AllowAnonymousLogons;
-            authenticator.ExtractGroupsForWindowsAccounts = ServiceCredentials.WindowsAuthentication.IncludeWindowsGroups;
-            authenticator.IsClientAnonymous = false;
-            authenticator.EncryptStateInServiceToken = isCookieMode;
-            authenticator.IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty);
-            authenticator.IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver;
-            authenticator.IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty);
-            authenticator.ListenUri = recipientRequirement.ListenUri;
-            authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
-            authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
-            authenticator.SecurityStateEncoder = ServiceCredentials.SecureConversationAuthentication.SecurityStateEncoder;
-            authenticator.KnownTypes = ServiceCredentials.SecureConversationAuthentication.SecurityContextClaimTypes;
+            SpnegoTokenAuthenticator authenticator = new SpnegoTokenAuthenticator
+            {
+                ExtendedProtectionPolicy = null,
+                AllowUnauthenticatedCallers = ServiceCredentials.WindowsAuthentication.AllowAnonymousLogons,
+                ExtractGroupsForWindowsAccounts = ServiceCredentials.WindowsAuthentication.IncludeWindowsGroups,
+                IsClientAnonymous = false,
+                EncryptStateInServiceToken = isCookieMode,
+                IssuedSecurityTokenParameters = recipientRequirement.GetProperty<SecurityTokenParameters>(ServiceModelSecurityTokenRequirement.IssuedSecurityTokenParametersProperty),
+                IssuedTokenCache = (ISecurityContextSecurityTokenCache)sctResolver,
+                IssuerBindingContext = recipientRequirement.GetProperty<BindingContext>(ServiceModelSecurityTokenRequirement.IssuerBindingContextProperty),
+                ListenUri = recipientRequirement.ListenUri,
+                SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite,
+                StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this),
+                SecurityStateEncoder = ServiceCredentials.SecureConversationAuthentication.SecurityStateEncoder,
+                KnownTypes = ServiceCredentials.SecureConversationAuthentication.SecurityContextClaimTypes
+            };
             // if the SPNEGO is being done in mixed-mode, the nego blobs are from an anonymous client and so there size bound needs to be enforced.
             if (securityBindingElement is TransportSecurityBindingElement)
             {
@@ -155,26 +156,29 @@ namespace CoreWCF.Security
         private SecurityTokenAuthenticator CreateTlsnegoClientX509TokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
             //throw new PlatformNotSupportedException("TlsnegoClientX509Token");
-            RecipientServiceModelSecurityTokenRequirement clientX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
-            clientX509Requirement.TokenType = SecurityTokenTypes.X509Certificate;
-            clientX509Requirement.KeyUsage = SecurityKeyUsage.Signature;
-            clientX509Requirement.ListenUri = recipientRequirement.ListenUri;
-            clientX509Requirement.KeyType = SecurityKeyType.AsymmetricKey;
-            clientX509Requirement.SecurityBindingElement = recipientRequirement.SecurityBindingElement;
-            SecurityTokenResolver dummy;
-            return this.CreateSecurityTokenAuthenticator(clientX509Requirement, out dummy);
+            RecipientServiceModelSecurityTokenRequirement clientX509Requirement = new RecipientServiceModelSecurityTokenRequirement
+            {
+                TokenType = SecurityTokenTypes.X509Certificate,
+                KeyUsage = SecurityKeyUsage.Signature,
+                ListenUri = recipientRequirement.ListenUri,
+                KeyType = SecurityKeyType.AsymmetricKey,
+                SecurityBindingElement = recipientRequirement.SecurityBindingElement
+            };
+            return CreateSecurityTokenAuthenticator(clientX509Requirement, out _);
         }
 
         private SecurityTokenProvider CreateTlsnegoServerX509TokenProvider(RecipientServiceModelSecurityTokenRequirement recipientRequirement)
         {
             //throw new PlatformNotSupportedException("TlsnegoServerX509Token");
-            RecipientServiceModelSecurityTokenRequirement serverX509Requirement = new RecipientServiceModelSecurityTokenRequirement();
-            serverX509Requirement.TokenType = SecurityTokenTypes.X509Certificate;
-            serverX509Requirement.KeyUsage = SecurityKeyUsage.Exchange;
-            serverX509Requirement.ListenUri = recipientRequirement.ListenUri;
-            serverX509Requirement.KeyType = SecurityKeyType.AsymmetricKey;
-            serverX509Requirement.SecurityBindingElement = recipientRequirement.SecurityBindingElement;
-            return this.CreateSecurityTokenProvider(serverX509Requirement);
+            RecipientServiceModelSecurityTokenRequirement serverX509Requirement = new RecipientServiceModelSecurityTokenRequirement
+            {
+                TokenType = SecurityTokenTypes.X509Certificate,
+                KeyUsage = SecurityKeyUsage.Exchange,
+                ListenUri = recipientRequirement.ListenUri,
+                KeyType = SecurityKeyType.AsymmetricKey,
+                SecurityBindingElement = recipientRequirement.SecurityBindingElement
+            };
+            return CreateSecurityTokenProvider(serverX509Requirement);
         }
 
         private SecurityTokenAuthenticator CreateTlsnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool requireClientCertificate, out SecurityTokenResolver sctResolver)

@@ -295,13 +295,13 @@ namespace CoreWCF.Dispatcher
     {
         private static MessageFault s_secureConversationCloseNotSupportedFault;
         private readonly IServiceProvider _serviceProvider;
-        private string _secureConversationCloseAction;
+        private readonly string _secureConversationCloseAction;
 
         protected ServerSecurityChannelDispatcher(SecurityServiceDispatcher securityServiceDispatcher, UChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
         {
             SecurityProtocol = securityProtocol;
             OuterChannel = (IReplyChannel)innerChannel;
-            _serviceProvider = this.OuterChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
+            _serviceProvider = OuterChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
             _secureConversationCloseAction = securityProtocol.SecurityProtocolFactory.StandardsManager.SecureConversationDriver.CloseAction.Value;
         }
 
@@ -311,7 +311,7 @@ namespace CoreWCF.Dispatcher
 
         public T GetProperty<T>() where T : class
         {
-            var tObj = _serviceProvider.GetService<T>();
+            T tObj = _serviceProvider.GetService<T>();
             if (tObj == null)
                 return OuterChannel.GetProperty<T>();
             else return tObj;
@@ -364,7 +364,7 @@ namespace CoreWCF.Dispatcher
     internal class SecurityReplyChannelDispatcher : ServerSecurityChannelDispatcher<IReplyChannel>, IReplyChannel
     {
         private readonly bool _sendUnsecuredFaults;
-        internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
+        internal static readonly SecurityStandardsManager s_defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
 
 #pragma warning disable CS0067
         public event EventHandler Closed;

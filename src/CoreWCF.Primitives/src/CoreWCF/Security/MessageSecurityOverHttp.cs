@@ -37,14 +37,14 @@ namespace CoreWCF
                 if(value is MessageCredentialType.Windows)
                 {
                     //TODO Remove this after .net 5+
-                    var frameworkDescription = RuntimeInformation.FrameworkDescription;
+                    string frameworkDescription = RuntimeInformation.FrameworkDescription;
                     if (frameworkDescription.IndexOf(NetFrameworkFrameworkName, StringComparison.Ordinal) >= 0)
                     {
                         throw new PlatformNotSupportedException("Windows auth only supported on .NET Core");
                     }
                 }
 
-                this._clientCredentialType = value;
+                _clientCredentialType = value;
             }
         }
 

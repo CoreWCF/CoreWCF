@@ -40,12 +40,12 @@ namespace CoreWCF.Security
 
         internal abstract class BinaryTokenEntry : TokenEntry
         {
-            internal static readonly XmlDictionaryString ElementName = XD.SecurityJan2004Dictionary.BinarySecurityToken;
-            internal static readonly XmlDictionaryString EncodingTypeAttribute = XD.SecurityJan2004Dictionary.EncodingType;
+            internal static readonly XmlDictionaryString s_elementName = XD.SecurityJan2004Dictionary.BinarySecurityToken;
+            internal static readonly XmlDictionaryString s_encodingTypeAttribute = XD.SecurityJan2004Dictionary.EncodingType;
             internal const string EncodingTypeAttributeString = SecurityJan2004Strings.EncodingType;
             internal const string EncodingTypeValueBase64Binary = SecurityJan2004Strings.EncodingTypeValueBase64Binary;
             internal const string EncodingTypeValueHexBinary = SecurityJan2004Strings.EncodingTypeValueHexBinary;
-            internal static readonly XmlDictionaryString ValueTypeAttribute = XD.SecurityJan2004Dictionary.ValueType;
+            internal static readonly XmlDictionaryString s_valueTypeAttribute = XD.SecurityJan2004Dictionary.ValueType;
 
             private readonly WSSecurityTokenSerializer _tokenSerializer;
             private readonly string[] _valueTypeUris = null;
@@ -72,7 +72,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            protected override XmlDictionaryString LocalName { get { return ElementName; } }
+            protected override XmlDictionaryString LocalName { get { return s_elementName; } }
             protected override XmlDictionaryString NamespaceUri { get { return XD.SecurityJan2004Dictionary.Namespace; } }
             public override string TokenTypeUri { get { return _valueTypeUris[0]; } }
             protected override string ValueTypeUri { get { return _valueTypeUris[0]; } }
@@ -129,8 +129,8 @@ namespace CoreWCF.Security
             public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
             {
                 string wsuId = reader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
-                string valueTypeUri = reader.GetAttribute(ValueTypeAttribute, null);
-                string encoding = reader.GetAttribute(EncodingTypeAttribute, null);
+                string valueTypeUri = reader.GetAttribute(s_valueTypeAttribute, null);
+                string encoding = reader.GetAttribute(s_encodingTypeAttribute, null);
 
                 byte[] binaryData;
                 if (encoding == null || encoding == EncodingTypeValueBase64Binary)
@@ -160,18 +160,18 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(rawData));
                 }
 
-                writer.WriteStartElement(XD.SecurityJan2004Dictionary.Prefix.Value, ElementName, XD.SecurityJan2004Dictionary.Namespace);
+                writer.WriteStartElement(XD.SecurityJan2004Dictionary.Prefix.Value, s_elementName, XD.SecurityJan2004Dictionary.Namespace);
                 if (id != null)
                 {
                     writer.WriteAttributeString(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace, id);
                 }
                 if (_valueTypeUris != null)
                 {
-                    writer.WriteAttributeString(ValueTypeAttribute, null, _valueTypeUris[0]);
+                    writer.WriteAttributeString(s_valueTypeAttribute, null, _valueTypeUris[0]);
                 }
                 if (_tokenSerializer.EmitBspRequiredAttributes)
                 {
-                    writer.WriteAttributeString(EncodingTypeAttribute, null, EncodingTypeValueBase64Binary);
+                    writer.WriteAttributeString(s_encodingTypeAttribute, null, EncodingTypeValueBase64Binary);
                 }
                 writer.WriteBase64(rawData, 0, rawData.Length);
                 writer.WriteEndElement(); // BinarySecurityToken
@@ -231,11 +231,11 @@ namespace CoreWCF.Security
 
         protected class WrappedKeyTokenEntry : TokenEntry
         {
-            WSSecurityTokenSerializer tokenSerializer;
+            private readonly WSSecurityTokenSerializer _tokenSerializer;
 
             public WrappedKeyTokenEntry(WSSecurityTokenSerializer tokenSerializer)
             {
-                this.tokenSerializer = tokenSerializer;
+                _tokenSerializer = tokenSerializer;
             }
 
             protected override XmlDictionaryString LocalName { get { return EncryptedKey.ElementName; } }
@@ -263,8 +263,10 @@ namespace CoreWCF.Security
 
             public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
             {
-                EncryptedKey encryptedKey = new EncryptedKey();
-                encryptedKey.SecurityTokenSerializer = this.tokenSerializer;
+                EncryptedKey encryptedKey = new EncryptedKey
+                {
+                    SecurityTokenSerializer = _tokenSerializer
+                };
                 encryptedKey.ReadFrom(reader);
                 SecurityKeyIdentifier unwrappingTokenIdentifier = encryptedKey.KeyIdentifier;
                 byte[] wrappedKey = encryptedKey.GetWrappedKey();
@@ -275,11 +277,10 @@ namespace CoreWCF.Security
                 return wrappedKeyToken;
             }
 
-            WrappedKeySecurityToken CreateWrappedKeyToken(string id, string encryptionMethod, string carriedKeyName,
+            private WrappedKeySecurityToken CreateWrappedKeyToken(string id, string encryptionMethod, string carriedKeyName,
                 SecurityKeyIdentifier unwrappingTokenIdentifier, byte[] wrappedKey, SecurityTokenResolver tokenResolver)
             {
-                ISspiNegotiationInfo sspiResolver = tokenResolver as ISspiNegotiationInfo;
-                if (sspiResolver != null)
+                if (tokenResolver is ISspiNegotiationInfo sspiResolver)
                 {
                     ISspiNegotiation unwrappingSspiContext = sspiResolver.SspiNegotiation;
                     // ensure that the encryption algorithm is compatible
@@ -302,8 +303,7 @@ namespace CoreWCF.Security
                     }
 
                     SecurityToken unwrappingToken;
-                    SecurityHeaderTokenResolver resolver = tokenResolver as SecurityHeaderTokenResolver;
-                    if (resolver != null)
+                    if (tokenResolver is SecurityHeaderTokenResolver resolver)
                     {
                         unwrappingToken = resolver.ExpectedWrapper;
                         if (unwrappingToken != null)
@@ -345,7 +345,7 @@ namespace CoreWCF.Security
             {
                 WrappedKeySecurityToken wrappedKeyToken = token as WrappedKeySecurityToken;
                 wrappedKeyToken.EnsureEncryptedKeySetUp();
-                wrappedKeyToken.EncryptedKey.SecurityTokenSerializer = this.tokenSerializer;
+                wrappedKeyToken.EncryptedKey.SecurityTokenSerializer = _tokenSerializer;
                 wrappedKeyToken.EncryptedKey.WriteTo(writer, ServiceModelDictionaryManager.Instance);
             }
         }

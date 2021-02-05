@@ -78,19 +78,21 @@ namespace WSHttp
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
             using (host)
             {
                 host.Start();
-                var wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
                 ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
                 clientCredentials.UserName.UserName = "testuser@corewcf";
                 clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication();
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None;
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 ((IChannel)channel).Open();
                 Thread.Sleep(6000);
@@ -254,12 +256,12 @@ namespace WSHttp
 
         internal abstract class StartupWSHttpBase
         {
-            private readonly CoreWCF.SecurityMode wsHttpSecurityMode;
-            private readonly MessageCredentialType credentialType;
+            private readonly CoreWCF.SecurityMode _wsHttpSecurityMode;
+            private readonly MessageCredentialType _credentialType;
             public StartupWSHttpBase(CoreWCF.SecurityMode securityMode, MessageCredentialType credentialType)
             {
-                wsHttpSecurityMode = securityMode;
-                this.credentialType = credentialType;
+                _wsHttpSecurityMode = securityMode;
+                _credentialType = credentialType;
             }
             public void ConfigureServices(IServiceCollection services)
             {
@@ -278,8 +280,8 @@ namespace WSHttp
            
             public void Configure(IApplicationBuilder app, IHostingEnvironment env)
             {
-                CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(wsHttpSecurityMode);
-                serverBinding.Security.Message.ClientCredentialType = credentialType;
+                CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(_wsHttpSecurityMode);
+                serverBinding.Security.Message.ClientCredentialType = _credentialType;
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.EchoService>();

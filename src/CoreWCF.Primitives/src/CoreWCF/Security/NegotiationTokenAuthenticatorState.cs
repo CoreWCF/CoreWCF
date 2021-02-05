@@ -31,11 +31,7 @@ namespace CoreWCF.Security
 
         public void SetServiceToken(SecurityContextSecurityToken token)
         {
-            if (token == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
-            }
-            _serviceToken = token;
+            _serviceToken = token ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             _isNegotiationCompleted = true;
         }
 

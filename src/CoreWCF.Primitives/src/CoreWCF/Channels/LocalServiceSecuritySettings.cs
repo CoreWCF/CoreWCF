@@ -322,11 +322,11 @@ namespace CoreWCF.Channels
             IssuedCookieLifetime = TimeSpan.FromHours(10);
             MaxStatefulNegotiations = 128; //NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxActiveNegotiations;
             NegotiationTimeout = TimeSpan.FromMinutes(1);// NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxNegotiationLifetime;
-            _maxPendingSessions = SecuritySessionServerSettings.defaultMaximumPendingSessions;
-            _inactivityTimeout = SecuritySessionServerSettings.defaultInactivityTimeout;
-            _sessionKeyRenewalInterval = SecuritySessionServerSettings.defaultKeyRenewalInterval;
-            _sessionKeyRolloverInterval = SecuritySessionServerSettings.defaultKeyRolloverInterval;
-            ReconnectTransportOnFailure = SecuritySessionServerSettings.defaultTolerateTransportFailures;
+            _maxPendingSessions = SecuritySessionServerSettings.DefaultMaximumPendingSessions;
+            _inactivityTimeout = SecuritySessionServerSettings.s_defaultInactivityTimeout;
+            _sessionKeyRenewalInterval = SecuritySessionServerSettings.s_defaultKeyRenewalInterval;
+            _sessionKeyRolloverInterval = SecuritySessionServerSettings.s_defaultKeyRolloverInterval;
+            ReconnectTransportOnFailure = SecuritySessionServerSettings.DefaultTolerateTransportFailures;
             TimestampValidityDuration = SecurityProtocolFactory.defaultTimestampValidityDuration;
             _maxCachedCookies = 1000; // NegotiationTokenAuthenticator<NegotiationTokenAuthenticatorState>.defaultServerMaxCachedTokens;
             NonceCache = null;

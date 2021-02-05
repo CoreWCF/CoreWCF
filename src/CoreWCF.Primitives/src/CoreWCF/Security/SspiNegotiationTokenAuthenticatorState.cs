@@ -9,17 +9,11 @@ namespace CoreWCF.Security
 {
     internal class SspiNegotiationTokenAuthenticatorState : NegotiationTokenAuthenticatorState
     {
-        private DataContractSerializer _appliesToSerializer;
-
         public SspiNegotiationTokenAuthenticatorState(ISspiNegotiation sspiNegotiation)
             : base()
         {
-            if (sspiNegotiation == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("sspiNegotiation");
-            }
-            this.SspiNegotiation = sspiNegotiation;
-            this.NegotiationDigest = CryptoHelper.NewSha1HashAlgorithm();
+            SspiNegotiation = sspiNegotiation ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("sspiNegotiation");
+            NegotiationDigest = CryptoHelper.NewSha1HashAlgorithm();
         }
 
         public ISspiNegotiation SspiNegotiation { get; }
@@ -32,23 +26,13 @@ namespace CoreWCF.Security
 
         internal EndpointAddress AppliesTo { get; set; }
 
-        internal DataContractSerializer AppliesToSerializer
-        {
-            get
-            {
-                return this._appliesToSerializer;
-            }
-            set
-            {
-                this._appliesToSerializer = value;
-            }
-        }
+        internal DataContractSerializer AppliesToSerializer { get; set; }
 
         public override string GetRemoteIdentityName()
         {
-            if (this.SspiNegotiation != null && !this.IsNegotiationCompleted)
+            if (SspiNegotiation != null && !IsNegotiationCompleted)
             {
-                return this.SspiNegotiation.GetRemoteIdentityName();
+                return SspiNegotiation.GetRemoteIdentityName();
             }
             return base.GetRemoteIdentityName();
         }
@@ -59,14 +43,14 @@ namespace CoreWCF.Security
             {
                 lock (ThisLock)
                 {
-                    if (this.SspiNegotiation != null)
+                    if (SspiNegotiation != null)
                     {
-                        this.SspiNegotiation.Dispose();
+                        SspiNegotiation.Dispose();
 
                     }
-                    if (this.NegotiationDigest != null)
+                    if (NegotiationDigest != null)
                     {
-                        ((IDisposable)this.NegotiationDigest).Dispose();
+                        ((IDisposable)NegotiationDigest).Dispose();
                     }
                 }
             }

@@ -11,11 +11,10 @@ namespace CoreWCF.Security
         where T : NegotiationTokenAuthenticatorState
     {
         private static readonly int s_lowWaterMark = 50;
-        private static TimeSpan s_purgingInterval = TimeSpan.FromMinutes(10);
         private TimeSpan _cachingSpan;
 
         public NegotiationTokenAuthenticatorStateCache(TimeSpan cachingSpan, int maximumCachedState)
-            : base(s_lowWaterMark, maximumCachedState, null, PurgingMode.TimerBasedPurge, TimeSpan.FromTicks(cachingSpan.Ticks >> 2), true) => this._cachingSpan = cachingSpan;
+            : base(s_lowWaterMark, maximumCachedState, null, PurgingMode.TimerBasedPurge, TimeSpan.FromTicks(cachingSpan.Ticks >> 2), true) => _cachingSpan = cachingSpan;
 
         public void AddState(string context, T state)
         {

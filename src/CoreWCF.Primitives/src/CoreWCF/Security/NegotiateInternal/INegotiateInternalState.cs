@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
-    interface INegotiateInternalState : IDisposable
+    internal interface INegotiateInternalState : IDisposable
     {
         string GetOutgoingBlob(string incomingBlob, out BlobErrorType status, out Exception error);
 
