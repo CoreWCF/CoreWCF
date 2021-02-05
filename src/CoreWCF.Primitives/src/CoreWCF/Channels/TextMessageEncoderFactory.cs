@@ -343,7 +343,20 @@ namespace CoreWCF.Channels
 
             internal override bool IsCharSetSupported(string charSet)
             {
-                return TextEncoderDefaults.TryGetEncoding(charSet, out Encoding tmp);
+                Encoding tmp;
+                if (!TextEncoderDefaults.TryGetEncoding(charSet, out tmp))
+                {
+                    // GetEncodingFromContentType supports charset with quotes (by simply stripping them) so we do the same here
+                    // This also gives us parity with Desktop WCF behavior
+                    if (charSet.Length > 2 && charSet[0] == '"' && charSet[charSet.Length - 1] == '"')
+                    {
+                        charSet = charSet.Substring(1, charSet.Length - 2);
+                        return TextEncoderDefaults.TryGetEncoding(charSet, out tmp);
+                    }
+                    return false;
+                }
+
+                return true;
             }
 
             public override bool IsContentTypeSupported(string contentType)
