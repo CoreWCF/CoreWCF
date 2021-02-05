@@ -853,8 +853,6 @@ namespace CoreWCF.Channels
                     result = true;
                     SetContentLength(0);
                     SetContentType(null);
-                    // TODO: Validate what to do about httpResponse.SendChunked property
-                    //httpResponse.SendChunked = false;
                 }
 
                 if (httpResponseMessagePropertyFound)

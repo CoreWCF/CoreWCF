@@ -15,6 +15,9 @@ namespace CoreWCF.Channels
             var webHeaders = new WebHeaderCollection();
             foreach (System.Collections.Generic.KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues> header in httpRequest.Headers)
             {
+                if (header.Key.StartsWith(":")) // HTTP/2 pseudo header, skip as they appear on other properties of HttpRequest
+                    continue;
+
                 webHeaders[header.Key] = header.Value;
             }
 
