@@ -1,7 +1,6 @@
 trigger: none
 
 pr:
-- master
 - main
 - release/*
 - feature/*
