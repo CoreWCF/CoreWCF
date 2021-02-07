@@ -40,6 +40,10 @@ namespace CoreWCFPerfService
                 Console.WriteLine("Press Any Key to Terminate...");
                 Console.ReadLine();
             }
+
+            command = $" advfirewall firewall delete rule name=\"CoreWCFPerfService\" program=\"{filePath}\"";
+            ExecuteCommand(command, Environment.CurrentDirectory, TimeSpan.FromSeconds(20));
+            Console.WriteLine("Clean up the firewall rule.");            
         }
 
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(string url,string protocol,int port) where TStartup : class

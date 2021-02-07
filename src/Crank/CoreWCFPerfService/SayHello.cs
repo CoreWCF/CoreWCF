@@ -4,9 +4,9 @@ namespace CoreWCFPerfService
 {
     public class SayHello : ISayHello
     {
-        public string Hello(string name)
+        public Task<string> HelloAsync(string name)
         {
-            return name;
+            return Task.Factory.StartNew(() => { return name; });
         }
     }
 }

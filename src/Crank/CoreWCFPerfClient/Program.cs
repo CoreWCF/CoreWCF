@@ -62,26 +62,39 @@ namespace CoreWCFPerf
                 ChannelFactory<ISayHello> factory = new ChannelFactory<ISayHello>(binding, new EndpointAddress(test._paramServiceUrl));
                 factory.Open();
                 var client = factory.CreateChannel();
+                ((IClientChannel)client).Open();
                 var stopwatchFirstReq = new Stopwatch();
                 stopwatchFirstReq.Start();
-                var result = client.Hello("helloworld");
+                var result = client.HelloAsync("hello world").Result;
 
                 BenchmarksEventSource.Measure("firstrequest", stopwatchFirstReq.ElapsedMilliseconds);
 
                 while (DateTime.Now <= startTime.Add(measurementDurationPerTime))
                 {
-                    var rtnResult = client.Hello("helloworld");
+                    var rtnResult = client.HelloAsync("hello world").Result;
                     Console.WriteLine(rtnResult);
                     request++;
                     requestTime = request;
                     if (requestTime >= test._paramRequests & test._paramCloseAndOpen)
                     {
-                        ((IClientChannel)client).Close();
+                        try
+                        {
+                            ((IClientChannel)client).Close();
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Client Close failed : {ex}.");
+                            ((IClientChannel)client).Abort();
+                        }
                         requestTime = 0;
                     }
 
-                    if (((IClientChannel)client).State == CommunicationState.Closed)
+                    if (((IClientChannel)client).State != CommunicationState.Opened)
+                    {
                         client = factory.CreateChannel();
+                        ((IClientChannel)client).Open();
+                    }
                 }
                 factory.Close();
                 Console.WriteLine("ChannelFactory Closed.");

@@ -7,7 +7,7 @@ namespace CoreWCFPerfService
     public interface ISayHello
     {
         [OperationContract]
-        string Hello(string name);
+        Task<string> HelloAsync(string name);
     }
 
 }
