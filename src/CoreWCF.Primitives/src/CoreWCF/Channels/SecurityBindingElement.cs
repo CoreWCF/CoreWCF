@@ -233,9 +233,14 @@ namespace CoreWCF.Channels
             GetSupportingTokensCapabilities(EndpointSupportingTokenParameters, out supportsClientAuth, out supportsWindowsIdentity);
         }
 
-        // SecureConversation needs a demuxer below security to 1) demux between the security sessions and 2) demux the SCT issue and renewal messages
-        // to the authenticator
+        internal void AddDemuxerForSecureConversation(ChannelBuilder builder, BindingContext secureConversationBindingContext)
+        {
+            //new way
+            secureConversationBindingContext.BindingParameters.Add(builder);
+        }
 
+            // SecureConversation needs a demuxer below security to 1) demux between the security sessions and 2) demux the SCT issue and renewal messages
+            // to the authenticator
         internal void ApplyPropertiesOnDemuxer(ChannelBuilder builder, BindingContext context)
         {
             /* TODO later
