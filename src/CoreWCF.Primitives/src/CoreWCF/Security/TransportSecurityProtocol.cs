@@ -135,11 +135,9 @@ namespace CoreWCF.Security
             securityHeader.MaxReceivedMessageSize = factory.SecurityBindingElement.MaxReceivedMessageSize;
             securityHeader.ReaderQuotas = factory.SecurityBindingElement.ReaderQuotas;
 
-            // Due to compatibility, only honor this setting if this app setting is enabled
-            if (ServiceModelAppSettings.UseConfiguredTransportSecurityHeaderLayout)
-            {
-                securityHeader.Layout = factory.SecurityHeaderLayout;
-            }
+            // This was behind an app setting on WCF. If this breaks someone, it's because they are setting SecurityHeaderLayout and it
+            // wasn't being applied. The customer fix is to not set the SecurityHeaderLayout as that's what they were effectively running with.
+             securityHeader.Layout = factory.SecurityHeaderLayout;
 
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             if (!factory.ActAsInitiator)

@@ -1,8 +1,9 @@
 trigger: none
 
 pr:
-- master
+- main
 - release/*
+- feature/*
 
 variables:
   _solution: 'src/CoreWCF.sln'
