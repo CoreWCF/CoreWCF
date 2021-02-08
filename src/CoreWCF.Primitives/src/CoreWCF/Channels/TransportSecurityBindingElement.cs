@@ -118,6 +118,8 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecureConversationSecurityTokenParametersRequireBootstrapBinding)));
                 }
 
+                AddDemuxerForSecureConversation(channelBuilder, issuerBindingContext);
+
                 if (scParameters.RequireCancellation)
                 {
                     SessionSymmetricTransportSecurityProtocolFactory sessionFactory = new SessionSymmetricTransportSecurityProtocolFactory
