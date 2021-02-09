@@ -336,6 +336,7 @@ namespace CoreWCF.Channels
 
         private class AspNetCoreHttpContext : HttpRequestContext
         {
+            private const string Http11ProtocolString = "HTTP/1.1";
             private readonly HttpContext _aspNetContext;
             // byte[] webSocketInternalBuffer;
 
@@ -353,13 +354,16 @@ namespace CoreWCF.Channels
             }
             public override HttpOutput GetHttpOutput(Message message)
             {
-                if (HttpTransportSettings.KeepAliveEnabled)
+                if (StringComparer.OrdinalIgnoreCase.Equals(Http11ProtocolString, _aspNetContext.Request.Protocol))
                 {
-                    _aspNetContext.Response.Headers["Connection"] = "keep-alive";
-                }
-                else
-                {
-                    _aspNetContext.Response.Headers["Connection"] = "close";
+                    if (HttpTransportSettings.KeepAliveEnabled)
+                    {
+                        _aspNetContext.Response.Headers["Connection"] = "keep-alive";
+                    }
+                    else
+                    {
+                        _aspNetContext.Response.Headers["Connection"] = "close";
+                    }
                 }
 
                 if (HttpTransportSettings.MessageEncoderFactory.Encoder is ICompressedMessageEncoder compressedMessageEncoder && compressedMessageEncoder.CompressionEnabled)
