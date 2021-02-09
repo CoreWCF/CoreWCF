@@ -104,8 +104,6 @@ namespace Helpers
                     });
                 })
             .UseStartup<TStartup>();
-
-<<<<<<< HEAD
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
@@ -119,6 +117,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
+                options.AllowSynchronousIO = true;
                 options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                 {
                     if (Debugger.IsAttached)

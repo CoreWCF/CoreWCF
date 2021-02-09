@@ -25,18 +25,37 @@ namespace CoreWCF.Configuration
             {
                 if (services[i].ServiceType == typeof(IServer))
                 {
-                    Type implType = services[i].ImplementationType;
-                    if (!services.Any(d => d.ServiceType == implType))
+                    if (services[i].ImplementationType != null)
                     {
-                        services.AddSingleton(implType);
+                        Type implType = services[i].ImplementationType;
+                        if (!services.Any(d => d.ServiceType == implType))
+                        {
+                            services.AddSingleton(implType);
+                        }
+                        services[i] = ServiceDescriptor.Singleton<IServer>((provider) =>
+                            {
+                                var originalIServer = (IServer)provider.GetRequiredService(implType);
+                                WrappingIServer wrappingServer = provider.GetRequiredService<WrappingIServer>();
+                                wrappingServer.InnerServer = originalIServer;
+                                return wrappingServer;
+                            });
                     }
-                    services[i] = ServiceDescriptor.Singleton<IServer>((provider) =>
+                    else if (services[i].ImplementationInstance != null)
+                    {
+                        object implInstance = services[i].ImplementationInstance;;
+                        Type implType = implInstance.GetType();
+                        if (!services.Any(d => d.ServiceType == implType))
+                        {
+                            services.AddSingleton(implType, implInstance);
+                        }
+                        services[i] = ServiceDescriptor.Singleton<IServer>((provider) =>
                         {
                             var originalIServer = (IServer)provider.GetRequiredService(implType);
                             WrappingIServer wrappingServer = provider.GetRequiredService<WrappingIServer>();
                             wrappingServer.InnerServer = originalIServer;
                             return wrappingServer;
                         });
+                    }
                 }
             }
             services.AddSingleton<ServiceBuilder>();
