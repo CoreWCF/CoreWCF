@@ -1,18 +1,20 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
 using System.Xml;
 
 namespace CoreWCF
 {
-    class ServiceModelDictionary : IXmlDictionary
+    internal class ServiceModelDictionary : IXmlDictionary
     {
-        static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
-        readonly ServiceModelStrings _strings;
-        readonly int _count;
-        XmlDictionaryString[] _dictionaryStrings1;
-        XmlDictionaryString[] _dictionaryStrings2;
-        Dictionary<string, int> _dictionary;
-        XmlDictionaryString[] _versionedDictionaryStrings;
+        public static readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
+        private readonly ServiceModelStrings _strings;
+        private readonly int _count;
+        private XmlDictionaryString[] _dictionaryStrings1;
+        private XmlDictionaryString[] _dictionaryStrings2;
+        private Dictionary<string, int> _dictionary;
+        private XmlDictionaryString[] _versionedDictionaryStrings;
 
         public ServiceModelDictionary(ServiceModelStrings strings)
         {
@@ -20,7 +22,7 @@ namespace CoreWCF
             _count = strings.Count;
         }
 
-        static public ServiceModelDictionary CurrentVersion
+        public static ServiceModelDictionary CurrentVersion
         {
             get
             {
@@ -36,17 +38,25 @@ namespace CoreWCF
         public bool TryLookup(string key, out XmlDictionaryString value)
         {
             if (key == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
+            }
+
             if (_dictionary == null)
             {
                 Dictionary<string, int> dictionary = new Dictionary<string, int>(_count);
                 for (int i = 0; i < _count; i++)
+                {
                     dictionary.Add(_strings[i], i);
+                }
+
                 _dictionary = dictionary;
             }
-            int id;
-            if (_dictionary.TryGetValue(key, out id))
+            if (_dictionary.TryGetValue(key, out int id))
+            {
                 return TryLookup(id, out value);
+            }
+
             value = null;
             return false;
         }
@@ -63,7 +73,10 @@ namespace CoreWCF
             if (key < keyThreshold)
             {
                 if (_dictionaryStrings1 == null)
+                {
                     _dictionaryStrings1 = new XmlDictionaryString[keyThreshold];
+                }
+
                 s = _dictionaryStrings1[key];
                 if (s == null)
                 {
@@ -74,7 +87,10 @@ namespace CoreWCF
             else
             {
                 if (_dictionaryStrings2 == null)
+                {
                     _dictionaryStrings2 = new XmlDictionaryString[_count - keyThreshold];
+                }
+
                 s = _dictionaryStrings2[key - keyThreshold];
                 if (s == null)
                 {
@@ -89,7 +105,10 @@ namespace CoreWCF
         public bool TryLookup(XmlDictionaryString key, out XmlDictionaryString value)
         {
             if (key == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(key));
+            }
+
             if (key.Dictionary == this)
             {
                 value = key;
@@ -98,7 +117,10 @@ namespace CoreWCF
             if (key.Dictionary == CurrentVersion)
             {
                 if (_versionedDictionaryStrings == null)
+                {
                     _versionedDictionaryStrings = new XmlDictionaryString[CurrentVersion._count];
+                }
+
                 XmlDictionaryString s = _versionedDictionaryStrings[key.Key];
                 if (s == null)
                 {
@@ -116,5 +138,4 @@ namespace CoreWCF
             return false;
         }
     }
-
 }

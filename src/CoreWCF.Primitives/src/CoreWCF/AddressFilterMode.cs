@@ -1,4 +1,7 @@
-﻿namespace CoreWCF
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+namespace CoreWCF
 {
     public enum AddressFilterMode
     {
@@ -7,9 +10,9 @@
         Any,
     }
 
-    static class AddressFilterModeHelper
+    internal static class AddressFilterModeHelper
     {
-        static public bool IsDefined(AddressFilterMode x)
+        public static bool IsDefined(AddressFilterMode x)
         {
             return
                 x == AddressFilterMode.Exact ||

@@ -1,14 +1,17 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Xml;
 
 namespace CoreWCF.Channels
 {
     internal abstract class TransportOutputChannel : OutputChannel
     {
-        private bool _anyHeadersToAdd;
-        private EndpointAddress _to;
-        private Uri _via;
-        private ToHeader _toHeader;
+        private readonly bool _anyHeadersToAdd;
+        private readonly EndpointAddress _to;
+        private readonly Uri _via;
+        private readonly ToHeader _toHeader;
 
         protected TransportOutputChannel(IDefaultCommunicationTimeouts timeouts, EndpointAddress to, Uri via, bool manualAddressing, MessageVersion messageVersion)
             : base(timeouts)
@@ -90,28 +93,23 @@ namespace CoreWCF.Channels
 
         private class ToDictionary : IXmlDictionary
         {
-            private XmlDictionaryString to;
-
             public ToDictionary(string to)
             {
-                this.to = new XmlDictionaryString(this, to, 0);
+                To = new XmlDictionaryString(this, to, 0);
             }
 
-            public XmlDictionaryString To
-            {
-                get
-                {
-                    return to;
-                }
-            }
+            public XmlDictionaryString To { get; private set; }
 
             public bool TryLookup(string value, out XmlDictionaryString result)
             {
                 if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                if (value == to.Value)
                 {
-                    result = to;
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
+                if (value == To.Value)
+                {
+                    result = To;
                     return true;
                 }
                 result = null;
@@ -122,7 +120,7 @@ namespace CoreWCF.Channels
             {
                 if (key == 0)
                 {
-                    result = to;
+                    result = To;
                     return true;
                 }
                 result = null;
@@ -132,10 +130,13 @@ namespace CoreWCF.Channels
             public bool TryLookup(XmlDictionaryString value, out XmlDictionaryString result)
             {
                 if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                if (value == to)
                 {
-                    result = to;
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
+                if (value == To)
+                {
+                    result = To;
                     return true;
                 }
                 result = null;

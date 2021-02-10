@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using CoreWCF.Description;
 
@@ -5,10 +8,7 @@ namespace CoreWCF
 {
     public class FaultCode
     {
-        FaultCode subCode;
-        string name;
-        string ns;
-        EnvelopeVersion version;
+        private readonly EnvelopeVersion _version;
 
         public FaultCode(string name)
             : this(name, "", null)
@@ -28,32 +28,47 @@ namespace CoreWCF
         public FaultCode(string name, string ns, FaultCode subCode)
         {
             if (name == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            }
+
             if (name.Length == 0)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(name)));
+            }
 
             if (!string.IsNullOrEmpty(ns))
-                NamingHelper.CheckUriParameter(ns, "ns");
+            {
+                NamingHelper.CheckUriParameter(ns, nameof(ns));
+            }
 
-            this.name = name;
-            this.ns = ns;
-            this.subCode = subCode;
+            Name = name;
+            Namespace = ns;
+            SubCode = subCode;
 
             if (ns == Message12Strings.Namespace)
-                version = EnvelopeVersion.Soap12;
+            {
+                _version = EnvelopeVersion.Soap12;
+            }
             else if (ns == Message11Strings.Namespace)
-                version = EnvelopeVersion.Soap11;
+            {
+                _version = EnvelopeVersion.Soap11;
+            }
             else if (ns == MessageStrings.Namespace)
-                version = EnvelopeVersion.None;
+            {
+                _version = EnvelopeVersion.None;
+            }
             else
-                version = null;
+            {
+                _version = null;
+            }
         }
 
         public bool IsPredefinedFault
         {
             get
             {
-                return ns.Length == 0 || version != null;
+                return Namespace.Length == 0 || _version != null;
             }
         }
 
@@ -62,7 +77,9 @@ namespace CoreWCF
             get
             {
                 if (IsPredefinedFault)
-                    return name == (version ?? EnvelopeVersion.Soap12).SenderFaultName;
+                {
+                    return Name == (_version ?? EnvelopeVersion.Soap12).SenderFaultName;
+                }
 
                 return false;
             }
@@ -73,35 +90,19 @@ namespace CoreWCF
             get
             {
                 if (IsPredefinedFault)
-                    return name == (version ?? EnvelopeVersion.Soap12).ReceiverFaultName;
+                {
+                    return Name == (_version ?? EnvelopeVersion.Soap12).ReceiverFaultName;
+                }
 
                 return false;
             }
         }
 
-        public string Namespace
-        {
-            get
-            {
-                return ns;
-            }
-        }
+        public string Namespace { get; }
 
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
+        public string Name { get; }
 
-        public FaultCode SubCode
-        {
-            get
-            {
-                return subCode;
-            }
-        }
+        public FaultCode SubCode { get; }
 
         public static FaultCode CreateSenderFaultCode(FaultCode subCode)
         {
@@ -117,7 +118,10 @@ namespace CoreWCF
         internal static FaultCode CreateReceiverFaultCode(FaultCode subCode)
         {
             if (subCode == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(subCode));
+            }
+
             return new FaultCode("Receiver", subCode);
         }
     }

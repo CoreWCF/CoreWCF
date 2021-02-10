@@ -1,5 +1,7 @@
-﻿using CoreWCF;
-using CoreWCF.Dispatcher;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using CoreWCF;
 using ServiceContract;
 
 namespace Services
@@ -32,7 +34,7 @@ namespace Services
             return ServiceContractMethod(s);
         }
     }
-    
+
     [ServiceBehavior]
     public class ContractBehaviorBasic_CustomAttribute_Service : IContractBehaviorBasic_ServiceBase,
         IContractBehaviorBasic_CustomAttribute

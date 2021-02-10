@@ -1,31 +1,31 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF;
 
 namespace CoreWCF.Runtime
 {
-    sealed class InputQueue<T> : IDisposable where T : class
+    internal sealed class InputQueue<T> : IDisposable where T : class
     {
-        static Action<object> completeOutstandingReadersCallback;
-        static Action<object> completeWaitersFalseCallback;
-        static Action<object> completeWaitersTrueCallback;
-        static Action<object> onDispatchCallback;
-        static Action<object> onInvokeDequeuedCallback;
-
-        QueueState queueState;
-
-        ItemQueue itemQueue;
-        Queue<IQueueReader> readerQueue;
-        List<IQueueWaiter> waiterList;
+        private static Action<object> s_completeOutstandingReadersCallback;
+        private static Action<object> s_completeWaitersFalseCallback;
+        private static Action<object> s_completeWaitersTrueCallback;
+        private static Action<object> s_onDispatchCallback;
+        private static Action<object> s_onInvokeDequeuedCallback;
+        private QueueState _queueState;
+        private readonly ItemQueue _itemQueue;
+        private readonly Queue<IQueueReader> _readerQueue;
+        private readonly List<IQueueWaiter> _waiterList;
 
         public InputQueue()
         {
-            itemQueue = new ItemQueue();
-            readerQueue = new Queue<IQueueReader>();
-            waiterList = new List<IQueueWaiter>();
-            queueState = QueueState.Open;
+            _itemQueue = new ItemQueue();
+            _readerQueue = new Queue<IQueueReader>();
+            _waiterList = new List<IQueueWaiter>();
+            _queueState = QueueState.Open;
         }
 
         public InputQueue(Func<Action<AsyncCallback, IAsyncResult>> asyncCallbackGenerator)
@@ -41,7 +41,7 @@ namespace CoreWCF.Runtime
             {
                 lock (ThisLock)
                 {
-                    return itemQueue.ItemCount;
+                    return _itemQueue.ItemCount;
                 }
             }
         }
@@ -54,15 +54,15 @@ namespace CoreWCF.Runtime
         }
 
         // Users like ServiceModel can hook this to wrap the AsyncQueueReader callback functionality for tracing, etc
-        Func<Action<AsyncCallback, IAsyncResult>> AsyncCallbackGenerator
+        private Func<Action<AsyncCallback, IAsyncResult>> AsyncCallbackGenerator
         {
             get;
             set;
         }
 
-        object ThisLock
+        private object ThisLock
         {
-            get { return itemQueue; }
+            get { return _itemQueue; }
         }
 
         public void Close()
@@ -72,7 +72,7 @@ namespace CoreWCF.Runtime
 
         public async Task<T> DequeueAsync(CancellationToken token)
         {
-            var dequeued = await TryDequeueAsync(token);
+            (T result, bool success) dequeued = await TryDequeueAsync(token);
 
             if (!dequeued.success)
             {
@@ -81,7 +81,6 @@ namespace CoreWCF.Runtime
             }
 
             return dequeued.result;
-
         }
 
         public async Task<(T result, bool success)> TryDequeueAsync(CancellationToken token)
@@ -91,28 +90,28 @@ namespace CoreWCF.Runtime
 
             lock (ThisLock)
             {
-                if (queueState == QueueState.Open)
+                if (_queueState == QueueState.Open)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
-                        item = itemQueue.DequeueAvailableItem();
+                        item = _itemQueue.DequeueAvailableItem();
                     }
                     else
                     {
                         reader = new WaitQueueReader(this);
-                        readerQueue.Enqueue(reader);
+                        _readerQueue.Enqueue(reader);
                     }
                 }
-                else if (queueState == QueueState.Shutdown)
+                else if (_queueState == QueueState.Shutdown)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
-                        item = itemQueue.DequeueAvailableItem();
+                        item = _itemQueue.DequeueAvailableItem();
                     }
-                    else if (itemQueue.HasAnyItem)
+                    else if (_itemQueue.HasAnyItem)
                     {
                         reader = new WaitQueueReader(this);
-                        readerQueue.Enqueue(reader);
+                        _readerQueue.Enqueue(reader);
                     }
                     else
                     {
@@ -146,23 +145,23 @@ namespace CoreWCF.Runtime
 
             lock (ThisLock)
             {
-                itemAvailable = !((queueState == QueueState.Closed) || (queueState == QueueState.Shutdown));
+                itemAvailable = !((_queueState == QueueState.Closed) || (_queueState == QueueState.Shutdown));
                 GetWaiters(out waiters);
 
-                if (queueState != QueueState.Closed)
+                if (_queueState != QueueState.Closed)
                 {
-                    itemQueue.MakePendingItemAvailable();
+                    _itemQueue.MakePendingItemAvailable();
 
-                    if (readerQueue.Count > 0)
+                    if (_readerQueue.Count > 0)
                     {
-                        item = itemQueue.DequeueAvailableItem();
-                        reader = readerQueue.Dequeue();
+                        item = _itemQueue.DequeueAvailableItem();
+                        reader = _readerQueue.Dequeue();
 
-                        if (queueState == QueueState.Shutdown && readerQueue.Count > 0 && itemQueue.ItemCount == 0)
+                        if (_queueState == QueueState.Shutdown && _readerQueue.Count > 0 && _itemQueue.ItemCount == 0)
                         {
-                            outstandingReaders = new IQueueReader[readerQueue.Count];
-                            readerQueue.CopyTo(outstandingReaders, 0);
-                            readerQueue.Clear();
+                            outstandingReaders = new IQueueReader[_readerQueue.Count];
+                            _readerQueue.CopyTo(outstandingReaders, 0);
+                            _readerQueue.Clear();
 
                             itemAvailable = false;
                         }
@@ -172,12 +171,12 @@ namespace CoreWCF.Runtime
 
             if (outstandingReaders != null)
             {
-                if (completeOutstandingReadersCallback == null)
+                if (s_completeOutstandingReadersCallback == null)
                 {
-                    completeOutstandingReadersCallback = CompleteOutstandingReadersCallback;
+                    s_completeOutstandingReadersCallback = CompleteOutstandingReadersCallback;
                 }
 
-                ActionItem.Schedule(completeOutstandingReadersCallback, outstandingReaders);
+                ActionItem.Schedule(s_completeOutstandingReadersCallback, outstandingReaders);
             }
 
             if (waiters != null)
@@ -191,7 +190,7 @@ namespace CoreWCF.Runtime
                 reader.Set(item);
             }
         }
-       
+
         public void EnqueueAndDispatch(T item)
         {
             EnqueueAndDispatch(item, null);
@@ -244,23 +243,23 @@ namespace CoreWCF.Runtime
             IQueueReader[] outstandingReaders = null;
             lock (ThisLock)
             {
-                if (queueState == QueueState.Shutdown)
+                if (_queueState == QueueState.Shutdown)
                 {
                     return;
                 }
 
-                if (queueState == QueueState.Closed)
+                if (_queueState == QueueState.Closed)
                 {
                     return;
                 }
 
-                queueState = QueueState.Shutdown;
+                _queueState = QueueState.Shutdown;
 
-                if (readerQueue.Count > 0 && itemQueue.ItemCount == 0)
+                if (_readerQueue.Count > 0 && _itemQueue.ItemCount == 0)
                 {
-                    outstandingReaders = new IQueueReader[readerQueue.Count];
-                    readerQueue.CopyTo(outstandingReaders, 0);
-                    readerQueue.Clear();
+                    outstandingReaders = new IQueueReader[_readerQueue.Count];
+                    _readerQueue.CopyTo(outstandingReaders, 0);
+                    _readerQueue.Clear();
                 }
             }
 
@@ -274,7 +273,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        
+
         public Task<bool> WaitForItemAsync(CancellationToken token)
         {
             WaitQueueWaiter waiter = null;
@@ -282,28 +281,28 @@ namespace CoreWCF.Runtime
 
             lock (ThisLock)
             {
-                if (queueState == QueueState.Open)
+                if (_queueState == QueueState.Open)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
                         itemAvailable = true;
                     }
                     else
                     {
                         waiter = new WaitQueueWaiter();
-                        waiterList.Add(waiter);
+                        _waiterList.Add(waiter);
                     }
                 }
-                else if (queueState == QueueState.Shutdown)
+                else if (_queueState == QueueState.Shutdown)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
                         itemAvailable = true;
                     }
-                    else if (itemQueue.HasAnyItem)
+                    else if (_itemQueue.HasAnyItem)
                     {
                         waiter = new WaitQueueWaiter();
-                        waiterList.Add(waiter);
+                        _waiterList.Add(waiter);
                     }
                     else
                     {
@@ -332,31 +331,31 @@ namespace CoreWCF.Runtime
 
             lock (ThisLock)
             {
-                if (queueState != QueueState.Closed)
+                if (_queueState != QueueState.Closed)
                 {
-                    queueState = QueueState.Closed;
+                    _queueState = QueueState.Closed;
                     dispose = true;
                 }
             }
 
             if (dispose)
             {
-                while (readerQueue.Count > 0)
+                while (_readerQueue.Count > 0)
                 {
-                    IQueueReader reader = readerQueue.Dequeue();
-                    reader.Set(default(Item));
+                    IQueueReader reader = _readerQueue.Dequeue();
+                    reader.Set(default);
                 }
 
-                while (itemQueue.HasAnyItem)
+                while (_itemQueue.HasAnyItem)
                 {
-                    Item item = itemQueue.DequeueAnyItem();
+                    Item item = _itemQueue.DequeueAnyItem();
                     DisposeItem(item);
                     InvokeDequeuedCallback(item.DequeuedCallback);
                 }
             }
         }
 
-        void DisposeItem(Item item)
+        private void DisposeItem(Item item)
         {
             T value = item.Value;
             if (value != null)
@@ -376,17 +375,17 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void CompleteOutstandingReadersCallback(object state)
+        private static void CompleteOutstandingReadersCallback(object state)
         {
             IQueueReader[] outstandingReaders = (IQueueReader[])state;
 
             for (int i = 0; i < outstandingReaders.Length; i++)
             {
-                outstandingReaders[i].Set(default(Item));
+                outstandingReaders[i].Set(default);
             }
         }
 
-        static void CompleteWaiters(bool itemAvailable, IQueueWaiter[] waiters)
+        private static void CompleteWaiters(bool itemAvailable, IQueueWaiter[] waiters)
         {
             for (int i = 0; i < waiters.Length; i++)
             {
@@ -394,39 +393,39 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void CompleteWaitersFalseCallback(object state)
+        private static void CompleteWaitersFalseCallback(object state)
         {
             CompleteWaiters(false, (IQueueWaiter[])state);
         }
 
-        static void CompleteWaitersLater(bool itemAvailable, IQueueWaiter[] waiters)
+        private static void CompleteWaitersLater(bool itemAvailable, IQueueWaiter[] waiters)
         {
             if (itemAvailable)
             {
-                if (completeWaitersTrueCallback == null)
+                if (s_completeWaitersTrueCallback == null)
                 {
-                    completeWaitersTrueCallback = CompleteWaitersTrueCallback;
+                    s_completeWaitersTrueCallback = CompleteWaitersTrueCallback;
                 }
 
-                ActionItem.Schedule(completeWaitersTrueCallback, waiters);
+                ActionItem.Schedule(s_completeWaitersTrueCallback, waiters);
             }
             else
             {
-                if (completeWaitersFalseCallback == null)
+                if (s_completeWaitersFalseCallback == null)
                 {
-                    completeWaitersFalseCallback = CompleteWaitersFalseCallback;
+                    s_completeWaitersFalseCallback = CompleteWaitersFalseCallback;
                 }
 
-                ActionItem.Schedule(completeWaitersFalseCallback, waiters);
+                ActionItem.Schedule(s_completeWaitersFalseCallback, waiters);
             }
         }
 
-        static void CompleteWaitersTrueCallback(object state)
+        private static void CompleteWaitersTrueCallback(object state)
         {
             CompleteWaiters(true, (IQueueWaiter[])state);
         }
 
-        static void InvokeDequeuedCallback(Action dequeuedCallback)
+        private static void InvokeDequeuedCallback(Action dequeuedCallback)
         {
             if (dequeuedCallback != null)
             {
@@ -434,25 +433,25 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void InvokeDequeuedCallbackLater(Action dequeuedCallback)
+        private static void InvokeDequeuedCallbackLater(Action dequeuedCallback)
         {
             if (dequeuedCallback != null)
             {
-                if (onInvokeDequeuedCallback == null)
+                if (s_onInvokeDequeuedCallback == null)
                 {
-                    onInvokeDequeuedCallback = OnInvokeDequeuedCallback;
+                    s_onInvokeDequeuedCallback = OnInvokeDequeuedCallback;
                 }
 
-                ActionItem.Schedule(onInvokeDequeuedCallback, dequeuedCallback);
+                ActionItem.Schedule(s_onInvokeDequeuedCallback, dequeuedCallback);
             }
         }
 
-        static void OnDispatchCallback(object state)
+        private static void OnDispatchCallback(object state)
         {
             ((InputQueue<T>)state).Dispatch();
         }
 
-        static void OnInvokeDequeuedCallback(object state)
+        private static void OnInvokeDequeuedCallback(object state)
         {
             Fx.Assert(state != null, "InputQueue.OnInvokeDequeuedCallback: (state != null)");
 
@@ -460,7 +459,7 @@ namespace CoreWCF.Runtime
             dequeuedCallback();
         }
 
-        void EnqueueAndDispatch(Item item, bool canDispatchOnThisThread)
+        private void EnqueueAndDispatch(Item item, bool canDispatchOnThisThread)
         {
             bool disposeItem = false;
             IQueueReader reader = null;
@@ -470,31 +469,31 @@ namespace CoreWCF.Runtime
 
             lock (ThisLock)
             {
-                itemAvailable = !((queueState == QueueState.Closed) || (queueState == QueueState.Shutdown));
+                itemAvailable = !((_queueState == QueueState.Closed) || (_queueState == QueueState.Shutdown));
                 GetWaiters(out waiters);
 
-                if (queueState == QueueState.Open)
+                if (_queueState == QueueState.Open)
                 {
                     if (canDispatchOnThisThread)
                     {
-                        if (readerQueue.Count == 0)
+                        if (_readerQueue.Count == 0)
                         {
-                            itemQueue.EnqueueAvailableItem(item);
+                            _itemQueue.EnqueueAvailableItem(item);
                         }
                         else
                         {
-                            reader = readerQueue.Dequeue();
+                            reader = _readerQueue.Dequeue();
                         }
                     }
                     else
                     {
-                        if (readerQueue.Count == 0)
+                        if (_readerQueue.Count == 0)
                         {
-                            itemQueue.EnqueueAvailableItem(item);
+                            _itemQueue.EnqueueAvailableItem(item);
                         }
                         else
                         {
-                            itemQueue.EnqueuePendingItem(item);
+                            _itemQueue.EnqueuePendingItem(item);
                             dispatchLater = true;
                         }
                     }
@@ -525,12 +524,12 @@ namespace CoreWCF.Runtime
 
             if (dispatchLater)
             {
-                if (onDispatchCallback == null)
+                if (s_onDispatchCallback == null)
                 {
-                    onDispatchCallback = OnDispatchCallback;
+                    s_onDispatchCallback = OnDispatchCallback;
                 }
 
-                ActionItem.Schedule(onDispatchCallback, this);
+                ActionItem.Schedule(s_onDispatchCallback, this);
             }
             else if (disposeItem)
             {
@@ -541,21 +540,21 @@ namespace CoreWCF.Runtime
 
         // This will not block, however, Dispatch() must be called later if this function
         // returns true.
-        bool EnqueueWithoutDispatch(Item item)
+        private bool EnqueueWithoutDispatch(Item item)
         {
             lock (ThisLock)
             {
                 // Open
-                if (queueState != QueueState.Closed && queueState != QueueState.Shutdown)
+                if (_queueState != QueueState.Closed && _queueState != QueueState.Shutdown)
                 {
-                    if (readerQueue.Count == 0 && waiterList.Count == 0)
+                    if (_readerQueue.Count == 0 && _waiterList.Count == 0)
                     {
-                        itemQueue.EnqueueAvailableItem(item);
+                        _itemQueue.EnqueueAvailableItem(item);
                         return false;
                     }
                     else
                     {
-                        itemQueue.EnqueuePendingItem(item);
+                        _itemQueue.EnqueuePendingItem(item);
                         return true;
                     }
                 }
@@ -566,12 +565,12 @@ namespace CoreWCF.Runtime
             return false;
         }
 
-        void GetWaiters(out IQueueWaiter[] waiters)
+        private void GetWaiters(out IQueueWaiter[] waiters)
         {
-            if (waiterList.Count > 0)
+            if (_waiterList.Count > 0)
             {
-                waiters = waiterList.ToArray();
-                waiterList.Clear();
+                waiters = _waiterList.ToArray();
+                _waiterList.Clear();
             }
             else
             {
@@ -581,26 +580,26 @@ namespace CoreWCF.Runtime
 
         // Used for timeouts. The InputQueue must remove readers from its reader queue to prevent
         // dispatching items to timed out readers.
-        bool RemoveReader(IQueueReader reader)
+        private bool RemoveReader(IQueueReader reader)
         {
             Fx.Assert(reader != null, "InputQueue.RemoveReader: (reader != null)");
 
             lock (ThisLock)
             {
-                if (queueState == QueueState.Open || queueState == QueueState.Shutdown)
+                if (_queueState == QueueState.Open || _queueState == QueueState.Shutdown)
                 {
                     bool removed = false;
 
-                    for (int i = readerQueue.Count; i > 0; i--)
+                    for (int i = _readerQueue.Count; i > 0; i--)
                     {
-                        IQueueReader temp = readerQueue.Dequeue();
-                        if (object.ReferenceEquals(temp, reader))
+                        IQueueReader temp = _readerQueue.Dequeue();
+                        if (ReferenceEquals(temp, reader))
                         {
                             removed = true;
                         }
                         else
                         {
-                            readerQueue.Enqueue(temp);
+                            _readerQueue.Enqueue(temp);
                         }
                     }
 
@@ -611,29 +610,25 @@ namespace CoreWCF.Runtime
             return false;
         }
 
-        enum QueueState
+        private enum QueueState
         {
             Open,
             Shutdown,
             Closed
         }
 
-        interface IQueueReader
+        private interface IQueueReader
         {
             void Set(Item item);
         }
 
-        interface IQueueWaiter
+        private interface IQueueWaiter
         {
             void Set(bool itemAvailable);
         }
 
-        struct Item
+        private struct Item
         {
-            Action dequeuedCallback;
-            Exception exception;
-            T value;
-
             public Item(T value, Action dequeuedCallback)
                 : this(value, null, dequeuedCallback)
             {
@@ -644,78 +639,65 @@ namespace CoreWCF.Runtime
             {
             }
 
-            Item(T value, Exception exception, Action dequeuedCallback)
+            private Item(T value, Exception exception, Action dequeuedCallback)
             {
-                this.value = value;
-                this.exception = exception;
-                this.dequeuedCallback = dequeuedCallback;
+                Value = value;
+                Exception = exception;
+                DequeuedCallback = dequeuedCallback;
             }
 
-            public Action DequeuedCallback
-            {
-                get { return dequeuedCallback; }
-            }
+            public Action DequeuedCallback { get; }
 
-            public Exception Exception
-            {
-                get { return exception; }
-            }
+            public Exception Exception { get; }
 
-            public T Value
-            {
-                get { return value; }
-            }
+            public T Value { get; }
 
             public T GetValue()
             {
-                if (exception != null)
+                if (Exception != null)
                 {
-                    throw Fx.Exception.AsError(exception);
+                    throw Fx.Exception.AsError(Exception);
                 }
 
-                return value;
+                return Value;
             }
         }
 
-        class ItemQueue
+        private class ItemQueue
         {
-            int head;
-            Item[] items;
-            int pendingCount;
-            int totalCount;
+            private int _head;
+            private Item[] _items;
+            private int _pendingCount;
 
             public ItemQueue()
             {
-                items = new Item[1];
+                _items = new Item[1];
             }
 
             public bool HasAnyItem
             {
-                get { return totalCount > 0; }
+                get { return ItemCount > 0; }
             }
 
             public bool HasAvailableItem
             {
-                get { return totalCount > pendingCount; }
+                get { return ItemCount > _pendingCount; }
             }
 
-            public int ItemCount
-            {
-                get { return totalCount; }
-            }
+            public int ItemCount { get; private set; }
 
             public Item DequeueAnyItem()
             {
-                if (pendingCount == totalCount)
+                if (_pendingCount == ItemCount)
                 {
-                    pendingCount--;
+                    _pendingCount--;
                 }
                 return DequeueItemCore();
             }
 
             public Item DequeueAvailableItem()
             {
-                Fx.AssertAndThrow(totalCount != pendingCount, "ItemQueue does not contain any available items");
+                Fx.AssertAndThrow(ItemCount != _pendingCount, "ItemQueue does not contain any available items");
                 return DequeueItemCore();
             }
 
@@ -727,67 +709,66 @@ namespace CoreWCF.Runtime
             public void EnqueuePendingItem(Item item)
             {
                 EnqueueItemCore(item);
-                pendingCount++;
+                _pendingCount++;
             }
 
             public void MakePendingItemAvailable()
             {
-                Fx.AssertAndThrow(pendingCount != 0, "ItemQueue does not contain any pending items");
-                pendingCount--;
+                Fx.AssertAndThrow(_pendingCount != 0, "ItemQueue does not contain any pending items");
+                _pendingCount--;
             }
 
-            Item DequeueItemCore()
+            private Item DequeueItemCore()
             {
-                Fx.AssertAndThrow(totalCount != 0, "ItemQueue does not contain any items");
-                Item item = items[head];
-                items[head] = new Item();
-                totalCount--;
-                head = (head + 1) % items.Length;
+                Fx.AssertAndThrow(ItemCount != 0, "ItemQueue does not contain any items");
+                Item item = _items[_head];
+                _items[_head] = new Item();
+                ItemCount--;
+                _head = (_head + 1) % _items.Length;
                 return item;
             }
 
-            void EnqueueItemCore(Item item)
+            private void EnqueueItemCore(Item item)
             {
-                if (totalCount == items.Length)
+                if (ItemCount == _items.Length)
                 {
-                    Item[] newItems = new Item[items.Length * 2];
-                    for (int i = 0; i < totalCount; i++)
+                    Item[] newItems = new Item[_items.Length * 2];
+                    for (int i = 0; i < ItemCount; i++)
                     {
-                        newItems[i] = items[(head + i) % items.Length];
+                        newItems[i] = _items[(_head + i) % _items.Length];
                     }
-                    head = 0;
-                    items = newItems;
+                    _head = 0;
+                    _items = newItems;
                 }
-                int tail = (head + totalCount) % items.Length;
-                items[tail] = item;
-                totalCount++;
+                int tail = (_head + ItemCount) % _items.Length;
+                _items[tail] = item;
+                ItemCount++;
             }
         }
 
-        class WaitQueueReader : IQueueReader
+        private class WaitQueueReader : IQueueReader
         {
-            Exception exception;
-            InputQueue<T> inputQueue;
-            T item;
-
-            AsyncManualResetEvent waitEvent;
+            private Exception _exception;
+            private readonly InputQueue<T> _inputQueue;
+            private T _item;
+            private readonly AsyncManualResetEvent _waitEvent;
 
             public WaitQueueReader(InputQueue<T> inputQueue)
             {
-                this.inputQueue = inputQueue;
-                waitEvent = new AsyncManualResetEvent();
+                _inputQueue = inputQueue;
+                _waitEvent = new AsyncManualResetEvent();
             }
 
             public void Set(Item item)
             {
                 lock (this)
                 {
-                    Fx.Assert(this.item == null, "InputQueue.WaitQueueReader.Set: (this.item == null)");
-                    Fx.Assert(exception == null, "InputQueue.WaitQueueReader.Set: (this.exception == null)");
+                    Fx.Assert(_item == null, "InputQueue.WaitQueueReader.Set: (this.item == null)");
+                    Fx.Assert(_exception == null, "InputQueue.WaitQueueReader.Set: (this.exception == null)");
 
-                    exception = item.Exception;
-                    this.item = item.Value;
-                    waitEvent.Set();
+                    _exception = item.Exception;
+                    _item = item.Value;
+                    _waitEvent.Set();
                 }
             }
 
@@ -796,16 +777,16 @@ namespace CoreWCF.Runtime
                 bool isSafeToClose = false;
                 try
                 {
-                    if (!await waitEvent.WaitAsync(token))
+                    if (!await _waitEvent.WaitAsync(token))
                     {
-                        if (inputQueue.RemoveReader(this))
+                        if (_inputQueue.RemoveReader(this))
                         {
                             isSafeToClose = true;
                             return (null, false);
                         }
                         else
                         {
-                            await waitEvent.WaitAsync();
+                            await _waitEvent.WaitAsync();
                         }
                     }
 
@@ -815,49 +796,47 @@ namespace CoreWCF.Runtime
                 {
                     if (isSafeToClose)
                     {
-                        waitEvent.Dispose();
+                        _waitEvent.Dispose();
                     }
                 }
 
-                if (exception != null)
+                if (_exception != null)
                 {
-                    throw Fx.Exception.AsError(exception);
+                    throw Fx.Exception.AsError(_exception);
                 }
 
-                return (item, true);
+                return (_item, true);
             }
         }
 
-        class WaitQueueWaiter : IQueueWaiter
+        private class WaitQueueWaiter : IQueueWaiter
         {
-            bool itemAvailable;
-
-            AsyncManualResetEvent waitEvent;
+            private bool _itemAvailable;
+            private readonly AsyncManualResetEvent _waitEvent;
 
             public WaitQueueWaiter()
             {
-                waitEvent = new AsyncManualResetEvent();
+                _waitEvent = new AsyncManualResetEvent();
             }
 
             public void Set(bool itemAvailable)
             {
                 lock (this)
                 {
-                    this.itemAvailable = itemAvailable;
-                    waitEvent.Set();
+                    _itemAvailable = itemAvailable;
+                    _waitEvent.Set();
                 }
             }
-            
+
             public async Task<bool> WaitAsync(CancellationToken token)
             {
-                if (!await waitEvent.WaitAsync(token))
+                if (!await _waitEvent.WaitAsync(token))
                 {
                     return false;
                 }
 
-                return itemAvailable;
+                return _itemAvailable;
             }
         }
     }
-
 }

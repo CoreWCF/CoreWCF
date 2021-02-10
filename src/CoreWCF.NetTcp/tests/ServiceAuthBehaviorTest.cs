@@ -1,4 +1,11 @@
-﻿using CoreWCF.Configuration;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ServiceModel.Channels;
+using CoreWCF.Configuration;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Primitives.Tests.CustomSecurity;
@@ -6,18 +13,14 @@ using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ServiceModel.Channels;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CoreWCF.NetTcp.Tests
 {
-   public class ServiceAuthBehaviorTest
+    public class ServiceAuthBehaviorTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ServiceAuthBehaviorTest(ITestOutputHelper output)
         {
@@ -29,7 +32,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionWindowsAuth()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -37,12 +40,12 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoString(testString);
+                    string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
@@ -58,8 +61,8 @@ namespace CoreWCF.NetTcp.Tests
         [Trait("Category", "WindowsOnly")]
         public void SimpleNetTcpClientConnectionUseWindowsGroups()
         {
-            string testString ="a"+PrincipalPermissionMode.UseWindowsGroups.ToString()+"test";
-            var host = ServiceHelper.CreateWebHostBuilder<PermissionUseWindowsGroup>(_output).Build();
+            string testString = "a" + PrincipalPermissionMode.UseWindowsGroups.ToString() + "test";
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseWindowsGroup>(_output).Build();
             assertForCommon(testString, host);
         }
         [Fact]
@@ -67,7 +70,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionUseAlways()
         {
             string testString = "a" + PrincipalPermissionMode.Always.ToString() + "test";
-            var host = ServiceHelper.CreateWebHostBuilder<PermissionUseAlways>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseAlways>(_output).Build();
             assertForCommon(testString, host);
         }
 
@@ -76,7 +79,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionUseNone()
         {
             string testString = "a" + PrincipalPermissionMode.None.ToString() + "test";
-            var host = ServiceHelper.CreateWebHostBuilder<PermissionUseNone>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseNone>(_output).Build();
             assertForCommon(testString, host);
         }
 
@@ -85,7 +88,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientImpersonateUser()
         {
             string sourceString = "test";
-            var host = ServiceHelper.CreateWebHostBuilder<ImpersonateCallerForAll>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<ImpersonateCallerForAll>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -93,12 +96,12 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoForImpersonation(sourceString);
+                    string result = channel.EchoForImpersonation(sourceString);
                     Assert.Equal(sourceString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
@@ -110,7 +113,7 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
-        private void assertForCommon(String sourceString,  IWebHost host)
+        private void assertForCommon(string sourceString, IWebHost host)
         {
             using (host)
             {
@@ -119,12 +122,12 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoForPermission(sourceString);
+                    string result = channel.EchoForPermission(sourceString);
                     Assert.Equal(sourceString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
@@ -150,7 +153,7 @@ namespace CoreWCF.NetTcp.Tests
         public PermissionUseWindowsGroup() : base(PrincipalPermissionMode.UseWindowsGroups)
         {
         }
-        
+
     }
     public class PermissionUseNone : StartUpPermissionBase
     {
@@ -162,7 +165,7 @@ namespace CoreWCF.NetTcp.Tests
 
     public class ImpersonateCallerForAll : StartUpPermissionBase
     {
-        public ImpersonateCallerForAll() : base(PrincipalPermissionMode.UseWindowsGroups,true)
+        public ImpersonateCallerForAll() : base(PrincipalPermissionMode.UseWindowsGroups, true)
         {
         }
 
@@ -171,13 +174,13 @@ namespace CoreWCF.NetTcp.Tests
 
     public class StartUpPermissionBase
     {
-        PrincipalPermissionMode principalMode;
-        bool isImpersonate = false;
+        private readonly PrincipalPermissionMode principalMode;
+        private readonly bool isImpersonate = false;
 
         public StartUpPermissionBase(PrincipalPermissionMode modeToTest, bool isImmpersonation = false)
         {
-            this.principalMode = modeToTest;
-            this.isImpersonate = isImmpersonation;
+            principalMode = modeToTest;
+            isImpersonate = isImmpersonation;
         }
 
         public const string WindowsAuthRelativePath = "/nettcp.svc/windows-auth";
@@ -189,44 +192,49 @@ namespace CoreWCF.NetTcp.Tests
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            var authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
-             authBehavior.PrincipalPermissionMode = principalMode;
+            ServiceAuthorizationBehavior authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
+            authBehavior.PrincipalPermissionMode = principalMode;
             if (isImpersonate)
+            {
                 authBehavior.ImpersonateCallerForAllOperations = true;
+            }
+
             app.UseServiceModel(builder =>
             {
                 builder.AddService<Services.TestService>();
                 builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(), WindowsAuthRelativePath);
-                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(CoreWCF.SecurityMode.None), NoSecurityRelativePath);
+                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(SecurityMode.None), NoSecurityRelativePath);
             });
         }
     }
 
-        public class Startup
+    public class Startup
+    {
+        public const string WindowsAuthRelativePath = "/nettcp.svc/windows-auth";
+        public const string NoSecurityRelativePath = "/nettcp.svc/security-none";
+        public void ConfigureServices(IServiceCollection services)
         {
-            public const string WindowsAuthRelativePath = "/nettcp.svc/windows-auth";
-            public const string NoSecurityRelativePath = "/nettcp.svc/security-none";
-            public void ConfigureServices(IServiceCollection services)
-            {
-                services.AddServiceModelServices();
-                services.AddSingleton<ServiceAuthorizationManager, MyTestServiceAuthorizationManager>();
-            }
+            services.AddServiceModelServices();
+            services.AddSingleton<ServiceAuthorizationManager, MyTestServiceAuthorizationManager>();
+        }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            ServiceAuthorizationBehavior authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
+            var authPolicies = new List<IAuthorizationPolicy>
             {
-                var authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
-                var authPolicies = new List<IAuthorizationPolicy>();
-                authPolicies.Add(new MyTestAuthorizationPolicy());
-                var externalAuthPolicies = new ReadOnlyCollection<IAuthorizationPolicy>(authPolicies);
-                authBehavior.ExternalAuthorizationPolicies = externalAuthPolicies;
-                authBehavior.ServiceAuthorizationManager = new MyTestServiceAuthorizationManager();
-                app.UseServiceModel(builder =>
-                {
-                    builder.AddService<Services.TestService>();
-                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(), WindowsAuthRelativePath);
-                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(CoreWCF.SecurityMode.None), NoSecurityRelativePath);
-                });
-            }
+                new MyTestAuthorizationPolicy()
+            };
+            var externalAuthPolicies = new ReadOnlyCollection<IAuthorizationPolicy>(authPolicies);
+            authBehavior.ExternalAuthorizationPolicies = externalAuthPolicies;
+            authBehavior.ServiceAuthorizationManager = new MyTestServiceAuthorizationManager();
+            app.UseServiceModel(builder =>
+            {
+                builder.AddService<Services.TestService>();
+                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(), WindowsAuthRelativePath);
+                builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(new CoreWCF.NetTcpBinding(SecurityMode.None), NoSecurityRelativePath);
+            });
         }
     }
+}
 

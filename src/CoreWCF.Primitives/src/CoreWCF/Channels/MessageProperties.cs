@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,26 +11,26 @@ namespace CoreWCF.Channels
 {
     public sealed class MessageProperties : IDictionary<string, object>, IDisposable
     {
-        Property[] properties;
-        int propertyCount;
-        MessageEncoder encoder;
-        Uri via;
-        object allowOutputBatching;
-        SecurityMessageProperty security;
-        bool disposed;
-        const int InitialPropertyCount = 2;
-        const int MaxRecycledArrayLength = 8;
-        const string ViaKey = "Via";
-        const string AllowOutputBatchingKey = "AllowOutputBatching";
-        const string SecurityKey = "Security";
-        const string EncoderKey = "Encoder";
-        const int NotFoundIndex = -1;
-        const int ViaIndex = -2;
-        const int AllowOutputBatchingIndex = -3;
-        const int SecurityIndex = -4;
-        const int EncoderIndex = -5;
-        static object trueBool = true;
-        static object falseBool = false;
+        private Property[] _properties;
+        private int _propertyCount;
+        private MessageEncoder _encoder;
+        private Uri _via;
+        private object _allowOutputBatching;
+        private SecurityMessageProperty _security;
+        private bool _disposed;
+        private const int InitialPropertyCount = 2;
+        private const int MaxRecycledArrayLength = 8;
+        private const string ViaKey = "Via";
+        private const string AllowOutputBatchingKey = "AllowOutputBatching";
+        private const string SecurityKey = "Security";
+        private const string EncoderKey = "Encoder";
+        private const int NotFoundIndex = -1;
+        private const int ViaIndex = -2;
+        private const int AllowOutputBatchingIndex = -3;
+        private const int SecurityIndex = -4;
+        private const int EncoderIndex = -5;
+        private static readonly object s_trueBool = true;
+        private static readonly object s_falseBool = false;
 
         public MessageProperties()
         {
@@ -41,11 +44,14 @@ namespace CoreWCF.Channels
         internal MessageProperties(KeyValuePair<string, object>[] array)
         {
             if (array == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(array));
+            }
+
             CopyProperties(array);
         }
 
-        void ThrowDisposed()
+        private void ThrowDisposed()
         {
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(string.Empty, SR.Format(SR.ObjectDisposed, GetType().ToString())));
         }
@@ -54,12 +60,13 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
+                }
 
-                object value;
 
-                if (!TryGetValue(name, out value))
+                if (!TryGetValue(name, out object value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.MessagePropertyNotFound, name)));
                 }
@@ -68,8 +75,11 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
+                }
+
                 UpdateProperty(name, value, false);
             }
         }
@@ -78,7 +88,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return properties == null || properties.Length <= MaxRecycledArrayLength;
+                return _properties == null || _properties.Length <= MaxRecycledArrayLength;
             }
         }
 
@@ -86,9 +96,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                return propertyCount;
+                }
+
+                return _propertyCount;
             }
         }
 
@@ -96,16 +109,22 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                return encoder;
+                }
+
+                return _encoder;
             }
             set
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                AdjustPropertyCount((object)encoder == null, (object)value == null);
-                encoder = value;
+                }
+
+                AdjustPropertyCount((object)_encoder == null, (object)value == null);
+                _encoder = value;
             }
         }
 
@@ -113,23 +132,29 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                return (object)allowOutputBatching == trueBool;
+                }
+
+                return (object)_allowOutputBatching == s_trueBool;
             }
             set
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                AdjustPropertyCount((object)allowOutputBatching == null, false);
+                }
+
+                AdjustPropertyCount((object)_allowOutputBatching == null, false);
 
                 if (value)
                 {
-                    allowOutputBatching = trueBool;
+                    _allowOutputBatching = s_trueBool;
                 }
                 else
                 {
-                    allowOutputBatching = falseBool;
+                    _allowOutputBatching = s_falseBool;
                 }
             }
         }
@@ -138,8 +163,11 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
+                }
+
                 return false;
             }
         }
@@ -148,8 +176,11 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
+                }
+
                 return false;
             }
         }
@@ -158,16 +189,19 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
+                }
+
                 List<string> keys = new List<string>();
 
-                if ((object)via != null)
+                if ((object)_via != null)
                 {
                     keys.Add(ViaKey);
                 }
 
-                if ((object)allowOutputBatching != null)
+                if ((object)_allowOutputBatching != null)
                 {
                     keys.Add(AllowOutputBatchingKey);
                 }
@@ -177,16 +211,16 @@ namespace CoreWCF.Channels
                 //    keys.Add(SecurityKey);
                 //}
 
-                if ((object)encoder != null)
+                if ((object)_encoder != null)
                 {
                     keys.Add(EncoderKey);
                 }
 
-                if (properties != null)
+                if (_properties != null)
                 {
-                    for (int i = 0; i < properties.Length; i++)
+                    for (int i = 0; i < _properties.Length; i++)
                     {
-                        string propertyName = properties[i].Name;
+                        string propertyName = _properties[i].Name;
 
                         if (propertyName == null)
                         {
@@ -205,16 +239,22 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                return security;
+                }
+
+                return _security;
             }
             set
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                AdjustPropertyCount((object)security == null, (object)value == null);
-                security = value;
+                }
+
+                AdjustPropertyCount((object)_security == null, (object)value == null);
+                _security = value;
             }
         }
 
@@ -222,18 +262,21 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
-                    ThrowDisposed();
-                List<object> values = new List<object>();
-
-                if ((object)via != null)
+                if (_disposed)
                 {
-                    values.Add(via);
+                    ThrowDisposed();
                 }
 
-                if ((object)allowOutputBatching != null)
+                List<object> values = new List<object>();
+
+                if ((object)_via != null)
                 {
-                    values.Add(allowOutputBatching);
+                    values.Add(_via);
+                }
+
+                if ((object)_allowOutputBatching != null)
+                {
+                    values.Add(_allowOutputBatching);
                 }
 
                 //if ((object)security != null)
@@ -241,20 +284,20 @@ namespace CoreWCF.Channels
                 //    values.Add(security);
                 //}
 
-                if ((object)encoder != null)
+                if ((object)_encoder != null)
                 {
-                    values.Add(encoder);
+                    values.Add(_encoder);
                 }
-                if (properties != null)
+                if (_properties != null)
                 {
-                    for (int i = 0; i < properties.Length; i++)
+                    for (int i = 0; i < _properties.Length; i++)
                     {
-                        if (properties[i].Name == null)
+                        if (_properties[i].Name == null)
                         {
                             break;
                         }
 
-                        values.Add(properties[i].Value);
+                        values.Add(_properties[i].Value);
                     }
                 }
 
@@ -266,70 +309,83 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                return via;
+                }
+
+                return _via;
             }
             set
             {
-                if (disposed)
+                if (_disposed)
+                {
                     ThrowDisposed();
-                AdjustPropertyCount((object)via == null, (object)value == null);
-                via = value;
+                }
+
+                AdjustPropertyCount((object)_via == null, (object)value == null);
+                _via = value;
             }
         }
 
         public void Add(string name, object property)
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
             if (property == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(property));
+            }
+
             UpdateProperty(name, property, true);
         }
 
-        void AdjustPropertyCount(bool oldValueIsNull, bool newValueIsNull)
+        private void AdjustPropertyCount(bool oldValueIsNull, bool newValueIsNull)
         {
             if (newValueIsNull)
             {
                 if (!oldValueIsNull)
                 {
-                    propertyCount--;
+                    _propertyCount--;
                 }
             }
             else
             {
                 if (oldValueIsNull)
                 {
-                    propertyCount++;
+                    _propertyCount++;
                 }
             }
         }
 
         public void Clear()
         {
-            if (disposed)
-                ThrowDisposed();
-
-            if (properties != null)
+            if (_disposed)
             {
-                for (int i = 0; i < properties.Length; i++)
+                ThrowDisposed();
+            }
+
+            if (_properties != null)
+            {
+                for (int i = 0; i < _properties.Length; i++)
                 {
-                    if (properties[i].Name == null)
+                    if (_properties[i].Name == null)
                     {
                         break;
                     }
 
-                    properties[i] = new Property();
+                    _properties[i] = new Property();
                 }
             }
 
-            via = null;
-            allowOutputBatching = null;
+            _via = null;
+            _allowOutputBatching = null;
             //security = null;
-            encoder = null;
-            propertyCount = 0;
+            _encoder = null;
+            _propertyCount = 0;
         }
 
         public void CopyProperties(MessageProperties properties)
@@ -343,21 +399,21 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
-            if (disposed)
+            if (_disposed)
             {
                 ThrowDisposed();
             }
 
-            if (properties.properties != null)
+            if (properties._properties != null)
             {
-                for (int i = 0; i < properties.properties.Length; i++)
+                for (int i = 0; i < properties._properties.Length; i++)
                 {
-                    if (properties.properties[i].Name == null)
+                    if (properties._properties[i].Name == null)
                     {
                         break;
                     }
 
-                    Property property = properties.properties[i];
+                    Property property = properties._properties[i];
 
                     // this[string] will call CreateCopyOfPropertyValue, so we don't need to repeat that here
                     this[property.Name] = property.Value;
@@ -381,30 +437,30 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));
             }
 
-            if (disposed)
+            if (_disposed)
             {
                 ThrowDisposed();
             }
 
-            if (properties.properties != null)
+            if (properties._properties != null)
             {
-                for (int i = 0; i < properties.properties.Length; i++)
+                for (int i = 0; i < properties._properties.Length; i++)
                 {
-                    if (properties.properties[i].Name == null)
+                    if (properties._properties[i].Name == null)
                     {
                         break;
                     }
 
-                    Property property = properties.properties[i];
+                    Property property = properties._properties[i];
 
                     // Used with Http transport
                     //IMergeEnabledMessageProperty currentValue;
                     //if (!this.TryGetValue<IMergeEnabledMessageProperty>(property.Name, out currentValue) ||
                     //    !currentValue.TryMergeWithProperty(property.Value))
                     //{
-                        // Merge wasn't possible so copy
-                        // this[string] will call CreateCopyOfPropertyValue, so we don't need to repeat that here
-                        this[property.Name] = property.Value;
+                    // Merge wasn't possible so copy
+                    // this[string] will call CreateCopyOfPropertyValue, so we don't need to repeat that here
+                    this[property.Name] = property.Value;
                     //}
                 }
             }
@@ -417,7 +473,7 @@ namespace CoreWCF.Channels
 
         internal void CopyProperties(KeyValuePair<string, object>[] array)
         {
-            if (disposed)
+            if (_disposed)
             {
                 ThrowDisposed();
             }
@@ -433,22 +489,27 @@ namespace CoreWCF.Channels
 
         public bool ContainsKey(string name)
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
             if (name == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            }
+
             int index = FindProperty(name);
             switch (index)
             {
                 case ViaIndex:
-                    return (object)via != null;
+                    return (object)_via != null;
                 case AllowOutputBatchingIndex:
-                    return (object)allowOutputBatching != null;
+                    return (object)_allowOutputBatching != null;
                 //case SecurityIndex:
                 //    return (object)security != null;
                 case EncoderIndex:
-                    return (object)encoder != null;
+                    return (object)_encoder != null;
                 case NotFoundIndex:
                     return false;
                 default:
@@ -456,34 +517,41 @@ namespace CoreWCF.Channels
             }
         }
 
-        object CreateCopyOfPropertyValue(object propertyValue)
+        private object CreateCopyOfPropertyValue(object propertyValue)
         {
-            IMessageProperty messageProperty = propertyValue as IMessageProperty;
-            if (messageProperty == null)
+            if (!(propertyValue is IMessageProperty messageProperty))
+            {
                 return propertyValue;
+            }
+
             object copy = messageProperty.CreateCopy();
             if (copy == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.MessagePropertyReturnedNullCopy));
+            }
+
             return copy;
         }
 
         public void Dispose()
         {
-            if (disposed)
-                return;
-
-            disposed = true;
-
-            if (properties != null)
+            if (_disposed)
             {
-                for (int i = 0; i < properties.Length; i++)
+                return;
+            }
+
+            _disposed = true;
+
+            if (_properties != null)
+            {
+                for (int i = 0; i < _properties.Length; i++)
                 {
-                    if (properties[i].Name == null)
+                    if (_properties[i].Name == null)
                     {
                         break;
                     }
 
-                    properties[i].Dispose();
+                    _properties[i].Dispose();
                 }
             }
 
@@ -493,22 +561,30 @@ namespace CoreWCF.Channels
             //}
         }
 
-        int FindProperty(string name)
+        private int FindProperty(string name)
         {
             if (name == ViaKey)
-                return ViaIndex;
-            else if (name == AllowOutputBatchingKey)
-                return AllowOutputBatchingIndex;
-            else if (name == EncoderKey)
-                return EncoderIndex;
-            else if (name == SecurityKey)
-                return SecurityIndex;
-
-            if (properties != null)
             {
-                for (int i = 0; i < properties.Length; i++)
+                return ViaIndex;
+            }
+            else if (name == AllowOutputBatchingKey)
+            {
+                return AllowOutputBatchingIndex;
+            }
+            else if (name == EncoderKey)
+            {
+                return EncoderIndex;
+            }
+            else if (name == SecurityKey)
+            {
+                return SecurityIndex;
+            }
+
+            if (_properties != null)
+            {
+                for (int i = 0; i < _properties.Length; i++)
                 {
-                    string propertyName = properties[i].Name;
+                    string propertyName = _properties[i].Name;
 
                     if (propertyName == null)
                     {
@@ -527,48 +603,54 @@ namespace CoreWCF.Channels
 
         internal void Recycle()
         {
-            disposed = false;
+            _disposed = false;
             Clear();
         }
 
         public bool Remove(string name)
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
-            int originalPropertyCount = propertyCount;
+            int originalPropertyCount = _propertyCount;
             UpdateProperty(name, null, false);
-            return originalPropertyCount != propertyCount;
+            return originalPropertyCount != _propertyCount;
         }
 
         public bool TryGetValue(string name, out object value)
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
             if (name == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            }
 
             int index = FindProperty(name);
             switch (index)
             {
                 case ViaIndex:
-                    value = via;
+                    value = _via;
                     break;
                 case AllowOutputBatchingIndex:
-                    value = allowOutputBatching;
+                    value = _allowOutputBatching;
                     break;
                 //case SecurityIndex:
                 //    value = security;
                 //    break;
                 case EncoderIndex:
-                    value = encoder;
+                    value = _encoder;
                     break;
                 case NotFoundIndex:
                     value = null;
                     break;
                 default:
-                    value = properties[index].Value;
+                    value = _properties[index].Value;
                     break;
             }
 
@@ -577,15 +659,14 @@ namespace CoreWCF.Channels
 
         internal bool TryGetValue<TProperty>(string name, out TProperty property)
         {
-            object o;
-            if (TryGetValue(name, out o))
+            if (TryGetValue(name, out object o))
             {
                 property = (TProperty)o;
                 return true;
             }
             else
             {
-                property = default(TProperty);
+                property = default;
                 return false;
             }
         }
@@ -597,8 +678,7 @@ namespace CoreWCF.Channels
 
         internal TProperty GetValue<TProperty>(string name, bool ensureTypeMatch) where TProperty : class
         {
-            object obj;
-            if (!TryGetValue(name, out obj))
+            if (!TryGetValue(name, out object obj))
             {
                 return null;
             }
@@ -606,10 +686,13 @@ namespace CoreWCF.Channels
             return ensureTypeMatch ? (TProperty)obj : obj as TProperty;
         }
 
-        void UpdateProperty(string name, object value, bool mustNotExist)
+        private void UpdateProperty(string name, object value, bool mustNotExist)
         {
             if (name == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            }
+
             int index = FindProperty(name);
             if (index != NotFoundIndex)
             {
@@ -619,16 +702,16 @@ namespace CoreWCF.Channels
                     switch (index)
                     {
                         case ViaIndex:
-                            exists = (object)via != null;
+                            exists = (object)_via != null;
                             break;
                         case AllowOutputBatchingIndex:
-                            exists = (object)allowOutputBatching != null;
+                            exists = (object)_allowOutputBatching != null;
                             break;
                         //case SecurityIndex:
                         //    exists = (object)security != null;
                         //    break;
                         case EncoderIndex:
-                            exists = (object)encoder != null;
+                            exists = (object)_encoder != null;
                             break;
                         default:
                             exists = true;
@@ -644,23 +727,23 @@ namespace CoreWCF.Channels
                 {
                     if (value == null)
                     {
-                        properties[index].Dispose();
+                        _properties[index].Dispose();
                         int shiftIndex;
-                        for (shiftIndex = index + 1; shiftIndex < properties.Length; shiftIndex++)
+                        for (shiftIndex = index + 1; shiftIndex < _properties.Length; shiftIndex++)
                         {
-                            if (properties[shiftIndex].Name == null)
+                            if (_properties[shiftIndex].Name == null)
                             {
                                 break;
                             }
 
-                            properties[shiftIndex - 1] = properties[shiftIndex];
+                            _properties[shiftIndex - 1] = _properties[shiftIndex];
                         }
-                        properties[shiftIndex - 1] = new Property();
-                        propertyCount--;
+                        _properties[shiftIndex - 1] = new Property();
+                        _propertyCount--;
                     }
                     else
                     {
-                        properties[index].Value = CreateCopyOfPropertyValue(value);
+                        _properties[index].Value = CreateCopyOfPropertyValue(value);
                     }
                 }
                 else
@@ -691,97 +774,125 @@ namespace CoreWCF.Channels
             {
                 int newIndex;
 
-                if (properties == null)
+                if (_properties == null)
                 {
-                    properties = new Property[InitialPropertyCount];
+                    _properties = new Property[InitialPropertyCount];
                     newIndex = 0;
                 }
                 else
                 {
-                    for (newIndex = 0; newIndex < properties.Length; newIndex++)
+                    for (newIndex = 0; newIndex < _properties.Length; newIndex++)
                     {
-                        if (properties[newIndex].Name == null)
+                        if (_properties[newIndex].Name == null)
                         {
                             break;
                         }
                     }
 
-                    if (newIndex == properties.Length)
+                    if (newIndex == _properties.Length)
                     {
-                        Property[] newProperties = new Property[properties.Length * 2];
-                        Array.Copy(properties, newProperties, properties.Length);
-                        properties = newProperties;
+                        Property[] newProperties = new Property[_properties.Length * 2];
+                        Array.Copy(_properties, newProperties, _properties.Length);
+                        _properties = newProperties;
                     }
                 }
 
                 object newValue = CreateCopyOfPropertyValue(value);
-                properties[newIndex] = new Property(name, newValue);
-                propertyCount++;
+                _properties[newIndex] = new Property(name, newValue);
+                _propertyCount++;
             }
         }
 
         void ICollection<KeyValuePair<string, object>>.CopyTo(KeyValuePair<string, object>[] array, int index)
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
             if (array == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(array));
-            if (array.Length < propertyCount)
+            }
+
+            if (array.Length < _propertyCount)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.MessagePropertiesArraySize0));
-            if (index < 0 || index > array.Length - propertyCount)
+            }
+
+            if (index < 0 || index > array.Length - _propertyCount)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), index,
-                                                    SR.Format(SR.ValueMustBeInRange, 0, array.Length - propertyCount)));
+                                                    SR.Format(SR.ValueMustBeInRange, 0, array.Length - _propertyCount)));
+            }
 
-            if (via != null)
-                array[index++] = new KeyValuePair<string, object>(ViaKey, via);
+            if (_via != null)
+            {
+                array[index++] = new KeyValuePair<string, object>(ViaKey, _via);
+            }
 
-            if (allowOutputBatching != null)
-                array[index++] = new KeyValuePair<string, object>(AllowOutputBatchingKey, allowOutputBatching);
+            if (_allowOutputBatching != null)
+            {
+                array[index++] = new KeyValuePair<string, object>(AllowOutputBatchingKey, _allowOutputBatching);
+            }
 
             //if (this.security != null)
             //    array[index++] = new KeyValuePair<string, object>(SecurityKey, this.security.CreateCopy());
 
-            if (encoder != null)
-                array[index++] = new KeyValuePair<string, object>(EncoderKey, encoder);
-
-            if (properties != null)
+            if (_encoder != null)
             {
-                for (int i = 0; i < properties.Length; i++)
+                array[index++] = new KeyValuePair<string, object>(EncoderKey, _encoder);
+            }
+
+            if (_properties != null)
+            {
+                for (int i = 0; i < _properties.Length; i++)
                 {
-                    string propertyName = properties[i].Name;
+                    string propertyName = _properties[i].Name;
 
                     if (propertyName == null)
                     {
                         break;
                     }
 
-                    array[index++] = new KeyValuePair<string, object>(propertyName, CreateCopyOfPropertyValue(properties[i].Value));
+                    array[index++] = new KeyValuePair<string, object>(propertyName, CreateCopyOfPropertyValue(_properties[i].Value));
                 }
             }
         }
 
         void ICollection<KeyValuePair<string, object>>.Add(KeyValuePair<string, object> pair)
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
             if (pair.Value == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("pair.Value");
+            }
+
             UpdateProperty(pair.Key, pair.Value, true);
         }
 
         bool ICollection<KeyValuePair<string, object>>.Contains(KeyValuePair<string, object> pair)
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
             if (pair.Value == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("pair.Value");
+            }
+
             if (pair.Key == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("pair.Key");
-            object value;
-            if (!TryGetValue(pair.Key, out value))
+            }
+
+            if (!TryGetValue(pair.Key, out object value))
             {
                 return false;
             }
@@ -790,43 +901,53 @@ namespace CoreWCF.Channels
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
             return ((IEnumerable<KeyValuePair<string, object>>)this).GetEnumerator();
         }
 
         IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
-            List<KeyValuePair<string, object>> pairs = new List<KeyValuePair<string, object>>(propertyCount);
+            List<KeyValuePair<string, object>> pairs = new List<KeyValuePair<string, object>>(_propertyCount);
 
-            if (via != null)
-                pairs.Add(new KeyValuePair<string, object>(ViaKey, via));
+            if (_via != null)
+            {
+                pairs.Add(new KeyValuePair<string, object>(ViaKey, _via));
+            }
 
-            if (allowOutputBatching != null)
-                pairs.Add(new KeyValuePair<string, object>(AllowOutputBatchingKey, allowOutputBatching));
+            if (_allowOutputBatching != null)
+            {
+                pairs.Add(new KeyValuePair<string, object>(AllowOutputBatchingKey, _allowOutputBatching));
+            }
 
             //if (this.security != null)
             //    pairs.Add(new KeyValuePair<string, object>(SecurityKey, security));
 
-            if (encoder != null)
-                pairs.Add(new KeyValuePair<string, object>(EncoderKey, encoder));
-
-            if (properties != null)
+            if (_encoder != null)
             {
-                for (int i = 0; i < properties.Length; i++)
+                pairs.Add(new KeyValuePair<string, object>(EncoderKey, _encoder));
+            }
+
+            if (_properties != null)
+            {
+                for (int i = 0; i < _properties.Length; i++)
                 {
-                    string propertyName = properties[i].Name;
+                    string propertyName = _properties[i].Name;
 
                     if (propertyName == null)
                     {
                         break;
                     }
 
-                    pairs.Add(new KeyValuePair<string, object>(propertyName, properties[i].Value));
+                    pairs.Add(new KeyValuePair<string, object>(propertyName, _properties[i].Value));
                 }
             }
 
@@ -835,16 +956,22 @@ namespace CoreWCF.Channels
 
         bool ICollection<KeyValuePair<string, object>>.Remove(KeyValuePair<string, object> pair)
         {
-            if (disposed)
+            if (_disposed)
+            {
                 ThrowDisposed();
+            }
 
             if (pair.Value == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("pair.Value");
-            if (pair.Key == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("pair.Key");
+            }
 
-            object value;
-            if (!TryGetValue(pair.Key, out value))
+            if (pair.Key == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("pair.Key");
+            }
+
+            if (!TryGetValue(pair.Key, out object value))
             {
                 return false;
             }
@@ -856,33 +983,24 @@ namespace CoreWCF.Channels
             return true;
         }
 
-        struct Property : IDisposable
+        private struct Property : IDisposable
         {
-            string name;
-            object value;
-
             public Property(string name, object value)
             {
-                this.name = name;
-                this.value = value;
+                Name = name;
+                Value = value;
             }
 
-            public string Name
-            {
-                get { return name; }
-            }
+            public string Name { get; }
 
-            public object Value
-            {
-                get { return value; }
-                set { this.value = value; }
-            }
+            public object Value { get; set; }
 
             public void Dispose()
             {
-                IDisposable disposable = value as IDisposable;
-                if (disposable != null)
+                if (Value is IDisposable disposable)
+                {
                     disposable.Dispose();
+                }
             }
         }
     }

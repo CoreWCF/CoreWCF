@@ -1,11 +1,14 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 
 namespace CoreWCF.Runtime
 {
-    class SignalGate
+    internal class SignalGate
     {
-        int state;
+        private int _state;
 
         public SignalGate()
         {
@@ -15,7 +18,7 @@ namespace CoreWCF.Runtime
         {
             get
             {
-                return state == GateState.Locked;
+                return _state == GateState.Locked;
             }
         }
 
@@ -23,7 +26,7 @@ namespace CoreWCF.Runtime
         {
             get
             {
-                return state == GateState.Signalled;
+                return _state == GateState.Signalled;
             }
         }
 
@@ -32,14 +35,14 @@ namespace CoreWCF.Runtime
         //               Unlocked -> Signaled
         public bool Signal()
         {
-            int lastState = state;
+            int lastState = _state;
             if (lastState == GateState.Locked)
             {
-                lastState = Interlocked.CompareExchange(ref state, GateState.SignalPending, GateState.Locked);
+                lastState = Interlocked.CompareExchange(ref _state, GateState.SignalPending, GateState.Locked);
             }
             if (lastState == GateState.Unlocked)
             {
-                state = GateState.Signalled;
+                _state = GateState.Signalled;
                 return true;
             }
 
@@ -56,14 +59,14 @@ namespace CoreWCF.Runtime
         //               Locked -> Unlocked
         public bool Unlock()
         {
-            int lastState = state;
+            int lastState = _state;
             if (lastState == GateState.Locked)
             {
-                lastState = Interlocked.CompareExchange(ref state, GateState.Unlocked, GateState.Locked);
+                lastState = Interlocked.CompareExchange(ref _state, GateState.Unlocked, GateState.Locked);
             }
             if (lastState == GateState.SignalPending)
             {
-                state = GateState.Signalled;
+                _state = GateState.Signalled;
                 return true;
             }
 
@@ -75,12 +78,12 @@ namespace CoreWCF.Runtime
         }
 
         // This is factored out to allow Signal and Unlock to be inlined.
-        void ThrowInvalidSignalGateState()
+        private void ThrowInvalidSignalGateState()
         {
             throw Fx.Exception.AsError(new InvalidOperationException(SR.InvalidSemaphoreExit));
         }
 
-        static class GateState
+        private static class GateState
         {
             public const int Locked = 0;
             public const int SignalPending = 1;
@@ -89,9 +92,9 @@ namespace CoreWCF.Runtime
         }
     }
 
-    class SignalGate<T> : SignalGate
+    internal class SignalGate<T> : SignalGate
     {
-        T result;
+        private T _result;
 
         public SignalGate()
             : base()
@@ -100,7 +103,7 @@ namespace CoreWCF.Runtime
 
         public bool Signal(T result)
         {
-            this.result = result;
+            _result = result;
             return Signal();
         }
 
@@ -108,11 +111,11 @@ namespace CoreWCF.Runtime
         {
             if (Unlock())
             {
-                result = this.result;
+                result = _result;
                 return true;
             }
 
-            result = default(T);
+            result = default;
             return false;
         }
     }

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,24 +10,23 @@ using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Dispatcher
 {
-    using QName = CoreWCF.Dispatcher.EndpointAddressProcessor.QName;
     using HeaderBit = CoreWCF.Dispatcher.EndpointAddressProcessor.HeaderBit;
+    using QName = CoreWCF.Dispatcher.EndpointAddressProcessor.QName;
 
     internal class EndpointAddressMessageFilterTable<TFilterData> : IMessageFilterTable<TFilterData>
     {
         protected Dictionary<MessageFilter, TFilterData> filters;
         protected Dictionary<MessageFilter, Candidate> candidates;
-        WeakReference processorPool;
-
-        int size;
-        int nextBit;
-        Dictionary<string, HeaderBit[]> headerLookup;
-        Dictionary<Uri, CandidateSet> toHostLookup;
-        Dictionary<Uri, CandidateSet> toNoHostLookup;
+        private readonly WeakReference _processorPool;
+        private int _size;
+        private int _nextBit;
+        private readonly Dictionary<string, HeaderBit[]> _headerLookup;
+        private Dictionary<Uri, CandidateSet> _toHostLookup;
+        private Dictionary<Uri, CandidateSet> _toNoHostLookup;
 
         internal class ProcessorPool
         {
-            EndpointAddressProcessor processor;
+            private EndpointAddressProcessor _processor;
 
             internal ProcessorPool()
             {
@@ -32,10 +34,10 @@ namespace CoreWCF.Dispatcher
 
             internal EndpointAddressProcessor Pop()
             {
-                EndpointAddressProcessor p = processor;
+                EndpointAddressProcessor p = _processor;
                 if (null != p)
                 {
-                    processor = (EndpointAddressProcessor)p.next;
+                    _processor = (EndpointAddressProcessor)p.next;
                     p.next = null;
                     return p;
                 }
@@ -44,28 +46,28 @@ namespace CoreWCF.Dispatcher
 
             internal void Push(EndpointAddressProcessor p)
             {
-                p.next = processor;
-                processor = p;
+                p.next = _processor;
+                _processor = p;
             }
         }
 
         public EndpointAddressMessageFilterTable()
         {
-            processorPool = new WeakReference(null);
+            _processorPool = new WeakReference(null);
 
-            size = 0;
-            nextBit = 0;
+            _size = 0;
+            _nextBit = 0;
 
             filters = new Dictionary<MessageFilter, TFilterData>();
             candidates = new Dictionary<MessageFilter, Candidate>();
-            headerLookup = new Dictionary<string, HeaderBit[]>();
+            _headerLookup = new Dictionary<string, HeaderBit[]>();
             InitializeLookupTables();
         }
 
         protected virtual void InitializeLookupTables()
         {
-            toHostLookup = new Dictionary<Uri, CandidateSet>(EndpointAddressMessageFilter.HostUriComparer.Value);
-            toNoHostLookup = new Dictionary<Uri, CandidateSet>(EndpointAddressMessageFilter.NoHostUriComparer.Value);
+            _toHostLookup = new Dictionary<Uri, CandidateSet>(EndpointAddressMessageFilter.HostUriComparer.Value);
+            _toNoHostLookup = new Dictionary<Uri, CandidateSet>(EndpointAddressMessageFilter.NoHostUriComparer.Value);
         }
 
         public TFilterData this[MessageFilter filter]
@@ -148,18 +150,18 @@ namespace CoreWCF.Dispatcher
             Uri soapToAddress = filter.Address.Uri;
             if (filter.IncludeHostNameInComparison)
             {
-                if (!toHostLookup.TryGetValue(soapToAddress, out cset))
+                if (!_toHostLookup.TryGetValue(soapToAddress, out cset))
                 {
                     cset = new CandidateSet();
-                    toHostLookup.Add(soapToAddress, cset);
+                    _toHostLookup.Add(soapToAddress, cset);
                 }
             }
             else
             {
-                if (!toNoHostLookup.TryGetValue(soapToAddress, out cset))
+                if (!_toNoHostLookup.TryGetValue(soapToAddress, out cset))
                 {
                     cset = new CandidateSet();
-                    toNoHostLookup.Add(soapToAddress, cset);
+                    _toNoHostLookup.Add(soapToAddress, cset);
                 }
             }
             cset.candidates.Add(can);
@@ -171,13 +173,12 @@ namespace CoreWCF.Dispatcher
         {
             // Update the QName ref count
             QName qname;
-            int cnt;
             for (int i = 0; i < address.Headers.Count; ++i)
             {
                 AddressHeader parameter = address.Headers[i];
                 qname.name = parameter.Name;
                 qname.ns = parameter.Namespace;
-                if (cset.qnames.TryGetValue(qname, out cnt))
+                if (cset.qnames.TryGetValue(qname, out int cnt))
                 {
                     cset.qnames[qname] = cnt + 1;
                 }
@@ -195,11 +196,10 @@ namespace CoreWCF.Dispatcher
 
         protected byte[] BuildMask(Dictionary<string, HeaderBit[]> headerLookup)
         {
-            HeaderBit[] bits;
             byte[] mask = null;
             foreach (KeyValuePair<string, HeaderBit[]> item in headerLookup)
             {
-                if (this.headerLookup.TryGetValue(item.Key, out bits))
+                if (_headerLookup.TryGetValue(item.Key, out HeaderBit[] bits))
                 {
                     if (bits.Length < item.Value.Length)
                     {
@@ -207,9 +207,9 @@ namespace CoreWCF.Dispatcher
                         Array.Resize(ref bits, item.Value.Length);
                         for (int i = old; i < item.Value.Length; ++i)
                         {
-                            bits[i] = new HeaderBit(nextBit++);
+                            bits[i] = new HeaderBit(_nextBit++);
                         }
-                        this.headerLookup[item.Key] = bits;
+                        _headerLookup[item.Key] = bits;
                     }
                 }
                 else
@@ -217,9 +217,9 @@ namespace CoreWCF.Dispatcher
                     bits = new HeaderBit[item.Value.Length];
                     for (int i = 0; i < item.Value.Length; ++i)
                     {
-                        bits[i] = new HeaderBit(nextBit++);
+                        bits[i] = new HeaderBit(_nextBit++);
                     }
-                    this.headerLookup.Add(item.Key, bits);
+                    _headerLookup.Add(item.Key, bits);
                 }
 
                 for (int i = 0; i < item.Value.Length; ++i)
@@ -228,13 +228,13 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
-            if (nextBit == 0)
+            if (_nextBit == 0)
             {
-                size = 0;
+                _size = 0;
             }
             else
             {
-                size = (nextBit - 1) / 8 + 1;
+                _size = (_nextBit - 1) / 8 + 1;
             }
 
             return mask;
@@ -242,23 +242,23 @@ namespace CoreWCF.Dispatcher
 
         public void Clear()
         {
-            size = 0;
-            nextBit = 0;
+            _size = 0;
+            _nextBit = 0;
             filters.Clear();
             candidates.Clear();
-            headerLookup.Clear();
+            _headerLookup.Clear();
             ClearLookupTables();
         }
 
         protected virtual void ClearLookupTables()
         {
-            if (toHostLookup != null)
+            if (_toHostLookup != null)
             {
-                toHostLookup.Clear();
+                _toHostLookup.Clear();
             }
-            if (toNoHostLookup != null)
+            if (_toNoHostLookup != null)
             {
-                toNoHostLookup.Clear();
+                _toNoHostLookup.Clear();
             }
         }
 
@@ -281,13 +281,12 @@ namespace CoreWCF.Dispatcher
             ((ICollection<KeyValuePair<MessageFilter, TFilterData>>)filters).CopyTo(array, arrayIndex);
         }
 
-        EndpointAddressProcessor CreateProcessor(int length)
+        private EndpointAddressProcessor CreateProcessor(int length)
         {
             EndpointAddressProcessor p = null;
-            lock (processorPool)
+            lock (_processorPool)
             {
-                ProcessorPool pool = processorPool.Target as ProcessorPool;
-                if (null != pool)
+                if (_processorPool.Target is ProcessorPool pool)
                 {
                     p = pool.Pop();
                 }
@@ -316,15 +315,15 @@ namespace CoreWCF.Dispatcher
         {
             if (includeHostNameInComparison)
             {
-                return toHostLookup.TryGetValue(to, out cset);
+                return _toHostLookup.TryGetValue(to, out cset);
             }
             else
             {
-                return toNoHostLookup.TryGetValue(to, out cset);
+                return _toNoHostLookup.TryGetValue(to, out cset);
             }
         }
 
-        Candidate InnerMatch(Message message)
+        private Candidate InnerMatch(Message message)
         {
             Uri to = message.Headers.To;
             if (to == null)
@@ -332,9 +331,8 @@ namespace CoreWCF.Dispatcher
                 return null;
             }
 
-            CandidateSet cset = null;
             Candidate can = null;
-            if (TryMatchCandidateSet(to, true/*includeHostNameInComparison*/, out cset))
+            if (TryMatchCandidateSet(to, true/*includeHostNameInComparison*/, out CandidateSet cset))
             {
                 can = GetSingleMatch(cset, message);
             }
@@ -345,9 +343,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (can != null)
                     {
-                        Collection<MessageFilter> matches = new Collection<MessageFilter>();
-                        matches.Add(can.filter);
-                        matches.Add(c.filter);
+                        Collection<MessageFilter> matches = new Collection<MessageFilter>
+                        {
+                            can.filter,
+                            c.filter
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches));
                     }
                     can = c;
@@ -357,7 +357,7 @@ namespace CoreWCF.Dispatcher
             return can;
         }
 
-        Candidate GetSingleMatch(CandidateSet cset, Message message)
+        private Candidate GetSingleMatch(CandidateSet cset, Message message)
         {
             int candiCount = cset.candidates.Count;
 
@@ -382,8 +382,8 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
-            EndpointAddressProcessor context = CreateProcessor(size);
-            context.ProcessHeaders(message, cset.qnames, headerLookup);
+            EndpointAddressProcessor context = CreateProcessor(_size);
+            context.ProcessHeaders(message, cset.qnames, _headerLookup);
 
             Candidate can = null;
             List<Candidate> candis = cset.candidates;
@@ -393,9 +393,11 @@ namespace CoreWCF.Dispatcher
                 {
                     if (can != null)
                     {
-                        Collection<MessageFilter> matches = new Collection<MessageFilter>();
-                        matches.Add(can.filter);
-                        matches.Add(candis[i].filter);
+                        Collection<MessageFilter> matches = new Collection<MessageFilter>
+                        {
+                            can.filter,
+                            candis[i].filter
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches), message);
                     }
                     can = candis[i];
@@ -407,13 +409,12 @@ namespace CoreWCF.Dispatcher
             return can;
         }
 
-        void InnerMatchData(Message message, ICollection<TFilterData> results)
+        private void InnerMatchData(Message message, ICollection<TFilterData> results)
         {
             Uri to = message.Headers.To;
             if (to != null)
             {
-                CandidateSet cset;
-                if (TryMatchCandidateSet(to, true /*includeHostNameInComparison*/, out cset))
+                if (TryMatchCandidateSet(to, true /*includeHostNameInComparison*/, out CandidateSet cset))
                 {
                     InnerMatchData(message, results, cset);
                 }
@@ -424,10 +425,10 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InnerMatchData(Message message, ICollection<TFilterData> results, CandidateSet cset)
+        private void InnerMatchData(Message message, ICollection<TFilterData> results, CandidateSet cset)
         {
-            EndpointAddressProcessor context = CreateProcessor(size);
-            context.ProcessHeaders(message, cset.qnames, headerLookup);
+            EndpointAddressProcessor context = CreateProcessor(_size);
+            context.ProcessHeaders(message, cset.qnames, _headerLookup);
 
             List<Candidate> candis = cset.candidates;
             for (int i = 0; i < candis.Count; ++i)
@@ -446,8 +447,7 @@ namespace CoreWCF.Dispatcher
             Uri to = message.Headers.To;
             if (to != null)
             {
-                CandidateSet cset;
-                if (TryMatchCandidateSet(to, true/*includeHostNameInComparison*/, out cset))
+                if (TryMatchCandidateSet(to, true/*includeHostNameInComparison*/, out CandidateSet cset))
                 {
                     InnerMatchFilters(message, results, cset);
                 }
@@ -458,10 +458,10 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InnerMatchFilters(Message message, ICollection<MessageFilter> results, CandidateSet cset)
+        private void InnerMatchFilters(Message message, ICollection<MessageFilter> results, CandidateSet cset)
         {
-            EndpointAddressProcessor context = CreateProcessor(size);
-            context.ProcessHeaders(message, cset.qnames, headerLookup);
+            EndpointAddressProcessor context = CreateProcessor(_size);
+            context.ProcessHeaders(message, cset.qnames, _headerLookup);
 
             List<Candidate> candis = cset.candidates;
             for (int i = 0; i < candis.Count; ++i)
@@ -485,7 +485,7 @@ namespace CoreWCF.Dispatcher
             Candidate can = InnerMatch(message);
             if (can == null)
             {
-                data = default(TFilterData);
+                data = default;
                 return false;
             }
 
@@ -513,7 +513,7 @@ namespace CoreWCF.Dispatcher
 
             if (can == null)
             {
-                data = default(TFilterData);
+                data = default;
                 return false;
             }
 
@@ -653,11 +653,11 @@ namespace CoreWCF.Dispatcher
 
         protected void RebuildMasks()
         {
-            nextBit = 0;
-            size = 0;
+            _nextBit = 0;
+            _size = 0;
 
             // Clear out all the bits.
-            headerLookup.Clear();
+            _headerLookup.Clear();
 
             // Rebuild the masks
             foreach (Candidate can in candidates.Values)
@@ -666,15 +666,14 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void ReleaseProcessor(EndpointAddressProcessor processor)
+        private void ReleaseProcessor(EndpointAddressProcessor processor)
         {
-            lock (processorPool)
+            lock (_processorPool)
             {
-                ProcessorPool pool = processorPool.Target as ProcessorPool;
-                if (null == pool)
+                if (!(_processorPool.Target is ProcessorPool pool))
                 {
                     pool = new ProcessorPool();
-                    processorPool.Target = pool;
+                    _processorPool.Target = pool;
                 }
                 pool.Push(processor);
             }
@@ -687,8 +686,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            EndpointAddressMessageFilter saFilter = filter as EndpointAddressMessageFilter;
-            if (saFilter != null)
+            if (filter is EndpointAddressMessageFilter saFilter)
             {
                 return Remove(saFilter);
             }
@@ -711,14 +709,14 @@ namespace CoreWCF.Dispatcher
             Candidate can = candidates[filter];
             Uri soapToAddress = filter.Address.Uri;
 
-            CandidateSet cset = null;
+            CandidateSet cset;
             if (filter.IncludeHostNameInComparison)
             {
-                cset = toHostLookup[soapToAddress];
+                cset = _toHostLookup[soapToAddress];
             }
             else
             {
-                cset = toNoHostLookup[soapToAddress];
+                cset = _toNoHostLookup[soapToAddress];
             }
 
             candidates.Remove(filter);
@@ -727,11 +725,11 @@ namespace CoreWCF.Dispatcher
             {
                 if (filter.IncludeHostNameInComparison)
                 {
-                    toHostLookup.Remove(soapToAddress);
+                    _toHostLookup.Remove(soapToAddress);
                 }
                 else
                 {
-                    toNoHostLookup.Remove(soapToAddress);
+                    _toNoHostLookup.Remove(soapToAddress);
                 }
             }
             else
@@ -809,5 +807,4 @@ namespace CoreWCF.Dispatcher
             return filters.TryGetValue(filter, out data);
         }
     }
-
 }

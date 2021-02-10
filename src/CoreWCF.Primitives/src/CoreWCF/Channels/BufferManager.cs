@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using CoreWCF.Runtime;
 
@@ -38,19 +41,14 @@ namespace CoreWCF.Channels
             }
         }
 
-        class WrappingBufferManager : BufferManager
+        private class WrappingBufferManager : BufferManager
         {
-            InternalBufferManager innerBufferManager;
-
             public WrappingBufferManager(InternalBufferManager innerBufferManager)
             {
-                this.innerBufferManager = innerBufferManager;
+                InternalBufferManager = innerBufferManager;
             }
 
-            public InternalBufferManager InternalBufferManager
-            {
-                get { return innerBufferManager; }
-            }
+            public InternalBufferManager InternalBufferManager { get; }
 
             public override byte[] TakeBuffer(int bufferSize)
             {
@@ -60,7 +58,7 @@ namespace CoreWCF.Channels
                         SR.ValueMustBeNonNegative));
                 }
 
-                return innerBufferManager.TakeBuffer(bufferSize);
+                return InternalBufferManager.TakeBuffer(bufferSize);
             }
 
             public override void ReturnBuffer(byte[] buffer)
@@ -70,37 +68,37 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(buffer));
                 }
 
-                innerBufferManager.ReturnBuffer(buffer);
+                InternalBufferManager.ReturnBuffer(buffer);
             }
 
             public override void Clear()
             {
-                innerBufferManager.Clear();
+                InternalBufferManager.Clear();
             }
         }
 
-        class WrappingInternalBufferManager : InternalBufferManager
+        private class WrappingInternalBufferManager : InternalBufferManager
         {
-            BufferManager innerBufferManager;
+            private readonly BufferManager _innerBufferManager;
 
             public WrappingInternalBufferManager(BufferManager innerBufferManager)
             {
-                this.innerBufferManager = innerBufferManager;
+                _innerBufferManager = innerBufferManager;
             }
 
             public override void Clear()
             {
-                innerBufferManager.Clear();
+                _innerBufferManager.Clear();
             }
 
             public override void ReturnBuffer(byte[] buffer)
             {
-                innerBufferManager.ReturnBuffer(buffer);
+                _innerBufferManager.ReturnBuffer(buffer);
             }
 
             public override byte[] TakeBuffer(int bufferSize)
             {
-                return innerBufferManager.TakeBuffer(bufferSize);
+                return _innerBufferManager.TakeBuffer(bufferSize);
             }
         }
     }

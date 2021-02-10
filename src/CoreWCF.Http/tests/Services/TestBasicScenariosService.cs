@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
-using Xunit;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Threading.Tasks;
 using CoreWCF;
+using Xunit;
 
 namespace Services
 {
@@ -11,7 +14,7 @@ namespace Services
         public async Task<string> TestMethodAsync(int ID, string name)
         {
             myDelegate del = ProcessAsync;
-            var workTask = System.Threading.Tasks.Task.Run(() => del.Invoke(ID, name));
+            var workTask = Task.Run(() => del.Invoke(ID, name));
             return await workTask;
         }
 

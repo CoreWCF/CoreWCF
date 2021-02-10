@@ -1,6 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Reflection;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
 
@@ -57,6 +59,16 @@ namespace CoreWCF.Diagnostics
             //    TraceUtility.TraceEvent(TraceEventType.Information, TraceCode.DroppedAMessage,
             //        SR.Format(SR.TraceCodeDroppedAMessage), new MessageDroppedTraceRecord(message, endpointAddress));
             //}
+        }
+
+        internal static Exception ThrowHelperArgumentNull(string v, Message message)
+        {
+            return new Exception(v);
+        }
+
+        internal static Exception ThrowHelperWarning(Exception exception, Message request)
+        {
+            return exception;
         }
     }
 }

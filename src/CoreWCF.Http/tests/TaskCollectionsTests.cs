@@ -1,9 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using ClientContract;
-using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -17,7 +18,7 @@ namespace CoreWCF.Http.Tests
 {
     public class TaskCollectionsTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public TaskCollectionsTests(ITestOutputHelper output)
         {
@@ -29,17 +30,17 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void VariousCollections()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 ClientContract.ITaskCollectionsTest collectionsTest = null;
                 System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest> channelFactory = null;
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TaskCollectionsTest.svc")));
                 collectionsTest = channelFactory.CreateChannel();
-                
+
                 Task[] array;
                 array = new Task[5];
                 array[0] = collectionsTest.GetDictionary();
@@ -47,7 +48,7 @@ namespace CoreWCF.Http.Tests
                 array[2] = collectionsTest.GetSet();
                 array[3] = collectionsTest.GetQueue();
                 array[4] = collectionsTest.GetStack();
-                Task.WaitAll(array,TimeSpan.FromSeconds(30));
+                Task.WaitAll(array, TimeSpan.FromSeconds(30));
 
                 bool flag = true;
                 Task<Dictionary<string, int>> task = array[0] as Task<Dictionary<string, int>>;
@@ -120,7 +121,7 @@ namespace CoreWCF.Http.Tests
                 if (!flag)
                 {
                     throw new Exception("Test Failed");
-                }                              
+                }
 
             }
         }

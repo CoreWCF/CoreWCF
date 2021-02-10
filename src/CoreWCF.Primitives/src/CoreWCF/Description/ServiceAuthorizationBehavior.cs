@@ -1,11 +1,13 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using CoreWCF.IdentityModel.Policy;
 using System.Runtime.CompilerServices;
-using CoreWCF;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel.Policy;
 
 namespace CoreWCF.Description
 {
@@ -14,74 +16,73 @@ namespace CoreWCF.Description
         internal const bool DefaultImpersonateCallerForAllOperations = false;
         internal const bool DefaultImpersonateOnSerializingReply = false;
         internal const PrincipalPermissionMode DefaultPrincipalPermissionMode = PrincipalPermissionMode.UseWindowsGroups;
-
-        bool impersonateCallerForAllOperations;
-        bool impersonateOnSerializingReply;
-        ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
-        ServiceAuthorizationManager serviceAuthorizationManager;
-        PrincipalPermissionMode principalPermissionMode;
-        bool isExternalPoliciesSet;
-        bool isAuthorizationManagerSet;
-        bool isReadOnly;
+        private bool _impersonateCallerForAllOperations;
+        private readonly bool _impersonateOnSerializingReply;
+        private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
+        private ServiceAuthorizationManager _serviceAuthorizationManager;
+        private PrincipalPermissionMode _principalPermissionMode;
+        private bool _isExternalPoliciesSet;
+        private bool _isAuthorizationManagerSet;
+        private bool _isReadOnly;
 
         public ServiceAuthorizationBehavior()
         {
-            impersonateCallerForAllOperations = DefaultImpersonateCallerForAllOperations;
-            impersonateOnSerializingReply = DefaultImpersonateOnSerializingReply;
-            principalPermissionMode = DefaultPrincipalPermissionMode;
+            _impersonateCallerForAllOperations = DefaultImpersonateCallerForAllOperations;
+            _impersonateOnSerializingReply = DefaultImpersonateOnSerializingReply;
+            _principalPermissionMode = DefaultPrincipalPermissionMode;
         }
 
-        ServiceAuthorizationBehavior(ServiceAuthorizationBehavior other)
+        private ServiceAuthorizationBehavior(ServiceAuthorizationBehavior other)
         {
-            impersonateCallerForAllOperations = other.impersonateCallerForAllOperations;
-            impersonateOnSerializingReply = other.impersonateOnSerializingReply;
-            principalPermissionMode = other.principalPermissionMode;
-            isExternalPoliciesSet = other.isExternalPoliciesSet;
-            isAuthorizationManagerSet = other.isAuthorizationManagerSet;
+            _impersonateCallerForAllOperations = other._impersonateCallerForAllOperations;
+            _impersonateOnSerializingReply = other._impersonateOnSerializingReply;
+            _principalPermissionMode = other._principalPermissionMode;
+            _isExternalPoliciesSet = other._isExternalPoliciesSet;
+            _isAuthorizationManagerSet = other._isAuthorizationManagerSet;
 
-            if (other.isExternalPoliciesSet || other.isAuthorizationManagerSet)
+            if (other._isExternalPoliciesSet || other._isAuthorizationManagerSet)
             {
                 CopyAuthorizationPoliciesAndManager(other);
             }
-            isReadOnly = other.isReadOnly;
+            _isReadOnly = other._isReadOnly;
         }
 
         public ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
         {
             get
             {
-                return externalAuthorizationPolicies;
+                return _externalAuthorizationPolicies;
             }
             set
             {
                 ThrowIfImmutable();
-                isExternalPoliciesSet = true;
-                externalAuthorizationPolicies = value;
+                _isExternalPoliciesSet = true;
+                _externalAuthorizationPolicies = value;
             }
         }
 
         public bool ShouldSerializeExternalAuthorizationPolicies()
         {
-            return isExternalPoliciesSet;
+            return _isExternalPoliciesSet;
         }
 
         public ServiceAuthorizationManager ServiceAuthorizationManager
         {
             get
             {
-                return serviceAuthorizationManager;
+                return _serviceAuthorizationManager;
             }
             set
             {
                 ThrowIfImmutable();
-                isAuthorizationManagerSet = true;
-                serviceAuthorizationManager = value;
+                _isAuthorizationManagerSet = true;
+                _serviceAuthorizationManager = value;
             }
         }
 
         public bool ShouldSerializeServiceAuthorizationManager()
         {
-            return isAuthorizationManagerSet;
+            return _isAuthorizationManagerSet;
         }
 
         [DefaultValue(DefaultPrincipalPermissionMode)]
@@ -89,16 +90,16 @@ namespace CoreWCF.Description
         {
             get
             {
-                return principalPermissionMode;
+                return _principalPermissionMode;
             }
             set
             {
                 if (!PrincipalPermissionModeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 ThrowIfImmutable();
-                principalPermissionMode = value;
+                _principalPermissionMode = value;
             }
         }
 
@@ -108,12 +109,12 @@ namespace CoreWCF.Description
         {
             get
             {
-                return impersonateCallerForAllOperations;
+                return _impersonateCallerForAllOperations;
             }
             set
             {
                 ThrowIfImmutable();
-               impersonateCallerForAllOperations = value;
+                _impersonateCallerForAllOperations = value;
             }
         }
 
@@ -123,7 +124,7 @@ namespace CoreWCF.Description
         {
             get
             {
-                return impersonateOnSerializingReply;
+                return _impersonateOnSerializingReply;
             }
             set
             {
@@ -134,23 +135,23 @@ namespace CoreWCF.Description
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        void ApplyAuthorizationPoliciesAndManager(DispatchRuntime behavior)
+        private void ApplyAuthorizationPoliciesAndManager(DispatchRuntime behavior)
         {
-            if (externalAuthorizationPolicies != null)
+            if (_externalAuthorizationPolicies != null)
             {
-                behavior.ExternalAuthorizationPolicies = externalAuthorizationPolicies;
+                behavior.ExternalAuthorizationPolicies = _externalAuthorizationPolicies;
             }
-            if (serviceAuthorizationManager != null)
+            if (_serviceAuthorizationManager != null)
             {
-                behavior.ServiceAuthorizationManager = serviceAuthorizationManager;
+                behavior.ServiceAuthorizationManager = _serviceAuthorizationManager;
             }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        void CopyAuthorizationPoliciesAndManager(ServiceAuthorizationBehavior other)
+        private void CopyAuthorizationPoliciesAndManager(ServiceAuthorizationBehavior other)
         {
-            externalAuthorizationPolicies = other.externalAuthorizationPolicies;
-            serviceAuthorizationManager = other.serviceAuthorizationManager;
+            _externalAuthorizationPolicies = other._externalAuthorizationPolicies;
+            _serviceAuthorizationManager = other._serviceAuthorizationManager;
         }
 
         void IServiceBehavior.Validate(ServiceDescription description, ServiceHostBase serviceHostBase)
@@ -165,29 +166,28 @@ namespace CoreWCF.Description
         {
             if (description == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("description"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(description)));
             }
             if (serviceHostBase == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("serviceHostBase"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(serviceHostBase)));
             }
 
             for (int i = 0; i < serviceHostBase.ChannelDispatchers.Count; i++)
             {
-                ChannelDispatcher channelDispatcher = serviceHostBase.ChannelDispatchers[i] as ChannelDispatcher;
                 // TODO: ServiceMetadataBehavior reference needs to be put back once we have MetadataBehavior
-                if (channelDispatcher != null /*&& !ServiceMetadataBehavior.IsHttpGetMetadataDispatcher(description, channelDispatcher)*/)
+                if (serviceHostBase.ChannelDispatchers[i] is ChannelDispatcher channelDispatcher /*&& !ServiceMetadataBehavior.IsHttpGetMetadataDispatcher(description, channelDispatcher)*/)
                 {
                     foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
                     {
                         DispatchRuntime behavior = endpointDispatcher.DispatchRuntime;
-                        behavior.PrincipalPermissionMode = principalPermissionMode;
+                        behavior.PrincipalPermissionMode = _principalPermissionMode;
                         if (!endpointDispatcher.IsSystemEndpoint)
                         {
-                            behavior.ImpersonateCallerForAllOperations = impersonateCallerForAllOperations;
-                            behavior.ImpersonateOnSerializingReply = impersonateOnSerializingReply;
+                            behavior.ImpersonateCallerForAllOperations = _impersonateCallerForAllOperations;
+                            behavior.ImpersonateOnSerializingReply = _impersonateOnSerializingReply;
                         }
-                        if (isAuthorizationManagerSet || isExternalPoliciesSet)
+                        if (_isAuthorizationManagerSet || _isExternalPoliciesSet)
                         {
                             ApplyAuthorizationPoliciesAndManager(behavior);
                         }
@@ -203,12 +203,12 @@ namespace CoreWCF.Description
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }

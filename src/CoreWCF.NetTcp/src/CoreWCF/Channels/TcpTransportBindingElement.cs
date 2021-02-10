@@ -1,33 +1,30 @@
-using CoreWCF.Channels;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.ComponentModel;
 using System.Security.Authentication.ExtendedProtection;
 
 namespace CoreWCF.Channels
 {
     public partial class TcpTransportBindingElement : ConnectionOrientedTransportBindingElement
     {
-        int _listenBacklog;
-        ExtendedProtectionPolicy _extendedProtectionPolicy;
-        TcpConnectionPoolSettings _connectionPoolSettings;
+        private int _listenBacklog;
+        private ExtendedProtectionPolicy _extendedProtectionPolicy;
 
         public TcpTransportBindingElement() : base()
         {
             _listenBacklog = TcpTransportDefaults.GetListenBacklog();
-            _connectionPoolSettings = new TcpConnectionPoolSettings();
+            ConnectionPoolSettings = new TcpConnectionPoolSettings();
             _extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
         protected TcpTransportBindingElement(TcpTransportBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
             _listenBacklog = elementToBeCloned._listenBacklog;
-            _connectionPoolSettings = elementToBeCloned._connectionPoolSettings.Clone();
+            ConnectionPoolSettings = elementToBeCloned.ConnectionPoolSettings.Clone();
             _extendedProtectionPolicy = elementToBeCloned.ExtendedProtectionPolicy;
         }
 
-        public TcpConnectionPoolSettings ConnectionPoolSettings
-        {
-            get { return _connectionPoolSettings; }
-        }
+        public TcpConnectionPoolSettings ConnectionPoolSettings { get; }
 
         public int ListenBacklog
         {
@@ -40,7 +37,7 @@ namespace CoreWCF.Channels
             {
                 if (value <= 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value",
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value),
                         SR.ValueMustBePositive));
                 }
 

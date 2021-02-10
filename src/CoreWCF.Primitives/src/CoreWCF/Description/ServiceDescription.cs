@@ -1,40 +1,31 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
-using System.Security;
 using CoreWCF.Collections.Generic;
 
 namespace CoreWCF.Description
 {
     public class ServiceDescription
     {
-        KeyedByTypeCollection<IServiceBehavior> _behaviors = new KeyedByTypeCollection<IServiceBehavior>();
         private string _configurationName;
-        ServiceEndpointCollection _endpoints = new ServiceEndpointCollection();
-        Type _serviceType;
-        XmlName _serviceName;
-        string _serviceNamespace = NamingHelper.DefaultNamespace;
-        IDictionary<string, ContractDescription> _implementedContracts;
-        ReflectedContractCollection _reflectedContracts;
+        private XmlName _serviceName;
 
         public ServiceDescription() { }
-
-        internal ServiceDescription(string serviceName)
-        {
-            if (string.IsNullOrEmpty(serviceName))
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceName));
-
-            Name = serviceName;
-        }
 
         public ServiceDescription(IEnumerable<ServiceEndpoint> endpoints) : this()
         {
             if (endpoints == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpoints));
+            }
 
             foreach (ServiceEndpoint endpoint in endpoints)
-                _endpoints.Add(endpoint);
+            {
+                Endpoints.Add(endpoint);
+            }
         }
 
         public string Name
@@ -42,11 +33,17 @@ namespace CoreWCF.Description
             get
             {
                 if (_serviceName != null)
+                {
                     return _serviceName.EncodedName;
+                }
                 else if (ServiceType != null)
+                {
                     return NamingHelper.XmlName(ServiceType.Name);
+                }
                 else
+                {
                     return NamingHelper.DefaultServiceName;
+                }
             }
             set
             {
@@ -62,61 +59,40 @@ namespace CoreWCF.Description
             }
         }
 
-        public string Namespace
-        {
-            get
-            {
-                return _serviceNamespace;
-            }
-            set
-            {
-                _serviceNamespace = value;
-            }
-        }
+        public string Namespace { get; set; } = NamingHelper.DefaultNamespace;
 
         // This was KeyedByTypeCollection, maybe change to Collection<IServiceBehavior>
-        public KeyedByTypeCollection<IServiceBehavior> Behaviors
-        {
-            get { return _behaviors; }
-        }
+        public KeyedByTypeCollection<IServiceBehavior> Behaviors { get; } = new KeyedByTypeCollection<IServiceBehavior>();
 
         public string ConfigurationName
         {
             get { return _configurationName; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _configurationName = value;
+                _configurationName = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
-        public ServiceEndpointCollection Endpoints
-        {
-            get { return _endpoints; }
-        }
+        public ServiceEndpointCollection Endpoints { get; } = new ServiceEndpointCollection();
 
-        public Type ServiceType
-        {
-            get { return _serviceType; }
-            set { _serviceType = value; }
-        }
+        public Type ServiceType { get; set; }
 
         internal static void AddBehaviors<TService>(ServiceDescription serviceDescription) where TService : class
         {
-
             TypeLoader<TService>.ApplyServiceInheritance<IServiceBehavior, KeyedByTypeCollection<IServiceBehavior>>(
                 serviceDescription.Behaviors, GetIServiceBehaviorAttributes);
 
             ServiceBehaviorAttribute serviceBehavior = EnsureBehaviorAttribute(serviceDescription);
 
             if (serviceBehavior.Name != null)
+            {
                 serviceDescription.Name = new XmlName(serviceBehavior.Name).EncodedName;
+            }
+
             if (serviceBehavior.Namespace != null)
+            {
                 serviceDescription.Namespace = serviceBehavior.Namespace;
+            }
 
             if (string.IsNullOrEmpty(serviceBehavior.ConfigurationName))
             {
@@ -131,8 +107,10 @@ namespace CoreWCF.Description
         public static ServiceDescription GetService<TService>() where TService : class
         {
             // TODO: Make ServiceDescription generic?
-            var description = new ServiceDescription();
-            description.ServiceType = typeof(TService);
+            var description = new ServiceDescription
+            {
+                ServiceType = typeof(TService)
+            };
 
             AddBehaviors<TService>(description);
             SetupSingleton(description, (TService)null);
@@ -146,13 +124,15 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceImplementation));
             }
 
-            ServiceDescription description = new ServiceDescription();
-            // TODO: What if the concrete type is different that the generic type?
-            description.ServiceType = typeof(TService); //serviceImplementation.GetType();
-
-            if (serviceImplementation is IServiceBehavior)
+            ServiceDescription description = new ServiceDescription
             {
-                description.Behaviors.Add((IServiceBehavior)serviceImplementation);
+                // TODO: What if the concrete type is different that the generic type?
+                ServiceType = typeof(TService) //serviceImplementation.GetType();
+            };
+
+            if (serviceImplementation is IServiceBehavior behavior)
+            {
+                description.Behaviors.Add(behavior);
             }
 
             AddBehaviors<TService>(description);
@@ -162,7 +142,7 @@ namespace CoreWCF.Description
 
         internal static TService CreateImplementation<TService>() where TService : class
         {
-            var constructor = typeof(TService).GetConstructor(TypeLoader.DefaultBindingFlags, null, Type.EmptyTypes, null);
+            System.Reflection.ConstructorInfo constructor = typeof(TService).GetConstructor(TypeLoader.DefaultBindingFlags, null, Type.EmptyTypes, null);
             if (constructor == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
@@ -197,7 +177,7 @@ namespace CoreWCF.Description
         //    return constructor.Invoke(null, null);
         //}
 
-        static ServiceBehaviorAttribute EnsureBehaviorAttribute(ServiceDescription description)
+        private static ServiceBehaviorAttribute EnsureBehaviorAttribute(ServiceDescription description)
         {
             ServiceBehaviorAttribute attr = ((KeyedByTypeCollection<IServiceBehavior>)description.Behaviors).Find<ServiceBehaviorAttribute>();
 
@@ -225,7 +205,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static void GetIServiceBehaviorAttributes(Type currentServiceType, KeyedByTypeCollection<IServiceBehavior> behaviors)
+        private static void GetIServiceBehaviorAttributes(Type currentServiceType, KeyedByTypeCollection<IServiceBehavior> behaviors)
         {
             foreach (IServiceBehavior behaviorAttribute in ServiceReflector.GetCustomAttributes(currentServiceType, typeof(IServiceBehavior)))
             {
@@ -233,10 +213,9 @@ namespace CoreWCF.Description
             }
         }
 
-        static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation) where TService : class
+        private static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation) where TService : class
         {
             ServiceBehaviorAttribute serviceBehavior = EnsureBehaviorAttribute(serviceDescription);
-            Type type = serviceDescription.ServiceType;
             if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
             {
                 if (implementation == null)
@@ -252,7 +231,7 @@ namespace CoreWCF.Description
             }
         }
 
-        class ReflectedContractCollection : KeyedCollection<Type, ContractDescription>
+        private class ReflectedContractCollection : KeyedCollection<Type, ContractDescription>
         {
             public ReflectedContractCollection()
                 : base(null, 4)
@@ -262,7 +241,9 @@ namespace CoreWCF.Description
             protected override Type GetKeyForItem(ContractDescription item)
             {
                 if (item == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+                }
 
                 return item.ContractType;
             }

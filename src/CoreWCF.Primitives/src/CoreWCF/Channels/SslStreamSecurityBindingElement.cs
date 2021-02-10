@@ -1,79 +1,63 @@
-﻿using CoreWCF.Security;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.ComponentModel;
 using System.Net.Security;
 using System.Security.Authentication;
-using System.Text;
+using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
     public class SslStreamSecurityBindingElement : StreamUpgradeBindingElement
     {
-        IdentityVerifier identityVerifier;
-        bool requireClientCertificate;
-        SslProtocols sslProtocols;
+        private IdentityVerifier _identityVerifier;
+        private SslProtocols _sslProtocols;
 
         public SslStreamSecurityBindingElement()
         {
-            requireClientCertificate = TransportDefaults.RequireClientCertificate;
-            sslProtocols = TransportDefaults.SslProtocols;
+            RequireClientCertificate = TransportDefaults.RequireClientCertificate;
+            _sslProtocols = TransportDefaults.SslProtocols;
         }
 
         protected SslStreamSecurityBindingElement(SslStreamSecurityBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
-            identityVerifier = elementToBeCloned.identityVerifier;
-            requireClientCertificate = elementToBeCloned.requireClientCertificate;
-            sslProtocols = elementToBeCloned.sslProtocols;
+            _identityVerifier = elementToBeCloned._identityVerifier;
+            RequireClientCertificate = elementToBeCloned.RequireClientCertificate;
+            _sslProtocols = elementToBeCloned._sslProtocols;
         }
 
         internal IdentityVerifier IdentityVerifier
         {
             get
             {
-                if (identityVerifier == null)
+                if (_identityVerifier == null)
                 {
-                    identityVerifier = IdentityVerifier.CreateDefault();
+                    _identityVerifier = IdentityVerifier.CreateDefault();
                 }
 
-                return identityVerifier;
+                return _identityVerifier;
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                identityVerifier = value;
+                _identityVerifier = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
         [DefaultValue(TransportDefaults.RequireClientCertificate)]
-        public bool RequireClientCertificate
-        {
-            get
-            {
-                return requireClientCertificate;
-            }
-            set
-            {
-                requireClientCertificate = value;
-            }
-        }
+        public bool RequireClientCertificate { get; set; }
 
         [DefaultValue(TransportDefaults.SslProtocols)]
         public SslProtocols SslProtocols
         {
             get
             {
-                return sslProtocols;
+                return _sslProtocols;
             }
             set
             {
                 SslProtocolsHelper.Validate(value);
-                sslProtocols = value;
+                _sslProtocols = value;
             }
         }
 
@@ -114,13 +98,12 @@ namespace CoreWCF.Channels
             {
                 return false;
             }
-            SslStreamSecurityBindingElement ssl = b as SslStreamSecurityBindingElement;
-            if (ssl == null)
+            if (!(b is SslStreamSecurityBindingElement ssl))
             {
                 return false;
             }
 
-            return requireClientCertificate == ssl.requireClientCertificate && sslProtocols == ssl.sslProtocols;
+            return RequireClientCertificate == ssl.RequireClientCertificate && _sslProtocols == ssl._sslProtocols;
         }
     }
 }

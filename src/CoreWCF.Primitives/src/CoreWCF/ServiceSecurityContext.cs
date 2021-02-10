@@ -1,34 +1,29 @@
-﻿using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Channels;
-using CoreWCF.Security;
-using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Security.Principal;
-using System.Text;
+using CoreWCF.Channels;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Security;
 
 namespace CoreWCF
 {
     public class ServiceSecurityContext
     {
-        static ServiceSecurityContext anonymous;
-        ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
-        AuthorizationContext authorizationContext;
-        IIdentity primaryIdentity;
-        Claim identityClaim;
-        WindowsIdentity windowsIdentity;
+        private static ServiceSecurityContext s_anonymous;
+        private AuthorizationContext _authorizationContext;
+        private IIdentity _primaryIdentity;
+        private Claim _identityClaim;
+        private WindowsIdentity _windowsIdentity;
 
         // Perf: delay created authorizationContext using forward chain.
         public ServiceSecurityContext(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
-            if (authorizationPolicies == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
-            }
-            authorizationContext = null;
-            this.authorizationPolicies = authorizationPolicies;
+            _authorizationContext = null;
+            AuthorizationPolicies = authorizationPolicies ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
         }
 
         public ServiceSecurityContext(AuthorizationContext authorizationContext)
@@ -38,27 +33,19 @@ namespace CoreWCF
 
         public ServiceSecurityContext(AuthorizationContext authorizationContext, ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies)
         {
-            if (authorizationContext == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationContext));
-            }
-            if (authorizationPolicies == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
-            }
-            this.authorizationContext = authorizationContext;
-            this.authorizationPolicies = authorizationPolicies;
+            _authorizationContext = authorizationContext ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationContext));
+            AuthorizationPolicies = authorizationPolicies ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationPolicies));
         }
 
         public static ServiceSecurityContext Anonymous
         {
             get
             {
-                if (anonymous == null)
+                if (s_anonymous == null)
                 {
-                    anonymous = new ServiceSecurityContext(EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance);
+                    s_anonymous = new ServiceSecurityContext(EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance);
                 }
-                return anonymous;
+                return s_anonymous;
             }
         }
 
@@ -99,11 +86,11 @@ namespace CoreWCF
         {
             get
             {
-                if (identityClaim == null)
+                if (_identityClaim == null)
                 {
-                    identityClaim = Security.SecurityUtils.GetPrimaryIdentityClaim(AuthorizationContext);
+                    _identityClaim = SecurityUtils.GetPrimaryIdentityClaim(AuthorizationContext);
                 }
-                return identityClaim;
+                return _identityClaim;
             }
         }
 
@@ -111,7 +98,7 @@ namespace CoreWCF
         {
             get
             {
-                if (this.primaryIdentity == null)
+                if (_primaryIdentity == null)
                 {
                     IIdentity primaryIdentity = null;
                     IList<IIdentity> identities = GetIdentities();
@@ -121,9 +108,9 @@ namespace CoreWCF
                         primaryIdentity = identities[0];
                     }
 
-                    this.primaryIdentity = primaryIdentity ?? Security.SecurityUtils.AnonymousIdentity;
+                    _primaryIdentity = primaryIdentity ?? SecurityUtils.AnonymousIdentity;
                 }
-                return this.primaryIdentity;
+                return _primaryIdentity;
             }
         }
 
@@ -131,7 +118,7 @@ namespace CoreWCF
         {
             get
             {
-                if (this.windowsIdentity == null)
+                if (_windowsIdentity == null)
                 {
                     WindowsIdentity windowsIdentity = null;
                     IList<IIdentity> identities = GetIdentities();
@@ -139,8 +126,7 @@ namespace CoreWCF
                     {
                         for (int i = 0; i < identities.Count; ++i)
                         {
-                            WindowsIdentity identity = identities[i] as WindowsIdentity;
-                            if (identity != null)
+                            if (identities[i] is WindowsIdentity identity)
                             {
                                 // Multiple Identities is treated as anonymous
                                 if (windowsIdentity != null)
@@ -153,46 +139,34 @@ namespace CoreWCF
                         }
                     }
 
-                    this.windowsIdentity = windowsIdentity ?? WindowsIdentity.GetAnonymous();
+                    _windowsIdentity = windowsIdentity ?? WindowsIdentity.GetAnonymous();
                 }
-                return this.windowsIdentity;
+                return _windowsIdentity;
             }
         }
 
-        internal ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies
-        {
-            get
-            {
-                return authorizationPolicies;
-            }
-            set
-            {
-                authorizationPolicies = value;
-            }
-        }
+        internal ReadOnlyCollection<IAuthorizationPolicy> AuthorizationPolicies { get; set; }
 
         public AuthorizationContext AuthorizationContext
         {
             get
             {
-                if (authorizationContext == null)
+                if (_authorizationContext == null)
                 {
-                    authorizationContext = AuthorizationContext.CreateDefaultAuthorizationContext(authorizationPolicies);
+                    _authorizationContext = AuthorizationContext.CreateDefaultAuthorizationContext(AuthorizationPolicies);
                 }
-                return authorizationContext;
+                return _authorizationContext;
             }
         }
 
-        IList<IIdentity> GetIdentities()
+        private IList<IIdentity> GetIdentities()
         {
-            object identities;
             AuthorizationContext authContext = AuthorizationContext;
-            if (authContext != null && authContext.Properties.TryGetValue(Security.SecurityUtils.Identities, out identities))
+            if (authContext != null && authContext.Properties.TryGetValue(SecurityUtils.Identities, out object identities))
             {
                 return identities as IList<IIdentity>;
             }
             return null;
         }
     }
-
 }

@@ -1,6 +1,9 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF;
 using ServiceContract;
-using System;
 
 namespace Services
 {
@@ -11,14 +14,17 @@ namespace Services
 
         public void OneWayMethod(object o)
         {
-            string input = o as string;
-            if (input == null) throw new NullReferenceException("clientString was not in the SharedContext");
+            if (!(o is string input))
+            {
+                throw new NullReferenceException("clientString was not in the SharedContext");
+            }
+
             return;
         }
 
         public string StringMethod(string s)
         {
-            Console.WriteLine(s);           
+            Console.WriteLine(s);
             return s;
         }
 
@@ -28,7 +34,7 @@ namespace Services
             {
                 throw new Exception("Wrong value received = <" + input + ">");
             }
-           
+
             return input;
         }
 
@@ -36,16 +42,26 @@ namespace Services
 
         public string TwoWayMethod(string input)
         {
-            if (input == null) throw new NullReferenceException("clientString was not in the SharedContext");
+            if (input == null)
+            {
+                throw new NullReferenceException("clientString was not in the SharedContext");
+            }
+
             return input;
         }
 
         public object DataContractMethod(object o)
         {
-            MyBaseDataType data = o as MyBaseDataType;
-            if (data == null) throw new NullReferenceException("DataContractMethod received null " + o);
+            if (!(o is MyBaseDataType data))
+            {
+                throw new NullReferenceException("DataContractMethod received null " + o);
+            }
+
             string input = data.data;
-            if (input == null) throw new NullReferenceException("clientString was not in the SharedContext");
+            if (input == null)
+            {
+                throw new NullReferenceException("clientString was not in the SharedContext");
+            }
 
             return data;
         }

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
-using System.ServiceModel.Channels;
-using System.Text;
 using ClientContract;
-//using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -18,7 +17,7 @@ namespace CoreWCF.Http.Tests
 {
     public class RequestReplyTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public RequestReplyTests(ITestOutputHelper output)
         {
@@ -32,7 +31,7 @@ namespace CoreWCF.Http.Tests
         public void RequestReplyStreaming(string binding)
         {
             Startup.binding = binding;
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -57,9 +56,8 @@ namespace CoreWCF.Http.Tests
                 IStream stream2 = channelFactory.CreateChannel();
                 long messageSize = 0;
                 long num2 = 20000;
-                Stream stream = null;
                 MyStream input = new MyStream(messageSize);
-                stream = stream2.Echo(input);
+                Stream stream = stream2.Echo(input);
                 int num3 = 0;
                 byte[] buffer = new byte[5000];
                 int num4;
@@ -88,13 +86,13 @@ namespace CoreWCF.Http.Tests
                         case "Http1Binding":
                             builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp1Binding(), "/BasicWcfService1/RequestReplyTests.svc");
                             break;
-                    //case "Http2Binding":
-                    //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp2Binding(), "/BasicWcfService2/RequestReplyTests.svc");
-                    //    break;
-                    //case "Http3Binding":
-                    //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp3Binding(), "/BasicWcfService3/RequestReplyTests.svc");
-                    //    break;
-                    default:
+                        //case "Http2Binding":
+                        //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp2Binding(), "/BasicWcfService2/RequestReplyTests.svc");
+                        //    break;
+                        //case "Http3Binding":
+                        //    builder.AddServiceEndpoint<ReqRepService, ServiceContract.IStream>(ServiceHelper.GetBufferedModHttp3Binding(), "/BasicWcfService3/RequestReplyTests.svc");
+                        //    break;
+                        default:
                             throw new Exception("Unknown binding");
 
                     }

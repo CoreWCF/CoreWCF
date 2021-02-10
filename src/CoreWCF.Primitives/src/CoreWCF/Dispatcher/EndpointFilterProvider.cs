@@ -1,37 +1,38 @@
-﻿using CoreWCF.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
 
 namespace CoreWCF.Dispatcher
 {
-    class EndpointFilterProvider
+    internal class EndpointFilterProvider
     {
-        SynchronizedCollection<string> initiatingActions;
-        object mutex;
+        private readonly object _mutex;
 
         public EndpointFilterProvider(params string[] initiatingActions)
         {
-            mutex = new object();
-            this.initiatingActions = new SynchronizedCollection<string>(mutex, initiatingActions);
+            _mutex = new object();
+            InitiatingActions = new SynchronizedCollection<string>(_mutex, initiatingActions);
         }
 
-        public SynchronizedCollection<string> InitiatingActions
-        {
-            get { return initiatingActions; }
-        }
+        public SynchronizedCollection<string> InitiatingActions { get; }
 
         public MessageFilter CreateFilter(out int priority)
         {
-            lock (mutex)
+            lock (_mutex)
             {
                 priority = 1;
-                if (initiatingActions.Count == 0)
-                    return new MatchNoneMessageFilter();
-
-                string[] actions = new string[initiatingActions.Count];
-                int index = 0;
-                for (int i = 0; i < initiatingActions.Count; i++)
+                if (InitiatingActions.Count == 0)
                 {
-                    string currentAction = initiatingActions[i];
+                    return new MatchNoneMessageFilter();
+                }
+
+                string[] actions = new string[InitiatingActions.Count];
+                int index = 0;
+                for (int i = 0; i < InitiatingActions.Count; i++)
+                {
+                    string currentAction = InitiatingActions[i];
                     if (currentAction == MessageHeaders.WildcardAction)
                     {
                         priority = 0;
@@ -45,5 +46,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

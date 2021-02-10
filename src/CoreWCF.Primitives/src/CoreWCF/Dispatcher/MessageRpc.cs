@@ -1,24 +1,23 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.ObjectModel;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security;
-using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
-using System.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
-    delegate Task<MessageRpc> MessageRpcProcessor(MessageRpc rpc);
-    delegate Task MessageRpcErrorHandler(MessageRpc rpc);
+    internal delegate Task<MessageRpc> MessageRpcProcessor(MessageRpc rpc);
+
+    internal delegate Task MessageRpcErrorHandler(MessageRpc rpc);
 
     // TODO: Pool MessageRpc objects. These are zero cost on .NET Framework as it's a struct but passing things by ref is problematic
     // when using async/await. This causes an allocation per request so pool them to remove that allocation.
-    class MessageRpc
+    internal class MessageRpc
     {
         internal readonly ServiceChannel Channel;
         internal readonly ChannelHandler channelHandler;
@@ -65,11 +64,8 @@ namespace CoreWCF.Dispatcher
         //internal MessageRpcInvokeNotification InvokeNotification;
         //internal EventTraceActivity EventTraceActivity;
         internal bool _processCallReturned;
-
-        bool paused;
-        bool switchedThreads;
-        bool isInstanceContextSingleton;
-        SignalGate<IAsyncResult> invokeContinueGate;
+        private bool _isInstanceContextSingleton;
+        private SignalGate<IAsyncResult> _invokeContinueGate;
 
         internal MessageRpc(RequestContext requestContext, Message request, DispatchOperationRuntime operation,
             ServiceChannel channel, ServiceHostBase host, ChannelHandler channelHandler, bool cleanThread,
@@ -98,7 +94,7 @@ namespace CoreWCF.Dispatcher
             NotUnderstoodHeaders = null;
             Operation = operation;
             OperationContext = operationContext;
-            paused = false;
+            IsPaused = false;
             ParametersDisposed = false;
             Request = request;
             RequestContext = requestContext;
@@ -112,13 +108,13 @@ namespace CoreWCF.Dispatcher
             SuccessfullyBoundInstance = false;
             SuccessfullyIncrementedActivity = false;
             SuccessfullyLockedInstance = false;
-            switchedThreads = !cleanThread;
+            SwitchedThreads = !cleanThread;
             //this.transaction = null;
             InputParameters = null;
             OutputParameters = null;
             ReturnParameter = null;
-            isInstanceContextSingleton = InstanceContextProviderBase.IsProviderSingleton(Channel.DispatchRuntime.InstanceContextProvider);
-            invokeContinueGate = null;
+            _isInstanceContextSingleton = InstanceContextProviderBase.IsProviderSingleton(Channel.DispatchRuntime.InstanceContextProvider);
+            _invokeContinueGate = null;
 
             if (!operation.IsOneWay && !operation.Parent.ManualAddressing)
             {
@@ -154,21 +150,15 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        internal bool IsPaused
-        {
-            get { return paused; }
-        }
+        internal bool IsPaused { get; private set; }
 
-        internal bool SwitchedThreads
-        {
-            get { return switchedThreads; }
-        }
+        internal bool SwitchedThreads { get; }
 
         internal bool IsInstanceContextSingleton
         {
             set
             {
-                isInstanceContextSingleton = value;
+                _isInstanceContextSingleton = value;
             }
         }
 
@@ -191,7 +181,7 @@ namespace CoreWCF.Dispatcher
             AbortInstanceContext();
         }
 
-        void AbortRequestContext(RequestContext requestContext)
+        private void AbortRequestContext(RequestContext requestContext)
         {
             try
             {
@@ -221,7 +211,7 @@ namespace CoreWCF.Dispatcher
             TraceCallDurationInDispatcherIfNecessary(false);
         }
 
-        void TraceCallDurationInDispatcherIfNecessary(bool requestContextWasClosedSuccessfully)
+        private void TraceCallDurationInDispatcherIfNecessary(bool requestContextWasClosedSuccessfully)
         {
             // only need to trace once (either for the failure or success case)
             //if (TD.DispatchFailedIsEnabled())
@@ -250,7 +240,7 @@ namespace CoreWCF.Dispatcher
             TraceCallDurationInDispatcherIfNecessary(true);
         }
 
-        void DisposeRequestContext(RequestContext context)
+        private void DisposeRequestContext(RequestContext context)
         {
             try
             {
@@ -312,7 +302,7 @@ namespace CoreWCF.Dispatcher
 
         internal void AbortInstanceContext()
         {
-            if (InstanceContext != null && !isInstanceContextSingleton)
+            if (InstanceContext != null && !_isInstanceContextSingleton)
             {
                 try
                 {
@@ -334,11 +324,11 @@ namespace CoreWCF.Dispatcher
         {
             //using (ServiceModelActivity.BoundOperation(this.Activity))
             //{
-                this.channelHandler.EnsureReceive();
+            channelHandler.EnsureReceive();
             //}
         }
 
-        bool ProcessError(Exception e)
+        private bool ProcessError(Exception e)
         {
             MessageRpcErrorHandler handler = ErrorProcessor;
             try
@@ -407,8 +397,7 @@ namespace CoreWCF.Dispatcher
 
                 DisposeParameterList(OutputParameters);
 
-                IDisposable disposableParameter = ReturnParameter as IDisposable;
-                if (disposableParameter != null)
+                if (ReturnParameter is IDisposable disposableParameter)
                 {
                     try
                     {
@@ -429,15 +418,13 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void DisposeParameterList(object[] parameters)
+        private void DisposeParameterList(object[] parameters)
         {
-            IDisposable disposableParameter = null;
             if (parameters != null)
             {
                 foreach (object obj in parameters)
                 {
-                    disposableParameter = obj as IDisposable;
-                    if (disposableParameter != null)
+                    if (obj is IDisposable disposableParameter)
                     {
                         try
                         {
@@ -517,7 +504,9 @@ namespace CoreWCF.Dispatcher
                 {
                     if (Fx.IsFatal(e))
                     {
+#pragma warning disable CA2219 // Do not raise exceptions in finally clauses - Fx.IsFatal filters out non-process ending exceptions
                         throw;
+#pragma warning restore CA2219 // Do not raise exceptions in finally clauses
                     }
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperFatal(e.Message, e);
                 }
@@ -531,22 +520,21 @@ namespace CoreWCF.Dispatcher
         // Since the copy is ignored, Decrement the BusyCount
         internal void UnPause()
         {
-            paused = false;
+            IsPaused = false;
             DecrementBusyCount();
-
         }
 
         internal bool UnlockInvokeContinueGate(out IAsyncResult result)
         {
-            return invokeContinueGate.Unlock(out result);
+            return _invokeContinueGate.Unlock(out result);
         }
 
         internal void PrepareInvokeContinueGate()
         {
-            invokeContinueGate = new SignalGate<IAsyncResult>();
+            _invokeContinueGate = new SignalGate<IAsyncResult>();
         }
 
-        void IncrementBusyCount()
+        private void IncrementBusyCount()
         {
             // TODO: Do we want a way to keep track of bust count? I believe this originally drove PerformanceCounters so we might want to re-work this functionality.
             // Only increment the counter on the service side.
@@ -560,7 +548,7 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        void DecrementBusyCount()
+        private void DecrementBusyCount()
         {
             // See comment on IncrementBusyCount
             //if (Host != null)

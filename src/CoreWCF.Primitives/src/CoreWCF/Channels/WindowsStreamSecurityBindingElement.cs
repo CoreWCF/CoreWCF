@@ -1,14 +1,14 @@
-﻿using CoreWCF.Security;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Net.Security;
-using System.Text;
+using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
     public class WindowsStreamSecurityBindingElement : StreamUpgradeBindingElement
     {
-        ProtectionLevel _protectionLevel;
+        private ProtectionLevel _protectionLevel;
 
         public WindowsStreamSecurityBindingElement()
             : base()

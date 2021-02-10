@@ -1,22 +1,24 @@
-using CoreWCF.Configuration;
-using CoreWCF.Diagnostics;
-using CoreWCF.Dispatcher;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Diagnostics;
 using System.Security.Authentication.ExtendedProtection;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Diagnostics;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
     internal abstract class TransportDuplexSessionChannel : TransportOutputChannel, IDuplexSessionChannel
     {
-        bool _isInputSessionClosed;
-        bool _isOutputSessionClosed;
-        ChannelBinding _channelBindingToken;
-        private IServiceChannelDispatcher _channelDispatcher;
+        private bool _isInputSessionClosed;
+        private bool _isOutputSessionClosed;
+        private ChannelBinding _channelBindingToken;
 
         protected TransportDuplexSessionChannel(
           ITransportFactorySettings settings,
@@ -69,13 +71,13 @@ namespace CoreWCF.Channels
 
             while (true)
             {
-                var result = await TryReceiveAsync(CancellationToken.None);
-                if (result.success)
+                (Message message, bool success) = await TryReceiveAsync(CancellationToken.None);
+                if (success)
                 {
-                    await ChannelDispatcher.DispatchAsync(result.message);
+                    await ChannelDispatcher.DispatchAsync(message);
                 }
 
-                if (result.message == null) // NULL message means client sent FIN byte
+                if (message == null) // NULL message means client sent FIN byte
                 {
                     return;
                 }
@@ -338,7 +340,7 @@ namespace CoreWCF.Channels
         // cleanup after the framing handshake has completed
         protected abstract Task CompleteCloseAsync(CancellationToken token);
 
-        void ThrowIfOutputSessionClosed()
+        private void ThrowIfOutputSessionClosed()
         {
             if (_isOutputSessionClosed)
             {
@@ -346,7 +348,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void OnInputSessionClosed()
+        private void OnInputSessionClosed()
         {
             lock (ThisLock)
             {
@@ -359,7 +361,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        void OnOutputSessionClosed(CancellationToken token)
+        private void OnOutputSessionClosed(CancellationToken token)
         {
             bool releaseConnection = false;
             lock (ThisLock)
@@ -414,8 +416,8 @@ namespace CoreWCF.Channels
 
         internal class ConnectionDuplexSession : IDuplexSession
         {
-            static UriGenerator _uriGenerator;
-            string _id;
+            private static UriGenerator s_uriGenerator;
+            private string _id;
 
             public ConnectionDuplexSession(TransportDuplexSessionChannel channel)
                 : base()
@@ -444,16 +446,16 @@ namespace CoreWCF.Channels
 
             public TransportDuplexSessionChannel Channel { get; }
 
-            static UriGenerator UriGenerator
+            private static UriGenerator UriGenerator
             {
                 get
                 {
-                    if (_uriGenerator == null)
+                    if (s_uriGenerator == null)
                     {
-                        _uriGenerator = new UriGenerator();
+                        s_uriGenerator = new UriGenerator();
                     }
 
-                    return _uriGenerator;
+                    return s_uriGenerator;
                 }
             }
 
@@ -468,6 +470,5 @@ namespace CoreWCF.Channels
                 return Channel.CloseOutputSessionAsync(token);
             }
         }
-
     }
 }

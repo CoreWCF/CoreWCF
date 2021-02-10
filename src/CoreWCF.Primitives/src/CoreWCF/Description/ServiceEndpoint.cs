@@ -1,46 +1,36 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using CoreWCF.Collections.Generic;
 using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
 
 namespace CoreWCF.Description
 {
     public class ServiceEndpoint
     {
-        EndpointAddress _address;
-        Binding _binding;
-        ContractDescription _contract;
-        Uri _listenUri;
-        ListenUriMode _listenUriMode = ListenUriMode.Explicit;
-        KeyedByTypeCollection<IEndpointBehavior> _behaviors;
-        string _id;
-        XmlName _name;
-        bool _isEndpointFullyConfigured = false;
+        private ContractDescription _contract;
+        private Uri _listenUri;
+        private ListenUriMode _listenUriMode = ListenUriMode.Explicit;
+        private KeyedByTypeCollection<IEndpointBehavior> _behaviors;
+        private string _id;
+        private XmlName _name;
 
         public ServiceEndpoint(ContractDescription contract)
         {
-            if (contract == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
-            _contract = contract;
+            _contract = contract ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
         }
 
         public ServiceEndpoint(ContractDescription contract, Binding binding, EndpointAddress address)
         {
-            if (contract == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
-
-            _contract = contract;
-            _binding = binding;
-            _address = address;
+            _contract = contract ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contract));
+            Binding = binding;
+            Address = address;
         }
 
-        public EndpointAddress Address
-        {
-            get { return _address; }
-            set { _address = value; }
-        }
+        public EndpointAddress Address { get; set; }
 
         public KeyedCollection<Type, IEndpointBehavior> EndpointBehaviors
         {
@@ -60,22 +50,14 @@ namespace CoreWCF.Description
             }
         }
 
-        public Binding Binding
-        {
-            get { return _binding; }
-            set { _binding = value; }
-        }
+        public Binding Binding { get; set; }
 
         public ContractDescription Contract
         {
             get { return _contract; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-                _contract = value;
+                _contract = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -93,7 +75,7 @@ namespace CoreWCF.Description
                 {
                     return _name.EncodedName;
                 }
-                else if (_binding != null)
+                else if (Binding != null)
                 {
                     return string.Format(CultureInfo.InvariantCulture, "{0}_{1}", new XmlName(Binding.Name).EncodedName, Contract.Name);
                 }
@@ -114,13 +96,13 @@ namespace CoreWCF.Description
             {
                 if (_listenUri == null)
                 {
-                    if (_address == null)
+                    if (Address == null)
                     {
                         return null;
                     }
                     else
                     {
-                        return _address.Uri;
+                        return Address.Uri;
                     }
                 }
                 else
@@ -132,7 +114,7 @@ namespace CoreWCF.Description
             {
                 if (value != null && !value.IsAbsoluteUri)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("value", SR.UriMustBeAbsolute);
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(value), SR.UriMustBeAbsolute);
                 }
                 _listenUri = value;
             }
@@ -156,7 +138,10 @@ namespace CoreWCF.Description
             get
             {
                 if (_id == null)
+                {
                     _id = Guid.NewGuid().ToString();
+                }
+
                 return _id;
             }
         }
@@ -199,11 +184,7 @@ namespace CoreWCF.Description
             Validate(runOperationValidators, true);
         }
 
-        internal bool IsFullyConfigured
-        {
-            get { return _isEndpointFullyConfigured; }
-            set { _isEndpointFullyConfigured = value; }
-        }
+        internal bool IsFullyConfigured { get; set; } = false;
 
         // for V1 legacy reasons, a mex endpoint is considered a system endpoint even if IsSystemEndpoint = false
         internal bool InternalIsSystemEndpoint(ServiceDescription description)
@@ -217,7 +198,7 @@ namespace CoreWCF.Description
 
         // This method runs validators (both builtin and ones in description).  
         // Precondition: EnsureInvariants() should already have been called.
-        void Validate(bool runOperationValidators, bool isForService)
+        private void Validate(bool runOperationValidators, bool isForService)
         {
             // contract behaviors
             ContractDescription contract = Contract;
@@ -247,6 +228,5 @@ namespace CoreWCF.Description
                 }
             }
         }
-
     }
 }

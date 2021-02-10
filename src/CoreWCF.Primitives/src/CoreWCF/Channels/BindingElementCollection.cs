@@ -1,7 +1,9 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
 
 namespace CoreWCF.Channels
 {
@@ -14,7 +16,9 @@ namespace CoreWCF.Channels
         public BindingElementCollection(IEnumerable<BindingElement> elements)
         {
             if (elements == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elements));
+            }
 
             foreach (BindingElement element in elements)
             {
@@ -25,7 +29,9 @@ namespace CoreWCF.Channels
         public BindingElementCollection(BindingElement[] elements)
         {
             if (elements == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elements));
+            }
 
             for (int i = 0; i < elements.Length; i++)
             {
@@ -47,7 +53,9 @@ namespace CoreWCF.Channels
         public void AddRange(params BindingElement[] elements)
         {
             if (elements == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elements));
+            }
 
             for (int i = 0; i < elements.Length; i++)
             {
@@ -58,12 +66,16 @@ namespace CoreWCF.Channels
         public bool Contains(Type bindingElementType)
         {
             if (bindingElementType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bindingElementType));
+            }
 
             for (int i = 0; i < Count; i++)
             {
                 if (bindingElementType.IsInstanceOfType(this[i]))
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -78,7 +90,7 @@ namespace CoreWCF.Channels
             return Find<T>(true);
         }
 
-        T Find<T>(bool remove)
+        private T Find<T>(bool remove)
         {
             for (int index = 0; index < Count; index++)
             {
@@ -92,7 +104,7 @@ namespace CoreWCF.Channels
                     return item;
                 }
             }
-            return default(T);
+            return default;
         }
 
         public Collection<T> FindAll<T>()
@@ -105,7 +117,7 @@ namespace CoreWCF.Channels
             return FindAll<T>(true);
         }
 
-        Collection<T> FindAll<T>(bool remove)
+        private Collection<T> FindAll<T>(bool remove)
         {
             Collection<T> collection = new Collection<T>();
 
@@ -129,7 +141,9 @@ namespace CoreWCF.Channels
         protected override void InsertItem(int index, BindingElement item)
         {
             if (item == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+            }
 
             base.InsertItem(index, item);
         }
@@ -137,7 +151,9 @@ namespace CoreWCF.Channels
         protected override void SetItem(int index, BindingElement item)
         {
             if (item == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+            }
 
             base.SetItem(index, item);
         }
@@ -145,7 +161,7 @@ namespace CoreWCF.Channels
         internal BindingElementCollection Reverse()
         {
             var bec = new BindingElementCollection();
-            for(int i = Count - 1; i >= 0; i--)
+            for (int i = Count - 1; i >= 0; i--)
             {
                 bec.Add(this[i]);
             }

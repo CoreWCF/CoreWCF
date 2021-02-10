@@ -1,11 +1,14 @@
-﻿using CoreWCF.Channels;
-using CoreWCF.Dispatcher;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using Xunit;
-using CoreWCF;
-using Helpers;
-using CoreWCF.Runtime;
 using System.Threading.Tasks;
+using CoreWCF;
+using CoreWCF.Channels;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
+using Helpers;
+using Xunit;
 
 namespace Extensibility
 {
@@ -16,10 +19,10 @@ namespace Extensibility
         {
             var instanceProvider = new TestInstanceProvider();
             var behavior = new TestServiceBehavior { InstanceProvider = instanceProvider };
-            var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
             factory.Open();
-            var channel = factory.CreateChannel();
-            var echo = channel.Echo("hello");
+            ISimpleService channel = factory.CreateChannel();
+            string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
             Assert.Equal(1, instanceProvider.GetInstanceCallCount);
@@ -34,11 +37,11 @@ namespace Extensibility
         {
             var instanceProvider = new TestInstanceProvider();
             var behavior = new TestServiceBehavior { InstanceProvider = instanceProvider };
-            var factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>(behavior);
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
-            var echo = channel.Echo("hello");
+            string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
             instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
             Assert.True(instanceProvider.InstanceHashCode > 0); ;
@@ -55,7 +58,7 @@ namespace Extensibility
         public int ReleaseInstanceCallCount { get; private set; }
         public int InstanceHashCode { get; private set; } = -1;
         public int ReleasedInstanceHashCode { get; private set; } = -2;
-        private AsyncLock _asyncLock = new AsyncLock();
+        private readonly AsyncLock _asyncLock = new AsyncLock();
         private IDisposable _asyncLockHoldObj = null;
 
         public object GetInstance(InstanceContext instanceContext)
@@ -98,7 +101,7 @@ namespace Extensibility
 
     public class SimpleService : ISimpleService
     {
-        private DateTime _dateTime;
+        private readonly DateTime _dateTime;
 
         public SimpleService()
         {

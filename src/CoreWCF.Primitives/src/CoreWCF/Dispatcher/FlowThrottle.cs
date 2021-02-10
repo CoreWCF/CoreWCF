@@ -1,21 +1,25 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Dispatcher
 {
-    sealed class FlowThrottle
+    internal sealed class FlowThrottle
     {
         private int _capacity;
         private int _count;
-        private bool _warningIssued;
-        private int _warningRestoreLimit;
-        private object _mutex;
+        //private bool _warningIssued;
+        private readonly int _warningRestoreLimit;
+        private readonly object _mutex;
         // TODO: See if there's a way to pool resettable awaitables to remove allocation. Same in QuotaThrottle
-        private Queue<TaskCompletionSource<object>> _waiters;
-        private string _propertyName;
-        private string _configName;
+        private readonly Queue<TaskCompletionSource<object>> _waiters;
+#pragma warning disable IDE0052 // Remove unread private members - Will be used once events are restored
+        private readonly string _propertyName;
+        private readonly string _configName;
+#pragma warning restore IDE0052 // Remove unread private members
         private Action _acquired;
         private Action _released;
         private Action<int> _ratio;
@@ -23,7 +27,9 @@ namespace CoreWCF.Dispatcher
         internal FlowThrottle(int capacity, string propertyName, string configName)
         {
             if (capacity <= 0)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxThrottleLimitMustBeGreaterThanZero0));
+            }
 
             _count = 0;
             _capacity = capacity;
@@ -40,7 +46,10 @@ namespace CoreWCF.Dispatcher
             set
             {
                 if (value <= 0)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxThrottleLimitMustBeGreaterThanZero0));
+                }
+
                 _capacity = value;
             }
         }
@@ -115,7 +124,9 @@ namespace CoreWCF.Dispatcher
                 {
                     next = _waiters.Dequeue();
                     if (_waiters.Count == 0)
+                    {
                         _waiters.TrimExcess();
+                    }
                 }
                 else
                 {
@@ -126,13 +137,15 @@ namespace CoreWCF.Dispatcher
                         //{
                         //    TD.MessageThrottleAtSeventyPercent(this.propertyName, this.capacity);
                         //}
-                        _warningIssued = false;
+                        //_warningIssued = false;
                     }
                 }
             }
 
             if (next != null)
+            {
                 next.TrySetResult(null);
+            }
 
             _released?.Invoke();
             _ratio?.Invoke(_count);

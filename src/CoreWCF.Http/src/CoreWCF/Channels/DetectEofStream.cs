@@ -1,25 +1,25 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
-    abstract class DetectEofStream : DelegatingStream
+    internal abstract class DetectEofStream : DelegatingStream
     {
-        bool _isAtEof;
-
         protected DetectEofStream(Stream stream)
             : base(stream)
         {
-            _isAtEof = false;
+            IsAtEof = false;
         }
 
-        protected bool IsAtEof => _isAtEof;
+        protected bool IsAtEof { get; private set; }
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            if (_isAtEof)
+            if (IsAtEof)
             {
                 return 0;
             }
@@ -43,7 +43,7 @@ namespace CoreWCF.Channels
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (_isAtEof)
+            if (IsAtEof)
             {
                 return 0;
             }
@@ -57,9 +57,9 @@ namespace CoreWCF.Channels
 
         private void ReceivedEof()
         {
-            if (!_isAtEof)
+            if (!IsAtEof)
             {
-                _isAtEof = true;
+                IsAtEof = true;
                 OnReceivedEof();
             }
         }
@@ -68,5 +68,4 @@ namespace CoreWCF.Channels
         {
         }
     }
-
 }

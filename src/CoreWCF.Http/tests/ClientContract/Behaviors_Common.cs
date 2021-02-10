@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections;
 using System.Collections.ObjectModel;
@@ -79,9 +82,9 @@ namespace ClientContract
 
         public bool IsDispatcherContractBehaviorOnlyInvoked()
         {
-            if (m_BehaviorFlags.DisptacherContractBehaviorFlag&&
+            if (m_BehaviorFlags.DisptacherContractBehaviorFlag &&
                 !m_BehaviorFlags.ProxyContractBehaviorFlag &&
-                !m_BehaviorFlags.ServiceBehaviorFlag &&                
+                !m_BehaviorFlags.ServiceBehaviorFlag &&
                 !m_BehaviorFlags.ChannelBehaviorFlag &&
                 !m_BehaviorFlags.ProxyOperationBehaviorFlag &&
                 !m_BehaviorFlags.DisptacherOperationBehaviorFlag &&
@@ -97,8 +100,8 @@ namespace ClientContract
 
         public bool IsDispatcherOperationBehaviorOnlyInvoked()
         {
-            if (m_BehaviorFlags.DisptacherOperationBehaviorFlag && 
-                !m_BehaviorFlags.ProxyOperationBehaviorFlag && 
+            if (m_BehaviorFlags.DisptacherOperationBehaviorFlag &&
+                !m_BehaviorFlags.ProxyOperationBehaviorFlag &&
                 !m_BehaviorFlags.DisptacherContractBehaviorFlag &&
                 !m_BehaviorFlags.ProxyContractBehaviorFlag &&
                 !m_BehaviorFlags.ServiceBehaviorFlag &&
@@ -225,8 +228,8 @@ namespace ClientContract
         }
     }
 
-    public enum BehaviorType 
-        { IServiceBehavior, IEndpointBehavior, IContractBehavior, IOperationBehavior }
+    public enum BehaviorType
+    { IServiceBehavior, IEndpointBehavior, IContractBehavior, IOperationBehavior }
 
     public class BehaviorInvokedVerifier
     {
@@ -236,9 +239,9 @@ namespace ClientContract
 
             for (int i = 0; i < CustomBehaviorsList.Count; i++)
             {
-                BehaviorType key = (BehaviorType) CustomBehaviorsList.GetKey(i);
+                BehaviorType key = (BehaviorType)CustomBehaviorsList.GetKey(i);
                 Collection<CustomBehaviorAttribute> CustomBehaviorsColln = CustomBehaviorsList.GetByIndex(i) as Collection<CustomBehaviorAttribute>;
-            
+
                 foreach (CustomBehaviorAttribute cba in CustomBehaviorsColln)
                 {
                     bool behaviorInvoked = false;
@@ -264,7 +267,10 @@ namespace ClientContract
                     resultsSB.Append(key.ToString() + ":");
                     resultsSB.Append(cba.ToString());
                     if (!behaviorInvoked)
+                    {
                         resultsSB.Append("[NotInvoked]");
+                    }
+
                     resultsSB.Append(";");
                 }
             }

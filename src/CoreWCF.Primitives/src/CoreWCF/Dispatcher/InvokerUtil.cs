@@ -1,34 +1,39 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Security;
 
 namespace CoreWCF.Dispatcher
 {
-    delegate object InvokeDelegate(object target, object[] inputs, object[] outputs);
-    delegate IAsyncResult InvokeBeginDelegate(object target, object[] inputs, AsyncCallback asyncCallback, object state);
-    delegate object InvokeEndDelegate(object target, object[] outputs, IAsyncResult result);
-    delegate object CreateInstanceDelegate();
+    internal delegate object InvokeDelegate(object target, object[] inputs, object[] outputs);
+
+    internal delegate IAsyncResult InvokeBeginDelegate(object target, object[] inputs, AsyncCallback asyncCallback, object state);
+
+    internal delegate object InvokeEndDelegate(object target, object[] outputs, IAsyncResult result);
+
+    internal delegate object CreateInstanceDelegate();
 
     internal sealed class InvokerUtil
     {
-        private CriticalHelper helper;
+        private readonly CriticalHelper _helper;
 
         public InvokerUtil()
         {
-            helper = new CriticalHelper();
+            _helper = new CriticalHelper();
         }
 
         internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
         {
-            return helper.GenerateCreateInstanceDelegate(type, constructor);
+            return _helper.GenerateCreateInstanceDelegate(type, constructor);
         }
 
         internal InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount,
             out int outputParameterCount)
         {
-            return helper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
+            return _helper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
         }
 
         //internal InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
@@ -45,7 +50,6 @@ namespace CoreWCF.Dispatcher
         {
             internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
             {
-                
                 if (type.GetTypeInfo().IsValueType)
                 {
                     MethodInfo method = typeof(CriticalHelper).GetMethod(nameof(CreateInstanceOfStruct),
@@ -76,7 +80,7 @@ namespace CoreWCF.Dispatcher
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
-                var inputCount = parameters.Length;
+                int inputCount = parameters.Length;
                 inputParameterCount = inputCount;
 
                 var outputParamPositions = new List<int>();
@@ -88,7 +92,7 @@ namespace CoreWCF.Dispatcher
                     }
                 }
 
-                var outputPos = outputParamPositions.ToArray();
+                int[] outputPos = outputParamPositions.ToArray();
                 outputParameterCount = outputPos.Length;
 
                 // TODO: Replace with expression to remove performance cost of calling delegate.Invoke.
@@ -98,7 +102,7 @@ namespace CoreWCF.Dispatcher
                     if (inputCount > 0)
                     {
                         inputsLocal = new object[inputCount];
-                        for (var i = 0; i < inputCount; i++)
+                        for (int i = 0; i < inputCount; i++)
                         {
                             inputsLocal[i] = inputs[i];
                         }
@@ -116,12 +120,12 @@ namespace CoreWCF.Dispatcher
                             method.Invoke(target, inputsLocal);
                         }
                     }
-                    catch(TargetInvocationException tie)
+                    catch (TargetInvocationException tie)
                     {
                         ExceptionDispatchInfo.Capture(tie.InnerException).Throw();
                     }
 
-                    for (var i = 0; i < outputPos.Length; i++)
+                    for (int i = 0; i < outputPos.Length; i++)
                     {
                         outputs[i] = inputs[outputPos[i]];
                     }
@@ -157,11 +161,11 @@ namespace CoreWCF.Dispatcher
 
             //public InvokeEndDelegate GenerateInvokeEndDelegate(MethodInfo method, out int outParameterCount)
             //{
-                
+
             //    InvokeEndDelegate lambda =
             //        delegate(object target, object[] outputs, IAsyncResult result)
             //        {
-                        
+
             //        }
             //}
         }

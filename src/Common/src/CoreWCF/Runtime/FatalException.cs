@@ -1,10 +1,13 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Diagnostics.Contracts;
 
 namespace CoreWCF.Runtime
 {
     // TODO: This is in internals so probably needs to go away
-    class FatalException : Exception //SystemException
+    internal class FatalException : Exception //SystemException
     {
         public FatalException()
         {

@@ -1,29 +1,31 @@
-﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
 {
-    sealed class AuthorizationBehavior
+    internal sealed class AuthorizationBehavior
     {
-        static ServiceAuthorizationManager DefaultServiceAuthorizationManager = new ServiceAuthorizationManager();
+        private static readonly ServiceAuthorizationManager s_defaultServiceAuthorizationManager = new ServiceAuthorizationManager();
+        private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
+        private ServiceAuthorizationManager _serviceAuthorizationManager;
 
-        ReadOnlyCollection<IAuthorizationPolicy> externalAuthorizationPolicies;
-        ServiceAuthorizationManager serviceAuthorizationManager;
-
-        AuthorizationBehavior() { }
+        private AuthorizationBehavior() { }
 
         public void Authorize(ref MessageRpc rpc)
         {
             // TODO: Events 
             SecurityMessageProperty security = SecurityMessageProperty.GetOrCreate(rpc.Request);
-            security.ExternalAuthorizationPolicies = this.externalAuthorizationPolicies;
+            security.ExternalAuthorizationPolicies = _externalAuthorizationPolicies;
 
-            ServiceAuthorizationManager serviceAuthorizationManager = this.serviceAuthorizationManager ?? DefaultServiceAuthorizationManager;
+            ServiceAuthorizationManager serviceAuthorizationManager = _serviceAuthorizationManager ?? s_defaultServiceAuthorizationManager;
             try
             {
                 if (!serviceAuthorizationManager.CheckAccess(rpc.OperationContext, ref rpc.Request))
@@ -46,21 +48,27 @@ namespace CoreWCF.Dispatcher
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
+        private static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
         {
-            AuthorizationBehavior behavior = new AuthorizationBehavior();
-            behavior.externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies;
-            behavior.serviceAuthorizationManager = dispatch.ServiceAuthorizationManager;
+            AuthorizationBehavior behavior = new AuthorizationBehavior
+            {
+                _externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies,
+                _serviceAuthorizationManager = dispatch.ServiceAuthorizationManager
+            };
             return behavior;
         }
 
         public static AuthorizationBehavior TryCreate(DispatchRuntime dispatch)
         {
             if (dispatch == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(dispatch)));
+            }
 
             if (!dispatch.RequiresAuthorization)
+            {
                 return null;
+            }
 
             return CreateAuthorizationBehavior(dispatch);
         }

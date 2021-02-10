@@ -1,9 +1,10 @@
-﻿using CoreWCF.IdentityModel.Tokens;
-using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Xml;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
@@ -13,7 +14,7 @@ namespace CoreWCF.IdentityModel.Selectors
     /// The SecurityTokenSerializer is stateless
     /// Exceptions: XmlException, SecurityTokenException, NotSupportedException, InvalidOperationException, ArgumentException
     /// </summary>
-    internal abstract class SecurityTokenSerializer
+    public abstract class SecurityTokenSerializer
     {
         // public methods
         public bool CanReadToken(XmlReader reader)
@@ -155,7 +156,6 @@ namespace CoreWCF.IdentityModel.Selectors
 
         internal abstract class KeyIdentifierClauseEntry
         {
-
             protected abstract XmlDictionaryString LocalName { get; }
             protected abstract XmlDictionaryString NamespaceUri { get; }
 
@@ -208,7 +208,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         internal abstract class TokenEntry
         {
-            Type[] tokenTypes = null;
+            private Type[] _tokenTypes = null;
 
             protected abstract XmlDictionaryString LocalName { get; }
             protected abstract XmlDictionaryString NamespaceUri { get; }
@@ -222,7 +222,9 @@ namespace CoreWCF.IdentityModel.Selectors
                 for (int i = 0; i < tokenTypes.Length; ++i)
                 {
                     if (tokenTypes[i].IsAssignableFrom(tokenType))
+                    {
                         return true;
+                    }
                 }
                 return false;
             }
@@ -231,18 +233,18 @@ namespace CoreWCF.IdentityModel.Selectors
 
             public Type[] GetTokenTypes()
             {
-                if (tokenTypes == null)
-                    tokenTypes = GetTokenTypesCore();
-                return tokenTypes;
+                if (_tokenTypes == null)
+                {
+                    _tokenTypes = GetTokenTypesCore();
+                }
+
+                return _tokenTypes;
             }
 
             public virtual bool SupportsTokenTypeUri(string tokenTypeUri)
             {
                 return (TokenTypeUri == tokenTypeUri);
             }
-
         }
-
     }
-
 }

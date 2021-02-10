@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
-using System.Text;
 
 namespace CoreWCF.Channels
 {
-    static class DecoderHelper
+    internal static class DecoderHelper
     {
         public static void ValidateSize(int size)
         {
@@ -16,39 +17,38 @@ namespace CoreWCF.Channels
         }
     }
 
-    struct IntDecoder
+    internal struct IntDecoder
     {
-        int value;
-        short index;
-        bool isValueDecoded;
-        const int LastIndex = 4;
+        private int _value;
+        private short _index;
+        private const int LastIndex = 4;
 
         public int Value
         {
             get
             {
-                if (!isValueDecoded)
+                if (!IsValueDecoded)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
-                return value;
+                }
+
+                return _value;
             }
         }
 
-        public bool IsValueDecoded
-        {
-            get { return isValueDecoded; }
-        }
+        public bool IsValueDecoded { get; private set; }
 
         public void Reset()
         {
-            index = 0;
-            value = 0;
-            isValueDecoded = false;
+            _index = 0;
+            _value = 0;
+            IsValueDecoded = false;
         }
 
         public int Decode(byte[] buffer, int offset, int size)
         {
             DecoderHelper.ValidateSize(size);
-            if (isValueDecoded)
+            if (IsValueDecoded)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
             }
@@ -56,16 +56,16 @@ namespace CoreWCF.Channels
             while (bytesConsumed < size)
             {
                 int next = buffer[offset];
-                value |= (next & 0x7F) << (index * 7);
+                _value |= (next & 0x7F) << (_index * 7);
                 bytesConsumed++;
-                if (index == LastIndex && (next & 0xF8) != 0)
+                if (_index == LastIndex && (next & 0xF8) != 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.FramingSizeTooLarge));
                 }
-                index++;
+                _index++;
                 if ((next & 0x80) == 0)
                 {
-                    isValueDecoded = true;
+                    IsValueDecoded = true;
                     break;
                 }
                 offset++;
@@ -73,5 +73,4 @@ namespace CoreWCF.Channels
             return bytesConsumed;
         }
     }
-
 }

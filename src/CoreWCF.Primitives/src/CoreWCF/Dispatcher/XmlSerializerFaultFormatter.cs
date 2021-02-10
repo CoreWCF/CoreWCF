@@ -1,16 +1,19 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml;
-using CoreWCF.Collections.Generic;
 using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
 using CoreWCF.Description;
 
 namespace CoreWCF.Dispatcher
 {
     internal class XmlSerializerFaultFormatter : FaultFormatter
     {
-        SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos;
+        private SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> _xmlSerializerFaultContractInfos;
 
         internal XmlSerializerFaultFormatter(Type[] detailTypes,
             SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos)
@@ -26,13 +29,9 @@ namespace CoreWCF.Dispatcher
             Initialize(xmlSerializerFaultContractInfos);
         }
 
-        void Initialize(SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos)
+        private void Initialize(SynchronizedCollection<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo> xmlSerializerFaultContractInfos)
         {
-            if (xmlSerializerFaultContractInfos == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlSerializerFaultContractInfos));
-            }
-            this.xmlSerializerFaultContractInfos = xmlSerializerFaultContractInfos;
+            _xmlSerializerFaultContractInfos = xmlSerializerFaultContractInfos ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(xmlSerializerFaultContractInfos));
         }
 
         protected override XmlObjectSerializer GetSerializer(Type detailType, string faultExceptionAction, out string action)
@@ -40,23 +39,27 @@ namespace CoreWCF.Dispatcher
             action = faultExceptionAction;
 
             XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo faultInfo = null;
-            for (int i = 0; i < xmlSerializerFaultContractInfos.Count; i++)
+            for (int i = 0; i < _xmlSerializerFaultContractInfos.Count; i++)
             {
-                if (xmlSerializerFaultContractInfos[i].FaultContractInfo.Detail == detailType)
+                if (_xmlSerializerFaultContractInfos[i].FaultContractInfo.Detail == detailType)
                 {
-                    faultInfo = xmlSerializerFaultContractInfos[i];
+                    faultInfo = _xmlSerializerFaultContractInfos[i];
                     break;
                 }
             }
             if (faultInfo != null)
             {
                 if (action == null)
+                {
                     action = faultInfo.FaultContractInfo.Action;
+                }
 
                 return faultInfo.Serializer;
             }
             else
+            {
                 return new XmlSerializerObjectSerializer(detailType);
+            }
         }
 
         protected override FaultException CreateFaultException(MessageFault messageFault, string action)
@@ -65,22 +68,20 @@ namespace CoreWCF.Dispatcher
             if (action != null)
             {
                 faultInfos = new List<XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo>();
-                for (int i = 0; i < xmlSerializerFaultContractInfos.Count; i++)
+                for (int i = 0; i < _xmlSerializerFaultContractInfos.Count; i++)
                 {
-                    if (xmlSerializerFaultContractInfos[i].FaultContractInfo.Action == action
-                        || xmlSerializerFaultContractInfos[i].FaultContractInfo.Action == MessageHeaders.WildcardAction)
+                    if (_xmlSerializerFaultContractInfos[i].FaultContractInfo.Action == action
+                        || _xmlSerializerFaultContractInfos[i].FaultContractInfo.Action == MessageHeaders.WildcardAction)
                     {
-                        faultInfos.Add(xmlSerializerFaultContractInfos[i]);
+                        faultInfos.Add(_xmlSerializerFaultContractInfos[i]);
                     }
                 }
             }
             else
             {
-                faultInfos = xmlSerializerFaultContractInfos;
+                faultInfos = _xmlSerializerFaultContractInfos;
             }
 
-            Type detailType = null;
-            object detailObj = null;
             for (int i = 0; i < faultInfos.Count; i++)
             {
                 XmlSerializerOperationBehavior.Reflector.XmlSerializerFaultContractInfo faultInfo = faultInfos[i];
@@ -89,22 +90,25 @@ namespace CoreWCF.Dispatcher
 
                 if (serializer.IsStartObject(detailReader))
                 {
-                    detailType = faultInfo.FaultContractInfo.Detail;
+                    Type detailType = faultInfo.FaultContractInfo.Detail;
                     try
                     {
-                        detailObj = serializer.ReadObject(detailReader);
+                        object detailObj = serializer.ReadObject(detailReader);
                         FaultException faultException = CreateFaultException(messageFault, action,
                             detailObj, detailType, detailReader);
                         if (faultException != null)
+                        {
                             return faultException;
+                        }
                     }
+#pragma warning disable CA1031 // Do not catch general exception types - if we can't deserialie the message fault detail, return plain FaultException
                     catch (SerializationException)
                     {
                     }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
             return new FaultException(messageFault, action);
         }
     }
-
 }

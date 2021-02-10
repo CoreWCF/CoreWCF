@@ -1,11 +1,12 @@
-﻿using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Security.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Security.Principal;
-using System.Text;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
@@ -14,23 +15,23 @@ namespace CoreWCF.Security
         internal const bool DefaultAllowNtlm = true;
         internal const bool DefaultExtractWindowsGroupClaims = true;
         internal const bool DefaultAllowUnauthenticatedCallers = false;
-        SspiSecurityToken token;
+        private readonly SspiSecurityToken _token;
 
         // client side ctor
         public SspiSecurityTokenProvider(NetworkCredential credential, bool allowNtlm, TokenImpersonationLevel impersonationLevel)
         {
-            this.token = new SspiSecurityToken(impersonationLevel, allowNtlm, credential);
+            _token = new SspiSecurityToken(impersonationLevel, allowNtlm, credential);
         }
 
         // service side ctor
         public SspiSecurityTokenProvider(NetworkCredential credential, bool extractGroupsForWindowsAccounts, bool allowUnauthenticatedCallers)
         {
-            this.token = new SspiSecurityToken(credential, extractGroupsForWindowsAccounts, allowUnauthenticatedCallers);
+            _token = new SspiSecurityToken(credential, extractGroupsForWindowsAccounts, allowUnauthenticatedCallers);
         }
 
         protected override SecurityToken GetTokenCore(TimeSpan timeout)
         {
-            return this.token;
+            return _token;
         }
     }
 }

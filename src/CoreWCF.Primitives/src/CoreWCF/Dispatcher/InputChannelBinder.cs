@@ -1,10 +1,13 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
 using CoreWCF.Configuration;
+using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
@@ -15,7 +18,6 @@ namespace CoreWCF.Dispatcher
 
         public InputChannelBinder()
         {
-
         }
 
         internal void Init(IInputChannel channel, Uri listenUri)
@@ -104,18 +106,18 @@ namespace CoreWCF.Dispatcher
 
         public Task DispatchAsync(Message message)
         {
-            var requestContext = WrapMessage(message);
+            RequestContext requestContext = WrapMessage(message);
             return _next.DispatchAsync(requestContext);
         }
 
         private class InputRequestContext : RequestContextBase
         {
-            private InputChannelBinder binder;
+            private readonly InputChannelBinder _binder;
 
             internal InputRequestContext(Message request, InputChannelBinder binder)
                 : base(request, TimeSpan.Zero, TimeSpan.Zero)
             {
-                this.binder = binder;
+                _binder = binder;
             }
 
             protected override void OnAbort()

@@ -1,20 +1,16 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-// ------------------------------------------------------------------------------
-// Changes to this file must follow the http://aka.ms/api-review process.
-// ------------------------------------------------------------------------------
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Xml;
 
 namespace CoreWCF
 {
     public sealed class EnvelopeVersion
     {
-        string _actor;
-        string _toStringFormat;
+        private readonly string _actor;
+        private readonly string _toStringFormat;
 
-        EnvelopeVersion(string ultimateReceiverActor, string nextDestinationActorValue,
+        private EnvelopeVersion(string ultimateReceiverActor, string nextDestinationActorValue,
             string ns, XmlDictionaryString dictionaryNs, string actor, XmlDictionaryString dictionaryActor,
             string toStringFormat, string senderFaultName, string receiverFaultName)
         {

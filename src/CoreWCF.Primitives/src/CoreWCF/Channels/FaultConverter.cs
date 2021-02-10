@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Globalization;
 
 namespace CoreWCF.Channels
@@ -74,13 +77,13 @@ namespace CoreWCF.Channels
             return created;
         }
 
-        class DefaultFaultConverter : FaultConverter
+        private class DefaultFaultConverter : FaultConverter
         {
-            MessageVersion version;
+            private readonly MessageVersion _version;
 
             internal DefaultFaultConverter(MessageVersion version)
             {
-                this.version = version;
+                _version = version;
             }
 
             protected override bool OnTryCreateException(Message message, MessageFault fault, out Exception exception)
@@ -88,7 +91,7 @@ namespace CoreWCF.Channels
                 exception = null;
 
                 // SOAP MustUnderstand
-                if (string.Compare(fault.Code.Namespace, version.Envelope.Namespace, StringComparison.Ordinal) == 0
+                if (string.Compare(fault.Code.Namespace, _version.Envelope.Namespace, StringComparison.Ordinal) == 0
                     && string.Compare(fault.Code.Name, MessageStrings.MustUnderstandFault, StringComparison.Ordinal) == 0)
                 {
                     exception = new ProtocolException(fault.Reason.GetMatchingTranslation(CultureInfo.CurrentCulture).Text);
@@ -99,7 +102,7 @@ namespace CoreWCF.Channels
                 bool checkReceiver;
                 FaultCode code;
 
-                if (version.Envelope == EnvelopeVersion.Soap11)
+                if (_version.Envelope == EnvelopeVersion.Soap11)
                 {
                     checkSender = true;
                     checkReceiver = true;
@@ -125,7 +128,7 @@ namespace CoreWCF.Channels
                 if (checkSender)
                 {
                     // WS-Addressing
-                    if (string.Compare(code.Namespace, version.Addressing.Namespace, StringComparison.Ordinal) == 0)
+                    if (string.Compare(code.Namespace, _version.Addressing.Namespace, StringComparison.Ordinal) == 0)
                     {
                         if (string.Compare(code.Name, AddressingStrings.ActionNotSupported, StringComparison.Ordinal) == 0)
                         {
@@ -139,14 +142,14 @@ namespace CoreWCF.Channels
                         }
                         else if (string.Compare(code.Name, Addressing10Strings.InvalidAddressingHeader, StringComparison.Ordinal) == 0)
                         {
-                            if (code.SubCode != null && string.Compare(code.SubCode.Namespace, version.Addressing.Namespace, StringComparison.Ordinal) == 0 &&
+                            if (code.SubCode != null && string.Compare(code.SubCode.Namespace, _version.Addressing.Namespace, StringComparison.Ordinal) == 0 &&
                                 string.Compare(code.SubCode.Name, Addressing10Strings.InvalidCardinality, StringComparison.Ordinal) == 0)
                             {
                                 exception = new MessageHeaderException(fault.Reason.GetMatchingTranslation(CultureInfo.CurrentCulture).Text, true);
                                 return true;
                             }
                         }
-                        else if (version.Addressing == AddressingVersion.WSAddressing10)
+                        else if (_version.Addressing == AddressingVersion.WSAddressing10)
                         {
                             if (string.Compare(code.Name, Addressing10Strings.MessageAddressingHeaderRequired, StringComparison.Ordinal) == 0)
                             {
@@ -178,7 +181,7 @@ namespace CoreWCF.Channels
                 if (checkReceiver)
                 {
                     // WS-Addressing
-                    if (string.Compare(code.Namespace, version.Addressing.Namespace, StringComparison.Ordinal) == 0)
+                    if (string.Compare(code.Namespace, _version.Addressing.Namespace, StringComparison.Ordinal) == 0)
                     {
                         if (string.Compare(code.Name, AddressingStrings.EndpointUnavailable, StringComparison.Ordinal) == 0)
                         {
@@ -194,30 +197,30 @@ namespace CoreWCF.Channels
             protected override bool OnTryCreateFaultMessage(Exception exception, out Message message)
             {
                 // WSA
-                if (version.Addressing == AddressingVersion.WSAddressing10)
+                if (_version.Addressing == AddressingVersion.WSAddressing10)
                 {
                     if (exception is MessageHeaderException)
                     {
                         MessageHeaderException mhe = exception as MessageHeaderException;
                         if (mhe.HeaderNamespace == AddressingVersion.WSAddressing10.Namespace)
                         {
-                            message = mhe.ProvideFault(version);
+                            message = mhe.ProvideFault(_version);
                             return true;
                         }
                     }
                     else if (exception is ActionMismatchAddressingException)
                     {
                         ActionMismatchAddressingException amae = exception as ActionMismatchAddressingException;
-                        message = amae.ProvideFault(version);
+                        message = amae.ProvideFault(_version);
                         return true;
                     }
                 }
-                if (version.Addressing != AddressingVersion.None)
+                if (_version.Addressing != AddressingVersion.None)
                 {
                     if (exception is ActionNotSupportedException)
                     {
                         ActionNotSupportedException anse = exception as ActionNotSupportedException;
-                        message = anse.ProvideFault(version);
+                        message = anse.ProvideFault(_version);
                         return true;
                     }
                 }
@@ -226,7 +229,7 @@ namespace CoreWCF.Channels
                 if (exception is MustUnderstandSoapException)
                 {
                     MustUnderstandSoapException muse = exception as MustUnderstandSoapException;
-                    message = muse.ProvideFault(version);
+                    message = muse.ProvideFault(_version);
                     return true;
                 }
 
@@ -235,5 +238,4 @@ namespace CoreWCF.Channels
             }
         }
     }
-
 }

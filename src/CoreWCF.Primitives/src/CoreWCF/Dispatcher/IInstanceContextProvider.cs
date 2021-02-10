@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
@@ -14,19 +17,11 @@ namespace CoreWCF.Dispatcher
 
     internal abstract class InstanceContextProviderBase : IInstanceContextProvider
     {
-        DispatchRuntime dispatchRuntime;
-
-        public DispatchRuntime DispatchRuntime
-        {
-            get
-            {
-                return dispatchRuntime;
-            }
-        }
+        public DispatchRuntime DispatchRuntime { get; }
 
         internal InstanceContextProviderBase(DispatchRuntime dispatchRuntime)
         {
-            this.dispatchRuntime = dispatchRuntime;
+            DispatchRuntime = dispatchRuntime;
         }
 
         internal static bool IsProviderSingleton(IInstanceContextProvider provider)
@@ -62,8 +57,7 @@ namespace CoreWCF.Dispatcher
 
         internal ServiceChannel GetServiceChannelFromProxy(IContextChannel channel)
         {
-            ServiceChannel serviceChannel = channel as ServiceChannel;
-            if (serviceChannel == null)
+            if (!(channel is ServiceChannel serviceChannel))
             {
                 serviceChannel = ServiceChannelFactory.GetServiceChannel(channel);
             }
@@ -94,5 +88,4 @@ namespace CoreWCF.Dispatcher
 
         #endregion
     }
-
 }

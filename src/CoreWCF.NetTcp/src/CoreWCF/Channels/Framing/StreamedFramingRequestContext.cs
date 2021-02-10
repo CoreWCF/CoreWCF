@@ -1,19 +1,21 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {
     internal class StreamedFramingRequestContext : RequestContextBase
     {
-        private FramingConnection _connection;
-        private Message _requestMessage;
-        private Stream _inputStream;
-        bool isClosed;
-        private TaskCompletionSource<object> _tcs;
+        private readonly FramingConnection _connection;
+        private readonly Message _requestMessage;
+        private readonly Stream _inputStream;
+        private bool _isClosed;
+        private readonly TaskCompletionSource<object> _tcs;
 
         public StreamedFramingRequestContext(FramingConnection connection, Message requestMessage, Stream inputStream)
             : base(requestMessage, connection.ServiceDispatcher.Binding.CloseTimeout, connection.ServiceDispatcher.Binding.SendTimeout)
@@ -34,12 +36,12 @@ namespace CoreWCF.Channels.Framing
         {
             lock (ThisLock)
             {
-                if (isClosed)
+                if (_isClosed)
                 {
                     return;
                 }
 
-                isClosed = true;
+                _isClosed = true;
             }
 
             bool success = false;
@@ -95,8 +97,7 @@ namespace CoreWCF.Channels.Framing
 
         protected override async Task OnReplyAsync(Message message, CancellationToken token)
         {
-            ICompressedMessageEncoder compressedMessageEncoder = _connection.MessageEncoderFactory.Encoder as ICompressedMessageEncoder;
-            if (compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled)
+            if (_connection.MessageEncoderFactory.Encoder is ICompressedMessageEncoder compressedMessageEncoder && compressedMessageEncoder.CompressionEnabled)
             {
                 compressedMessageEncoder.AddCompressedMessageProperties(message, _connection.FramingDecoder.ContentType);
             }
@@ -107,7 +108,7 @@ namespace CoreWCF.Channels.Framing
         public Task ReplySent => _tcs.Task;
     }
 
-    static class StreamingConnectionHelper
+    internal static class StreamingConnectionHelper
     {
         public static async Task WriteMessageAsync(Message message, FramingConnection connection, bool isRequest,
             IDefaultCommunicationTimeouts settings, CancellationToken token)
@@ -136,7 +137,7 @@ namespace CoreWCF.Channels.Framing
                     Stream connectionStream = new StreamingOutputConnectionStream(connection, settings);
                     // TODO: Determine if timeout stream is needed as StreamingOutputConnectionStream implements some timeout functionality
                     //Stream writeTimeoutStream = new TimeoutStream(connectionStream, ref timeoutHelper);
-                    messageEncoder.WriteMessageAsync(message, connectionStream);
+                    await messageEncoder.WriteMessageAsync(message, connectionStream);
                     await connection.Output.FlushAsync();
                 }
                 else
@@ -166,11 +167,11 @@ namespace CoreWCF.Channels.Framing
     }
 
     // overrides Stream to add a Framing int at the beginning of each record
-    class StreamingOutputConnectionStream : Stream
+    internal class StreamingOutputConnectionStream : Stream
     {
-        byte[] _encodedSize;
-        private FramingConnection _connection;
-        private IDefaultCommunicationTimeouts _timeouts;
+        private readonly byte[] _encodedSize;
+        private readonly FramingConnection _connection;
+        private readonly IDefaultCommunicationTimeouts _timeouts;
 
         public override bool CanRead => false;
 
@@ -215,7 +216,7 @@ namespace CoreWCF.Channels.Framing
         public override void WriteByte(byte value)
         {
             var timeoutHelper = new TimeoutHelper(_timeouts.SendTimeout);
-            var ct = timeoutHelper.GetCancellationToken();
+            CancellationToken ct = timeoutHelper.GetCancellationToken();
             WriteChunkSizeAsync(1, ct).GetAwaiter().GetResult();
             _connection.Output.WriteAsync(new byte[] { value }, ct).GetAwaiter().GetResult();
             _connection.Output.FlushAsync();
@@ -229,7 +230,7 @@ namespace CoreWCF.Channels.Framing
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             var timeoutHelper = new TimeoutHelper(_timeouts.SendTimeout);
-            var ct = timeoutHelper.GetCancellationToken();
+            CancellationToken ct = timeoutHelper.GetCancellationToken();
             await WriteChunkSizeAsync(count, ct);
             await _connection.Output.WriteAsync(new ArraySegment<byte>(buffer, offset, count), ct);
             await _connection.Output.FlushAsync();

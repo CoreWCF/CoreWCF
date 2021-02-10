@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace Helpers
@@ -25,7 +28,9 @@ namespace Helpers
         {
             _testOutputHelper.WriteLine($"{_categoryName} [{eventId}] {formatter(state, exception)}");
             if (exception != null)
+            {
                 _testOutputHelper.WriteLine(exception.ToString());
+            }
         }
 
         private class NoopDisposable : IDisposable

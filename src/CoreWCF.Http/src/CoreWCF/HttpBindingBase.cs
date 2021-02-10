@@ -1,6 +1,8 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.ComponentModel;
-using System.Diagnostics.Contracts;
 using System.Text;
 using System.Xml;
 using CoreWCF.Channels;
@@ -10,20 +12,21 @@ namespace CoreWCF
 {
     public abstract class HttpBindingBase : Binding
     {
-        private HttpTransportBindingElement _httpTransport;
-        private HttpsTransportBindingElement _httpsTransport;
-        private TextMessageEncodingBindingElement _textEncoding;
+        private readonly HttpTransportBindingElement _httpTransport;
+        private readonly HttpsTransportBindingElement _httpsTransport;
 
         internal HttpBindingBase()
         {
             _httpTransport = new HttpTransportBindingElement();
             _httpsTransport = new HttpsTransportBindingElement();
-            _textEncoding = new TextMessageEncodingBindingElement();
-            _textEncoding.MessageVersion = MessageVersion.Soap11;
+            TextMessageEncodingBindingElement = new TextMessageEncodingBindingElement
+            {
+                MessageVersion = MessageVersion.Soap11
+            };
         }
         // [System.ComponentModel.DefaultValueAttribute(false)]
         // public bool AllowCookies { get { return default(bool); } set { } }
-        
+
         // [System.ComponentModel.DefaultValueAttribute((long)524288)]
         // public long MaxBufferPoolSize { get { return default(long); } set { } }
         // [System.ComponentModel.DefaultValueAttribute(65536)]
@@ -57,7 +60,7 @@ namespace CoreWCF
         {
             get
             {
-                return this._textEncoding.ReaderQuotas;
+                return TextMessageEncodingBindingElement.ReaderQuotas;
             }
 
             set
@@ -67,10 +70,10 @@ namespace CoreWCF
                     throw Fx.Exception.ArgumentNull(nameof(value));
                 }
 
-                value.CopyTo(this._textEncoding.ReaderQuotas);
+                value.CopyTo(TextMessageEncodingBindingElement.ReaderQuotas);
                 //value.CopyTo(this.mtomEncoding.ReaderQuotas);
 
-                this.SetReaderQuotas(value);
+                SetReaderQuotas(value);
             }
         }
 
@@ -80,12 +83,12 @@ namespace CoreWCF
         {
             get
             {
-                return _textEncoding.WriteEncoding;
+                return TextMessageEncodingBindingElement.WriteEncoding;
             }
 
             set
             {
-                _textEncoding.WriteEncoding = value;
+                TextMessageEncodingBindingElement.WriteEncoding = value;
                 //_mtomEncoding.WriteEncoding = value;
             }
         }
@@ -94,7 +97,7 @@ namespace CoreWCF
         public TransferMode TransferMode
         {
             get
-            {   
+            {
                 return _httpTransport.TransferMode;
             }
 
@@ -105,13 +108,7 @@ namespace CoreWCF
             }
         }
 
-        internal TextMessageEncodingBindingElement TextMessageEncodingBindingElement
-        {
-            get
-            {
-                return _textEncoding;
-            }
-        }
+        internal TextMessageEncodingBindingElement TextMessageEncodingBindingElement { get; }
 
         internal abstract BasicHttpSecurity BasicHttpSecurity
         {
@@ -128,7 +125,7 @@ namespace CoreWCF
 
         internal TransportBindingElement GetTransport()
         {
-            Fx.Assert(this.BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
+            Fx.Assert(BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
 
             BasicHttpSecurity basicHttpSecurity = BasicHttpSecurity;
             if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential || basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
@@ -185,6 +182,5 @@ namespace CoreWCF
             //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Transport.ClientCredentialType", transport.ClientCredentialType)));
             //}
         }
-
     }
 }

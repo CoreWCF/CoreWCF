@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.Threading;
 
@@ -18,8 +21,8 @@ namespace Helpers
         // sending a continuous stream will easily blow the MaxReceivedMessageSize buffer.
         public TimeSpan StreamDuration { get; set; }
 
-        DateTime readStartedTime;
-        long totalBytesRead = 0;
+        private DateTime readStartedTime;
+        private long totalBytesRead = 0;
 
         public override bool CanRead
         {

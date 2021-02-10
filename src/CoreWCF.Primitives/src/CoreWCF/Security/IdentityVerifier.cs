@@ -1,12 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using CoreWCF.IdentityModel.Policy;
+using System.Security.Principal;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime.Diagnostics;
-using System.Security.Principal;
 using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
@@ -26,13 +29,19 @@ namespace CoreWCF.Security
         internal bool CheckAccess(EndpointAddress reference, Message message)
         {
             if (reference == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reference));
-            if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
 
-            EndpointIdentity identity;
-            if (!TryGetIdentity(reference, out identity))
+            if (message == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            }
+
+            if (!TryGetIdentity(reference, out EndpointIdentity identity))
+            {
                 return false;
+            }
 
             //SecurityMessageProperty securityContextProperty = null;
             //if (message.Properties != null)
@@ -49,7 +58,7 @@ namespace CoreWCF.Security
 
         public abstract bool TryGetIdentity(EndpointAddress reference, out EndpointIdentity identity);
 
-        static void AdjustAddress(ref EndpointAddress reference, Uri via)
+        private static void AdjustAddress(ref EndpointAddress reference, Uri via)
         {
             // if we don't have an identity and we have differing Uris, we should use the Via
             if (reference.Identity == null && reference.Uri != via)
@@ -85,14 +94,13 @@ namespace CoreWCF.Security
             EnsureIdentity(serviceReference, ac, SR.IdentityCheckFailedForOutgoingMessage);
         }
 
-        void EnsureIdentity(EndpointAddress serviceReference, AuthorizationContext authorizationContext, string errorString)
+        private void EnsureIdentity(EndpointAddress serviceReference, AuthorizationContext authorizationContext, string errorString)
         {
             if (authorizationContext == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authorizationContext));
             }
-            EndpointIdentity identity;
-            if (!TryGetIdentity(serviceReference, out identity))
+            if (!TryGetIdentity(serviceReference, out EndpointIdentity identity))
             {
                 //SecurityTraceRecordHelper.TraceIdentityVerificationFailure(identity, authorizationContext, this.GetType());
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(errorString, identity, serviceReference)));
@@ -108,7 +116,7 @@ namespace CoreWCF.Security
             }
         }
 
-        Exception CreateIdentityCheckException(EndpointIdentity identity, AuthorizationContext authorizationContext, string errorString, EndpointAddress serviceReference)
+        private Exception CreateIdentityCheckException(EndpointIdentity identity, AuthorizationContext authorizationContext, string errorString, EndpointAddress serviceReference)
         {
             Exception result;
 
@@ -170,14 +178,16 @@ namespace CoreWCF.Security
             return result;
         }
 
-        class DefaultIdentityVerifier : IdentityVerifier
+        private class DefaultIdentityVerifier : IdentityVerifier
         {
             public static DefaultIdentityVerifier Instance { get; } = new DefaultIdentityVerifier();
 
             public override bool TryGetIdentity(EndpointAddress reference, out EndpointIdentity identity)
             {
                 if (reference == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reference));
+                }
 
                 identity = reference.Identity;
 
@@ -198,28 +208,35 @@ namespace CoreWCF.Security
                 }
             }
 
-            EndpointIdentity TryCreateDnsIdentity(EndpointAddress reference)
+            private EndpointIdentity TryCreateDnsIdentity(EndpointAddress reference)
             {
                 Uri toAddress = reference.Uri;
 
                 if (!toAddress.IsAbsoluteUri)
+                {
                     return null;
+                }
 
                 return EndpointIdentity.CreateDnsIdentity(toAddress.DnsSafeHost);
             }
 
-            SecurityIdentifier GetSecurityIdentifier(Claim claim)
+            private SecurityIdentifier GetSecurityIdentifier(Claim claim)
             {
                 // if the incoming claim is a SID and the EndpointIdentity is UPN/SPN/DNS, try to find the SID corresponding to
                 // the UPN/SPN/DNS (transactions case)
                 if (claim.Resource is WindowsIdentity)
+                {
                     return ((WindowsIdentity)claim.Resource).User;
+                }
                 else if (claim.Resource is WindowsSidIdentity)
+                {
                     return ((WindowsSidIdentity)claim.Resource).SecurityIdentifier;
+                }
+
                 return claim.Resource as SecurityIdentifier;
             }
 
-            Claim CheckDnsEquivalence(ClaimSet claimSet, string expectedSpn)
+            private Claim CheckDnsEquivalence(ClaimSet claimSet, string expectedSpn)
             {
                 // host/<machine-name> satisfies the DNS identity claim
                 IEnumerable<Claim> claims = claimSet.FindClaims(ClaimTypes.Spn, Rights.PossessProperty);
@@ -233,7 +250,7 @@ namespace CoreWCF.Security
                 return null;
             }
 
-            Claim CheckSidEquivalence(SecurityIdentifier identitySid, ClaimSet claimSet)
+            private Claim CheckSidEquivalence(SecurityIdentifier identitySid, ClaimSet claimSet)
             {
                 foreach (Claim claim in claimSet)
                 {
@@ -254,10 +271,14 @@ namespace CoreWCF.Security
                 //EventTraceActivity eventTraceActivity = null;
 
                 if (identity == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(identity));
+                }
 
                 if (authContext == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(authContext));
+                }
 
 
                 //if (FxTrace.Trace.IsEnd2EndActivityTracingEnabled)
@@ -324,5 +345,4 @@ namespace CoreWCF.Security
             }
         }
     }
-
 }

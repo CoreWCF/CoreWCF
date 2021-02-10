@@ -1,8 +1,11 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Net;
+using System.Security.Authentication.ExtendedProtection;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
-using System;
-using System.ComponentModel;
-using System.Net;
 
 namespace CoreWCF.Channels
 {
@@ -13,6 +16,7 @@ namespace CoreWCF.Channels
         private string _realm;
         private TransferMode _transferMode;
         private WebSocketTransportSettings _webSocketSettings;
+        private ExtendedProtectionPolicy _extendedProtectionPolicy;
 
         //HttpAnonymousUriPrefixMatcher _anonymousUriPrefixMatcher;
 
@@ -43,13 +47,19 @@ namespace CoreWCF.Channels
             get
             {
                 if (_maxBufferSizeInitialized || TransferMode != TransferMode.Buffered)
+                {
                     return _maxBufferSize;
+                }
 
                 long maxReceivedMessageSize = MaxReceivedMessageSize;
                 if (maxReceivedMessageSize > int.MaxValue)
+                {
                     return int.MaxValue;
+                }
                 else
+                {
                     return (int)maxReceivedMessageSize;
+                }
             }
             set
             {
@@ -74,12 +84,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _realm = value;
+                _realm = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -106,11 +111,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-                _webSocketSettings = value;
+                _webSocketSettings = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -133,7 +134,7 @@ namespace CoreWCF.Channels
 
         public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
         {
-            var app = context.BindingParameters.Find<IApplicationBuilder>();
+            IApplicationBuilder app = context.BindingParameters.Find<IApplicationBuilder>();
             if (app == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(IApplicationBuilder));
@@ -149,11 +150,11 @@ namespace CoreWCF.Channels
         {
             if (typeof(TChannel) == typeof(IReplyChannel))
             {
-                return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always;
+                return WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always;
             }
             else if (typeof(TChannel) == typeof(IDuplexSessionChannel))
             {
-                return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Never;
+                return WebSocketSettings.TransportUsage != WebSocketTransportUsage.Never;
             }
 
             return false;
@@ -204,9 +205,13 @@ namespace CoreWCF.Channels
             //}
             else if (typeof(T).FullName.Equals("CoreWCF.Channels.ITransportCompressionSupport"))
             {
-                var app = context.BindingParameters.Find<IApplicationBuilder>();
-                if (app == null) return base.GetProperty<T>(context);
-                var tcs = app.ApplicationServices.GetService(typeof(T).Assembly.GetType("CoreWCF.Channels.TransportCompressionSupportHelper"));
+                IApplicationBuilder app = context.BindingParameters.Find<IApplicationBuilder>();
+                if (app == null)
+                {
+                    return base.GetProperty<T>(context);
+                }
+
+                object tcs = app.ApplicationServices.GetService(typeof(T).Assembly.GetType("CoreWCF.Channels.TransportCompressionSupportHelper"));
                 return (T)tcs;
             }
             else
@@ -226,9 +231,8 @@ namespace CoreWCF.Channels
                 return currentAuthenticationSchemes;
             }
 
-            AuthenticationSchemes hostSupportedAuthenticationSchemes;
 
-            if (!AuthenticationSchemesBindingParameter.TryExtract(bindingParameters, out hostSupportedAuthenticationSchemes))
+            if (!AuthenticationSchemesBindingParameter.TryExtract(bindingParameters, out AuthenticationSchemes hostSupportedAuthenticationSchemes))
             {
                 return currentAuthenticationSchemes;
             }
@@ -257,9 +261,34 @@ namespace CoreWCF.Channels
             //}
             //else
             //{
-                //build intersection between AuthenticationSchemes supported on the HttpTransportbidningELement and ServiceHost/IIS
-                return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
+            //build intersection between AuthenticationSchemes supported on the HttpTransportbidningELement and ServiceHost/IIS
+            return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
             //}
         }
+
+        public ExtendedProtectionPolicy ExtendedProtectionPolicy
+        {
+            get
+            {
+                return _extendedProtectionPolicy;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
+                if (value.PolicyEnforcement == PolicyEnforcement.Always &&
+                    !ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+                {
+                    throw new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported);
+                }
+
+                _extendedProtectionPolicy = value;
+            }
+        }
+
+        //  public override Type MiddlewareType => typeof(ServiceModelHttpMiddleware);
     }
 }

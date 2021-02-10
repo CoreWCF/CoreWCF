@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 
 namespace CoreWCF.Description
 {
@@ -10,7 +13,7 @@ namespace CoreWCF.Description
         Always
     }
 
-    static class PrincipalPermissionModeHelper
+    internal static class PrincipalPermissionModeHelper
     {
         public static bool IsDefined(PrincipalPermissionMode principalPermissionMode)
         {

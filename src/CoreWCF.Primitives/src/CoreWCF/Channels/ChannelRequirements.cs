@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -17,13 +20,14 @@ namespace CoreWCF.Channels
         public static void ComputeContractRequirements(ContractDescription contractDescription,
             out ChannelRequirements requirements)
         {
-            requirements = new ChannelRequirements();
-
-            requirements.usesInput = false;
-            requirements.usesReply = false;
-            requirements.usesOutput = false;
-            requirements.usesRequest = false;
-            requirements.sessionMode = contractDescription.SessionMode;
+            requirements = new ChannelRequirements
+            {
+                usesInput = false,
+                usesReply = false,
+                usesOutput = false,
+                usesRequest = false,
+                sessionMode = contractDescription.SessionMode
+            };
 
             for (int i = 0; i < contractDescription.Operations.Count; i++)
             {
@@ -357,6 +361,5 @@ namespace CoreWCF.Channels
 
             return null;
         }
-
     }
 }

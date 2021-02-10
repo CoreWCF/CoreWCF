@@ -4,7 +4,6 @@
     <AssemblyName>CoreWCF.NetTcp</AssemblyName>
     <PackageId>CoreWCF.NetTcp</PackageId>
     <RootNamespace />
-    <LangVersion>7.2</LangVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <IncludeSharedDuplexChannelSource>True</IncludeSharedDuplexChannelSource>

@@ -1,17 +1,17 @@
-﻿using System;
-using System.ComponentModel;
-using System.Runtime;
-using CoreWCF.Channels;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Xml;
+using CoreWCF.Channels;
 using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
     public class NetHttpBinding : HttpBindingBase
     {
-        BinaryMessageEncodingBindingElement _binaryMessageEncodingBindingElement;
-        BasicHttpSecurity _basicHttpSecurity;
+        private BinaryMessageEncodingBindingElement _binaryMessageEncodingBindingElement;
+        private BasicHttpSecurity _basicHttpSecurity;
 
         public NetHttpBinding()
             : this(BasicHttpSecurityMode.None)
@@ -33,12 +33,7 @@ namespace CoreWCF
 
             set
             {
-                if (value == null)
-                {
-                    throw Fx.Exception.ArgumentNull(nameof(value));
-                }
-
-                _basicHttpSecurity = value;
+                _basicHttpSecurity = value ?? throw Fx.Exception.ArgumentNull(nameof(value));
             }
         }
 
@@ -48,7 +43,7 @@ namespace CoreWCF
 
         internal override void SetReaderQuotas(XmlDictionaryReaderQuotas readerQuotas)
         {
-            readerQuotas.CopyTo(this._binaryMessageEncodingBindingElement.ReaderQuotas);
+            readerQuotas.CopyTo(_binaryMessageEncodingBindingElement.ReaderQuotas);
         }
 
         public override BindingElementCollection CreateBindingElements()
@@ -83,7 +78,7 @@ namespace CoreWCF
             base.CheckSettings();
         }
 
-        void Initialize()
+        private void Initialize()
         {
             MessageEncoding = NetHttpBindingDefaults.MessageEncoding;
             _binaryMessageEncodingBindingElement = new BinaryMessageEncodingBindingElement() { MessageVersion = MessageVersion.Soap12WSAddressing10 };

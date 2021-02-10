@@ -1,4 +1,7 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using CoreWCF;
 using ServiceContract;
 
 namespace Services
@@ -50,9 +53,9 @@ namespace Services
 
     [ServiceBehavior]
     public class ServiceContractNamespace_784756_SurrogateCharacters_Service : IServiceContractNamespace_784756_SurrogateCharacters_Service
-    {      
+    {
         string IServiceContractNamespace_784756_SurrogateCharacters_Service.Method6(string input)
-        {            
+        {
             return input;
         }
     }

@@ -1,15 +1,18 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Net.WebSockets;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
     public sealed class WebSocketMessageProperty
     {
         public const string Name = "WebSocketMessageProperty";
-        ReadOnlyDictionary<string, object> properties;
+        private readonly ReadOnlyDictionary<string, object> _properties;
 
         public WebSocketMessageProperty()
         {
@@ -21,7 +24,7 @@ namespace CoreWCF.Channels
             WebSocketContext = context;
             SubProtocol = subProtocol;
             MessageType = incomingMessageType;
-            this.properties = properties;
+            _properties = properties;
         }
 
         public WebSocketContext WebSocketContext { get; }
@@ -34,7 +37,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (properties == null)
+                if (_properties == null)
                 {
                     throw Fx.Exception.AsError(new InvalidOperationException(SR.Format(
                         SR.WebSocketOpeningHandshakePropertiesNotAvailable,
@@ -43,7 +46,7 @@ namespace CoreWCF.Channels
                         typeof(DelegatingHandler).Name)));
                 }
 
-                return properties;
+                return _properties;
             }
         }
 
@@ -55,8 +58,7 @@ namespace CoreWCF.Channels
             }
 
             property = null;
-            object foundProperty;
-            if (properties.TryGetValue(Name, out foundProperty))
+            if (properties.TryGetValue(Name, out object foundProperty))
             {
                 property = (WebSocketMessageProperty)foundProperty;
                 return true;

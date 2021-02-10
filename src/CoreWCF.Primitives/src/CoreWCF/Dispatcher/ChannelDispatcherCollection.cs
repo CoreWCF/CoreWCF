@@ -1,17 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Collections.Generic;
 
 namespace CoreWCF.Dispatcher
 {
     public class ChannelDispatcherCollection : SynchronizedCollection<ChannelDispatcherBase>
     {
-        ServiceHostBase service;
+        private readonly ServiceHostBase _service;
 
         internal ChannelDispatcherCollection(ServiceHostBase service, object syncRoot)
             : base(syncRoot)
         {
-            this.service = service ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(service));
+            _service = service ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(service));
         }
 
         protected override void ClearItems()
@@ -20,21 +22,25 @@ namespace CoreWCF.Dispatcher
             CopyTo(array, 0);
             base.ClearItems();
 
-            if (service != null)
+            if (_service != null)
             {
                 foreach (ChannelDispatcherBase channelDispatcher in array)
-                    service.OnRemoveChannelDispatcher(channelDispatcher);
+                {
+                    _service.OnRemoveChannelDispatcher(channelDispatcher);
+                }
             }
         }
 
         protected override void InsertItem(int index, ChannelDispatcherBase item)
         {
-            if (service != null)
+            if (_service != null)
             {
-                if (service.State == CommunicationState.Closed)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(service.GetType().ToString()));
+                if (_service.State == CommunicationState.Closed)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(_service.GetType().ToString()));
+                }
 
-                service.OnAddChannelDispatcher(item);
+                _service.OnAddChannelDispatcher(item);
             }
 
             base.InsertItem(index, item);
@@ -44,20 +50,26 @@ namespace CoreWCF.Dispatcher
         {
             ChannelDispatcherBase channelDispatcher = Items[index];
             base.RemoveItem(index);
-            if (service != null)
-                service.OnRemoveChannelDispatcher(channelDispatcher); 
+            if (_service != null)
+            {
+                _service.OnRemoveChannelDispatcher(channelDispatcher);
+            }
         }
 
         protected override void SetItem(int index, ChannelDispatcherBase item)
         {
-            if (service != null)
+            if (_service != null)
             {
-                if (service.State == CommunicationState.Closed)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(service.GetType().ToString()));
+                if (_service.State == CommunicationState.Closed)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(_service.GetType().ToString()));
+                }
             }
 
-            if (service != null)
-                service.OnAddChannelDispatcher(item);
+            if (_service != null)
+            {
+                _service.OnAddChannelDispatcher(item);
+            }
 
             ChannelDispatcherBase old;
 
@@ -67,8 +79,10 @@ namespace CoreWCF.Dispatcher
                 base.SetItem(index, item);
             }
 
-            if (service != null)
-                service.OnRemoveChannelDispatcher(old);
+            if (_service != null)
+            {
+                _service.OnRemoveChannelDispatcher(old);
+            }
         }
     }
 }

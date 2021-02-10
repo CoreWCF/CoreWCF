@@ -1,11 +1,9 @@
-﻿using CoreWCF;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 namespace CoreWCF.IdentityModel
 {
-    class IdentityModelStringsVersion1 : IdentityModelStrings
+    internal class IdentityModelStringsVersion1 : IdentityModelStrings
     {
         public const string String0 = "Algorithm";
         public const string String1 = "URI";

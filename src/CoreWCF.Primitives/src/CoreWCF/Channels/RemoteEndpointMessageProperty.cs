@@ -1,16 +1,18 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Net;
 
 namespace CoreWCF.Channels
 {
     public sealed class RemoteEndpointMessageProperty
     {
-        string address;
-        int port;
-        IPEndPoint remoteEndPoint;
-        IRemoteEndpointProvider remoteEndpointProvider;
-        InitializationState state;
-        object thisLock = new object();
+        private string _address;
+        private int _port;
+        private IPEndPoint _remoteEndPoint;
+        private IRemoteEndpointProvider _remoteEndpointProvider;
+        private InitializationState _state;
 
         public RemoteEndpointMessageProperty(string address, int port)
         {
@@ -21,23 +23,23 @@ namespace CoreWCF.Channels
 
             if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("port",
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(port),
                     SR.Format(SR.ValueMustBeInRange, IPEndPoint.MinPort, IPEndPoint.MaxPort));
             }
 
-            this.port = port;
-            this.address = address;
-            state = InitializationState.All;
+            _port = port;
+            _address = address;
+            _state = InitializationState.All;
         }
 
         internal RemoteEndpointMessageProperty(IRemoteEndpointProvider remoteEndpointProvider)
         {
-            this.remoteEndpointProvider = remoteEndpointProvider;
+            _remoteEndpointProvider = remoteEndpointProvider;
         }
 
         public RemoteEndpointMessageProperty(IPEndPoint remoteEndPoint)
         {
-            this.remoteEndPoint = remoteEndPoint;
+            _remoteEndPoint = remoteEndPoint;
         }
 
         public static string Name
@@ -49,17 +51,17 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if ((state & InitializationState.Address) != InitializationState.Address)
+                if ((_state & InitializationState.Address) != InitializationState.Address)
                 {
                     lock (ThisLock)
                     {
-                        if ((state & InitializationState.Address) != InitializationState.Address)
+                        if ((_state & InitializationState.Address) != InitializationState.Address)
                         {
                             Initialize(false);
                         }
                     }
                 }
-                return address;
+                return _address;
             }
         }
 
@@ -67,47 +69,44 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if ((state & InitializationState.Port) != InitializationState.Port)
+                if ((_state & InitializationState.Port) != InitializationState.Port)
                 {
                     lock (ThisLock)
                     {
-                        if ((state & InitializationState.Port) != InitializationState.Port)
+                        if ((_state & InitializationState.Port) != InitializationState.Port)
                         {
                             Initialize(true);
                         }
                     }
                 }
-                return port;
+                return _port;
             }
         }
 
-        object ThisLock
-        {
-            get { return thisLock; }
-        }
+        private object ThisLock { get; } = new object();
 
-        void Initialize(bool getHostedPort)
+        private void Initialize(bool getHostedPort)
         {
-            if (remoteEndPoint != null)
+            if (_remoteEndPoint != null)
             {
-                address = remoteEndPoint.Address.ToString();
-                port = remoteEndPoint.Port;
-                state = InitializationState.All;
-                remoteEndPoint = null;
+                _address = _remoteEndPoint.Address.ToString();
+                _port = _remoteEndPoint.Port;
+                _state = InitializationState.All;
+                _remoteEndPoint = null;
             }
             else
             {
-                if ((state & InitializationState.Address) != InitializationState.Address)
+                if ((_state & InitializationState.Address) != InitializationState.Address)
                 {
-                    address = remoteEndpointProvider.GetAddress();
-                    state |= InitializationState.Address;
+                    _address = _remoteEndpointProvider.GetAddress();
+                    _state |= InitializationState.Address;
                 }
 
                 if (getHostedPort)
                 {
-                    port = remoteEndpointProvider.GetPort();
-                    state |= InitializationState.Port;
-                    remoteEndpointProvider = null;
+                    _port = _remoteEndpointProvider.GetPort();
+                    _state |= InitializationState.Port;
+                    _remoteEndpointProvider = null;
                 }
             }
         }
@@ -119,7 +118,7 @@ namespace CoreWCF.Channels
         }
 
         [Flags]
-        enum InitializationState
+        private enum InitializationState
         {
             None = 0,
             Address = 1,

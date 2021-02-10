@@ -1,16 +1,19 @@
-﻿using ClientContract;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
+using ClientContract;
 
 namespace Helpers
 {
-	public static class ClientHelper
-	{
-		private static TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
+    public static class ClientHelper
+    {
+        private static readonly TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
         public static Binding GetBufferedModHttp1Binding()
         {
@@ -78,150 +81,157 @@ namespace Helpers
             return binding;
         }
 
-		public static BasicHttpsBinding GetBufferedModeHttpsBinding()
-		{
-			var binding = new BasicHttpsBinding();
-			ApplyDebugTimeouts(binding);
-			return binding;
-		}
+        public static WSHttpBinding GetBufferedModeWSHttpBinding(SecurityMode securityMode)
+        {
+            var binding = new WSHttpBinding(securityMode);
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
 
-		public static BasicHttpBinding GetStreamedModeBinding()
-		{
-			var binding = new BasicHttpBinding
-			{
-				TransferMode = TransferMode.Streamed
-			};
-			ApplyDebugTimeouts(binding);
-			return binding;
-		}
+        public static BasicHttpsBinding GetBufferedModeHttpsBinding()
+        {
+            var binding = new BasicHttpsBinding();
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
 
-		public static NetHttpBinding GetBufferedModeWebSocketBinding()
-		{
-			var binding = new NetHttpBinding();
-			binding.WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
-			ApplyDebugTimeouts(binding);
-			return binding;
-		}
+        public static BasicHttpBinding GetStreamedModeBinding()
+        {
+            var binding = new BasicHttpBinding
+            {
+                TransferMode = TransferMode.Streamed
+            };
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
 
-		public static NetHttpBinding GetStreamedModeWebSocketBinding()
-		{
-			var binding = new NetHttpBinding
-			{
-				TransferMode = TransferMode.Streamed
-			};
-			binding.WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
-			ApplyDebugTimeouts(binding);
-			return binding;
-		}
+        public static NetHttpBinding GetBufferedModeWebSocketBinding()
+        {
+            var binding = new NetHttpBinding();
+            binding.WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
 
-		private static void ApplyDebugTimeouts(Binding binding)
-		{
-			if (Debugger.IsAttached)
-			{
-				binding.OpenTimeout =
-					binding.CloseTimeout =
-					binding.SendTimeout =
-					binding.ReceiveTimeout = s_debugTimeout;
-			}
-		}
+        public static NetHttpBinding GetStreamedModeWebSocketBinding()
+        {
+            var binding = new NetHttpBinding
+            {
+                TransferMode = TransferMode.Streamed
+            };
+            binding.WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
 
-		public class NoneSerializableStream : MemoryStream
-		{
-		}
+        private static void ApplyDebugTimeouts(Binding binding)
+        {
+            if (Debugger.IsAttached)
+            {
+                binding.OpenTimeout =
+                    binding.CloseTimeout =
+                    binding.SendTimeout =
+                    binding.ReceiveTimeout = s_debugTimeout;
+            }
+        }
 
-		public static void PopulateStreamWithStringBytes(Stream stream, string str)
-		{
-			byte[] bytes = Encoding.UTF8.GetBytes(str);
-			byte[] array = bytes;
-			for (int i = 0; i < array.Length; i++)
-			{
-				byte value = array[i];
-				stream.WriteByte(value);
-			}
+        public class NoneSerializableStream : MemoryStream
+        {
+        }
 
-			stream.Position = 0L;
-		}
+        public static void PopulateStreamWithStringBytes(Stream stream, string str)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(str);
+            byte[] array = bytes;
+            for (int i = 0; i < array.Length; i++)
+            {
+                byte value = array[i];
+                stream.WriteByte(value);
+            }
 
-		public static Stream GetStreamWithStringBytes(string s)
-		{
-			Stream stream = new NoneSerializableStream();
-			PopulateStreamWithStringBytes(stream, s);
-			return stream;
-		}
+            stream.Position = 0L;
+        }
 
-		public static string GetStringFrom(Stream s)
-		{
-			StreamReader streamReader = new StreamReader(s, Encoding.UTF8);
-			return streamReader.ReadToEnd();
-		}
+        public static Stream GetStreamWithStringBytes(string s)
+        {
+            Stream stream = new NoneSerializableStream();
+            PopulateStreamWithStringBytes(stream, s);
+            return stream;
+        }
 
-		public static MessageContractStreamNoHeader GetMessageContractStreamNoHeader(string s)
-		{
-			if (string.IsNullOrEmpty(s))
-			{
-				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
-			}
+        public static string GetStringFrom(Stream s)
+        {
+            StreamReader streamReader = new StreamReader(s, Encoding.UTF8);
+            return streamReader.ReadToEnd();
+        }
 
-			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
-			return new MessageContractStreamNoHeader
-			{
-				stream = streamWithStringBytes
-			};
-		}
+        public static MessageContractStreamNoHeader GetMessageContractStreamNoHeader(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
+            }
 
-		public static MessageContractStreamOneIntHeader GetMessageContractStreamOneIntHeader(string s)
-		{
-			if (string.IsNullOrEmpty(s))
-			{
-				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
-			}
+            Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+            return new MessageContractStreamNoHeader
+            {
+                stream = streamWithStringBytes
+            };
+        }
 
-			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
-			return new MessageContractStreamOneIntHeader
-			{
-				input = streamWithStringBytes
-			};
-		}
+        public static MessageContractStreamOneIntHeader GetMessageContractStreamOneIntHeader(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
+            }
 
-		public static MessageContractStreamTwoHeaders GetMessageContractStreamTwoHeaders(string s)
-		{
-			if (string.IsNullOrEmpty(s))
-			{
-				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamTwoHeaders");
-			}
-			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
-			return new MessageContractStreamTwoHeaders
-			{
-				Stream = streamWithStringBytes
-			};
-		}
+            Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+            return new MessageContractStreamOneIntHeader
+            {
+                input = streamWithStringBytes
+            };
+        }
 
-		public static string GetStringFrom(MessageContractStreamTwoHeaders input)
-		{
-			if (input == null)
-			{
-				throw new ArgumentNullException("MessageContractStreamTwoHeaders is null");
-			}
-			Stream stream = input.Stream;
-			return GetStringFrom(stream);
-		}
+        public static MessageContractStreamTwoHeaders GetMessageContractStreamTwoHeaders(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamTwoHeaders");
+            }
+            Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+            return new MessageContractStreamTwoHeaders
+            {
+                Stream = streamWithStringBytes
+            };
+        }
 
-		public static string GetStringFrom(MessageContractStreamNoHeader input)
-		{
-			if (input == null)
-			{
-				throw new ArgumentNullException("MessageContractStreamNoHeader is null");
-			}
-			Stream stream = input.stream;
-			return GetStringFrom(stream);
-		}
+        public static string GetStringFrom(MessageContractStreamTwoHeaders input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException("MessageContractStreamTwoHeaders is null");
+            }
+            Stream stream = input.Stream;
+            return GetStringFrom(stream);
+        }
 
-		public static T GetProxy<T>()
-		{
-			var httpBinding = ClientHelper.GetBufferedModeBinding();
-			ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-			T proxy = channelFactory.CreateChannel();
-			return proxy;
-		}
-	}
+        public static string GetStringFrom(MessageContractStreamNoHeader input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException("MessageContractStreamNoHeader is null");
+            }
+            Stream stream = input.stream;
+            return GetStringFrom(stream);
+        }
+
+        public static T GetProxy<T>()
+        {
+            BasicHttpBinding httpBinding = GetBufferedModeBinding();
+            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            T proxy = channelFactory.CreateChannel();
+            return proxy;
+        }
+    }
 }

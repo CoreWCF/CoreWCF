@@ -13,9 +13,9 @@ namespace DesktopServer
         {
             var host = new ServiceHost(typeof(EchoService), 
                 new Uri("net.tcp://localhost:8808/"), 
-                new Uri("http://localhost:8080/"));
+                new Uri("https://localhost:8080/"));
             host.AddServiceEndpoint(typeof(Contract.IEchoService), new NetTcpBinding(), "/nettcp");
-            host.AddServiceEndpoint(typeof(Contract.IEchoService), new BasicHttpBinding(), "/basichttp");
+            host.AddServiceEndpoint(typeof(Contract.IEchoService), new BasicHttpBinding( BasicHttpSecurityMode.TransportWithMessageCredential), "/basichttp");
             host.Open();
             foreach(var endpoint in host.Description.Endpoints)
             {

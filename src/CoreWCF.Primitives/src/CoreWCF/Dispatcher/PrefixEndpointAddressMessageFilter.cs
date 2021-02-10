@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using CoreWCF.Channels;
 
@@ -6,10 +9,9 @@ namespace CoreWCF.Dispatcher
 {
     internal class PrefixEndpointAddressMessageFilter : MessageFilter
     {
-        EndpointAddress _address;
-        EndpointAddressMessageFilterHelper _helper;
-        UriPrefixTable<object> _addressTable;
-        HostNameComparisonMode _hostNameComparisonMode;
+        private readonly EndpointAddressMessageFilterHelper _helper;
+        private readonly UriPrefixTable<object> _addressTable;
+        private readonly HostNameComparisonMode _hostNameComparisonMode;
 
         public PrefixEndpointAddressMessageFilter(EndpointAddress address)
             : this(address, false)
@@ -18,26 +20,18 @@ namespace CoreWCF.Dispatcher
 
         public PrefixEndpointAddressMessageFilter(EndpointAddress address, bool includeHostNameInComparison)
         {
-            if (address == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
-            }
-
-            _address = address;
-            _helper = new EndpointAddressMessageFilterHelper(_address);
+            Address = address ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(address));
+            _helper = new EndpointAddressMessageFilterHelper(Address);
 
             _hostNameComparisonMode = includeHostNameInComparison
                 ? HostNameComparisonMode.Exact
                 : HostNameComparisonMode.StrongWildcard;
 
             _addressTable = new UriPrefixTable<object>();
-            _addressTable.RegisterUri(_address.Uri, _hostNameComparisonMode, new object());
+            _addressTable.RegisterUri(Address.Uri, _hostNameComparisonMode, new object());
         }
 
-        public EndpointAddress Address
-        {
-            get { return _address; }
-        }
+        public EndpointAddress Address { get; }
 
         public bool IncludeHostNameInComparison
         {
@@ -77,8 +71,7 @@ namespace CoreWCF.Dispatcher
             // To
             Uri to = message.Headers.To;
 
-            object o;
-            if (to == null || !_addressTable.TryLookupUri(to, _hostNameComparisonMode, out o))
+            if (to == null || !_addressTable.TryLookupUri(to, _hostNameComparisonMode, out object o))
             {
                 return false;
             }
@@ -90,7 +83,5 @@ namespace CoreWCF.Dispatcher
         {
             get { return _helper.HeaderLookup; }
         }
-
     }
-
 }

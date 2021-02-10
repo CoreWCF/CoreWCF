@@ -1,7 +1,10 @@
-﻿using CoreWCF.Channels;
-using Helpers;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
+using CoreWCF.Channels;
+using Helpers;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -18,9 +21,11 @@ namespace CoreWCF.Primitives.Tests
                 version = (version == MessageVersion.Soap11) ? MessageVersion.Soap12WSAddressing10 : null
             )
             {
-                var translations = new List<FaultReasonText>();
-                translations.Add(new FaultReasonText("Reason: auto-generated fault for testing.", "en-us"));
-                translations.Add(new FaultReasonText("Raison: auto-generat error pour examiner.", "fr"));
+                var translations = new List<FaultReasonText>
+                {
+                    new FaultReasonText("Reason: auto-generated fault for testing.", "en-us"),
+                    new FaultReasonText("Raison: auto-generat error pour examiner.", "fr")
+                };
 
                 var reason = new FaultReason(translations);
                 object detail = "Sample fault detail content.";
@@ -58,7 +63,7 @@ namespace CoreWCF.Primitives.Tests
 
             if (!(f1.HasDetail ^ f2.HasDetail))
             {
-                if (f1.GetDetail<String>() != f2.GetDetail<String>())
+                if (f1.GetDetail<string>() != f2.GetDetail<string>())
                 {
                     throw new ApplicationException("Message Fault Detail are not equal");
                 }

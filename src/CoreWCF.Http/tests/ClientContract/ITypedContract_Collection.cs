@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,7 +31,7 @@ namespace ClientContract
     [ServiceContract]
     [ServiceKnownType(typeof(MyCollection))]
     [ServiceKnownType(typeof(List<string>))]
-    interface ITypedContract_Collection
+    internal interface ITypedContract_Collection
     {
         [OperationContract]
         ArrayList ArrayListMethod(ArrayList collection);

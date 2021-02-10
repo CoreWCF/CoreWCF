@@ -1,6 +1,9 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-class SimpleService : ISimpleService
+using CoreWCF;
+
+internal class SimpleService : ISimpleService
 {
     public string Echo(string echo)
     {
@@ -9,7 +12,7 @@ class SimpleService : ISimpleService
 }
 
 [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
-class SimpleSingletonService : ISimpleService
+internal class SimpleSingletonService : ISimpleService
 {
     public string Echo(string echo)
     {
