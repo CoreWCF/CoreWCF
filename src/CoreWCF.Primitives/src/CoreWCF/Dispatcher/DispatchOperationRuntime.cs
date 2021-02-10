@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
@@ -348,10 +349,12 @@ namespace CoreWCF.Dispatcher
                     InspectOutputs(rpc);
                     SerializeOutputs(rpc);
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception ex)
                 {
-                    throw ex;
+                    ExceptionDispatchInfo.Capture(ex).Throw();
                 } // Make sure user Exception filters are not impersonated.
+#pragma warning restore CA1031 // Do not catch general exception types
                 finally
                 {
                     UninitializeCallContext(rpc);
