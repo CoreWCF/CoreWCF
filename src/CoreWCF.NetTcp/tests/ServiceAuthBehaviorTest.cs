@@ -126,14 +126,24 @@ namespace CoreWCF.NetTcp.Tests
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
+                    
+                    // ReSharper disable once SuspiciousTypeConversion.Global
                     ((IChannel)channel).Open();
                     string result = channel.EchoForPermission(sourceString);
                     Assert.Equal(sourceString, result);
-                    ((IChannel)channel).Close();
-                    factory.Close();
+
+                    //
+                    // These were explicitly removed because the ServiceHelper already cleans these up, and
+                    // in some cases not using proper disposal handling will result in:
+                    // 'System.IO.IOException : Received an unexpected EOF or 0 bytes from the transport stream.'
+                    // on the build server, causing false test failures.
+                    //
+                    // ((IChannel)channel).Close();
+                    // factory.Close();
                 }
                 finally
                 {
+                    // ReSharper disable once SuspiciousTypeConversion.Global
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
             }
