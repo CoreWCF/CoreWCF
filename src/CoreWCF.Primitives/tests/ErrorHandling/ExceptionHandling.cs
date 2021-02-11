@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using CoreWCF;
 using DispatcherClient;
 using Helpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,16 +24,10 @@ namespace ErrorHandling
                 });
             factory.Open();
             ISimpleService channel = factory.CreateChannel();
-            System.ServiceModel.FaultException exceptionThrown = null;
-            try
+            System.ServiceModel.FaultException exceptionThrown = Assert.Throws<System.ServiceModel.FaultException>(() =>
             {
-                string echo = channel.Echo("hello");
-            }
-            catch (System.ServiceModel.FaultException e)
-            {
-                exceptionThrown = e;
-            }
-
+                _ = channel.Echo("hello");
+            });
             Assert.NotNull(exceptionThrown);
             Assert.True(exceptionThrown.Code.IsReceiverFault);
             Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
@@ -52,16 +47,10 @@ namespace ErrorHandling
             factory.Open();
             ISimpleAsyncService channel = factory.CreateChannel();
             ((System.ServiceModel.IClientChannel)channel).Open();
-            System.ServiceModel.FaultException exceptionThrown = null;
-            try
+            System.ServiceModel.FaultException exceptionThrown = await Assert.ThrowsAsync<System.ServiceModel.FaultException>(async () =>
             {
-                string echo = await channel.EchoAsync("hello");
-            }
-            catch (System.ServiceModel.FaultException e)
-            {
-                exceptionThrown = e;
-            }
-
+                _ = await channel.EchoAsync("hello");
+            });
             Assert.NotNull(exceptionThrown);
             Assert.True(exceptionThrown.Code.IsReceiverFault);
             Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
@@ -81,16 +70,10 @@ namespace ErrorHandling
             factory.Open();
             ISimpleAsyncService channel = factory.CreateChannel();
             ((System.ServiceModel.IClientChannel)channel).Open();
-            System.ServiceModel.FaultException exceptionThrown = null;
-            try
+            System.ServiceModel.FaultException exceptionThrown = await Assert.ThrowsAsync<System.ServiceModel.FaultException>(async () =>
             {
-                string echo = await channel.EchoAsync("hello");
-            }
-            catch (System.ServiceModel.FaultException e)
-            {
-                exceptionThrown = e;
-            }
-
+                _ = await channel.EchoAsync("hello");
+            });
             Assert.NotNull(exceptionThrown);
             Assert.True(exceptionThrown.Code.IsReceiverFault);
             Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
@@ -98,6 +81,41 @@ namespace ErrorHandling
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
         }
+
+        [Fact]
+        public static void ServiceThrowsExceptionDetailsIncludedInFault()
+        {
+            string exceptionMessage = "This is the exception message";
+            string stackTraceTopMethod = "   at ErrorHandling.ThrowingService.Echo(String echo)";
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<ThrowingDetailInFaultService, ISimpleService>(
+                (services) =>
+                {
+                    services.AddSingleton(new ThrowingDetailInFaultService(new Exception(exceptionMessage)));
+                });
+            factory.Open();
+            ISimpleService channel = factory.CreateChannel();
+            ((System.ServiceModel.IClientChannel)channel).Open();
+            System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail> exceptionThrown = Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() =>
+            {
+                _ = channel.Echo("hello");
+            });
+            Assert.NotNull(exceptionThrown);
+            Assert.NotNull(exceptionThrown.Detail);
+            Assert.True(exceptionThrown.Code.IsReceiverFault);
+            System.ServiceModel.ExceptionDetail detail = exceptionThrown.Detail;
+            Assert.Equal(exceptionMessage, detail.Message);
+            Assert.StartsWith(stackTraceTopMethod, detail.StackTrace);
+            Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
+            ((System.ServiceModel.Channels.IChannel)channel).Close();
+            factory.Close();
+            TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
+        }
+    }
+
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
+    public class ThrowingDetailInFaultService : ThrowingService
+    {
+        public ThrowingDetailInFaultService(Exception exception) : base(exception) { }
     }
 
     public class ThrowingService : ISimpleService
