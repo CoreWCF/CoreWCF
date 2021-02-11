@@ -16,7 +16,6 @@ namespace CoreWCF
         private ConcurrencyMode _concurrencyMode;
         private readonly bool _ensureOrderedDispatch = false;
         private string _configurationName;
-        private readonly bool _includeExceptionDetailInFaults = false;
         private InstanceContextMode _instanceMode;
         private object _wellKnownSingleton;  // if the user passes an object to the ServiceHost, it is stored here
         private object _hiddenSingleton;     // if the user passes a type to the ServiceHost, and instanceMode==Single, we store the instance here
@@ -74,6 +73,9 @@ namespace CoreWCF
                 _configurationName = value;
             }
         }
+
+        [DefaultValue(false)]
+        public bool IncludeExceptionDetailInFaults { get; set; } = false;
 
         [DefaultValue(ConcurrencyMode.Single)]
         public ConcurrencyMode ConcurrencyMode
@@ -146,7 +148,7 @@ namespace CoreWCF
             {
                 if (serviceHostBase.ChannelDispatchers[i] is ChannelDispatcher channelDispatcher)
                 {
-                    channelDispatcher.IncludeExceptionDetailInFaults = _includeExceptionDetailInFaults;
+                    channelDispatcher.IncludeExceptionDetailInFaults = IncludeExceptionDetailInFaults;
 
                     if (channelDispatcher.HasApplicationEndpoints)
                     {
