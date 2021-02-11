@@ -1,17 +1,20 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections.Generic;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Collections.Generic
 {
-    class MruCache<TKey, TValue>
+    internal class MruCache<TKey, TValue>
         where TKey : class
         where TValue : class
     {
-        LinkedList<TKey> _mruList;
-        Dictionary<TKey, CacheEntry> _items;
-        int _lowWatermark;
-        int _highWatermark;
-        CacheEntry _mruEntry;
+        private readonly LinkedList<TKey> _mruList;
+        private readonly Dictionary<TKey, CacheEntry> _items;
+        private readonly int _lowWatermark;
+        private readonly int _highWatermark;
+        private CacheEntry _mruEntry;
 
         public MruCache(int watermark)
             : this(watermark * 4 / 5, watermark)
@@ -106,8 +109,7 @@ namespace CoreWCF.Collections.Generic
         {
             Fx.Assert(null != key, "");
 
-            CacheEntry entry;
-            if (_items.TryGetValue(key, out entry))
+            if (_items.TryGetValue(key, out CacheEntry entry))
             {
                 _items.Remove(key);
                 OnSingleItemRemoved(entry.value);
@@ -143,9 +145,8 @@ namespace CoreWCF.Collections.Generic
                 return true;
             }
 
-            CacheEntry entry;
 
-            bool found = _items.TryGetValue(key, out entry);
+            bool found = _items.TryGetValue(key, out CacheEntry entry);
             value = entry.value;
 
             // Move the node to the head of the MRU list if it's not already there
@@ -160,11 +161,10 @@ namespace CoreWCF.Collections.Generic
             return found;
         }
 
-        struct CacheEntry
+        private struct CacheEntry
         {
             internal TValue value;
             internal LinkedListNode<TKey> node;
         }
     }
-
 }

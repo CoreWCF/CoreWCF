@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.IO;
-using ServiceContract;
-using Helpers;
 using System.Threading.Tasks;
+using Helpers;
+using ServiceContract;
 
 namespace Services
 {
@@ -79,8 +81,10 @@ namespace Services
         public MessageContractStreamOneIntHeader Operation(MessageContractStreamNoHeader input)
         {
             FileStream file = File.OpenRead("temp.dat");
-            MessageContractStreamOneIntHeader message = new MessageContractStreamOneIntHeader();
-            message.input = file;
+            MessageContractStreamOneIntHeader message = new MessageContractStreamOneIntHeader
+            {
+                input = file
+            };
             return message;
         }
     }

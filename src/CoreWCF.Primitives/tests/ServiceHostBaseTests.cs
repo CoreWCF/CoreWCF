@@ -1,9 +1,12 @@
-﻿using CoreWCF.Description;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Description;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -14,7 +17,7 @@ namespace CoreWCF.Primitives.Tests
         public static void CredentialsNotNull()
         {
             var host = new TestServiceHost();
-            var creds = host.Credentials;
+            ServiceCredentials creds = host.Credentials;
             Assert.NotNull(creds);
             Assert.IsType<ServiceCredentials>(creds);
             // Make sure same instance is returned each time
@@ -29,7 +32,7 @@ namespace CoreWCF.Primitives.Tests
             Assert.NotNull(host.Description);
             Assert.NotNull(host.Description.Behaviors);
             host.Description.Behaviors.Add(testCreds);
-            var creds = host.Credentials;
+            ServiceCredentials creds = host.Credentials;
             Assert.NotNull(creds);
             Assert.IsType<TestServiceCredentials>(creds);
             // Make sure same instance is returned each time
@@ -57,9 +60,9 @@ namespace CoreWCF.Primitives.Tests
             Assert.Equal(CommunicationState.Closed, host.State);
         }
 
-        public class TestServiceHost : ServiceHostBase
+        internal class TestServiceHost : ServiceHostBase
         {
-            private SimpleService _serviceInstance = new SimpleService();
+            private readonly SimpleService _serviceInstance = new SimpleService();
             public bool OnOpenAsynCalled { get; set; }
             public bool OnCloseAsynCalled { get; set; }
             public bool OnAbortCalled { get; set; }
@@ -73,8 +76,10 @@ namespace CoreWCF.Primitives.Tests
             {
                 var description = ServiceDescription.GetService(_serviceInstance);
                 var cd = ContractDescription.GetContract<SimpleService>(typeof(ISimpleService));
-                implementedContracts = new Dictionary<string, ContractDescription>();
-                implementedContracts[cd.ConfigurationName] = cd;
+                implementedContracts = new Dictionary<string, ContractDescription>
+                {
+                    [cd.ConfigurationName] = cd
+                };
                 return description;
             }
 
@@ -125,12 +130,8 @@ namespace CoreWCF.Primitives.Tests
                 base.OnOpened();
                 Assert.Equal(CommunicationState.Opened, State);
             }
-
-            protected override void ApplyConfiguration()
-            {
-            }
         }
 
-        public class TestServiceCredentials : ServiceCredentials { }
+        internal class TestServiceCredentials : ServiceCredentials { }
     }
 }

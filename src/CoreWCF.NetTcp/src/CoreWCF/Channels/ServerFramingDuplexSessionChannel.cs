@@ -1,22 +1,23 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using System.Buffers;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Channels.Framing;
-using Microsoft.AspNetCore.Hosting;
-using System.Net;
-using System.Buffers;
 using System.Xml;
+using CoreWCF.Channels.Framing;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
     internal class ServerFramingDuplexSessionChannel : FramingDuplexSessionChannel
     {
-        StreamUpgradeAcceptor upgradeAcceptor;
-        private IServiceProvider _serviceProvider;
-        IStreamUpgradeChannelBindingProvider channelBindingProvider;
+        private readonly IServiceProvider _serviceProvider;
         private CancellationTokenRegistration _applicationStoppingRegistration;
 
         public ServerFramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings,
@@ -24,7 +25,6 @@ namespace CoreWCF.Channels
             : base(connection, settings, exposeConnectionProperty)
         {
             Connection = connection;
-            upgradeAcceptor = connection.StreamUpgradeAcceptor;
             _serviceProvider = serviceProvider;
             SetMessageSource(new ServerSessionConnectionMessageSource(connection));
         }
@@ -57,11 +57,6 @@ namespace CoreWCF.Channels
 
         public override T GetProperty<T>()
         {
-            if (typeof(T) == typeof(IChannelBindingProvider))
-            {
-                return (T)(object)channelBindingProvider;
-            }
-
             T service = _serviceProvider.GetService<T>();
             if (service != null)
             {
@@ -80,7 +75,7 @@ namespace CoreWCF.Channels
         {
             base.OnOpened();
 
-            var appLifetime = _serviceProvider.GetRequiredService<IApplicationLifetime>();
+            IApplicationLifetime appLifetime = _serviceProvider.GetRequiredService<IApplicationLifetime>();
             _applicationStoppingRegistration = appLifetime.ApplicationStopping.Register(() =>
             {
                 _ = CloseAsync();
@@ -95,7 +90,7 @@ namespace CoreWCF.Channels
 
         internal class ServerSessionConnectionMessageSource : IMessageSource
         {
-            private FramingConnection _connection;
+            private readonly FramingConnection _connection;
 
             public ServerSessionConnectionMessageSource(FramingConnection connection)
             {
@@ -109,11 +104,14 @@ namespace CoreWCF.Channels
                 ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
                 for (; ; )
                 {
-                    var readResult = await _connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await _connection.Input.ReadAsync();
                     if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                     {
                         if (!readResult.IsCompleted)
+                        {
                             _connection.Input.AdvanceTo(readResult.Buffer.Start);
+                        }
+
                         EnsureDecoderAtEof();
                         _connection.EOF = true;
                     }
@@ -169,7 +167,7 @@ namespace CoreWCF.Channels
                     {
                         if (!_connection.EnvelopeBuffer.IsEmpty)
                         {
-                            var remainingEnvelopeBuffer = _connection.EnvelopeBuffer.Slice(_connection.EnvelopeOffset, _connection.EnvelopeSize - _connection.EnvelopeOffset);
+                            Memory<byte> remainingEnvelopeBuffer = _connection.EnvelopeBuffer.Slice(_connection.EnvelopeOffset, _connection.EnvelopeSize - _connection.EnvelopeOffset);
                             CopyBuffer(buffer, remainingEnvelopeBuffer, bytesRead);
                             _connection.EnvelopeOffset += bytesRead;
                         }
@@ -198,8 +196,7 @@ namespace CoreWCF.Channels
                         case ServerSessionDecoder.State.EnvelopeEnd:
                             if (!_connection.EnvelopeBuffer.IsEmpty)
                             {
-                                Message message = null;
-
+                                Message message;
                                 try
                                 {
                                     message = _connection.MessageEncoder.ReadMessage(
@@ -237,17 +234,17 @@ namespace CoreWCF.Channels
                     throw new ArgumentOutOfRangeException(nameof(bytesToCopy));
                 }
 
-                var destSpan = dest.Span;
+                Span<byte> destSpan = dest.Span;
                 if (src.IsSingleSegment)
                 {
-                    var srcSpan = src.First.Span;
+                    ReadOnlySpan<byte> srcSpan = src.First.Span;
                     srcSpan.CopyTo(destSpan);
                 }
                 else
                 {
-                    foreach (var segment in src)
+                    foreach (ReadOnlyMemory<byte> segment in src)
                     {
-                        var srcSpan = segment.Span;
+                        ReadOnlySpan<byte> srcSpan = segment.Span;
                         if (srcSpan.Length > bytesToCopy)
                         {
                             srcSpan = srcSpan.Slice(0, bytesToCopy);
@@ -255,7 +252,10 @@ namespace CoreWCF.Channels
                         srcSpan.CopyTo(destSpan);
                         bytesToCopy -= srcSpan.Length;
                         if (bytesToCopy == 0)
+                        {
                             return;
+                        }
+
                         destSpan = destSpan.Slice(srcSpan.Length);
                     }
                 }
@@ -282,13 +282,13 @@ namespace CoreWCF.Channels
 
     internal abstract class FramingDuplexSessionChannel : TransportDuplexSessionChannel
     {
-        bool exposeConnectionProperty;
+        private readonly bool _exposeConnectionProperty;
 
         private FramingDuplexSessionChannel(ITransportFactorySettings settings,
             EndpointAddress localAddress, Uri localVia, EndpointAddress remoteAddress, Uri via, bool exposeConnectionProperty)
             : base(settings, localAddress, localVia, remoteAddress, via)
         {
-            this.exposeConnectionProperty = exposeConnectionProperty;
+            _exposeConnectionProperty = exposeConnectionProperty;
         }
 
         protected FramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings, bool exposeConnectionProperty)
@@ -357,10 +357,9 @@ namespace CoreWCF.Channels
             return messageData;
         }
 
-        class FramingConnectionDuplexSession : ConnectionDuplexSession
+        private class FramingConnectionDuplexSession : ConnectionDuplexSession
         {
-
-            FramingConnectionDuplexSession(FramingDuplexSessionChannel channel)
+            private FramingConnectionDuplexSession(FramingDuplexSessionChannel channel)
                 : base(channel)
             {
             }
@@ -368,8 +367,7 @@ namespace CoreWCF.Channels
             public static FramingConnectionDuplexSession CreateSession(FramingDuplexSessionChannel channel,
                 StreamUpgradeAcceptor upgradeAcceptor)
             {
-                StreamSecurityUpgradeAcceptor security = upgradeAcceptor as StreamSecurityUpgradeAcceptor;
-                if (security == null)
+                if (!(upgradeAcceptor is StreamSecurityUpgradeAcceptor security))
                 {
                     return new FramingConnectionDuplexSession(channel);
                 }
@@ -379,9 +377,9 @@ namespace CoreWCF.Channels
                 }
             }
 
-            class SecureConnectionDuplexSession : FramingConnectionDuplexSession, ISecuritySession
+            private class SecureConnectionDuplexSession : FramingConnectionDuplexSession, ISecuritySession
             {
-                EndpointIdentity remoteIdentity;
+                private EndpointIdentity _remoteIdentity;
 
                 public SecureConnectionDuplexSession(FramingDuplexSessionChannel channel)
                     : base(channel)
@@ -393,19 +391,19 @@ namespace CoreWCF.Channels
                 {
                     get
                     {
-                        if (remoteIdentity == null)
+                        if (_remoteIdentity == null)
                         {
                             SecurityMessageProperty security = Channel.RemoteSecurity;
                             if (security != null && security.ServiceSecurityContext != null &&
                                 security.ServiceSecurityContext.IdentityClaim != null &&
                                 security.ServiceSecurityContext.PrimaryIdentity != null)
                             {
-                                remoteIdentity = EndpointIdentity.CreateIdentity(
+                                _remoteIdentity = EndpointIdentity.CreateIdentity(
                                     security.ServiceSecurityContext.IdentityClaim);
                             }
                         }
 
-                        return remoteIdentity;
+                        return _remoteIdentity;
                     }
                 }
             }

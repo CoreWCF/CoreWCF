@@ -1,87 +1,81 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using CoreWCF;
 
 namespace CoreWCF.Collections.Generic
 {
     public class SynchronizedCollection<T> : IList<T>, IList
     {
-        private readonly List<T> _items;
-        private readonly object _sync;
-
         public SynchronizedCollection()
         {
-            _items = new List<T>();
-            _sync = new object();
+            Items = new List<T>();
+            SyncRoot = new object();
         }
 
         public SynchronizedCollection(object syncRoot)
         {
-            if (syncRoot == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
-
-            _items = new List<T>();
-            _sync = syncRoot;
+            Items = new List<T>();
+            SyncRoot = syncRoot ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
         }
 
         public SynchronizedCollection(object syncRoot, IEnumerable<T> list)
         {
-            if (syncRoot == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
             if (list == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(list));
+            }
 
-            _items = new List<T>(list);
-            _sync = syncRoot;
+            Items = new List<T>(list);
+            SyncRoot = syncRoot ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
         }
 
         public SynchronizedCollection(object syncRoot, params T[] list)
         {
-            if (syncRoot == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
             if (list == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(list));
+            }
 
-            _items = new List<T>(list.Length);
+            Items = new List<T>(list.Length);
             foreach (T t in list)
-                _items.Add(t);
+            {
+                Items.Add(t);
+            }
 
-            _sync = syncRoot;
+            SyncRoot = syncRoot ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(syncRoot));
         }
 
         public int Count
         {
-            get { lock (_sync) { return _items.Count; } }
+            get { lock (SyncRoot) { return Items.Count; } }
         }
 
-        protected List<T> Items
-        {
-            get { return _items; }
-        }
+        protected List<T> Items { get; }
 
-        public object SyncRoot
-        {
-            get { return _sync; }
-        }
+        public object SyncRoot { get; }
 
         public T this[int index]
         {
             get
             {
-                lock (_sync)
+                lock (SyncRoot)
                 {
-                    return _items[index];
+                    return Items[index];
                 }
             }
             set
             {
-                lock (_sync)
+                lock (SyncRoot)
                 {
-                    if (index < 0 || index >= _items.Count)
+                    if (index < 0 || index >= Items.Count)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), index,
-                                                    SR.Format(SR.ValueMustBeInRange, 0, _items.Count - 1)));
+                                                    SR.Format(SR.ValueMustBeInRange, 0, Items.Count - 1)));
+                    }
 
                     SetItem(index, value);
                 }
@@ -90,16 +84,16 @@ namespace CoreWCF.Collections.Generic
 
         public void Add(T item)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                int index = _items.Count;
+                int index = Items.Count;
                 InsertItem(index, item);
             }
         }
 
         public void Clear()
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
                 ClearItems();
             }
@@ -107,31 +101,31 @@ namespace CoreWCF.Collections.Generic
 
         public void CopyTo(T[] array, int index)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                _items.CopyTo(array, index);
+                Items.CopyTo(array, index);
             }
         }
 
         public bool Contains(T item)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                return _items.Contains(item);
+                return Items.Contains(item);
             }
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                return _items.GetEnumerator();
+                return Items.GetEnumerator();
             }
         }
 
         public int IndexOf(T item)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
                 return InternalIndexOf(item);
             }
@@ -139,23 +133,25 @@ namespace CoreWCF.Collections.Generic
 
         public void Insert(int index, T item)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                if (index < 0 || index > _items.Count)
+                if (index < 0 || index > Items.Count)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), index,
-                                                SR.Format(SR.ValueMustBeInRange, 0, _items.Count - 1)));
+                                                SR.Format(SR.ValueMustBeInRange, 0, Items.Count - 1)));
+                }
 
                 InsertItem(index, item);
             }
         }
 
-        int InternalIndexOf(T item)
+        private int InternalIndexOf(T item)
         {
-            int count = _items.Count;
+            int count = Items.Count;
 
             for (int i = 0; i < count; i++)
             {
-                if (Equals(_items[i], item))
+                if (Equals(Items[i], item))
                 {
                     return i;
                 }
@@ -165,11 +161,13 @@ namespace CoreWCF.Collections.Generic
 
         public bool Remove(T item)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
                 int index = InternalIndexOf(item);
                 if (index < 0)
+                {
                     return false;
+                }
 
                 RemoveItem(index);
                 return true;
@@ -178,11 +176,13 @@ namespace CoreWCF.Collections.Generic
 
         public void RemoveAt(int index)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                if (index < 0 || index >= _items.Count)
+                if (index < 0 || index >= Items.Count)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), index,
-                                                SR.Format(SR.ValueMustBeInRange, 0, _items.Count - 1)));
+                                                SR.Format(SR.ValueMustBeInRange, 0, Items.Count - 1)));
+                }
 
                 RemoveItem(index);
             }
@@ -190,22 +190,22 @@ namespace CoreWCF.Collections.Generic
 
         protected virtual void ClearItems()
         {
-            _items.Clear();
+            Items.Clear();
         }
 
         protected virtual void InsertItem(int index, T item)
         {
-            _items.Insert(index, item);
+            Items.Insert(index, item);
         }
 
         protected virtual void RemoveItem(int index)
         {
-            _items.RemoveAt(index);
+            Items.RemoveAt(index);
         }
 
         protected virtual void SetItem(int index, T item)
         {
-            _items[index] = item;
+            Items[index] = item;
         }
 
         bool ICollection<T>.IsReadOnly
@@ -215,7 +215,7 @@ namespace CoreWCF.Collections.Generic
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IList)_items).GetEnumerator();
+            return ((IList)Items).GetEnumerator();
         }
 
         bool ICollection.IsSynchronized
@@ -225,14 +225,14 @@ namespace CoreWCF.Collections.Generic
 
         object ICollection.SyncRoot
         {
-            get { return _sync; }
+            get { return SyncRoot; }
         }
 
         void ICollection.CopyTo(Array array, int index)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                ((IList)_items).CopyTo(array, index);
+                ((IList)Items).CopyTo(array, index);
             }
         }
 
@@ -263,7 +263,7 @@ namespace CoreWCF.Collections.Generic
         {
             VerifyValueType(value);
 
-            lock (_sync)
+            lock (SyncRoot)
             {
                 Add((T)value);
                 return Count - 1;
@@ -294,7 +294,7 @@ namespace CoreWCF.Collections.Generic
             Remove((T)value);
         }
 
-        static void VerifyValueType(object value)
+        private static void VerifyValueType(object value)
         {
             if (value == null)
             {
@@ -309,5 +309,4 @@ namespace CoreWCF.Collections.Generic
             }
         }
     }
-
 }

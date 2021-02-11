@@ -1,20 +1,23 @@
-﻿using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Channels;
 using Xunit;
 
 namespace Helpers
 {
-    class TestRequestContext : RequestContext
+    internal class TestRequestContext : RequestContext
     {
-        private Message _requestMessage;
+        private readonly Message _requestMessage;
         private string _replyMessageString;
         private MessageBuffer _bufferedCopy;
-        private ManualResetEvent _mre;
+        private readonly ManualResetEvent _mre;
 
         public TestRequestContext(Message requestMessage)
         {
@@ -66,11 +69,11 @@ namespace Helpers
         internal void SerializeReply()
         {
             MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
-            var mef = mebe.CreateMessageEncoderFactory();
-            var me = mef.Encoder;
+            MessageEncoderFactory mef = mebe.CreateMessageEncoderFactory();
+            MessageEncoder me = mef.Encoder;
             MemoryStream ms = new MemoryStream();
             me.WriteMessageAsync(ReplyMessage, ms);
-            var messageBytes = ms.ToArray();
+            byte[] messageBytes = ms.ToArray();
             _replyMessageString = Encoding.UTF8.GetString(messageBytes);
         }
 
@@ -81,7 +84,7 @@ namespace Helpers
 
         internal static TestRequestContext Create(string toAddress)
         {
-            var requestMessage = TestHelper.CreateEchoRequestMessage("aaaaa");
+            Message requestMessage = TestHelper.CreateEchoRequestMessage("aaaaa");
             requestMessage.Headers.To = new Uri(toAddress);
             return new TestRequestContext(requestMessage);
         }
@@ -95,7 +98,7 @@ namespace Helpers
   </s:Body>
 </s:Envelope>";
 
-        private static string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleService/EchoResponse</Action></s:Header><s:Body><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
+        private static readonly string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleService/EchoResponse</Action></s:Header><s:Body><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
 
         internal bool WaitForReply(TimeSpan timeout)
         {

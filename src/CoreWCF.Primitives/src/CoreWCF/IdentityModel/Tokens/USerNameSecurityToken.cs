@@ -1,39 +1,43 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class UserNameSecurityToken : SecurityToken
+    internal class USerNameSecurityToken : SecurityToken
     {
-        string id;
-        string password;
-        string userName;
-        DateTime effectiveTime;
+        private readonly string _id;
+        private readonly DateTime _effectiveTime;
 
-        public UserNameSecurityToken(string userName, string password)
+        public USerNameSecurityToken(string userName, string password)
             : this(userName, password, SecurityUniqueId.Create().Value)
         {
         }
 
-        public UserNameSecurityToken(string userName, string password, string id)
+        public USerNameSecurityToken(string userName, string password, string id)
         {
             if (userName == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(userName));
-            if (userName == string.Empty)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.UserNameCannotBeEmpty);
+            }
 
-            this.userName = userName;
-            this.password = password;
-            this.id = id;
-            effectiveTime = DateTime.UtcNow;
+            if (userName == string.Empty)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.UserNameCannotBeEmpty);
+            }
+
+            UserName = userName;
+            Password = password;
+            _id = id;
+            _effectiveTime = DateTime.UtcNow;
         }
 
         public override string Id
         {
-            get { return id; }
+            get { return _id; }
         }
 
         public override ReadOnlyCollection<SecurityKey> SecurityKeys
@@ -43,7 +47,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public override DateTime ValidFrom
         {
-            get { return effectiveTime; }
+            get { return _effectiveTime; }
         }
 
         public override DateTime ValidTo
@@ -52,15 +56,8 @@ namespace CoreWCF.IdentityModel.Tokens
             get { return SecurityUtils.MaxUtcDateTime; }
         }
 
-        public string UserName
-        {
-            get { return userName; }
-        }
+        public string UserName { get; }
 
-        public string Password
-        {
-            get { return password; }
-        }
+        public string Password { get; }
     }
-
 }

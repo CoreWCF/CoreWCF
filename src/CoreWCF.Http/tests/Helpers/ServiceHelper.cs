@@ -1,4 +1,7 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using CoreWCF;
 using CoreWCF.Channels;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -77,19 +80,21 @@ namespace Helpers
         //    };
         //}
 
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
-            WebHost.CreateDefaultBuilder(new string[0])
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                if(outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #endif // DEBUG
             .UseKestrel(options =>
-                {
+            {
+                    options.AllowSynchronousIO = true;
                     options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                     {
                         if (Debugger.IsAttached)
@@ -99,9 +104,8 @@ namespace Helpers
                     });
                 })
             .UseStartup<TStartup>();
-
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
-            WebHost.CreateDefaultBuilder(new string[0])
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
@@ -113,6 +117,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
+                options.AllowSynchronousIO = true;
                 options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                 {
                     if (Debugger.IsAttached)
@@ -123,12 +128,13 @@ namespace Helpers
             })
             .UseStartup(startupType);
 
-        public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
-            WebHost.CreateDefaultBuilder(new string[0])
+        public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                if(outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
@@ -191,95 +197,95 @@ namespace Helpers
             }
         }
 
-		public class NoneSerializableStream : MemoryStream
-		{
-		}
+        public class NoneSerializableStream : MemoryStream
+        {
+        }
 
-		public static void PopulateStreamWithStringBytes(Stream stream, string str)
-		{
-			byte[] bytes = Encoding.UTF8.GetBytes(str);
-			byte[] array = bytes;
-			for (int i = 0; i < array.Length; i++)
-			{
-				byte value = array[i];
-				stream.WriteByte(value);
-			}
+        public static void PopulateStreamWithStringBytes(Stream stream, string str)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(str);
+            byte[] array = bytes;
+            for (int i = 0; i < array.Length; i++)
+            {
+                byte value = array[i];
+                stream.WriteByte(value);
+            }
 
-			stream.Position = 0L;
-		}
+            stream.Position = 0L;
+        }
 
-		public static Stream GetStreamWithStringBytes(string s)
-		{
-			Stream stream = new NoneSerializableStream();
-			PopulateStreamWithStringBytes(stream, s);
-			return stream;
-		}
+        public static Stream GetStreamWithStringBytes(string s)
+        {
+            Stream stream = new NoneSerializableStream();
+            PopulateStreamWithStringBytes(stream, s);
+            return stream;
+        }
 
-		public static string GetStringFrom(Stream s)
-		{
-			StreamReader streamReader = new StreamReader(s, Encoding.UTF8);
-			return streamReader.ReadToEnd();
-		}
+        public static string GetStringFrom(Stream s)
+        {
+            StreamReader streamReader = new StreamReader(s, Encoding.UTF8);
+            return streamReader.ReadToEnd();
+        }
 
-		public static MessageContractStreamNoHeader GetMessageContractStreamNoHeader(string s)
-		{
-			if (string.IsNullOrEmpty(s))
-			{
-				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
-			}
+        public static MessageContractStreamNoHeader GetMessageContractStreamNoHeader(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
+            }
 
-			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
-			return new MessageContractStreamNoHeader
-			{
-				stream = streamWithStringBytes
-			};
-		}
+            Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+            return new MessageContractStreamNoHeader
+            {
+                stream = streamWithStringBytes
+            };
+        }
 
-		public static MessageContractStreamOneIntHeader GetMessageContractStreamOneIntHeader(string s)
-		{
-			if (string.IsNullOrEmpty(s))
-			{
-				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
-			}
+        public static MessageContractStreamOneIntHeader GetMessageContractStreamOneIntHeader(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
+            }
 
-			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
-			return new MessageContractStreamOneIntHeader
-			{
-				input = streamWithStringBytes
-			};
-		}
+            Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+            return new MessageContractStreamOneIntHeader
+            {
+                input = streamWithStringBytes
+            };
+        }
 
-		public static MessageContractStreamTwoHeaders GetMessageContractStreamTwoHeaders(string s)
-		{
-			if (string.IsNullOrEmpty(s))
-			{
-				throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamTwoHeaders");
-			}
-			Stream streamWithStringBytes = GetStreamWithStringBytes(s);
-			return new MessageContractStreamTwoHeaders
-			{
-				Stream = streamWithStringBytes
-			};
-		}
+        public static MessageContractStreamTwoHeaders GetMessageContractStreamTwoHeaders(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamTwoHeaders");
+            }
+            Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+            return new MessageContractStreamTwoHeaders
+            {
+                Stream = streamWithStringBytes
+            };
+        }
 
-		public static string GetStringFrom(MessageContractStreamTwoHeaders input)
-		{
-			if (input == null)
-			{
-				throw new ArgumentNullException("MessageContractStreamTwoHeaders is null");
-			}
-			Stream stream = input.Stream;
-			return GetStringFrom(stream);
-		}
+        public static string GetStringFrom(MessageContractStreamTwoHeaders input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException("MessageContractStreamTwoHeaders is null");
+            }
+            Stream stream = input.Stream;
+            return GetStringFrom(stream);
+        }
 
-		public static string GetStringFrom(MessageContractStreamNoHeader input)
-		{
-			if (input == null)
-			{
-				throw new ArgumentNullException("MessageContractStreamNoHeader is null");
-			}
-			Stream stream = input.stream;
-			return GetStringFrom(stream);
-		}
-	}
+        public static string GetStringFrom(MessageContractStreamNoHeader input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException("MessageContractStreamNoHeader is null");
+            }
+            Stream stream = input.stream;
+            return GetStringFrom(stream);
+        }
+    }
 }

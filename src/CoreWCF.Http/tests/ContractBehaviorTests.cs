@@ -1,4 +1,9 @@
-﻿using ClientContract;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.ServiceModel;
+using ClientContract;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
 using Helpers;
@@ -6,8 +11,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
-using System;
-using System.ServiceModel;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +18,7 @@ namespace CoreWCF.Http.Tests
 {
     public class ContractBehaviorTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ContractBehaviorTests(ITestOutputHelper output)
         {
@@ -35,7 +38,7 @@ namespace CoreWCF.Http.Tests
         public void Variations(string method)
         {
             Startup._method = method;
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -72,7 +75,7 @@ namespace CoreWCF.Http.Tests
         public void TwoAttributesSameType_Test()
         {
             Startup._method = "TwoAttributesSameType";
-            using (var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build())
+            using (IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build())
             {
                 Assert.Throws<ArgumentException>(() => host.Start());
             }
@@ -89,7 +92,7 @@ namespace CoreWCF.Http.Tests
         //7.Send a message to the server
         public static ChannelFactory<T> GetChannelFactory<T>()
         {
-            var httpBinding = ClientHelper.GetBufferedModeBinding();
+            System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractBehaviorService.svc")));
         }
 
@@ -126,7 +129,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -150,7 +155,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -174,8 +181,10 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
-            }           
+                }
+            }
         }
 
         private void Variation_MisplacedAttributes()
@@ -196,7 +205,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -220,13 +231,15 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
         private void Variation_ByHandImplementsOther()
         {
-            ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();  
+            ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();
             try
             {
                 var theBehavior = new MyMultiFacetedBehaviorAttribute();
@@ -246,7 +259,9 @@ namespace CoreWCF.Http.Tests
             finally
             {
                 if (cf != null && cf.State == System.ServiceModel.CommunicationState.Opened)
+                {
                     cf.Close();
+                }
             }
         }
 
@@ -262,8 +277,8 @@ namespace CoreWCF.Http.Tests
             {
                 app.UseServiceModel(builder =>
                 {
-                    switch(_method)
-                    {                     
+                    switch (_method)
+                    {
                         case "ByHand":
                         case "ByHand_UsingHiddenProperty":
                             builder.AddService<ContractBehaviorBasic_ByHand_Service>();
@@ -302,12 +317,12 @@ namespace CoreWCF.Http.Tests
                         case "CustomAttributesImplementsOther":
                             builder.AddService<ContractBehaviorBasic_CustomAttributesImplementsOther_Service>();
                             builder.AddServiceEndpoint<ContractBehaviorBasic_CustomAttributesImplementsOther_Service, ServiceContract.IContractBehaviorBasic_CustomAttributesImplementsOther>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
-                            break;                           
+                            break;
                         default:
                             throw new ApplicationException("Unsupported test method specified!");
                     }
                 });
             }
         }
-    }    
+    }
 }

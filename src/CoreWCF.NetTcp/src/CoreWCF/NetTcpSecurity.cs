@@ -1,60 +1,57 @@
-using CoreWCF.Runtime;
-using CoreWCF.Channels;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.ComponentModel;
+using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
     public sealed partial class NetTcpSecurity
     {
         internal const SecurityMode DefaultMode = SecurityMode.Transport;
-
-        SecurityMode mode;
-        TcpTransportSecurity transportSecurity;
+        private SecurityMode _mode;
 
         public NetTcpSecurity()
             : this(DefaultMode, new TcpTransportSecurity())
         {
         }
 
-        NetTcpSecurity(SecurityMode mode, TcpTransportSecurity transportSecurity)
+        private NetTcpSecurity(SecurityMode mode, TcpTransportSecurity transportSecurity)
         {
             Fx.Assert(SecurityModeHelper.IsDefined(mode), string.Format("Invalid SecurityMode value: {0}.", mode.ToString()));
 
-            this.mode = mode;
-            this.transportSecurity = transportSecurity == null ? new TcpTransportSecurity() : transportSecurity;
+            _mode = mode;
+            Transport = transportSecurity ?? new TcpTransportSecurity();
         }
 
         [DefaultValue(DefaultMode)]
         public SecurityMode Mode
         {
-            get { return mode; }
+            get { return _mode; }
             set
             {
                 if (!SecurityModeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
-                mode = value;
+                _mode = value;
             }
         }
 
-        public TcpTransportSecurity Transport
-        {
-            get { return transportSecurity; }
-            set { transportSecurity = value; }
-        }
+        public TcpTransportSecurity Transport { get; set; }
 
         internal BindingElement CreateTransportSecurity()
         {
-            if (mode == SecurityMode.TransportWithMessageCredential)
+            if (_mode == SecurityMode.TransportWithMessageCredential)
             {
                 throw new PlatformNotSupportedException("TransportWithMessageCredential");
                 //return this.transportSecurity.CreateTransportProtectionOnly();
             }
-            else if (mode == SecurityMode.Transport)
+            else if (_mode == SecurityMode.Transport)
             {
-                return transportSecurity.CreateTransportProtectionAndAuthentication();
+                return Transport.CreateTransportProtectionAndAuthentication();
             }
             else
             {

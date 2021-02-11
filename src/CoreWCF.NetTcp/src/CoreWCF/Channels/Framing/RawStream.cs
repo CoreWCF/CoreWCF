@@ -1,10 +1,13 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -18,9 +21,9 @@ namespace CoreWCF.Channels.Framing
         private readonly PipeReader _input;
         private readonly PipeWriter _output;
         private bool _canRead;
-        private object _thisLock;
+        private readonly object _thisLock;
         private TaskCompletionSource<object> _unwrapTcs;
-        private SemaphoreSlim _readSemaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _readSemaphore = new SemaphoreSlim(1, 1);
 
         public RawStream(FramingConnection connection)
         {
@@ -141,7 +144,7 @@ namespace CoreWCF.Channels.Framing
                         return 0;
                     }
 
-                    var result = await _input.ReadAsync();
+                    ReadResult result = await _input.ReadAsync();
                     if (!CanRead)
                     {
                         _input.AdvanceTo(result.Buffer.Start);
@@ -149,13 +152,13 @@ namespace CoreWCF.Channels.Framing
                         return 0;
                     }
 
-                    var readableBuffer = result.Buffer;
+                    ReadOnlySequence<byte> readableBuffer = result.Buffer;
                     try
                     {
                         if (!readableBuffer.IsEmpty)
                         {
                             // buffer.Count is int
-                            var count = (int)Math.Min(readableBuffer.Length, destination.Length);
+                            int count = (int)Math.Min(readableBuffer.Length, destination.Length);
                             readableBuffer = readableBuffer.Slice(0, count);
                             readableBuffer.CopyTo(destination.Span);
                             return count;
@@ -176,7 +179,7 @@ namespace CoreWCF.Channels.Framing
 
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
         {
-            var task = ReadAsync(buffer, offset, count, default(CancellationToken), state);
+            Task<int> task = ReadAsync(buffer, offset, count, default, state);
             if (callback != null)
             {
                 task.ContinueWith(t => callback.Invoke(t));
@@ -192,7 +195,7 @@ namespace CoreWCF.Channels.Framing
         private Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken, object state)
         {
             var tcs = new TaskCompletionSource<int>(state);
-            var task = ReadAsync(buffer, offset, count, cancellationToken);
+            Task<int> task = ReadAsync(buffer, offset, count, cancellationToken);
             task.ContinueWith((task2, state2) =>
             {
                 var tcs2 = (TaskCompletionSource<int>)state2;
@@ -214,7 +217,7 @@ namespace CoreWCF.Channels.Framing
 
         public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
         {
-            var task = WriteAsync(buffer, offset, count, default(CancellationToken), state);
+            Task task = WriteAsync(buffer, offset, count, default, state);
             if (callback != null)
             {
                 task.ContinueWith(t => callback.Invoke(t));
@@ -230,7 +233,7 @@ namespace CoreWCF.Channels.Framing
         private Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken, object state)
         {
             var tcs = new TaskCompletionSource<object>(state);
-            var task = WriteAsync(buffer, offset, count, cancellationToken);
+            Task task = WriteAsync(buffer, offset, count, cancellationToken);
             task.ContinueWith((task2, state2) =>
             {
                 var tcs2 = (TaskCompletionSource<object>)state2;
@@ -273,7 +276,10 @@ namespace CoreWCF.Channels.Framing
             }
             finally
             {
-                if (acquired) _readSemaphore.Release();
+                if (acquired)
+                {
+                    _readSemaphore.Release();
+                }
             }
         }
 

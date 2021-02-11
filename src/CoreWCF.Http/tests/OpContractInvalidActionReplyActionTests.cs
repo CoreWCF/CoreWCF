@@ -1,10 +1,13 @@
-﻿using CoreWCF.Configuration;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
-using System;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,7 +15,7 @@ namespace CoreWCF.Http.Tests
 {
     public class OpContractInvalidActionReplyActionTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public OpContractInvalidActionReplyActionTests(ITestOutputHelper output)
         {
             _output = output;
@@ -21,7 +24,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void NullAction()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 InvalidOperationException exception = null;
@@ -43,7 +46,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void NullReplyAction()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
             using (host)
             {
                 InvalidOperationException exception = null;

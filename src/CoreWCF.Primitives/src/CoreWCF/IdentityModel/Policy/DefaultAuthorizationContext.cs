@@ -1,30 +1,32 @@
-﻿using CoreWCF.IdentityModel.Claims;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.IdentityModel.Policy
 {
-   internal class DefaultAuthorizationContext : AuthorizationContext
+    internal class DefaultAuthorizationContext : AuthorizationContext
     {
-        SecurityUniqueId id;
-        ReadOnlyCollection<ClaimSet> claimSets;
-        DateTime expirationTime;
-        IDictionary<string, object> properties;
+        private SecurityUniqueId _id;
+        private readonly ReadOnlyCollection<ClaimSet> _claimSets;
+        private readonly DateTime _expirationTime;
+        private readonly IDictionary<string, object> _properties;
 
         public DefaultAuthorizationContext(DefaultEvaluationContext evaluationContext)
         {
-            this.claimSets = evaluationContext.ClaimSets;
-            this.expirationTime = evaluationContext.ExpirationTime;
-            this.properties = evaluationContext.Properties;
+            _claimSets = evaluationContext.ClaimSets;
+            _expirationTime = evaluationContext.ExpirationTime;
+            _properties = evaluationContext.Properties;
         }
 
         public static DefaultAuthorizationContext Empty
         {
             get
             {
-               return new DefaultAuthorizationContext(new DefaultEvaluationContext());
+                return new DefaultAuthorizationContext(new DefaultEvaluationContext());
             }
         }
 
@@ -32,26 +34,29 @@ namespace CoreWCF.IdentityModel.Policy
         {
             get
             {
-                if (this.id == null)
-                    this.id = SecurityUniqueId.Create();
-                return this.id.Value;
+                if (_id == null)
+                {
+                    _id = SecurityUniqueId.Create();
+                }
+
+                return _id.Value;
             }
         }
 
         public override ReadOnlyCollection<ClaimSet> ClaimSets
         {
-            get { return this.claimSets; }
+            get { return _claimSets; }
         }
 
 
         public override DateTime ExpirationTime
         {
-            get { return this.expirationTime; }
+            get { return _expirationTime; }
         }
 
         public override IDictionary<string, object> Properties
         {
-            get { return this.properties; }
+            get { return _properties; }
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Description;
 
 namespace CoreWCF
@@ -6,9 +9,8 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.MessageContract, AllowMultiple = false)]
     public sealed class MessageContractAttribute : Attribute
     {
-        bool isWrapped = true;
-        string wrappedName;
-        string wrappedNs;
+        private string _wrappedName;
+        private string _wrappedNs;
         //ProtectionLevel protectionLevel = ProtectionLevel.None;
         //bool hasProtectionLevel = false;
 
@@ -33,26 +35,28 @@ namespace CoreWCF
         //    get { return this.hasProtectionLevel; }
         //}
 
-        public bool IsWrapped
-        {
-            get { return isWrapped; }
-            set { isWrapped = value; }
-        }
+        public bool IsWrapped { get; set; } = true;
 
         public string WrapperName
         {
             get
             {
-                return wrappedName;
+                return _wrappedName;
             }
             set
             {
                 if (value == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
                 if (value == string.Empty)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value),
                         SR.SFxWrapperNameCannotBeEmpty));
-                wrappedName = value;
+                }
+
+                _wrappedName = value;
             }
         }
 
@@ -60,15 +64,17 @@ namespace CoreWCF
         {
             get
             {
-                return wrappedNs;
+                return _wrappedNs;
             }
             set
             {
                 if (!string.IsNullOrEmpty(value))
+                {
                     NamingHelper.CheckUriProperty(value, "WrapperNamespace");
-                wrappedNs = value;
+                }
+
+                _wrappedNs = value;
             }
         }
     }
-
 }

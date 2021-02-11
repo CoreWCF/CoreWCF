@@ -1,4 +1,7 @@
-﻿namespace CoreWCF
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+namespace CoreWCF
 {
     public enum ConcurrencyMode
     {
@@ -9,7 +12,7 @@
 
     internal static class ConcurrencyModeHelper
     {
-        static public bool IsDefined(ConcurrencyMode x)
+        public static bool IsDefined(ConcurrencyMode x)
         {
             return
                 x == ConcurrencyMode.Single ||

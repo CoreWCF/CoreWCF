@@ -1,17 +1,16 @@
-﻿using CoreWCF;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
-using System.Text;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
     internal class X509WindowsSecurityToken : X509SecurityToken
     {
-        WindowsIdentity windowsIdentity;
-        bool disposed = false;
-        string authenticationType;
+        private WindowsIdentity _windowsIdentity;
+        private bool _disposed = false;
 
         public X509WindowsSecurityToken(X509Certificate2 certificate, WindowsIdentity windowsIdentity)
             : this(certificate, windowsIdentity, null, true)
@@ -37,10 +36,12 @@ namespace CoreWCF.IdentityModel.Tokens
             : base(certificate, id, clone)
         {
             if (windowsIdentity == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
+            }
 
-            this.authenticationType = authenticationType;
-            this.windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
+            AuthenticationType = authenticationType;
+            _windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
         }
 
 
@@ -49,27 +50,21 @@ namespace CoreWCF.IdentityModel.Tokens
             get
             {
                 ThrowIfDisposed();
-                return windowsIdentity;
+                return _windowsIdentity;
             }
         }
 
-        public string AuthenticationType
-        {
-            get
-            {
-                return authenticationType;
-            }
-        }
+        public string AuthenticationType { get; }
 
         public override void Dispose()
         {
             try
             {
-                if (!disposed)
+                if (!_disposed)
                 {
-                    disposed = true;
-                    windowsIdentity.Dispose();
-                    windowsIdentity = null;
+                    _disposed = true;
+                    _windowsIdentity.Dispose();
+                    _windowsIdentity = null;
                 }
             }
             finally
@@ -78,5 +73,4 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
     }
-
 }

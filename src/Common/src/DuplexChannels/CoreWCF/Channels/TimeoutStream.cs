@@ -1,18 +1,17 @@
-﻿using System;
-using System.Diagnostics.Contracts;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.IO;
-using CoreWCF.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
     // Enforces an overall timeout based on the TimeoutHelper passed in
     internal class TimeoutStream : DelegatingStream
     {
-        private TimeoutHelper _timeoutHelper;
-        private bool _disposed;
-        private byte[] _oneByteArray = new byte[1];
+        private readonly byte[] _oneByteArray = new byte[1];
         private CancellationToken _cancellationToken;
 
         public TimeoutStream(Stream stream, CancellationToken token)
@@ -20,7 +19,7 @@ namespace CoreWCF.Channels
         {
             if (!stream.CanTimeout)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("stream", SR.StreamDoesNotSupportTimeout);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(stream), SR.StreamDoesNotSupportTimeout);
             }
 
             _cancellationToken = token;
@@ -37,7 +36,10 @@ namespace CoreWCF.Channels
         {
             int r = Read(_oneByteArray, 0, 1);
             if (r == 0)
+            {
                 return -1;
+            }
+
             return _oneByteArray[0];
         }
 
@@ -80,20 +82,6 @@ namespace CoreWCF.Channels
         {
             await TaskHelpers.EnsureDefaultTaskScheduler();
             await WriteAsync(buffer, offset, count, cancellationToken);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    _timeoutHelper = default(TimeoutHelper);
-                }
-
-                _disposed = true;
-            }
-            base.Dispose(disposing);
         }
     }
 }

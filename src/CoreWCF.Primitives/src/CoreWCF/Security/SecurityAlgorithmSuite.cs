@@ -1,38 +1,41 @@
-﻿using CoreWCF.IdentityModel.Tokens;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Collections.ObjectModel;
 using System.Xml;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
     public abstract class SecurityAlgorithmSuite
     {
-        static SecurityAlgorithmSuite basic256;
-        static SecurityAlgorithmSuite basic192;
-        static SecurityAlgorithmSuite basic128;
-        static SecurityAlgorithmSuite tripleDes;
-        static SecurityAlgorithmSuite basic256Rsa15;
-        static SecurityAlgorithmSuite basic192Rsa15;
-        static SecurityAlgorithmSuite basic128Rsa15;
-        static SecurityAlgorithmSuite tripleDesRsa15;
-        static SecurityAlgorithmSuite basic256Sha256;
-        static SecurityAlgorithmSuite basic192Sha256;
-        static SecurityAlgorithmSuite basic128Sha256;
-        static SecurityAlgorithmSuite tripleDesSha256;
-        static SecurityAlgorithmSuite basic256Sha256Rsa15;
-        static SecurityAlgorithmSuite basic192Sha256Rsa15;
-        static SecurityAlgorithmSuite basic128Sha256Rsa15;
-        static SecurityAlgorithmSuite tripleDesSha256Rsa15;
+        private static SecurityAlgorithmSuite s_basic256;
+        private static SecurityAlgorithmSuite s_basic192;
+        private static SecurityAlgorithmSuite s_basic128;
+        private static SecurityAlgorithmSuite s_tripleDes;
+        private static SecurityAlgorithmSuite s_basic256Rsa15;
+        private static SecurityAlgorithmSuite s_basic192Rsa15;
+        private static SecurityAlgorithmSuite s_basic128Rsa15;
+        private static SecurityAlgorithmSuite s_tripleDesRsa15;
+        private static SecurityAlgorithmSuite s_basic256Sha256;
+        private static SecurityAlgorithmSuite s_basic192Sha256;
+        private static SecurityAlgorithmSuite s_basic128Sha256;
+        private static SecurityAlgorithmSuite s_tripleDesSha256;
+        private static SecurityAlgorithmSuite s_basic256Sha256Rsa15;
+        private static SecurityAlgorithmSuite s_basic192Sha256Rsa15;
+        private static SecurityAlgorithmSuite s_basic128Sha256Rsa15;
+        private static SecurityAlgorithmSuite s_tripleDesSha256Rsa15;
 
-        static internal SecurityAlgorithmSuite KerberosDefault
+        internal static SecurityAlgorithmSuite KerberosDefault
         {
             get
             {
                 return Basic128;
             }
         }
-        static public SecurityAlgorithmSuite Default
+        public static SecurityAlgorithmSuite Default
         {
             get
             {
@@ -40,149 +43,197 @@ namespace CoreWCF.Security
             }
         }
 
-        static public SecurityAlgorithmSuite Basic256
+        public static SecurityAlgorithmSuite Basic256
         {
             get
             {
-                if (basic256 == null)
-                    basic256 = new Basic256SecurityAlgorithmSuite();
-                return basic256;
+                if (s_basic256 == null)
+                {
+                    s_basic256 = new Basic256SecurityAlgorithmSuite();
+                }
+
+                return s_basic256;
             }
         }
-        static public SecurityAlgorithmSuite Basic192
+        public static SecurityAlgorithmSuite Basic192
         {
             get
             {
-                if (basic192 == null)
-                    basic192 = new Basic192SecurityAlgorithmSuite();
-                return basic192;
+                if (s_basic192 == null)
+                {
+                    s_basic192 = new Basic192SecurityAlgorithmSuite();
+                }
+
+                return s_basic192;
             }
         }
-        static public SecurityAlgorithmSuite Basic128
+        public static SecurityAlgorithmSuite Basic128
         {
             get
             {
-                if (basic128 == null)
-                    basic128 = new Basic128SecurityAlgorithmSuite();
-                return basic128;
+                if (s_basic128 == null)
+                {
+                    s_basic128 = new Basic128SecurityAlgorithmSuite();
+                }
+
+                return s_basic128;
             }
         }
-        static public SecurityAlgorithmSuite TripleDes
+        public static SecurityAlgorithmSuite TripleDes
         {
             get
             {
-                if (tripleDes == null)
-                    tripleDes = new TripleDesSecurityAlgorithmSuite();
-                return tripleDes;
+                if (s_tripleDes == null)
+                {
+                    s_tripleDes = new TripleDesSecurityAlgorithmSuite();
+                }
+
+                return s_tripleDes;
             }
         }
-        static public SecurityAlgorithmSuite Basic256Rsa15
+        public static SecurityAlgorithmSuite Basic256Rsa15
         {
             get
             {
-                if (basic256Rsa15 == null)
-                    basic256Rsa15 = new Basic256Rsa15SecurityAlgorithmSuite();
-                return basic256Rsa15;
+                if (s_basic256Rsa15 == null)
+                {
+                    s_basic256Rsa15 = new Basic256Rsa15SecurityAlgorithmSuite();
+                }
+
+                return s_basic256Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite Basic192Rsa15
+        public static SecurityAlgorithmSuite Basic192Rsa15
         {
             get
             {
-                if (basic192Rsa15 == null)
-                    basic192Rsa15 = new Basic192Rsa15SecurityAlgorithmSuite();
-                return basic192Rsa15;
+                if (s_basic192Rsa15 == null)
+                {
+                    s_basic192Rsa15 = new Basic192Rsa15SecurityAlgorithmSuite();
+                }
+
+                return s_basic192Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite Basic128Rsa15
+        public static SecurityAlgorithmSuite Basic128Rsa15
         {
             get
             {
-                if (basic128Rsa15 == null)
-                    basic128Rsa15 = new Basic128Rsa15SecurityAlgorithmSuite();
-                return basic128Rsa15;
+                if (s_basic128Rsa15 == null)
+                {
+                    s_basic128Rsa15 = new Basic128Rsa15SecurityAlgorithmSuite();
+                }
+
+                return s_basic128Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite TripleDesRsa15
+        public static SecurityAlgorithmSuite TripleDesRsa15
         {
             get
             {
-                if (tripleDesRsa15 == null)
-                    tripleDesRsa15 = new TripleDesRsa15SecurityAlgorithmSuite();
-                return tripleDesRsa15;
+                if (s_tripleDesRsa15 == null)
+                {
+                    s_tripleDesRsa15 = new TripleDesRsa15SecurityAlgorithmSuite();
+                }
+
+                return s_tripleDesRsa15;
             }
         }
 
-        static public SecurityAlgorithmSuite Basic256Sha256
+        public static SecurityAlgorithmSuite Basic256Sha256
         {
             get
             {
-                if (basic256Sha256 == null)
-                    basic256Sha256 = new Basic256Sha256SecurityAlgorithmSuite();
-                return basic256Sha256;
+                if (s_basic256Sha256 == null)
+                {
+                    s_basic256Sha256 = new Basic256Sha256SecurityAlgorithmSuite();
+                }
+
+                return s_basic256Sha256;
             }
         }
-        static public SecurityAlgorithmSuite Basic192Sha256
+        public static SecurityAlgorithmSuite Basic192Sha256
         {
             get
             {
-                if (basic192Sha256 == null)
-                    basic192Sha256 = new Basic192Sha256SecurityAlgorithmSuite();
-                return basic192Sha256;
+                if (s_basic192Sha256 == null)
+                {
+                    s_basic192Sha256 = new Basic192Sha256SecurityAlgorithmSuite();
+                }
+
+                return s_basic192Sha256;
             }
         }
-        static public SecurityAlgorithmSuite Basic128Sha256
+        public static SecurityAlgorithmSuite Basic128Sha256
         {
             get
             {
-                if (basic128Sha256 == null)
-                    basic128Sha256 = new Basic128Sha256SecurityAlgorithmSuite();
-                return basic128Sha256;
+                if (s_basic128Sha256 == null)
+                {
+                    s_basic128Sha256 = new Basic128Sha256SecurityAlgorithmSuite();
+                }
+
+                return s_basic128Sha256;
             }
         }
-        static public SecurityAlgorithmSuite TripleDesSha256
+        public static SecurityAlgorithmSuite TripleDesSha256
         {
             get
             {
-                if (tripleDesSha256 == null)
-                    tripleDesSha256 = new TripleDesSha256SecurityAlgorithmSuite();
-                return tripleDesSha256;
+                if (s_tripleDesSha256 == null)
+                {
+                    s_tripleDesSha256 = new TripleDesSha256SecurityAlgorithmSuite();
+                }
+
+                return s_tripleDesSha256;
             }
         }
-        static public SecurityAlgorithmSuite Basic256Sha256Rsa15
+        public static SecurityAlgorithmSuite Basic256Sha256Rsa15
         {
             get
             {
-                if (basic256Sha256Rsa15 == null)
-                    basic256Sha256Rsa15 = new Basic256Sha256Rsa15SecurityAlgorithmSuite();
-                return basic256Sha256Rsa15;
+                if (s_basic256Sha256Rsa15 == null)
+                {
+                    s_basic256Sha256Rsa15 = new Basic256Sha256Rsa15SecurityAlgorithmSuite();
+                }
+
+                return s_basic256Sha256Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite Basic192Sha256Rsa15
+        public static SecurityAlgorithmSuite Basic192Sha256Rsa15
         {
             get
             {
-                if (basic192Sha256Rsa15 == null)
-                    basic192Sha256Rsa15 = new Basic192Sha256Rsa15SecurityAlgorithmSuite();
-                return basic192Sha256Rsa15;
+                if (s_basic192Sha256Rsa15 == null)
+                {
+                    s_basic192Sha256Rsa15 = new Basic192Sha256Rsa15SecurityAlgorithmSuite();
+                }
+
+                return s_basic192Sha256Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite Basic128Sha256Rsa15
+        public static SecurityAlgorithmSuite Basic128Sha256Rsa15
         {
             get
             {
-                if (basic128Sha256Rsa15 == null)
-                    basic128Sha256Rsa15 = new Basic128Sha256Rsa15SecurityAlgorithmSuite();
-                return basic128Sha256Rsa15;
+                if (s_basic128Sha256Rsa15 == null)
+                {
+                    s_basic128Sha256Rsa15 = new Basic128Sha256Rsa15SecurityAlgorithmSuite();
+                }
+
+                return s_basic128Sha256Rsa15;
             }
         }
-        static public SecurityAlgorithmSuite TripleDesSha256Rsa15
+        public static SecurityAlgorithmSuite TripleDesSha256Rsa15
         {
             get
             {
-                if (tripleDesSha256Rsa15 == null)
-                    tripleDesSha256Rsa15 = new TripleDesSha256Rsa15SecurityAlgorithmSuite();
-                return tripleDesSha256Rsa15;
+                if (s_tripleDesSha256Rsa15 == null)
+                {
+                    s_tripleDesSha256Rsa15 = new TripleDesSha256Rsa15SecurityAlgorithmSuite();
+                }
+
+                return s_tripleDesSha256Rsa15;
             }
         }
 
@@ -222,180 +273,205 @@ namespace CoreWCF.Security
         internal static bool IsRsaSHA256(SecurityAlgorithmSuite suite)
         {
             if (suite == null)
+            {
                 return false;
+            }
 
             return (suite == Basic128Sha256 || suite == Basic128Sha256Rsa15 || suite == Basic192Sha256 || suite == Basic192Sha256Rsa15 ||
                 suite == Basic256Sha256 || suite == Basic256Sha256Rsa15 || suite == TripleDesSha256 || suite == TripleDesSha256Rsa15);
-
         }
 
-        //internal string GetEncryptionKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal string GetEncryptionKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
+        {
+            if (token == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+            }
 
-        //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
-        //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
-        //        return derivationAlgorithm;
-        //    else
-        //        return null;
-        //}
+            string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
+            if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
+            {
+                return derivationAlgorithm;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
-        //internal int GetEncryptionKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal int GetEncryptionKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
+        {
+            if (token == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+            }
 
-        //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
-        //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
-        //    {
-        //        if (this.DefaultEncryptionKeyDerivationLength % 8 != 0)
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.Psha1KeyLengthInvalid, this.DefaultEncryptionKeyDerivationLength)));
+            string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
+            if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
+            {
+                if (DefaultEncryptionKeyDerivationLength % 8 != 0)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.Psha1KeyLengthInvalid, DefaultEncryptionKeyDerivationLength)));
+                }
 
-        //        return this.DefaultEncryptionKeyDerivationLength / 8;
-        //    }
-        //    else
-        //        return 0;
-        //}
+                return DefaultEncryptionKeyDerivationLength / 8;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
-        //internal void GetKeyWrapAlgorithm(SecurityToken token, out string keyWrapAlgorithm, out XmlDictionaryString keyWrapAlgorithmDictionaryString)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal void GetKeyWrapAlgorithm(SecurityToken token, out string keyWrapAlgorithm, out XmlDictionaryString keyWrapAlgorithmDictionaryString)
+        {
+            if (token == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+            }
 
-        //    if (SecurityUtils.IsSupportedAlgorithm(this.DefaultSymmetricKeyWrapAlgorithm, token))
-        //    {
-        //        keyWrapAlgorithm = this.DefaultSymmetricKeyWrapAlgorithm;
-        //        keyWrapAlgorithmDictionaryString = this.DefaultSymmetricKeyWrapAlgorithmDictionaryString;
-        //    }
-        //    else
-        //    {
-        //        keyWrapAlgorithm = this.DefaultAsymmetricKeyWrapAlgorithm;
-        //        keyWrapAlgorithmDictionaryString = this.DefaultAsymmetricKeyWrapAlgorithmDictionaryString;
-        //    }
-        //}
+            if (SecurityUtils.IsSupportedAlgorithm(DefaultSymmetricKeyWrapAlgorithm, token))
+            {
+                keyWrapAlgorithm = DefaultSymmetricKeyWrapAlgorithm;
+                keyWrapAlgorithmDictionaryString = DefaultSymmetricKeyWrapAlgorithmDictionaryString;
+            }
+            else
+            {
+                keyWrapAlgorithm = DefaultAsymmetricKeyWrapAlgorithm;
+                keyWrapAlgorithmDictionaryString = DefaultAsymmetricKeyWrapAlgorithmDictionaryString;
+            }
+        }
 
-        //internal void GetSignatureAlgorithmAndKey(SecurityToken token, out string signatureAlgorithm, out SecurityKey key, out XmlDictionaryString signatureAlgorithmDictionaryString)
-        //{
-        //    ReadOnlyCollection<SecurityKey> keys = token.SecurityKeys;
-        //    if (keys == null || keys.Count == 0)
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SigningTokenHasNoKeys, token)));
-        //    }
+        internal void GetSignatureAlgorithmAndKey(SecurityToken token, out string signatureAlgorithm, out SecurityKey key, out XmlDictionaryString signatureAlgorithmDictionaryString)
+        {
+            ReadOnlyCollection<SecurityKey> keys = token.SecurityKeys;
+            if (keys == null || keys.Count == 0)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SigningTokenHasNoKeys, token)));
+            }
 
-        //    for (int i = 0; i < keys.Count; i++)
-        //    {
-        //        if (keys[i].IsSupportedAlgorithm(this.DefaultSymmetricSignatureAlgorithm))
-        //        {
-        //            signatureAlgorithm = this.DefaultSymmetricSignatureAlgorithm;
-        //            signatureAlgorithmDictionaryString = this.DefaultSymmetricSignatureAlgorithmDictionaryString;
-        //            key = keys[i];
-        //            return;
-        //        }
-        //        else if (keys[i].IsSupportedAlgorithm(this.DefaultAsymmetricSignatureAlgorithm))
-        //        {
-        //            signatureAlgorithm = this.DefaultAsymmetricSignatureAlgorithm;
-        //            signatureAlgorithmDictionaryString = this.DefaultAsymmetricSignatureAlgorithmDictionaryString;
-        //            key = keys[i];
-        //            return;
-        //        }
-        //    }
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (keys[i].IsSupportedAlgorithm(DefaultSymmetricSignatureAlgorithm))
+                {
+                    signatureAlgorithm = DefaultSymmetricSignatureAlgorithm;
+                    signatureAlgorithmDictionaryString = DefaultSymmetricSignatureAlgorithmDictionaryString;
+                    key = keys[i];
+                    return;
+                }
+                else if (keys[i].IsSupportedAlgorithm(DefaultAsymmetricSignatureAlgorithm))
+                {
+                    signatureAlgorithm = DefaultAsymmetricSignatureAlgorithm;
+                    signatureAlgorithmDictionaryString = DefaultAsymmetricSignatureAlgorithmDictionaryString;
+                    key = keys[i];
+                    return;
+                }
+            }
 
-        //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SigningTokenHasNoKeysSupportingTheAlgorithmSuite, token, this)));
-        //}
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SigningTokenHasNoKeysSupportingTheAlgorithmSuite, token, this)));
+        }
 
-        //internal string GetSignatureKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal string GetSignatureKeyDerivationAlgorithm(SecurityToken token, SecureConversationVersion version)
+        {
+            if (token == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+            }
 
-        //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
-        //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
-        //        return derivationAlgorithm;
-        //    else
-        //        return null;
-        //}
+            string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
+            if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
+            {
+                return derivationAlgorithm;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
-        //internal int GetSignatureKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
-        //{
-        //    if (token == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+        internal int GetSignatureKeyDerivationLength(SecurityToken token, SecureConversationVersion version)
+        {
+            if (token == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+            }
 
-        //    string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
-        //    if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
-        //    {
-        //        if (this.DefaultSignatureKeyDerivationLength % 8 != 0)
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.Psha1KeyLengthInvalid, this.DefaultSignatureKeyDerivationLength)));
+            string derivationAlgorithm = SecurityUtils.GetKeyDerivationAlgorithm(version);
+            if (SecurityUtils.IsSupportedAlgorithm(derivationAlgorithm, token))
+            {
+                if (DefaultSignatureKeyDerivationLength % 8 != 0)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.Psha1KeyLengthInvalid, DefaultSignatureKeyDerivationLength)));
+                }
 
-        //        return this.DefaultSignatureKeyDerivationLength / 8;
-        //    }
-        //    else
-        //        return 0;
-        //}
+                return DefaultSignatureKeyDerivationLength / 8;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
-        //internal void EnsureAcceptableSymmetricSignatureAlgorithm(string algorithm)
-        //{
-        //    if (!IsSymmetricSignatureAlgorithmSupported(algorithm))
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //            algorithm, "SymmetricSignature", this)));
-        //    }
-        //}
+        internal void EnsureAcceptableSymmetricSignatureAlgorithm(string algorithm)
+        {
+            if (!IsSymmetricSignatureAlgorithmSupported(algorithm))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                    algorithm, "SymmetricSignature", this)));
+            }
+        }
 
-        //internal void EnsureAcceptableSignatureKeySize(SecurityKey securityKey, SecurityToken token)
-        //{
-        //    AsymmetricSecurityKey asymmetricSecurityKey = securityKey as AsymmetricSecurityKey;
-        //    if (asymmetricSecurityKey != null)
-        //    {
-        //        if (!IsAsymmetricKeyLengthSupported(asymmetricSecurityKey.KeySize))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
-        //                SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, asymmetricSecurityKey.KeySize)));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        SymmetricSecurityKey symmetricSecurityKey = securityKey as SymmetricSecurityKey;
-        //        if (symmetricSecurityKey == null)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, symmetricSecurityKey)));
-        //        }
-        //        EnsureAcceptableSignatureSymmetricKeySize(symmetricSecurityKey, token);
-        //    }
-        //}
+        internal void EnsureAcceptableSignatureKeySize(SecurityKey securityKey, SecurityToken token)
+        {
+            if (securityKey is AsymmetricSecurityKey asymmetricSecurityKey)
+            {
+                if (!IsAsymmetricKeyLengthSupported(asymmetricSecurityKey.KeySize))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                        SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, asymmetricSecurityKey.KeySize)));
+                }
+            }
+            else
+            {
+                SymmetricSecurityKey symmetricSecurityKey = securityKey as SymmetricSecurityKey;
+                if (symmetricSecurityKey == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, symmetricSecurityKey)));
+                }
+                EnsureAcceptableSignatureSymmetricKeySize(symmetricSecurityKey, token);
+            }
+        }
 
         //// Ensure acceptable signing symmetric key.
         //// 1) if derived key, validate derived key against DefaultSignatureKeyDerivationLength and validate
         ////    source key against DefaultSymmetricKeyLength
         //// 2) if not derived key, validate key against DefaultSymmetricKeyLength
-        //internal void EnsureAcceptableSignatureSymmetricKeySize(SymmetricSecurityKey securityKey, SecurityToken token)
-        //{
-        //    int keySize;
-        //    DerivedKeySecurityToken dkt = token as DerivedKeySecurityToken;
-        //    if (dkt != null)
-        //    {
-        //        token = dkt.TokenToDerive;
-        //        keySize = ((SymmetricSecurityKey)token.SecurityKeys[0]).KeySize;
+        internal void EnsureAcceptableSignatureSymmetricKeySize(SymmetricSecurityKey securityKey, SecurityToken token)
+        {
+            int keySize;
+            if (token is DerivedKeySecurityToken dkt)
+            {
+                token = dkt.TokenToDerive;
+                keySize = ((SymmetricSecurityKey)token.SecurityKeys[0]).KeySize;
 
-        //        // doing special case for derived key token signing length since
-        //        // the sending side doesn't honor the algorithm suite. It used the DefaultSignatureKeyDerivationLength instead
-        //        if (dkt.SecurityKeys[0].KeySize < this.DefaultSignatureKeyDerivationLength)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
-        //                SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, dkt, dkt.SecurityKeys[0].KeySize)));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        keySize = securityKey.KeySize;
-        //    }
+                // doing special case for derived key token signing length since
+                // the sending side doesn't honor the algorithm suite. It used the DefaultSignatureKeyDerivationLength instead
+                if (dkt.SecurityKeys[0].KeySize < DefaultSignatureKeyDerivationLength)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                        SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, dkt, dkt.SecurityKeys[0].KeySize)));
+                }
+            }
+            else
+            {
+                keySize = securityKey.KeySize;
+            }
 
-        //    if (!IsSymmetricKeyLengthSupported(keySize))
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
-        //            SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, keySize)));
-        //    }
-        //}
+            if (!IsSymmetricKeyLengthSupported(keySize))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                    SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, keySize)));
+            }
+        }
 
         //// Ensure acceptable decrypting symmetric key.
         //// 1) if derived key, validate derived key against DefaultEncryptionKeyDerivationLength and validate
@@ -430,53 +506,51 @@ namespace CoreWCF.Security
         //    }
         //}
 
-        //internal void EnsureAcceptableSignatureAlgorithm(SecurityKey verificationKey, string algorithm)
-        //{
-        //    InMemorySymmetricSecurityKey symmeticKey = verificationKey as InMemorySymmetricSecurityKey;
-        //    if (symmeticKey != null)
-        //    {
-        //        this.EnsureAcceptableSymmetricSignatureAlgorithm(algorithm);
-        //    }
-        //    else
-        //    {
-        //        AsymmetricSecurityKey asymmetricKey = verificationKey as AsymmetricSecurityKey;
-        //        if (asymmetricKey == null)
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, verificationKey)));
-        //        }
+        internal void EnsureAcceptableSignatureAlgorithm(SecurityKey verificationKey, string algorithm)
+        {
+            if (verificationKey is InMemorySymmetricSecurityKey symmeticKey)
+            {
+                EnsureAcceptableSymmetricSignatureAlgorithm(algorithm);
+            }
+            else
+            {
+                if (!(verificationKey is AsymmetricSecurityKey asymmetricKey))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.UnknownICryptoType, verificationKey)));
+                }
 
-        //        this.EnsureAcceptableAsymmetricSignatureAlgorithm(algorithm);
-        //    }
-        //}
+                EnsureAcceptableAsymmetricSignatureAlgorithm(algorithm);
+            }
+        }
 
-        //internal void EnsureAcceptableAsymmetricSignatureAlgorithm(string algorithm)
-        //{
-        //    if (!IsAsymmetricSignatureAlgorithmSupported(algorithm))
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //            algorithm, "AsymmetricSignature", this)));
-        //    }
-        //}
+        internal void EnsureAcceptableAsymmetricSignatureAlgorithm(string algorithm)
+        {
+            if (!IsAsymmetricSignatureAlgorithmSupported(algorithm))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                    algorithm, "AsymmetricSignature", this)));
+            }
+        }
 
-        //internal void EnsureAcceptableKeyWrapAlgorithm(string algorithm, bool isAsymmetric)
-        //{
-        //    if (isAsymmetric)
-        //    {
-        //        if (!IsAsymmetricKeyWrapAlgorithmSupported(algorithm))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //                algorithm, "AsymmetricKeyWrap", this)));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (!IsSymmetricKeyWrapAlgorithmSupported(algorithm))
-        //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //                algorithm, "SymmetricKeyWrap", this)));
-        //        }
-        //    }
-        //}
+        internal void EnsureAcceptableKeyWrapAlgorithm(string algorithm, bool isAsymmetric)
+        {
+            if (isAsymmetric)
+            {
+                if (!IsAsymmetricKeyWrapAlgorithmSupported(algorithm))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                        algorithm, "AsymmetricKeyWrap", this)));
+                }
+            }
+            else
+            {
+                if (!IsSymmetricKeyWrapAlgorithmSupported(algorithm))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                        algorithm, "SymmetricKeyWrap", this)));
+                }
+            }
+        }
 
         //internal void EnsureAcceptableEncryptionAlgorithm(string algorithm)
         //{
@@ -513,7 +587,6 @@ namespace CoreWCF.Security
         //            algorithm, "Digest", this)));
         //    }
         //}
-
     }
 
     public class Basic256SecurityAlgorithmSuite : SecurityAlgorithmSuite
@@ -641,7 +714,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic128Rsa15SecurityAlgorithmSuite : Basic128SecurityAlgorithmSuite
+    internal class Basic128Rsa15SecurityAlgorithmSuite : Basic128SecurityAlgorithmSuite
     {
         public Basic128Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -653,7 +726,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic192Rsa15SecurityAlgorithmSuite : Basic192SecurityAlgorithmSuite
+    internal class Basic192Rsa15SecurityAlgorithmSuite : Basic192SecurityAlgorithmSuite
     {
         public Basic192Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -665,7 +738,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic256Rsa15SecurityAlgorithmSuite : Basic256SecurityAlgorithmSuite
+    internal class Basic256Rsa15SecurityAlgorithmSuite : Basic256SecurityAlgorithmSuite
     {
         public Basic256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -677,7 +750,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class TripleDesRsa15SecurityAlgorithmSuite : TripleDesSecurityAlgorithmSuite
+    internal class TripleDesRsa15SecurityAlgorithmSuite : TripleDesSecurityAlgorithmSuite
     {
         public TripleDesRsa15SecurityAlgorithmSuite() : base() { }
 
@@ -689,7 +762,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic256Sha256SecurityAlgorithmSuite : Basic256SecurityAlgorithmSuite
+    internal class Basic256Sha256SecurityAlgorithmSuite : Basic256SecurityAlgorithmSuite
     {
         public Basic256Sha256SecurityAlgorithmSuite() : base() { }
 
@@ -703,7 +776,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic192Sha256SecurityAlgorithmSuite : Basic192SecurityAlgorithmSuite
+    internal class Basic192Sha256SecurityAlgorithmSuite : Basic192SecurityAlgorithmSuite
     {
         public Basic192Sha256SecurityAlgorithmSuite() : base() { }
 
@@ -717,7 +790,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic128Sha256SecurityAlgorithmSuite : Basic128SecurityAlgorithmSuite
+    internal class Basic128Sha256SecurityAlgorithmSuite : Basic128SecurityAlgorithmSuite
     {
         public Basic128Sha256SecurityAlgorithmSuite() : base() { }
 
@@ -731,7 +804,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class TripleDesSha256SecurityAlgorithmSuite : TripleDesSecurityAlgorithmSuite
+    internal class TripleDesSha256SecurityAlgorithmSuite : TripleDesSecurityAlgorithmSuite
     {
         public TripleDesSha256SecurityAlgorithmSuite() : base() { }
 
@@ -745,7 +818,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic256Sha256Rsa15SecurityAlgorithmSuite : Basic256Rsa15SecurityAlgorithmSuite
+    internal class Basic256Sha256Rsa15SecurityAlgorithmSuite : Basic256Rsa15SecurityAlgorithmSuite
     {
         public Basic256Sha256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -759,7 +832,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic192Sha256Rsa15SecurityAlgorithmSuite : Basic192Rsa15SecurityAlgorithmSuite
+    internal class Basic192Sha256Rsa15SecurityAlgorithmSuite : Basic192Rsa15SecurityAlgorithmSuite
     {
         public Basic192Sha256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -773,7 +846,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class Basic128Sha256Rsa15SecurityAlgorithmSuite : Basic128Rsa15SecurityAlgorithmSuite
+    internal class Basic128Sha256Rsa15SecurityAlgorithmSuite : Basic128Rsa15SecurityAlgorithmSuite
     {
         public Basic128Sha256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -787,7 +860,7 @@ namespace CoreWCF.Security
         }
     }
 
-    class TripleDesSha256Rsa15SecurityAlgorithmSuite : TripleDesRsa15SecurityAlgorithmSuite
+    internal class TripleDesSha256Rsa15SecurityAlgorithmSuite : TripleDesRsa15SecurityAlgorithmSuite
     {
         public TripleDesSha256Rsa15SecurityAlgorithmSuite() : base() { }
 
@@ -800,5 +873,4 @@ namespace CoreWCF.Security
             return "TripleDesSha256Rsa15";
         }
     }
-
 }

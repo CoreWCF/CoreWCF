@@ -1,22 +1,25 @@
-﻿using CoreWCF;
-using CoreWCF.Channels;
-using Helpers;
-using ServiceContract;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
+using CoreWCF;
+using CoreWCF.Channels;
+using Helpers;
+using ServiceContract;
 
 namespace Services
 {
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class RequestReplyService : IRequestReplyService
     {
-        static List<string> log = new List<string>();
-        static int seed = DateTime.Now.Millisecond;
-        static Random rand = new Random(seed);
-        FlowControlledStream localStream;
+        private static readonly List<string> log = new List<string>();
+        private static readonly int seed = DateTime.Now.Millisecond;
+        private static readonly Random rand = new Random(seed);
+        private FlowControlledStream localStream;
 
         public void UploadData(string data)
         {
@@ -75,11 +78,13 @@ namespace Services
         public Stream DownloadStream()
         {
             log.Add("DownloadStream");
-            localStream = new FlowControlledStream();
-            localStream.ReadThrottle = TimeSpan.FromMilliseconds(500);
-            // Setting to 900ms instead of 1 second because sometimes 3 reads occur and the read buffer grows with
-            // each read by a factor of 16 up to 64KB and this is causing the client to exceed it's MaxReceivedMessageSize
-            localStream.StreamDuration = TimeSpan.FromMilliseconds(900);
+            localStream = new FlowControlledStream
+            {
+                ReadThrottle = TimeSpan.FromMilliseconds(500),
+                // Setting to 900ms instead of 1 second because sometimes 3 reads occur and the read buffer grows with
+                // each read by a factor of 16 up to 64KB and this is causing the client to exceed it's MaxReceivedMessageSize
+                StreamDuration = TimeSpan.FromMilliseconds(900)
+            };
 
             return localStream;
         }
@@ -87,9 +92,11 @@ namespace Services
         public Stream DownloadCustomizedStream(TimeSpan readThrottle, TimeSpan streamDuration)
         {
             log.Add("DownloadStream");
-            localStream = new FlowControlledStream();
-            localStream.ReadThrottle = readThrottle;
-            localStream.StreamDuration = streamDuration;
+            localStream = new FlowControlledStream
+            {
+                ReadThrottle = readThrottle,
+                StreamDuration = streamDuration
+            };
 
             return localStream;
         }

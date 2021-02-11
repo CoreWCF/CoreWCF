@@ -1,12 +1,15 @@
-﻿using CoreWCF.Configuration;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Linq;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace Helpers
@@ -14,7 +17,7 @@ namespace Helpers
     public static class ServiceHelper
     {
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
-            WebHost.CreateDefaultBuilder(new string[0])
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
@@ -34,7 +37,7 @@ namespace Helpers
 
         public static int GetNetTcpPortInUse(this IWebHost host)
         {
-            var addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
+            System.Collections.Generic.ICollection<string> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
             var addressInUse = new Uri(addresses.First(), UriKind.Absolute);
             return addressInUse.Port;
         }

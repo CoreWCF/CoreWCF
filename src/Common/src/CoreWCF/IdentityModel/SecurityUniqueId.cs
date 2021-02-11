@@ -1,47 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Globalization;
-using System.Text;
 using System.Threading;
 
 namespace CoreWCF.IdentityModel
 {
     internal class SecurityUniqueId
     {
-        static long nextId = 0;
-        static string commonPrefix = "uuid-" + Guid.NewGuid().ToString() + "-";
+        private static long s_nextId = 0;
+        private static readonly string s_commonPrefix = "uuid-" + Guid.NewGuid().ToString() + "-";
+        private readonly long _id;
+        private readonly string _prefix;
+        private string _val;
 
-        long id;
-        string prefix;
-        string val;
-
-        SecurityUniqueId(string prefix, long id)
+        private SecurityUniqueId(string prefix, long id)
         {
-            this.id = id;
-            this.prefix = prefix;
-            val = null;
+            _id = id;
+            _prefix = prefix;
+            _val = null;
         }
 
         public static SecurityUniqueId Create()
         {
-            return SecurityUniqueId.Create(commonPrefix);
+            return Create(s_commonPrefix);
         }
 
         public static SecurityUniqueId Create(string prefix)
         {
-            return new SecurityUniqueId(prefix, Interlocked.Increment(ref nextId));
+            return new SecurityUniqueId(prefix, Interlocked.Increment(ref s_nextId));
         }
 
         public string Value
         {
             get
             {
-                if (val == null)
-                    val = prefix + id.ToString(CultureInfo.InvariantCulture);
+                if (_val == null)
+                {
+                    _val = _prefix + _id.ToString(CultureInfo.InvariantCulture);
+                }
 
-                return val;
+                return _val;
             }
         }
     }
-
 }

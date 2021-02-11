@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Channels.Framing;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
+using CoreWCF.Channels.Framing;
 
 namespace CoreWCF.Configuration
 {
@@ -37,9 +37,9 @@ namespace CoreWCF.Configuration
             }
 
             // create branch
-            var branchBuilder = handshakeBuilder.New();
+            IFramingConnectionHandshakeBuilder branchBuilder = handshakeBuilder.New();
             configuration(branchBuilder);
-            var branch = branchBuilder.Build();
+            HandshakeDelegate branch = branchBuilder.Build();
 
             var options = new MapOptions
             {

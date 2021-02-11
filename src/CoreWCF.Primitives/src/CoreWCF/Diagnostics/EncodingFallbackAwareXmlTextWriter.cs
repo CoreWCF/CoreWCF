@@ -1,10 +1,13 @@
-﻿using System.IO;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.IO;
 using System.Text;
 using System.Xml;
 
 namespace CoreWCF.Diagnostics
 {
-    class EncodingFallbackAwareXmlTextWriter : XmlTextWriter
+    internal class EncodingFallbackAwareXmlTextWriter : XmlTextWriter
     {
         private readonly Encoding _encoding;
 
@@ -25,7 +28,7 @@ namespace CoreWCF.Diagnostics
             base.WriteString(value);
         }
 
-        bool ContainsInvalidXmlChar(string value)
+        private bool ContainsInvalidXmlChar(string value)
         {
             if (string.IsNullOrEmpty(value))
             {

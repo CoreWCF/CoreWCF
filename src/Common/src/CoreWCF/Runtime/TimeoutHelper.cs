@@ -1,9 +1,9 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace CoreWCF.Runtime
 {
@@ -50,7 +50,7 @@ namespace CoreWCF.Runtime
         {
             if (!_cancellationTokenInitialized)
             {
-                var timeout = RemainingTime();
+                TimeSpan timeout = RemainingTime();
                 if (timeout >= MaxWait || timeout == Timeout.InfiniteTimeSpan)
                 {
                     _cancellationToken = CancellationToken.None;
@@ -77,7 +77,7 @@ namespace CoreWCF.Runtime
 
         public static bool IsTooLarge(TimeSpan timeout)
         {
-            return (timeout > TimeoutHelper.MaxWait) && (timeout != TimeSpan.MaxValue);
+            return (timeout > MaxWait) && (timeout != TimeSpan.MaxValue);
         }
 
         public static TimeSpan FromMilliseconds(int milliseconds)
@@ -264,9 +264,8 @@ namespace CoreWCF.Runtime
 
         private static readonly Action<object> s_deregisterTimer = (object state) =>
         {
-            var targetTime = (long)state;
-            CancellationTokenSourceIOThreadTimer ignored;
-            s_timerCache.TryRemove(targetTime, out ignored);
+            long targetTime = (long)state;
+            s_timerCache.TryRemove(targetTime, out CancellationTokenSourceIOThreadTimer ignored);
         };
 
         public static CancellationToken FromTimeout(int millisecondsTimeout)
@@ -289,8 +288,8 @@ namespace CoreWCF.Runtime
 
             // Formula for our coalescing span:
             // Divide millisecondsTimeout by SegmentationFactor and take the highest bit and then multiply CoalescingFactor back
-            var segmentValue = millisecondsTimeout / SegmentationFactor;
-            var coalescingSpanMs = CoalescingFactor;
+            int segmentValue = millisecondsTimeout / SegmentationFactor;
+            int coalescingSpanMs = CoalescingFactor;
             while (segmentValue > 0)
             {
                 segmentValue >>= 1;
@@ -298,8 +297,7 @@ namespace CoreWCF.Runtime
             }
             targetTime = ((targetTime + (coalescingSpanMs - 1)) / coalescingSpanMs) * coalescingSpanMs;
 
-            CancellationTokenSourceIOThreadTimer ctsTimer;
-            if (!s_timerCache.TryGetValue(targetTime, out ctsTimer))
+            if (!s_timerCache.TryGetValue(targetTime, out CancellationTokenSourceIOThreadTimer ctsTimer))
             {
                 ctsTimer = new CancellationTokenSourceIOThreadTimer();
 

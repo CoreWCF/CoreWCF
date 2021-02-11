@@ -1,5 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.ObjectModel;
 using CoreWCF.Collections.Generic;
 
@@ -7,14 +9,10 @@ namespace CoreWCF.Description
 {
     public class ContractDescription
     {
-        private Type _callbackContractType;
-        private string _configurationName;
-        private Type _contractType;
         private XmlName _name;
         private string _ns;
-        private OperationDescriptionCollection _operations;
         private SessionMode _sessionMode;
-        private KeyedByTypeCollection<IContractBehavior> _behaviors = new KeyedByTypeCollection<IContractBehavior>();
+
         //ProtectionLevel protectionLevel;
         //bool hasProtectionLevel;
 
@@ -29,29 +27,19 @@ namespace CoreWCF.Description
             // the property setter validates given value
             Name = name;
             if (!string.IsNullOrEmpty(ns))
-                NamingHelper.CheckUriParameter(ns, "ns");
+            {
+                NamingHelper.CheckUriParameter(ns, nameof(ns));
+            }
 
-            _operations = new OperationDescriptionCollection();
+            Operations = new OperationDescriptionCollection();
             _ns = ns ?? NamingHelper.DefaultNamespace; // ns can be ""
         }
 
-        public string ConfigurationName
-        {
-            get { return _configurationName; }
-            set { _configurationName = value; }
-        }
+        public string ConfigurationName { get; set; }
 
-        public Type ContractType
-        {
-            get { return _contractType; }
-            set { _contractType = value; }
-        }
+        public Type ContractType { get; set; }
 
-        public Type CallbackContractType
-        {
-            get { return _callbackContractType; }
-            set { _callbackContractType = value; }
-        }
+        public Type CallbackContractType { get; set; }
 
         public string Name
         {
@@ -78,15 +66,15 @@ namespace CoreWCF.Description
             set
             {
                 if (!string.IsNullOrEmpty(value))
+                {
                     NamingHelper.CheckUriProperty(value, "Namespace");
+                }
+
                 _ns = value;
             }
         }
 
-        public OperationDescriptionCollection Operations
-        {
-            get { return _operations; }
-        }
+        public OperationDescriptionCollection Operations { get; }
 
         internal bool HasProtectionLevel => false;
 
@@ -109,10 +97,7 @@ namespace CoreWCF.Description
             get { return Behaviors; }
         }
 
-        internal KeyedByTypeCollection<IContractBehavior> Behaviors
-        {
-            get { return _behaviors; }
-        }
+        internal KeyedByTypeCollection<IContractBehavior> Behaviors { get; } = new KeyedByTypeCollection<IContractBehavior>();
 
         public Collection<ContractDescription> GetInheritedContracts()
         {
@@ -135,7 +120,9 @@ namespace CoreWCF.Description
         public static ContractDescription GetContract<TService>(Type contractType) where TService : class
         {
             if (contractType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractType));
+            }
 
             var typeLoader = new TypeLoader<TService>();
             ContractDescription description = typeLoader.LoadContractDescription(contractType);
@@ -145,10 +132,14 @@ namespace CoreWCF.Description
         public static ContractDescription GetContract<TService>(Type contractType, object serviceImplementation) where TService : class
         {
             if (contractType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractType));
+            }
 
             if (serviceImplementation == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceImplementation));
+            }
 
             var typeLoader = new TypeLoader<TService>();
             ContractDescription description = typeLoader.LoadContractDescription(contractType, serviceImplementation);
@@ -178,7 +169,10 @@ namespace CoreWCF.Description
                 OperationDescription operationDescription = Operations[i];
                 operationDescription.EnsureInvariants();
                 if (operationDescription.IsInitiating)
+                {
                     thereIsAtLeastOneInitiatingOperation = true;
+                }
+
                 if ((!operationDescription.IsInitiating || operationDescription.IsTerminating)
                     && (SessionMode != SessionMode.Required))
                 {
@@ -195,9 +189,9 @@ namespace CoreWCF.Description
 
         internal bool IsDuplex()
         {
-            for (int i = 0; i < _operations.Count; ++i)
+            for (int i = 0; i < Operations.Count; ++i)
             {
-                if (_operations[i].IsServerInitiated())
+                if (Operations[i].IsServerInitiated())
                 {
                     return true;
                 }

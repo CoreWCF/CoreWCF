@@ -1,20 +1,23 @@
-﻿using System;
-using CoreWCF.Runtime;
-using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class SynchronizedMessageSource
+    internal class SynchronizedMessageSource
     {
-        IMessageSource source;
-        SemaphoreSlim sourceLock;
+        private readonly IMessageSource _source;
+        private readonly SemaphoreSlim _sourceLock;
 
         public SynchronizedMessageSource(IMessageSource source)
         {
-            this.source = source;
-            sourceLock = new SemaphoreSlim(1);
+            _source = source;
+            _sourceLock = new SemaphoreSlim(1);
         }
 
         public async Task<bool> WaitForMessageAsync(CancellationToken token)
@@ -22,9 +25,9 @@ namespace CoreWCF.Channels
             bool lockAcquired = false;
             try
             {
-                await sourceLock.WaitAsync(token);
+                await _sourceLock.WaitAsync(token);
                 lockAcquired = true;
-                return await source.WaitForMessageAsync(token);
+                return await _source.WaitForMessageAsync(token);
             }
             catch (OperationCanceledException)
             {
@@ -35,8 +38,10 @@ namespace CoreWCF.Channels
             }
             finally
             {
-                if(lockAcquired)
-                    sourceLock.Release();
+                if (lockAcquired)
+                {
+                    _sourceLock.Release();
+                }
             }
         }
 
@@ -45,9 +50,9 @@ namespace CoreWCF.Channels
             bool lockAcquired = false;
             try
             {
-                await sourceLock.WaitAsync(token);
+                await _sourceLock.WaitAsync(token);
                 lockAcquired = true;
-                return await source.ReceiveAsync(token);
+                return await _source.ReceiveAsync(token);
             }
             catch (OperationCanceledException)
             {
@@ -58,8 +63,10 @@ namespace CoreWCF.Channels
             }
             finally
             {
-                if(lockAcquired)
-                    sourceLock.Release();
+                if (lockAcquired)
+                {
+                    _sourceLock.Release();
+                }
             }
         }
     }

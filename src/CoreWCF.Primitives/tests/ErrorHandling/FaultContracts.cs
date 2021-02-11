@@ -1,9 +1,12 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Runtime.Serialization;
+using CoreWCF;
 using DispatcherClient;
 using Helpers;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Runtime.Serialization;
 using Xunit;
 
 namespace ErrorHandling
@@ -16,20 +19,20 @@ namespace ErrorHandling
             var fault = new TestFault { Message = Guid.NewGuid().ToString() };
             var reason = new FaultReason(Guid.NewGuid().ToString());
             var code = new FaultCode(nameof(ServiceSendFaultMessage));
-            var factory = DispatcherHelper.CreateChannelFactory<FaultingService, IFaultingService>(
+            System.ServiceModel.ChannelFactory<IFaultingService> factory = DispatcherHelper.CreateChannelFactory<FaultingService, IFaultingService>(
                 (services) =>
                 {
                     services.AddSingleton(new FaultingService(fault, reason, code));
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            IFaultingService channel = factory.CreateChannel();
             Exception exceptionThrown = null;
             try
             {
                 channel.FaultingOperation();
             }
             catch (Exception e)
-            {   
+            {
                 exceptionThrown = e;
             }
 
@@ -49,9 +52,9 @@ namespace ErrorHandling
 
     public class FaultingService : IFaultingService
     {
-        private TestFault _fault;
-        private FaultReason _reason;
-        private FaultCode _code;
+        private readonly TestFault _fault;
+        private readonly FaultReason _reason;
+        private readonly FaultCode _code;
 
         public FaultingService(TestFault fault, FaultReason reason, FaultCode code)
         {

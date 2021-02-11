@@ -1,8 +1,6 @@
-﻿using CoreWCF.Configuration;
-using CoreWCF.Dispatcher;
-using CoreWCF.Runtime;
-using CoreWCF.Security;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Buffers;
 using System.IO;
@@ -11,16 +9,20 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Configuration;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels.Framing
 {
     internal class ServerSingletonConnectionReaderMiddleware
     {
-        private HandshakeDelegate _next;
-        private IServiceScopeFactory _servicesScopeFactory;
+        private readonly HandshakeDelegate _next;
+        private readonly IServiceScopeFactory _servicesScopeFactory;
         private ConnectionOrientedTransportReplyChannel _replyChannel;
         private IServiceChannelDispatcher _channelDispatcher;
-        private AsyncLock _lock = new AsyncLock();
+        private readonly AsyncLock _lock = new AsyncLock();
 
         public ServerSingletonConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory)
         {
@@ -35,7 +37,7 @@ namespace CoreWCF.Channels.Framing
             // after the preamble has completed. This probably needs to be addressed otherwise worse case you could end up taking 2X as long to timeout.
             // I believe the preamble should really use the OpenTimeout but that's not how this is implemented on .NET Framework.
             var timeoutHelper = new TimeoutHelper(((IDefaultCommunicationTimeouts)_replyChannel).ReceiveTimeout);
-            var requestContext = await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
+            StreamedFramingRequestContext requestContext = await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
             await _channelDispatcher.DispatchAsync(requestContext);
             await requestContext.ReplySent;
             //await channelDispatcher.DispatchAsync();
@@ -46,12 +48,12 @@ namespace CoreWCF.Channels.Framing
         {
             if (_replyChannel == null)
             {
-                using(await _lock.TakeLockAsync())
+                using (await _lock.TakeLockAsync())
                 {
                     if (_replyChannel == null)
                     {
-                        var be = connection.ServiceDispatcher.Binding.CreateBindingElements();
-                        var tbe = be.Find<TransportBindingElement>();
+                        BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
+                        TransportBindingElement tbe = be.Find<TransportBindingElement>();
                         ITransportFactorySettings settings = new NetFramingTransportSettings
                         {
                             CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
@@ -76,18 +78,20 @@ namespace CoreWCF.Channels.Framing
             return new StreamedFramingRequestContext(connection, requestMessage, inputStream);
         }
 
-        public async Task<(Message,Stream)> ReceiveAsync(FramingConnection connection, TimeSpan timeout)
+        public async Task<(Message, Stream)> ReceiveAsync(FramingConnection connection, TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
             for (; ; )
             {
-                var readResult = await connection.Input.ReadAsync();
+                ReadResult readResult = await connection.Input.ReadAsync();
                 await Task.Yield();
                 if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                 {
                     if (!readResult.IsCompleted)
+                    {
                         connection.Input.AdvanceTo(readResult.Buffer.Start);
+                    }
                     //EnsureDecoderAtEof(connection);
                     connection.EOF = true;
                 }
@@ -122,26 +126,26 @@ namespace CoreWCF.Channels.Framing
             //        ServiceModelActivity.Start(activity, SR.GetString(SR.ActivityProcessingMessage, TraceUtility.RetrieveMessageNumber()), ActivityType.ProcessMessage);
             //    }
 
-                Message message = null;
-                try
-                {
-                    message = await connection.MessageEncoderFactory.Encoder.ReadMessageAsync(
-                        inputStream, connection.MaxBufferSize, connection.FramingDecoder.ContentType);
-                }
-                catch (XmlException xmlException)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new ProtocolException(SR.MessageXmlProtocolError, xmlException));
-                }
+            Message message;
+            try
+            {
+                message = await connection.MessageEncoderFactory.Encoder.ReadMessageAsync(
+                    inputStream, connection.MaxBufferSize, connection.FramingDecoder.ContentType);
+            }
+            catch (XmlException xmlException)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new ProtocolException(SR.MessageXmlProtocolError, xmlException));
+            }
 
-                //if (DiagnosticUtility.ShouldUseActivity)
-                //{
-                //    TraceUtility.TransferFromTransport(message);
-                //}
+            //if (DiagnosticUtility.ShouldUseActivity)
+            //{
+            //    TraceUtility.TransferFromTransport(message);
+            //}
 
-                PrepareMessage(connection, message);
+            PrepareMessage(connection, message);
 
-                return (message, inputStream);
+            return (message, inputStream);
             //}
         }
 
@@ -196,14 +200,14 @@ namespace CoreWCF.Channels.Framing
         }
 
         // ensures that the reader is notified at end-of-stream, and takes care of the framing chunk headers
-        class SingletonInputConnectionStream : Stream
+        private class SingletonInputConnectionStream : Stream
         {
-            private FramingConnection _connection;
-            private IDefaultCommunicationTimeouts _timeouts;
-            SingletonMessageDecoder decoder;
-            ReadOnlySequence<byte> _buffer = ReadOnlySequence<byte>.Empty;
-            bool atEof;
-            int chunkBytesRemaining;
+            private readonly FramingConnection _connection;
+            private readonly IDefaultCommunicationTimeouts _timeouts;
+            private readonly SingletonMessageDecoder _decoder;
+            private ReadOnlySequence<byte> _buffer = ReadOnlySequence<byte>.Empty;
+            private bool _atEof;
+            private int _chunkBytesRemaining;
             private TimeoutHelper _timeoutHelper;
 
             public SingletonInputConnectionStream(FramingConnection connection,
@@ -211,8 +215,8 @@ namespace CoreWCF.Channels.Framing
             {
                 _connection = connection;
                 _timeouts = defaultTimeouts;
-                decoder = new SingletonMessageDecoder();
-                chunkBytesRemaining = 0;
+                _decoder = new SingletonMessageDecoder();
+                _chunkBytesRemaining = 0;
                 _timeoutHelper = new TimeoutHelper(_timeouts.ReceiveTimeout);
             }
 
@@ -236,43 +240,43 @@ namespace CoreWCF.Channels.Framing
                 }
             }
 
-            void AbortReader()
+            private void AbortReader()
             {
                 _connection.Abort();
             }
 
             public override void Close()
             {
-                _connection.EOF = atEof;
+                _connection.EOF = _atEof;
             }
 
             // run chunk data through the decoder
-            void DecodeData(ReadOnlySequence<byte> buffer)
+            private void DecodeData(ReadOnlySequence<byte> buffer)
             {
                 while (buffer.Length > 0)
                 {
-                    int bytesRead = decoder.Decode(buffer);
+                    int bytesRead = _decoder.Decode(buffer);
                     buffer = buffer.Slice(bytesRead);
-                    Fx.Assert(decoder.CurrentState == SingletonMessageDecoder.State.ReadingEnvelopeBytes || decoder.CurrentState == SingletonMessageDecoder.State.ChunkEnd, "");
+                    Fx.Assert(_decoder.CurrentState == SingletonMessageDecoder.State.ReadingEnvelopeBytes || _decoder.CurrentState == SingletonMessageDecoder.State.ChunkEnd, "");
                 }
             }
 
             // run the current data through the decoder to get valid message bytes
-            void DecodeSize(ref ReadOnlySequence<byte> buffer)
+            private void DecodeSize(ref ReadOnlySequence<byte> buffer)
             {
                 while (buffer.Length > 0)
                 {
-                    int bytesRead = decoder.Decode(buffer);
+                    int bytesRead = _decoder.Decode(buffer);
 
                     if (bytesRead > 0)
                     {
                         buffer = buffer.Slice(bytesRead);
                     }
 
-                    switch (decoder.CurrentState)
+                    switch (_decoder.CurrentState)
                     {
                         case SingletonMessageDecoder.State.ChunkStart:
-                            chunkBytesRemaining = decoder.ChunkSize;
+                            _chunkBytesRemaining = _decoder.ChunkSize;
                             return;
                         case SingletonMessageDecoder.State.End:
                             ProcessEof();
@@ -288,17 +292,16 @@ namespace CoreWCF.Channels.Framing
 
             private async Task EnsureBufferAsync(CancellationToken token)
             {
-                if (_buffer.Length == 0 && !atEof)
+                if (_buffer.Length == 0 && !_atEof)
                 {
-                    ReadResult readResult;
-                    if (!_connection.Input.TryRead(out readResult))
+                    if (!_connection.Input.TryRead(out ReadResult readResult))
                     {
                         readResult = await _connection.Input.ReadAsync(token).ConfigureAwait(false);
                     }
 
                     if (readResult.IsCompleted)
                     {
-                        atEof = true;
+                        _atEof = true;
                         return;
                     }
 
@@ -311,7 +314,7 @@ namespace CoreWCF.Channels.Framing
             public override int Read(byte[] buffer, int offset, int count)
             {
                 // TODO: Create a ReadByte override which is optimized for that single case
-                var ct = _timeoutHelper.GetCancellationToken();
+                CancellationToken ct = _timeoutHelper.GetCancellationToken();
                 int result = 0;
                 while (true)
                 {
@@ -324,25 +327,25 @@ namespace CoreWCF.Channels.Framing
                     {
                         EnsureBuffer(ct);
                     }
-                    catch(OperationCanceledException oce)
+                    catch (OperationCanceledException oce)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TimeoutException(SR.Format(SR.ReceiveRequestTimedOutNoLocalAddress, _timeoutHelper.OriginalTimeout), oce));
                     }
 
-                    if (atEof)
+                    if (_atEof)
                     {
                         return result;
                     }
 
-                    if (chunkBytesRemaining > 0) // We're in the middle of a chunk.
+                    if (_chunkBytesRemaining > 0) // We're in the middle of a chunk.
                     {
                         // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes 
                         // from the next chunk and we're not ready to consume them yet. Also we can't copy more bytes than the passed in buffer.
-                        int bytesToCopy = Math.Min((int)Math.Min((int)_buffer.Length, chunkBytesRemaining), count);
+                        int bytesToCopy = Math.Min((int)Math.Min((int)_buffer.Length, _chunkBytesRemaining), count);
 
                         // When copying a ReadOnlySequence to a Span, they must be the same size so create a temporary
                         // ReadOnlySequence which has the same number of bytes as we wish to copy.
-                        var _fromBuffer = _buffer.Slice(_buffer.Start, bytesToCopy);
+                        ReadOnlySequence<byte> _fromBuffer = _buffer.Slice(_buffer.Start, bytesToCopy);
 
                         // keep decoder up to date
                         DecodeData(_fromBuffer);
@@ -360,7 +363,7 @@ namespace CoreWCF.Channels.Framing
                         result += bytesToCopy;
                         offset += bytesToCopy;
                         count -= bytesToCopy;
-                        chunkBytesRemaining -= bytesToCopy;
+                        _chunkBytesRemaining -= bytesToCopy;
                     }
                     else
                     {
@@ -383,7 +386,7 @@ namespace CoreWCF.Channels.Framing
 
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                var ct = new TimeoutHelper(_timeouts.ReceiveTimeout).GetCancellationToken();
+                CancellationToken ct = new TimeoutHelper(_timeouts.ReceiveTimeout).GetCancellationToken();
                 int result = 0;
                 while (true)
                 {
@@ -401,20 +404,20 @@ namespace CoreWCF.Channels.Framing
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TimeoutException(SR.Format(SR.ReceiveRequestTimedOutNoLocalAddress, _timeoutHelper.OriginalTimeout), oce));
                     }
 
-                    if (atEof)
+                    if (_atEof)
                     {
                         return result;
                     }
 
-                    if (chunkBytesRemaining > 0) // We're in the middle of a chunk.
+                    if (_chunkBytesRemaining > 0) // We're in the middle of a chunk.
                     {
                         // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes 
                         // from the next chunk and we're not ready to consume them yet. Also we can't copy more bytes than the passed in buffer.
-                        int bytesToCopy = Math.Min((int)Math.Min((int)_buffer.Length, chunkBytesRemaining), count);
+                        int bytesToCopy = Math.Min((int)Math.Min((int)_buffer.Length, _chunkBytesRemaining), count);
 
                         // When copying a ReadOnlySequence to a Span, they must be the same size so create a temporary
                         // ReadOnlySequence which has the same number of bytes as we wish to copy.
-                        var _fromBuffer = _buffer.Slice(_buffer.Start, bytesToCopy);
+                        ReadOnlySequence<byte> _fromBuffer = _buffer.Slice(_buffer.Start, bytesToCopy);
 
                         // keep decoder up to date
                         DecodeData(_fromBuffer);
@@ -436,7 +439,7 @@ namespace CoreWCF.Channels.Framing
                         result += bytesToCopy;
                         offset += bytesToCopy;
                         count -= bytesToCopy;
-                        chunkBytesRemaining -= bytesToCopy;
+                        _chunkBytesRemaining -= bytesToCopy;
                     }
                     else
                     {
@@ -460,14 +463,14 @@ namespace CoreWCF.Channels.Framing
 
             public override void SetLength(long value) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
 
-            void ProcessEof()
+            private void ProcessEof()
             {
-                if (!atEof)
+                if (!_atEof)
                 {
-                    atEof = true;
-                    if (chunkBytesRemaining > 0 || decoder.CurrentState != SingletonMessageDecoder.State.End)
+                    _atEof = true;
+                    if (_chunkBytesRemaining > 0 || _decoder.CurrentState != SingletonMessageDecoder.State.End)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(decoder.CreatePrematureEOFException());
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(_decoder.CreatePrematureEOFException());
                     }
                 }
             }

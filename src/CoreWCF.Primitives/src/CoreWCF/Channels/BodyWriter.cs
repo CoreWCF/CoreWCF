@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Threading.Tasks;
 using System.Xml;
@@ -6,24 +9,20 @@ namespace CoreWCF.Channels
 {
     public abstract class BodyWriter
     {
-        bool isBuffered;
-        bool canWrite;
-        object thisLock;
+        private bool _canWrite;
+        private readonly object _thisLock;
 
         protected BodyWriter(bool isBuffered)
         {
-            this.isBuffered = isBuffered;
-            canWrite = true;
-            if (!this.isBuffered)
+            IsBuffered = isBuffered;
+            _canWrite = true;
+            if (!IsBuffered)
             {
-                thisLock = new object();
+                _thisLock = new object();
             }
         }
 
-        public bool IsBuffered
-        {
-            get { return isBuffered; }
-        }
+        public bool IsBuffered { get; }
 
         internal virtual bool IsEmpty
         {
@@ -38,23 +37,32 @@ namespace CoreWCF.Channels
         public BodyWriter CreateBufferedCopy(int maxBufferSize)
         {
             if (maxBufferSize < 0)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxBufferSize), maxBufferSize,
                                                     SR.ValueMustBeNonNegative));
-            if (isBuffered)
+            }
+
+            if (IsBuffered)
             {
                 return this;
             }
             else
             {
-                lock (thisLock)
+                lock (_thisLock)
                 {
-                    if (!canWrite)
+                    if (!_canWrite)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.BodyWriterCanOnlyBeWrittenOnce));
-                    canWrite = false;
+                    }
+
+                    _canWrite = false;
                 }
                 BodyWriter bodyWriter = OnCreateBufferedCopy(maxBufferSize);
                 if (!bodyWriter.IsBuffered)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.BodyWriterReturnedIsNotBuffered));
+                }
+
                 return bodyWriter;
             }
         }
@@ -86,17 +94,23 @@ namespace CoreWCF.Channels
             return Task.CompletedTask;
         }
 
-        void EnsureWriteBodyContentsState(XmlDictionaryWriter writer)
+        private void EnsureWriteBodyContentsState(XmlDictionaryWriter writer)
         {
             if (writer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
-            if (!isBuffered)
             {
-                lock (thisLock)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
+            }
+
+            if (!IsBuffered)
+            {
+                lock (_thisLock)
                 {
-                    if (!canWrite)
+                    if (!_canWrite)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.BodyWriterCanOnlyBeWrittenOnce));
-                    canWrite = false;
+                    }
+
+                    _canWrite = false;
                 }
             }
         }
@@ -113,19 +127,19 @@ namespace CoreWCF.Channels
             return OnWriteBodyContentsAsync(writer);
         }
 
-        class BufferedBodyWriter : BodyWriter
+        private class BufferedBodyWriter : BodyWriter
         {
-            XmlBuffer buffer;
+            private readonly XmlBuffer _buffer;
 
             public BufferedBodyWriter(XmlBuffer buffer)
                 : base(true)
             {
-                this.buffer = buffer;
+                _buffer = buffer;
             }
 
             protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
             {
-                XmlDictionaryReader reader = buffer.GetReader(0);
+                XmlDictionaryReader reader = _buffer.GetReader(0);
                 using (reader)
                 {
                     reader.ReadStartElement();

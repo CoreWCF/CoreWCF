@@ -1,6 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reflection;
 using CoreWCF.Collections.Generic;
 
@@ -8,27 +10,18 @@ namespace CoreWCF.Dispatcher
 {
     public sealed class ClientOperation
     {
-        string action;
-        SynchronizedCollection<FaultContractInfo> faultContractInfos;
-        bool serializeRequest;
-        bool deserializeReply;
-        IClientMessageFormatter formatter;
-        IClientFaultFormatter faultFormatter;
-        bool isInitiating = true;
-        bool isOneWay;
-        bool isTerminating;
-        bool isSessionOpenNotificationEnabled;
-        string name;
-
-        ClientRuntime parent;
-        string replyAction;
-        MethodInfo beginMethod;
-        MethodInfo endMethod;
-        MethodInfo syncMethod;
-        MethodInfo taskMethod;
-        Type taskTResult;
-        bool isFaultFormatterSetExplicit = false;
-        private SynchronizedCollection<IParameterInspector> parameterInspectors;
+        private bool _serializeRequest;
+        private bool _deserializeReply;
+        private IClientFaultFormatter _faultFormatter;
+        private bool _isInitiating = true;
+        private bool _isOneWay;
+        private bool _isTerminating;
+        private bool _isSessionOpenNotificationEnabled;
+        private MethodInfo _beginMethod;
+        private MethodInfo _endMethod;
+        private MethodInfo _syncMethod;
+        private MethodInfo _taskMethod;
+        private Type _taskTResult;
 
         public ClientOperation(ClientRuntime parent, string name, string action)
             : this(parent, name, action, null)
@@ -37,79 +30,67 @@ namespace CoreWCF.Dispatcher
 
         public ClientOperation(ClientRuntime parent, string name, string action, string replyAction)
         {
-            if (parent == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
+            Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
+            Name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            Action = action;
+            ReplyAction = replyAction;
 
-            if (name == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
-
-            this.parent = parent;
-            this.name = name;
-            this.action = action;
-            this.replyAction = replyAction;
-
-            faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
-            parameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
+            FaultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
+            ParameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
         }
 
-        public string Action
-        {
-            get { return action; }
-        }
+        public string Action { get; }
 
-        internal SynchronizedCollection<FaultContractInfo> FaultContractInfos
-        {
-            get { return faultContractInfos; }
-        }
+        internal SynchronizedCollection<FaultContractInfo> FaultContractInfos { get; }
 
         public MethodInfo BeginMethod
         {
-            get { return beginMethod; }
+            get { return _beginMethod; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    beginMethod = value;
+                    Parent.InvalidateRuntime();
+                    _beginMethod = value;
                 }
             }
         }
 
         public MethodInfo EndMethod
         {
-            get { return endMethod; }
+            get { return _endMethod; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    endMethod = value;
+                    Parent.InvalidateRuntime();
+                    _endMethod = value;
                 }
             }
         }
 
         public MethodInfo SyncMethod
         {
-            get { return syncMethod; }
+            get { return _syncMethod; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    syncMethod = value;
+                    Parent.InvalidateRuntime();
+                    _syncMethod = value;
                 }
             }
         }
 
         public IClientMessageFormatter Formatter
         {
-            get { return formatter; }
+            get { return InternalFormatter; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    formatter = value;
+                    Parent.InvalidateRuntime();
+                    InternalFormatter = value;
                 }
             }
         }
@@ -118,166 +99,142 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (faultFormatter == null)
+                if (_faultFormatter == null)
                 {
-                    faultFormatter = new DataContractSerializerFaultFormatter(faultContractInfos);
+                    _faultFormatter = new DataContractSerializerFaultFormatter(FaultContractInfos);
                 }
-                return faultFormatter;
+                return _faultFormatter;
             }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    faultFormatter = value;
-                    isFaultFormatterSetExplicit = true;
+                    Parent.InvalidateRuntime();
+                    _faultFormatter = value;
+                    IsFaultFormatterSetExplicit = true;
                 }
             }
         }
 
-        internal bool IsFaultFormatterSetExplicit
-        {
-            get
-            {
-                return isFaultFormatterSetExplicit;
-            }
-        }
+        internal bool IsFaultFormatterSetExplicit { get; private set; } = false;
 
-        internal IClientMessageFormatter InternalFormatter
-        {
-            get { return formatter; }
-            set { formatter = value; }
-        }
+        internal IClientMessageFormatter InternalFormatter { get; set; }
 
         public bool IsInitiating
         {
-            get { return isInitiating; }
+            get { return _isInitiating; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    isInitiating = value;
+                    Parent.InvalidateRuntime();
+                    _isInitiating = value;
                 }
             }
         }
 
         public bool IsOneWay
         {
-            get { return isOneWay; }
+            get { return _isOneWay; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    isOneWay = value;
+                    Parent.InvalidateRuntime();
+                    _isOneWay = value;
                 }
             }
         }
 
         public bool IsTerminating
         {
-            get { return isTerminating; }
+            get { return _isTerminating; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    isTerminating = value;
+                    Parent.InvalidateRuntime();
+                    _isTerminating = value;
                 }
             }
         }
 
-        public string Name
-        {
-            get { return name; }
-        }
+        public string Name { get; }
 
         public ICollection<IParameterInspector> ClientParameterInspectors
         {
             get { return ParameterInspectors; }
         }
 
-        internal SynchronizedCollection<IParameterInspector> ParameterInspectors
-        {
-            get { return parameterInspectors; }
-        }
+        internal SynchronizedCollection<IParameterInspector> ParameterInspectors { get; }
 
-        public ClientRuntime Parent
-        {
-            get { return parent; }
-        }
+        public ClientRuntime Parent { get; }
 
-        public string ReplyAction
-        {
-            get { return replyAction; }
-        }
+        public string ReplyAction { get; }
 
         public bool SerializeRequest
         {
-            get { return serializeRequest; }
+            get { return _serializeRequest; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    serializeRequest = value;
+                    Parent.InvalidateRuntime();
+                    _serializeRequest = value;
                 }
             }
         }
 
         public bool DeserializeReply
         {
-            get { return deserializeReply; }
+            get { return _deserializeReply; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    deserializeReply = value;
+                    Parent.InvalidateRuntime();
+                    _deserializeReply = value;
                 }
             }
         }
 
         public MethodInfo TaskMethod
         {
-            get { return taskMethod; }
+            get { return _taskMethod; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    taskMethod = value;
+                    Parent.InvalidateRuntime();
+                    _taskMethod = value;
                 }
             }
         }
 
         public Type TaskTResult
         {
-            get { return taskTResult; }
+            get { return _taskTResult; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    taskTResult = value;
+                    Parent.InvalidateRuntime();
+                    _taskTResult = value;
                 }
             }
         }
 
         internal bool IsSessionOpenNotificationEnabled
         {
-            get { return isSessionOpenNotificationEnabled; }
+            get { return _isSessionOpenNotificationEnabled; }
             set
             {
-                lock (parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    parent.InvalidateRuntime();
-                    isSessionOpenNotificationEnabled = value;
+                    Parent.InvalidateRuntime();
+                    _isSessionOpenNotificationEnabled = value;
                 }
             }
         }
-
     }
-
 }

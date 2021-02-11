@@ -1,51 +1,51 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 
 namespace CoreWCF
 {
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = false, AllowMultiple = false)]
     public sealed class XmlSerializerFormatAttribute : Attribute
     {
-        bool supportFaults = false;
-        OperationFormatStyle style;
-        bool isStyleSet;
-        OperationFormatUse use;
+        private OperationFormatStyle _style;
+        private bool _isStyleSet;
+        private OperationFormatUse _use;
 
-        public bool SupportFaults
-        {
-            get { return supportFaults; }
-            set { supportFaults = value; }
-        }
+        public bool SupportFaults { get; set; } = false;
 
         public OperationFormatStyle Style
         {
-            get { return style; }
+            get { return _style; }
             set
             {
                 ValidateOperationFormatStyle(value);
-                style = value;
-                isStyleSet = true;
+                _style = value;
+                _isStyleSet = true;
             }
         }
 
         public OperationFormatUse Use
         {
-            get { return use; }
+            get { return _use; }
             set
             {
                 ValidateOperationFormatUse(value);
-                use = value;
-                if (!isStyleSet && IsEncoded)
+                _use = value;
+                if (!_isStyleSet && IsEncoded)
+                {
                     Style = OperationFormatStyle.Rpc;
+                }
             }
         }
 
         internal bool IsEncoded
         {
-            get { return use == OperationFormatUse.Encoded; }
-            set { use = value ? OperationFormatUse.Encoded : OperationFormatUse.Literal; }
+            get { return _use == OperationFormatUse.Encoded; }
+            set { _use = value ? OperationFormatUse.Encoded : OperationFormatUse.Literal; }
         }
 
-        static internal void ValidateOperationFormatStyle(OperationFormatStyle value)
+        internal static void ValidateOperationFormatStyle(OperationFormatStyle value)
         {
             if (!OperationFormatStyleHelper.IsDefined(value))
             {
@@ -53,7 +53,7 @@ namespace CoreWCF
             }
         }
 
-        static internal void ValidateOperationFormatUse(OperationFormatUse value)
+        internal static void ValidateOperationFormatUse(OperationFormatUse value)
         {
             if (!OperationFormatUseHelper.IsDefined(value))
             {
@@ -61,5 +61,4 @@ namespace CoreWCF
             }
         }
     }
-
 }

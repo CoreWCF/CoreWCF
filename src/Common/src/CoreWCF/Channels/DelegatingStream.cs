@@ -1,45 +1,42 @@
-﻿using System.IO;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
-    abstract class DelegatingStream : Stream
+    internal abstract class DelegatingStream : Stream
     {
-        Stream _stream;
         private bool _disposed;
 
         protected DelegatingStream(Stream stream)
         {
-            if (stream == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
-            }
-
-            _stream = stream;
+            BaseStream = stream ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
         }
 
-        protected Stream BaseStream => _stream;
+        protected Stream BaseStream { get; private set; }
 
-        public override bool CanRead => _stream.CanRead;
+        public override bool CanRead => BaseStream.CanRead;
 
-        public override bool CanSeek => _stream.CanSeek;
+        public override bool CanSeek => BaseStream.CanSeek;
 
-        public override bool CanTimeout => _stream.CanTimeout;
+        public override bool CanTimeout => BaseStream.CanTimeout;
 
-        public override bool CanWrite => _stream.CanWrite;
+        public override bool CanWrite => BaseStream.CanWrite;
 
-        public override long Length => _stream.Length;
+        public override long Length => BaseStream.Length;
 
         public override long Position
         {
             get
             {
-                return _stream.Position;
+                return BaseStream.Position;
             }
             set
             {
-                _stream.Position = value;
+                BaseStream.Position = value;
             }
         }
 
@@ -47,11 +44,11 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return _stream.ReadTimeout;
+                return BaseStream.ReadTimeout;
             }
             set
             {
-                _stream.ReadTimeout = value;
+                BaseStream.ReadTimeout = value;
             }
         }
 
@@ -59,11 +56,11 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return _stream.WriteTimeout;
+                return BaseStream.WriteTimeout;
             }
             set
             {
-                _stream.WriteTimeout = value;
+                BaseStream.WriteTimeout = value;
             }
         }
 
@@ -73,7 +70,7 @@ namespace CoreWCF.Channels
             {
                 if (disposing)
                 {
-                    _stream.Dispose();
+                    BaseStream.Dispose();
                 }
 
                 _disposed = true;
@@ -83,47 +80,47 @@ namespace CoreWCF.Channels
 
         public override void Flush()
         {
-            _stream.Flush();
+            BaseStream.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return _stream.Read(buffer, offset, count);
+            return BaseStream.Read(buffer, offset, count);
         }
 
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            return _stream.ReadAsync(buffer, offset, count, cancellationToken);
+            return BaseStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
 
         public override int ReadByte()
         {
-            return _stream.ReadByte();
+            return BaseStream.ReadByte();
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return _stream.Seek(offset, origin);
+            return BaseStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            _stream.SetLength(value);
+            BaseStream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            _stream.Write(buffer, offset, count);
+            BaseStream.Write(buffer, offset, count);
         }
 
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            return _stream.WriteAsync(buffer, offset, count, cancellationToken);
+            return BaseStream.WriteAsync(buffer, offset, count, cancellationToken);
         }
 
         public override void WriteByte(byte value)
         {
-            _stream.WriteByte(value);
+            BaseStream.WriteByte(value);
         }
     }
 }

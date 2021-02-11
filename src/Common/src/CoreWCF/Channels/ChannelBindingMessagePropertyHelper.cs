@@ -1,4 +1,7 @@
-﻿namespace CoreWCF.Channels
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+namespace CoreWCF.Channels
 {
     internal static class ChannelBindingMessagePropertyHelper
     {
@@ -20,9 +23,8 @@
             }
 
             property = null;
-            object value;
 
-            if (properties.TryGetValue(ChannelBindingMessageProperty.Name, out value))
+            if (properties.TryGetValue(ChannelBindingMessageProperty.Name, out object value))
             {
                 property = value as ChannelBindingMessageProperty;
                 return property != null;
@@ -44,7 +46,7 @@
         internal static void AddTo(this ChannelBindingMessageProperty channelBindingProperty, MessageProperties properties)
         {
             // Throws if disposed
-            var dummy = channelBindingProperty.ChannelBinding;
+            System.Security.Authentication.ExtendedProtection.ChannelBinding dummy = channelBindingProperty.ChannelBinding;
             if (properties == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(properties));

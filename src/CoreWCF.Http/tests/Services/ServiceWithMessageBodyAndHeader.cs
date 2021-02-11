@@ -1,11 +1,14 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Text;
+using CoreWCF;
 
 namespace Services
 {
-    class ServiceWithMessageBodyAndHeader : IServiceWithMessageBodyAndHeader
+    internal class ServiceWithMessageBodyAndHeader : IServiceWithMessageBodyAndHeader
     {
         public string Echo(string echo)
         {
@@ -14,9 +17,11 @@ namespace Services
 
         public CoreEchoMessageResponse EchoWithMessageContract(CoreEchoMessageRequest request)
         {
-            CoreEchoMessageResponse echoMessageResponse = new CoreEchoMessageResponse();
-            echoMessageResponse.SayHello = "Saying Hello " + request.Text;
-            echoMessageResponse.SayHi = "Saying Hi " + request.Text;
+            CoreEchoMessageResponse echoMessageResponse = new CoreEchoMessageResponse
+            {
+                SayHello = "Saying Hello " + request.Text,
+                SayHi = "Saying Hi " + request.Text
+            };
             return echoMessageResponse;
         }
     }

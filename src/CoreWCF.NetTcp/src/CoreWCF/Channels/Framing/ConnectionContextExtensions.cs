@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Connections;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.AspNetCore.Connections;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -31,10 +32,13 @@ namespace CoreWCF.Channels.Framing
         {
             if (context.Items.TryGetValue(typeof(T), out object item))
             {
-                if (item is T) return (T)item;
+                if (item is T)
+                {
+                    return (T)item;
+                }
             }
 
-            return default(T);
+            return default;
         }
     }
 }

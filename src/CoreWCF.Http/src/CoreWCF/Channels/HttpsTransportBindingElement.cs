@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Net;
 using System.Net.Security;
-using System.Text;
 
 namespace CoreWCF.Channels
 {
-    class HttpsTransportBindingElement : HttpTransportBindingElement
+    internal class HttpsTransportBindingElement : HttpTransportBindingElement
     {
         public HttpsTransportBindingElement() : base()
         {
@@ -19,7 +19,7 @@ namespace CoreWCF.Channels
             RequireClientCertificate = elementToBeCloned.RequireClientCertificate;
         }
 
-        HttpsTransportBindingElement(HttpTransportBindingElement elementToBeCloned)
+        private HttpsTransportBindingElement(HttpTransportBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
         }
@@ -59,7 +59,7 @@ namespace CoreWCF.Channels
             }
             if (typeof(T) == typeof(ISecurityCapabilities))
             {
-                AuthenticationSchemes effectiveAuthenticationSchemes = HttpTransportBindingElement.GetEffectiveAuthenticationSchemes(AuthenticationScheme,
+                AuthenticationSchemes effectiveAuthenticationSchemes = GetEffectiveAuthenticationSchemes(AuthenticationScheme,
                     context.BindingParameters);
 
                 return (T)(object)new SecurityCapabilities(GetSupportsClientAuthenticationImpl(effectiveAuthenticationSchemes),

@@ -1,11 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using CoreWCF;
 
 namespace CoreWCF.Collections.Generic
 {
-
     public class KeyedByTypeCollection<TItem> : KeyedCollection<Type, TItem>
     {
         public KeyedByTypeCollection()
@@ -17,7 +18,9 @@ namespace CoreWCF.Collections.Generic
             : base(null, 4)
         {
             if (items == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(items));
+            }
 
             foreach (TItem item in items)
             {
@@ -35,7 +38,7 @@ namespace CoreWCF.Collections.Generic
             return Find<T>(true);
         }
 
-        T Find<T>(bool remove)
+        private T Find<T>(bool remove)
         {
             for (int i = 0; i < Count; i++)
             {
@@ -49,7 +52,7 @@ namespace CoreWCF.Collections.Generic
                     return (T)(object)settings;
                 }
             }
-            return default(T);
+            return default;
         }
 
         public Collection<T> FindAll<T>()
@@ -62,7 +65,7 @@ namespace CoreWCF.Collections.Generic
             return FindAll<T>(true);
         }
 
-        Collection<T> FindAll<T>(bool remove)
+        private Collection<T> FindAll<T>(bool remove)
         {
             Collection<T> result = new Collection<T>();
             foreach (TItem settings in this)

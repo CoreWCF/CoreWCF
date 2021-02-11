@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Xml;
 using CoreWCF.Channels;
@@ -7,55 +10,43 @@ namespace CoreWCF.Security
 {
     internal class ScopedMessagePartSpecification
     {
-        MessagePartSpecification channelParts;
-        Dictionary<string, MessagePartSpecification> actionParts;
-        Dictionary<string, MessagePartSpecification> readOnlyNormalizedActionParts;
-        bool isReadOnly;
+        private readonly Dictionary<string, MessagePartSpecification> _actionParts;
+        private Dictionary<string, MessagePartSpecification> _readOnlyNormalizedActionParts;
 
         public ScopedMessagePartSpecification()
         {
-            channelParts = new MessagePartSpecification();
-            actionParts = new Dictionary<string, MessagePartSpecification>();
+            ChannelParts = new MessagePartSpecification();
+            _actionParts = new Dictionary<string, MessagePartSpecification>();
         }
 
         public ICollection<string> Actions
         {
             get
             {
-                return actionParts.Keys;
+                return _actionParts.Keys;
             }
         }
 
-        public MessagePartSpecification ChannelParts
-        {
-            get
-            {
-                return channelParts;
-            }
-        }
+        public MessagePartSpecification ChannelParts { get; }
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return isReadOnly;
-            }
-        }
+        public bool IsReadOnly { get; private set; }
 
         public ScopedMessagePartSpecification(ScopedMessagePartSpecification other)
             : this()
         {
             if (other == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(other)));
-
-            channelParts.Union(other.channelParts);
-            if (other.actionParts != null)
             {
-                foreach (string action in other.actionParts.Keys)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(other)));
+            }
+
+            ChannelParts.Union(other.ChannelParts);
+            if (other._actionParts != null)
+            {
+                foreach (string action in other._actionParts.Keys)
                 {
                     MessagePartSpecification p = new MessagePartSpecification();
-                    p.Union(other.actionParts[action]);
-                    actionParts[action] = p;
+                    p.Union(other._actionParts[action]);
+                    _actionParts[action] = p;
                 }
             }
         }
@@ -63,46 +54,61 @@ namespace CoreWCF.Security
         internal ScopedMessagePartSpecification(ScopedMessagePartSpecification other, bool newIncludeBody)
             : this(other)
         {
-            channelParts.IsBodyIncluded = newIncludeBody;
-            foreach (string action in actionParts.Keys)
-                actionParts[action].IsBodyIncluded = newIncludeBody;
+            ChannelParts.IsBodyIncluded = newIncludeBody;
+            foreach (string action in _actionParts.Keys)
+            {
+                _actionParts[action].IsBodyIncluded = newIncludeBody;
+            }
         }
 
         public void AddParts(MessagePartSpecification parts)
         {
             if (parts == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parts)));
+            }
 
             ThrowIfReadOnly();
 
-            channelParts.Union(parts);
+            ChannelParts.Union(parts);
         }
 
         public void AddParts(MessagePartSpecification parts, string action)
         {
             if (action == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(action)));
+            }
+
             if (parts == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parts)));
+            }
 
             ThrowIfReadOnly();
 
-            if (!actionParts.ContainsKey(action))
-                actionParts[action] = new MessagePartSpecification();
-            actionParts[action].Union(parts);
+            if (!_actionParts.ContainsKey(action))
+            {
+                _actionParts[action] = new MessagePartSpecification();
+            }
+
+            _actionParts[action].Union(parts);
         }
 
         internal void AddParts(MessagePartSpecification parts, XmlDictionaryString action)
         {
             if (action == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(action)));
+            }
+
             AddParts(parts, action.Value);
         }
 
         internal bool IsEmpty()
         {
             bool result;
-            if (!channelParts.IsEmpty())
+            if (!ChannelParts.IsEmpty())
             {
                 result = false;
             }
@@ -111,8 +117,7 @@ namespace CoreWCF.Security
                 result = true;
                 foreach (string action in Actions)
                 {
-                    MessagePartSpecification parts;
-                    if (TryGetParts(action, true, out parts))
+                    if (TryGetParts(action, true, out MessagePartSpecification parts))
                     {
                         if (!parts.IsEmpty())
                         {
@@ -129,23 +134,35 @@ namespace CoreWCF.Security
         public bool TryGetParts(string action, bool excludeChannelScope, out MessagePartSpecification parts)
         {
             if (action == null)
+            {
                 action = MessageHeaders.WildcardAction;
+            }
+
             parts = null;
 
-            if (isReadOnly)
+            if (IsReadOnly)
             {
-                if (readOnlyNormalizedActionParts.ContainsKey(action))
+                if (_readOnlyNormalizedActionParts.ContainsKey(action))
+                {
                     if (excludeChannelScope)
-                        parts = actionParts[action];
+                    {
+                        parts = _actionParts[action];
+                    }
                     else
-                        parts = readOnlyNormalizedActionParts[action];
+                    {
+                        parts = _readOnlyNormalizedActionParts[action];
+                    }
+                }
             }
-            else if (actionParts.ContainsKey(action))
+            else if (_actionParts.ContainsKey(action))
             {
                 MessagePartSpecification p = new MessagePartSpecification();
-                p.Union(actionParts[action]);
+                p.Union(_actionParts[action]);
                 if (!excludeChannelScope)
-                    p.Union(channelParts);
+                {
+                    p.Union(ChannelParts);
+                }
+
                 parts = p;
             }
 
@@ -161,14 +178,14 @@ namespace CoreWCF.Security
             target.ChannelParts.IsBodyIncluded = ChannelParts.IsBodyIncluded;
             foreach (XmlQualifiedName headerType in ChannelParts.HeaderTypes)
             {
-                if (!target.channelParts.IsHeaderIncluded(headerType.Name, headerType.Namespace))
+                if (!target.ChannelParts.IsHeaderIncluded(headerType.Name, headerType.Namespace))
                 {
                     target.ChannelParts.HeaderTypes.Add(headerType);
                 }
             }
-            foreach (string action in actionParts.Keys)
+            foreach (string action in _actionParts.Keys)
             {
-                target.AddParts(actionParts[action], action);
+                target.AddParts(_actionParts[action], action);
             }
         }
 
@@ -179,26 +196,27 @@ namespace CoreWCF.Security
 
         public void MakeReadOnly()
         {
-            if (!isReadOnly)
+            if (!IsReadOnly)
             {
-                readOnlyNormalizedActionParts = new Dictionary<string, MessagePartSpecification>();
-                foreach (string action in actionParts.Keys)
+                _readOnlyNormalizedActionParts = new Dictionary<string, MessagePartSpecification>();
+                foreach (string action in _actionParts.Keys)
                 {
                     MessagePartSpecification p = new MessagePartSpecification();
-                    p.Union(actionParts[action]);
-                    p.Union(channelParts);
+                    p.Union(_actionParts[action]);
+                    p.Union(ChannelParts);
                     p.MakeReadOnly();
-                    readOnlyNormalizedActionParts[action] = p;
+                    _readOnlyNormalizedActionParts[action] = p;
                 }
-                isReadOnly = true;
+                IsReadOnly = true;
             }
         }
 
-        void ThrowIfReadOnly()
+        private void ThrowIfReadOnly()
         {
-            if (isReadOnly)
+            if (IsReadOnly)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
+            }
         }
     }
-
 }

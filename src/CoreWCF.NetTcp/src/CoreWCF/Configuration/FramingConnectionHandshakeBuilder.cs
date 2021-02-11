@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Connections;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Configuration
@@ -38,8 +39,7 @@ namespace CoreWCF.Configuration
 
         private T GetProperty<T>(string key)
         {
-            object value;
-            return Properties.TryGetValue(key, out value) ? (T)value : default(T);
+            return Properties.TryGetValue(key, out object value) ? (T)value : default;
         }
 
         private void SetProperty<T>(string key, T value)
@@ -65,7 +65,7 @@ namespace CoreWCF.Configuration
                 return Task.CompletedTask;
             };
 
-            foreach (var component in _components.Reverse())
+            foreach (Func<HandshakeDelegate, HandshakeDelegate> component in _components.Reverse())
             {
                 app = component(app);
             }

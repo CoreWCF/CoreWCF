@@ -1,26 +1,20 @@
-﻿using Microsoft.AspNetCore.Connections;
-using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Runtime;
-using CoreWCF.Configuration;
-using CoreWCF.Security;
-using System;
-using System.Buffers;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Net;
+using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels.Framing
 {
     internal class ServerSessionConnectionReaderMiddleware
     {
-        private HandshakeDelegate _next;
-        private IServiceScopeFactory _servicesScopeFactory;
-        private IApplicationLifetime _appLifetime;
-        private IDictionary<IServiceDispatcher, ITransportFactorySettings> _transportSettingsCache = new Dictionary<IServiceDispatcher, ITransportFactorySettings>();
+        private readonly HandshakeDelegate _next;
+        private readonly IServiceScopeFactory _servicesScopeFactory;
+        private readonly IApplicationLifetime _appLifetime;
+        private readonly IDictionary<IServiceDispatcher, ITransportFactorySettings> _transportSettingsCache = new Dictionary<IServiceDispatcher, ITransportFactorySettings>();
 
         public ServerSessionConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory, IApplicationLifetime appLifetime)
         {
@@ -31,11 +25,10 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            ITransportFactorySettings settings;
-            if (!_transportSettingsCache.TryGetValue(connection.ServiceDispatcher, out settings))
+            if (!_transportSettingsCache.TryGetValue(connection.ServiceDispatcher, out ITransportFactorySettings settings))
             {
-                var be = connection.ServiceDispatcher.Binding.CreateBindingElements();
-                var tbe = be.Find<TransportBindingElement>();
+                BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
+                TransportBindingElement tbe = be.Find<TransportBindingElement>();
                 settings = new NetFramingTransportSettings
                 {
                     CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
@@ -53,6 +46,5 @@ namespace CoreWCF.Channels.Framing
             channel.ChannelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(channel);
             await channel.StartReceivingAsync();
         }
-
     }
 }

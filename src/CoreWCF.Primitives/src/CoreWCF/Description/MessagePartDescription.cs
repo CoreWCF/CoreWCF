@@ -1,54 +1,50 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
+using System.Net.Security;
 using System.Reflection;
+using CoreWCF.Security;
 
 namespace CoreWCF.Description
 {
     public class MessagePartDescription
     {
-        XmlName name;
-        string ns;
-        int index;
-        Type type;
-        int serializationPosition;
-        //ProtectionLevel protectionLevel;
-        //bool hasProtectionLevel;
-        MemberInfo memberInfo;
-        // TODO: Was ICustomAttributeProvider
-        CustomAttributeProvider additionalAttributesProvider;
+        private ProtectionLevel _protectionLevel;
+        private bool _hasProtectionLevel;
 
-        bool multiple;
-        //string baseType;
-        string uniquePartName;
+        // TODO: Was ICustomAttributeProvider
+        private CustomAttributeProvider _additionalAttributesProvider;
 
         public MessagePartDescription(string name, string ns)
         {
             if (name == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name", SR.SFxParameterNameCannotBeNull);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name), SR.SFxParameterNameCannotBeNull);
             }
 
-            this.name = new XmlName(name, true /*isEncoded*/);
+            XmlName = new XmlName(name, true /*isEncoded*/);
 
             if (!string.IsNullOrEmpty(ns))
             {
-                NamingHelper.CheckUriParameter(ns, "ns");
+                NamingHelper.CheckUriParameter(ns, nameof(ns));
             }
 
-            this.ns = ns;
+            Namespace = ns;
         }
 
         internal MessagePartDescription(MessagePartDescription other)
         {
-            name = other.name;
-            ns = other.ns;
-            index = other.index;
-            type = other.type;
-            serializationPosition = other.serializationPosition;
-            //this.hasProtectionLevel = other.hasProtectionLevel;
-            //this.protectionLevel = other.protectionLevel;
-            memberInfo = other.memberInfo;
-            multiple = other.multiple;
-            additionalAttributesProvider = other.additionalAttributesProvider;
+            XmlName = other.XmlName;
+            Namespace = other.Namespace;
+            Index = other.Index;
+            Type = other.Type;
+            SerializationPosition = other.SerializationPosition;
+            _hasProtectionLevel = other._hasProtectionLevel;
+            _protectionLevel = other._protectionLevel;
+            MemberInfo = other.MemberInfo;
+            Multiple = other.Multiple;
+            _additionalAttributesProvider = other._additionalAttributesProvider;
             //this.baseType = other.baseType;
             //this.uniquePartName = other.uniquePartName;
         }
@@ -58,63 +54,47 @@ namespace CoreWCF.Description
             return new MessagePartDescription(this);
         }
 
-        internal XmlName XmlName
-        {
-            get { return name; }
-        }
+        internal XmlName XmlName { get; }
 
         public string Name
         {
-            get { return name.EncodedName; }
+            get { return XmlName.EncodedName; }
         }
 
-        public string Namespace
-        {
-            get { return ns; }
-        }
+        public string Namespace { get; }
 
-        public Type Type
-        {
-            get { return type; }
-            set { type = value; }
-        }
+        public Type Type { get; set; }
 
-        public int Index
-        {
-            get { return index; }
-            set { index = value; }
-        }
+        public int Index { get; set; }
 
-        public bool Multiple
-        {
-            get { return multiple; }
-            set { multiple = value; }
-        }
+        public bool Multiple { get; set; }
 
-        public MemberInfo MemberInfo
+        public ProtectionLevel ProtectionLevel
         {
-            get { return memberInfo; }
-            set { memberInfo = value; }
+            get { return _protectionLevel; }
+            set
+            {
+                if (!ProtectionLevelHelper.IsDefined(value))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                }
+
+                _protectionLevel = value;
+                _hasProtectionLevel = true;
+            }
         }
+        public MemberInfo MemberInfo { get; set; }
 
         internal bool HasProtectionLevel => false;
 
         internal CustomAttributeProvider AdditionalAttributesProvider
         {
-            get { return additionalAttributesProvider ?? memberInfo; }
-            set { additionalAttributesProvider = value; }
+            get { return _additionalAttributesProvider ?? MemberInfo; }
+            set { _additionalAttributesProvider = value; }
         }
 
-        internal string UniquePartName
-        {
-            get { return uniquePartName; }
-            set { uniquePartName = value; }
-        }
+        internal string UniquePartName { get; set; }
 
-        internal int SerializationPosition
-        {
-            get { return serializationPosition; }
-            set { serializationPosition = value; }
-        }
+        internal int SerializationPosition { get; set; }
     }
 }

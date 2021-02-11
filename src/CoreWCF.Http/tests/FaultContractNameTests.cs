@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -11,7 +14,7 @@ namespace CoreWCF.Http.Tests
 {
     public class FaultContractNameTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public FaultContractNameTests(ITestOutputHelper output)
         {
@@ -21,13 +24,13 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void FaultOnDiffString()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestFaultContractName>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TestFaultContractNameService.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.ITestFaultContractName channel = factory.CreateChannel();
 
                 //test variations count
                 int count = 21;

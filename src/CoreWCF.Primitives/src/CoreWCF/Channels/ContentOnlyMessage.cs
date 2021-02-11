@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Xml;
 using CoreWCF.Diagnostics;
 
@@ -7,14 +9,14 @@ namespace CoreWCF.Channels
     /// <summary>
     /// Base class for non-SOAP messages
     /// </summary>
-    abstract class ContentOnlyMessage : Message
+    internal abstract class ContentOnlyMessage : Message
     {
-        MessageHeaders headers;
-        MessageProperties properties;
+        private readonly MessageHeaders _headers;
+        private MessageProperties _properties;
 
         protected ContentOnlyMessage()
         {
-            headers = new MessageHeaders(MessageVersion.None);
+            _headers = new MessageHeaders(MessageVersion.None);
         }
 
         public override MessageHeaders Headers
@@ -26,7 +28,7 @@ namespace CoreWCF.Channels
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
                 }
 
-                return headers;
+                return _headers;
             }
         }
 
@@ -39,12 +41,12 @@ namespace CoreWCF.Channels
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
                 }
 
-                if (properties == null)
+                if (_properties == null)
                 {
-                    properties = new MessageProperties();
+                    _properties = new MessageProperties();
                 }
 
-                return properties;
+                return _properties;
             }
         }
 
@@ -52,7 +54,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return headers.MessageVersion;
+                return _headers.MessageVersion;
             }
         }
 
@@ -62,39 +64,38 @@ namespace CoreWCF.Channels
         }
     }
 
-    class StringMessage : ContentOnlyMessage
+    internal class StringMessage : ContentOnlyMessage
     {
-        string data;
+        private readonly string _data;
 
         public StringMessage(string data)
             : base()
         {
-            this.data = data;
+            _data = data;
         }
 
         public override bool IsEmpty
         {
             get
             {
-                return string.IsNullOrEmpty(data);
+                return string.IsNullOrEmpty(_data);
             }
         }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            if (data != null && data.Length > 0)
+            if (_data != null && _data.Length > 0)
             {
-                writer.WriteElementString("BODY", data);
+                writer.WriteElementString("BODY", _data);
             }
         }
     }
 
-    class NullMessage : StringMessage
+    internal class NullMessage : StringMessage
     {
         public NullMessage()
             : base(string.Empty)
         {
         }
     }
-
 }

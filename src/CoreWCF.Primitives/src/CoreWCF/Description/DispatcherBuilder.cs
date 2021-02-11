@@ -1,15 +1,17 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Xml;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
@@ -17,7 +19,7 @@ namespace CoreWCF.Description
     {
         private static void ValidateDescription(ServiceHostBase serviceHost)
         {
-            var description = serviceHost.Description;
+            ServiceDescription description = serviceHost.Description;
             description.EnsureInvariants();
             // TODO: Reenable SecurityValidationBehavior validation
             //(SecurityValidationBehavior.Instance as IServiceBehavior).Validate(description, serviceHost);
@@ -44,7 +46,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection parameters)
+        private static void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection parameters)
         {
             foreach (IContractBehavior icb in endpoint.Contract.Behaviors)
             {
@@ -124,7 +126,9 @@ namespace CoreWCF.Description
 
             // VSWhidbey#541152: new Uri(Uri, string.Empty) is broken
             if (path.Length == 0)
+            {
                 return baseUri;
+            }
 
             if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
             {
@@ -141,7 +145,7 @@ namespace CoreWCF.Description
 
         internal static void InitializeServiceHost(ServiceHostBase serviceHost, IServiceProvider services)
         {
-            var description = serviceHost.Description;
+            ServiceDescription description = serviceHost.Description;
             if (serviceHost.ImplementedContracts != null && serviceHost.ImplementedContracts.Count > 0)
             {
                 EnsureThereAreApplicationEndpoints(description);
@@ -194,7 +198,7 @@ namespace CoreWCF.Description
                     }
 
                     // ensure all endpoints with this ListenUriInfo have same identity
-                    if (!object.Equals(endpoint.Address.Identity, identity))
+                    if (!Equals(endpoint.Address.Identity, identity))
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                                                                                       SR.Format(SR.SFxWhenMultipleEndpointsShareAListenUriTheyMustHaveSameIdentity, viaString)));
@@ -295,15 +299,14 @@ namespace CoreWCF.Description
                                 EndpointFilterProvider iProvider = endpointInfos[i].FilterProvider;
                                 EndpointFilterProvider jProvider = endpointInfos[j].FilterProvider;
                                 // if not default EndpointFilterProvider, we won't try to throw, you're on your own
-                                string commonAction;
                                 if (iProvider != null && jProvider != null
-                                    && HaveCommonInitiatingActions(iProvider, jProvider, out commonAction))
+                                    && HaveCommonInitiatingActions(iProvider, jProvider, out string commonAction))
                                 {
                                     // you will definitely get a MultipleFiltersMatchedException at runtime,
                                     // so let's go ahead and throw now
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                         new InvalidOperationException(
-                                            SR.Format(SR.SFxDuplicateInitiatingActionAtSameVia,endpointInfos[i].Endpoint.ListenUri, commonAction)));
+                                            SR.Format(SR.SFxDuplicateInitiatingActionAtSameVia, endpointInfos[i].Endpoint.ListenUri, commonAction)));
                                 }
                             }
                         }
@@ -427,8 +430,7 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(contractDescription)));
             }
 
-            ChannelRequirements reqs;
-            ChannelRequirements.ComputeContractRequirements(contractDescription, out reqs);
+            ChannelRequirements.ComputeContractRequirements(contractDescription, out ChannelRequirements reqs);
             Type[] supportedChannels = ChannelRequirements.ComputeRequiredChannels(ref reqs);
             // supportedChannels is client-side, need to make server-side
             for (int i = 0; i < supportedChannels.Length; i++)
@@ -474,7 +476,7 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceDescription));
             }
 
-            var contractDescription = endpoint.Contract;
+            ContractDescription contractDescription = endpoint.Contract;
             if (contractDescription == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpoint.Contract));
@@ -507,14 +509,13 @@ namespace CoreWCF.Description
             }
 
             //dispatcher.SetSupportedChannels(DispatcherBuilder.GetSupportedChannelTypes(contractDescription));
-            int filterPriority = 0;
-            dispatcher.ContractFilter = provider.CreateFilter(out filterPriority);
+            dispatcher.ContractFilter = provider.CreateFilter(out int filterPriority);
             dispatcher.FilterPriority = filterPriority;
 
             return dispatcher;
         }
 
-        static void BuildProxyOperation(OperationDescription operation, ClientRuntime parent)
+        private static void BuildProxyOperation(OperationDescription operation, ClientRuntime parent)
         {
             ClientOperation child;
             if (operation.Messages.Count == 1)
@@ -544,10 +545,10 @@ namespace CoreWCF.Description
             parent.Operations.Add(child);
         }
 
-        static void BuildDispatchOperation(OperationDescription operation, DispatchRuntime parent, EndpointFilterProvider provider)
+        private static void BuildDispatchOperation(OperationDescription operation, DispatchRuntime parent, EndpointFilterProvider provider)
         {
             string requestAction = operation.Messages[0].Action;
-            DispatchOperation child = null;
+            DispatchOperation child;
             if (operation.IsOneWay)
             {
                 child = new DispatchOperation(parent, operation.Name, requestAction);
@@ -589,10 +590,9 @@ namespace CoreWCF.Description
 
                 parent.UnhandledDispatchOperation = child;
             }
-
         }
 
-        static void BindOperations(ContractDescription contract, ClientRuntime proxy, DispatchRuntime dispatch)
+        private static void BindOperations(ContractDescription contract, ClientRuntime proxy, DispatchRuntime dispatch)
         {
             if (!(((proxy == null) != (dispatch == null))))
             {
@@ -651,7 +651,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static bool HaveCommonInitiatingActions(EndpointFilterProvider x, EndpointFilterProvider y, out string commonAction)
+        private static bool HaveCommonInitiatingActions(EndpointFilterProvider x, EndpointFilterProvider y, out string commonAction)
         {
             commonAction = null;
             foreach (string action in x.InitiatingActions)
@@ -667,13 +667,13 @@ namespace CoreWCF.Description
 
         internal static List<IServiceDispatcher> BuildDispatcher<TService>(ServiceConfiguration<TService> serviceConfig, IServiceProvider services) where TService : class
         {
-            var serviceBuilder = services.GetRequiredService<IServiceBuilder>();
-            var serverUriAddresses = serviceBuilder.BaseAddresses.ToArray();
+            IServiceBuilder serviceBuilder = services.GetRequiredService<IServiceBuilder>();
+            Uri[] serverUriAddresses = serviceBuilder.BaseAddresses.ToArray();
             ServiceHostObjectModel<TService> serviceHost;
             serviceHost = services.GetRequiredService<ServiceHostObjectModel<TService>>();
 
             // TODO: Create internal behavior which configures any extensibilities which exist in serviceProvider, eg IMessageInspector
-            foreach (var endpointConfig in serviceConfig.Endpoints)
+            foreach (ServiceEndpointConfiguration endpointConfig in serviceConfig.Endpoints)
             {
                 if (!serviceHost.ReflectedContracts.Contains(endpointConfig.Contract))
                 {
@@ -682,7 +682,7 @@ namespace CoreWCF.Description
 
                 ContractDescription contract = serviceHost.ReflectedContracts[endpointConfig.Contract];
 
-                var uri = serviceHost.MakeAbsoluteUri(endpointConfig.Address, endpointConfig.Binding);
+                Uri uri = serviceHost.MakeAbsoluteUri(endpointConfig.Address, endpointConfig.Binding);
                 var serviceEndpoint = new ServiceEndpoint(
                     contract,
                     endpointConfig.Binding,
@@ -697,11 +697,11 @@ namespace CoreWCF.Description
 
             // TODO: Add error checking to make sure property chain is correctly populated with objects
             var dispatchers = new List<IServiceDispatcher>(serviceHost.ChannelDispatchers.Count);
-            foreach (var cdb in serviceHost.ChannelDispatchers)
+            foreach (ChannelDispatcherBase cdb in serviceHost.ChannelDispatchers)
             {
                 var cd = cdb as ChannelDispatcher;
                 cd.Init();
-                var openTask = cd.OpenAsync();
+                System.Threading.Tasks.Task openTask = cd.OpenAsync();
                 Fx.Assert(openTask.IsCompleted, "ChannelDispatcher should open synchronously");
                 openTask.GetAwaiter().GetResult();
                 dispatchers.Add(new ServiceDispatcher(cd));
@@ -772,43 +772,30 @@ namespace CoreWCF.Description
         }
 
         #region InnerClasses
-        class EndpointInfo
+        private class EndpointInfo
         {
-            ServiceEndpoint endpoint;
-            EndpointDispatcher endpointDispatcher;
-            EndpointFilterProvider provider;
-
             public EndpointInfo(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher, EndpointFilterProvider provider)
             {
-                this.endpoint = endpoint;
-                this.endpointDispatcher = endpointDispatcher;
-                this.provider = provider;
+                Endpoint = endpoint;
+                EndpointDispatcher = endpointDispatcher;
+                FilterProvider = provider;
             }
-            public ServiceEndpoint Endpoint { get { return endpoint; } }
-            public EndpointFilterProvider FilterProvider { get { return provider; } }
-            public EndpointDispatcher EndpointDispatcher { get { return endpointDispatcher; } }
+            public ServiceEndpoint Endpoint { get; }
+            public EndpointFilterProvider FilterProvider { get; }
+            public EndpointDispatcher EndpointDispatcher { get; }
         }
 
         internal class ListenUriInfo
         {
-            Uri listenUri;
-            ListenUriMode listenUriMode;
-
             public ListenUriInfo(Uri listenUri, ListenUriMode listenUriMode)
             {
-                this.listenUri = listenUri;
-                this.listenUriMode = listenUriMode;
+                ListenUri = listenUri;
+                ListenUriMode = listenUriMode;
             }
 
-            public Uri ListenUri
-            {
-                get { return listenUri; }
-            }
+            public Uri ListenUri { get; }
 
-            public ListenUriMode ListenUriMode
-            {
-                get { return listenUriMode; }
-            }
+            public ListenUriMode ListenUriMode { get; }
 
             // implement Equals and GetHashCode so that we can use this as a key in a dictionary
             public override bool Equals(object obj)
@@ -823,22 +810,22 @@ namespace CoreWCF.Description
                     return false;
                 }
 
-                if (object.ReferenceEquals(this, other))
+                if (ReferenceEquals(this, other))
                 {
                     return true;
                 }
 
-                return (listenUriMode == other.listenUriMode)
-                    && EndpointAddress.UriEquals(listenUri, other.listenUri, true /* ignoreCase */, true /* includeHost */);
+                return (ListenUriMode == other.ListenUriMode)
+                    && EndpointAddress.UriEquals(ListenUri, other.ListenUri, true /* ignoreCase */, true /* includeHost */);
             }
 
             public override int GetHashCode()
             {
-                return EndpointAddress.UriGetHashCode(listenUri, true /* includeHost */);
+                return EndpointAddress.UriGetHashCode(ListenUri, true /* includeHost */);
             }
         }
 
-        class StuffPerListenUriInfo
+        private class StuffPerListenUriInfo
         {
             public BindingParameterCollection Parameters = new BindingParameterCollection();
             public Collection<ServiceEndpoint> Endpoints = new Collection<ServiceEndpoint>();

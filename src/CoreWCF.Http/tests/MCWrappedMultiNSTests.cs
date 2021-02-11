@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
@@ -14,7 +15,7 @@ namespace CoreWCF.Http.Tests
 {
     public class MCWrappedMultiNSTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public MCWrappedMultiNSTests(ITestOutputHelper output)
         {
@@ -24,14 +25,14 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void MulDataContractsInDiffNS()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IMCWrappedMultiNS>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/MCWrappedMultiNSService.svc")));
-                var channel = factory.CreateChannel();
+                IMCWrappedMultiNS channel = factory.CreateChannel();
 
                 MC2MultiNS RetMC = channel.M(new MCMultiNS());
                 Assert.NotNull(RetMC);

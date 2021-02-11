@@ -1,15 +1,18 @@
-﻿using CoreWCF.Configuration;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {
     internal class SingletonFramingMiddleware
     {
-        private HandshakeDelegate _next;
+        private readonly HandshakeDelegate _next;
 
         public SingletonFramingMiddleware(HandshakeDelegate next)
         {
@@ -26,7 +29,7 @@ namespace CoreWCF.Channels.Framing
                 ReadOnlySequence<byte> buffer;
                 while (decoder.CurrentState != ServerSingletonDecoder.State.PreUpgradeStart)
                 {
-                    var readResult = await connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
                     buffer = readResult.Buffer;
 
                     while (buffer.Length > 0)

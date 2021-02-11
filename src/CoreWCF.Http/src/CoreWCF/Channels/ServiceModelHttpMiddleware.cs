@@ -1,15 +1,13 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting.Server.Features;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Channels
 {
@@ -71,12 +69,12 @@ namespace CoreWCF.Channels
         private RequestDelegate BuildBranch()
         {
             _logger.LogDebug("Building branch map");
-            var branchApp = _app.New();
+            IApplicationBuilder branchApp = _app.New();
 
-            foreach (var serviceType in _serviceBuilder.Services)
+            foreach (Type serviceType in _serviceBuilder.Services)
             {
-                var dispatchers = _dispatcherBuilder.BuildDispatchers(serviceType);
-                foreach (var dispatcher in dispatchers)
+                System.Collections.Generic.List<IServiceDispatcher> dispatchers = _dispatcherBuilder.BuildDispatchers(serviceType);
+                foreach (IServiceDispatcher dispatcher in dispatchers)
                 {
                     if (dispatcher.BaseAddress == null)
                     {
@@ -84,8 +82,7 @@ namespace CoreWCF.Channels
                         continue;
                     }
 
-                    var binding = dispatcher.Binding as CustomBinding;
-                    if (binding == null)
+                    if (!(dispatcher.Binding is CustomBinding binding))
                     {
                         binding = new CustomBinding(dispatcher.Binding);
                     }
@@ -95,11 +92,13 @@ namespace CoreWCF.Channels
                         continue; // Not an HTTP(S) dispatcher
                     }
 
-                    var parameters = new BindingParameterCollection();
-                    parameters.Add(_app);
+                    var parameters = new BindingParameterCollection
+                    {
+                        _app
+                    };
                     Type supportedChannelType = null;
                     IServiceDispatcher serviceDispatcher = null;
-                    var supportedChannels = dispatcher.SupportedChannelTypes;
+                    System.Collections.Generic.IList<Type> supportedChannels = dispatcher.SupportedChannelTypes;
                     for (int i = 0; i < supportedChannels.Count; i++)
                     {
                         Type channelType = supportedChannels[i];
@@ -125,7 +124,6 @@ namespace CoreWCF.Channels
                         {
                             if (binding.CanBuildServiceDispatcher<IDuplexChannel>(parameters))
                             {
-
                                 serviceDispatcher = binding.BuildServiceDispatcher<IDuplexChannel>(parameters, dispatcher);
                                 supportedChannelType = typeof(IDuplexChannel);
                             }
@@ -159,7 +157,7 @@ namespace CoreWCF.Channels
                     _logger.LogInformation($"Mapping CoreWCF branch app for path {dispatcher.BaseAddress.AbsolutePath}");
                     branchApp.Map(dispatcher.BaseAddress.AbsolutePath, wcfApp =>
                     {
-                        var servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
+                        IServiceScopeFactory servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
                         var requestHandler = new RequestDelegateHandler(serviceDispatcher, servicesScopeFactory);
                         if (requestHandler.WebSocketOptions != null)
                         {

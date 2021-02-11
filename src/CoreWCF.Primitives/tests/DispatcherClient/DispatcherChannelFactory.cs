@@ -1,7 +1,6 @@
-﻿using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -9,6 +8,10 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DispatcherClient
 {
@@ -23,9 +26,9 @@ namespace DispatcherClient
 
     internal class DispatcherChannelFactory<TChannel, TService, TContract> : DispatcherChannelFactory, IChannelFactory<TChannel> where TService : class
     {
-        private IServiceProvider _serviceProvider;
-        private IDictionary<object, IServiceChannelDispatcher> _serviceChannelDispatchers = new Dictionary<object, IServiceChannelDispatcher>();
-        private object _lock = new object();
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IDictionary<object, IServiceChannelDispatcher> _serviceChannelDispatchers = new Dictionary<object, IServiceChannelDispatcher>();
+        private readonly object _lock = new object();
 
         public DispatcherChannelFactory(Action<IServiceCollection> configureServices)
         {
@@ -43,8 +46,8 @@ namespace DispatcherClient
             services.AddSingleton(server);
             services.AddSingleton(GetType(), this);
             configureServices?.Invoke(services);
-            var serviceProvider = services.BuildServiceProvider();
-            var serverAddressesFeature = serviceProvider.GetRequiredService<IServerAddressesFeature>();
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServerAddressesFeature serverAddressesFeature = serviceProvider.GetRequiredService<IServerAddressesFeature>();
             server.Features.Set(serverAddressesFeature);
             return serviceProvider;
         }
@@ -59,8 +62,8 @@ namespace DispatcherClient
 
         public TChannel CreateChannel(EndpointAddress to, Uri via)
         {
-            var servicesScopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
-            var serviceScope = servicesScopeFactory.CreateScope();
+            IServiceScopeFactory servicesScopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
+            IServiceScope serviceScope = servicesScopeFactory.CreateScope();
 
             if (typeof(TChannel) == typeof(IRequestChannel))
             {
@@ -91,16 +94,16 @@ namespace DispatcherClient
                     return dispatcher;
                 }
             }
-            
-            var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
+
+            IServiceBuilder serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.AddService<TService>();
             var binding = new CoreWCF.Channels.CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new Helpers.MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<TService, TContract>(binding, channel.Via);
             await serviceBuilder.OpenAsync();
-            var dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
-            var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
-            var serviceDispatcher = dispatchers[0];
+            IDispatcherBuilder dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
+            IServiceDispatcher serviceDispatcher = dispatchers[0];
             CoreWCF.Channels.IChannel replyChannel;
             if (channel is DispatcherRequestSessionChannel)
             {

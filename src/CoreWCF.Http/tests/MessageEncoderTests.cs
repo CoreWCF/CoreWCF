@@ -1,11 +1,14 @@
-﻿using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -13,7 +16,7 @@ namespace CoreWCF.Http.Tests
 {
     public class MessageEncoderTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public MessageEncoderTests(ITestOutputHelper output)
         {
@@ -25,14 +28,14 @@ namespace CoreWCF.Http.Tests
         public void BinaryMessageEncoderCompressionFormat_EchoString(Type startupType, System.ServiceModel.Channels.Binding clientBinding)
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
             using (host)
             {
                 host.Start();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(clientBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-                var channel = factory.CreateChannel();
-                var result = channel.EchoString(testString);
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
             }
         }

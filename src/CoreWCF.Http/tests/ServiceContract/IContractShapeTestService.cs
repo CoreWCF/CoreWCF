@@ -1,5 +1,8 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Runtime.Serialization;
+using CoreWCF;
 
 namespace ServiceContract
 {
@@ -13,7 +16,7 @@ namespace ServiceContract
     }
 
     [ServiceContract(Name = "IContractService")]
-    interface IServiceContract_Overloads
+    internal interface IServiceContract_Overloads
     {
         [OperationContract(Name = "TwoWayInt")]
         string TwoWayMethod(int n);
@@ -29,7 +32,7 @@ namespace ServiceContract
     }
 
     [ServiceContract(Name = "IContractService")]
-    interface IServiceContract_Params
+    internal interface IServiceContract_Params
     {
         // Two Way w/ Parameter Array
         [OperationContract]

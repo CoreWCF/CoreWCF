@@ -1,23 +1,24 @@
-﻿using CoreWCF.IdentityModel.Claims;
-using CoreWCF.IdentityModel.Policy;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Text;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
 
 namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
     public class MyTestAuthorizationPolicy : IAuthorizationPolicy
     {
-        string id;
         public MyTestAuthorizationPolicy()
         {
-            id = Guid.NewGuid().ToString();
+            Id = Guid.NewGuid().ToString();
         }
 
         public bool Evaluate(EvaluationContext evaluationContext, ref object state)
         {
-                bool bRet = false;
-            CustomAuthState customstate = null;
+            CustomAuthState customstate;
 
             // If the state is null, then this has not been called before so 
             // set up a custom state.
@@ -31,14 +32,17 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
                 customstate = (CustomAuthState)state;
             }
 
+            bool bRet;
             // If claims have not been added yet...
             if (!customstate.ClaimsAdded)
-            { 
-                    // Create an empty list of claims.
-                IList<Claim> claims = new List<Claim>();
-                claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/EchoString", Rights.PossessProperty));
-                claims.Add(new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/ComplexEcho", Rights.PossessProperty));
-                evaluationContext.AddClaimSet(this, new DefaultClaimSet(this.Issuer, claims));
+            {
+                // Create an empty list of claims.
+                IList<Claim> claims = new List<Claim>
+                {
+                    new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/EchoString", Rights.PossessProperty),
+                    new Claim("http://tempuri.org/claims/allowedoperation", "http://tempuri.org/IEchoService/ComplexEcho", Rights.PossessProperty)
+                };
+                evaluationContext.AddClaimSet(this, new DefaultClaimSet(Issuer, claims));
                 // Record that claims were added.
                 customstate.ClaimsAdded = true;
                 // Return true, indicating that this method does not need to be called again.
@@ -58,26 +62,17 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
             get { return ClaimSet.System; }
         }
 
-        public string Id
-        {
-            get { return id; }
-        }
+        public string Id { get; private set; }
 
         // Internal class for keeping track of state.
-        class CustomAuthState
+        private class CustomAuthState
         {
-            bool bClaimsAdded;
-
             public CustomAuthState()
             {
-                bClaimsAdded = false;
+                ClaimsAdded = false;
             }
 
-            public bool ClaimsAdded
-            {
-                get { return bClaimsAdded; }
-                set { bClaimsAdded = value; }
-            }
+            public bool ClaimsAdded { get; set; }
         }
     }
 }

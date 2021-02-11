@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Net;
 using System.Net.WebSockets;
 
@@ -34,7 +37,7 @@ namespace CoreWCF.Channels
         internal const int ConnectionBufferSize = 8192;
     }
 
-    static class WebSocketDefaults
+    internal static class WebSocketDefaults
     {
         internal const WebSocketTransportUsage TransportUsage = WebSocketTransportUsage.Never;
         internal const bool CreateNotificationOnConnection = false;
@@ -58,7 +61,7 @@ namespace CoreWCF.Channels
         internal const string WebSocketUpgradeHeaderValue = "websocket";
     }
 
-    static class NetHttpBindingDefaults
+    internal static class NetHttpBindingDefaults
     {
         internal const NetHttpMessageEncoding MessageEncoding = NetHttpMessageEncoding.Binary;
         internal const WebSocketTransportUsage TransportUsage = WebSocketTransportUsage.WhenDuplex;

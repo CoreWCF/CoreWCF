@@ -1,54 +1,52 @@
-﻿using CoreWCF.IdentityModel.Tokens;
-using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
-using System.Text;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
-    internal class SecurityTokenRequirement
+    public class SecurityTokenRequirement
     {
-        const string Namespace = "http://schemas.microsoft.com/ws/2006/05/identitymodel/securitytokenrequirement";
-        const string tokenTypeProperty = Namespace + "/TokenType";
-        const string keyUsageProperty = Namespace + "/KeyUsage";
-        const string keyTypeProperty = Namespace + "/KeyType";
-        const string keySizeProperty = Namespace + "/KeySize";
-        const string requireCryptographicTokenProperty = Namespace + "/RequireCryptographicToken";
-        const string peerAuthenticationMode = Namespace + "/PeerAuthenticationMode";
-        const string isOptionalTokenProperty = Namespace + "/IsOptionalTokenProperty";
-
-        const bool defaultRequireCryptographicToken = false;
-        const SecurityKeyUsage defaultKeyUsage = SecurityKeyUsage.Signature;
-        const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
-        const int defaultKeySize = 0;
-        const bool defaultIsOptionalToken = false;
-
-        Dictionary<string, object> properties;
+        private const string Namespace = "http://schemas.microsoft.com/ws/2006/05/identitymodel/securitytokenrequirement";
+        private const string tokenTypeProperty = Namespace + "/TokenType";
+        private const string keyUsageProperty = Namespace + "/KeyUsage";
+        private const string keyTypeProperty = Namespace + "/KeyType";
+        private const string keySizeProperty = Namespace + "/KeySize";
+        private const string requireCryptographicTokenProperty = Namespace + "/RequireCryptographicToken";
+        private const string peerAuthenticationMode = Namespace + "/PeerAuthenticationMode";
+        private const string isOptionalTokenProperty = Namespace + "/IsOptionalTokenProperty";
+        private const bool defaultRequireCryptographicToken = false;
+        private const SecurityKeyUsage defaultKeyUsage = SecurityKeyUsage.Signature;
+        private const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
+        private const int defaultKeySize = 0;
+        private const bool defaultIsOptionalToken = false;
+        private readonly Dictionary<string, object> _properties;
 
         public SecurityTokenRequirement()
         {
-            properties = new Dictionary<string, object>();
+            _properties = new Dictionary<string, object>();
             Initialize();
         }
 
-        static public string TokenTypeProperty { get { return tokenTypeProperty; } }
-        static public string KeyUsageProperty { get { return keyUsageProperty; } }
-        static public string KeyTypeProperty { get { return keyTypeProperty; } }
-        static public string KeySizeProperty { get { return keySizeProperty; } }
-        static public string RequireCryptographicTokenProperty { get { return requireCryptographicTokenProperty; } }
-        static public string PeerAuthenticationMode { get { return peerAuthenticationMode; } }
-        static public string IsOptionalTokenProperty { get { return isOptionalTokenProperty; } }
+        public static string TokenTypeProperty { get { return tokenTypeProperty; } }
+        public static string KeyUsageProperty { get { return keyUsageProperty; } }
+        public static string KeyTypeProperty { get { return keyTypeProperty; } }
+        public static string KeySizeProperty { get { return keySizeProperty; } }
+        public static string RequireCryptographicTokenProperty { get { return requireCryptographicTokenProperty; } }
+        public static string PeerAuthenticationMode { get { return peerAuthenticationMode; } }
+        public static string IsOptionalTokenProperty { get { return isOptionalTokenProperty; } }
 
         public string TokenType
         {
             get
             {
-                string result;
-                return (TryGetProperty<string>(TokenTypeProperty, out result)) ? result : null;
+                return (TryGetProperty<string>(TokenTypeProperty, out string result)) ? result : null;
             }
             set
             {
-                properties[TokenTypeProperty] = value;
+                _properties[TokenTypeProperty] = value;
             }
         }
 
@@ -56,12 +54,11 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                bool result;
-                return (TryGetProperty<bool>(IsOptionalTokenProperty, out result)) ? result : defaultIsOptionalToken;
+                return (TryGetProperty<bool>(IsOptionalTokenProperty, out bool result)) ? result : defaultIsOptionalToken;
             }
             set
             {
-                properties[IsOptionalTokenProperty] = value;
+                _properties[IsOptionalTokenProperty] = value;
             }
         }
 
@@ -69,40 +66,37 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                bool result;
-                return (TryGetProperty<bool>(RequireCryptographicTokenProperty, out result)) ? result : defaultRequireCryptographicToken;
+                return (TryGetProperty<bool>(RequireCryptographicTokenProperty, out bool result)) ? result : defaultRequireCryptographicToken;
             }
             set
             {
-                properties[RequireCryptographicTokenProperty] = (object)value;
+                _properties[RequireCryptographicTokenProperty] = (object)value;
             }
         }
 
-        public SecurityKeyUsage KeyUsage
+        internal SecurityKeyUsage KeyUsage
         {
             get
             {
-                SecurityKeyUsage result;
-                return (TryGetProperty<SecurityKeyUsage>(KeyUsageProperty, out result)) ? result : defaultKeyUsage;
+                return (TryGetProperty<SecurityKeyUsage>(KeyUsageProperty, out SecurityKeyUsage result)) ? result : defaultKeyUsage;
             }
             set
             {
                 SecurityKeyUsageHelper.Validate(value);
-                properties[KeyUsageProperty] = (object)value;
+                _properties[KeyUsageProperty] = (object)value;
             }
         }
 
-        public SecurityKeyType KeyType
+        internal SecurityKeyType KeyType
         {
             get
             {
-                SecurityKeyType result;
-                return (TryGetProperty<SecurityKeyType>(KeyTypeProperty, out result)) ? result : defaultKeyType;
+                return (TryGetProperty<SecurityKeyType>(KeyTypeProperty, out SecurityKeyType result)) ? result : defaultKeyType;
             }
             set
             {
                 SecurityKeyTypeHelper.Validate(value);
-                properties[KeyTypeProperty] = (object)value;
+                _properties[KeyTypeProperty] = (object)value;
             }
         }
 
@@ -110,8 +104,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                int result;
-                return (TryGetProperty<int>(KeySizeProperty, out result)) ? result : defaultKeySize;
+                return (TryGetProperty<int>(KeySizeProperty, out int result)) ? result : defaultKeySize;
             }
             set
             {
@@ -127,11 +120,11 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             get
             {
-                return properties;
+                return _properties;
             }
         }
 
-        void Initialize()
+        private void Initialize()
         {
             KeyType = defaultKeyType;
             KeyUsage = defaultKeyUsage;
@@ -142,8 +135,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public TValue GetProperty<TValue>(string propertyName)
         {
-            TValue result;
-            if (!TryGetProperty<TValue>(propertyName, out result))
+            if (!TryGetProperty<TValue>(propertyName, out TValue result))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.SecurityTokenRequirementDoesNotContainProperty, propertyName)));
             }
@@ -152,10 +144,9 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public bool TryGetProperty<TValue>(string propertyName, out TValue result)
         {
-            object dictionaryValue;
-            if (!Properties.TryGetValue(propertyName, out dictionaryValue))
+            if (!Properties.TryGetValue(propertyName, out object dictionaryValue))
             {
-                result = default(TValue);
+                result = default;
                 return false;
             }
             if (dictionaryValue != null && !typeof(TValue).IsAssignableFrom(dictionaryValue.GetType()))
@@ -165,6 +156,5 @@ namespace CoreWCF.IdentityModel.Selectors
             result = (TValue)dictionaryValue;
             return true;
         }
-
     }
 }

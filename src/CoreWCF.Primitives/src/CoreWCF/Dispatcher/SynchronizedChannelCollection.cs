@@ -1,42 +1,45 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using CoreWCF.Collections.Generic;
 using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
 
 namespace CoreWCF.Dispatcher
 {
-    class SynchronizedChannelCollection<TChannel> : SynchronizedCollection<TChannel>
+    internal class SynchronizedChannelCollection<TChannel> : SynchronizedCollection<TChannel>
         where TChannel : IChannel
     {
-        EventHandler onChannelClosed;
-        EventHandler onChannelFaulted;
+        private readonly EventHandler _onChannelClosed;
+        private readonly EventHandler _onChannelFaulted;
 
         internal SynchronizedChannelCollection(object syncRoot)
             : base(syncRoot)
         {
-            onChannelClosed = new EventHandler(OnChannelClosed);
-            onChannelFaulted = new EventHandler(OnChannelFaulted);
+            _onChannelClosed = new EventHandler(OnChannelClosed);
+            _onChannelFaulted = new EventHandler(OnChannelFaulted);
         }
 
-        void AddingChannel(TChannel channel)
+        private void AddingChannel(TChannel channel)
         {
-            channel.Faulted += onChannelFaulted;
-            channel.Closed += onChannelClosed;
+            channel.Faulted += _onChannelFaulted;
+            channel.Closed += _onChannelClosed;
         }
 
-        void RemovingChannel(TChannel channel)
+        private void RemovingChannel(TChannel channel)
         {
-            channel.Faulted -= onChannelFaulted;
-            channel.Closed -= onChannelClosed;
+            channel.Faulted -= _onChannelFaulted;
+            channel.Closed -= _onChannelClosed;
         }
 
-        void OnChannelClosed(object sender, EventArgs args)
+        private void OnChannelClosed(object sender, EventArgs args)
         {
             TChannel channel = (TChannel)sender;
             Remove(channel);
         }
 
-        void OnChannelFaulted(object sender, EventArgs args)
+        private void OnChannelFaulted(object sender, EventArgs args)
         {
             TChannel channel = (TChannel)sender;
             Remove(channel);
@@ -77,5 +80,4 @@ namespace CoreWCF.Dispatcher
             RemovingChannel(oldItem);
         }
     }
-
 }

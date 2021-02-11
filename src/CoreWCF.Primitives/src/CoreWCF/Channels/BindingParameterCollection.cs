@@ -1,7 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF.Collections.Generic;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace CoreWCF.Channels
 {
@@ -16,18 +16,22 @@ namespace CoreWCF.Channels
         internal BindingParameterCollection(params object[] parameters)
         {
             if (parameters == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
+            }
 
             for (int i = 0; i < parameters.Length; i++)
             {
-                base.Add(parameters[i]);
+                Add(parameters[i]);
             }
         }
 
         internal BindingParameterCollection(BindingParameterCollection parameters)
         {
             if (parameters == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parameters));
+            }
 
             for (int i = 0; i < parameters.Count; i++)
             {

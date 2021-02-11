@@ -1,14 +1,16 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
-using CoreWCF.Security;
 using CoreWCF.Configuration;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
 {
@@ -107,12 +109,7 @@ namespace CoreWCF.Dispatcher
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _identityVerifier = value;
+                _identityVerifier = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -135,7 +132,10 @@ namespace CoreWCF.Dispatcher
                 lock (ThisLock)
                 {
                     if (_requests == null)
+                    {
                         _requests = new List<IDuplexRequest>();
+                    }
+
                     return _requests;
                 }
             }
@@ -205,13 +205,11 @@ namespace CoreWCF.Dispatcher
             // This operation does not have to be under the lock
             if (array != null && array.Length > 0)
             {
-                RequestReplyCorrelator requestReplyCorrelator = _correlator as RequestReplyCorrelator;
-                if (requestReplyCorrelator != null)
+                if (_correlator is RequestReplyCorrelator requestReplyCorrelator)
                 {
                     foreach (IDuplexRequest request in array)
                     {
-                        ICorrelatorKey keyedRequest = request as ICorrelatorKey;
-                        if (keyedRequest != null)
+                        if (request is ICorrelatorKey keyedRequest)
                         {
                             requestReplyCorrelator.RemoveRequest(keyedRequest);
                         }
@@ -278,7 +276,7 @@ namespace CoreWCF.Dispatcher
         {
             return _channel.SendAsync(message, token);
         }
-            
+
         public async Task<Message> RequestAsync(Message message, CancellationToken token)
         {
             RequestReplyCorrelator.PrepareRequest(message);
@@ -359,8 +357,7 @@ namespace CoreWCF.Dispatcher
             // This operation does not have to be under the lock
             if (array != null && array.Length > 0)
             {
-                RequestReplyCorrelator requestReplyCorrelator = _correlator as RequestReplyCorrelator;
-                if (requestReplyCorrelator != null)
+                if (_correlator is RequestReplyCorrelator requestReplyCorrelator)
                 {
                     foreach (ICorrelatorKey request in array)
                     {
@@ -368,7 +365,6 @@ namespace CoreWCF.Dispatcher
                     }
                 }
             }
-
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -415,14 +411,14 @@ namespace CoreWCF.Dispatcher
 
         private class DuplexRequestContext : RequestContextBase
         {
-            private DuplexChannelBinder binder;
-            private IDuplexChannel channel;
+            private readonly DuplexChannelBinder _binder;
+            private readonly IDuplexChannel _channel;
 
             internal DuplexRequestContext(IDuplexChannel channel, Message request, DuplexChannelBinder binder)
                 : base(request, binder.DefaultCloseTimeout, binder.DefaultSendTimeout)
             {
-                this.channel = channel;
-                this.binder = binder;
+                _channel = channel;
+                _binder = binder;
             }
 
             protected override void OnAbort()
@@ -438,7 +434,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (message != null)
                 {
-                    return channel.SendAsync(message, token);
+                    return _channel.SendAsync(message, token);
                 }
 
                 return Task.CompletedTask;
@@ -453,42 +449,42 @@ namespace CoreWCF.Dispatcher
 
         private class AsyncDuplexRequest : IDuplexRequest, ICorrelatorKey
         {
-            private Message reply;
-            private DuplexChannelBinder parent;
-            private AsyncManualResetEvent wait = new AsyncManualResetEvent();
-            private int waitCount = 0;
-            private RequestReplyCorrelator.Key requestCorrelatorKey;
+            private Message _reply;
+            private readonly DuplexChannelBinder _parent;
+            private readonly AsyncManualResetEvent _wait = new AsyncManualResetEvent();
+            private int _waitCount = 0;
+            private RequestReplyCorrelator.Key _requestCorrelatorKey;
 
             internal AsyncDuplexRequest(DuplexChannelBinder parent)
             {
-                this.parent = parent;
+                _parent = parent;
             }
 
             RequestReplyCorrelator.Key ICorrelatorKey.RequestCorrelatorKey
             {
                 get
                 {
-                    return requestCorrelatorKey;
+                    return _requestCorrelatorKey;
                 }
                 set
                 {
-                    Fx.Assert(requestCorrelatorKey == null, "RequestCorrelatorKey is already set for this request");
-                    requestCorrelatorKey = value;
+                    Fx.Assert(_requestCorrelatorKey == null, "RequestCorrelatorKey is already set for this request");
+                    _requestCorrelatorKey = value;
                 }
             }
 
             public void Abort()
             {
-                wait.Set();
+                _wait.Set();
             }
 
             internal async Task<Message> WaitForReplyAsync(CancellationToken token)
             {
                 try
                 {
-                    if(!await wait.WaitAsync(token))
+                    if (!await _wait.WaitAsync(token))
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(parent.GetReceiveTimeoutException(TimeSpan.Zero));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(_parent.GetReceiveTimeoutException(TimeSpan.Zero));
                     }
                 }
                 finally
@@ -496,26 +492,26 @@ namespace CoreWCF.Dispatcher
                     CloseWaitHandle();
                 }
 
-                parent.ThrowIfInvalidReplyIdentity(reply);
-                return reply;
+                _parent.ThrowIfInvalidReplyIdentity(_reply);
+                return _reply;
             }
 
             public void GotReply(Message reply)
             {
-                lock (parent.ThisLock)
+                lock (_parent.ThisLock)
                 {
-                    parent.RequestCompleting(this);
+                    _parent.RequestCompleting(this);
                 }
-                this.reply = reply;
-                wait.Set();
+                _reply = reply;
+                _wait.Set();
                 CloseWaitHandle();
             }
 
             private void CloseWaitHandle()
             {
-                if (Interlocked.Increment(ref waitCount) == 2)
+                if (Interlocked.Increment(ref _waitCount) == 2)
                 {
-                    wait.Dispose();
+                    _wait.Dispose();
                 }
             }
         }

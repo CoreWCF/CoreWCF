@@ -1,25 +1,31 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml;
+using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Runtime;
-using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
     internal class FaultFormatter : IClientFaultFormatter, IDispatchFaultFormatter
     {
-        FaultContractInfo[] faultContractInfos;
+        private readonly FaultContractInfo[] _faultContractInfos;
 
         internal FaultFormatter(Type[] detailTypes)
         {
             List<FaultContractInfo> faultContractInfoList = new List<FaultContractInfo>();
             for (int i = 0; i < detailTypes.Length; i++)
+            {
                 faultContractInfoList.Add(new FaultContractInfo(MessageHeaders.WildcardAction, detailTypes[i]));
+            }
+
             AddInfrastructureFaults(faultContractInfoList);
-            faultContractInfos = GetSortedArray(faultContractInfoList);
+            _faultContractInfos = GetSortedArray(faultContractInfoList);
         }
 
         internal FaultFormatter(SynchronizedCollection<FaultContractInfo> faultContractInfoCollection)
@@ -30,7 +36,7 @@ namespace CoreWCF.Dispatcher
                 faultContractInfoList = new List<FaultContractInfo>(faultContractInfoCollection);
             }
             AddInfrastructureFaults(faultContractInfoList);
-            faultContractInfos = GetSortedArray(faultContractInfoList);
+            _faultContractInfos = GetSortedArray(faultContractInfoList);
         }
 
         public MessageFault Serialize(FaultException faultException, out string action)
@@ -59,7 +65,9 @@ namespace CoreWCF.Dispatcher
         public FaultException Deserialize(MessageFault messageFault, string action)
         {
             if (!messageFault.HasDetail)
+            {
                 return new FaultException(messageFault, action);
+            }
 
             return CreateFaultException(messageFault, action);
         }
@@ -68,23 +76,27 @@ namespace CoreWCF.Dispatcher
         {
             action = faultExceptionAction;
             FaultContractInfo faultInfo = null;
-            for (int i = 0; i < faultContractInfos.Length; i++)
+            for (int i = 0; i < _faultContractInfos.Length; i++)
             {
-                if (faultContractInfos[i].Detail == detailType)
+                if (_faultContractInfos[i].Detail == detailType)
                 {
-                    faultInfo = faultContractInfos[i];
+                    faultInfo = _faultContractInfos[i];
                     break;
                 }
             }
             if (faultInfo != null)
             {
                 if (action == null)
+                {
                     action = faultInfo.Action;
+                }
 
                 return faultInfo.Serializer;
             }
             else
+            {
                 return DataContractSerializerDefaults.CreateSerializer(detailType, int.MaxValue /* maxItemsInObjectGraph */ );
+            }
         }
 
         protected virtual FaultException CreateFaultException(MessageFault messageFault, string action)
@@ -93,21 +105,19 @@ namespace CoreWCF.Dispatcher
             if (action != null)
             {
                 faultInfos = new List<FaultContractInfo>();
-                for (int i = 0; i < faultContractInfos.Length; i++)
+                for (int i = 0; i < _faultContractInfos.Length; i++)
                 {
-                    if (faultContractInfos[i].Action == action || faultContractInfos[i].Action == MessageHeaders.WildcardAction)
+                    if (_faultContractInfos[i].Action == action || _faultContractInfos[i].Action == MessageHeaders.WildcardAction)
                     {
-                        faultInfos.Add(faultContractInfos[i]);
+                        faultInfos.Add(_faultContractInfos[i]);
                     }
                 }
             }
             else
             {
-                faultInfos = faultContractInfos;
+                faultInfos = _faultContractInfos;
             }
 
-            Type detailType = null;
-            object detailObj = null;
             for (int i = 0; i < faultInfos.Count; i++)
             {
                 FaultContractInfo faultInfo = faultInfos[i];
@@ -115,18 +125,22 @@ namespace CoreWCF.Dispatcher
                 XmlObjectSerializer serializer = faultInfo.Serializer;
                 if (serializer.IsStartObject(detailReader))
                 {
-                    detailType = faultInfo.Detail;
+                    Type detailType = faultInfo.Detail;
                     try
                     {
-                        detailObj = serializer.ReadObject(detailReader);
+                        object detailObj = serializer.ReadObject(detailReader);
                         FaultException faultException = CreateFaultException(messageFault, action,
                             detailObj, detailType, detailReader);
                         if (faultException != null)
+                        {
                             return faultException;
+                        }
                     }
+#pragma warning disable CA1031 // Do not catch general exception types - return a non-specific FaultException is can't deserializer MessageFault
                     catch (SerializationException)
                     {
                     }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
             return new FaultException(messageFault, action);
@@ -139,9 +153,11 @@ namespace CoreWCF.Dispatcher
             {
                 detailReader.MoveToContent();
                 if (detailReader.NodeType != XmlNodeType.EndElement && !detailReader.EOF)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new FormatException(SR.ExtraContentIsPresentInFaultDetail));
+                }
             }
-            bool isDetailObjectValid = true;
+            bool isDetailObjectValid;
             if (detailObj == null)
             {
                 isDetailObjectValid = !detailType.GetTypeInfo().IsValueType;
@@ -162,7 +178,7 @@ namespace CoreWCF.Dispatcher
             return null;
         }
 
-        static FaultContractInfo[] GetSortedArray(List<FaultContractInfo> faultContractInfoList)
+        private static FaultContractInfo[] GetSortedArray(List<FaultContractInfo> faultContractInfoList)
         {
             FaultContractInfo[] temp = faultContractInfoList.ToArray();
             Array.Sort<FaultContractInfo>(temp,
@@ -172,17 +188,20 @@ namespace CoreWCF.Dispatcher
             return temp;
         }
 
-        static void AddInfrastructureFaults(List<FaultContractInfo> faultContractInfos)
+        private static void AddInfrastructureFaults(List<FaultContractInfo> faultContractInfos)
         {
             faultContractInfos.Add(new FaultContractInfo(FaultCodeConstants.Actions.NetDispatcher, typeof(ExceptionDetail)));
         }
 
-        static MessageFault CreateMessageFault(XmlObjectSerializer serializer, FaultException faultException, Type detailType)
+        private static MessageFault CreateMessageFault(XmlObjectSerializer serializer, FaultException faultException, Type detailType)
         {
             if (detailType == null)
             {
                 if (faultException.Fault != null)
+                {
                     return faultException.Fault;
+                }
+
                 return MessageFault.CreateFault(faultException.Code, faultException.Reason);
             }
             Fx.Assert(serializer != null, "");
@@ -203,5 +222,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

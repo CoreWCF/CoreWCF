@@ -1,4 +1,6 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -14,9 +16,7 @@ namespace CoreWCF.Channels
         internal const long MaxBufferPoolSize = 512 * 1024;
         internal const int MaxBufferSize = (int)MaxReceivedMessageSize;
 
-        internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.Tls |
-                                           System.Security.Authentication.SslProtocols.Tls11 |
-                                           System.Security.Authentication.SslProtocols.Tls12;
+        internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.None; // Let the OS decide
 
         internal static MessageEncoderFactory GetDefaultMessageEncoderFactory()
         {
@@ -54,7 +54,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    static class TcpTransportDefaults
+    internal static class TcpTransportDefaults
     {
         internal const int ListenBacklogConst = 0;
         internal static TimeSpan ConnectionLeaseTimeout { get { return TimeSpan.FromMinutes(5); } }

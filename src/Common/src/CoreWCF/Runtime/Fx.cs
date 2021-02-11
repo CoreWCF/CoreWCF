@@ -1,22 +1,24 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using CoreWCF.Runtime.Diagnostics;
-using System.Threading.Tasks;
 using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF.Runtime.Diagnostics;
 
 namespace CoreWCF.Runtime
 {
     internal static class Fx
     {
-        const string defaultEventSource = "Microsoft.Runtime";
-        static ExceptionTrace s_exceptionTrace;
-        static EtwDiagnosticTrace s_diagnosticTrace;
-        static ExceptionHandler s_asynchronousThreadExceptionHandler;
+        private const string defaultEventSource = "Microsoft.Runtime";
+        private static ExceptionTrace s_exceptionTrace;
+        private static EtwDiagnosticTrace s_diagnosticTrace;
 
         public static ExceptionTrace Exception
         {
@@ -45,7 +47,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static EtwDiagnosticTrace InitializeTracing()
+        private static EtwDiagnosticTrace InitializeTracing()
         {
             EtwDiagnosticTrace trace = new EtwDiagnosticTrace(defaultEventSource, EtwDiagnosticTrace.DefaultEtwProviderId);
 
@@ -60,18 +62,7 @@ namespace CoreWCF.Runtime
             return trace;
         }
 
-        public static ExceptionHandler AsynchronousThreadExceptionHandler
-        {
-            get
-            {
-                return s_asynchronousThreadExceptionHandler;
-            }
-
-            set
-            {
-                s_asynchronousThreadExceptionHandler = value;
-            }
-        }
+        public static ExceptionHandler AsynchronousThreadExceptionHandler { get; set; }
 
         public static void AssertAndThrow(bool condition, string description)
         {
@@ -91,7 +82,7 @@ namespace CoreWCF.Runtime
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Exception AssertAndThrowFatal(string description)
         {
-            Fx.Assert(description);
+            Assert(description);
             //TraceCore.ShipAssertExceptionMessage(Trace, description);
             throw new FatalInternalException(description);
         }
@@ -198,7 +189,7 @@ namespace CoreWCF.Runtime
             catch (OutOfMemoryException exception)
             {
                 // Convert OOM into an exception that can be safely handled by higher layers.
-                throw Fx.Exception.AsError(exception);
+                throw Exception.AsError(exception);
                 //new InsufficientMemoryException(InternalSR.BufferAllocationFailed(size), exception));
             }
         }
@@ -225,29 +216,21 @@ namespace CoreWCF.Runtime
 
         public static IOCompletionCallback ThunkCallback(IOCompletionCallback callback)
         {
-            Fx.Assert(callback != null, "Trying to create a ThunkCallback with a null callback method");
+            Assert(callback != null, "Trying to create a ThunkCallback with a null callback method");
             return (new IOCompletionThunk(callback)).ThunkFrame;
         }
 
-        abstract class Thunk<T> where T : class
+        private abstract class Thunk<T> where T : class
         {
-            T callback;
-
             protected Thunk(T callback)
             {
-                this.callback = callback;
+                Callback = callback;
             }
 
-            internal T Callback
-            {
-                get
-                {
-                    return callback;
-                }
-            }
+            internal T Callback { get; private set; }
         }
 
-        sealed class ActionThunk<T1> : Thunk<Action<T1>>
+        private sealed class ActionThunk<T1> : Thunk<Action<T1>>
         {
             public ActionThunk(Action<T1> callback) : base(callback)
             {
@@ -261,7 +244,7 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            void UnhandledExceptionFrame(T1 param1)
+            private void UnhandledExceptionFrame(T1 param1)
             {
                 RuntimeHelpers.PrepareConstrainedRegions();
                 try
@@ -270,7 +253,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }
@@ -278,7 +261,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        sealed class ActionThunk<T1, T2> : Thunk<Action<T1, T2>>
+        private sealed class ActionThunk<T1, T2> : Thunk<Action<T1, T2>>
         {
             public ActionThunk(Action<T1, T2> callback) : base(callback)
             {
@@ -292,7 +275,7 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            void UnhandledExceptionFrame(T1 param1, T2 param2)
+            private void UnhandledExceptionFrame(T1 param1, T2 param2)
             {
                 RuntimeHelpers.PrepareConstrainedRegions();
                 try
@@ -301,7 +284,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }
@@ -309,7 +292,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        sealed class ActionThunk<T1, T2, T3> : Thunk<Action<T1, T2, T3>>
+        private sealed class ActionThunk<T1, T2, T3> : Thunk<Action<T1, T2, T3>>
         {
             public ActionThunk(Action<T1, T2, T3> callback) : base(callback)
             {
@@ -323,7 +306,7 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            void UnhandledExceptionFrame(T1 param1, T2 param2, T3 param3)
+            private void UnhandledExceptionFrame(T1 param1, T2 param2, T3 param3)
             {
                 RuntimeHelpers.PrepareConstrainedRegions();
                 try
@@ -332,7 +315,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }
@@ -340,7 +323,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        sealed class AsyncThunk : Thunk<AsyncCallback>
+        private sealed class AsyncThunk : Thunk<AsyncCallback>
         {
             public AsyncThunk(AsyncCallback callback) : base(callback)
             {
@@ -354,7 +337,7 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            void UnhandledExceptionFrame(IAsyncResult result)
+            private void UnhandledExceptionFrame(IAsyncResult result)
             {
                 // PrepareConstrainedRegions are in .net standard 1.7+
                 //RuntimeHelpers.PrepareConstrainedRegions();
@@ -364,7 +347,7 @@ namespace CoreWCF.Runtime
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }
@@ -372,13 +355,13 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static void TraceExceptionNoThrow(Exception exception)
+        private static void TraceExceptionNoThrow(Exception exception)
         {
             try
             {
                 // This call exits the CER.  However, when still inside a catch, normal ThreadAbort is prevented.
                 // Rude ThreadAbort will still be allowed to terminate processing.
-                Fx.Exception.TraceUnhandledException(exception);
+                Exception.TraceUnhandledException(exception);
             }
             catch
             {
@@ -387,12 +370,12 @@ namespace CoreWCF.Runtime
             }
         }
 
-        static bool HandleAtThreadBase(Exception exception)
+        private static bool HandleAtThreadBase(Exception exception)
         {
             // This area is too sensitive to do anything but return.
             if (exception == null)
             {
-                Fx.Assert("Null exception in HandleAtThreadBase.");
+                Assert("Null exception in HandleAtThreadBase.");
                 return false;
             }
 
@@ -400,7 +383,7 @@ namespace CoreWCF.Runtime
 
             try
             {
-                ExceptionHandler handler = Fx.AsynchronousThreadExceptionHandler;
+                ExceptionHandler handler = AsynchronousThreadExceptionHandler;
                 return handler == null ? false : handler.HandleException(exception);
             }
             catch (Exception secondException)
@@ -418,13 +401,13 @@ namespace CoreWCF.Runtime
         }
 
         // This can't derive from Thunk since T would be unsafe.
-        unsafe sealed class IOCompletionThunk
+        private sealed unsafe class IOCompletionThunk
         {
-            IOCompletionCallback callback;
+            private readonly IOCompletionCallback _callback;
 
             public IOCompletionThunk(IOCompletionCallback callback)
             {
-                this.callback = callback;
+                _callback = callback;
             }
 
             public IOCompletionCallback ThunkFrame
@@ -435,16 +418,16 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            void UnhandledExceptionFrame(uint error, uint bytesRead, NativeOverlapped* nativeOverlapped)
+            private void UnhandledExceptionFrame(uint error, uint bytesRead, NativeOverlapped* nativeOverlapped)
             {
                 RuntimeHelpers.PrepareConstrainedRegions();
                 try
                 {
-                    callback(error, bytesRead, nativeOverlapped);
+                    _callback(error, bytesRead, nativeOverlapped);
                 }
                 catch (Exception exception)
                 {
-                    if (!Fx.HandleAtThreadBase(exception))
+                    if (!HandleAtThreadBase(exception))
                     {
                         throw;
                     }

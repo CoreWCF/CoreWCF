@@ -1,20 +1,18 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.ServiceModel;
 using System.ServiceModel.Security;
-using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Primitives.Tests.CustomSecurity;
 using Helpers;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,7 +20,7 @@ namespace CoreWCF.Http.Tests
 {
     public class ServiceAuthBehaviorTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public ServiceAuthBehaviorTest(ITestOutputHelper output)
         {
             _output = output;
@@ -32,15 +30,15 @@ namespace CoreWCF.Http.Tests
         public void BasicHttpRequestReplyEchoWithServiceBehavior()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-                var channel = factory.CreateChannel();
-                var result = channel.EchoString(testString);
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
             }
         }
@@ -49,14 +47,14 @@ namespace CoreWCF.Http.Tests
         public void AccessDeniedForBasicHttpRequestReplyEcho()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.IEchoService channel = factory.CreateChannel();
                 SecurityAccessDeniedException ex = Assert.Throws<SecurityAccessDeniedException>(() => channel.EchoToFail(testString));
                 Assert.Equal("Access is denied.", ex.Message);
             }
@@ -73,9 +71,11 @@ namespace CoreWCF.Http.Tests
 
             public void Configure(IApplicationBuilder app, IHostingEnvironment env)
             {
-                var authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
-                var authPolicies = new List<IAuthorizationPolicy>();
-                authPolicies.Add(new MyTestAuthorizationPolicy());
+                ServiceAuthorizationBehavior authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
+                var authPolicies = new List<IAuthorizationPolicy>
+                {
+                    new MyTestAuthorizationPolicy()
+                };
                 var externalAuthPolicies = new ReadOnlyCollection<IAuthorizationPolicy>(authPolicies);
                 authBehavior.ExternalAuthorizationPolicies = externalAuthPolicies;
                 authBehavior.PrincipalPermissionMode = PrincipalPermissionMode.None;

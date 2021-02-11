@@ -1,9 +1,12 @@
-﻿using CoreWCF.Configuration;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,7 +14,7 @@ namespace CoreWCF.Http.Tests
 {
     public class ContractShapeTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ContractShapeTests(ITestOutputHelper output)
         {
@@ -21,17 +24,17 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void TwowayUsingParamsKeyword()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<ContractShapeParamsServiceStartup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<ContractShapeParamsServiceStartup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceContract_Params>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractShapeParamsService.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.IServiceContract_Params channel = factory.CreateChannel();
 
                 int[] nums = { 0, 1, 5, 25 };
-                foreach (var numberOfParams in nums)
+                foreach (int numberOfParams in nums)
                 {
                     int[] paramVals = new int[numberOfParams];
                     for (int itemNum = 0; itemNum < numberOfParams; itemNum++)
@@ -48,14 +51,14 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void MuptiOverloadedMethod()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<ContractShapeOverloadsServiceStartup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<ContractShapeOverloadsServiceStartup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceContract_Overloads>(httpBinding,
                           new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractShapeOverloadsService.svc")));
-                var channel = factory.CreateChannel();
+                ClientContract.IServiceContract_Overloads channel = factory.CreateChannel();
 
                 // Call into the appropriate overload per variation
                 string response = channel.TwoWayMethod();

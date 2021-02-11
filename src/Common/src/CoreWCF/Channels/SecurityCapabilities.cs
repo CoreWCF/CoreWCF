@@ -1,8 +1,11 @@
-﻿using System.Net.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Net.Security;
 
 namespace CoreWCF.Channels
 {
-    class SecurityCapabilities : ISecurityCapabilities
+    internal class SecurityCapabilities : ISecurityCapabilities
     {
         public SecurityCapabilities(bool supportsClientAuth, bool supportsServerAuth, bool supportsClientWindowsIdentity,
             ProtectionLevel requestProtectionLevel, ProtectionLevel responseProtectionLevel)
@@ -20,18 +23,18 @@ namespace CoreWCF.Channels
         public bool SupportsClientWindowsIdentity { get; }
         public bool SupportsServerAuthentication { get; }
 
-        static SecurityCapabilities None => new SecurityCapabilities(false, false, false, ProtectionLevel.None, ProtectionLevel.None);
+        private static SecurityCapabilities None => new SecurityCapabilities(false, false, false, ProtectionLevel.None, ProtectionLevel.None);
 
         internal static bool IsEqual(ISecurityCapabilities capabilities1, ISecurityCapabilities capabilities2)
         {
             if (capabilities1 == null)
             {
-                capabilities1 = SecurityCapabilities.None;
+                capabilities1 = None;
             }
 
             if (capabilities2 == null)
             {
-                capabilities2 = SecurityCapabilities.None;
+                capabilities2 = None;
             }
 
             if (capabilities1.SupportedRequestProtectionLevel != capabilities2.SupportedRequestProtectionLevel)

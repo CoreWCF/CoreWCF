@@ -1,4 +1,7 @@
-﻿namespace CoreWCF.Channels
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+namespace CoreWCF.Channels
 {
     // TODO: Add to contract. This is a feature of an encoder but we don't allow other people writing transports to find out about the
     // encoder implementing compression and having it enabled. There's no way to work around this without reflection if not public so it should be public.

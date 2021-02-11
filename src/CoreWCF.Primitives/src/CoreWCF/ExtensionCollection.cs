@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CoreWCF.Collections.Generic;
@@ -8,12 +11,14 @@ namespace CoreWCF
     public sealed class ExtensionCollection<T> : SynchronizedCollection<IExtension<T>>, IExtensionCollection<T>
         where T : IExtensibleObject<T>
     {
-        readonly T _owner;
+        private readonly T _owner;
 
         public ExtensionCollection(T owner)
         {
             if (owner == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(owner));
+            }
 
             _owner = owner;
         }
@@ -22,7 +27,9 @@ namespace CoreWCF
             : base(syncRoot)
         {
             if (owner == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(owner));
+            }
 
             _owner = owner;
         }
@@ -59,11 +66,13 @@ namespace CoreWCF
                 {
                     IExtension<T> item = items[i];
                     if (item is TE)
+                    {
                         return (TE)item;
+                    }
                 }
             }
 
-            return default(TE);
+            return default;
         }
 
         public Collection<TE> FindAll<TE>()
@@ -77,7 +86,9 @@ namespace CoreWCF
                 {
                     IExtension<T> item = items[i];
                     if (item is TE)
+                    {
                         result.Add((TE)item);
+                    }
                 }
             }
 
@@ -87,7 +98,9 @@ namespace CoreWCF
         protected override void InsertItem(int index, IExtension<T> item)
         {
             if (item == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+            }
 
             lock (SyncRoot)
             {
@@ -110,5 +123,4 @@ namespace CoreWCF
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxCannotSetExtensionsByIndex));
         }
     }
-
 }

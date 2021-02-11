@@ -1,15 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using CoreWCF.Runtime;
-using CoreWCF;
+using System.Threading;
 //using System.Xml;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Xml;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Description
 {
@@ -48,7 +48,7 @@ namespace CoreWCF.Description
 
         internal static string TypeName(Type type)
         {
-            var t = type.GetTypeInfo();
+            TypeInfo t = type.GetTypeInfo();
             if (t.IsGenericType || t.ContainsGenericParameters)
             {
                 Type[] args = type.GetGenericArguments();
@@ -144,27 +144,38 @@ namespace CoreWCF.Description
 
         internal static void CheckUriProperty(string ns, string propName)
         {
-            Uri uri;
-            if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out uri))
+            if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out Uri uri))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SFXUnvalidNamespaceValue, ns, propName));
+            }
         }
 
         internal static void CheckUriParameter(string ns, string paramName)
         {
-            Uri uri;
-            if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out uri))
+            if (!Uri.TryCreate(ns, UriKind.RelativeOrAbsolute, out Uri uri))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(paramName, SR.Format(SR.SFXUnvalidNamespaceParam, ns));
+            }
         }
 
         // Converts names that contain characters that are not permitted in XML names to valid names.
         internal static string XmlName(string name)
         {
             if (string.IsNullOrEmpty(name))
+            {
                 return name;
+            }
+
             if (IsAsciiLocalName(name))
+            {
                 return name;
+            }
+
             if (IsValidNCName(name))
+            {
                 return name;
+            }
+
             return XmlConvert.EncodeLocalName(name);
         }
 
@@ -174,26 +185,31 @@ namespace CoreWCF.Description
             return XmlConvert.DecodeName(name);
         }
 
-        static bool IsAlpha(char ch)
+        private static bool IsAlpha(char ch)
         {
             return (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z');
         }
 
-        static bool IsDigit(char ch)
+        private static bool IsDigit(char ch)
         {
             return (ch >= '0' && ch <= '9');
         }
 
-        static bool IsAsciiLocalName(string localName)
+        private static bool IsAsciiLocalName(string localName)
         {
             Fx.Assert(null != localName, "");
             if (!IsAlpha(localName[0]))
+            {
                 return false;
+            }
+
             for (int i = 1; i < localName.Length; i++)
             {
                 char ch = localName[i];
                 if (!IsAlpha(ch) && !IsDigit(ch))
+                {
                     return false;
+                }
             }
             return true;
         }
@@ -215,8 +231,8 @@ namespace CoreWCF.Description
     [DebuggerDisplay("{_encoded ?? _decoded}")]
     internal class XmlName
     {
-        string _decoded;
-        string _encoded;
+        private string _decoded;
+        private string _encoded;
 
         internal XmlName(string name)
             : this(name, false)
@@ -241,7 +257,10 @@ namespace CoreWCF.Description
             get
             {
                 if (_encoded == null)
+                {
                     _encoded = NamingHelper.XmlName(_decoded);
+                }
+
                 return _encoded;
             }
         }
@@ -251,15 +270,20 @@ namespace CoreWCF.Description
             get
             {
                 if (_decoded == null)
+                {
                     _decoded = NamingHelper.CodeName(_encoded);
+                }
+
                 return _decoded;
             }
         }
 
-        static void ValidateEncodedName(string name, bool allowNull)
+        private static void ValidateEncodedName(string name, bool allowNull)
         {
             if (allowNull && name == null)
+            {
                 return;
+            }
 
             try
             {
@@ -271,7 +295,7 @@ namespace CoreWCF.Description
             }
         }
 
-        bool IsEmpty { get { return string.IsNullOrEmpty(_encoded) && string.IsNullOrEmpty(_decoded); } }
+        private bool IsEmpty { get { return string.IsNullOrEmpty(_encoded) && string.IsNullOrEmpty(_decoded); } }
 
         internal static bool IsNullOrEmpty(XmlName xmlName)
         {
@@ -336,7 +360,7 @@ namespace CoreWCF.Description
         //    }
     }
 
-    static internal class ServiceReflector
+    internal static class ServiceReflector
     {
         internal const BindingFlags ServiceModelBindingFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
         internal const string BeginMethodNamePrefix = "Begin";
@@ -347,10 +371,10 @@ namespace CoreWCF.Description
         internal static readonly Type taskTResultType = typeof(Task<>);
         internal static readonly Type CancellationTokenType = typeof(CancellationToken);
         internal static readonly Type IProgressType = typeof(IProgress<>);
-        static readonly Type asyncCallbackType = typeof(AsyncCallback);
-        static readonly Type asyncResultType = typeof(IAsyncResult);
-        static readonly Type objectType = typeof(object);
-        static readonly Type OperationContractAttributeType = typeof(OperationContractAttribute);
+        private static readonly Type s_asyncCallbackType = typeof(AsyncCallback);
+        private static readonly Type s_asyncResultType = typeof(IAsyncResult);
+        private static readonly Type s_objectType = typeof(object);
+        private static readonly Type s_operationContractAttributeType = typeof(OperationContractAttribute);
         internal const string SMServiceContractAttributeFullName = "System.ServiceModel.ServiceContractAttribute";
         internal const string SMOperationContractAttributeFullName = "System.ServiceModel.OperationContractAttribute";
         internal const string SMMessageContractAttributeFullName = "System.ServiceModel.MessageContractAttribute";
@@ -364,11 +388,11 @@ namespace CoreWCF.Description
         internal static readonly string CWCFMesssagePropertyAttribute = "CoreWCF.MessagePropertyAttribute";
         internal static readonly string CWCFMesssageContractAttribute = "CoreWCF.MessageContractAttribute";
 
-        static internal Type GetOperationContractProviderType(MethodInfo method)
+        internal static Type GetOperationContractProviderType(MethodInfo method)
         {
             if (GetSingleAttribute<OperationContractAttribute>(method) != null)
             {
-                return OperationContractAttributeType;
+                return s_operationContractAttributeType;
             }
 
             IOperationContractAttributeProvider provider = GetFirstAttribute<IOperationContractAttributeProvider>(method);
@@ -389,8 +413,8 @@ namespace CoreWCF.Description
             }
 
             // GetCustomAttributesData doesn't traverse the inheritence chain so this is the equivalent of IsDefined(..., false)
-            var cadList = type.GetCustomAttributesData();
-            foreach (var cad in cadList)
+            IList<CustomAttributeData> cadList = type.GetCustomAttributesData();
+            foreach (CustomAttributeData cad in cadList)
             {
                 if (cad.AttributeType.FullName.Equals(SMServiceContractAttributeFullName))
                 {
@@ -402,7 +426,7 @@ namespace CoreWCF.Description
         }
 
         // returns the set of root interfaces for the service class (meaning doesn't include callback ifaces)
-        static internal List<Type> GetInterfaces<TService>() where TService : class
+        internal static List<Type> GetInterfaces<TService>() where TService : class
         {
             List<Type> types = new List<Type>();
             bool implicitContract = false;
@@ -422,7 +446,7 @@ namespace CoreWCF.Description
                 foreach (MethodInfo method in GetMethodsInternal<TService>())
                 {
                     Type operationContractProviderType = GetOperationContractProviderType(method);
-                    if (operationContractProviderType == OperationContractAttributeType)
+                    if (operationContractProviderType == s_operationContractAttributeType)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ServicesWithoutAServiceContractAttributeCan2, operationContractProviderType.Name, method.Name, typeof(TService).FullName)));
                     }
@@ -444,9 +468,9 @@ namespace CoreWCF.Description
             return types;
         }
 
-        static Type GetAncestorImplicitContractClass<TService>() where TService : class
+        private static Type GetAncestorImplicitContractClass<TService>() where TService : class
         {
-            for (var service = typeof(TService).BaseType; service != null; service = service.BaseType)
+            for (Type service = typeof(TService).BaseType; service != null; service = service.BaseType)
             {
                 if (GetSingleAttribute<ServiceContractAttribute>(service) != null)
                 {
@@ -457,7 +481,7 @@ namespace CoreWCF.Description
             return null;
         }
 
-        static internal List<Type> GetInheritedContractTypes(Type service)
+        internal static List<Type> GetInheritedContractTypes(Type service)
         {
             List<Type> types = new List<Type>();
             foreach (Type t in service.GetInterfaces())
@@ -477,12 +501,12 @@ namespace CoreWCF.Description
             return types;
         }
 
-        static internal object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType)
+        internal static object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType)
         {
             return GetCustomAttributes(attrProvider, attrType, false);
         }
 
-        static internal object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType, bool inherit)
+        internal static object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType, bool inherit)
         {
             try
             {
@@ -520,7 +544,6 @@ namespace CoreWCF.Description
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.Format(SR.SFxErrorReflectingOnMethod3,
                                      attrType.Name, method.Name, method.ReflectedType.Name), e));
-
                 }
                 else if (param != null)
                 {
@@ -537,7 +560,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static internal T GetFirstAttribute<T>(CustomAttributeProvider attrProvider)
+        internal static T GetFirstAttribute<T>(CustomAttributeProvider attrProvider)
             where T : class
         {
             Type attrType = typeof(T);
@@ -552,7 +575,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static internal T GetSingleAttribute<T>(CustomAttributeProvider attrProvider) where T : class
+        internal static T GetSingleAttribute<T>(CustomAttributeProvider attrProvider) where T : class
         {
             Type attrType = typeof(T);
             object[] attrs = GetCustomAttributes(attrProvider, attrType);
@@ -607,7 +630,7 @@ namespace CoreWCF.Description
         //    }
         //}
 
-        static internal T GetRequiredSingleAttribute<T>(CustomAttributeProvider attrProvider)
+        internal static T GetRequiredSingleAttribute<T>(CustomAttributeProvider attrProvider)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider);
@@ -618,7 +641,7 @@ namespace CoreWCF.Description
             return result;
         }
 
-        static internal T GetSingleAttribute<T>(CustomAttributeProvider attrProvider, Type[] attrTypeGroup)
+        internal static T GetSingleAttribute<T>(CustomAttributeProvider attrProvider, Type[] attrTypeGroup)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider);
@@ -641,7 +664,7 @@ namespace CoreWCF.Description
             return result;
         }
 
-        static internal T GetRequiredSingleAttribute<T>(CustomAttributeProvider attrProvider, Type[] attrTypeGroup)
+        internal static T GetRequiredSingleAttribute<T>(CustomAttributeProvider attrProvider, Type[] attrTypeGroup)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider, attrTypeGroup);
@@ -658,7 +681,7 @@ namespace CoreWCF.Description
         //            return GetContractTypeAndAttribute(interfaceType, out contractAttribute);
         //        }
 
-        static internal Type GetContractTypeAndAttribute(Type interfaceType, out ServiceContractAttribute contractAttribute)
+        internal static Type GetContractTypeAndAttribute(Type interfaceType, out ServiceContractAttribute contractAttribute)
         {
             contractAttribute = GetSingleAttribute<ServiceContractAttribute>(interfaceType.GetTypeInfo());
             if (contractAttribute != null)
@@ -693,7 +716,7 @@ namespace CoreWCF.Description
                 SR.Format(SR.SFxNoMostDerivedContract, interfaceType.Name)));
         }
 
-        static List<MethodInfo> GetMethodsInternal<TService>() where TService : class
+        private static List<MethodInfo> GetMethodsInternal<TService>() where TService : class
         {
             List<MethodInfo> methods = new List<MethodInfo>();
             foreach (MethodInfo mi in typeof(TService).GetMethods(ServiceModelBindingFlags))
@@ -722,7 +745,7 @@ namespace CoreWCF.Description
         // in/out                    F          F         T
         //
         // out                       F          T         T
-        static internal void ValidateParameterMetadata(MethodInfo methodInfo)
+        internal static void ValidateParameterMetadata(MethodInfo methodInfo)
         {
             ParameterInfo[] parameters = methodInfo.GetParameters();
             foreach (ParameterInfo parameter in parameters)
@@ -748,17 +771,17 @@ namespace CoreWCF.Description
             }
         }
 
-        static internal bool FlowsIn(ParameterInfo paramInfo)    // conceptually both "in" and "in/out" params return true
+        internal static bool FlowsIn(ParameterInfo paramInfo)    // conceptually both "in" and "in/out" params return true
         {
             return !paramInfo.IsOut || paramInfo.IsIn;
         }
-        static internal bool FlowsOut(ParameterInfo paramInfo)   // conceptually both "out" and "in/out" params return true
+        internal static bool FlowsOut(ParameterInfo paramInfo)   // conceptually both "out" and "in/out" params return true
         {
             return paramInfo.ParameterType.IsByRef;
         }
 
         // for async method is the begin method
-        static internal ParameterInfo[] GetInputParameters(MethodInfo method, bool asyncPattern)
+        internal static ParameterInfo[] GetInputParameters(MethodInfo method, bool asyncPattern)
         {
             int count = 0;
             ParameterInfo[] parameters = method.GetParameters();
@@ -794,7 +817,7 @@ namespace CoreWCF.Description
         }
 
         // for async method is the end method
-        static internal ParameterInfo[] GetOutputParameters(MethodInfo method, bool asyncPattern)
+        internal static ParameterInfo[] GetOutputParameters(MethodInfo method, bool asyncPattern)
         {
             int count = 0;
             ParameterInfo[] parameters = method.GetParameters();
@@ -829,7 +852,7 @@ namespace CoreWCF.Description
             return result;
         }
 
-        static internal bool HasOutputParameters(MethodInfo method, bool asyncPattern)
+        internal static bool HasOutputParameters(MethodInfo method, bool asyncPattern)
         {
             ParameterInfo[] parameters = method.GetParameters();
 
@@ -852,7 +875,7 @@ namespace CoreWCF.Description
             return false;
         }
 
-        static MethodInfo GetEndMethodInternal(MethodInfo beginMethod)
+        private static MethodInfo GetEndMethodInternal(MethodInfo beginMethod)
         {
             string logicalName = GetLogicalName(beginMethod);
             string endMethodName = EndMethodNamePrefix + logicalName;
@@ -868,7 +891,7 @@ namespace CoreWCF.Description
             return (MethodInfo)endMethods[0];
         }
 
-        static internal MethodInfo GetEndMethod(MethodInfo beginMethod)
+        internal static MethodInfo GetEndMethod(MethodInfo beginMethod)
         {
             MethodInfo endMethod = GetEndMethodInternal(beginMethod);
 
@@ -887,21 +910,21 @@ namespace CoreWCF.Description
         //        }
 
 
-        static internal bool HasBeginMethodShape(MethodInfo method)
+        internal static bool HasBeginMethodShape(MethodInfo method)
         {
             ParameterInfo[] parameters = method.GetParameters();
             if (!method.Name.StartsWith(BeginMethodNamePrefix, StringComparison.Ordinal) ||
                 parameters.Length < 2 ||
-                parameters[parameters.Length - 2].ParameterType != asyncCallbackType ||
-                parameters[parameters.Length - 1].ParameterType != objectType ||
-                method.ReturnType != asyncResultType)
+                parameters[parameters.Length - 2].ParameterType != s_asyncCallbackType ||
+                parameters[parameters.Length - 1].ParameterType != s_objectType ||
+                method.ReturnType != s_asyncResultType)
             {
                 return false;
             }
             return true;
         }
 
-        static internal bool IsBegin(OperationContractAttribute opSettings, MethodInfo method)
+        internal static bool IsBegin(OperationContractAttribute opSettings, MethodInfo method)
         {
             if (opSettings.AsyncPattern)
             {
@@ -915,7 +938,7 @@ namespace CoreWCF.Description
             return false;
         }
 
-        static internal bool IsTask(MethodInfo method)
+        internal static bool IsTask(MethodInfo method)
         {
             if (method.ReturnType == taskType)
             {
@@ -928,7 +951,7 @@ namespace CoreWCF.Description
             return false;
         }
 
-        static internal bool IsTask(MethodInfo method, out Type taskTResult)
+        internal static bool IsTask(MethodInfo method, out Type taskTResult)
         {
             taskTResult = null;
             Type methodReturnType = method.ReturnType;
@@ -947,12 +970,12 @@ namespace CoreWCF.Description
             return false;
         }
 
-        static internal bool HasEndMethodShape(MethodInfo method)
+        internal static bool HasEndMethodShape(MethodInfo method)
         {
             ParameterInfo[] parameters = method.GetParameters();
             if (!method.Name.StartsWith(EndMethodNamePrefix, StringComparison.Ordinal) ||
                 parameters.Length < 1 ||
-                parameters[parameters.Length - 1].ParameterType != asyncResultType)
+                parameters[parameters.Length - 1].ParameterType != s_asyncResultType)
             {
                 return false;
             }
@@ -974,22 +997,25 @@ namespace CoreWCF.Description
             return null;
         }
 
-        static internal bool IsBegin(MethodInfo method)
+        internal static bool IsBegin(MethodInfo method)
         {
             OperationContractAttribute opSettings = GetOperationContractAttribute(method);
             if (opSettings == null)
+            {
                 return false;
+            }
+
             return IsBegin(opSettings, method);
         }
 
-        static internal string GetLogicalName(MethodInfo method)
+        internal static string GetLogicalName(MethodInfo method)
         {
             bool isAsync = IsBegin(method);
             bool isTask = isAsync ? false : IsTask(method);
             return GetLogicalName(method, isAsync, isTask);
         }
 
-        static internal string GetLogicalName(MethodInfo method, bool isAsync, bool isTask)
+        internal static string GetLogicalName(MethodInfo method, bool isAsync, bool isTask)
         {
             if (isAsync)
             {
@@ -1005,7 +1031,7 @@ namespace CoreWCF.Description
             }
         }
 
-        static internal bool HasNoDisposableParameters(MethodInfo methodInfo)
+        internal static bool HasNoDisposableParameters(MethodInfo methodInfo)
         {
             foreach (ParameterInfo inputInfo in methodInfo.GetParameters())
             {
@@ -1023,7 +1049,7 @@ namespace CoreWCF.Description
             return true;
         }
 
-        static internal bool IsParameterDisposable(Type type)
+        internal static bool IsParameterDisposable(Type type)
         {
             return ((!type.GetTypeInfo().IsSealed) || typeof(IDisposable).IsAssignableFrom(type));
         }
