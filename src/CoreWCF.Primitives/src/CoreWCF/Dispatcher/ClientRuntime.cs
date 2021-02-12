@@ -284,12 +284,12 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal ICollection<IClientMessageInspector> ClientMessageInspectors
+        public ICollection<IClientMessageInspector> ClientMessageInspectors
         {
             get { return MessageInspectors; }
         }
 
-        public SynchronizedCollection<IClientMessageInspector> MessageInspectors
+        internal SynchronizedCollection<IClientMessageInspector> MessageInspectors
         {
             get { return messageInspectors; }
         }
@@ -299,8 +299,7 @@ namespace CoreWCF.Dispatcher
             get { return Operations; }
         }
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public SynchronizedKeyedCollection<string, ClientOperation> Operations
+        internal SynchronizedKeyedCollection<string, ClientOperation> Operations
         {
             get { return operations; }
         }
