@@ -13,7 +13,7 @@ namespace DispatcherClient
     {
         internal static string s_endpointAddress = "corewcf://localhost/Service.svc";
 
-        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<IServiceCollection> configure) where TService : class
+        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<IServiceCollection> configure, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default) where TService : class
         {
             var binding = new DispatcherBinding<TService, TContract>((services) =>
             {
@@ -21,7 +21,7 @@ namespace DispatcherClient
                 IServerAddressesFeature serverAddressesFeature = new ServerAddressesFeature();
                 serverAddressesFeature.Addresses.Add(new Uri(s_endpointAddress).GetLeftPart(UriPartial.Authority) + "/");
                 services.AddSingleton(serverAddressesFeature);
-            });
+            }, configureServiceHostBase);
             return new ChannelFactory<TContract>(binding, new EndpointAddress(s_endpointAddress));
         }
 
