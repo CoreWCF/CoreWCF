@@ -19,5 +19,11 @@ namespace Extensibility
                             services.AddSingleton(serviceBehavior);
                         });
         }
+
+        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<CoreWCF.ServiceHostBase> configureServiceHostBase) where TService : class
+        {
+            return DispatcherHelper.CreateChannelFactory<TService, TContract>(
+                        (IServiceCollection services) => { }, configureServiceHostBase);
+        }
     }
 }
