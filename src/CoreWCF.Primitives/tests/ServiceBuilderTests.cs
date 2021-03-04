@@ -27,6 +27,9 @@ namespace CoreWCF.Primitives.Tests
             Assert.Equal(builder, builder.AddServiceEndpoint<SomeService>(typeof(IService), new NoBinding(), "http://localhost:8088/SomeService.svc"));
         }
 
+        [ServiceContract]
+        public interface IService { }
+
         public class SomeService : IService { }
 
         public class NoBinding : Binding

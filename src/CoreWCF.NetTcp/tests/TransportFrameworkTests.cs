@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.ServiceModel.Channels;
 using System.Threading;
 using CoreWCF.Configuration;
@@ -26,6 +29,7 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
+        [Trait("Category", "WindowsOnly")]
         public void RemoteEndpointMessageProperty()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
@@ -70,13 +74,34 @@ namespace CoreWCF.NetTcp.Tests
         private void NetstatResults(string clientPort, string endpointPort)
         {
             Process netstatProcess = new Process();
-            netstatProcess.StartInfo.FileName = "netstat";
+            var netstatFileName = "netstat";
+            // netstat moved from /bin/netstat to /usr/sbin/netstat between ubuntu 18.04 and 20.04
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                if (File.Exists("/bin/netstat"))
+                {
+                    netstatFileName = "/bin/netstat";
+                }
+                else if(File.Exists("/usr/bin/netstat"))
+                {
+                    netstatFileName = "/usr/bin/netstat";
+                }
+                // Fallback to hoping it's on the path
+            }
+            netstatProcess.StartInfo.FileName = netstatFileName;
             netstatProcess.StartInfo.Arguments = "-a -n";
             netstatProcess.StartInfo.RedirectStandardOutput = true;
             netstatProcess.StartInfo.UseShellExecute = false;
 
             // get the netstat results while the connection is open
-            netstatProcess.Start();
+            try
+            {
+                netstatProcess.Start();
+            }
+            catch (Win32Exception we)
+            {
+                throw new Exception($"Tried to execute \"{netstatFileName}\"", we);
+            }
             CheckPort(clientPort, endpointPort, netstatProcess);
         }
 

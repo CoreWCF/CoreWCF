@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
@@ -23,6 +23,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.3" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.7.0" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\CoreWCF.NetTcp.csproj" />
