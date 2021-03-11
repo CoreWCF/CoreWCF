@@ -11,6 +11,7 @@ using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
@@ -681,7 +682,6 @@ namespace CoreWCF.Description
                 }
 
                 ContractDescription contract = serviceHost.ReflectedContracts[endpointConfig.Contract];
-
                 Uri uri = serviceHost.MakeAbsoluteUri(endpointConfig.Address, endpointConfig.Binding);
                 var serviceEndpoint = new ServiceEndpoint(
                     contract,

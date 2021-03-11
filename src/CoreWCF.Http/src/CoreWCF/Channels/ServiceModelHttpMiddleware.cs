@@ -29,13 +29,26 @@ namespace CoreWCF.Channels
             _next = next;
             _logger = logger;
             _branch = BuildBranchAndInvoke;
-            serviceBuilder.Opening += ServiceBuilderOpeningCallback;
             serviceBuilder.Opened += ServiceBuilderOpenedCallback;
         }
 
-        public Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context)
         {
-            return _branch(context);
+            // Update the path
+            var path = context.Request.Path;
+            var pathBase = context.Request.PathBase;
+            context.Request.Path = pathBase.Add(path);
+            context.Request.PathBase = "";
+
+            try
+            {
+                await _branch(context);
+            }
+            finally
+            {
+                context.Request.PathBase = pathBase;
+                context.Request.Path = path;
+            }
         }
 
         private Task BuildBranchAndInvoke(HttpContext request)
@@ -54,11 +67,6 @@ namespace CoreWCF.Channels
                     _branchBuilt = true;
                 }
             }
-        }
-
-        private static void ServiceBuilderOpeningCallback(object sender, EventArgs e)
-        {
-            ((IServiceBuilder)sender).BaseAddresses.Add(new Uri("http://localhost/"));
         }
 
         private void ServiceBuilderOpenedCallback(object sender, EventArgs e)

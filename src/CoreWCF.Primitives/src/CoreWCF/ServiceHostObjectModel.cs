@@ -13,6 +13,8 @@ using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -224,90 +226,58 @@ namespace CoreWCF
             }
         }
 
-        internal Uri MakeAbsoluteUri(Uri uri, Binding binding)
+        protected override void ApplyConfiguration()
         {
-            Uri result = uri;
-            if (!result.IsAbsoluteUri)
+            base.ApplyConfiguration();
+            IServer server = _serviceProvider.GetRequiredService<IServer>();
+            IServerAddressesFeature addresses = server.Features.Get<IServerAddressesFeature>();
+            foreach(string address in addresses.Addresses)
             {
-                if (string.IsNullOrEmpty(binding.Scheme))
+                if (!address.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxCustomBindingWithoutTransport));
+                    // IIS hosting can populate Addresses with net.tcp/net.pipe/net.msmq addresses
+                    // if the site has those bindings
+                    continue;
                 }
 
-                result = GetVia(binding.Scheme, result, InternalBaseAddresses);
-                if (result == null)
+                var fixedUri = FixUri(address);
+                // ASP.NET Core assumes all listeners are http. Other transports such as NetTcp will already be populated
+                // in the base addresses so filter them out.
+                bool skip = false;
+                foreach(var baseAddress in InternalBaseAddresses)
                 {
-                    UriBuilder listenUriBuilder = new UriBuilder(binding.Scheme, DnsCache.MachineName);
-                    result = new Uri(listenUriBuilder.Uri, uri);
-                }
-            }
-
-            return result;
-        }
-
-        internal static string GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
-        {
-            StringBuilder buffer = new StringBuilder();
-            bool firstScheme = true;
-            foreach (Uri address in uriSchemeKeyedCollection)
-            {
-                if (firstScheme)
-                {
-                    buffer.Append(address.Scheme);
-                    firstScheme = false;
-                }
-                else
-                {
-                    buffer.Append(CultureInfo.CurrentCulture.TextInfo.ListSeparator).Append(address.Scheme);
-                }
-            }
-
-            return buffer.ToString();
-        }
-
-        internal static Uri GetVia(string scheme, Uri address, UriSchemeKeyedCollection baseAddresses)
-        {
-            Uri via = address;
-            if (!via.IsAbsoluteUri)
-            {
-                if (!baseAddresses.Contains(scheme))
-                {
-                    return null;
-                }
-
-                via = GetUri(baseAddresses[scheme], address);
-            }
-            return via;
-        }
-
-        internal static Uri GetUri(Uri baseUri, Uri relativeUri)
-        {
-            string path = relativeUri.OriginalString;
-            if (path.StartsWith("/", StringComparison.Ordinal) || path.StartsWith("\\", StringComparison.Ordinal))
-            {
-                int i = 1;
-                for (; i < path.Length; ++i)
-                {
-                    if (path[i] != '/' && path[i] != '\\')
+                    if(baseAddress.Port == fixedUri.Port) // Already added with a different protocol
                     {
+                        skip = true;
                         break;
                     }
                 }
-                path = path.Substring(i);
-            }
 
-            // new Uri(Uri, string.Empty) is broken
-            if (path.Length == 0)
+                if (!skip)
+                {
+                    AddBaseAddress(FixUri(address));
+                }
+            }
+        }
+
+        private static Uri FixUri(string address)
+        {
+            if (address.StartsWith("http://+:", StringComparison.OrdinalIgnoreCase) ||
+                address.StartsWith("http://+/", StringComparison.OrdinalIgnoreCase) ||
+                address.StartsWith("http://*:", StringComparison.OrdinalIgnoreCase) ||
+                address.StartsWith("http://*/", StringComparison.OrdinalIgnoreCase))
             {
-                return baseUri;
+                address = "http://localhost" + address.Substring(8);
             }
-
-            if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
+            else if (address.StartsWith("https://+:", StringComparison.OrdinalIgnoreCase) ||
+                     address.StartsWith("https://+/", StringComparison.OrdinalIgnoreCase) ||
+                     address.StartsWith("https://*:", StringComparison.OrdinalIgnoreCase) ||
+                     address.StartsWith("https://*/", StringComparison.OrdinalIgnoreCase))
             {
-                baseUri = new Uri(baseUri.AbsoluteUri + "/");
+                address = "https://localhost" + address.Substring(8);
             }
 
-            return new Uri(baseUri, path);
+            return new Uri(address);
         }
 
         protected override void OnAbort() { }
