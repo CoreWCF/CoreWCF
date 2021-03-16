@@ -9,8 +9,8 @@ namespace CoreWCF.Channels
 {
     public static class TransportDefaults
     {
-        internal const long MaxReceivedMessageSize = 65536;
-        internal const int MaxBufferSize = (int)MaxReceivedMessageSize;
+        public const long MaxReceivedMessageSize = 65536;
+        public const int MaxBufferSize = (int)MaxReceivedMessageSize;
         internal const bool RequireClientCertificate = false;
     }
 
@@ -19,10 +19,10 @@ namespace CoreWCF.Channels
         public const WSMessageEncoding MessageEncoding = WSMessageEncoding.Text;
     }
 
-    internal static class HttpTransportDefaults
+    public static class HttpTransportDefaults
     {
         internal const AuthenticationSchemes AuthenticationScheme = AuthenticationSchemes.Anonymous;
-        internal const TransferMode TransferMode = CoreWCF.TransferMode.Buffered;
+        public const TransferMode TransferMode = CoreWCF.TransferMode.Buffered;
         internal const bool KeepAliveEnabled = true;
         internal const string Realm = "";
 

@@ -277,3 +277,6 @@ SignClient.exe
 
 # Nerdbank versioning tool
 nbgv.exe
+
+# CodeRush settings
+.cr/
