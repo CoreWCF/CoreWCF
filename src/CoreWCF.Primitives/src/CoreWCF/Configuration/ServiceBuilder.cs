@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Configuration
@@ -15,9 +16,19 @@ namespace CoreWCF.Configuration
         private readonly IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
         private readonly TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public ServiceBuilder(IServiceProvider serviceProvider)
+        public ServiceBuilder(IServiceProvider serviceProvider, IApplicationLifetime appLifetime)
         {
             ServiceProvider = serviceProvider;
+            appLifetime.ApplicationStarted.Register(() =>
+            {
+                if (State == CommunicationState.Created)
+                {
+                    // Using discard as any exceptions are swallowed from the ApplicationStarted
+                    // callback and no place to await the OpenAsync call. Should only hit this code
+                    // when hosting in IIS.
+                    _ = OpenAsync();
+                }
+            });
         }
 
         public ICollection<IServiceConfiguration> ServiceConfigurations => _services.Values;

@@ -22,8 +22,9 @@ namespace CoreWCF.Http.Tests.Helpers
     public class IntegrationTest<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
     {
         protected override TestServer CreateServer(IWebHostBuilder builder)
-        {       
+        {
             var addresses = new ServerAddressesFeature();
+            addresses.Addresses.Add("http://localhost/");
             var features = new FeatureCollection();
             features.Set<IServerAddressesFeature>(addresses); 
 
