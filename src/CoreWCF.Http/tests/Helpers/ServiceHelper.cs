@@ -80,6 +80,28 @@ namespace Helpers
         //    };
         //}
 
+        public static IWebHostBuilder CreateHttpSysBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                if (outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseHttpSys(options =>
+            {
+                options.Authentication.Schemes = Microsoft.AspNetCore.Server.HttpSys.AuthenticationSchemes.None;
+                options.Authentication.AllowAnonymous = true;
+                options.AllowSynchronousIO = true;
+                options.UrlPrefixes.Add("http://+:80/Temporary_Listen_Addresses/CoreWCFTestServices");
+                options.UrlPrefixes.Add("http://+:80/Temporary_Listen_Addresses/CoreWCFTestServices/MorePath");
+            })
+            .UseStartup<TStartup>();
+
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG

@@ -6,9 +6,13 @@ using System.Threading;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace DispatchBuilder
@@ -24,6 +28,8 @@ namespace DispatchBuilder
             services.AddServiceModelServices();
             IServer server = new MockServer();
             services.AddSingleton(server);
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
@@ -55,6 +61,8 @@ namespace DispatchBuilder
             services.AddServiceModelServices();
             IServer server = new MockServer();
             services.AddSingleton(server);
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
@@ -87,6 +95,8 @@ namespace DispatchBuilder
             IServer server = new MockServer();
             services.AddSingleton(server);
             services.AddSingleton(new SimpleSingletonService());
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
@@ -120,6 +130,8 @@ namespace DispatchBuilder
 
             IServer server = new MockServer();
             services.AddSingleton(server);
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
 
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
