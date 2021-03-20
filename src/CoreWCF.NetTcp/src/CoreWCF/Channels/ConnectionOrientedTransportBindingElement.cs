@@ -213,6 +213,16 @@ namespace CoreWCF.Channels
             }
         }
 
+        public override bool CanBuildServiceDispatcher<TChannel>(BindingContext context)
+        {
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+            }
+
+            return true;
+        }
+
         internal bool IsMaxPendingAcceptsSet { get; private set; }
 
         [DefaultValue(ConnectionOrientedTransportDefaults.TransferMode)]

@@ -98,7 +98,22 @@ namespace CoreWCF.Channels.Framing
                         continue;
                     }
 
-                    HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(dispatcher);
+                    IServiceDispatcher _serviceDispatcher = null;
+                    if (!(dispatcher.Binding is CustomBinding binding))
+                    {
+                        var _customBinding = new CustomBinding(dispatcher.Binding);
+                        if (_customBinding.Elements.Find<TcpTransportBindingElement>() != null)
+                        {
+                            var parameters = new BindingParameterCollection();
+                            if (_customBinding.CanBuildServiceDispatcher<IDuplexSessionChannel>(parameters))
+                            {
+                                _serviceDispatcher = _customBinding.BuildServiceDispatcher<IDuplexSessionChannel>(parameters, dispatcher);
+                            }
+                        }
+                    }
+                    _serviceDispatcher = _serviceDispatcher == null ? dispatcher : _serviceDispatcher;
+                    HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(_serviceDispatcher);
+
                     logger.LogDebug($"Registering URI {dispatcher.BaseAddress} with NetMessageFramingConnectionHandler");
                     addressTable.RegisterUri(dispatcher.BaseAddress, cotbe.HostNameComparisonMode, handshake);
                 }
