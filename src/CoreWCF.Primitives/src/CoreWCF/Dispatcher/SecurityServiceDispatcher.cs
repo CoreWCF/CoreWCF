@@ -199,7 +199,7 @@ namespace CoreWCF.Dispatcher
             //Initialization path start
             if (outerChannel.ChannelDispatcher == null)
             {
-                TypedChannelDemuxer typedChannelDemuxer = ChannelBuilder.GetTypedChannelDemuxer<IReplyChannel>();
+                TypedChannelDemuxer typedChannelDemuxer = ChannelBuilder.GetTypedChannelDemuxer(outerChannel.GetType());
                 IServiceChannelDispatcher channelDispatcher = await typedChannelDemuxer.CreateServiceChannelDispatcherAsync(outerChannel);
                 return channelDispatcher;
             }
@@ -212,7 +212,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal async Task<IServiceChannelDispatcher> GetAuthChannelDispatcher(IReplyChannel outerChannel)
+        internal async Task<IServiceChannelDispatcher> GetAuthChannelDispatcher(IChannel outerChannel)
         {
             if (_securityAuthServiceChannelDispatcher == null)
             {
@@ -236,7 +236,7 @@ namespace CoreWCF.Dispatcher
         /// </summary>
         /// <param name="outerChannel"></param>
         /// <returns></returns>
-        internal Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IReplyChannel outerChannel)
+        internal Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IChannel outerChannel)
         {
             return InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
         }
@@ -261,12 +261,12 @@ namespace CoreWCF.Dispatcher
             {
                 securityChannel = new SecurityDuplexChannel(listener, (IDuplexChannel)innerChannel, securityProtocol, listener.settingsLifetimeManager);
             }
-            else if (outerChannel is IDuplexSessionChannel))
-            {
-                securityChannel = new SecurityDuplexSessionChannel(listener, (IDuplexSessionChannel)innerChannel, securityProtocol, listener.settingsLifetimeManager);
-            }
             else*/
-            if (outerChannel is IReplyChannel replyChannel)
+            if (outerChannel is IDuplexSessionChannel duplexSessionChannel)
+            {
+                securityChannelDispatcher = new SecurityDuplexSessionChannelDispatcher(this, duplexSessionChannel, securityProtocol, _settingsLifetimeManager);
+            }
+            else if (outerChannel is IReplyChannel replyChannel)
             {
                 securityChannelDispatcher = new SecurityReplyChannelDispatcher(this, replyChannel, securityProtocol, _settingsLifetimeManager);
             }
@@ -278,7 +278,7 @@ namespace CoreWCF.Dispatcher
              {
                  throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.GetString(SR.UnsupportedChannelInterfaceType, typeof(TChannel))));
              }*/
-
+           // await ((ICommunicationObject)securityChannelDispatcher).OpenAsync();
             return securityChannelDispatcher;
         }
 
@@ -461,7 +461,7 @@ namespace CoreWCF.Dispatcher
             await serviceChannelDispatcher.DispatchAsync(securedMessage);
         }
 
-        public override Task DispatchAsync(Message message)
+        public override async Task DispatchAsync(Message message)
         {
             throw new NotImplementedException();
         }
@@ -492,6 +492,176 @@ namespace CoreWCF.Dispatcher
         }
     }
 
+    internal abstract class SecurityDuplexChannel<UChannel> : IServiceChannelDispatcher where UChannel : class
+    {
+        private readonly IDuplexChannel innerDuplexChannel;
+        private readonly IServiceProvider _serviceProvider;
+        public SecurityDuplexChannel(SecurityServiceDispatcher serviceDispatcher, IDuplexChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
+          //  : base(channelManager, innerChannel, securityProtocol, settingsLifetimeManager)
+        {
+           innerDuplexChannel = innerChannel;
+            SecurityProtocol = securityProtocol;
+           _serviceProvider = InnerDuplexChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
+        }
+
+        public EndpointAddress RemoteAddress
+        {
+            get { return this.innerDuplexChannel.RemoteAddress; }
+        }
+
+        public Uri Via
+        {
+            get { return this.innerDuplexChannel.Via; }
+        }
+
+        protected IDuplexChannel InnerDuplexChannel
+        {
+            get { return this.innerDuplexChannel; }
+        }
+
+        internal SecurityProtocol SecurityProtocol { get; set; }
+
+      //  public IReplyChannel OuterChannel { get; private set; }
+
+        public T GetProperty<T>() where T : class
+        {
+            T tObj = _serviceProvider.GetService<T>();
+            if (tObj == null)
+                return InnerDuplexChannel.GetProperty<T>();
+            else return tObj;
+        }
+
+        public abstract Task DispatchAsync(RequestContext context);
+        public abstract Task DispatchAsync(Message message);
+
+        public async Task SendAsync(Message message, TimeSpan timeout)
+        {
+            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+            message = SecurityProtocol.SecureOutgoingMessage (message, timeoutHelper.GetCancellationToken());
+            await InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
+        }
+    }
+
+    sealed class SecurityDuplexSessionChannelDispatcher : SecurityDuplexChannel<IDuplexSessionChannel>, IDuplexSessionChannel
+    {
+        bool sendUnsecuredFaults;
+
+        public SecurityDuplexSessionChannelDispatcher(SecurityServiceDispatcher serviceDispatcher, IDuplexSessionChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
+            : base(serviceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
+        {
+            // sendUnsecuredFaults = channelManager.SendUnsecuredFaults;
+            SecurityServiceDispatcher = serviceDispatcher;
+        }
+
+        public IDuplexSession Session
+        {
+            get { return ((IDuplexSessionChannel)InnerDuplexChannel).Session; }
+        }
+
+        public EndpointAddress LocalAddress => throw new NotImplementedException();
+
+        public IServiceChannelDispatcher ChannelDispatcher { get; set; }
+
+        public SecurityServiceDispatcher SecurityServiceDispatcher { get; }
+
+        public CommunicationState State => InnerDuplexChannel.State;
+
+        public event EventHandler Closed;
+        public event EventHandler Closing;
+        public event EventHandler Faulted;
+        public event EventHandler Opened;
+        public event EventHandler Opening;
+
+        public void Abort()
+        {
+            return;// Task.CompletedTask;
+        }
+
+        public Task CloseAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CloseAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task OpenAsync()
+        {
+            return Task.CompletedTask;
+           // return InnerDuplexChannel.OpenAsync();
+        }
+
+        public Task OpenAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task DispatchAsync(RequestContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task DispatchAsync(Message message)
+        {
+            ProcessInnerItem(message, ServiceDefaults.SendTimeout);
+            IServiceChannelDispatcher serviceChannelDispatcher =
+            await SecurityServiceDispatcher.GetAuthChannelDispatcher(this);
+            await serviceChannelDispatcher.DispatchAsync(message);
+        }
+
+        public Task SendAsync(Message message)
+        {
+            return base.SendAsync(message, ServiceDefaults.SendTimeout);
+        }
+
+        public Task SendAsync(Message message, CancellationToken token)
+        {
+           return SendAsync(message);
+        }
+
+        private Message ProcessInnerItem(Message innerItem, TimeSpan timeout)
+        {
+            if (innerItem == null)
+            {
+                return null;
+            }
+            SecurityProtocol.VerifyIncomingMessage(ref innerItem, timeout);
+            return innerItem;
+        }
+
+        void SendFaultIfRequired(Exception e, Message unverifiedMessage, TimeSpan timeout)
+        {
+            if (!sendUnsecuredFaults)
+            {
+                return;
+            }
+            MessageFault fault = SecurityUtils.CreateSecurityMessageFault(e, this.SecurityProtocol.SecurityProtocolFactory.StandardsManager);
+            if (fault == null)
+            {
+                return;
+            }
+            try
+            {
+                using (Message faultMessage = Message.CreateMessage(unverifiedMessage.Version, fault, unverifiedMessage.Version.Addressing.DefaultFaultAction))
+                {
+                    if (unverifiedMessage.Headers.MessageId != null)
+                        faultMessage.InitializeReply(unverifiedMessage);
+
+                    ((IDuplexChannel)InnerDuplexChannel).SendAsync(faultMessage);
+                }
+            }
+#pragma warning suppress 56500 // covered by FxCOP
+            catch (Exception ex)
+            {
+                if (Fx.IsFatal(ex))
+                    throw;
+
+                // ---- exceptions
+            }
+        }
+    }
     internal sealed class SecurityRequestContext : RequestContextBase
     {
         private readonly RequestContext _innerContext;

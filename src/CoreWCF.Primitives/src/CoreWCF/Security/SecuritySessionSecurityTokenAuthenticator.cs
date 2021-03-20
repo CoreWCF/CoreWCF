@@ -1107,13 +1107,22 @@ namespace CoreWCF.Security
 
             internal ChannelDispatcher InitializeRuntime(SecurityServiceDispatcher securityDispatcher)
             {
+                if (securityDispatcher.AcceptorChannelType.Equals(typeof(IReplyChannel)))
+                    return InitializeRuntime<IReplyChannel>(securityDispatcher);
+                if(securityDispatcher.AcceptorChannelType.Equals(typeof(IDuplexSessionChannel)))
+                    return InitializeRuntime<IDuplexSessionChannel>(securityDispatcher);
+                throw new NotImplementedException();
+            }
+
+            internal ChannelDispatcher InitializeRuntime<TChannel>(SecurityServiceDispatcher securityDispatcher) where TChannel : class, IChannel
+            {
                 MessageFilter contractFilter = _filter;
                 int filterPriority = int.MaxValue - 10;
                 List<Type> endpointChannelTypes = new List<Type> {  typeof(IReplyChannel),
                                                            typeof(IDuplexChannel),
                                                            typeof(IReplySessionChannel),
                                                            typeof(IDuplexSessionChannel) };
-
+                
                 //  IChannelListener listener = null;
                 //  BindingParameterCollection parameters = new BindingParameterCollection(this.channelBuilder.BindingParameters);
                 //  Binding binding = this.channelBuilder.Binding;
@@ -1127,12 +1136,14 @@ namespace CoreWCF.Security
                 //  }
 
                 //Replacing above code by below 3 lines.(adding securityservicedispatcher to demuxer, how to respond)
+
                 Binding binding = _authenticator.IssuerBindingContext.Binding;
-                binding.ReceiveTimeout = _authenticator.NegotiationTimeout;
-                securityDispatcher.ChannelBuilder.AddServiceDispatcher<IReplyChannel>(securityDispatcher, new ChannelDemuxerFilter(contractFilter, filterPriority));
+                // binding.ReceiveTimeout = _authenticator.NegotiationTimeout;
+                binding.ReceiveTimeout = TimeSpan.FromMinutes(20); // for testing
+                securityDispatcher.ChannelBuilder.AddServiceDispatcher<TChannel>(securityDispatcher, new ChannelDemuxerFilter(contractFilter, filterPriority));
 
                 //Injecting here the BuildResponderChannelListener
-                _authenticator.BuildResponderChannelListener<IReplyChannel>(_authenticator.IssuerBindingContext, securityDispatcher);
+                _authenticator.BuildResponderChannelListener<TChannel>(_authenticator.IssuerBindingContext, securityDispatcher);
                 //end
 
                 var bindingQname = new XmlQualifiedName(binding.Name, binding.Namespace);
