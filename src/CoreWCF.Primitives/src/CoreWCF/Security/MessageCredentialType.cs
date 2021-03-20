@@ -12,9 +12,9 @@ namespace CoreWCF
         IssuedToken
     }
 
-    internal static class MessageCredentialTypeHelper
+    public static class MessageCredentialTypeHelper
     {
-        internal static bool IsDefined(MessageCredentialType value)
+        public static bool IsDefined(MessageCredentialType value)
         {
             return (value == MessageCredentialType.None ||
                 value == MessageCredentialType.UserName ||

@@ -104,6 +104,18 @@ namespace CoreWCF
             get { return EnvelopeVersion.Soap12; }
         }
 
+        SecurityBindingElement CreateMessageSecurity()
+        {
+            if (Security.Mode == SecurityMode.Message || Security.Mode == SecurityMode.TransportWithMessageCredential)
+            {
+                return Security.CreateMessageSecurity(false);//ReliableSession.Enabled);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         internal SecurityBindingElement CreateMessageSecurity()
         {
             if (Security.Mode == SecurityMode.Message || Security.Mode == SecurityMode.TransportWithMessageCredential)

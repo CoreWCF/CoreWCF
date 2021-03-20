@@ -58,18 +58,18 @@ namespace CoreWCF.NetTcp.Tests
                     {
                         Assert.ThrowsAny<System.ServiceModel.CommunicationException>(() =>
                         {
-                            ((IChannel)channel).Open();
+                ((IChannel)channel).Open();
                         }); ;
                         ((IChannel)channel).Abort();
                     }
                     else
                     {
                         ((IChannel)channel).Open();
-                        string result = channel.EchoString(testString);
-                        Assert.Equal(testString, result);
-                        ((IChannel)channel).Close();
-                        factory.Close();
-                    }
+                string result = channel.EchoString(testString);
+                Assert.Equal(testString, result);
+                ((IChannel)channel).Close();
+                factory.Close();
+            }
                 }
                 finally
                 {
@@ -101,7 +101,7 @@ namespace CoreWCF.NetTcp.Tests
                 var srvCredentials = new CoreWCF.Description.ServiceCredentials();
                 srvCredentials.ServiceCertificate.Certificate=  ServiceHelper.GetServiceCertificate();
                 srvCredentials.UserNameAuthentication.UserNamePasswordValidationMode
-                = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
+              = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
                 srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator
                     = new CustomTestValidator();
                 host.Description.Behaviors.Add(srvCredentials);

@@ -460,7 +460,7 @@ namespace CoreWCF.Dispatcher
             await serviceChannelDispatcher.DispatchAsync(securedMessage);
         }
 
-        public override Task DispatchAsync(Message message)
+        public override async Task DispatchAsync(Message message)
         {
             return Task.FromException(new NotImplementedException());
         }
@@ -486,6 +486,118 @@ namespace CoreWCF.Dispatcher
         }
 
         public Task OpenAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal abstract class SecurityDuplexChannel<UChannel> : IServiceChannelDispatcher where UChannel : class
+    {
+        private readonly IDuplexChannel innerDuplexChannel;
+        private readonly IServiceProvider _serviceProvider;
+        public SecurityDuplexChannel(SecurityServiceDispatcher serviceDispatcher, IDuplexChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
+          //  : base(channelManager, innerChannel, securityProtocol, settingsLifetimeManager)
+        {
+           innerDuplexChannel = innerChannel;
+            SecurityProtocol = securityProtocol;
+           _serviceProvider = InnerDuplexChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
+        }
+
+        public EndpointAddress RemoteAddress
+        {
+            get { return this.innerDuplexChannel.RemoteAddress; }
+        }
+
+        public Uri Via
+        {
+            get { return this.innerDuplexChannel.Via; }
+        }
+
+        protected IDuplexChannel InnerDuplexChannel
+        {
+            get { return this.innerDuplexChannel; }
+        }
+
+        internal SecurityProtocol SecurityProtocol { get; set; }
+
+      //  public IReplyChannel OuterChannel { get; private set; }
+
+        public T GetProperty<T>() where T : class
+        {
+            T tObj = _serviceProvider.GetService<T>();
+            if (tObj == null)
+                return InnerDuplexChannel.GetProperty<T>();
+            else return tObj;
+        }
+
+        public abstract Task DispatchAsync(RequestContext context);
+        public abstract Task DispatchAsync(Message message);
+
+        public async Task SendAsync(Message message, TimeSpan timeout)
+        {
+            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+            message = SecurityProtocol.SecureOutgoingMessage (message, timeoutHelper.GetCancellationToken());
+            await InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
+        }
+    }
+
+    sealed class SecurityDuplexSessionChannelDispatcher : SecurityDuplexChannel<IDuplexSessionChannel>, IDuplexSessionChannel
+    {
+        bool sendUnsecuredFaults;
+
+        public SecurityDuplexSessionChannelDispatcher(SecurityServiceDispatcher serviceDispatcher, IDuplexSessionChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
+            : base(serviceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
+        {
+            // sendUnsecuredFaults = channelManager.SendUnsecuredFaults;
+            SecurityServiceDispatcher = serviceDispatcher;
+        }
+
+        public IDuplexSession Session
+        {
+            get { return ((IDuplexSessionChannel)InnerDuplexChannel).Session; }
+        }
+
+        public EndpointAddress LocalAddress => throw new NotImplementedException();
+
+        public IServiceChannelDispatcher ChannelDispatcher { get; set; }
+
+        public SecurityServiceDispatcher SecurityServiceDispatcher { get; }
+
+        public CommunicationState State => InnerDuplexChannel.State;
+
+        public event EventHandler Closed;
+        public event EventHandler Closing;
+        public event EventHandler Faulted;
+        public event EventHandler Opened;
+        public event EventHandler Opening;
+
+        public void Abort()
+        {
+            return;// Task.CompletedTask;
+        }
+
+        public Task CloseAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CloseAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task OpenAsync()
+        {
+            return Task.CompletedTask;
+           // return InnerDuplexChannel.OpenAsync();
+        }
+
+        public Task OpenAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task DispatchAsync(RequestContext context)
         {
             throw new NotImplementedException();
         }

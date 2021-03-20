@@ -13,6 +13,7 @@ namespace CoreWCF
     {
         internal const SecurityMode DefaultMode = SecurityMode.Transport;
         private SecurityMode _mode;
+        MessageSecurityOverTcp _messageSecurity;
 
         public NetTcpSecurity()
             : this(DefaultMode, new TcpTransportSecurity(), new MessageSecurityOverTcp())
