@@ -2,6 +2,7 @@
 
 namespace DesktopServer
 {
+     [TestContractBehavior]
     public class EchoService : Contract.IEchoService
     {
         public string Echo(string text)

@@ -43,6 +43,11 @@ namespace CoreWCF.Channels
             return ChannelDemuxer.GetTypedServiceDispatcher<TChannel>(_context);
         }
 
+        public TypedChannelDemuxer GetTypedChannelDemuxer(Type channelType)
+        {
+            return ChannelDemuxer.GetTypedServiceDispatcher(channelType, _context);
+        }
+
         public  IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             if (!_isChannelDemuxerRequired)

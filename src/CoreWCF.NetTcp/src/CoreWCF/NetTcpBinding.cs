@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Xml;
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
@@ -103,6 +104,18 @@ namespace CoreWCF
             get { return EnvelopeVersion.Soap12; }
         }
 
+        SecurityBindingElement CreateMessageSecurity()
+        {
+            if (Security.Mode == SecurityMode.Message || Security.Mode == SecurityMode.TransportWithMessageCredential)
+            {
+                return Security.CreateMessageSecurity(false);//ReliableSession.Enabled);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public NetTcpSecurity Security
         {
             get { return _security; }
@@ -135,17 +148,37 @@ namespace CoreWCF
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
             }
-
-            // Message.ClientCredentialType = Certificate, IssuedToken or Windows are not supported.
             if (mode == SecurityMode.TransportWithMessageCredential)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
+                MessageSecurityOverTcp message = security.Message;
+                if (message != null)
+                {
+                    MessageCredentialType mct = message.ClientCredentialType;
+                    if ((mct == MessageCredentialType.Certificate) || (mct == MessageCredentialType.IssuedToken) || (mct == MessageCredentialType.Windows))
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Message.ClientCredentialType", mct)));
+                    }
+                }
             }
+
+            // Transport.ClientCredentialType = Certificate is not supported.
+            Fx.Assert((mode == SecurityMode.Transport) || (mode == SecurityMode.TransportWithMessageCredential), "Unexpected SecurityMode value: " + mode);
+            TcpTransportSecurity transport = security.Transport;
+            if ((transport != null) && (transport.ClientCredentialType == TcpClientCredentialType.Certificate))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Transport.ClientCredentialType", transport.ClientCredentialType)));
+            }
+            // Message.ClientCredentialType = Certificate, IssuedToken or Windows are not supported.
+            //if (mode == SecurityMode.TransportWithMessageCredential)
+            //{
+            //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
+            //}
         }
 
         public override BindingElementCollection CreateBindingElements()
         {
-            CheckSettings();
+            //Reason for comment is to check for use of 
+           // CheckSettings();
 
             // return collection of BindingElements
             BindingElementCollection bindingElements = new BindingElementCollection
@@ -154,6 +187,9 @@ namespace CoreWCF
                 // add encoding
                 _encoding
             };
+            SecurityBindingElement wsSecurity = CreateMessageSecurity();
+            if (wsSecurity != null)
+                bindingElements.Add(wsSecurity);
             // add transport security
             BindingElement transportSecurity = CreateTransportSecurity();
             if (transportSecurity != null)
