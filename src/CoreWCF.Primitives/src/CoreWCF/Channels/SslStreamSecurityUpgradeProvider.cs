@@ -36,7 +36,7 @@ namespace CoreWCF.Channels
             _clientCertificateAuthenticator = clientCertificateAuthenticator;
             IdentityVerifier = identityVerifier;
             Scheme = scheme;
-            SslProtocols = sslProtocols;
+            SslProtocols = SslProtocols.Default;
             ClientSecurityTokenManager = null; // Used for client but there's public api which need this and the compiler complains it's never assigned
         }
 

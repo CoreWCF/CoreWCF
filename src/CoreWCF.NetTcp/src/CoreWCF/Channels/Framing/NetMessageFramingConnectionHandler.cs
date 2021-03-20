@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -97,7 +98,22 @@ namespace CoreWCF.Channels.Framing
                         continue;
                     }
 
-                    HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(dispatcher);
+                    IServiceDispatcher _serviceDispatcher = null;
+                    if (!(dispatcher.Binding is CustomBinding binding))
+                    {
+                        var _customBinding = new CustomBinding(dispatcher.Binding);
+                        if (_customBinding.Elements.Find<TcpTransportBindingElement>() != null)
+                        {
+                            var parameters = new BindingParameterCollection();
+                            if (_customBinding.CanBuildServiceDispatcher<IDuplexSessionChannel>(parameters))
+                            {
+                                _serviceDispatcher = _customBinding.BuildServiceDispatcher<IDuplexSessionChannel>(parameters, dispatcher);
+                            }
+                        }
+                    }
+                    _serviceDispatcher = _serviceDispatcher == null ? dispatcher : _serviceDispatcher;
+                    HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(_serviceDispatcher);
+
                     logger.LogDebug($"Registering URI {dispatcher.BaseAddress} with NetMessageFramingConnectionHandler");
                     addressTable.RegisterUri(dispatcher.BaseAddress, cotbe.HostNameComparisonMode, handshake);
                 }
@@ -127,7 +143,12 @@ namespace CoreWCF.Channels.Framing
             // TODO: Limit NamedPipes to prevent it using SslStreamSecurityUpgradeProvider
             else if ((upgradeBindingElements.Count == 1) /*&& this.SupportsUpgrade(upgradeBindingElements[0])*/)
             {
+                SecurityCredentialsManager credentialsManager = dispatcher.Host.Description.Behaviors.Find<SecurityCredentialsManager>();
                 var bindingContext = new BindingContext(new CustomBinding(dispatcher.Binding), new BindingParameterCollection());
+
+                if (credentialsManager != null)
+                    bindingContext.BindingParameters.Add(credentialsManager);
+
                 streamUpgradeProvider = upgradeBindingElements[0].BuildServerStreamUpgradeProvider(bindingContext);
                 streamUpgradeProvider.OpenAsync().GetAwaiter().GetResult();
                 securityCapabilities = upgradeBindingElements[0].GetProperty<ISecurityCapabilities>(bindingContext);
