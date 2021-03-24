@@ -67,7 +67,7 @@ namespace CoreWCF.NetTcp.Tests
                         ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
-                ((IChannel)channel).Close();
+                ((IChannel)channel).Abort();
                 factory.Close();
             }
                 }
@@ -111,6 +111,8 @@ namespace CoreWCF.NetTcp.Tests
             {
                 CoreWCF.NetTcpBinding serverBinding = new CoreWCF.NetTcpBinding(SecurityMode.TransportWithMessageCredential);
                 serverBinding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
+                serverBinding.ReceiveTimeout = serverBinding.CloseTimeout
+                    = serverBinding.OpenTimeout = serverBinding.SendTimeout = TimeSpan.FromMinutes(2);
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
