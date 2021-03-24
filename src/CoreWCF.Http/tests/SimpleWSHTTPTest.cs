@@ -138,8 +138,7 @@ namespace WSHttp
             }
         }
 
-        // [Fact, Description("transport-security-with-certificate-authentication")]
-        //TODO set up in container, tested locally and this works
+         [Fact, Description("transport-security-with-certificate-authentication")]
         internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
@@ -153,12 +152,7 @@ namespace WSHttp
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
                 ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.ClientCertificate.SetCertificate(
-                StoreLocation.LocalMachine,
-                StoreName.My, X509FindType.FindBySubjectName
-                , "birojtestcert"
-                );
-
+                clientCredentials.ClientCertificate.Certificate = ServiceHelper.GetTestCertificate();
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
