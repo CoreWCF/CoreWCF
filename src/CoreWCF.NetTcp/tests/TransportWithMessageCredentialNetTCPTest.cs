@@ -48,7 +48,7 @@ namespace CoreWCF.NetTcp.Tests
                 };
                 clientCredentials.UserName.UserName = "testuser@corewcf";
                 clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
-
+                binding.Security.Transport.SslProtocols  = System.Security.Authentication.SslProtocols.Default;
                 var channel = factory.CreateChannel();
                 ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
