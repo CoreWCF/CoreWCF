@@ -460,7 +460,7 @@ namespace CoreWCF.Dispatcher
             await serviceChannelDispatcher.DispatchAsync(securedMessage);
         }
 
-        public override async Task DispatchAsync(Message message)
+        public override Task DispatchAsync(Message message)
         {
             return Task.FromException(new NotImplementedException());
         }
@@ -525,19 +525,17 @@ namespace CoreWCF.Dispatcher
         public T GetProperty<T>() where T : class
         {
             T tObj = _serviceProvider.GetService<T>();
-            if (tObj == null)
-                return InnerDuplexChannel.GetProperty<T>();
-            else return tObj;
+            return tObj ?? InnerDuplexChannel.GetProperty<T>();
         }
 
         public abstract Task DispatchAsync(RequestContext context);
         public abstract Task DispatchAsync(Message message);
 
-        public async Task SendAsync(Message message, TimeSpan timeout)
+        public Task SendAsync(Message message, TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             message = SecurityProtocol.SecureOutgoingMessage (message, timeoutHelper.GetCancellationToken());
-            await InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
+            return InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
         }
     }
 

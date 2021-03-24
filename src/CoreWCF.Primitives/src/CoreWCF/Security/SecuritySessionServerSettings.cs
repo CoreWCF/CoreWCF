@@ -863,7 +863,7 @@ namespace CoreWCF.Security
             // Double-checked locking pattern requires volatile for read/write synchronization
             private bool _areFaultCodesInitialized;
             //private readonly IServerReliableChannelBinder _channelBinder;
-            protected readonly SecurityProtocol _securityProtocol;
+            private readonly SecurityProtocol _securityProtocol;
 
             // This is used to sign outgoing messages
             private SecurityContextSecurityToken _currentSessionToken;
@@ -1987,7 +1987,7 @@ namespace CoreWCF.Security
             
         }
 
-        private class ServerSecurityDuplexSessionChannel : ServerSecuritySessionChannel //, IDuplexSessionChannel // Moving the 
+        private class ServerSecurityDuplexSessionChannel : ServerSecuritySessionChannel //, IDuplexSessionChannel 
         {
             SoapSecurityServerDuplexSession session;
             bool isInputClosed;
@@ -1999,11 +1999,9 @@ namespace CoreWCF.Security
 
             public ServerSecurityDuplexSessionChannel(
                 SecuritySessionServerSettings settings,
-               // IServerReliableChannelBinder channelBinder,
                 SecurityContextSecurityToken sessionToken,
                 object listenerSecurityState, SecurityListenerSettingsLifetimeManager settingsLifetimeManager, EndpointAddress address)
                 : base(settings,
-                     // channelBinder,
                       sessionToken, listenerSecurityState, settingsLifetimeManager, address)
             {
                 this.session = new SoapSecurityServerDuplexSession(sessionToken, settings, this);
@@ -2268,7 +2266,6 @@ namespace CoreWCF.Security
                     {
                         this.channel.CloseOutputSession(new TimeoutHelper(timeout).GetCancellationToken());
                     }
-#pragma warning suppress 56500 // covered by FxCOP
                     catch (Exception e)
                     {
                         if (Fx.IsFatal(e))

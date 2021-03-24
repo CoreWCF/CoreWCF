@@ -518,7 +518,7 @@ namespace CoreWCF.Channels
                 await serviceChannelDispatcher.DispatchAsync(context);
             }
 
-            public async Task DispatchAsync(Message message)
+            public Task DispatchAsync(Message message)
             {
                return Task.FromException(new NotImplementedException());
             }

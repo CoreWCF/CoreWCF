@@ -12,7 +12,7 @@ namespace CoreWCF
         IssuedToken
     }
 
-    public static class MessageCredentialTypeHelper
+    internal static class MessageCredentialTypeHelper
     {
         public static bool IsDefined(MessageCredentialType value)
         {
