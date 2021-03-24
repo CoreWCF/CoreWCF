@@ -25,7 +25,7 @@ namespace CoreWCF
 
             _mode = mode;
             Transport = transportSecurity ?? new TcpTransportSecurity();
-            Message = messageSecurity == null ? new MessageSecurityOverTcp() : messageSecurity;
+            Message = messageSecurity ?? new MessageSecurityOverTcp();
         }
 
         [DefaultValue(DefaultMode)]
@@ -45,7 +45,6 @@ namespace CoreWCF
         public TcpTransportSecurity Transport { get; set; }
 
         public MessageSecurityOverTcp Message { get; set; }
-
 
         internal BindingElement CreateTransportSecurity()
         {

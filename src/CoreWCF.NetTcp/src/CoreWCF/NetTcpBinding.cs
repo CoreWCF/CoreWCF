@@ -131,55 +131,8 @@ namespace CoreWCF
             _encoding = new BinaryMessageEncodingBindingElement();
         }
 
-        private void CheckSettings()
-        {
-            NetTcpSecurity security = Security;
-            if (security == null)
-            {
-                return;
-            }
-
-            SecurityMode mode = security.Mode;
-            if (mode == SecurityMode.None)
-            {
-                return;
-            }
-            else if (mode == SecurityMode.Message)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
-            }
-            if (mode == SecurityMode.TransportWithMessageCredential)
-            {
-                MessageSecurityOverTcp message = security.Message;
-                if (message != null)
-                {
-                    MessageCredentialType mct = message.ClientCredentialType;
-                    if ((mct == MessageCredentialType.Certificate) || (mct == MessageCredentialType.IssuedToken) || (mct == MessageCredentialType.Windows))
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Message.ClientCredentialType", mct)));
-                    }
-                }
-            }
-
-            // Transport.ClientCredentialType = Certificate is not supported.
-            Fx.Assert((mode == SecurityMode.Transport) || (mode == SecurityMode.TransportWithMessageCredential), "Unexpected SecurityMode value: " + mode);
-            TcpTransportSecurity transport = security.Transport;
-            if ((transport != null) && (transport.ClientCredentialType == TcpClientCredentialType.Certificate))
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Transport.ClientCredentialType", transport.ClientCredentialType)));
-            }
-            // Message.ClientCredentialType = Certificate, IssuedToken or Windows are not supported.
-            //if (mode == SecurityMode.TransportWithMessageCredential)
-            //{
-            //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
-            //}
-        }
-
         public override BindingElementCollection CreateBindingElements()
         {
-            //Reason for comment is to check for use of 
-           // CheckSettings();
-
             // return collection of BindingElements
             BindingElementCollection bindingElements = new BindingElementCollection
             {

@@ -16,9 +16,9 @@ namespace CoreWCF
         internal const MessageCredentialType DefaultClientCredentialType = MessageCredentialType.Windows;
         internal const string DefaultServerIssuedTransitionTokenLifetimeString = "00:15:00";
 
-        MessageCredentialType _clientCredentialType;
-        SecurityAlgorithmSuite _algorithmSuite;
-        bool wasAlgorithmSuiteSet;
+        private MessageCredentialType _clientCredentialType;
+        private SecurityAlgorithmSuite _algorithmSuite;
+        private bool _wasAlgorithmSuiteSet;
 
         public MessageSecurityOverTcp()
         {
@@ -26,7 +26,7 @@ namespace CoreWCF
             _algorithmSuite = SecurityAlgorithmSuite.Default;
         }
 
-        [DefaultValue(MessageSecurityOverTcp.DefaultClientCredentialType)]
+        
         public MessageCredentialType ClientCredentialType
         {
             get { return this._clientCredentialType; }
@@ -47,17 +47,17 @@ namespace CoreWCF
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 this._algorithmSuite = value;
-                wasAlgorithmSuiteSet = true;
+                _wasAlgorithmSuiteSet = true;
             }
         }
 
-        internal bool WasAlgorithmSuiteSet => this.wasAlgorithmSuiteSet;
+        internal bool WasAlgorithmSuiteSet => this._wasAlgorithmSuiteSet;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal SecurityBindingElement CreateSecurityBindingElement(bool isSecureTransportMode, bool isReliableSession, BindingElement transportBindingElement)
+        public SecurityBindingElement CreateSecurityBindingElement(bool isSecureTransportMode, bool isReliableSession, BindingElement transportBindingElement)
         {
             SecurityBindingElement result;
             SecurityBindingElement oneShotSecurity;

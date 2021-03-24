@@ -60,6 +60,7 @@ namespace CoreWCF.Channels
         {
             return GetTypedServiceDispatcher(typeof(TChannel), context);
         }
+
         internal TypedChannelDemuxer GetTypedServiceDispatcher(Type channelType, BindingContext context)
         {
             TypedChannelDemuxer typeDemuxer = null;
@@ -89,7 +90,7 @@ namespace CoreWCF.Channels
             }
             else if (!_typeDemuxers.TryGetValue(parentType, out typeDemuxer))
             {
-                typeDemuxer = this.CreateTypedDemuxer(channelType, context);
+                typeDemuxer = CreateTypedDemuxer(channelType, context);
                 _typeDemuxers.Add(channelType, typeDemuxer);
             }
 
@@ -181,7 +182,7 @@ namespace CoreWCF.Channels
     // Session demuxers
     //
 
-    abstract class SessionChannelDemuxer<TInnerChannel, TInnerItem> : TypedChannelDemuxer
+    internal abstract class SessionChannelDemuxer<TInnerChannel, TInnerItem> : TypedChannelDemuxer
         where TInnerChannel : class, IChannel
         where TInnerItem : class, IDisposable
     {
@@ -251,7 +252,7 @@ namespace CoreWCF.Channels
 
         public override Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
         {
-            return Task.FromResult<IServiceChannelDispatcher>(new DuplesSessionChannelDispatcher(this, (IDuplexSessionChannel)channel));
+            return Task.FromResult<IServiceChannelDispatcher>(new DuplexSessionChannelDispatcher(this, (IDuplexSessionChannel)channel));
         }
 
         protected override void AbortItem(Message message)
@@ -303,12 +304,12 @@ namespace CoreWCF.Channels
             return message;
         }
 
-        internal class DuplesSessionChannelDispatcher : IServiceChannelDispatcher
+        internal class DuplexSessionChannelDispatcher : IServiceChannelDispatcher
         {
             private readonly DuplexSessionChannelDemuxer _demuxer;
             private readonly IDuplexSessionChannel _channel;
 
-            public DuplesSessionChannelDispatcher(DuplexSessionChannelDemuxer replyChannelDemuxer, IDuplexSessionChannel channel)
+            public DuplexSessionChannelDispatcher(DuplexSessionChannelDemuxer replyChannelDemuxer, IDuplexSessionChannel channel)
             {
                 _demuxer = replyChannelDemuxer;
                 _channel = channel;
@@ -508,9 +509,9 @@ namespace CoreWCF.Channels
                 await serviceChannelDispatcher.DispatchAsync(context);
             }
 
-            public async Task DispatchAsync(Message message)
+            public Task DispatchAsync(Message message)
             {
-                throw new NotImplementedException();
+               return Task.FromException(new NotImplementedException());
             }
         }
     }
