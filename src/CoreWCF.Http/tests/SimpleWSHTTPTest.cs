@@ -152,7 +152,7 @@ namespace WSHttp
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
                 ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.ClientCertificate.Certificate = ServiceHelper.GetTestCertificate();
+                clientCredentials.ClientCertificate.Certificate = ServiceHelper.GetTestCertificate(); 
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
