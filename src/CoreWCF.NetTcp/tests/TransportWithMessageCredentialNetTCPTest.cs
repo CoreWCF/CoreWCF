@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.IO;
+using System.Runtime.ConstrainedExecution;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -24,7 +28,7 @@ namespace CoreWCF.NetTcp.Tests
             _output = output;
         }
 
-        [Fact(Skip = "Implement certificate generation and enable for both platforms")]
+        [Fact ]
         public void BasicUserNameAuth()
         {
             string testString = new string('a', 3000);
@@ -49,7 +53,7 @@ namespace CoreWCF.NetTcp.Tests
                 ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
-                ((IChannel)channel).Close();
+                ((IChannel)channel).Abort();
                 factory.Close();
             }
         }
@@ -67,23 +71,21 @@ namespace CoreWCF.NetTcp.Tests
             public void ChangeHostBehavior(ServiceHostBase host)
             {
                 var srvCredentials = new CoreWCF.Description.ServiceCredentials();
-                //Need a way to generate certificate
-                srvCredentials.ServiceCertificate.SetCertificate(
-                    StoreLocation.LocalMachine,
-                    StoreName.Root, X509FindType.FindBySubjectName
-                    , "localhost"
-                    );
-
+                srvCredentials.ServiceCertificate.Certificate=  ServiceHelper.GetTestCertificate();
+                // AttachCertificate(srvCredentials.ServiceCertificate);
                 srvCredentials.UserNameAuthentication.UserNamePasswordValidationMode
               = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
                 srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator
                     = new CustomTestValidator();
                 host.Description.Behaviors.Add(srvCredentials);
             }
+
             public void Configure(IApplicationBuilder app, IHostingEnvironment env)
             {
                 CoreWCF.NetTcpBinding serverBinding = new CoreWCF.NetTcpBinding(SecurityMode.TransportWithMessageCredential);
                 serverBinding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
+                serverBinding.ReceiveTimeout = serverBinding.CloseTimeout
+                    = serverBinding.OpenTimeout = serverBinding.SendTimeout = TimeSpan.FromMinutes(2);
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
