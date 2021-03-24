@@ -194,12 +194,7 @@ namespace WSHttp
                 var srvCredentials = new CoreWCF.Description.ServiceCredentials();
                 srvCredentials.ClientCertificate.Authentication.CertificateValidationMode
                     = CoreWCF.Security.X509CertificateValidationMode.PeerOrChainTrust;
-                srvCredentials.ClientCertificate.Authentication.TrustedStoreLocation = StoreLocation.LocalMachine;
-                srvCredentials.ServiceCertificate.SetCertificate(
-                    StoreLocation.LocalMachine,
-                    StoreName.Root, X509FindType.FindBySubjectName
-                    , "birojtestcert"
-                    );
+                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetTestCertificate();
                 host.Description.Behaviors.Add(srvCredentials);
             }
         }
