@@ -188,7 +188,9 @@ namespace WSHttp
             {
                 var srvCredentials = new CoreWCF.Description.ServiceCredentials();
                 srvCredentials.ClientCertificate.Authentication.CertificateValidationMode
-                    = CoreWCF.Security.X509CertificateValidationMode.PeerOrChainTrust;
+                    = CoreWCF.Security.X509CertificateValidationMode.Custom;
+                srvCredentials.ClientCertificate.Authentication.CustomCertificateValidator
+                    = new MyX509CertificateValidator();
                 srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetTestCertificate();
                 host.Description.Behaviors.Add(srvCredentials);
             }
@@ -209,6 +211,7 @@ namespace WSHttp
                 }
             }
         }
+
 
         internal class WSHttpTransportWithMessageCredentialWithUserNameExpire : WSHttpTransportWithMessageCredentialWithUserName
         {
