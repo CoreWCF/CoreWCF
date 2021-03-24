@@ -1138,8 +1138,7 @@ namespace CoreWCF.Security
                 //Replacing above code by below 3 lines.(adding securityservicedispatcher to demuxer, how to respond)
 
                 Binding binding = _authenticator.IssuerBindingContext.Binding;
-                // binding.ReceiveTimeout = _authenticator.NegotiationTimeout;
-                binding.ReceiveTimeout = TimeSpan.FromMinutes(20); // for testing
+                binding.ReceiveTimeout = _authenticator.NegotiationTimeout;
                 securityDispatcher.ChannelBuilder.AddServiceDispatcher<TChannel>(securityDispatcher, new ChannelDemuxerFilter(contractFilter, filterPriority));
 
                 //Injecting here the BuildResponderChannelListener
