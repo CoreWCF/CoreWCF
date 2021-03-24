@@ -36,7 +36,7 @@ namespace CoreWCF.Channels
             _clientCertificateAuthenticator = clientCertificateAuthenticator;
             IdentityVerifier = identityVerifier;
             Scheme = scheme;
-            SslProtocols = SslProtocols.Default;
+            SslProtocols = sslProtocols;
             ClientSecurityTokenManager = null; // Used for client but there's public api which need this and the compiler complains it's never assigned
         }
 
@@ -267,7 +267,7 @@ namespace CoreWCF.Channels
                     exception));
             }
             catch (IOException ioException)
-            {
+            {   
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(
                     SR.Format(SR.NegotiationFailedIO, ioException.Message), ioException));
             }
