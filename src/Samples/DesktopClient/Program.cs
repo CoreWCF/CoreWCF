@@ -11,27 +11,7 @@ namespace DesktopClient
 
         static void Main(string[] args)
         {
-            var binding = new NetTcpBinding(SecurityMode.TransportWithMessageCredential);
-            binding.CloseTimeout = binding.OpenTimeout = binding.ReceiveTimeout = binding.SendTimeout = TimeSpan.FromMinutes(30);
-            var factory = new ChannelFactory<Contract.IEchoService>(binding, new EndpointAddress("net.tcp://localhost:8808/nettcp"));
-
-            binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-            System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
-            factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
-            {
-                CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-            };
-            //clientCredentials.ClientCertificate.SetCertificate(
-            //StoreLocation.LocalMachine,
-            //StoreName.Root, X509FindType.FindBySubjectName
-            //, "localhost"
-            //);
-
-            clientCredentials.UserName.UserName = "testuser@corewcf";
-            clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
-
-
-
+            var factory = new ChannelFactory<Contract.IEchoService>(new NetTcpBinding(), new EndpointAddress("net.tcp://localhost:8808/nettcp"));
             factory.Open();
             var channel = factory.CreateChannel();
             ((IClientChannel)channel).Open();

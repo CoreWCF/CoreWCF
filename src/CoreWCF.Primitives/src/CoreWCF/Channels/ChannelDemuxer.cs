@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
         public static readonly TimeSpan UseDefaultReceiveTimeout = TimeSpan.MinValue;
         //private TypedChannelDemuxer _inputDemuxer;
         private TypedChannelDemuxer _replyDemuxer;
-        Dictionary<Type, TypedChannelDemuxer> _typeDemuxers;
+        private Dictionary<Type, TypedChannelDemuxer> _typeDemuxers;
 
         private TimeSpan _peekTimeout;
 
