@@ -70,10 +70,9 @@ namespace CoreWCF.NetTcp.Tests
             public void ChangeHostBehavior(ServiceHostBase host)
             {
                 var srvCredentials = new CoreWCF.Description.ServiceCredentials();
-                srvCredentials.ServiceCertificate.Certificate=  ServiceHelper.GetTestCertificate();
-                // AttachCertificate(srvCredentials.ServiceCertificate);
+                srvCredentials.ServiceCertificate.Certificate=  ServiceHelper.GetServiceCertificate();
                 srvCredentials.UserNameAuthentication.UserNamePasswordValidationMode
-              = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
+                = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
                 srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator
                     = new CustomTestValidator();
                 host.Description.Behaviors.Add(srvCredentials);

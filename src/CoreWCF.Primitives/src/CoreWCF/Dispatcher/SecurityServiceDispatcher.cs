@@ -462,7 +462,7 @@ namespace CoreWCF.Dispatcher
 
         public override Task DispatchAsync(Message message)
         {
-             return Task.FromException(new NotImplementedException());
+            return Task.FromException(new NotImplementedException());
         }
 
         public void Abort()
@@ -645,7 +645,6 @@ namespace CoreWCF.Dispatcher
                 {
                     if (unverifiedMessage.Headers.MessageId != null)
                         faultMessage.InitializeReply(unverifiedMessage);
-
                     ((IDuplexChannel)InnerDuplexChannel).SendAsync(faultMessage);
                 }
             }
