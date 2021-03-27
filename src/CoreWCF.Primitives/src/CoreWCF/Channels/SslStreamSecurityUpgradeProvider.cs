@@ -267,7 +267,7 @@ namespace CoreWCF.Channels
                     exception));
             }
             catch (IOException ioException)
-            {   
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(
                     SR.Format(SR.NegotiationFailedIO, ioException.Message), ioException));
             }

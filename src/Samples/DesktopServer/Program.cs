@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using CoreWCF.Samples.StandardCommon;
 
@@ -53,20 +50,6 @@ namespace DesktopServer
             Console.ReadLine();
 
             hostEchoService.Close();
-        }
-
-        private static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-        {
-            return true;
-        }
-    }
-
-    internal class TestValidator : UserNamePasswordValidator
-    {
-        public override void Validate(string userName, string password)
-        {
-            Console.WriteLine("UN = " + userName);
-            //throw new NotImplementedException();
         }
     }
 }

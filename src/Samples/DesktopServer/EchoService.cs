@@ -1,8 +1,13 @@
-﻿using System.ServiceModel;
+﻿using System;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+using System.ServiceModel.Dispatcher;
+
+using System.ServiceModel.Description;
+using System.ServiceModel.Dispatcher;
 
 namespace DesktopServer
 {
-     [TestContractBehavior]
     public class EchoService : Contract.IEchoService
     {
         public string Echo(string text)
@@ -22,5 +27,6 @@ namespace DesktopServer
             System.Console.WriteLine($"Received {text} and Fault generated on client!");
             throw new FaultException<Contract.EchoFault>(new Contract.EchoFault() { Text = "CoreWCF Fault OK" });
         }
+    }
 }
 }
