@@ -409,7 +409,6 @@ namespace CoreWCF.Channels
         }
     }
 
-    
     internal class ReplyChannelDemuxer : DatagramChannelDemuxer<IReplyChannel, RequestContext>
     {
         private static readonly IList<Type> s_supportedChannelTypes = new List<Type> { typeof(IReplyChannel) };
@@ -474,8 +473,6 @@ namespace CoreWCF.Channels
                 }
             }
         }
-
-        
 
         protected override Message GetMessage(RequestContext request)
         {
