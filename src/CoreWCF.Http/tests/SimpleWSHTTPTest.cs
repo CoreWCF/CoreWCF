@@ -50,7 +50,6 @@ namespace WSHttp
         [Fact, Description("transport-security-with-an-anonymous-client")]
         public void WSHttpRequestReplyEchoStringTransportSecurity()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportSecurityOnly>(_output).Build();
             using (host)
@@ -76,7 +75,6 @@ namespace WSHttp
         [Fact , Description("Demuxer-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
             using (host)
@@ -110,7 +108,6 @@ namespace WSHttp
         [Fact, Description("transport-security-with-basic-authentication")]
         public void WSHttpRequestReplyWithTransportMessageEchoString()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).Build();
             using (host)
@@ -141,7 +138,6 @@ namespace WSHttp
          [Fact, Description("transport-security-with-certificate-authentication")]
         internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificate>(_output).Build();
             using (host)
@@ -152,7 +148,7 @@ namespace WSHttp
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
                 ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.ClientCertificate.Certificate = ServiceHelper.GetTestCertificate();
+                clientCredentials.ClientCertificate.Certificate = ServiceHelper.GetServiceCertificate();
                 factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
                 {
                     CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
@@ -164,11 +160,6 @@ namespace WSHttp
                 ((IChannel)channel).Close();
                 Console.WriteLine("read ");
             }
-        }
-
-        private static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
-        {
-            return true;
         }
 
         internal class CustomTestValidator : UserNamePasswordValidator
@@ -200,9 +191,10 @@ namespace WSHttp
                     = CoreWCF.Security.X509CertificateValidationMode.Custom;
                 srvCredentials.ClientCertificate.Authentication.CustomCertificateValidator
                     = new MyX509CertificateValidator();
-                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetTestCertificate();
+                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetServiceCertificate();
                 host.Description.Behaviors.Add(srvCredentials);
             }
+
             public class MyX509CertificateValidator : X509CertificateValidator
             {
                 public MyX509CertificateValidator()
@@ -219,7 +211,6 @@ namespace WSHttp
                 }
             }
         }
-
 
         internal class WSHttpTransportWithMessageCredentialWithUserNameExpire : WSHttpTransportWithMessageCredentialWithUserName
         {

@@ -9,7 +9,7 @@ using CoreWCF.Channels;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 
-namespace CoreWCF
+namespace CoreWCF.Security
 {
     public sealed class MessageSecurityOverTcp
     {

@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF
 {
@@ -12,7 +13,6 @@ namespace CoreWCF
     {
         internal const SecurityMode DefaultMode = SecurityMode.Transport;
         private SecurityMode _mode;
-        MessageSecurityOverTcp _messageSecurity;
 
         public NetTcpSecurity()
             : this(DefaultMode, new TcpTransportSecurity(), new MessageSecurityOverTcp())
