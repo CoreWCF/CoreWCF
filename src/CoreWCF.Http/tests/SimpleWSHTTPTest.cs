@@ -191,7 +191,7 @@ namespace WSHttp
                     = CoreWCF.Security.X509CertificateValidationMode.Custom;
                 srvCredentials.ClientCertificate.Authentication.CustomCertificateValidator
                     = new MyX509CertificateValidator();
-                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetTestCertificate();
+                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetServiceCertificate();
                 host.Description.Behaviors.Add(srvCredentials);
             }
 
@@ -211,7 +211,6 @@ namespace WSHttp
                 }
             }
         }
-
 
         internal class WSHttpTransportWithMessageCredentialWithUserNameExpire : WSHttpTransportWithMessageCredentialWithUserName
         {

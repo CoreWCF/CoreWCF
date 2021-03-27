@@ -1983,8 +1983,6 @@ namespace CoreWCF.Security
                     return Task.CompletedTask;
                 }
             }
-
-            
         }
 
         private class ServerSecurityDuplexSessionChannel : ServerSecuritySessionChannel //, IDuplexSessionChannel 
@@ -2075,33 +2073,30 @@ namespace CoreWCF.Security
                 {
                     return Task.CompletedTask;
                 }
-
-                //Check with Matt about Inp/Oout Session
-
                 // step 2: wait for input session to be closed
-                /*
+                
                 bool wasAborted;
-                bool didInputSessionClose = this.WaitForInputSessionClose(timeoutHelper.RemainingTime(), out wasAborted);
+                bool didInputSessionClose = this.WaitForInputSessionClose(ServiceDefaults.CloseTimeout, out wasAborted);
                 if (wasAborted)
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
                 if (!didInputSessionClose)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.GetString(SR.ServiceSecurityCloseTimeout, timeoutHelper.OriginalTimeout)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.Format(SR.ServiceSecurityCloseTimeout, ServiceDefaults.CloseTimeout)));
                 }
 
                 // wait for any concurrent CloseOutputSessions to finish
-                bool didOutputSessionClose = this.WaitForOutputSessionClose(timeoutHelper.RemainingTime(), out wasAborted);
+                bool didOutputSessionClose = this.WaitForOutputSessionClose(ServiceDefaults.CloseTimeout, out wasAborted);
                 if (wasAborted)
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 if (!didOutputSessionClose)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.GetString(SR.ServiceSecurityCloseOutputSessionTimeout, timeoutHelper.OriginalTimeout)));
-                }*/
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.Format(SR.ServiceSecurityCloseOutputSessionTimeout, ServiceDefaults.CloseTimeout)));
+                }
 
                 this.CloseCore(token);
                 this.Settings.RemoveSessionChannel(this.session.Id);
@@ -2139,7 +2134,6 @@ namespace CoreWCF.Security
                     }
                 }
             }
-
 
             void CloseOutputSession(CancellationToken token)
             {
@@ -2233,13 +2227,79 @@ namespace CoreWCF.Security
                     {
                         requestContext.Abort();
                     }
-                  //  CloseAsync();
                 }
             }
 
             protected override void OnCloseResponseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, TimeSpan timeout)
             {
                 throw new NotImplementedException();
+            }
+
+            internal bool WaitForOutputSessionClose(TimeSpan timeout, out bool wasAborted)
+            {
+                wasAborted = false;
+                // try
+                // {
+                //     return this.outputSessionCloseHandle.Wait(timeout, false);
+                // }
+                // catch (CommunicationObjectAbortedException)
+                // {
+                //     if (this.State != CommunicationState.Closed) throw;
+                //     wasAborted = true;
+                //     return true;
+                // }
+                return true;
+            }
+
+            bool WaitForInputSessionClose(TimeSpan timeout, out bool wasAborted)
+            {
+                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+                RequestContext context;
+                wasAborted = false;
+                try
+                {
+                    if (!TryReceiveRequest(timeoutHelper.RemainingTime(), out context))
+                    {
+                        return false;
+                    }
+
+                    if (context != null && context.RequestMessage !=null)
+                    {
+                        Message message = context.RequestMessage;
+                        using (message)
+                        {
+                            ProtocolException error = ProtocolException.ReceiveShutdownReturnedNonNull(message);
+                            throw TraceUtility.ThrowHelperWarning(error, message);
+                        }
+                    }
+
+                    // wait for remote close
+                    //if (!this.inputSessionCloseHandle.Wait(timeoutHelper.RemainingTime(), false))
+                    //{
+                    //    return false;
+                    //}
+                    //else
+                    //{
+                    //    lock (ThisLock)
+                    //    {
+                    //        if (!(this.isInputClosed))
+                    //        {
+                    //            Fx.Assert("Shutdown request was not received.");
+                    //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.GetString(SR.ShutdownRequestWasNotReceived)));
+                    //        }
+                    //    }
+                    //    return true;
+                    //}
+                }
+                catch (CommunicationObjectAbortedException)
+                {
+                    if (this.State != CommunicationState.Closed)
+                    {
+                        throw;
+                    }
+                    wasAborted = true;
+                }
+                return false;
             }
 
             class SoapSecurityServerDuplexSession : SoapSecurityInputSession, IDuplexSession
