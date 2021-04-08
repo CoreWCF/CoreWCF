@@ -49,6 +49,12 @@ namespace CoreWCF.IdentityModel.Claims
         }
 
         internal WindowsClaimSet(WindowsIdentity windowsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone)
+            : this(windowsIdentity, authenticationType, includeWindowsGroups, expirationTime, clone, null)
+        {
+
+        }
+
+        internal WindowsClaimSet(WindowsIdentity windowsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone, IList<Claim> _fromClaims)
         {
             if (windowsIdentity == null)
             {
@@ -59,10 +65,19 @@ namespace CoreWCF.IdentityModel.Claims
             _includeWindowsGroups = includeWindowsGroups;
             ExpirationTime = expirationTime;
             _authenticationType = authenticationType;
+            if(_fromClaims != null && _fromClaims.Count>0)
+            {
+                List<Claim> allClaims = new List<Claim>();
+                foreach(Claim claim in _fromClaims)
+                {
+                    allClaims.Add(claim);
+                }
+                _claims = allClaims;
+            }
         }
 
         private WindowsClaimSet(WindowsClaimSet from)
-            : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from.ExpirationTime, true)
+            : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from.ExpirationTime, true, from._claims)
         {
         }
 
@@ -159,6 +174,11 @@ namespace CoreWCF.IdentityModel.Claims
             _claims = InitializeClaimsCore();
         }
 
+        public void AddClaim(Claim claim)
+        {
+            _claims.Add(claim);
+        }
+
         private void ThrowIfDisposed()
         {
             if (_disposed)
@@ -172,6 +192,7 @@ namespace CoreWCF.IdentityModel.Claims
             return claimType == null ||
                 ClaimTypes.Sid == claimType ||
                 ClaimTypes.DenyOnlySid == claimType ||
+                ClaimTypes.Role == claimType ||
                 ClaimTypes.Name == claimType;
         }
 

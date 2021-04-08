@@ -35,6 +35,7 @@ namespace CoreWCF.Description
             Messages = new MessageDescriptionCollection();
             Behaviors = new KeyedByTypeCollection<IOperationBehavior>();
             KnownTypes = new Collection<Type>();
+            AuthorizeOperation = new KeyedByTypeCollection<IAuthorizeOperation>();
         }
 
         internal bool HasNoDisposableParameters
@@ -115,6 +116,8 @@ namespace CoreWCF.Description
         }
 
         internal bool IsValidateRpcWrapperName { get; } = true;
+
+        internal KeyedByTypeCollection<IAuthorizeOperation> AuthorizeOperation { get; }
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {

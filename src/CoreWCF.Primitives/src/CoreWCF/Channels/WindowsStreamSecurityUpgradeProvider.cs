@@ -49,8 +49,12 @@ namespace CoreWCF.Channels
                 //}
             }
 
-
-            _securityTokenManager = credentialProvider.CreateSecurityTokenManager();
+           if(credentialProvider is ServiceCredentials)
+            {
+                ServiceCredentials serviceCred = (ServiceCredentials)credentialProvider;
+                LdapSettings = serviceCred.WindowsAuthentication.LdapSetting;
+            }
+           _securityTokenManager = credentialProvider.CreateSecurityTokenManager();
         }
 
         public string Scheme { get; }
@@ -84,6 +88,8 @@ namespace CoreWCF.Channels
         public ProtectionLevel ProtectionLevel { get; }
 
         private NetworkCredential ServerCredential { get; set; }
+
+        protected LdapSettings LdapSettings { get; private set; }
 
         public override StreamUpgradeAcceptor CreateUpgradeAcceptor()
         {
@@ -129,12 +135,14 @@ namespace CoreWCF.Channels
         {
             private readonly WindowsStreamSecurityUpgradeProvider _parent;
             private readonly SecurityMessageProperty _clientSecurity;
+            private readonly LdapSettings _ldapSettings;
 
             public WindowsStreamSecurityUpgradeAcceptor(WindowsStreamSecurityUpgradeProvider parent)
                 : base(FramingUpgradeString.Negotiate)
             {
                 _parent = parent;
                 _clientSecurity = new SecurityMessageProperty();
+                _ldapSettings = parent.LdapSettings;
             }
 
             protected override async Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
@@ -173,14 +181,14 @@ namespace CoreWCF.Channels
                 {
                     WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
                     SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
-                    WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
+                    WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts, _parent.LdapSettings);
                     token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
                     authorizationPolicies = authenticator.ValidateToken(token);
                 }
                 else
                 {
                     token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
-                    GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator();
+                    GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator(_parent.LdapSettings);
                     authorizationPolicies = authenticator.ValidateToken(token);
                 }
                 SecurityMessageProperty clientSecurity = new SecurityMessageProperty

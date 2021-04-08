@@ -37,6 +37,7 @@ namespace CoreWCF.IdentityModel.Claims
         private const string nameidentifier = claimTypeNamespace + "/nameidentifier";
         private const string authentication = claimTypeNamespace + "/authentication";
         private const string authorizationdecision = claimTypeNamespace + "/authorizationdecision";
+        private const string role = claimTypeNamespace + "/role";
 
         public static string Anonymous { get { return anonymous; } }
         public static string DenyOnlySid { get { return denyOnlySid; } }
@@ -55,6 +56,7 @@ namespace CoreWCF.IdentityModel.Claims
         public static string NameIdentifier { get { return nameidentifier; } }
         public static string Authentication { get { return authentication; } }
         public static string AuthorizationDecision { get { return authorizationdecision; } }
+        public static string Role { get { return role; } }
 
         // used in info card 
         public static string GivenName { get { return givenname; } }

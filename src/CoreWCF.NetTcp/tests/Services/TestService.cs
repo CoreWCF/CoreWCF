@@ -93,5 +93,17 @@ namespace Services
         {
             return value;
         }
+
+        [AuthorizeRole(AllowedRoles = "InvalidRole, CoreWCFGroupAdmin")]
+        public string EchoForAuthorizarionOneRole(string value)
+        {
+            return value;
+        }
+
+        [AuthorizeRole(AllowedRoles = "RoleDoesNotExist")]
+        public string EchoForAuthorizarionNoRole(string value)
+        {
+            return value;
+        }
     }
 }

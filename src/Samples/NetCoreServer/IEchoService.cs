@@ -11,6 +11,9 @@ namespace Contract
 
         [OperationContract]
         string ComplexEcho(EchoMessage text);
+
+        [OperationContract]
+        string EchoForPermission(string text);
     }
 
     [DataContract]

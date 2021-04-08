@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -127,7 +128,13 @@ namespace CoreWCF.Channels.Framing
             // TODO: Limit NamedPipes to prevent it using SslStreamSecurityUpgradeProvider
             else if ((upgradeBindingElements.Count == 1) /*&& this.SupportsUpgrade(upgradeBindingElements[0])*/)
             {
-                var bindingContext = new BindingContext(new CustomBinding(dispatcher.Binding), new BindingParameterCollection());
+                var parameter = new BindingParameterCollection();
+                SecurityCredentialsManager credentialsManager = dispatcher.Host.Description.Behaviors.Find<SecurityCredentialsManager>();
+                if (credentialsManager != null)
+                {
+                    parameter.Add(credentialsManager);
+                }
+                var bindingContext = new BindingContext(new CustomBinding(dispatcher.Binding), parameter);
                 streamUpgradeProvider = upgradeBindingElements[0].BuildServerStreamUpgradeProvider(bindingContext);
                 streamUpgradeProvider.OpenAsync().GetAwaiter().GetResult();
                 securityCapabilities = upgradeBindingElements[0].GetProperty<ISecurityCapabilities>(bindingContext);

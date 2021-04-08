@@ -21,6 +21,7 @@ namespace CoreWCF.Security
         private bool _extractGroupsForWindowsAccounts;
         private NetworkCredential _serverCredential;
         private bool _allowUnauthenticatedCallers;
+        private LdapSettings _ldapSettings;
 
         // SafeFreeCredentials credentialsHandle;
         private NegotiateInternalState _negotiateHandler;
@@ -48,6 +49,16 @@ namespace CoreWCF.Security
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 _serverCredential = value;
+            }
+        }
+
+        public LdapSettings LdapSettings
+        {
+            get => _ldapSettings;
+            set
+            {
+                CommunicationObject.ThrowIfDisposedOrImmutable();
+                _ldapSettings = value;
             }
         }
 
@@ -140,14 +151,14 @@ namespace CoreWCF.Security
             {
                 WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
                 Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, _allowUnauthenticatedCallers);
-                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts);
+                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts,LdapSettings);
                 token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
                 authorizationPolicies = authenticator.ValidateToken(token);
             }
             else
             {
                 token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
-                GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator();
+                GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator(LdapSettings);
                 authorizationPolicies = authenticator.ValidateToken(token);
             }
             return authorizationPolicies;
