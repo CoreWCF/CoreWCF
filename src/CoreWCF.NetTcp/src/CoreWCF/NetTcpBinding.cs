@@ -104,7 +104,7 @@ namespace CoreWCF
             get { return EnvelopeVersion.Soap12; }
         }
 
-        SecurityBindingElement CreateMessageSecurity()
+        internal SecurityBindingElement CreateMessageSecurity()
         {
             if (Security.Mode == SecurityMode.Message || Security.Mode == SecurityMode.TransportWithMessageCredential)
             {
@@ -142,7 +142,9 @@ namespace CoreWCF
             };
             SecurityBindingElement wsSecurity = CreateMessageSecurity();
             if (wsSecurity != null)
+            {
                 bindingElements.Add(wsSecurity);
+            }
             // add transport security
             BindingElement transportSecurity = CreateTransportSecurity();
             if (transportSecurity != null)

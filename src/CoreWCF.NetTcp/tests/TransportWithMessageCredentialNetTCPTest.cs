@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -31,30 +32,62 @@ namespace CoreWCF.NetTcp.Tests
         [Fact ]
         public void BasicUserNameAuth()
         {
-            string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
-            using (host)
-            {
+            runTest(false, "testuser@corewcf", _output);
+        }
 
-                host.Start();
-                System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
-                binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                    new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
-                System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+        [Fact]
+        public void BasicUserNameAuthError()
+        {
+            runTest(true, "randomuser@corewcf", _output);
+        }
+
+        private void runTest(bool isError, String userName, ITestOutputHelper _output)
+        {
+            bool isException = false;
+            try
+            {
+                string testString = new string('a', 3000);
+                IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
+                using (host)
                 {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                clientCredentials.UserName.UserName = "testuser@corewcf";
-                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
-                var channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                string result = channel.EchoString(testString);
-                Assert.Equal(testString, result);
-                ((IChannel)channel).Abort();
-                factory.Close();
+
+                    host.Start();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                    binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                    var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
+                    System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    clientCredentials.UserName.UserName = userName;
+                    clientCredentials.UserName.Password = RandomString(10);
+                    var channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Abort();
+                    factory.Close();
+                }
             }
+            catch(Exception ex)
+            {
+                isException = true;
+            }
+            if(isError)
+            {
+                Assert.True(isException);
+            }
+
+        }
+
+        private static Random random = new Random();
+        private static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         public class StartUpPermissionBaseForTC
@@ -97,7 +130,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 public override void Validate(string userName, string password)
                 {
-                    if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0)
+                    if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0 && password.Length >0)
                     {
                         //Write custom logic
                         return;

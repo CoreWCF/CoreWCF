@@ -571,33 +571,32 @@ namespace CoreWCF.Dispatcher
 
         public void Abort()
         {
-            return;// Task.CompletedTask;
+            return;
         }
 
         public Task CloseAsync()
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public Task CloseAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            return CloseAsync();
         }
 
         public Task OpenAsync()
         {
             return Task.CompletedTask;
-           // return InnerDuplexChannel.OpenAsync();
         }
 
         public Task OpenAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            return OpenAsync();
         }
 
         public override Task DispatchAsync(RequestContext context)
         {
-            throw new NotImplementedException();
+            return DispatchAsync(context.RequestMessage);
         }
 
         public override async Task DispatchAsync(Message message)
@@ -652,11 +651,10 @@ namespace CoreWCF.Dispatcher
             {
                 if (Fx.IsFatal(ex))
                     throw;
-
-                // ---- exceptions
             }
         }
     }
+
     internal sealed class SecurityRequestContext : RequestContextBase
     {
         private readonly RequestContext _innerContext;
