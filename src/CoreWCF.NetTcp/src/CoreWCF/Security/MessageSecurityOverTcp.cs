@@ -121,12 +121,10 @@ namespace CoreWCF.Security
             if (!isReliableSession)
             {
                 result.LocalServiceSettings.ReconnectTransportOnFailure = false;
-               // result.LocalClientSettings.ReconnectTransportOnFailure = false;
             }
             else
             {
                 result.LocalServiceSettings.ReconnectTransportOnFailure = true;
-                //result.LocalClientSettings.ReconnectTransportOnFailure = true;
             }
 
             // since a session is always bootstrapped, configure the transition sct to live for a short time only
