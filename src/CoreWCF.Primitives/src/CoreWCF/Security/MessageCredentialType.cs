@@ -14,7 +14,7 @@ namespace CoreWCF
 
     internal static class MessageCredentialTypeHelper
     {
-        public static bool IsDefined(MessageCredentialType value)
+        internal static bool IsDefined(MessageCredentialType value)
         {
             return (value == MessageCredentialType.None ||
                 value == MessageCredentialType.UserName ||

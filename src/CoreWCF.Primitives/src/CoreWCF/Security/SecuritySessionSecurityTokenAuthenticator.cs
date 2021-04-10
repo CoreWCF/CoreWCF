@@ -1108,9 +1108,15 @@ namespace CoreWCF.Security
             internal ChannelDispatcher InitializeRuntime(SecurityServiceDispatcher securityDispatcher)
             {
                 if (securityDispatcher.AcceptorChannelType.Equals(typeof(IReplyChannel)))
+                {
                     return InitializeRuntime<IReplyChannel>(securityDispatcher);
-                if(securityDispatcher.AcceptorChannelType.Equals(typeof(IDuplexSessionChannel)))
+                }
+
+                if (securityDispatcher.AcceptorChannelType.Equals(typeof(IDuplexSessionChannel)))
+                {
                     return InitializeRuntime<IDuplexSessionChannel>(securityDispatcher);
+                }
+
                 throw new NotImplementedException();
             }
 
