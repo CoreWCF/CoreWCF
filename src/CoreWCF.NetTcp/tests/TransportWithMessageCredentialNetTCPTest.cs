@@ -34,24 +34,10 @@ namespace CoreWCF.NetTcp.Tests
         [InlineData(true, "randomuser@corewcf")]
         private void BasicUserNameAuth(bool isError, string userName)
         {
-            runTest(false, "testuser@corewcf", _output);
-        }
-
-        [Fact]
-        public void BasicUserNameAuthError()
-        {
-            runTest(true, "randomuser@corewcf", _output);
-        }
-
-        private void runTest(bool isError, String userName, ITestOutputHelper _output)
-        {
-            bool isException = false;
-            try
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
+            using (host)
             {
-                string testString = new string('a', 3000);
-                IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
-                using (host)
-                {
 
                 host.Start();
                 System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
@@ -145,7 +131,7 @@ namespace CoreWCF.NetTcp.Tests
                     }
                     else
                     {
-                        throw new Exception("Permission Denied");
+                        throw new CommunicationException("Permission Denied");
                     }
                 }
             }

@@ -2068,23 +2068,24 @@ namespace CoreWCF.Security
                 return CloseAsync(new TimeoutHelper(ServiceDefaults.CloseTimeout).GetCancellationToken());
             }
 
-            public Task CloseAsync(CancellationToken token)
+            public async Task CloseAsync(CancellationToken token)
             {
                 // step 1: close output session
-                CloseOutputSession(token);
+                await CloseOutputSessionAsync(token);
 
                 // if the channel was aborted while closing the output session, return
                 if (State == CommunicationState.Closed)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
                 // step 2: wait for input session to be closed
                 
                 bool wasAborted;
-                bool didInputSessionClose = WaitForInputSessionClose(ServiceDefaults.CloseTimeout, out wasAborted);
+                bool didInputSessionClose;
+                (didInputSessionClose,wasAborted) = await WaitForInputSessionCloseAsync(ServiceDefaults.CloseTimeout);
                 if (wasAborted)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
                 if (!didInputSessionClose)
                 {
@@ -2092,10 +2093,12 @@ namespace CoreWCF.Security
                 }
 
                 // wait for any concurrent CloseOutputSessions to finish
-                bool didOutputSessionClose = WaitForOutputSessionClose(ServiceDefaults.CloseTimeout, out wasAborted);
+                bool didOutputSessionClose;
+                (didOutputSessionClose, wasAborted) =  await WaitForOutputSessionCloseAsync(ServiceDefaults.CloseTimeout);
+               // bool didOutputSessionClose = WaitForOutputSessionClose(ServiceDefaults.CloseTimeout, out wasAborted);
                 if (wasAborted)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
 
                 if (!didOutputSessionClose)
@@ -2105,7 +2108,6 @@ namespace CoreWCF.Security
 
                 CloseCore(token);
                 Settings.RemoveSessionChannel(_session.Id);
-                return Task.CompletedTask;
             }
 
             private void DetermineCloseOutputSessionMessage(out bool sendClose, out bool sendCloseResponse, out Message pendingCloseResponseMessage, out RequestContext pendingCloseRequestContext)
@@ -2140,7 +2142,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            private void CloseOutputSession(CancellationToken token)
+            private Task CloseOutputSessionAsync(CancellationToken token)
             {
                 bool sendClose = false;
                 bool sendCloseResponse = false;
@@ -2183,6 +2185,7 @@ namespace CoreWCF.Security
                         _outputSessionCloseHandle.Set();
                     }
                 }
+                return Task.CompletedTask;
             }
 
             protected override void OnCloseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
@@ -2274,32 +2277,29 @@ namespace CoreWCF.Security
                 }
             }
 
-            internal bool WaitForOutputSessionClose(TimeSpan timeout, out bool wasAborted)
+            internal async Task<(bool success, bool wasAborted)> WaitForOutputSessionCloseAsync(TimeSpan timeout)
             {
-                wasAborted = false;
                 try
                 {
-                    Task<bool> waitTask = _outputSessionCloseHandle.WaitAsync(timeout, false);
-                    return waitTask.GetAwaiter().GetResult();
+                    return (await _outputSessionCloseHandle.WaitAsync(timeout, false), false);
                 }
                 catch (CommunicationObjectAbortedException)
                 {
                     if (State != CommunicationState.Closed) throw;
-                    wasAborted = true;
-                    return true;
+                    return (true, true);
                 }
             }
 
-            private bool WaitForInputSessionClose(TimeSpan timeout, out bool wasAborted)
+            private async Task<(bool success, bool wasAborted)> WaitForInputSessionCloseAsync(TimeSpan timeout)
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 RequestContext context;
-                wasAborted = false;
+                bool wasAborted = false;
                 try
                 {
                     if (!TryReceiveRequest(timeoutHelper.RemainingTime(), out context))
                     {
-                        return false;
+                        return (false, wasAborted);
                     }
 
                     if (context != null && context.RequestMessage !=null)
@@ -2311,11 +2311,10 @@ namespace CoreWCF.Security
                             throw TraceUtility.ThrowHelperWarning(error, message);
                         }
                     }
-                    Task<bool> waitTask = _inputSessionCloseHandle.WaitAsync(timeoutHelper.RemainingTime(), false);
-                    // wait for remote close
-                    if (!waitTask.GetAwaiter().GetResult())
+                    bool result = await _inputSessionCloseHandle.WaitAsync(timeoutHelper.RemainingTime(), false);
+                    if (!result)
                     {
-                        return false;
+                        return (false, wasAborted);
                     }
                     else
                     {
@@ -2327,7 +2326,7 @@ namespace CoreWCF.Security
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ShutdownRequestWasNotReceived)));
                             }
                         }
-                        return true;
+                        return (true, wasAborted);
                     }
                 }
                 catch (CommunicationObjectAbortedException)
@@ -2338,7 +2337,7 @@ namespace CoreWCF.Security
                     }
                     wasAborted = true;
                 }
-                return false;
+                return (false, wasAborted);
             }
 
             private class SoapSecurityServerDuplexSession : SoapSecurityInputSession, IDuplexSession
@@ -2363,7 +2362,7 @@ namespace CoreWCF.Security
                     Exception pendingException = null;
                     try
                     {
-                        _channel.CloseOutputSession(new TimeoutHelper(timeout).GetCancellationToken());
+                        _channel.CloseOutputSessionAsync(new TimeoutHelper(timeout).GetCancellationToken());
                     }
                     catch (Exception e)
                     {
@@ -2401,7 +2400,6 @@ namespace CoreWCF.Security
 
             public class ServerSecurityDuplexSessionChannelDispatcher : ServerSecurityDuplexSessionChannel, IDuplexSessionChannel, IServiceChannelDispatcher
             {
-
                 private readonly IServiceProvider _serviceProvider;
                 private volatile IServiceChannelDispatcher _channelDispatcher;
 
