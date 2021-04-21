@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -475,52 +475,6 @@ namespace CoreWCF.Runtime
         internal static void PostCallback(object state)
         {
             ((Action)state)();
-        }
-    }
-
-    internal class ResettableAsyncWaitable
-    {
-        private TaskCompletionSource<object> _tcs = null;
-
-        public bool IsSet => _tcs?.Task.IsCompleted ?? false;
-
-        public void Reset()
-        {
-            if (!(_tcs?.Task.IsCompleted ?? true))
-            {
-                Fx.Exception.AsError(new InvalidOperationException(nameof(Reset)));
-            }
-
-            Interlocked.Exchange(ref _tcs, null);
-        }
-
-        public void Set()
-        {
-            TaskCompletionSource<object> tcs = _tcs;
-            if (tcs == null)
-            {
-                TaskCompletionSource<object> temp = CreateTcs();
-                tcs = Interlocked.CompareExchange(ref _tcs, temp, null) ?? temp;
-            }
-
-            tcs.TrySetResult(null);
-        }
-
-        public TaskAwaiter<object> GetAwaiter()
-        {
-            TaskCompletionSource<object> tcs = _tcs;
-            if (tcs == null)
-            {
-                TaskCompletionSource<object> temp = CreateTcs();
-                tcs = Interlocked.CompareExchange(ref _tcs, temp, null) ?? temp;
-            }
-
-            return tcs.Task.GetAwaiter();
-        }
-
-        private TaskCompletionSource<object> CreateTcs()
-        {
-            return new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
     }
 
