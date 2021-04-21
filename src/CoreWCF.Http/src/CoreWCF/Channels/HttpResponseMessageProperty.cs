@@ -15,11 +15,18 @@ namespace CoreWCF.Channels
         private HttpStatusCode _statusCode;
         private WebHeaderCollection _headers;
 
+        /// <summary>
+        /// Initializes a new instance of the HttpResponseMessageProperty class with no headers and the default status code.
+        /// </summary>
         public HttpResponseMessageProperty()
             : this((WebHeaderCollection)null)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HttpResponseMessageProperty"/> class.
+        /// </summary>
+        /// <param name="originalHeaders">The original headers. This collection will be copied so that the original is not accidentally modified.</param>
         internal HttpResponseMessageProperty(WebHeaderCollection originalHeaders)
         {
             _originalHeaders = originalHeaders;
@@ -32,6 +39,9 @@ namespace CoreWCF.Channels
             get { return "httpResponse"; }
         }
 
+        /// <summary>
+        /// Gets a mutable list of headers.
+        /// </summary>
         public WebHeaderCollection Headers
         {
             get
@@ -50,6 +60,11 @@ namespace CoreWCF.Channels
             }
         }
 
+        /// <summary>
+        /// Gets or sets the HTTP status code.
+        /// </summary>
+        /// <value>The HTTP status code.</value>
+        /// <exception cref="ArgumentOutOfRangeException">The status code is less than 100 or greater than 599</exception>
         public HttpStatusCode StatusCode
         {
             get
@@ -72,10 +87,20 @@ namespace CoreWCF.Channels
 
         internal bool HasStatusCodeBeenSet { get; private set; }
 
+        /// <summary>
+        /// Gets or sets the HTTP status description.
+        /// </summary>
+        /// <value>The HTTP status description.</value>
+        /// <remarks>If this returns null, use the default description for the current HttpStatusCode.</remarks>
         public string StatusDescription { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to suppress entity body.
+        /// </summary>
+        /// <remarks>If this is true, then the content-type will not be set.</remarks>
         public bool SuppressEntityBody { get; set; }
 
+        //Note currently in use. Remove?
         public bool SuppressPreamble { get; set; }
 
         IMessageProperty IMessageProperty.CreateCopy()
