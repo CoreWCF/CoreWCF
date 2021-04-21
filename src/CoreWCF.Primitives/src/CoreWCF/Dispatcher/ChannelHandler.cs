@@ -39,7 +39,7 @@ namespace CoreWCF.Dispatcher
         private bool _shouldRejectMessageWithOnOpenActionHeader;
         private RequestContext _replied;
         private readonly bool _incrementedActivityCountInConstructor;
-        private readonly ResettableAsyncWaitable _resettableAsyncWaitable;
+        private readonly AsyncManualResetEvent _asyncManualResetEvent;
         private bool _openCalled;
 
         internal ChannelHandler(MessageVersion messageVersion, IChannelBinder binder, ServiceThrottle throttle,
@@ -83,7 +83,7 @@ namespace CoreWCF.Dispatcher
             _serviceDispatcher.ChannelDispatcher.Channels.IncrementActivityCount();
             _incrementedActivityCountInConstructor = true;
             //}
-            _resettableAsyncWaitable = new ResettableAsyncWaitable();
+            _asyncManualResetEvent = new AsyncManualResetEvent();
         }
 
         internal IServiceChannelDispatcher GetDispatcher()
@@ -209,7 +209,7 @@ namespace CoreWCF.Dispatcher
 
         public void EnsureReceive()
         {
-            _resettableAsyncWaitable.Set();
+            _asyncManualResetEvent.Set();
         }
 
         public Task DispatchAsync(Message message)
@@ -1007,7 +1007,7 @@ namespace CoreWCF.Dispatcher
         {
             if (_isConcurrent)
             {
-                _resettableAsyncWaitable.Set();
+                _asyncManualResetEvent.Set();
             }
         }
 
@@ -1015,8 +1015,8 @@ namespace CoreWCF.Dispatcher
         {
             if (_isConcurrent)
             {
-                await _resettableAsyncWaitable;
-                _resettableAsyncWaitable.Reset();
+                await _asyncManualResetEvent.WaitAsync();
+                _asyncManualResetEvent.Reset();
             }
         }
 
