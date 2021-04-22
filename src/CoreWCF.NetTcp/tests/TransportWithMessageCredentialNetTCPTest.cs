@@ -56,11 +56,10 @@ namespace CoreWCF.NetTcp.Tests
                 {
                     if (isError)
                     {
-                        //In Framework coming as Protocol exception while in core CommunicationException.
-                        Assert.NotNull(Record.Exception(() =>
+                        Assert.ThrowsAny<System.ServiceModel.CommunicationException>(() =>
                         {
                             ((IChannel)channel).Open();
-                        }));
+                        }); ;
                     }
                     else
                     {
@@ -130,7 +129,7 @@ namespace CoreWCF.NetTcp.Tests
                     }
                     else
                     {
-                        throw new CommunicationException("Permission Denied");
+                        throw new Exception("Permission Denied");
                     }
                 }
             }
