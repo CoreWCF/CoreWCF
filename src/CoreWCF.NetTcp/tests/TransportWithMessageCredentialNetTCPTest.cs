@@ -51,33 +51,40 @@ namespace CoreWCF.NetTcp.Tests
                 using (host)
                 {
 
-                    host.Start();
-                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
-                    binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-                    var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
-                    System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
-                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                host.Start();
+                System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                    new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
+                System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                clientCredentials.UserName.UserName = userName;
+                clientCredentials.UserName.Password = RandomString(10);
+                var channel = factory.CreateChannel();
+                try
+                {
+                    if (isError)
                     {
-                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                    };
-                    clientCredentials.UserName.UserName = userName;
-                    clientCredentials.UserName.Password = RandomString(10);
-                    var channel = factory.CreateChannel();
-                    ((IChannel)channel).Open();
-                    string result = channel.EchoString(testString);
-                    Assert.Equal(testString, result);
+                        Assert.ThrowsAny<System.ServiceModel.CommunicationException>(() =>
+                        {
+                            ((IChannel)channel).Open();
+                        }); ;
+                    }
+                    else
+                    {
+                        ((IChannel)channel).Open();
+                        string result = channel.EchoString(testString);
+                        Assert.Equal(testString, result);
+                    }
+                }
+                finally
+                {
                     ((IChannel)channel).Abort();
                     factory.Close();
                 }
-            }
-            catch(Exception ex)
-            {
-                isException = true;
-            }
-            if(isError)
-            {
-                Assert.True(isException);
             }
 
         }
