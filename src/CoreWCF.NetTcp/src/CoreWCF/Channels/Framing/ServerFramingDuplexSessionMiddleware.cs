@@ -87,23 +87,15 @@ namespace CoreWCF.Channels.Framing
                                 break;
 
                             case ServerSessionDecoder.State.Start:
-                                try
-                                {
-                                    SetupSecurityIfNecessary(connection);
+                                SetupSecurityIfNecessary(connection);
+                                // we've finished the preamble. Ack and continue to the next middleware.
+                                await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes);
+                                await connection.Output.FlushAsync();
+                                connection.Input.AdvanceTo(buffer.Start);
+                                await _next(connection);
+                                success = true;
+                                return;
 
-                                    // we've finished the preamble. Ack and continue to the next middleware.
-                                    await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes);
-                                    await connection.Output.FlushAsync();
-                                    connection.Input.AdvanceTo(buffer.Start);
-                                    success = true;
-                                    await _next(connection);
-                                    return;
-                                }
-                                catch(Exception ex)
-                                {
-                                    success = false;
-                                    throw ex;
-                                }
                         }
                     }
                 }

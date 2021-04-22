@@ -131,7 +131,7 @@ namespace CoreWCF.NetTcp.Tests
                     }
                     else
                     {
-                        throw new CommunicationException("Permission Denied");
+                        throw new Exception("Permission Denied");
                     }
                 }
             }
