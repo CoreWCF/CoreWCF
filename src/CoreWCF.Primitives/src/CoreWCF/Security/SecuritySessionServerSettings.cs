@@ -1439,7 +1439,7 @@ namespace CoreWCF.Security
                         TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                         response = SecurityProtocol.SecureOutgoingMessage(response, timeoutHelper.GetCancellationToken());
                         response.Properties.AllowOutputBatching = false;
-                        SendMessage(requestContext, response, timeoutHelper.GetCancellationToken());
+                        _ = SendMessageAsync(requestContext, response, timeoutHelper.GetCancellationToken());
                     }
                     finally
                     {
@@ -1531,13 +1531,13 @@ namespace CoreWCF.Security
             }
 
             // SendCloseResponse closes the message and underlying context if the operation completes successfully
-            protected void SendCloseResponse(RequestContext requestContext, Message closeResponse, CancellationToken token)
+            protected async Task SendCloseResponseAsync(RequestContext requestContext, Message closeResponse, CancellationToken token)
             {
                 try
                 {
                     using (closeResponse)
                     {
-                        SendMessage(requestContext, closeResponse, token);
+                       await SendMessageAsync(requestContext, closeResponse, token);
                     }
 
                     TraceSessionClosedResponseSuccess();
@@ -1587,13 +1587,13 @@ namespace CoreWCF.Security
                 return closeMessage;
             }
 
-            protected void SendClose(CancellationToken token)
+            protected async Task SendCloseAsync(CancellationToken token)
             {
                 try
                 {
                     using (Message closeMessage = CreateCloseMessage(token))
                     {
-                        SendMessage(null, closeMessage, token);
+                        await SendMessageAsync(null, closeMessage, token);
                     }
                     TraceSessionClosedSuccess();
                 }
@@ -1607,12 +1607,12 @@ namespace CoreWCF.Security
                 }
             }
 
-            protected void SendMessage(RequestContext requestContext, Message message, CancellationToken token)
+            protected async Task SendMessageAsync(RequestContext requestContext, Message message, CancellationToken token)
             {
                 if (requestContext != null)
                 {
-                    requestContext.ReplyAsync(message, token);
-                    requestContext.CloseAsync(token);
+                    await requestContext.ReplyAsync(message, token);
+                    await requestContext.CloseAsync(token);
                 }
             }
 
@@ -1716,16 +1716,15 @@ namespace CoreWCF.Security
             {
                 return OnCloseAsync(token);
             }
-            protected Task OnCloseAsync(CancellationToken token)
+            protected async Task OnCloseAsync(CancellationToken token)
             {
                 // send a close response if one was not sent yet
-                bool wasAborted = SendCloseResponseOnCloseIfRequired(token);
+                bool wasAborted = await SendCloseResponseOnCloseIfRequiredAsync(token);
                 if (wasAborted)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
                 CloseCore(token);
-                return Task.CompletedTask;
             }
 
             private bool ShouldSendCloseResponseOnClose(out RequestContext pendingCloseRequestContext, out Message pendingCloseResponse)
@@ -1753,7 +1752,7 @@ namespace CoreWCF.Security
                 return sendCloseResponse;
             }
 
-            private bool SendCloseResponseOnCloseIfRequired(CancellationToken token)
+            private async Task<bool> SendCloseResponseOnCloseIfRequiredAsync(CancellationToken token)
             {
                 bool aborted = false;
                 bool sendCloseResponse = ShouldSendCloseResponseOnClose(out RequestContext pendingCloseRequestContext, out Message pendingCloseResponse);
@@ -1762,7 +1761,7 @@ namespace CoreWCF.Security
                 {
                     try
                     {
-                        SendCloseResponse(pendingCloseRequestContext, pendingCloseResponse, token);
+                        await SendCloseResponseAsync(pendingCloseRequestContext, pendingCloseResponse, token);
                         // this.inputSessionClosedHandle.Set();
                         cleanupCloseState = false;
                     }
@@ -1814,14 +1813,13 @@ namespace CoreWCF.Security
                     Fx.Assert("ServerSecuritySimplexSessionChannel.OnCloseMessageReceived (this.State == Created)");
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ServerReceivedCloseMessageStateIsCreated, GetType().ToString())));
                 }
-
-                if (SendCloseResponseOnCloseReceivedIfRequired(requestContext, message, correlationState, token))
+                if (SendCloseResponseOnCloseReceivedIfRequiredAsync(requestContext, message, correlationState, token).Result)
                 {
-                    //  this.inputSessionClosedHandle.Set();
+                  // inputSessionClosedHandle.Set();
                 }
             }
 
-            private bool SendCloseResponseOnCloseReceivedIfRequired(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
+            private async Task<bool> SendCloseResponseOnCloseReceivedIfRequiredAsync(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
             {
                 bool sendCloseResponse = false;
                 //  ServiceModelActivity activity = DiagnosticUtility.ShouldUseActivity ? TraceUtility.ExtractActivity(message) : null;
@@ -1851,12 +1849,12 @@ namespace CoreWCF.Security
                     }
                     if (sendCloseResponse)
                     {
-                        SendCloseResponse(requestContext, localCloseResponse, token);
+                        await SendCloseResponseAsync(requestContext, localCloseResponse, token);
                         cleanupContext = false;
                     }
                     else if (cleanupContext)
                     {
-                        requestContext.CloseAsync(token);
+                        await requestContext.CloseAsync(token);
                         cleanupContext = false;
                     }
                     return sendCloseResponse;
@@ -2125,7 +2123,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            private Task CloseOutputSessionAsync(CancellationToken token)
+            private async Task CloseOutputSessionAsync(CancellationToken token)
             {
                 bool sendClose = false;
                 bool sendCloseResponse = false;
@@ -2139,7 +2137,7 @@ namespace CoreWCF.Security
                         bool cleanupCloseState = true;
                         try
                         {
-                            SendCloseResponse(pendingCloseRequestContext, pendingCloseResponseMessage, token);
+                            await SendCloseResponseAsync(pendingCloseRequestContext, pendingCloseResponseMessage, token);
                             cleanupCloseState = false;
                         }
                         finally
@@ -2153,7 +2151,7 @@ namespace CoreWCF.Security
                     }
                     else if (sendClose)
                     {
-                        SendClose(token);
+                        await SendCloseAsync(token);
                     }
                 }
                 catch (CommunicationObjectAbortedException)
@@ -2168,7 +2166,6 @@ namespace CoreWCF.Security
                         _outputSessionCloseHandle.Set();
                     }
                 }
-                return Task.CompletedTask;
             }
 
             protected override void OnCloseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
@@ -2333,19 +2330,24 @@ namespace CoreWCF.Security
                     _channel = channel;
                 }
 
-                public void CloseOutputSession()
+                public Task CloseOutputSessionAsync()
                 {
-                    CloseOutputSession(ServiceDefaults.CloseTimeout);
+                    return CloseOutputSessionAsync(ServiceDefaults.CloseTimeout); ;
                 }
 
-                public void CloseOutputSession(TimeSpan timeout)
+                public Task CloseOutputSessionAsync(CancellationToken token)
                 {
-                   // channel.ThrowIfFaulted();
-                   // channel.ThrowIfNotOpened();
+                    return CloseOutputSessionAsync();
+                }
+
+                private async Task CloseOutputSessionAsync(TimeSpan timeout)
+                {
+                    // channel.ThrowIfFaulted();
+                    // channel.ThrowIfNotOpened();
                     Exception pendingException = null;
                     try
                     {
-                        _channel.CloseOutputSessionAsync(new TimeoutHelper(timeout).GetCancellationToken());
+                        await _channel.CloseOutputSessionAsync(new TimeoutHelper(timeout).GetCancellationToken());
                     }
                     catch (Exception e)
                     {
@@ -2367,17 +2369,6 @@ namespace CoreWCF.Security
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(pendingException);
                         }
                     }
-                }
-
-                public Task CloseOutputSessionAsync()
-                {
-                    CloseOutputSession(ServiceDefaults.CloseTimeout); ;
-                    return Task.CompletedTask;
-                }
-
-                public Task CloseOutputSessionAsync(CancellationToken token)
-                {
-                    return CloseOutputSessionAsync();
                 }
             }
 
@@ -2435,7 +2426,7 @@ namespace CoreWCF.Security
 
                 public Task OpenAsync()
                 {
-                    return Task.CompletedTask;
+                    return OpenAsync(ServiceDefaults.OpenTimeout);
                 }
 
                 public override async Task OpenAsync(TimeSpan timeout)
