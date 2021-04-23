@@ -2106,7 +2106,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.Format(SR.ServiceSecurityCloseOutputSessionTimeout, ServiceDefaults.CloseTimeout)));
                 }
 
-                CloseCore(token);
+                await CloseCoreAsync(token);
                 Settings.RemoveSessionChannel(_session.Id);
             }
 
@@ -2445,7 +2445,8 @@ namespace CoreWCF.Security
 
                 public Task OpenAsync()
                 {
-                    return OpenAsync(ServiceDefaults.OpenTimeout);
+                    return Task.CompletedTask;
+                    // NO op, call by Channel Handler in the upper chain from CreateServiceChannel dispatcher from below OpenAsync.
                 }
 
                 public override async Task OpenAsync(TimeSpan timeout)
