@@ -955,14 +955,14 @@ namespace CoreWCF.Security
                 }
             }
 
-            protected virtual void CloseCore(CancellationToken token)
+            protected virtual async Task CloseCoreAsync(CancellationToken token)
             {
                 try
                 {
                     TimeoutHelper helper = new TimeoutHelper(ServiceDefaults.CloseTimeout);
                     if (SecurityProtocol != null)
                     {
-                        SecurityProtocol.CloseAsync(false, helper.RemainingTime()); ;
+                        await SecurityProtocol.CloseAsync(false, helper.RemainingTime()); ;
                     }
                     bool closeLifetimeManager = false;
                     lock (LocalLock)
@@ -975,7 +975,7 @@ namespace CoreWCF.Security
                     }
                     if (closeLifetimeManager)
                     {
-                        _settingsLifetimeManager.CloseAsync(helper.RemainingTime());
+                        await _settingsLifetimeManager.CloseAsync(helper.RemainingTime());
                     }
                 }
                 catch (CommunicationObjectAbortedException)
@@ -1439,7 +1439,8 @@ namespace CoreWCF.Security
                         TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                         response = SecurityProtocol.SecureOutgoingMessage(response, timeoutHelper.GetCancellationToken());
                         response.Properties.AllowOutputBatching = false;
-                        _ = SendMessageAsync(requestContext, response, timeoutHelper.GetCancellationToken());
+                        var messageTask = SendMessageAsync(requestContext, response, timeoutHelper.GetCancellationToken());
+                        messageTask.GetAwaiter().GetResult();
                     }
                     finally
                     {
@@ -1706,9 +1707,9 @@ namespace CoreWCF.Security
                 CleanupPendingCloseState();
             }
 
-            protected override void CloseCore(CancellationToken token)
+            protected override async Task CloseCoreAsync(CancellationToken token)
             {
-                base.CloseCore(token);
+                await base.CloseCoreAsync(token);
                 Settings.RemoveSessionChannel(_session.Id);
             }
 
@@ -1724,7 +1725,7 @@ namespace CoreWCF.Security
                 {
                     return;
                 }
-                CloseCore(token);
+                await CloseCoreAsync(token);
             }
 
             private bool ShouldSendCloseResponseOnClose(out RequestContext pendingCloseRequestContext, out Message pendingCloseResponse)
@@ -2087,7 +2088,7 @@ namespace CoreWCF.Security
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.Format(SR.ServiceSecurityCloseOutputSessionTimeout, ServiceDefaults.CloseTimeout)));
                 }
 
-                CloseCore(token);
+                await CloseCoreAsync(token);
                 Settings.RemoveSessionChannel(_session.Id);
             }
 
@@ -2426,7 +2427,8 @@ namespace CoreWCF.Security
 
                 public Task OpenAsync()
                 {
-                    return OpenAsync(ServiceDefaults.OpenTimeout);
+                    return Task.CompletedTask;
+                    // NO op, call by Channel Handler in the upper chain from CreateServiceChannel dispatcher from below OpenAsync.
                 }
 
                 public override async Task OpenAsync(TimeSpan timeout)
