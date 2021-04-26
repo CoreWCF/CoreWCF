@@ -19,6 +19,7 @@
     <CommonTestPath>$(SourceDir)Common/tests</CommonTestPath>
     <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
     <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
+    <IsCrankProject>$(ParentFolder.EndsWith(`Crank`, true, null))</IsCrankProject>
     <IsTestProject>$(MSBuildProjectName.EndsWith(`Tests`, true, null))</IsTestProject>
   </PropertyGroup>
 
@@ -38,7 +39,7 @@
   <PropertyGroup>
     <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
   </PropertyGroup>
-  <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
+  <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsCrankProject))">
     <PackageReference Include="Nerdbank.GitVersioning">
       <Version>3.2.31</Version>
       <PrivateAssets>all</PrivateAssets>
@@ -50,6 +51,7 @@
   <!-- Configuring strong name signing -->
   <PropertyGroup Condition="!($(IsTestProject) OR $(IsSampleProject)) AND Exists('$(ProjectDir)corewcf.snk')">
     <AssemblyOriginatorKeyFile>$(ProjectDir)corewcf.snk</AssemblyOriginatorKeyFile>
+    
 	<SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
