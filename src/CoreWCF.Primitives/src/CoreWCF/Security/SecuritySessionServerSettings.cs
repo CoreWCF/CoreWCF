@@ -962,7 +962,7 @@ namespace CoreWCF.Security
                     TimeoutHelper helper = new TimeoutHelper(ServiceDefaults.CloseTimeout);
                     if (SecurityProtocol != null)
                     {
-                        await SecurityProtocol.CloseAsync(false, helper.RemainingTime()); ;
+                        await SecurityProtocol.CloseAsync(false, helper.RemainingTime());
                     }
                     bool closeLifetimeManager = false;
                     lock (LocalLock)
@@ -1888,8 +1888,6 @@ namespace CoreWCF.Security
                           sessionToken, listenerSecurityState, settingsLifetimeManager, address)
                 {
                     IncomingChannel = (IReplyChannel)channel;
-                    // this.defaultBinder = new ReplyChannelBinder();
-                    // this.idleManager = new ServiceChannel.SessionIdleManager();
                     _serviceProvider = IncomingChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
                 }
 
@@ -2077,7 +2075,6 @@ namespace CoreWCF.Security
                 // wait for any concurrent CloseOutputSessions to finish
                 bool didOutputSessionClose;
                 (didOutputSessionClose, wasAborted) =  await WaitForOutputSessionCloseAsync(ServiceDefaults.CloseTimeout);
-               // bool didOutputSessionClose = WaitForOutputSessionClose(ServiceDefaults.CloseTimeout, out wasAborted);
                 if (wasAborted)
                 {
                     return;
@@ -2450,7 +2447,6 @@ namespace CoreWCF.Security
 
                 public Task SendAsync(Message message, CancellationToken token)
                 {
-                    //moved below code t dispatch async
                     CheckOutputOpen();
                     SecureApplicationMessage(ref message, null, token);
                     // ChannelBinder.Send(message, timeoutHelper.RemainingTime());
@@ -2552,7 +2548,6 @@ namespace CoreWCF.Security
                 if (message != null)
                 {
                     _channel.SecureApplicationMessage(ref message, _correlationState, token);
-                    //securityProtocol.SecureOutgoingMessageAsync(message);
                     return _requestContext.ReplyAsync(message);
                 }
                 else
