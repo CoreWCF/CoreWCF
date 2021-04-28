@@ -2095,7 +2095,6 @@ namespace CoreWCF.Security
                 // wait for any concurrent CloseOutputSessions to finish
                 bool didOutputSessionClose;
                 (didOutputSessionClose, wasAborted) =  await WaitForOutputSessionCloseAsync(ServiceDefaults.CloseTimeout);
-               // bool didOutputSessionClose = WaitForOutputSessionClose(ServiceDefaults.CloseTimeout, out wasAborted);
                 if (wasAborted)
                 {
                     return;
