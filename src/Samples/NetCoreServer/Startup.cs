@@ -17,10 +17,18 @@ namespace NetCoreServer
         {
             app.UseServiceModel(builder =>
             {
+                var serverBinding = new WSHttpBinding(SecurityMode.None);
+                serverBinding.Security.Message.ClientCredentialType = MessageCredentialType.None;
+
+                var serverBindingHttps = new WSHttpBinding(SecurityMode.Transport);
+                serverBindingHttps.Security.Message.ClientCredentialType = MessageCredentialType.None;
+
                 builder
                     .AddService<EchoService>()
                     .AddServiceEndpoint<EchoService, Contract.IEchoService>(new BasicHttpBinding(), "/basichttp")
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp");
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp")
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBinding, "/wsHttp.svc")
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBindingHttps, "/wsHttp.svc");
             });
         }
     }
