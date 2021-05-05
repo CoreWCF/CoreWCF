@@ -145,6 +145,12 @@ namespace CoreWCF.Channels.Framing
                     {
                         throw new InvalidOperationException("Buffer backed by array was expected");
                     }
+
+                    if(!stream.CanRead)
+                    {
+                        return;
+                    }
+
                     int bytesRead = await stream.ReadAsync(segment.Array, segment.Offset, segment.Count);
 
                     // Once we've moved past netstandard2.0, we can replace the code with this line:

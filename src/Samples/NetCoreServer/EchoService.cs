@@ -1,4 +1,5 @@
-﻿using Contract;
+﻿using System.Threading.Tasks;
+using Contract;
 using CoreWCF;
 
 namespace NetCoreServer
@@ -17,8 +18,16 @@ namespace NetCoreServer
             return text.Text;
         }
 
+        public async Task<string> EchoStringAsync(string echo)
+        {
+            System.Console.WriteLine($"Received {echo} from client!");
+            await Task.Yield();
+            return echo;
+        }
+
         public string FailEcho(string text)
-            => throw new FaultException<EchoFault>(new EchoFault() { Text = "WCF Fault OK" }, new FaultReason("FailReason"));
+    => throw new FaultException<EchoFault>(new EchoFault() { Text = "WCF Fault OK" }, new FaultReason("FailReason"));
 
     }
+}
 }

@@ -72,18 +72,24 @@ namespace CoreWCF.NetTcp.Tests
                         {
                             ((IChannel)channel).Open();
                         }); ;
+                        ((IChannel)channel).Abort();
                     }
                     else
                     {
                         ((IChannel)channel).Open();
                         string result = channel.EchoString(testString);
                         Assert.Equal(testString, result);
+                        ((IChannel)channel).Close();
+                        factory.Close();
                     }
+                }
+                catch(Exception ex)
+                {
+
                 }
                 finally
                 {
-                    ((IChannel)channel).Abort();
-                    factory.Close();
+                  //  ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
             }
 
