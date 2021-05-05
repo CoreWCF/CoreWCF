@@ -574,9 +574,9 @@ namespace CoreWCF.Dispatcher
             return;
         }
 
-        public Task CloseAsync()
+        public async Task CloseAsync()
         {
-            return Task.CompletedTask;
+            await InnerDuplexChannel.CloseAsync();
         }
 
         public Task CloseAsync(CancellationToken token)
@@ -653,6 +653,8 @@ namespace CoreWCF.Dispatcher
                     throw;
             }
         }
+
+        public Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token) => throw new NotImplementedException();
     }
 
     internal sealed class SecurityRequestContext : RequestContextBase

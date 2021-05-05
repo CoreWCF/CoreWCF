@@ -1,4 +1,5 @@
-﻿using Contract;
+﻿using System.Threading.Tasks;
+using Contract;
 
 namespace NetCoreServer
 {
@@ -14,6 +15,13 @@ namespace NetCoreServer
         {
             System.Console.WriteLine($"Received {text.Text} from client!");
             return text.Text;
+        }
+
+        public async Task<string> EchoStringAsync(string echo)
+        {
+            System.Console.WriteLine($"Received {echo} from client!");
+            await Task.Yield();
+            return echo;
         }
     }
 }

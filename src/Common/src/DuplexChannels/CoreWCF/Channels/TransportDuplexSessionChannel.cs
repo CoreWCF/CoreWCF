@@ -77,7 +77,7 @@ namespace CoreWCF.Channels
                     await ChannelDispatcher.DispatchAsync(message);
                 }
 
-                if (message == null) // NULL message means client sent FIN byte
+                if (message == null || this.DoneReceivingInCurrentState()) // NULL message means client sent FIN byte
                 {
                     return;
                 }
@@ -173,6 +173,11 @@ namespace CoreWCF.Channels
                     await CloseOutputSessionCoreAsync(token);
                     OnOutputSessionClosed(token);
                     shouldFault = false;
+                    bool isDebug = false;
+                    if(isDebug)
+                    {
+                         await ReceiveAsync(token);
+                    }
                 }
                 finally
                 {

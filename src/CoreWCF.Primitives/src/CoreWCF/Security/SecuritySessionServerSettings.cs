@@ -1977,15 +1977,18 @@ namespace CoreWCF.Security
             private InterruptibleWaitObject _outputSessionCloseHandle = new InterruptibleWaitObject(true);
             private InterruptibleWaitObject _inputSessionCloseHandle = new InterruptibleWaitObject(false);
             private DuplexCommunication _duplexCommObj;
+            private IDuplexSessionChannel _duplexSessionChannel;
+
             public ServerSecurityDuplexSessionChannel(
                 SecuritySessionServerSettings settings,
                 SecurityContextSecurityToken sessionToken,
-                object listenerSecurityState, SecurityListenerSettingsLifetimeManager settingsLifetimeManager, EndpointAddress address)
+                object listenerSecurityState, SecurityListenerSettingsLifetimeManager settingsLifetimeManager, EndpointAddress address, IChannel channel)
                 : base(settings,
                       sessionToken, listenerSecurityState, settingsLifetimeManager, address)
             {
                 _session = new SoapSecurityServerDuplexSession(sessionToken, settings, this);
                 _duplexCommObj = new DuplexCommunication();
+                _duplexSessionChannel = (IDuplexSessionChannel) channel;
             }
 
             public EndpointAddress RemoteAddress
@@ -2014,6 +2017,7 @@ namespace CoreWCF.Security
 
             protected override void AbortCore()
             {
+                _duplexSessionChannel.Abort();
                 base.AbortCore();
                 Settings.RemoveSessionChannel(_session.Id);
                 CleanupPendingCloseState();
@@ -2084,9 +2088,65 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.Format(SR.ServiceSecurityCloseOutputSessionTimeout, ServiceDefaults.CloseTimeout)));
                 }
-
+                await CloseDuplexSessionChannelAsync(token);
                 await CloseCoreAsync(token);
                 Settings.RemoveSessionChannel(_session.Id);
+            }
+
+            private async Task CloseDuplexSessionChannelAsync(CancellationToken token)
+            {
+                TimeoutHelper timeoutHelper = new TimeoutHelper(ServiceDefaults.CloseTimeout);
+                await ((ISessionChannel<IDuplexSession>)_duplexSessionChannel).Session.CloseOutputSessionAsync(token);
+                await _duplexSessionChannel.CloseAsync(token);
+                /*
+                TimeSpan iterationTimeout = timeoutHelper.RemainingTime();
+                bool lastIteration = (iterationTimeout == TimeSpan.Zero);
+
+                while (true)
+                {
+                    Message message = null;
+                    bool receiveThrowing = true;
+                    try
+                    {
+                        (Message receiveMessage, bool success) = await _duplexSessionChannel.TryReceiveAsync(timeoutHelper.GetCancellationToken());
+
+                        receiveThrowing = false;
+                        if (success && receiveMessage == null)
+                        {
+                            await _duplexSessionChannel.CloseAsync(token);
+                            return;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        if (Fx.IsFatal(e))
+                            throw;
+
+                        if (receiveThrowing)
+                        {
+                            receiveThrowing = false;
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                    finally
+                    {
+                        if (message != null)
+                            message.Close();
+
+                        if (receiveThrowing)
+                            _duplexSessionChannel.Abort();
+                    }
+
+                    if (lastIteration || _duplexSessionChannel.State != CommunicationState.Opened)
+                        break;
+
+                    iterationTimeout = timeoutHelper.RemainingTime();
+                    lastIteration = (iterationTimeout == TimeSpan.Zero);
+                }
+                _duplexSessionChannel.Abort();*/
             }
 
             private void DetermineCloseOutputSessionMessage(out bool sendClose, out bool sendCloseResponse, out Message pendingCloseResponseMessage, out RequestContext pendingCloseRequestContext)
@@ -2381,7 +2441,7 @@ namespace CoreWCF.Security
                     object listenerSecurityState, SecurityListenerSettingsLifetimeManager settingsLifetimeManager
                     , IChannel channel, EndpointAddress address)
                     : base(settings,
-                          sessionToken, listenerSecurityState, settingsLifetimeManager, address)
+                          sessionToken, listenerSecurityState, settingsLifetimeManager, address, channel)
                 {
                     IncomingChannel = (IDuplexSessionChannel)channel;
                     _serviceProvider = IncomingChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
@@ -2452,6 +2512,8 @@ namespace CoreWCF.Security
                     // ChannelBinder.Send(message, timeoutHelper.RemainingTime());
                     return IncomingChannel.SendAsync(message, token);
                 }
+
+                public Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token) => throw new NotImplementedException();
             }
 
             protected void CheckOutputOpen()
@@ -2503,19 +2565,19 @@ namespace CoreWCF.Security
 
             protected override void OnAbort() { }
 
-            protected override Task OnCloseAsync(CancellationToken token)
+            protected override
+                Task OnCloseAsync(CancellationToken token)
             {
                 return Task.CompletedTask;
             }
 
-            protected override Task OnReplyAsync(Message message, CancellationToken token)
+            protected override async Task OnReplyAsync(Message message, CancellationToken token)
             {
                 if (message != null)
                 {
-                    return _channel.SendAsync(message, token);
+                    await _channel.SendAsync(message, token);
                 }
 
-                return Task.CompletedTask;
             }
         }
 

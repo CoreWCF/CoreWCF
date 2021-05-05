@@ -308,6 +308,7 @@ namespace CoreWCF.Channels
         {
             private readonly DuplexSessionChannelDemuxer _demuxer;
             private readonly IDuplexSessionChannel _channel;
+            private IServiceChannelDispatcher _serviceChannelDispatcher;
 
             public DuplexSessionChannelDispatcher(DuplexSessionChannelDemuxer replyChannelDemuxer, IDuplexSessionChannel channel)
             {
@@ -323,9 +324,21 @@ namespace CoreWCF.Channels
 
             public async Task DispatchAsync(Message message)
             {
-                if (message == null) //0 bytes (TODO: check)
-                    return;
-                    //_channel.ChannelDispatcher.DispatchAsync(message);
+                if (message == null) //0 bytes
+                {
+                    //We have already closed all channels, return. (Couldn't use DoneReceivingInCurrentState())
+                    if (_channel.State == CommunicationState.Closed
+                        || _channel.State == CommunicationState.Closing
+                        || _channel.State == CommunicationState.Closed)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        await _serviceChannelDispatcher.DispatchAsync(message);
+                        return;
+                    }
+                }
                 IServiceDispatcher serviceDispatcher = _demuxer.MatchDispatcher(message);
                 if (serviceDispatcher == null)
                 {
@@ -334,9 +347,8 @@ namespace CoreWCF.Channels
                     await _demuxer.EndpointNotFoundAsync((IDuplexSessionChannel) _channel, message);
                     return;
                 }
-                IServiceChannelDispatcher serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(_channel);
-               // DuplexRequestContext duplexRequestContext = new DuplexRequestContext();
-                await serviceChannelDispatcher.DispatchAsync(message);
+                _serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(_channel);
+                await _serviceChannelDispatcher.DispatchAsync(message);
             }
         }
 
