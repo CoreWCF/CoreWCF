@@ -11,14 +11,27 @@ namespace DesktopClient
 
         static void Main(string[] args)
         {
-            var factory = new ChannelFactory<Contract.IEchoService>(new NetTcpBinding(), new EndpointAddress("net.tcp://localhost:8808/nettcp"));
+            var binding = new NetTcpBinding(SecurityMode.TransportWithMessageCredential);
+            binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+            binding.OpenTimeout = binding.ReceiveTimeout = binding.CloseTimeout = binding.CloseTimeout = TimeSpan.FromMinutes(30);
+            binding.OpenTimeout = binding.CloseTimeout = binding.ReceiveTimeout = binding.SendTimeout
+                = TimeSpan.FromMinutes(30);
+            var factory = new ChannelFactory<Contract.IEchoService>(binding, new EndpointAddress("net.tcp://localhost:8808/nettcp"));
+
+            System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
+            factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+            {
+                CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+            };
+            clientCredentials.UserName.UserName = "testuser@corewcf";
+            clientCredentials.UserName.Password = "asallhjllfadjalklajlfjalk";
             factory.Open();
             var channel = factory.CreateChannel();
             ((IClientChannel)channel).Open();
             Console.WriteLine("net.tcp Echo(\"Hello\") => " + channel.Echo("Hello"));
             ((IClientChannel)channel).Close();
             factory.Close();
-
+            /*
             factory = new ChannelFactory<Contract.IEchoService>(new BasicHttpBinding(), new EndpointAddress(_basicHttpEndPointAddress));
             factory.Open();
             channel = factory.CreateChannel();
@@ -65,9 +78,10 @@ namespace DesktopClient
                     Console.WriteLine($"Http SOAP Response: {soapResponse}");
                 }
             }
-
+            */
             Console.WriteLine("Hit enter to exit");
             Console.ReadLine();
         }
+
     }
 }
