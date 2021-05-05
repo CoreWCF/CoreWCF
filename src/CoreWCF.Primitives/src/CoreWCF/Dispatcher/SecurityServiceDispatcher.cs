@@ -574,9 +574,9 @@ namespace CoreWCF.Dispatcher
             return;
         }
 
-        public Task CloseAsync()
+        public async Task CloseAsync()
         {
-            return Task.CompletedTask;
+            await InnerDuplexChannel.CloseAsync();
         }
 
         public Task CloseAsync(CancellationToken token)
