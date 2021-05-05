@@ -1,5 +1,5 @@
-﻿using Contract;
-using CoreWCF;
+﻿using System.Threading.Tasks;
+using Contract;
 
 namespace NetCoreServer
 {
@@ -17,9 +17,10 @@ namespace NetCoreServer
             return text.Text;
         }
 
-        [AuthorizeRole(AllowedRoles = "CoreWCFGroupAdmin")]
-        public string EchoForPermission(string echo)
+        public async Task<string> EchoStringAsync(string echo)
         {
+            System.Console.WriteLine($"Received {echo} from client!");
+            await Task.Yield();
             return echo;
         }
     }

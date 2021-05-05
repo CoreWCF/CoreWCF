@@ -12,9 +12,17 @@ namespace CoreWCF
     public class ProtocolException : CommunicationException
     {
         public ProtocolException() { }
-        public ProtocolException(string message) : base(message) { }
-        public ProtocolException(string message, Exception innerException) : base(message, innerException) { }
-        protected ProtocolException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        public ProtocolException(string message) : base(message)
+        {
+
+        }
+        public ProtocolException(string message, Exception innerException) : base(message, innerException)
+        {
+
+        }
+        protected ProtocolException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
 
         internal static ProtocolException ReceiveShutdownReturnedNonNull(Message message)
         {
