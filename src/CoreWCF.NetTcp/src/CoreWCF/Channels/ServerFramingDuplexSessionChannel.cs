@@ -100,46 +100,55 @@ namespace CoreWCF.Channels
             public async Task<Message> ReceiveAsync(CancellationToken token)
             {
                 // TODO: Apply timeouts
-                Message message;
-                ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
-                for (; ; )
+                try
                 {
-                    System.IO.Pipelines.ReadResult readResult = await _connection.Input.ReadAsync();
-                    if (readResult.IsCompleted || readResult.Buffer.Length == 0)
+                    Message message;
+                    ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
+                    for (; ; )
                     {
-                        if (!readResult.IsCompleted)
+                        System.IO.Pipelines.ReadResult readResult = await _connection.Input.ReadAsync(token);
+                        if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                         {
-                            _connection.Input.AdvanceTo(readResult.Buffer.Start);
+                            if (!readResult.IsCompleted)
+                            {
+                                _connection.Input.AdvanceTo(readResult.Buffer.Start);
+                            }
+
+                            EnsureDecoderAtEof();
+                            _connection.EOF = true;
                         }
 
-                        EnsureDecoderAtEof();
-                        _connection.EOF = true;
-                    }
+                        if (_connection.EOF)
+                        {
+                            return null;
+                        }
 
-                    if (_connection.EOF)
-                    {
-                        return null;
-                    }
+                        buffer = readResult.Buffer;
+                        message = DecodeMessage(ref buffer);
+                        _connection.Input.AdvanceTo(buffer.Start);
 
-                    buffer = readResult.Buffer;
-                    message = DecodeMessage(ref buffer);
-                    _connection.Input.AdvanceTo(buffer.Start);
+                        if (message != null)
+                        {
+                            PrepareMessage(message);
+                            return message;
+                        }
+                        else if (_connection.EOF) // could have read the END record under DecodeMessage
+                        {
+                            return null;
+                        }
 
-                    if (message != null)
-                    {
-                        PrepareMessage(message);
-                        return message;
+                        if (buffer.Length != 0)
+                        {
+                            throw Fx.AssertAndThrow("Receive: DecodeMessage() should consume the outstanding buffer or return a message.");
+                        }
                     }
-                    else if (_connection.EOF) // could have read the END record under DecodeMessage
-                    {
-                        return null;
-                    }
+                }catch(Exception ex)
+                {
 
-                    if (buffer.Length != 0)
-                    {
-                        throw Fx.AssertAndThrow("Receive: DecodeMessage() should consume the outstanding buffer or return a message.");
-                    }
+                    Console.Write("error");
+                    throw;
                 }
+
             }
 
             public Task<bool> WaitForMessageAsync(CancellationToken token)
@@ -307,26 +316,18 @@ namespace CoreWCF.Channels
 
         protected override async Task CloseOutputSessionCoreAsync(CancellationToken token)
         {
-            Connection.RawStream?.StartUnwrapRead();
-            try
-            {
-                await Connection.Output.WriteAsync(SessionEncoder.EndBytes, token);
-                await Connection.Output.FlushAsync();
-            }
-            finally
-            {
-                if (Connection.RawStream != null)
-                {
-                    await Connection.RawStream.FinishUnwrapReadAsync();
-                    Connection.RawStream = null;
-                    Connection.Output.Complete();
-                    Connection.Input.Complete();
-                }
-            }
+            await Connection.Output.WriteAsync(SessionEncoder.EndBytes, token);
+            await Connection.Output.FlushAsync();
         }
 
         protected override Task CompleteCloseAsync(CancellationToken token)
         {
+            if (Connection.RawStream != null)
+            {
+                Connection.RawStream = null;
+                Connection.Output.Complete();
+                Connection.Input.Complete();
+            }
             ReturnConnectionIfNecessary(false, token);
             return Task.CompletedTask;
         }
