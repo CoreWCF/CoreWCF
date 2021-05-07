@@ -1,33 +1,30 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
     internal class ConfigurationManagerServiceModelOptions : IConfigureNamedOptions<ServiceModelOptions>, IDisposable
     {
-        private readonly IContractResolver _mapper;
         private readonly Lazy<ServiceModelSectionGroup> _section;
         private readonly WrappedConfigurationFile _file;
-        private readonly IServiceProvider _serviceBuilder;
+
         private readonly IConfigurationHolder _holder;
 
         public ConfigurationManagerServiceModelOptions(IServiceProvider builder, string path, bool isOptional)
         {
-            _mapper = builder.GetRequiredService<IContractResolver>();
             _holder = builder.GetRequiredService<IConfigurationHolder>();
             _file = new WrappedConfigurationFile(path);
 
             _section = new Lazy<ServiceModelSectionGroup>(() =>
             {
-                var configuration = ConfigurationManager.OpenMappedMachineConfiguration(new ConfigurationFileMap(_file.ConfigPath));
+                System.Configuration.Configuration configuration = ConfigurationManager.OpenMappedMachineConfiguration(new ConfigurationFileMap(_file.ConfigPath));
                 var section = ServiceModelSectionGroup.GetSectionGroup(configuration);
 
                 if (section is null && !isOptional)
@@ -41,65 +38,56 @@ namespace CoreWCF.Configuration
 
         public void Dispose() => _file.Dispose();
 
-        public void Configure(ServiceModelOptions options) => Configure(ServiceModelDefaults.DefaultName, options);
+        public void Configure(ServiceModelOptions options)
+        {
+            Configure(ServiceModelDefaults.DefaultName, options);
+        }
 
         public void Configure(string name, ServiceModelOptions options)
         {
-            Configure(name, options, _section.Value);
+            Configure(_section.Value);
         }
 
-        private void Configure(string name, ServiceModelOptions options, ServiceModelSectionGroup group)
+        private void Configure(ServiceModelSectionGroup group)
         {
             if (group is null)
             {
                 return;
             }
 
-            // todo implement
-            if (string.Equals(ServiceModelDefaults.DefaultName, name, StringComparison.Ordinal))
-            {
-                //Add(options, group.Client?.Endpoints);
-                Add(options, group.Bindings.BasicHttpBinding.Bindings);
-                Add(options, group.Bindings.NetTcpBinding.Bindings);
-            }
-            else
-            {
-                //var service = group.Services.Services.Cast<ServiceElement>().FirstOrDefault(e => e.Name == name);
+            AddBinding(group.Bindings?.BasicHttpBinding.Bindings);
+            AddBinding(group.Bindings?.NetTcpBinding.Bindings);
+            AddBinding(group.Bindings?.NetHttpBinding.Bindings);
+            AddBinding(group.Bindings?.WSHttpBinding.Bindings);
+            AddEndpoint(group.Services?.Services);
+        }
 
-                //if (service != null)
-                //{
-                //    Add(options, service.Endpoints);
-                //}
+        private void AddEndpoint(IEnumerable endpoints)
+        {
+            foreach (ServiceElement bindingElement in endpoints.OfType<ServiceElement>())
+            {
+                string serviceName = bindingElement.Name;
+
+                foreach (ServiceEndpointElement endpoint in bindingElement.Endpoints.OfType<ServiceEndpointElement>())
+                {
+                    _holder.AddServiceEndpoint(
+                        endpoint.Name,
+                        serviceName,
+                        endpoint.Address,
+                        endpoint.Contract,
+                        endpoint.Binding,
+                        endpoint.BindingConfiguration);
+                }
             }
         }
 
-        private void Add(ServiceModelOptions options, IEnumerable endpoints)
+        private void AddBinding(IEnumerable bindings)
         {
-            if (endpoints is null)
+            foreach (StandardBindingElement bindingElement in bindings.OfType<StandardBindingElement>())
             {
-                return;
-            }
-
-            foreach (var endpoint in endpoints.OfType<StandardBindingElement>())
-            {
-                var binding = endpoint.CreateBinding();
+                Channels.Binding binding = bindingElement.CreateBinding();
                 _holder.AddBinding(binding);
             }
-
-
-            // todo implement
-            //foreach (var endpoint in endpoints.OfType<IEndpoint>())
-            //{
-            //    options.Services.Add(_mapper.ResolveContract(endpoint.Contract), o =>
-            //    {
-            //        o.Endpoint = new EndpointAddress(endpoint.Address);
-
-            //        if (!string.IsNullOrEmpty(endpoint.Binding) || !string.IsNullOrEmpty(endpoint.BindingConfiguration))
-            //        {
-            //            o.Binding = ConfigLoader.LookupBinding(endpoint.Binding, endpoint.BindingConfiguration, ConfigurationHelpers.GetEvaluationContext(endpoint));
-            //        }
-            //    });
-            //}
         }
     }
 }

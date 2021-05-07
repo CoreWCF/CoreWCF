@@ -19,43 +19,37 @@ namespace CoreWCF.Configuration
         {
         }
 
-        //[ConfigurationProperty(ConfigurationStrings.TransactionFlow, DefaultValue = TransactionFlowDefaults.Transactions)]
-        //public bool TransactionFlow
-        //{
-        //    get { return (bool)base[ConfigurationStrings.TransactionFlow]; }
-        //    set { base[ConfigurationStrings.TransactionFlow] = value; }
-        //}
+        [ConfigurationProperty(ConfigurationStrings.TransactionFlow, DefaultValue = false)]
+        public bool TransactionFlow
+        {
+            get { throw new PlatformNotSupportedException(); }
+        }
 
-        //[ConfigurationProperty(ConfigurationStrings.TransferMode, DefaultValue = ConnectionOrientedTransportDefaults.TransferMode)]
-        //[ServiceModelEnumValidator(typeof(TransferModeHelper))]
-        //public TransferMode TransferMode
-        //{
-        //    get { return (TransferMode)base[ConfigurationStrings.TransferMode]; }
-        //    set { base[ConfigurationStrings.TransferMode] = value; }
-        //}
+        [ConfigurationProperty(ConfigurationStrings.TransferMode, DefaultValue = TransferMode.Buffered)]
+        public TransferMode TransferMode
+        {
+            get { return (TransferMode)base[ConfigurationStrings.TransferMode]; }
+            set { base[ConfigurationStrings.TransferMode] = value; }
+        }
 
-        //[ConfigurationProperty(ConfigurationStrings.TransactionProtocol, DefaultValue = TransactionFlowDefaults.TransactionProtocolString)]
-        //[TypeConverter(typeof(TransactionProtocolConverter))]
-        //public TransactionProtocol TransactionProtocol
-        //{
-        //    get { return (TransactionProtocol)base[ConfigurationStrings.TransactionProtocol]; }
-        //    set { base[ConfigurationStrings.TransactionProtocol] = value; }
-        //}
+        [ConfigurationProperty(ConfigurationStrings.TransactionProtocol, DefaultValue = "")]
+        public string TransactionProtocol
+        {
+            get { throw new PlatformNotSupportedException(); }
+        }
 
-        //[ConfigurationProperty(ConfigurationStrings.HostNameComparisonMode, DefaultValue = ConnectionOrientedTransportDefaults.HostNameComparisonMode)]
-        //[ServiceModelEnumValidator(typeof(HostNameComparisonModeHelper))]
-        //public HostNameComparisonMode HostNameComparisonMode
-        //{
-        //    get { return (HostNameComparisonMode)base[ConfigurationStrings.HostNameComparisonMode]; }
-        //    set { base[ConfigurationStrings.HostNameComparisonMode] = value; }
-        //}
+        [ConfigurationProperty(ConfigurationStrings.HostNameComparisonMode, DefaultValue = HostNameComparisonMode.StrongWildcard)]
+        public HostNameComparisonMode HostNameComparisonMode
+        {
+            get { return (HostNameComparisonMode)base[ConfigurationStrings.HostNameComparisonMode]; }
+            set { base[ConfigurationStrings.HostNameComparisonMode] = value; }
+        }
 
         [ConfigurationProperty(ConfigurationStrings.ListenBacklog, DefaultValue = 1)]
-        [IntegerValidator(MinValue = 0)]       
+        [IntegerValidator(MinValue = 0)]
         public int ListenBacklog
         {
-            get { throw new PlatformNotSupportedException("Not Support"); }
-            //set { throw new Exception("Not Support"); }
+            get { throw new PlatformNotSupportedException(); }
         }
 
         [ConfigurationProperty(ConfigurationStrings.MaxBufferPoolSize, DefaultValue = 1L)]
@@ -93,8 +87,19 @@ namespace CoreWCF.Configuration
         [ConfigurationProperty(ConfigurationStrings.PortSharingEnabled, DefaultValue = false)]
         public bool PortSharingEnabled
         {
-            get { return (bool)base[ConfigurationStrings.PortSharingEnabled]; }
-            set { base[ConfigurationStrings.PortSharingEnabled] = value; }
+            get { throw new PlatformNotSupportedException(); }
+        }
+
+        [ConfigurationProperty(ConfigurationStrings.ReliableSession)]
+        public string ReliableSession
+        {
+            get { throw new PlatformNotSupportedException(); }
+        }
+
+        [ConfigurationProperty(ConfigurationStrings.Security)]
+        public NetTcpSecurityElement Security
+        {
+            get { return (NetTcpSecurityElement)base[ConfigurationStrings.Security]; }
         }
 
         [ConfigurationProperty(ConfigurationStrings.ReaderQuotas)]
@@ -105,28 +110,23 @@ namespace CoreWCF.Configuration
 
         public override Binding CreateBinding()
         {
-            var binding = new NetTcpBinding()
+            var binding = new NetTcpBinding(Security.Mode)
             {
                 Name = Name,
                 MaxReceivedMessageSize = MaxReceivedMessageSize,
                 MaxBufferSize = MaxBufferSize,
+                MaxBufferPoolSize = MaxBufferPoolSize,
+                MaxConnections = MaxConnections,                
                 ReceiveTimeout = ReceiveTimeout,
+                OpenTimeout = OpenTimeout,
+                CloseTimeout = CloseTimeout,
+                SendTimeout = SendTimeout,
                 ReaderQuotas = ReaderQuotas.Clone(),
+                TransferMode = TransferMode,
+                HostNameComparisonMode = HostNameComparisonMode
             };
 
             return binding;
         }
-
-        //[ConfigurationProperty(ConfigurationStrings.ReliableSession)]
-        //public StandardBindingOptionalReliableSessionElement ReliableSession
-        //{
-        //    get { return (StandardBindingOptionalReliableSessionElement)base[ConfigurationStrings.ReliableSession]; }
-        //}
-
-        //[ConfigurationProperty(ConfigurationStrings.Security)]
-        //public NetTcpSecurityElement Security
-        //{
-        //    get { return (NetTcpSecurityElement)base[ConfigurationStrings.Security]; }
-        //}
     }
 }

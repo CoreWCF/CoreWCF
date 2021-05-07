@@ -163,5 +163,19 @@ namespace CoreWCF.Configuration
                 base[ConfigurationStrings.EndpointConfiguration] = value;
             }
         }
+
+        internal ServiceEndpoint CreateServiceEndpoint()
+        {          
+            var endpoint = new ServiceEndpoint()
+            {
+                Name = Name,
+                Address = Address,
+                Binding = Binding,
+                BindingConfiguration = BindingConfiguration,
+                Contract = Contract
+            };
+
+            return endpoint;
+        }
     }
 }

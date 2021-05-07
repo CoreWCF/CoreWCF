@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace CoreWCF.Configuration
 {
-    public class NetTcpBindingCollectionElement : StandardBindingCollectionElement<NetTcpBinding, NetTcpBindingElement>
+    public class NetHttpBindingCollectionElement : StandardBindingCollectionElement<NetHttpBinding, NetHttpBindingElement>
     {
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Configuration;
 using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
@@ -18,14 +19,25 @@ namespace CoreWCF.Configuration
         {
         }
 
+        [ConfigurationProperty(ConfigurationStrings.Security)]
+        public BasicHttpSecurityElement Security
+        {
+            get { return (BasicHttpSecurityElement)base[ConfigurationStrings.Security]; }
+        }
+
         public override Binding CreateBinding()
         {
-            var binding = new BasicHttpBinding()
+            var binding = new BasicHttpBinding(Security.Mode)
             {
                 Name = Name,
                 MaxReceivedMessageSize = MaxReceivedMessageSize,
                 MaxBufferSize = MaxBufferSize,
                 ReceiveTimeout = ReceiveTimeout,
+                CloseTimeout = CloseTimeout,
+                OpenTimeout = OpenTimeout,
+                SendTimeout = SendTimeout,
+                TransferMode = TransferMode,
+                TextEncoding = TextEncoding,
                 ReaderQuotas = ReaderQuotas.Clone(),
             };
 

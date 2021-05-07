@@ -1,8 +1,10 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.IO;
+using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace CoreWCF.ConfigurationManager.Tests
@@ -18,8 +20,9 @@ namespace CoreWCF.ConfigurationManager.Tests
             int expectedMaxDepth = 2147483647;
             TimeSpan expectedReceiveTimeout = TimeSpan.FromMinutes(10);
             TimeSpan expectedDefaultTimeout = TimeSpan.FromMinutes(1);
+            BasicHttpSecurityMode expectedSecurityMode = BasicHttpSecurityMode.TransportWithMessageCredential;
 
-            var xml = $@"
+            string xml = $@"
 <configuration> 
     <system.serviceModel>         
         <bindings>         
@@ -27,8 +30,9 @@ namespace CoreWCF.ConfigurationManager.Tests
                 <binding name=""{expectedName}""
                          maxReceivedMessageSize=""{expectedMaxReceivedMessageSize}""
                          maxBufferSize=""{expectedMaxBufferSize}""
-                         receiveTimeout=""00:10:00"" >
-                <readerQuotas maxDepth=""{expectedMaxDepth}"" />   
+                         receiveTimeout=""00:10:00"">
+                    <security mode=""{expectedSecurityMode}""/>
+                    <readerQuotas maxDepth=""{expectedMaxDepth}"" />   
                 </binding >
             </basicHttpBinding>                             
         </bindings>                             
@@ -37,25 +41,23 @@ namespace CoreWCF.ConfigurationManager.Tests
 
             using (var fs = TemporaryFileStream.Create(xml))
             {
-                using (var provider = CreateProvider(fs.Name))
+                using (ServiceProvider provider = CreateProvider(fs.Name))
                 {
-                    var options = provider.GetRequiredService<IConfigureOptions<ServiceModelOptions>>();
-                    options.Configure(new ServiceModelOptions());
-                    var settingHolder = provider.GetService<IConfigurationHolder>();
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
 
-                    var expectedBinding = settingHolder.ResolveBinding(expectedName) as BasicHttpBinding;
-                    Assert.Equal(expectedName, expectedBinding.Name);
-                    Assert.Equal(expectedMaxReceivedMessageSize, expectedBinding.MaxReceivedMessageSize);
-                    Assert.Equal(expectedMaxBufferSize, expectedBinding.MaxBufferSize);
-                    Assert.Equal(expectedDefaultTimeout, expectedBinding.CloseTimeout);
-                    Assert.Equal(expectedDefaultTimeout, expectedBinding.OpenTimeout);
-                    Assert.Equal(expectedDefaultTimeout, expectedBinding.SendTimeout);
-                    Assert.Equal(expectedReceiveTimeout, expectedBinding.ReceiveTimeout);
-                    Assert.Equal(TransferMode.Buffered, expectedBinding.TransferMode);
-                    Assert.Equal(expectedMaxDepth, expectedBinding.ReaderQuotas.MaxDepth);
+                    var actualBinding = settingHolder.ResolveBinding(nameof(BasicHttpBinding), expectedName) as BasicHttpBinding;
+                    Assert.Equal(expectedName, actualBinding.Name);
+                    Assert.Equal(expectedMaxReceivedMessageSize, actualBinding.MaxReceivedMessageSize);
+                    Assert.Equal(expectedMaxBufferSize, actualBinding.MaxBufferSize);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.CloseTimeout);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.OpenTimeout);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.SendTimeout);
+                    Assert.Equal(expectedReceiveTimeout, actualBinding.ReceiveTimeout);
+                    Assert.Equal(TransferMode.Buffered, actualBinding.TransferMode);
+                    Assert.Equal(expectedSecurityMode, actualBinding.Security.Mode);
+                    Assert.Equal(expectedMaxDepth, actualBinding.ReaderQuotas.MaxDepth);
                 }
             }
-
         }
 
         [Fact]
@@ -67,38 +69,35 @@ namespace CoreWCF.ConfigurationManager.Tests
             TimeSpan expectedReceiveTimeout = TimeSpan.FromMinutes(10);
             TimeSpan expectedDefaultTimeout = TimeSpan.FromMinutes(1);
 
-            var xml = $@"
+            string xml = $@"
 <configuration> 
-   <system.serviceModel>         
-     <bindings>         
-       <basicHttpBinding>
-         <binding name=""{expectedName}"">                 
-         </binding >
-       </basicHttpBinding>                             
-     </bindings>                             
-   </system.serviceModel>
+    <system.serviceModel>         
+        <bindings>         
+            <basicHttpBinding>
+                <binding name=""{expectedName}""/>
+            </basicHttpBinding>                             
+        </bindings>                             
+    </system.serviceModel>
 </configuration>";
 
             using (var fs = TemporaryFileStream.Create(xml))
             {
-                using (var provider = CreateProvider(fs.Name))
+                using (ServiceProvider provider = CreateProvider(fs.Name))
                 {
-                    var options = provider.GetRequiredService<IConfigureOptions<ServiceModelOptions>>();
-                    options.Configure(new ServiceModelOptions());
-                    var settingHolder = provider.GetService<IConfigurationHolder>();
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
 
-                    var expectedBinding = settingHolder.ResolveBinding(expectedName) as BasicHttpBinding;
-                    Assert.Equal(expectedName, expectedBinding.Name);
-                    Assert.Equal(expectedMaxReceivedMessageSize, expectedBinding.MaxReceivedMessageSize);
-                    Assert.Equal(expectedMaxBufferSize, expectedBinding.MaxBufferSize);
-                    Assert.Equal(expectedDefaultTimeout, expectedBinding.CloseTimeout);
-                    Assert.Equal(expectedDefaultTimeout, expectedBinding.OpenTimeout);
-                    Assert.Equal(expectedDefaultTimeout, expectedBinding.SendTimeout);
-                    Assert.Equal(expectedReceiveTimeout, expectedBinding.ReceiveTimeout);
-                    Assert.Equal(TransferMode.Buffered, expectedBinding.TransferMode);
+                    var actualBinding = settingHolder.ResolveBinding(nameof(BasicHttpBinding), expectedName) as BasicHttpBinding;
+                    Assert.Equal(expectedName, actualBinding.Name);
+                    Assert.Equal(expectedMaxReceivedMessageSize, actualBinding.MaxReceivedMessageSize);
+                    Assert.Equal(expectedMaxBufferSize, actualBinding.MaxBufferSize);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.CloseTimeout);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.OpenTimeout);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.SendTimeout);
+                    Assert.Equal(expectedReceiveTimeout, actualBinding.ReceiveTimeout);
+                    Assert.Equal(TransferMode.Buffered, actualBinding.TransferMode);
+                    Assert.Equal(BasicHttpSecurityMode.None, actualBinding.Security.Mode);
                 }
             }
-
         }
     }
 }

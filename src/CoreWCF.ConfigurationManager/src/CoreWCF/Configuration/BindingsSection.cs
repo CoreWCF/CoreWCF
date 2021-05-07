@@ -19,5 +19,17 @@ namespace CoreWCF.Configuration
         {
             get { return (NetTcpBindingCollectionElement)base[ConfigurationStrings.NetTcpBindingCollectionElementName]; }
         }
+
+        [ConfigurationProperty(ConfigurationStrings.NetHttpBindingCollectionElementName, Options = ConfigurationPropertyOptions.None)]
+        public NetHttpBindingCollectionElement NetHttpBinding
+        {
+            get { return (NetHttpBindingCollectionElement)base[ConfigurationStrings.NetHttpBindingCollectionElementName]; }
+        }
+
+        [ConfigurationProperty(ConfigurationStrings.WSHttpBindingCollectionElementName, Options = ConfigurationPropertyOptions.None)]
+        public WSHttpBindingCollectionElement WSHttpBinding
+        {
+            get { return (WSHttpBindingCollectionElement)base[ConfigurationStrings.WSHttpBindingCollectionElementName]; }
+        }
     }
 }

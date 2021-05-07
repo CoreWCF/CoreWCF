@@ -37,36 +37,28 @@ namespace CoreWCF.Configuration
             }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.CloseTimeout, DefaultValue = ServiceDefaults.CloseTimeoutString)]
-        //[TypeConverter(typeof(TimeSpanOrInfiniteConverter))]
-        //[ServiceModelTimeSpanValidator(MinValueString = ConfigurationStrings.TimeSpanZero)]
+        [ConfigurationProperty(ConfigurationStrings.CloseTimeout, DefaultValue = ServiceDefaults.CloseTimeoutString)]    
         public TimeSpan CloseTimeout
         {
             get { return (TimeSpan)base[ConfigurationStrings.CloseTimeout]; }
             set { base[ConfigurationStrings.CloseTimeout] = value; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.OpenTimeout, DefaultValue = ServiceDefaults.OpenTimeoutString)]
-        //[TypeConverter(typeof(TimeSpanOrInfiniteConverter))]
-        //[ServiceModelTimeSpanValidator(MinValueString = ConfigurationStrings.TimeSpanZero)]
+        [ConfigurationProperty(ConfigurationStrings.OpenTimeout, DefaultValue = ServiceDefaults.OpenTimeoutString)]    
         public TimeSpan OpenTimeout
         {
             get { return (TimeSpan)base[ConfigurationStrings.OpenTimeout]; }
             set { base[ConfigurationStrings.OpenTimeout] = value; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.ReceiveTimeout, DefaultValue = ServiceDefaults.ReceiveTimeoutString)]
-        //[TypeConverter(typeof(TimeSpanOrInfiniteConverter))]
-        //[ServiceModelTimeSpanValidator(MinValueString = ConfigurationStrings.TimeSpanZero)]
+        [ConfigurationProperty(ConfigurationStrings.ReceiveTimeout, DefaultValue = ServiceDefaults.ReceiveTimeoutString)]       
         public TimeSpan ReceiveTimeout
         {
             get { return (TimeSpan)base[ConfigurationStrings.ReceiveTimeout]; }
             set { base[ConfigurationStrings.ReceiveTimeout] = value; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.SendTimeout, DefaultValue = ServiceDefaults.SendTimeoutString)]
-        //[TypeConverter(typeof(TimeSpanOrInfiniteConverter))]
-        //  [ServiceModelTimeSpanValidator(MinValueString = ConfigurationStrings.TimeSpanZero)]
+        [ConfigurationProperty(ConfigurationStrings.SendTimeout, DefaultValue = ServiceDefaults.SendTimeoutString)]     
         public TimeSpan SendTimeout
         {
             get { return (TimeSpan)base[ConfigurationStrings.SendTimeout]; }

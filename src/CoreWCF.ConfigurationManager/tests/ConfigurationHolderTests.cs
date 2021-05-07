@@ -1,0 +1,104 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using CoreWCF.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+namespace CoreWCF.ConfigurationManager.Tests
+{
+    public class ConfigurationHolderTests : TestBase
+    {
+        [Fact]
+        public void CreateDefaultBindingTest()
+        {
+            string expectedAddress = "net.tcp://localhost:8740/";
+            string expectedEndpointName = "SomeEndpoint";
+            string expectedServiceName = typeof(SomeService).FullName;
+            string xml = $@"
+<configuration> 
+    <system.serviceModel>
+        <services>
+            <service name=""{expectedServiceName}"">
+                  <endpoint address=""{expectedAddress}""
+                          name=""{expectedEndpointName}""
+                          binding=""netTcpBinding""                       
+                          contract=""{typeof(ISomeService).FullName}"" />
+            </service>
+        </services>
+   </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+
+                    IXmlConfigEndpoint endpoint = settingHolder.GetXmlConfigEndpoint(expectedEndpointName);
+
+                    Assert.Equal(expectedServiceName, endpoint.Service.FullName);
+                    Assert.Equal(typeof(NetTcpBinding), endpoint.Binding.GetType());
+                    Assert.Equal("NetTcpBinding", endpoint.Binding.Name);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetXmlConfigEndpoint_WithEmptyEndpointTest()
+        {
+            string xml = $@"
+<configuration> 
+    <system.serviceModel>
+        <services>
+            <service name=""expectedServiceName"">
+                  <endpoint address=""expectedAddress""
+                          name=""expectedEndpointName""
+                          binding=""netTcpBinding""                       
+                          contract=""{typeof(ISomeService).FullName}"" />
+            </service>
+        </services>
+   </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+
+                    Assert.Throws<NotFoundEndpointException>(() => settingHolder.GetXmlConfigEndpoint(string.Empty));
+                }
+            }
+        }
+
+        [Fact]
+        public void ResolveBinding_WithUnknownBindingTest()
+        {
+            string xml = $@"
+<configuration> 
+    <system.serviceModel>
+        <services>
+            <service name=""expectedServiceName"">
+                  <endpoint address=""expectedAddress""
+                          name=""expectedEndpointName""
+                          binding=""netTcpBinding""                       
+                          contract=""{typeof(ISomeService).FullName}"" />
+            </service>
+        </services>
+   </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+
+                    Assert.Throws<NotFoundBindingException>(() => settingHolder.ResolveBinding(nameof(NetTcpBinding), "unknown"));
+                }
+            }
+        }
+    }
+}

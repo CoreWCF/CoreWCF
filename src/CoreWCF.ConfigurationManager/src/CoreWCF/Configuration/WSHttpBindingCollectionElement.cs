@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
-    public interface IConfigurationHolder
+    public class WSHttpBindingCollectionElement : StandardBindingCollectionElement<WSHttpBinding, WSHttpBindingElement>
     {
-        void AddBinding(Binding binding);
-        Binding ResolveBinding(string name);
     }
 }

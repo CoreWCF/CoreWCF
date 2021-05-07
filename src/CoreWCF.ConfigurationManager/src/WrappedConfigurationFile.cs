@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -11,12 +12,10 @@ namespace CoreWCF.Configuration
 {
     internal class WrappedConfigurationFile
     {
-        private static readonly (string name, Type type)[] KnownSections = new[]
+        private static readonly (string name, Type type)[] s_knownSections = new[]
 {
-           // ("services", typeof(ServicesSection)),
-            ("bindings", typeof(BindingsSection)),
-           // ("extensions", typeof(ExtensionsSection)),
-           // ("client", typeof(ClientSection)), needed ??
+            ("services", typeof(ServicesSection)),
+            ("bindings", typeof(BindingsSection)),          
         };
 
         private readonly Lazy<string> _config;
@@ -29,11 +28,12 @@ namespace CoreWCF.Configuration
 
         private static string WrapFile(XDocument original)
         {
-            //var configPath = Path.GetTempFileName();
-            var configPath = @"d:\tmp.config";
-            var serviceModel = original.Descendants("system.serviceModel");
+            string configPath = Path.GetTempFileName();
+            // for debug
+            //string configPath = @"d:\tmp.config";
+            IEnumerable<XElement> serviceModel = original.Descendants("system.serviceModel");
 
-            var sections = KnownSections.Select(info => new XElement("section", new XAttribute("name", info.name), new XAttribute("type", info.type.AssemblyQualifiedName)));
+            IEnumerable<XElement> sections = s_knownSections.Select(info => new XElement("section", new XAttribute("name", info.name), new XAttribute("type", info.type.AssemblyQualifiedName)));
 
             var doc = new XDocument(
                 new XElement("configuration",

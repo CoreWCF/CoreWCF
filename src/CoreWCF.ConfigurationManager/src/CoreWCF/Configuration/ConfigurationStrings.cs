@@ -494,61 +494,6 @@ namespace CoreWCF.Configuration
         internal const string WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12 = "WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12";
         internal const string WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10 = "WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10";
         internal const string X509FindType = "x509FindType";
-        internal const string XmlElement = "xmlElement";
-
-        internal static string BehaviorsSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(BehaviorsSectionName); }
-        }
-
-        internal static string BindingsSectionGroupPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(BindingsSectionGroupName); }
-        }
-
-        internal static string ClientSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(ClientSectionName); }
-        }
-
-        internal static string ComContractsSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(ComContractsSectionName); }
-        }
-
-        internal static string CommonBehaviorsSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(CommonBehaviorsSectionName); }
-        }
-
-        internal static string DiagnosticSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(DiagnosticSectionName); }
-        }
-
-        internal static string ExtensionsSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(Extensions); }
-        }
-
-        internal static string ProtocolMappingSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(ProtocolMappingSectionName); }
-        }
-
-        internal static string ServiceHostingEnvironmentSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(ServiceHostingEnvironmentSectionName); }
-        }
-
-        internal static string ServicesSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(ServicesSectionName); }
-        }
-
-        internal static string StandardEndpointsSectionPath
-        {
-            get { return ConfigurationHelpers.GetSectionPath(StandardEndpointsSectionName); }
-        }
+        internal const string XmlElement = "xmlElement";  
     }
 }

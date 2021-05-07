@@ -20,7 +20,7 @@ namespace CoreWCF.Configuration
         /// <param name="value">Value to set</param>
         protected void SetPropertyValueIfNotDefaultValue<T>(string propertyName, T value)
         {
-            var configurationProperty = this.Properties[propertyName];
+            ConfigurationProperty configurationProperty = Properties[propertyName];
             Contract.Assert(configurationProperty != null, "Parameter 'propertyName' should be the name of a configuration property of type T");
             Contract.Assert(configurationProperty.Type.IsAssignableFrom(typeof(T)), "Parameter 'propertyName' should be the name of a configuration property of type T");
 

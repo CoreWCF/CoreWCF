@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using CoreWCF.Description;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Configuration
@@ -14,6 +15,16 @@ namespace CoreWCF.Configuration
             ServiceConfigurationDelegateHolder<TService> holder = serviceBuilder.ServiceProvider
                 .GetRequiredService<ServiceConfigurationDelegateHolder<TService>>();
             holder.AddConfigDelegate(func);
+        }
+
+        public static void AddServiceEndpoint(this IServiceBuilder builder, string name)
+        {
+            var serviceBuilder = builder as ServiceBuilder;
+            IConfigurationHolder configHolder = serviceBuilder.ServiceProvider.GetService<IConfigurationHolder>();
+            configHolder.Initialize();
+            IXmlConfigEndpoint endpoint = configHolder.GetXmlConfigEndpoint(name);
+         
+            serviceBuilder.AddServiceEndpoint(endpoint.Service, endpoint.Contract, endpoint.Binding, endpoint.Address, null);
         }
     }
 }
