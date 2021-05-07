@@ -24,7 +24,7 @@ namespace CoreWCF
         {
         }
 
-        internal static ProtocolException ReceiveShutdownReturnedNonNull(Message message)
+        public static ProtocolException ReceiveShutdownReturnedNonNull(Message message)
         {
             if (message.IsFault)
             {
