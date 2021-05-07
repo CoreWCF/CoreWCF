@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Text;
 using CoreWCF.Configuration;
 using Xunit;
 
@@ -79,6 +77,10 @@ var xml = $@"
         {
             string expectedName1 = "AnotherService";
             string expectedName2 = "SomeService";
+            string expectedBehavior = "SomeServiceBehavior";
+            string expectedBindingConfiguartion = "netTcpBindingConfigService";
+            string expectedContract = "Server.Interface.SomeService";
+            string expectedAddress = "net.tcp://localhost:9392/";
             var xml = $@"
 <configuration>
     <configSections>
@@ -90,11 +92,11 @@ var xml = $@"
         <services>
             <service name=""{expectedName1}"" />
             <service name=""{expectedName2}""
-                     behaviorConfiguration=""SomeServiceBehavior"">
+                     behaviorConfiguration=""{expectedBehavior}"">
                 <endpoint binding=""netTcpBinding""
-                          bindingConfiguration=""netTcpBindingConfigService""
-                          contract=""Server.Interface.SomeService""
-                          address=""net.tcp://localhost:9392/"" />  
+                          bindingConfiguration=""{expectedBindingConfiguartion}""
+                          contract=""{expectedContract}""
+                          address=""{expectedAddress}"" />  
             </service>   
         </services> 
     </system.serviceModel>
@@ -108,8 +110,13 @@ var xml = $@"
 
                 var firstService = section.Services.Services.Cast<ServiceElement>().ElementAt(0);
                 var secondService = section.Services.Services.Cast<ServiceElement>().ElementAt(1);
+                var endpoint = secondService.Endpoints.Cast<ServiceEndpointElement>().Single();
                 Assert.Equal(expectedName1, firstService.Name);
                 Assert.Equal(expectedName2, secondService.Name);
+                Assert.Equal(expectedBehavior, secondService.BehaviorConfiguration);
+                Assert.Equal(expectedBindingConfiguartion, endpoint.BindingConfiguration);
+                Assert.Equal(expectedContract, endpoint.Contract);
+                Assert.Equal(expectedAddress, endpoint.Address.OriginalString);
             }
         }
     }

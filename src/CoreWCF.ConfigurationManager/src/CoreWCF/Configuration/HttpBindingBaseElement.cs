@@ -3,6 +3,7 @@
 
 using System;
 using System.Configuration;
+using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
@@ -21,7 +22,7 @@ namespace CoreWCF.Configuration
             set { base[ConfigurationStrings.MaxBufferPoolSize] = value; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.MaxBufferSize, DefaultValue = 65535)]
+        [ConfigurationProperty(ConfigurationStrings.MaxBufferSize, DefaultValue = TransportDefaults.MaxBufferSize)]
         // [IntegerValidator(MinValue = 1)]
         public int MaxBufferSize
         {
@@ -30,7 +31,7 @@ namespace CoreWCF.Configuration
         }
 
 
-        [ConfigurationProperty(ConfigurationStrings.MaxReceivedMessageSize, DefaultValue = 1024L)]
+        [ConfigurationProperty(ConfigurationStrings.MaxReceivedMessageSize, DefaultValue = TransportDefaults.MaxReceivedMessageSize)]
         // [LongValidator(MinValue = 1)]
         public long MaxReceivedMessageSize
         {

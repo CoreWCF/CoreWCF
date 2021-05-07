@@ -51,10 +51,10 @@ namespace CoreWCF.Configuration
         //}
 
         [ConfigurationProperty(ConfigurationStrings.ListenBacklog, DefaultValue = 1)]
-        [IntegerValidator(MinValue = 0)]
+        [IntegerValidator(MinValue = 0)]       
         public int ListenBacklog
         {
-            get { throw new Exception("Not Support"); }
+            get { throw new PlatformNotSupportedException("Not Support"); }
             //set { throw new Exception("Not Support"); }
         }
 
@@ -66,7 +66,7 @@ namespace CoreWCF.Configuration
             set { base[ConfigurationStrings.MaxBufferPoolSize] = value; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.MaxBufferSize, DefaultValue = 1)]
+        [ConfigurationProperty(ConfigurationStrings.MaxBufferSize, DefaultValue = 65536)]
         [IntegerValidator(MinValue = 1)]
         public int MaxBufferSize
         {
@@ -82,7 +82,7 @@ namespace CoreWCF.Configuration
             set { base[ConfigurationStrings.MaxConnections] = value; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.MaxReceivedMessageSize, DefaultValue = 1L)]
+        [ConfigurationProperty(ConfigurationStrings.MaxReceivedMessageSize, DefaultValue = 65536L)]
         [LongValidator(MinValue = 1)]
         public long MaxReceivedMessageSize
         {
