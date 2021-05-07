@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 namespace CoreWCF.Runtime
 {
     // This class is based on the blog post https://blogs.msdn.microsoft.com/pfxteam/2012/02/11/building-async-coordination-primitives-part-1-asyncmanualresetevent/
-    internal class AsyncManualResetEvent : IDisposable
+    // move this to common folder - TODO Biroj
+    public class AsyncManualResetEvent : IDisposable
     {
         private TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
