@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.IO.Pipelines;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {

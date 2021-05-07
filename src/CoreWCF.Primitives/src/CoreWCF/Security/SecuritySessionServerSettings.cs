@@ -2115,10 +2115,11 @@ namespace CoreWCF.Security
 
             private async Task CloseDuplexSessionChannelAsync(CancellationToken token)
             {
-                TimeoutHelper timeoutHelper = new TimeoutHelper(ServiceDefaults.CloseTimeout);
-                await ((ISessionChannel<IDuplexSession>)_duplexSessionChannel).Session.CloseOutputSessionAsync(token);
-                await _duplexSessionChannel.CloseAsync(token);
-                /*
+                TimeoutHelper timeoutHelper = new TimeoutHelper(TimeSpan.FromMinutes(30));
+                await ((ISessionChannel<IDuplexSession>)_duplexSessionChannel).Session.CloseOutputSessionAsync(timeoutHelper.GetCancellationToken());
+               //await _duplexSessionChannel.CloseAsync(timeoutHelper.GetCancellationToken());
+               // _duplexSessionChannel.Abort();
+               
                 TimeSpan iterationTimeout = timeoutHelper.RemainingTime();
                 bool lastIteration = (iterationTimeout == TimeSpan.Zero);
 
@@ -2133,7 +2134,7 @@ namespace CoreWCF.Security
                         receiveThrowing = false;
                         if (success && receiveMessage == null)
                         {
-                            await _duplexSessionChannel.CloseAsync(token);
+                            await _duplexSessionChannel.CloseAsync(timeoutHelper.GetCancellationToken());
                             return;
                         }
                     }
@@ -2166,7 +2167,7 @@ namespace CoreWCF.Security
                     iterationTimeout = timeoutHelper.RemainingTime();
                     lastIteration = (iterationTimeout == TimeSpan.Zero);
                 }
-                _duplexSessionChannel.Abort();*/
+                _duplexSessionChannel.Abort();
             }
 
             private void DetermineCloseOutputSessionMessage(out bool sendClose, out bool sendCloseResponse, out Message pendingCloseResponseMessage, out RequestContext pendingCloseRequestContext)
