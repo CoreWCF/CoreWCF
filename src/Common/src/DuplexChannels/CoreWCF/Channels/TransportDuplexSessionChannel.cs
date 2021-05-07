@@ -222,7 +222,7 @@ namespace CoreWCF.Channels
             if (!_isInputSessionClosed)
             {
                 // TODO: Come up with some way to know when the input is closed. Maybe register something on the connection transport or have a Task which gets completed on close
-                //await EnsureInputClosedAsync(token);
+               // await EnsureInputClosedAsync(token);
                 OnInputSessionClosed();
             }
 
@@ -350,6 +350,19 @@ namespace CoreWCF.Channels
             if (_isOutputSessionClosed)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SendCannotBeCalledAfterCloseOutputSession));
+            }
+        }
+
+        async Task EnsureInputClosedAsync(CancellationToken token)
+        {
+            Message message = await this.MessageSource.ReceiveAsync(token);
+            if (message != null)
+            {
+                using (message)
+                {
+                    ProtocolException error = ProtocolException.ReceiveShutdownReturnedNonNull(message);
+                    throw TraceUtility.ThrowHelperError(error, message);
+                }
             }
         }
 
