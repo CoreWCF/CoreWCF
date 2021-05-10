@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Net;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -16,8 +17,14 @@ namespace Helpers
 {
     public static class ServiceHelper
     {
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper) where TStartup : class =>
-            WebHost.CreateDefaultBuilder(Array.Empty<string>())
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress = null, int port = 0) where TStartup : class
+        {
+            if (ipAddress == null)
+            {
+                //using .Any breaks the getaddress method
+                ipAddress = IPAddress.Loopback;
+            }
+            return WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
@@ -27,12 +34,14 @@ namespace Helpers
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #endif // DEBUG
-            .UseNetTcp(0)
+            .UseNetTcp(ipAddress, port)
             .UseStartup<TStartup>();
-
+        }
         public static string GetNetTcpAddressInUse(this IWebHost host)
         {
-            return $"net.tcp://localhost:{host.GetNetTcpPortInUse()}";
+            System.Collections.Generic.ICollection<string> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
+            var addressInUse = new Uri(addresses.First(), UriKind.Absolute);
+            return $"net.tcp://{addressInUse.Host}:{addressInUse.Port}";
         }
 
         public static int GetNetTcpPortInUse(this IWebHost host)
