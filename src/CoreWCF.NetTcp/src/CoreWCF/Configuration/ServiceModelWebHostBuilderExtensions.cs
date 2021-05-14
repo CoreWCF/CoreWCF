@@ -28,6 +28,11 @@ namespace CoreWCF.Configuration
             return webHostBuilder.UseNetTcp(IPAddress.Any, port);
         }
 
+        public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, IPAddress ipAddress)
+        {
+            return webHostBuilder.UseNetTcp(ipAddress, 808);
+        }
+
         public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, IPAddress ipAddress, int port)
         {
             webHostBuilder.ConfigureServices(services =>
