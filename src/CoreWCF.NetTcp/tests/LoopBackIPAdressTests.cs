@@ -26,14 +26,16 @@ namespace CoreWCF.NetTcp.Tests
         public void SettingIPAdressProperty()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, IPAddress.Loopback, 11808).Build();
+            int port = 11808;
+            string expectedBaseAddress = $"net.tcp://{IPAddress.Loopback}:{port}";
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, IPAddress.Loopback, port).Build();
             using (host)
             {
                 host.Start();
-                Assert.Equal("net.tcp://127.0.0.1:11808", host.GetNetTcpAddressInUse());
+                Assert.Equal(expectedBaseAddress, host.GetNetTcpAddressInUse());
                 var netTcpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(netTcpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("net.tcp://" + IPAddress.Loopback + ":11808/EchoService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"{expectedBaseAddress}/EchoService.svc")));
                 var channel = factory.CreateChannel();
                 
                 var result = channel.EchoString(testString);
