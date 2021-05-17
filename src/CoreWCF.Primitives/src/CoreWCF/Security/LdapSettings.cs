@@ -63,6 +63,7 @@ namespace CoreWCF.Security
             OrgUnit = orgUnit;
             Validate();
             EnableLdapClaimResolution = true;
+            ClaimsCache = new MemoryCache(new MemoryCacheOptions { SizeLimit = ClaimsCacheSize });
         }
 
         /// <summary>
@@ -156,16 +157,16 @@ namespace CoreWCF.Security
             {
                 if (Servers == null || Servers.Length == 0)
                 {
-                    throw new ArgumentException($"{nameof(EnableLdapClaimResolution)} is set to true but ldap server not set.");
+                    throw new ArgumentException(SR.Format(SR.EnableLdapClaimResolutionServer, nameof(EnableLdapClaimResolution)));
                 }
                 if (string.IsNullOrEmpty(Domain))
                 {
-                    throw new ArgumentException($"{nameof(EnableLdapClaimResolution)} is set to true but {nameof(Domain)} is not set.");
+                    throw new ArgumentException(SR.Format(SR.EnableLdapClaimResolutionDomain, nameof(EnableLdapClaimResolution), nameof(Domain)));
                 }
 
                 if (string.IsNullOrEmpty(MachineAccountName) && !string.IsNullOrEmpty(MachineAccountPassword))
                 {
-                    throw new ArgumentException($"{nameof(MachineAccountPassword)} should only be specified when {nameof(MachineAccountName)} is configured.");
+                    throw new ArgumentException(SR.Format(SR.EnableLdapClaimResolutionMachine, nameof(MachineAccountPassword), nameof(MachineAccountName)));
                 }
             }
         }

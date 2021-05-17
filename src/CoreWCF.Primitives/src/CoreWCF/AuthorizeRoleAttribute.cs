@@ -13,7 +13,12 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.OperationContract, Inherited = true)]
     public class AuthorizeRoleAttribute : Attribute, IAuthorizeOperation
     {
-        public string AllowedRoles { get; set; }
+        private string[] _allowedRoles;
+
+        public AuthorizeRoleAttribute(params string[] allowedRoles)
+        {
+            _allowedRoles = allowedRoles;
+        }
 
         public void BuildClaim(OperationDescription operationDescription, DispatchOperation dispatchOperation)
         {
@@ -26,13 +31,12 @@ namespace CoreWCF
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatchOperation));
             }
-            if (String.IsNullOrEmpty(AllowedRoles))
+            if (_allowedRoles == null || _allowedRoles.Length ==0)
             {
                 return;
             }
-            string[] roles = AllowedRoles.Split(',');
             List<Claim> allClaims = new List<Claim>();
-            foreach(string role in roles)
+            foreach(string role in _allowedRoles)
             {
                 allClaims.Add(new Claim(ClaimTypes.Role, role.Trim(), Rights.Identity));
             }

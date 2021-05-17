@@ -420,9 +420,9 @@ namespace CoreWCF.Description
             return knownTypes;
         }
 
-        private KeyedByTypeCollection<IOperation> GetIOperationAttributesFromType<IOperation>(OperationDescription opDesc, Type targetIface, Type implType)
+        private KeyedByTypeCollection<TOperation> GetIOperationAttributesFromType<TOperation>(OperationDescription opDesc, Type targetIface, Type implType)
         {
-            var result = new KeyedByTypeCollection<IOperation>();
+            var result = new KeyedByTypeCollection<TOperation>();
             var ifaceMap = default(InterfaceMapping);
             bool useImplAttrs = false;
             if (implType != null)

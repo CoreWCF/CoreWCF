@@ -181,14 +181,14 @@ namespace CoreWCF.Channels
                 {
                     WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
                     SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
-                    WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts, _parent.LdapSettings);
+                    WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
                     token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
                     authorizationPolicies = authenticator.ValidateToken(token);
                 }
                 else
                 {
                     token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
-                    GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator(_parent.LdapSettings);
+                    GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator(_ldapSettings);
                     authorizationPolicies = authenticator.ValidateToken(token);
                 }
                 SecurityMessageProperty clientSecurity = new SecurityMessageProperty

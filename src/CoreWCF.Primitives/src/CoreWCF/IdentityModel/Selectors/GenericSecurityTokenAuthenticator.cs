@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
@@ -58,7 +59,8 @@ namespace CoreWCF.IdentityModel.Selectors
 
             if (_ldapSettings != null)
             {
-                List<Claim> allCaims = LdapAdapter.RetrieveClaims(_ldapSettings, genericToken.GenericIdentity.Name  );
+                List<Claim> allCaims = LdapAdapter.RetrieveClaimsAsync(_ldapSettings, genericToken.GenericIdentity.Name).Result;
+                // if this is made async, many other API changes has to happen. COnsidering this is one of the scenario, ok to take the hit ?
                 foreach (Claim claim in allCaims)
                 {
                     claims.Add(claim);

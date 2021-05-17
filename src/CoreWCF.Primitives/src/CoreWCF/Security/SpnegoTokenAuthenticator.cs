@@ -115,7 +115,7 @@ namespace CoreWCF.Security
 
         protected override SspiNegotiationTokenAuthenticatorState CreateSspiState(byte[] incomingBlob, string incomingValueTypeUri)
         {
-            ISspiNegotiation windowsNegotiation = new WindowsSspiNegotiation("Negotiate", DefaultServiceBinding, GetNegotiateState());
+            ISspiNegotiation windowsNegotiation = new WindowsSspiNegotiation("Negotiate", GetNegotiateState());
             return new SspiNegotiationTokenAuthenticatorState(windowsNegotiation);
         }
 
@@ -151,7 +151,7 @@ namespace CoreWCF.Security
             {
                 WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
                 Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, _allowUnauthenticatedCallers);
-                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts,LdapSettings);
+                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts);
                 token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
                 authorizationPolicies = authenticator.ValidateToken(token);
             }

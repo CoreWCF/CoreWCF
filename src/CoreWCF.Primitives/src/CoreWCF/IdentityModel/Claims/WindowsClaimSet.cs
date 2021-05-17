@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Security.Claims;
 using System.Security.Principal;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Security;
@@ -17,6 +19,7 @@ namespace CoreWCF.IdentityModel.Claims
         private IList<Claim> _claims;
         private bool _disposed = false;
         private readonly string _authenticationType;
+        GroupSidClaimCollection groups;
 
         public WindowsClaimSet(WindowsIdentity windowsIdentity)
             : this(windowsIdentity, DefaultIncludeWindowsGroups)
@@ -126,6 +129,18 @@ namespace CoreWCF.IdentityModel.Claims
 
         public DateTime ExpirationTime { get; }
 
+        GroupSidClaimCollection Groups
+        {
+            get
+            {
+                if (this.groups == null)
+                {
+                    this.groups = new GroupSidClaimCollection(_windowsIdentity);
+                }
+                return this.groups;
+            }
+        }
+
         internal WindowsClaimSet Clone()
         {
             ThrowIfDisposed();
@@ -159,7 +174,7 @@ namespace CoreWCF.IdentityModel.Claims
             claims.Add(Claim.CreateNameClaim(_windowsIdentity.Name));
             if (_includeWindowsGroups)
             {
-                // claims.AddRange(Groups);
+                claims.AddRange(Groups);
             }
             return claims;
         }
@@ -272,6 +287,29 @@ namespace CoreWCF.IdentityModel.Claims
             }
             claim = null;
             return false;
+        }
+
+        class GroupSidClaimCollection : Collection<Claim>
+        {
+            public GroupSidClaimCollection(WindowsIdentity windowsIdentity)
+            {
+                if (windowsIdentity.Token != IntPtr.Zero)
+                {
+                   foreach (var groupId in windowsIdentity.Groups)
+                    {
+                        var group = groupId.Translate(typeof(NTAccount));
+                        string[] domainGroups = group.Value.Split(new char[] { '\\' });
+                        if(domainGroups.Length>1)
+                        {
+                            base.Add(new Claim(ClaimTypes.Role, domainGroups[1], Rights.Identity));
+                        }
+                        else
+                        {
+                            base.Add(new Claim(ClaimTypes.Role, group, Rights.Identity));
+                        }
+                    }
+                }
+            }
         }
     }
 }

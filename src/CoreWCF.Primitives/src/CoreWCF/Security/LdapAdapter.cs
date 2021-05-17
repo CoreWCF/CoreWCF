@@ -6,38 +6,33 @@ using System.Collections.Generic;
 using System.DirectoryServices.Protocols;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Claims;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Security
 {
     internal static class LdapAdapter
     {
-        public static List<Claim> RetrieveClaims(LdapSettings settings, string userName)
+        public static async Task<List<Claim>> RetrieveClaimsAsync(LdapSettings settings, string originalUserName)
         {
-            var user = userName;
-            var userAccountNameIndex = user.IndexOf('@');
+            var upnIndex = originalUserName.IndexOf('@');
             var userAccountName = "";
-            if (userAccountNameIndex == -1)
+            if (upnIndex == -1)
             {
-                userAccountNameIndex = user.IndexOf("\\");
-                if (userAccountNameIndex == -1)
+                int domainIndex = originalUserName.IndexOf("\\");
+                if (domainIndex == -1)
                     return null;
-                userAccountName = user.Substring(userAccountNameIndex+1);
+                userAccountName = originalUserName.Substring(domainIndex + 1);
             }
             else
             {
-                userAccountName = user.Substring(0, userAccountNameIndex);
+                userAccountName = originalUserName.Substring(0, upnIndex);
             }
 
             List<Claim> roleClaims = new List<IdentityModel.Claims.Claim>();
-            if (settings.ClaimsCache == null)
-            {
-                settings.ClaimsCache = new MemoryCache(new MemoryCacheOptions { SizeLimit = settings.ClaimsCacheSize });
-            }
 
-            if (settings.ClaimsCache.TryGetValue<IEnumerable<string>>(user, out var cachedClaims))
+            if (settings.ClaimsCache.TryGetValue<IEnumerable<string>>(originalUserName, out var cachedClaims))
             {
                 foreach (var claim in cachedClaims)
                 {
@@ -51,19 +46,37 @@ namespace CoreWCF.Security
             var retrievedClaims = new List<string>();
             if (!string.IsNullOrEmpty(settings.OrgUnit))
             {
-               distinguishedName = "OU=" + settings.OrgUnit + "," + distinguishedName;
+                distinguishedName = "OU=" + settings.OrgUnit + "," + distinguishedName;
             }
-            var filter = $"(&(objectClass=user)(sAMAccountName={userAccountName}))"; // This is using ldap search query language, it is looking on the server for someUser
-            var searchRequest = new SearchRequest(distinguishedName, filter, SearchScope.Subtree, null);
+
+            var genericFilter = $"(&(objectClass=user)(sAMAccountName={userAccountName}))"; // This is using ldap search query language, it is looking on the server for someUser
+            var upnFilter = $"(&(objectClass=user)(userPrincipalName={originalUserName}))";
+            var genericSearchRequest = new SearchRequest(distinguishedName, genericFilter, SearchScope.Subtree, null);
+            var upnSearchRequest = new SearchRequest(distinguishedName, upnFilter, SearchScope.Subtree, null);
             SearchResponse searchResponse = null;
             try
             {
-                searchResponse = settings.LdapConnection.SendRequest(searchRequest) as SearchResponse;
+                if (upnIndex > 0)
+                {
+                    searchResponse = (SearchResponse)await Task<DirectoryResponse>.Factory.FromAsync(
+                    settings.LdapConnection.BeginSendRequest, settings.LdapConnection.EndSendRequest,
+                    upnSearchRequest, PartialResultProcessing.NoPartialResultSupport, null);
+                    if(searchResponse !=null && searchResponse.Entries != null && searchResponse.Entries.Count > 1)
+                    {
+                        throw new Exception(SR.DuplicateUPN); //resource
+                    }
+                }
+                if (searchResponse == null || searchResponse.Entries == null || searchResponse.Entries.Count == 0)
+                {
+                    searchResponse = (SearchResponse)await Task<DirectoryResponse>.Factory.FromAsync(
+                    settings.LdapConnection.BeginSendRequest, settings.LdapConnection.EndSendRequest,
+                    genericSearchRequest, PartialResultProcessing.NoPartialResultSupport, null);
+                }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
-               if (searchResponse?.ErrorMessage !=null)
+                if (searchResponse?.ErrorMessage != null)
                 {
                     throw new Exception(searchResponse.ErrorMessage);
                 }
@@ -71,7 +84,7 @@ namespace CoreWCF.Security
                 {
                     throw ex;
                 }
-            } 
+            }
 
             if (searchResponse.Entries.Count > 0)
             {
@@ -86,14 +99,14 @@ namespace CoreWCF.Security
                     retrievedClaims.Add(groupCN);
                 }
 
-                var entrySize = user.Length * 2; //Approximate the size of stored key in memory cache.
+                var entrySize = originalUserName.Length * 2; //Approximate the size of stored key in memory cache.
                 foreach (var claim in retrievedClaims)
                 {
                     roleClaims.Add(new Claim(ClaimTypes.Role, claim, Rights.Identity));
                     entrySize += claim.Length * 2; //Approximate the size of stored value in memory cache.
                 }
 
-                settings.ClaimsCache.Set(user,
+                settings.ClaimsCache.Set(originalUserName,
                     retrievedClaims,
                     new MemoryCacheEntryOptions()
                         .SetSize(entrySize)
