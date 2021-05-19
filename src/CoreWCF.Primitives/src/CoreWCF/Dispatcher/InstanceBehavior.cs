@@ -28,12 +28,7 @@ namespace CoreWCF.Dispatcher
 
             if (_provider == null)
             {
-                ConstructorInfo constructor = null;
-                if (dispatch.Type != null)
-                {
-                    constructor = GetConstructor(dispatch.Type);
-                }
-
+                bool hasDefaultConstructor = dispatch.Type != null && InvokerUtil.HasDefaultConstructor(dispatch.Type);
                 if (_singleton == null)
                 {
                     if (dispatch.Type != null && (dispatch.Type.GetTypeInfo().IsAbstract || dispatch.Type.GetTypeInfo().IsInterface))
@@ -41,18 +36,17 @@ namespace CoreWCF.Dispatcher
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxServiceTypeNotCreatable));
                     }
 
-                    if (constructor == null)
+                    if (!hasDefaultConstructor)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor));
                     }
                 }
 
-                if (constructor != null)
+                if (!hasDefaultConstructor)
                 {
                     if (_singleton == null || !_singleton.IsWellKnown)
                     {
-                        InvokerUtil util = new InvokerUtil();
-                        CreateInstanceDelegate creator = util.GenerateCreateInstanceDelegate(dispatch.Type, constructor);
+                        CreateInstanceDelegate creator = InvokerUtil.GenerateCreateInstanceDelegate(dispatch.Type);
                         _provider = new InstanceProvider(creator);
                     }
                 }

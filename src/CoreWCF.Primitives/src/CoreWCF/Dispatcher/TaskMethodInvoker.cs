@@ -271,7 +271,7 @@ namespace CoreWCF.Dispatcher
             {
                 // Only pass locals byref because InvokerUtil may store temporary results in the byref.
                 // If two threads both reference this.count, temporary results may interact.
-                InvokeDelegate invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(TaskMethod, out int inputParameterCount, out int outputParameterCount);
+                InvokeDelegate invokeDelegate = InvokerUtil.GenerateInvokeDelegate(TaskMethod, out int inputParameterCount, out int outputParameterCount);
                 _inputParameterCount = inputParameterCount;
                 _outputParameterCount = outputParameterCount;
                 _invokeDelegate = invokeDelegate;  // must set this last due to race
