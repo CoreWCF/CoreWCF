@@ -381,6 +381,7 @@ namespace CoreWCF.Description
         internal const string SMMessageHeaderAttributeFullName = "System.ServiceModel.MessageHeaderAttribute";
         internal const string SMMessagePropertyAttributeFullName = "System.ServiceModel.MessagePropertyAttribute";
         internal const string SMMessageBodyMemberAttributeFullName = "System.ServiceModel.MessageBodyMemberAttribute";
+        internal const string SMMessageParameterAttributeFullName = "System.ServiceModel.MessageParameterAttribute";
 
         internal static readonly string CWCFMesssageHeaderAttribute = "CoreWCF.MessageHeaderAttribute";
         internal static readonly string CWCFMesssageHeaderArrayAttribute = "CoreWCF.MessageHeaderArrayAttribute";
