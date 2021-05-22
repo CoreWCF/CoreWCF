@@ -6,7 +6,7 @@ using System;
 namespace CoreWCF
 {
     [AttributeUsage(CoreWCFAttributeTargets.Parameter, Inherited = false)]
-    internal sealed class MessageParameterAttribute : Attribute
+    public sealed class MessageParameterAttribute : Attribute
     {
         private string _name;
         internal const string NamePropertyName = "Name";
