@@ -6,7 +6,15 @@ using System.ServiceModel;
 namespace ClientContract
 {
     [ServiceContract]
-    public interface IServiceWithMessageParameter
+    public interface IServiceWithCoreWCFMessageParameter
+    {
+        [OperationContract]
+        [return: MessageParameter(Name = "Output")]
+        string Identity([MessageParameter(Name = "Input")] string msg);
+    }
+
+    [ServiceContract]
+    public interface IServiceWithSSMMessageParameter
     {
         [OperationContract]
         [return: MessageParameter(Name = "Output")]

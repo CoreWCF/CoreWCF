@@ -19,12 +19,12 @@ using Xunit.Abstractions;
 
 namespace BasicHttp
 {
-    public class ServiceWithMessageParameterTest : IClassFixture<IntegrationTest<ServiceWithMessageParameterTest.Startup>>
+    public class ServiceWithSSMMessageParameterTest : IClassFixture<IntegrationTest<ServiceWithSSMMessageParameterTest.Startup>>
     {
         private readonly ITestOutputHelper _output;
         private readonly IntegrationTest<Startup> _factory;
 
-        public ServiceWithMessageParameterTest(ITestOutputHelper output, IntegrationTest<Startup> factory)
+        public ServiceWithSSMMessageParameterTest(ITestOutputHelper output, IntegrationTest<Startup> factory)
         {
             _output = output;
             _factory = factory;
@@ -38,9 +38,9 @@ namespace BasicHttp
             {
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceWithMessageParameter>(httpBinding,
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceWithSSMMessageParameter>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
-                IServiceWithMessageParameter channel = factory.CreateChannel();
+                IServiceWithSSMMessageParameter channel = factory.CreateChannel();
 
 
                 var result = channel.Identity("test");
@@ -53,7 +53,7 @@ namespace BasicHttp
         public async Task BasicScenarioServiceMessageParameterWithHttpClient()
         {
             var client = _factory.CreateClient();
-            const string action = "http://tempuri.org/IServiceWithMessageParameter/Identity";
+            const string action = "http://tempuri.org/IServiceWithSSMMessageParameter/Identity";
 
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost:8080/BasicWcfService/Service.svc", UriKind.Absolute));
             request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
@@ -100,8 +100,8 @@ namespace BasicHttp
             {
                 app.UseServiceModel(builder =>
                 {
-                    builder.AddService<Services.ServiceWithMessageParameter>();
-                    builder.AddServiceEndpoint<Services.ServiceWithMessageParameter, Services.IServiceWithMessageParameter>(new BasicHttpBinding(), "/BasicWcfService/Service.svc");
+                    builder.AddService<Services.ServiceWithSSMMessageParameter>();
+                    builder.AddServiceEndpoint<Services.ServiceWithSSMMessageParameter, Services.IServiceWithSSMMessageParameter>(new BasicHttpBinding(), "/BasicWcfService/Service.svc");
                 });
             }
         }
