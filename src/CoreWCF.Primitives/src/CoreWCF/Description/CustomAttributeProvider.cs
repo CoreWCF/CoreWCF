@@ -116,7 +116,7 @@ namespace CoreWCF.Description
                     result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName)).ToArray();
                     for (int i = 0; i < result.Length; i++)
                     {
-                        result[i] = ConvertFromServiceModelMessageHeadertAttribute(result[i]);
+                        result[i] = ConvertFromServiceModelMessageHeaderAttribute(result[i]);
                     }
                 }
                 else if (attributeType == typeof(MessageBodyMemberAttribute))
@@ -189,7 +189,7 @@ namespace CoreWCF.Description
             return messageContract;
         }
 
-        private static MessageHeaderAttribute ConvertFromServiceModelMessageHeadertAttribute(object attr)
+        private static MessageHeaderAttribute ConvertFromServiceModelMessageHeaderAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName), "Expected attribute of type System.ServiceModel.MessageHeader");
 
@@ -246,14 +246,14 @@ namespace CoreWCF.Description
 
         private static MessagePropertyAttribute ConvertFromServiceModelMessagePropertyAttribute(object attr)
         {
-            var messsageProperty = new MessagePropertyAttribute();
+            var messageProperty = new MessagePropertyAttribute();
             string tmpStr = GetProperty<string>(attr, nameof(MessagePropertyAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
             {
-                messsageProperty.Name = tmpStr;
+                messageProperty.Name = tmpStr;
             }
 
-            return messsageProperty;
+            return messageProperty;
         }
         private static OperationContractAttribute ConvertFromServiceModelOperationContractAttribute(object attr)
         {
