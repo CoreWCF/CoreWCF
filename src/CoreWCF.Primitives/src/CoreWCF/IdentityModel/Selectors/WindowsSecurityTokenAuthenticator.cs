@@ -27,7 +27,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
-            return token is WindowsSecurityToken;
+            return (token is WindowsSecurityToken || token is GenericSecurityToken);
         }
 
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)

@@ -69,20 +69,20 @@ namespace CoreWCF.IdentityModel.Claims
             _windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
         }
 
-        internal WindowsClaimSet(ClaimsIdentity claimsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone, IList<Claim> _fromClaims)
+        internal WindowsClaimSet(ClaimsIdentity claimsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone, IList<Claim> _fromClaims, LdapSettings ldapSettings)
             :this(authenticationType, includeWindowsGroups, expirationTime, clone, _fromClaims)
         {
             if (claimsIdentity == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claimsIdentity));
             }
-            _windowsIdentity = claimsIdentity;
+            _windowsIdentity = (clone && claimsIdentity is WindowsIdentity) ? SecurityUtils.CloneWindowsIdentityIfNecessary((WindowsIdentity)claimsIdentity, authenticationType) : claimsIdentity;
+            _ldapSettings = ldapSettings;
         }
 
        internal WindowsClaimSet(ClaimsIdentity claimsIdentity, bool includeWindowsGroups,  LdapSettings ldapSettings)
-        : this(claimsIdentity, null, includeWindowsGroups, DateTime.UtcNow.AddHours(10), false, null)
+        : this(claimsIdentity, null, includeWindowsGroups, DateTime.UtcNow.AddHours(10), false, null,ldapSettings)
         {
-            _ldapSettings = ldapSettings;
         }
 
         private WindowsClaimSet(string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone, IList<Claim> _fromClaims)
@@ -103,7 +103,7 @@ namespace CoreWCF.IdentityModel.Claims
 
 
         private WindowsClaimSet(WindowsClaimSet from)
-            : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from.ExpirationTime, true, from._claims)
+            : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from.ExpirationTime, true, from._claims, from._ldapSettings)
         {
         }
 
