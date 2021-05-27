@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -177,20 +178,19 @@ namespace CoreWCF.Channels
                 IIdentity remoteIdentity = negotiateStream.RemoteIdentity;
                 SecurityToken token;
                 ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts, _ldapSettings);
                 if (remoteIdentity is WindowsIdentity)
                 {
                     WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
                     SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
-                    WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
                     token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
-                    authorizationPolicies = authenticator.ValidateToken(token);
                 }
                 else
                 {
+                    ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                     token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
-                    GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator(_ldapSettings);
-                    authorizationPolicies = authenticator.ValidateToken(token);
                 }
+                authorizationPolicies = authenticator.ValidateToken(token);
                 SecurityMessageProperty clientSecurity = new SecurityMessageProperty
                 {
                     TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),

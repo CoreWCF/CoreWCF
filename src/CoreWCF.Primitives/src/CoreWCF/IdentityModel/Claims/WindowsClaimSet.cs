@@ -14,12 +14,13 @@ namespace CoreWCF.IdentityModel.Claims
     internal class WindowsClaimSet : ClaimSet, IIdentityInfo, IDisposable
     {
         internal const bool DefaultIncludeWindowsGroups = true;
-        private readonly WindowsIdentity _windowsIdentity;
+        private readonly ClaimsIdentity _windowsIdentity;
         private readonly bool _includeWindowsGroups;
         private IList<Claim> _claims;
         private bool _disposed = false;
         private readonly string _authenticationType;
         GroupSidClaimCollection groups;
+        LdapSettings _ldapSettings;
 
         public WindowsClaimSet(WindowsIdentity windowsIdentity)
             : this(windowsIdentity, DefaultIncludeWindowsGroups)
@@ -58,6 +59,7 @@ namespace CoreWCF.IdentityModel.Claims
         }
 
         internal WindowsClaimSet(WindowsIdentity windowsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone, IList<Claim> _fromClaims)
+            : this(authenticationType, includeWindowsGroups, expirationTime, clone, _fromClaims)
         {
             if (windowsIdentity == null)
             {
@@ -65,19 +67,40 @@ namespace CoreWCF.IdentityModel.Claims
             }
 
             _windowsIdentity = clone ? SecurityUtils.CloneWindowsIdentityIfNecessary(windowsIdentity, authenticationType) : windowsIdentity;
+        }
+
+        internal WindowsClaimSet(ClaimsIdentity claimsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone, IList<Claim> _fromClaims)
+            :this(authenticationType, includeWindowsGroups, expirationTime, clone, _fromClaims)
+        {
+            if (claimsIdentity == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claimsIdentity));
+            }
+            _windowsIdentity = claimsIdentity;
+        }
+
+       internal WindowsClaimSet(ClaimsIdentity claimsIdentity, bool includeWindowsGroups,  LdapSettings ldapSettings)
+        : this(claimsIdentity, null, includeWindowsGroups, DateTime.UtcNow.AddHours(10), false, null)
+        {
+            _ldapSettings = ldapSettings;
+        }
+
+        private WindowsClaimSet(string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone, IList<Claim> _fromClaims)
+        {
             _includeWindowsGroups = includeWindowsGroups;
             ExpirationTime = expirationTime;
             _authenticationType = authenticationType;
-            if(_fromClaims != null && _fromClaims.Count>0)
+            if (_fromClaims != null && _fromClaims.Count > 0)
             {
                 List<Claim> allClaims = new List<Claim>();
-                foreach(Claim claim in _fromClaims)
+                foreach (Claim claim in _fromClaims)
                 {
                     allClaims.Add(claim);
                 }
                 _claims = allClaims;
             }
         }
+
 
         private WindowsClaimSet(WindowsClaimSet from)
             : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from.ExpirationTime, true, from._claims)
@@ -113,7 +136,7 @@ namespace CoreWCF.IdentityModel.Claims
             }
         }
 
-        public WindowsIdentity WindowsIdentity
+        public ClaimsIdentity WindowsIdentity
         {
             get
             {
@@ -135,7 +158,7 @@ namespace CoreWCF.IdentityModel.Claims
             {
                 if (this.groups == null)
                 {
-                    this.groups = new GroupSidClaimCollection(_windowsIdentity);
+                    this.groups = new GroupSidClaimCollection(_windowsIdentity, _ldapSettings);
                 }
                 return this.groups;
             }
@@ -152,26 +175,34 @@ namespace CoreWCF.IdentityModel.Claims
             if (!_disposed)
             {
                 _disposed = true;
-                _windowsIdentity.Dispose();
+                if(_windowsIdentity is WindowsIdentity)
+                    ((WindowsIdentity)_windowsIdentity).Dispose();
             }
         }
 
         private IList<Claim> InitializeClaimsCore()
         {
-            if (_windowsIdentity.AccessToken == null)
+            List<Claim> claims = new List<Claim>();
+            if (_windowsIdentity is WindowsIdentity)
             {
-                return new List<Claim>();
+                WindowsIdentity _windowsInternalIdentity = (WindowsIdentity)_windowsIdentity;
+                if (_windowsInternalIdentity.AccessToken == null)
+                {
+                    return new List<Claim>();
+                }
+
+                claims.Add(new Claim(ClaimTypes.Sid, _windowsInternalIdentity.User, Rights.Identity));
+                if (TryCreateWindowsSidClaim(_windowsInternalIdentity, out Claim claim))
+                {
+                    claims.Add(claim);
+                }
+                claims.Add(Claim.CreateNameClaim(_windowsIdentity.Name));
+            }
+            else
+            {
+                claims.Add(Claim.CreateNameClaim(_windowsIdentity.Name));
             }
 
-            List<Claim> claims = new List<Claim>(3)
-            {
-                new Claim(ClaimTypes.Sid, _windowsIdentity.User, Rights.Identity)
-            };
-            if (TryCreateWindowsSidClaim(_windowsIdentity, out Claim claim))
-            {
-                claims.Add(claim);
-            }
-            claims.Add(Claim.CreateNameClaim(_windowsIdentity.Name));
             if (_includeWindowsGroups)
             {
                 claims.AddRange(Groups);
@@ -225,13 +256,13 @@ namespace CoreWCF.IdentityModel.Claims
                 {
                     if (right == null || Rights.Identity == right)
                     {
-                        yield return new Claim(ClaimTypes.Sid, _windowsIdentity.User, Rights.Identity);
+                        yield return new Claim(ClaimTypes.Sid, _windowsIdentity, Rights.Identity);
                     }
                 }
 
                 if (right == null || Rights.PossessProperty == right)
                 {
-                    if (TryCreateWindowsSidClaim(_windowsIdentity, out Claim sid))
+                    if (_windowsIdentity is WindowsIdentity && TryCreateWindowsSidClaim((WindowsIdentity)_windowsIdentity, out Claim sid))
                     {
                         if (claimType == sid.ClaimType)
                         {
@@ -291,24 +322,38 @@ namespace CoreWCF.IdentityModel.Claims
 
         class GroupSidClaimCollection : Collection<Claim>
         {
-            public GroupSidClaimCollection(WindowsIdentity windowsIdentity)
+            public GroupSidClaimCollection(ClaimsIdentity claimsIdentity, LdapSettings ldapSettings)
             {
-                if (windowsIdentity.Token != IntPtr.Zero)
+                if(claimsIdentity is WindowsIdentity)
                 {
-                   foreach (var groupId in windowsIdentity.Groups)
+                    var windowsIdentity = (WindowsIdentity)claimsIdentity;
+                    if (windowsIdentity.Token != IntPtr.Zero)
                     {
-                        var group = groupId.Translate(typeof(NTAccount));
-                        string[] domainGroups = group.Value.Split(new char[] { '\\' });
-                        if(domainGroups.Length>1)
+                        foreach (var groupId in windowsIdentity.Groups)
                         {
-                            base.Add(new Claim(ClaimTypes.Role, domainGroups[1], Rights.Identity));
-                        }
-                        else
-                        {
-                            base.Add(new Claim(ClaimTypes.Role, group, Rights.Identity));
+                            var group = groupId.Translate(typeof(NTAccount));
+                            string[] domainGroups = group.Value.Split(new char[] { '\\' });
+                            if (domainGroups.Length > 1)
+                            {
+                                base.Add(new Claim(ClaimTypes.Role, domainGroups[1], Rights.Identity));
+                            }
+                            else
+                            {
+                                base.Add(new Claim(ClaimTypes.Role, group, Rights.Identity));
+                            }
                         }
                     }
                 }
+                else if(ldapSettings !=null)
+                {
+                    List<Claim> allClaims = LdapAdapter.RetrieveClaimsAsync(ldapSettings, claimsIdentity.Name).GetAwaiter().GetResult();
+                    //should we make above sync -- this would be in the Open path..
+                    foreach(Claim roleClaim in allClaims)
+                    {
+                        base.Add(roleClaim);
+                    }
+                }
+
             }
         }
     }

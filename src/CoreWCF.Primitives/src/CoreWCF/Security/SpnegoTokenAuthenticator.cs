@@ -4,6 +4,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Net;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -146,22 +147,19 @@ namespace CoreWCF.Security
         {
             IIdentity remoteIdentity = identity;
             SecurityToken token;
-            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+            WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts, _ldapSettings);
             if (remoteIdentity is WindowsIdentity)
             {
                 WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
-                Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, _allowUnauthenticatedCallers);
-                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts);
+                SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
                 token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
-                authorizationPolicies = authenticator.ValidateToken(token);
             }
             else
             {
+                ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                 token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
-                GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator(LdapSettings);
-                authorizationPolicies = authenticator.ValidateToken(token);
             }
-            return authorizationPolicies;
+            return authenticator.ValidateToken(token);
         }
 
         private NegotiateInternalState GetNegotiateState() => (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();
