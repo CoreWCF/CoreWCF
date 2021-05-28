@@ -15,5 +15,15 @@ namespace CoreWCF.Configuration
                 .GetRequiredService<ServiceConfigurationDelegateHolder<TService>>();
             holder.AddConfigDelegate(func);
         }
+
+        public static void AddServiceEndpoint(this IServiceBuilder builder, string name)
+        {
+            var serviceBuilder = builder as ServiceBuilder;
+            IConfigurationHolder configHolder = serviceBuilder.ServiceProvider.GetService<IConfigurationHolder>();
+            configHolder.Initialize();
+            IXmlConfigEndpoint endpoint = configHolder.GetXmlConfigEndpoint(name);
+
+            serviceBuilder.AddServiceEndpoint(endpoint.Service, endpoint.Contract, endpoint.Binding, endpoint.Address, null);
+        }
     }
 }
