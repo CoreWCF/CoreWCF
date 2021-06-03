@@ -40,8 +40,9 @@ function Set-SSL_WCF_ServiceHost {
     $certHash = "certhash=$($certificateObject.Thumbprint)"
     $appid = "appid={1d7985f5-e1b0-4fd4-bdeb-7e28590783da}"
 
-#    netsh http add sslcert ipport=127.0.0.1:8443 $certHash $appid certstorename=Root
+    netsh http add sslcert ipport=127.0.0.1:8443 $certHash $appid certstorename=Root
     netsh http add sslcert hostnameport=localhost:8443 $certHash $appid certstorename=Root
+    netsh http add sslcert hostnameport=localtest:8443 $certHash $appid certstorename=Root
 #    Netsh http delete sslcert ipport=127.0.0.1:8443
 #    Netsh http delete sslcert hostnameport=localhost:8443
 #   netsh http add urlacl url=https://+:8443/ user=everyone

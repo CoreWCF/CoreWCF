@@ -29,9 +29,12 @@ namespace StandardClient
             }
         }
 
-        public static TResult WcfInvoke<TContract, TResult>(this Func<TContract, TResult> wcfAction, Binding binding, string url)
+        public static TResult WcfInvoke<TContract, TResult>(this Func<TContract, TResult> wcfAction,
+            Binding binding, string url, Action<ChannelFactory<TContract>> factorySetup = null)
         {
-            var factory = new ChannelFactory<TContract>( binding, new EndpointAddress(url));
+            ChannelFactory<TContract> factory = new ChannelFactory<TContract>( binding, new EndpointAddress(url));
+            factorySetup?.Invoke(factory);
+
             factory.Open();
             try
             {
@@ -42,5 +45,21 @@ namespace StandardClient
                 factory.Close();
             }
         }
+
+        private static readonly TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
+
+        public static Binding ApplyDebugTimeouts(this Binding binding, TimeSpan debugTimeout = default(TimeSpan))
+        {
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                debugTimeout = default(TimeSpan) == debugTimeout ? s_debugTimeout : debugTimeout;
+                binding.OpenTimeout =
+                    binding.CloseTimeout =
+                    binding.SendTimeout =
+                    binding.ReceiveTimeout = debugTimeout;
+            }
+            return binding;
+        }
+
     }
 }
