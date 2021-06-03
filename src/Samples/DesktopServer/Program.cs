@@ -1,25 +1,39 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.ServiceModel;
 
 namespace DesktopServer
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            var contract = typeof(Contract.IEchoService);
-            var host = new ServiceHost(typeof(EchoService),
-                new Uri("net.tcp://localhost:8089/"),
-                new Uri("http://localhost:8088/"),
-                new Uri("https://localhost:8443/"));
+            string hostname = "localhost"; //"localtest"
 
-            host.AddServiceEndpoint(contract, new NetTcpBinding(), "/nettcp");
+            IEnumerable<string> baseAddressList = new[] {
+                "net.tcp://localhost:8089/",
+                "http://localhost:8088/",
+                "https://localhost:8443/" };
+            baseAddressList = baseAddressList.Select(i => i.Replace("//localhost:", $"//{hostname}:"));
+            var baseUriList = baseAddressList.Select(a => new Uri(a)).ToArray();
+
+            Type contract = typeof(Contract.IEchoService);
+            var host = new ServiceHost(typeof(EchoService), baseUriList);
+
             host.AddServiceEndpoint(contract, new BasicHttpBinding(BasicHttpSecurityMode.None), "/basichttp");
             host.AddServiceEndpoint(contract, new BasicHttpsBinding(BasicHttpsSecurityMode.Transport), "/basichttp");
             host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.None), "/wsHttp.svc");
             host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.Transport), "/wsHttp.svc");
+
+            var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
+            serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
+            host.AddServiceEndpoint(contract, serverBindingHttpsUserPassword, "/wsHttpUserPassword.svc");
+            CustomUserNamePasswordValidator.AddToHost(host);
+
+            host.AddServiceEndpoint(contract, new NetTcpBinding(), "/nettcp");
             host.Open();
-            foreach(var endpoint in host.Description.Endpoints)
+            foreach(System.ServiceModel.Description.ServiceEndpoint endpoint in host.Description.Endpoints)
             {
                 Console.WriteLine("Listening on " + endpoint.ListenUri.ToString());
             }

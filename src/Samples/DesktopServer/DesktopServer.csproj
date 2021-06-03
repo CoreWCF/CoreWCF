@@ -4,6 +4,9 @@
     <TargetFramework>net472</TargetFramework>
     <UserSecretsId>corewcf-samples-secrets</UserSecretsId>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\CustomUserNamePasswordValidator.cs" Link="CustomUserNamePasswordValidator.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System" />

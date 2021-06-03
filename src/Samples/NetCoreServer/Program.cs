@@ -23,7 +23,6 @@ namespace NetCoreServer
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {
-
 #if NET472
                         httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
 #endif // NET472
