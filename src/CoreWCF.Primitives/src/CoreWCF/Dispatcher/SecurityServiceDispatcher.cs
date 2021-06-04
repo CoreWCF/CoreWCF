@@ -488,7 +488,7 @@ namespace CoreWCF.Dispatcher
 
         public Task OpenAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 
