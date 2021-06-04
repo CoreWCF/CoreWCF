@@ -4,19 +4,15 @@ using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using CoreWCF.Samples.StandardCommon;
 
 namespace NetCoreServer
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddServiceModelServices();
-        }
-
         private static readonly TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
-        private static void ApplyDebugTimeouts(CoreWCF.Channels.Binding binding)
+        private static CoreWCF.Channels.Binding ApplyDebugTimeouts(CoreWCF.Channels.Binding binding)
         {
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -25,6 +21,12 @@ namespace NetCoreServer
                     binding.SendTimeout =
                     binding.ReceiveTimeout = s_debugTimeout;
             }
+            return binding;
+        }
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddServiceModelServices();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -39,18 +41,20 @@ namespace NetCoreServer
 
                 var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
                 ApplyDebugTimeouts(serverBindingHttpsUserPassword);
-
                 serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
 
                 builder.ConfigureServiceHostBase<EchoService>(CustomUserNamePasswordValidatorCore.AddToHost);
 
+                Settings settings = new Settings().SetDetaults();
+
                 builder
                     .AddService<EchoService>()
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBindingHttpsUserPassword, "/wsHttpUserPassword.svc")
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new BasicHttpBinding(), "/basichttp")
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBinding, "/wsHttp.svc")
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBindingHttps, "/wsHttp.svc")
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp");
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(
+                        serverBindingHttpsUserPassword, settings.wsHttpAddressValidateUserPassword.LocalPath)
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new BasicHttpBinding(), settings.basicHttpAddress.LocalPath)
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBinding, settings.wsHttpAddress.LocalPath)
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBindingHttps, settings.wsHttpsAddress.LocalPath)
+                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), settings.netTcpAddress.LocalPath);
             });
         }
     }

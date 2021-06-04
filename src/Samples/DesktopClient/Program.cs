@@ -1,6 +1,6 @@
 ﻿using System;
 using StandardClient;
-using StandardCommon;
+using CoreWCF.Samples.StandardCommon;
 
 namespace DesktopClient
 {
@@ -10,7 +10,7 @@ namespace DesktopClient
 
         static void Main()
         {
-            var settings = new Settings().SetDetaults(s_hostname);
+            Settings settings = new Settings().SetDetaults(s_hostname);
 
             void log(string value) => Console.WriteLine(value);
             ClientLogic.CallUsingWcf(settings, log);

@@ -1,14 +1,16 @@
-﻿namespace StandardCommon
+﻿using System;
+
+namespace CoreWCF.Samples.StandardCommon
 {
     public class Settings
     {
         public bool UseHttps { get; set; } = true;
-        public string basicHttpAddress { get; set; }
-        public string basicHttpsAddress { get; set; }
-        public string wsHttpAddress { get; set; }
-        public string wsHttpAddressValidateUserPassword { get; set; }
-        public string wsHttpsAddress { get; set; }
-        public string netTcpAddress { get; set; }
+        public Uri basicHttpAddress { get; set; }
+        public Uri basicHttpsAddress { get; set; }
+        public Uri wsHttpAddress { get; set; }
+        public Uri wsHttpAddressValidateUserPassword { get; set; }
+        public Uri wsHttpsAddress { get; set; }
+        public Uri netTcpAddress { get; set; }
 
         public Settings SetDetaults(string hostname = "localhost")
         {
@@ -16,12 +18,12 @@
             string baseHttpsAddress = hostname + ":8443";
             string baseTcpAddress = hostname + ":8089";
 
-            basicHttpAddress = $"http://{baseHttpAddress}/basichttp";
-            basicHttpsAddress = $"https://{baseHttpsAddress}/basichttp";
-            wsHttpAddress = $"http://{baseHttpAddress}/wsHttp.svc";
-            wsHttpAddressValidateUserPassword = $"https://{baseHttpsAddress}/wsHttpUserPassword.svc";
-            wsHttpsAddress = $"https://{baseHttpsAddress}/wsHttp.svc";
-            netTcpAddress = $"net.tcp://{baseTcpAddress }/nettcp";
+            basicHttpAddress = new Uri($"http://{baseHttpAddress}/basichttp");
+            basicHttpsAddress = new Uri($"https://{baseHttpsAddress}/basichttp");
+            wsHttpAddress = new Uri($"http://{baseHttpAddress}/wsHttp.svc");
+            wsHttpAddressValidateUserPassword = new Uri($"https://{baseHttpsAddress}/wsHttpUserPassword.svc");
+            wsHttpsAddress = new Uri($"https://{baseHttpsAddress}/wsHttp.svc");
+            netTcpAddress = new Uri($"net.tcp://{baseTcpAddress }/nettcp");
             return this;
         }
     }

@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\CoreWCF.Http\src\CoreWCF.Http.csproj" />
     <ProjectReference Include="..\..\CoreWCF.NetTcp\src\CoreWCF.NetTcp.csproj" />
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="..\StandardCommon\Samples.StandardCommon.csproj" />
   </ItemGroup>
 
 </Project>

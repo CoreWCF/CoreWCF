@@ -8,6 +8,6 @@
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\StandardCommon\StandardCommon.csproj" />
+    <ProjectReference Include="..\StandardCommon\Samples.StandardCommon.csproj" />
   </ItemGroup>
 </Project>

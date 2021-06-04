@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StandardClient\StandardClient.csproj" />
+    <ProjectReference Include="..\StandardClient\Samples.StandardClient.csproj" />
   </ItemGroup>
 
 </Project>
