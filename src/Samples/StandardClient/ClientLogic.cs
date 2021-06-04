@@ -3,7 +3,7 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Text;
 using Contract;
-using StandardCommon;
+using CoreWCF.Samples.StandardCommon;
 
 namespace StandardClient
 {
@@ -30,7 +30,7 @@ namespace StandardClient
             {
                 WSHttpBinding binding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
                 binding.ApplyDebugTimeouts();
-                binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                binding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
                 log($"WsHttps TransportWithMessageCredential:\n\tEcho(\"Hello\") => "
                     + echo.WcfInvoke(binding,
                         settings.wsHttpAddressValidateUserPassword,
@@ -69,7 +69,7 @@ namespace StandardClient
         /// Creates a basic web request to the specified endpoint,
         /// sends the SOAP request and reads the response
         /// </summary>
-        public static string CallUsingWebRequest(string address)
+        public static string CallUsingWebRequest(Uri address)
         {
             string _soapEnvelopeContent =
 @"<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>
@@ -85,7 +85,7 @@ namespace StandardClient
             byte[] bodyContentBytes = utf8Encoder.GetBytes(_soapEnvelopeContent);
 
             // Create the web request
-            var webRequest = System.Net.WebRequest.Create(new Uri(address));
+            var webRequest = System.Net.WebRequest.Create(address);
             webRequest.Headers.Add("SOAPAction", "http://tempuri.org/IEchoService/Echo");
             webRequest.ContentType = "text/xml";
             webRequest.Method = "POST";

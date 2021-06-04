@@ -30,7 +30,7 @@ namespace StandardClient
         }
 
         public static TResult WcfInvoke<TContract, TResult>(this Func<TContract, TResult> wcfAction,
-            Binding binding, string url, Action<ChannelFactory<TContract>> factorySetup = null)
+            Binding binding, Uri url, Action<ChannelFactory<TContract>> factorySetup = null)
         {
             ChannelFactory<TContract> factory = new ChannelFactory<TContract>( binding, new EndpointAddress(url));
             factorySetup?.Invoke(factory);
@@ -48,11 +48,11 @@ namespace StandardClient
 
         private static readonly TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
-        public static Binding ApplyDebugTimeouts(this Binding binding, TimeSpan debugTimeout = default(TimeSpan))
+        public static Binding ApplyDebugTimeouts(this Binding binding, TimeSpan debugTimeout = default)
         {
             if (System.Diagnostics.Debugger.IsAttached)
             {
-                debugTimeout = default(TimeSpan) == debugTimeout ? s_debugTimeout : debugTimeout;
+                debugTimeout = default == debugTimeout ? s_debugTimeout : debugTimeout;
                 binding.OpenTimeout =
                     binding.CloseTimeout =
                     binding.SendTimeout =
