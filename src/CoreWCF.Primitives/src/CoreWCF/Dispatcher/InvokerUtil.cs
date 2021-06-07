@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 
@@ -86,31 +87,47 @@ namespace CoreWCF.Dispatcher
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
-                int inputCount = parameters.Length;
-                inputParameterCount = inputCount;
-
+                int paramCount = parameters.Length;
+                
+                var inputParamPositions = new List<int>();
                 var outputParamPositions = new List<int>();
-                for (int i = 0; i < inputParameterCount; i++)
+                for (int i = 0; i < parameters.Length; i++)
                 {
                     if (parameters[i].ParameterType.IsByRef)
                     {
-                        outputParamPositions.Add(i);
+                        if (parameters[i].IsOut)
+                        {
+                            outputParamPositions.Add(i);
+                        }
+                        else
+                        {
+                            inputParamPositions.Add(i);
+                            outputParamPositions.Add(i);
+                        }
+                    }
+                    else
+                    {
+                        inputParamPositions.Add(i);
                     }
                 }
-
+                
+                int[] inputPos = inputParamPositions.ToArray();
                 int[] outputPos = outputParamPositions.ToArray();
+
+                inputParameterCount = inputPos.Length;
                 outputParameterCount = outputPos.Length;
 
                 // TODO: Replace with expression to remove performance cost of calling delegate.Invoke.
                 InvokeDelegate lambda = delegate (object target, object[] inputs, object[] outputs)
                 {
-                    object[] inputsLocal = null;
-                    if (inputCount > 0)
+                    object[] paramsLocal = null;
+                    if (paramCount > 0)
                     {
-                        inputsLocal = new object[inputCount];
-                        for (int i = 0; i < inputCount; i++)
+                        paramsLocal = new object[paramCount];
+
+                        for (int i = 0; i < inputPos.Length; i++)
                         {
-                            inputsLocal[i] = inputs[i];
+                            paramsLocal[inputPos[i]] = inputs[i];
                         }
                     }
 
@@ -119,11 +136,11 @@ namespace CoreWCF.Dispatcher
                     {
                         if (returnsValue)
                         {
-                            result = method.Invoke(target, inputsLocal);
+                            result = method.Invoke(target, paramsLocal);
                         }
                         else
                         {
-                            method.Invoke(target, inputsLocal);
+                            method.Invoke(target, paramsLocal);
                         }
                     }
                     catch (TargetInvocationException tie)
@@ -133,7 +150,8 @@ namespace CoreWCF.Dispatcher
 
                     for (int i = 0; i < outputPos.Length; i++)
                     {
-                        outputs[i] = inputsLocal[outputPos[i]];
+                        Debug.Assert(paramsLocal != null);
+                        outputs[i] = paramsLocal[outputPos[i]];
                     }
 
                     return result;
