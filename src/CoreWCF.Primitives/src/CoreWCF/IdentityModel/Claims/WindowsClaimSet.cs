@@ -19,7 +19,7 @@ namespace CoreWCF.IdentityModel.Claims
         private IList<Claim> _claims;
         private bool _disposed = false;
         private readonly string _authenticationType;
-        GroupSidClaimCollection groups;
+        GroupSidClaimCollection _groups;
         LdapSettings _ldapSettings;
 
         public WindowsClaimSet(WindowsIdentity windowsIdentity)
@@ -70,7 +70,7 @@ namespace CoreWCF.IdentityModel.Claims
         }
 
         internal WindowsClaimSet(ClaimsIdentity claimsIdentity, string authenticationType, bool includeWindowsGroups, DateTime expirationTime, bool clone, IList<Claim> _fromClaims, LdapSettings ldapSettings)
-            :this(authenticationType, includeWindowsGroups, expirationTime, clone, _fromClaims)
+            : this(authenticationType, includeWindowsGroups, expirationTime, clone, _fromClaims)
         {
             if (claimsIdentity == null)
             {
@@ -100,7 +100,6 @@ namespace CoreWCF.IdentityModel.Claims
                 _claims = allClaims;
             }
         }
-
 
         private WindowsClaimSet(WindowsClaimSet from)
             : this(from.WindowsIdentity, from._authenticationType, from._includeWindowsGroups, from.ExpirationTime, true, from._claims, from._ldapSettings)
@@ -156,11 +155,11 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (this.groups == null)
+                if (this._groups == null)
                 {
-                    this.groups = new GroupSidClaimCollection(_windowsIdentity, _ldapSettings);
+                    this._groups = new GroupSidClaimCollection(_windowsIdentity, _ldapSettings);
                 }
-                return this.groups;
+                return this._groups;
             }
         }
 
@@ -250,19 +249,19 @@ namespace CoreWCF.IdentityModel.Claims
             {
                 yield break;
             }
-            else if (_claims == null && (ClaimTypes.Sid == claimType || ClaimTypes.DenyOnlySid == claimType))
+            else if (_claims == null && _windowsIdentity is WindowsIdentity && (ClaimTypes.Sid == claimType || ClaimTypes.DenyOnlySid == claimType))
             {
                 if (ClaimTypes.Sid == claimType)
                 {
                     if (right == null || Rights.Identity == right)
                     {
-                        yield return new Claim(ClaimTypes.Sid, _windowsIdentity, Rights.Identity);
+                        yield return new Claim(ClaimTypes.Sid, ((WindowsIdentity)_windowsIdentity).User, Rights.Identity);
                     }
                 }
 
                 if (right == null || Rights.PossessProperty == right)
                 {
-                    if (_windowsIdentity is WindowsIdentity && TryCreateWindowsSidClaim((WindowsIdentity)_windowsIdentity, out Claim sid))
+                    if (TryCreateWindowsSidClaim((WindowsIdentity)_windowsIdentity, out Claim sid))
                     {
                         if (claimType == sid.ClaimType)
                         {
@@ -273,8 +272,14 @@ namespace CoreWCF.IdentityModel.Claims
 
                 if (_includeWindowsGroups && (right == null || Rights.PossessProperty == right))
                 {
-                    // Not sure yet if GroupSidClaimCollections are necessary in .NET Core, but default 
-                    // _includeWindowsGroups is true; don't throw here or we bust the default case on UWP/.NET Core
+                    for (int i = 0; i < this.Groups.Count; ++i)
+                    {
+                        Claim sid = this.Groups[i];
+                        if (claimType == sid.ClaimType)
+                        {
+                            yield return sid;
+                        }
+                    }
                 }
             }
             else
@@ -347,7 +352,6 @@ namespace CoreWCF.IdentityModel.Claims
                 else if(ldapSettings !=null)
                 {
                     List<Claim> allClaims = LdapAdapter.RetrieveClaimsAsync(ldapSettings, claimsIdentity.Name).GetAwaiter().GetResult();
-                    //should we make above sync -- this would be in the Open path..
                     foreach(Claim roleClaim in allClaims)
                     {
                         base.Add(roleClaim);
