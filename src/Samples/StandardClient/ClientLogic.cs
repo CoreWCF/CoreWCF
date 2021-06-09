@@ -14,11 +14,27 @@ namespace StandardClient
             Settings settings,
             Action<string> log)
         {
-            var echo = (Func<IEchoService, string>)((IEchoService channel) =>
+            var echo = (Func<IEchoService, string>)(channel =>
                channel.Echo("Hello"));
+            var echoFault = (Func<IEchoService, bool>)(channel =>
+            {
+                try
+                {
+                    channel.FailEcho("Hello Fault");
+                }
+                catch (FaultException<EchoFault> e)
+                {
+                    Console.WriteLine("FaultException<EchoFault>: fault with " + e.Detail.Text);
+                    ((IClientChannel)channel).Abort();
+                }
+                return false;
+            });
 
             log($"BasicHttp:\n\tEcho(\"Hello\") => "
                 + echo.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress));
+
+            log($"BasicHttp:\nFailEcho(\"Hello Fault\") => "
+                + echoFault.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress));
 
             log($"WsHttp:\n\tEcho(\"Hello\") => "
                 + echo.WcfInvoke(new WSHttpBinding(SecurityMode.None), settings.wsHttpAddress));

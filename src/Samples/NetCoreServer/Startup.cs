@@ -33,28 +33,32 @@ namespace NetCoreServer
         {
             app.UseServiceModel(builder =>
             {
-                var serverBinding = new WSHttpBinding(SecurityMode.None);
-                serverBinding.Security.Message.ClientCredentialType = MessageCredentialType.None;
-
-                var serverBindingHttps = new WSHttpBinding(SecurityMode.Transport);
-                serverBindingHttps.Security.Message.ClientCredentialType = MessageCredentialType.None;
-
-                var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
-                ApplyDebugTimeouts(serverBindingHttpsUserPassword);
-                serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
+                WSHttpBinding GetTransportWithMessageCredentialBinding ()
+                {
+                    var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
+                    serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
+                    return serverBindingHttpsUserPassword;
+                }
 
                 builder.ConfigureServiceHostBase<EchoService>(CustomUserNamePasswordValidatorCore.AddToHost);
 
-                Settings settings = new Settings().SetDetaults();
+                void ConfigureSoapService<TService,TContract>(string serviceprefix) where TService : class
+                {
+                    Settings settings = new Settings().SetDefaults("localhost", serviceprefix);
+                    builder.AddService<TService>()
+                        .AddServiceEndpoint<TService, TContract>(
+                            GetTransportWithMessageCredentialBinding(), settings.wsHttpAddressValidateUserPassword.LocalPath)
+                        .AddServiceEndpoint<TService, TContract>(new BasicHttpBinding(),
+                            settings.basicHttpAddress.LocalPath)
+                        .AddServiceEndpoint<TService, TContract>(new WSHttpBinding(SecurityMode.None),
+                            settings.wsHttpAddress.LocalPath)
+                        .AddServiceEndpoint<TService, TContract>(new WSHttpBinding(SecurityMode.Transport),
+                            settings.wsHttpsAddress.LocalPath)
+                        .AddServiceEndpoint<TService, TContract>(new NetTcpBinding(),
+                            settings.netTcpAddress.LocalPath);
+                }
 
-                builder
-                    .AddService<EchoService>()
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(
-                        serverBindingHttpsUserPassword, settings.wsHttpAddressValidateUserPassword.LocalPath)
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new BasicHttpBinding(), settings.basicHttpAddress.LocalPath)
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBinding, settings.wsHttpAddress.LocalPath)
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(serverBindingHttps, settings.wsHttpsAddress.LocalPath)
-                    .AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), settings.netTcpAddress.LocalPath);
+                ConfigureSoapService<EchoService, Contract.IEchoService>(nameof(EchoService));
             });
         }
     }

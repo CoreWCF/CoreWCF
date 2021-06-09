@@ -10,7 +10,7 @@ namespace DesktopClient
 
         static void Main()
         {
-            Settings settings = new Settings().SetDetaults(s_hostname);
+            Settings settings = new Settings().SetDefaults(s_hostname);
 
             void log(string value) => Console.WriteLine(value);
             ClientLogic.CallUsingWcf(settings, log);
