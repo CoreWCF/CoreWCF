@@ -13,4 +13,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StandardClient\StandardClient.csproj" />
+  </ItemGroup>
 </Project>

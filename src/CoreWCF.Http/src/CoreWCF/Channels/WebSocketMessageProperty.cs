@@ -14,6 +14,10 @@ namespace CoreWCF.Channels
         public const string Name = "WebSocketMessageProperty";
         private readonly ReadOnlyDictionary<string, object> _properties;
 
+        /// <summary>
+        /// Initializes a new instance of the WebSocketMessageProperty class.
+        /// </summary>
+        /// <remarks>Defaults: WebSocketMessageType.Binary</remarks>
         public WebSocketMessageProperty()
         {
             MessageType = WebSocketDefaults.DefaultWebSocketMessageType;
@@ -27,10 +31,19 @@ namespace CoreWCF.Channels
             _properties = properties;
         }
 
+        /// <summary>
+        /// Gets the web socket context.
+        /// </summary>
         public WebSocketContext WebSocketContext { get; }
 
+        /// <summary>
+        /// Gets the sub-protocol.
+        /// </summary>
         public string SubProtocol { get; }
 
+        /// <summary>
+        /// Gets or sets the type of the message. The default is WebSocketMessageType.Binary.
+        /// </summary>
         public WebSocketMessageType MessageType { get; set; }
 
         public ReadOnlyDictionary<string, object> OpeningHandshakeProperties

@@ -317,12 +317,6 @@ namespace ServiceContract
                     break;
             }
 
-            //workaround for https://github.com/CoreWCF/CoreWCF/issues/193
-            if (s.ToLower().Contains("byhand"))
-            {
-                actual = actual.Substring(0, actual.IndexOf("[NotInvoked]")) + ";";
-            }
-
             Xunit.Assert.Equal(expected, actual);
         }
 

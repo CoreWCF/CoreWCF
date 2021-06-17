@@ -4,8 +4,12 @@
 using System;
 using System.ServiceModel;
 using CoreWCF.Description;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DispatcherClient
 {
@@ -13,7 +17,7 @@ namespace DispatcherClient
     {
         internal static string s_endpointAddress = "corewcf://localhost/Service.svc";
 
-        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<IServiceCollection> configure) where TService : class
+        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<IServiceCollection> configure, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default) where TService : class
         {
             var binding = new DispatcherBinding<TService, TContract>((services) =>
             {
@@ -21,7 +25,9 @@ namespace DispatcherClient
                 IServerAddressesFeature serverAddressesFeature = new ServerAddressesFeature();
                 serverAddressesFeature.Addresses.Add(new Uri(s_endpointAddress).GetLeftPart(UriPartial.Authority) + "/");
                 services.AddSingleton(serverAddressesFeature);
-            });
+                services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+                services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            }, configureServiceHostBase);
             return new ChannelFactory<TContract>(binding, new EndpointAddress(s_endpointAddress));
         }
 

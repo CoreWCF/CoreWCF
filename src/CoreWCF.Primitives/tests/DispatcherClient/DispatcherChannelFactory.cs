@@ -27,12 +27,14 @@ namespace DispatcherClient
     internal class DispatcherChannelFactory<TChannel, TService, TContract> : DispatcherChannelFactory, IChannelFactory<TChannel> where TService : class
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly Action<CoreWCF.ServiceHostBase> _configureServiceHostBase;
         private readonly IDictionary<object, IServiceChannelDispatcher> _serviceChannelDispatchers = new Dictionary<object, IServiceChannelDispatcher>();
         private readonly object _lock = new object();
 
-        public DispatcherChannelFactory(Action<IServiceCollection> configureServices)
+        public DispatcherChannelFactory(Action<IServiceCollection> configureServices, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default)
         {
             _serviceProvider = BuildServiceProvider(configureServices);
+            _configureServiceHostBase = configureServiceHostBase;
         }
 
         private IServiceProvider BuildServiceProvider(Action<IServiceCollection> configureServices)
@@ -100,6 +102,10 @@ namespace DispatcherClient
             var binding = new CoreWCF.Channels.CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new Helpers.MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<TService, TContract>(binding, channel.Via);
+            if (_configureServiceHostBase != null)
+            {
+                serviceBuilder.ConfigureServiceHostBase<TService>(_configureServiceHostBase);
+            }
             await serviceBuilder.OpenAsync();
             IDispatcherBuilder dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
             List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
