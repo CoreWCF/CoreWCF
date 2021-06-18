@@ -16,11 +16,5 @@ namespace NetCoreServer
             System.Console.WriteLine($"Received {text.Text} from client!");
             return text.Text;
         }
-
-        [AuthorizeRole(AllowedRoles = "CoreWCFGroupAdmin")]
-        public string EchoForPermission(string echo)
-        {
-            return echo;
-        }
     }
 }

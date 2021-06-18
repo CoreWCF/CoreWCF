@@ -739,6 +739,55 @@ namespace CoreWCF.Channels
             return result;
         }
 
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsMutualCertificateBinding() method.
+        static public SecurityBindingElement CreateMutualCertificateBindingElement(MessageSecurityVersion version)
+        {
+            return CreateMutualCertificateBindingElement(version, false);
+        }
+
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsMutualCertificateBinding() method.
+        static public SecurityBindingElement CreateMutualCertificateBindingElement(MessageSecurityVersion version, bool allowSerializedSigningTokenOnReply)
+        {
+            if (version == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+            }
+            SecurityBindingElement result;
+
+            if (version.SecurityVersion == SecurityVersion.WSSecurity10)
+            {
+                throw new NotSupportedException();
+               /* result = new AsymmetricSecurityBindingElement(
+                    new X509SecurityTokenParameters( // recipient
+                        X509KeyIdentifierClauseType.Any,
+                        SecurityTokenInclusionMode.Never,
+                        false),
+                    new X509SecurityTokenParameters( // initiator
+                        X509KeyIdentifierClauseType.Any,
+                        SecurityTokenInclusionMode.AlwaysToRecipient, false),
+                    allowSerializedSigningTokenOnReply);*/
+            }
+            else
+            {
+                result = new SymmetricSecurityBindingElement(
+                    new X509SecurityTokenParameters( // protection
+                        X509KeyIdentifierClauseType.Thumbprint,
+                        SecurityTokenInclusionMode.Never));
+                result.EndpointSupportingTokenParameters.Endorsing.Add(
+                    new X509SecurityTokenParameters(
+                        X509KeyIdentifierClauseType.Thumbprint,
+                        SecurityTokenInclusionMode.AlwaysToRecipient,
+                        false));
+                ((SymmetricSecurityBindingElement)result).RequireSignatureConfirmation = true;
+            }
+
+            result.MessageSecurityVersion = version;
+
+            return result;
+        }
+
         // this method reverses CreateMutualCertificateBindingElement() logic
         internal static bool IsCertificateOverTransportBinding(SecurityBindingElement sbe)
         {

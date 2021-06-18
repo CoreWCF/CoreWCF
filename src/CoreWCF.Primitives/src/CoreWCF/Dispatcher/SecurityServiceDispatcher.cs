@@ -129,7 +129,7 @@ namespace CoreWCF.Dispatcher
             }
             else
             {
-                throw new PlatformNotSupportedException();
+              //  throw new PlatformNotSupportedException();
                 //TODO later
                 // this.InnerChannelListener = this.ChannelBuilder.BuildChannelListener<TChannel>();
                 // this.Acceptor = (IChannelAcceptor<TChannel>)new SecurityChannelAcceptor(this,
@@ -156,8 +156,8 @@ namespace CoreWCF.Dispatcher
             {
                 _sessionServerSettings.SettingsLifetimeManager = _settingsLifetimeManager;
             }
+            _settingsLifetimeManager.OpenAsync(ServiceDefaults.OpenTimeout);
             //this.hasSecurityStateReference = true;
-            _sessionServerSettings.SettingsLifetimeManager.OpenAsync(ServiceDefaults.OpenTimeout);
         }
 
         //private 
@@ -197,7 +197,7 @@ namespace CoreWCF.Dispatcher
         {
             //TODO should have better logic
             //Initialization path start
-            if (outerChannel.ChannelDispatcher == null)
+            if (outerChannel.ChannelDispatcher == null && SessionMode)
             {
                 TypedChannelDemuxer typedChannelDemuxer = ChannelBuilder.GetTypedChannelDemuxer<IReplyChannel>();
                 IServiceChannelDispatcher channelDispatcher = await typedChannelDemuxer.CreateServiceChannelDispatcherAsync(outerChannel);
@@ -456,9 +456,19 @@ namespace CoreWCF.Dispatcher
         public override async Task DispatchAsync(RequestContext context)
         {
             SecurityRequestContext securedMessage = (SecurityRequestContext)ProcessReceivedRequest(context);
-            IServiceChannelDispatcher serviceChannelDispatcher =
-               await SecurityServiceDispatcher.GetAuthChannelDispatcher(this);
-            await serviceChannelDispatcher.DispatchAsync(securedMessage);
+            if (SecurityServiceDispatcher.SessionMode) // for SCT, sessiontoken is created so we channel the call to SecurityAuthentication and evevntually SecurityServerSession.
+            {
+                IServiceChannelDispatcher serviceChannelDispatcher =
+                   await SecurityServiceDispatcher.GetAuthChannelDispatcher(this);
+                await serviceChannelDispatcher.DispatchAsync(securedMessage);
+            }
+            else
+            {
+                IServiceChannelDispatcher serviceChannelDispatcher =
+                     await SecurityServiceDispatcher.GetInnerServiceChannelDispatcher(this);
+                await serviceChannelDispatcher.DispatchAsync(securedMessage);
+
+            }
         }
 
         public override Task DispatchAsync(Message message)
