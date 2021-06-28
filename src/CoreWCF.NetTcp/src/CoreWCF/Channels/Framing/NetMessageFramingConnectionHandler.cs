@@ -134,6 +134,7 @@ namespace CoreWCF.Channels.Framing
                 {
                     parameter.Add(credentialsManager);
                 }
+
                 var bindingContext = new BindingContext(new CustomBinding(dispatcher.Binding), parameter);
                 streamUpgradeProvider = upgradeBindingElements[0].BuildServerStreamUpgradeProvider(bindingContext);
                 streamUpgradeProvider.OpenAsync().GetAwaiter().GetResult();

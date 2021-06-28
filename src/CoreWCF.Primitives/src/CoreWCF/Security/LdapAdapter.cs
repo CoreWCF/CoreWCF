@@ -63,7 +63,7 @@ namespace CoreWCF.Security
                     upnSearchRequest, PartialResultProcessing.NoPartialResultSupport, null);
                     if(searchResponse !=null && searchResponse.Entries != null && searchResponse.Entries.Count > 1)
                     {
-                        throw new Exception(SR.DuplicateUPN); //resource
+                        throw new SecurityNegotiationException(SR.DuplicateUPN); //resource
                     }
                 }
                 if (searchResponse == null || searchResponse.Entries == null || searchResponse.Entries.Count == 0)
@@ -93,10 +93,25 @@ namespace CoreWCF.Security
 
                 foreach (var group in memberof)
                 {
+                    if(group is null)
+                    {
+                        continue;
+                    }
+
                     // Example distinguished name: CN=TestGroup,DC=KERB,DC=local
                     var groupDN = $"{Encoding.UTF8.GetString((byte[])group)}";
-                    var groupCN = groupDN.Split(',')[0].Substring("CN=".Length);
-                    retrievedClaims.Add(groupCN);
+                    if(!string.IsNullOrEmpty(groupDN))
+                    {
+                        string[] groupDNItems = groupDN.Split(',');
+                        if(groupDNItems.Length > 0 && groupDNItems[0].Contains("CN"))
+                        {
+                            string[] groupCNItems = groupDNItems[0].Split('=');
+                            if(groupCNItems.Length == 2)
+                            {
+                                retrievedClaims.Add(groupCNItems[1].Trim());
+                            }
+                        }
+                    }
                 }
 
                 var entrySize = originalUserName.Length * 2; //Approximate the size of stored key in memory cache.

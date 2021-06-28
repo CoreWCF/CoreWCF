@@ -8,7 +8,7 @@ using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Claims;
 
-namespace CoreWCF
+namespace CoreWCF.Description
 {
     [AttributeUsage(CoreWCFAttributeTargets.OperationContract, Inherited = true)]
     public class AuthorizeRoleAttribute : Attribute, IAuthorizeOperation
@@ -31,20 +31,25 @@ namespace CoreWCF
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatchOperation));
             }
-            if (_allowedRoles == null || _allowedRoles.Length ==0)
+
+            if (_allowedRoles?.Length == 0)
             {
                 return;
             }
+
             List<Claim> allClaims = new List<Claim>();
             foreach(string role in _allowedRoles)
             {
-                allClaims.Add(new Claim(ClaimTypes.Role, role.Trim(), Rights.Identity));
+                if(!String.IsNullOrWhiteSpace(role))
+                {
+                    allClaims.Add(new Claim(ClaimTypes.Role, role.Trim(), Rights.Identity));
+                }
             }
+
             if(allClaims.Count > 0)
             {
                 dispatchOperation.AuthorizeClaims.TryAdd(nameof(AuthorizeRoleAttribute), allClaims);
             }
-
         }
     }
 }

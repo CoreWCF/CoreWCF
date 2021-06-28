@@ -83,7 +83,7 @@ namespace CoreWCF.Description
                         }
                         UpdateOperationsWithInterfaceAttributes(contractDescription, reflectionInfo);
                         AddBehaviors(contractDescription, false, reflectionInfo);
-                        AddAuthorizeOperations(contractDescription,false, reflectionInfo);
+                        AddAuthorizeOperations(contractDescription, false, reflectionInfo);
                         _contracts.Add(actualContractType, contractDescription);
                     }
                 }
@@ -204,13 +204,10 @@ namespace CoreWCF.Description
             return contract;
         }
 
-        //This needs proper review. 
         private void AddAuthorizeOperations(ContractDescription contractDesc, bool implIsCallback, ContractReflectionInfo reflectionInfo)
         {
-
-            for(int i=0; i< contractDesc.Operations.Count; i++)
+            foreach(OperationDescription opDesc in contractDesc.Operations)
             {
-                OperationDescription opDesc = contractDesc.Operations[i];
                 Type targetIface = implIsCallback ? opDesc.DeclaringContract.CallbackContractType : opDesc.DeclaringContract.ContractType;
                 ApplyServiceInheritance(
                     opDesc.AuthorizeOperation,

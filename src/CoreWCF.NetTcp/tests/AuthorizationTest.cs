@@ -28,7 +28,7 @@ namespace CoreWCF.NetTcp.Tests
             _output = output;
         }
 
-        [Fact(Skip ="Skipped in pipeline run")]
+        [Fact(Skip = "Skipped in pipeline run, this needs to be run on domain joined machine")]
         public void AuthorizationBasedonRolesTest()
         {
             string testString = "a" + PrincipalPermissionMode.Always.ToString() + "test";
@@ -50,10 +50,11 @@ namespace CoreWCF.NetTcp.Tests
                     try
                     {
                         channel.EchoForAuthorizarionNoRole(testString);
-                    }catch(Exception ex)
+                    }catch (Exception ex)
                     {
                         Assert.Contains("Access is denied", ex.Message);
                     }
+
                     ((IChannel)channel).Close();
                     factory.Close();
                 }
@@ -88,6 +89,7 @@ namespace CoreWCF.NetTcp.Tests
         public void ChangeHostBehavior(ServiceHostBase host)
         {
             var srvCredentials = new CoreWCF.Description.ServiceCredentials();
+            //For local testing, ensure to configure below initialization with proper inputs based on your local LDAP configuration.
             LdapSettings _ldapSettings = new LdapSettings("ldapserver.test.local", "test.local", "your_own_top_org");
             srvCredentials.WindowsAuthentication.LdapSetting = _ldapSettings;
             host.Description.Behaviors.Add(srvCredentials);

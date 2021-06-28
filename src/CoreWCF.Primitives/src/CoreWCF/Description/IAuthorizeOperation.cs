@@ -4,9 +4,9 @@
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 
-namespace CoreWCF
+namespace CoreWCF.Description
 {
-    public interface IAuthorizeOperation //Any good name would be helpful
+    public interface IAuthorizeOperation
     {
         void BuildClaim(OperationDescription operationDescription, DispatchOperation dispatchOperation);
     }

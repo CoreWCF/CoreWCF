@@ -32,7 +32,7 @@ namespace CoreWCF.IdentityModel.Selectors
         {
             var genericToken = (GenericSecurityToken)token;
             string principalName = genericToken.Name;
-            if (principalName == null)
+            if (string.IsNullOrEmpty(principalName))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(principalName));
             }

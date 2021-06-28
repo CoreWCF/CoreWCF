@@ -1099,40 +1099,6 @@ namespace CoreWCF.Security
             }
         }
 
-        /*internal static ReadOnlyCollection<IAuthorizationPolicy> CreatePrincipalNameAuthorizationPolicies(string principalName, LdapSettings ldapSettings)
-        {
-            if (principalName == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(principalName));
-            }
-
-            Claim identityClaim;
-            Claim primaryPrincipal;
-            if (principalName.Contains("@") || principalName.Contains(@"\"))
-            {
-                identityClaim = new Claim(ClaimTypes.Upn, principalName, Rights.Identity);
-                primaryPrincipal = Claim.CreateUpnClaim(principalName);
-            }
-            else
-            {
-                identityClaim = new Claim(ClaimTypes.Spn, principalName, Rights.Identity);
-                primaryPrincipal = Claim.CreateSpnClaim(principalName);
-            }
-
-            List<Claim> claims = new List<Claim>(2)
-            {
-                identityClaim,
-                primaryPrincipal
-            };
-
-
-            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1)
-            {
-                new UnconditionalPolicy(CreateIdentity(principalName), new DefaultClaimSet(ClaimSet.Anonymous, claims))
-            };
-            return policies.AsReadOnly();
-        }*/
-
         public static SecurityBindingElement GetIssuerSecurityBindingElement(ServiceModelSecurityTokenRequirement requirement)
         {
             SecurityBindingElement bindingElement = requirement.SecureConversationSecurityBindingElement;

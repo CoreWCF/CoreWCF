@@ -55,6 +55,7 @@ namespace CoreWCF.Channels
                 ServiceCredentials serviceCred = (ServiceCredentials)credentialProvider;
                 LdapSettings = serviceCred.WindowsAuthentication.LdapSetting;
             }
+
            _securityTokenManager = credentialProvider.CreateSecurityTokenManager();
         }
 
@@ -90,7 +91,7 @@ namespace CoreWCF.Channels
 
         private NetworkCredential ServerCredential { get; set; }
 
-        protected LdapSettings LdapSettings { get; private set; }
+        private LdapSettings LdapSettings { get; set; }
 
         public override StreamUpgradeAcceptor CreateUpgradeAcceptor()
         {

@@ -641,14 +641,13 @@ namespace CoreWCF.Description
 
                     if (dispatchOperation != null)
                     {
-                        for (int j = 0; j < operation.Behaviors.Count; j++)
+                        foreach(IOperationBehavior behavior in operation.Behaviors)
                         {
-                            IOperationBehavior behavior = operation.Behaviors[j];
                             behavior.ApplyDispatchBehavior(operation, dispatchOperation);
                         }
-                        for (int k = 0; k < operation.AuthorizeOperation.Count; k++)
+
+                        foreach(IAuthorizeOperation authorizeOperation in operation.AuthorizeOperation)
                         {
-                            IAuthorizeOperation authorizeOperation = operation.AuthorizeOperation[k];
                             authorizeOperation.BuildClaim(operation, dispatchOperation);
                         }
                     }
