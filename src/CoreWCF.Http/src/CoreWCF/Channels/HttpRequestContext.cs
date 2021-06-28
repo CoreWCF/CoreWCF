@@ -468,9 +468,10 @@ namespace CoreWCF.Channels
                     HttpRequest request = _aspNetCoreHttpContext._aspNetContext.Request;
                     var requestProperty = new HttpRequestMessageProperty(_aspNetCoreHttpContext._aspNetContext);
                     message.Properties.Add(HttpRequestMessageProperty.Name, requestProperty);
+                    String hostAddress = String.Concat(request.IsHttps ? "https://" : "http://", request.Host.HasValue ? request.Host.Value : "localhost");
                     // TODO: Test the Via code
                     message.Properties.Via = new Uri(string.Concat(
-                        "http://localhost", // Need to specify http://localhost even if https and on different port to match Endpoint filter
+                        hostAddress,
                         request.PathBase.ToUriComponent(),
                         request.Path.ToUriComponent(),
                         request.QueryString.ToUriComponent()));

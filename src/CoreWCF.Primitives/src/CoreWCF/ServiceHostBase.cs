@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Text;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
@@ -197,7 +199,40 @@ namespace CoreWCF
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.SFxCannotCallAddBaseAddress));
             }
+
             InternalBaseAddresses.Add(baseAddress);
+        }
+
+        internal Uri MakeAbsoluteUri(Uri relativeOrAbsoluteUri, Binding binding)
+        {
+            return MakeAbsoluteUri(relativeOrAbsoluteUri, binding, InternalBaseAddresses);
+        }
+
+        internal static Uri MakeAbsoluteUri(Uri relativeOrAbsoluteUri, Binding binding, UriSchemeKeyedCollection baseAddresses)
+        {
+            Uri result = relativeOrAbsoluteUri;
+            if (!result.IsAbsoluteUri)
+            {
+                if (binding.Scheme == string.Empty)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxCustomBindingWithoutTransport));
+                }
+                result = GetVia(binding.Scheme, result, baseAddresses);
+                if (result == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxEndpointNoMatchingScheme, binding.Scheme, binding.Name, GetBaseAddressSchemes(baseAddresses))));
+                }
+            }
+
+            return result;
+        }
+
+        protected virtual void ApplyConfiguration()
+        {
+            if (this.Description == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxServiceHostBaseCannotApplyConfigurationWithoutDescription));
+            }
         }
 
         internal virtual void BindInstance(InstanceContext instance)
@@ -268,6 +303,71 @@ namespace CoreWCF
             return c;
         }
 
+        internal static string GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
+        {
+            StringBuilder buffer = new StringBuilder();
+            bool firstScheme = true;
+            foreach (Uri address in uriSchemeKeyedCollection)
+            {
+                if (firstScheme)
+                {
+                    buffer.Append(address.Scheme);
+                    firstScheme = false;
+                }
+                else
+                {
+                    buffer.Append(CultureInfo.CurrentCulture.TextInfo.ListSeparator).Append(address.Scheme);
+                }
+            }
+
+            return buffer.ToString();
+        }
+
+        internal static Uri GetVia(string scheme, Uri address, UriSchemeKeyedCollection baseAddresses)
+        {
+            Uri via = address;
+            if (!via.IsAbsoluteUri)
+            {
+                if (!baseAddresses.Contains(scheme))
+                {
+                    return null;
+                }
+
+                via = GetUri(baseAddresses[scheme], address);
+            }
+            return via;
+        }
+
+        internal static Uri GetUri(Uri baseUri, Uri relativeUri)
+        {
+            string path = relativeUri.OriginalString;
+            if (path.StartsWith("/", StringComparison.Ordinal) || path.StartsWith("\\", StringComparison.Ordinal))
+            {
+                int i = 1;
+                for (; i < path.Length; ++i)
+                {
+                    if (path[i] != '/' && path[i] != '\\')
+                    {
+                        break;
+                    }
+                }
+                path = path.Substring(i);
+            }
+
+            // new Uri(Uri, string.Empty) is broken
+            if (path.Length == 0)
+            {
+                return baseUri;
+            }
+
+            if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
+            {
+                baseUri = new Uri(baseUri.AbsoluteUri + "/");
+            }
+
+            return new Uri(baseUri, path);
+        }
+
         //public int IncrementManualFlowControlLimit(int incrementBy)
         //{
         //    throw new PlatformNotSupportedException();
@@ -281,6 +381,7 @@ namespace CoreWCF
             }
 
             Description = CreateDescription(out _implementedContracts);
+            ApplyConfiguration();
             _initializeDescriptionHasFinished = true;
         }
 

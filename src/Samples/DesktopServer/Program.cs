@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DesktopServer
 {
@@ -11,11 +7,17 @@ namespace DesktopServer
     {
         static void Main(string[] args)
         {
-            var host = new ServiceHost(typeof(EchoService), 
-                new Uri("net.tcp://localhost:8808/"), 
-                new Uri("https://localhost:8080/"));
-            host.AddServiceEndpoint(typeof(Contract.IEchoService), new NetTcpBinding(), "/nettcp");
-            host.AddServiceEndpoint(typeof(Contract.IEchoService), new BasicHttpBinding( BasicHttpSecurityMode.TransportWithMessageCredential), "/basichttp");
+            var contract = typeof(Contract.IEchoService);
+            var host = new ServiceHost(typeof(EchoService),
+                new Uri("net.tcp://localhost:8089/"),
+                new Uri("http://localhost:8088/"),
+                new Uri("https://localhost:8443/"));
+
+            host.AddServiceEndpoint(contract, new NetTcpBinding(), "/nettcp");
+            host.AddServiceEndpoint(contract, new BasicHttpBinding(BasicHttpSecurityMode.None), "/basichttp");
+            host.AddServiceEndpoint(contract, new BasicHttpsBinding(BasicHttpsSecurityMode.Transport), "/basichttp");
+            host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.None), "/wsHttp.svc");
+            host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.Transport), "/wsHttp.svc");
             host.Open();
             foreach(var endpoint in host.Description.Endpoints)
             {
