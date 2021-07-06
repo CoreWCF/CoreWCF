@@ -5,18 +5,18 @@ using System;
 
 namespace CoreWCF.Configuration
 {
-    public class NotFoundBindingException : Exception
+    public class BindingNotFoundException : Exception
     {
-        public NotFoundBindingException()
+        public BindingNotFoundException()
         {
         }
 
-        public NotFoundBindingException(string message)
+        public BindingNotFoundException(string message)
             : base(message)
         {
         }
 
-        public NotFoundBindingException(string message, Exception innerException)
+        public BindingNotFoundException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

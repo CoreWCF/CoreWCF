@@ -5,7 +5,7 @@ using System;
 
 namespace CoreWCF.Configuration
 {
-    static class ServiceDefaults
+    internal static class ServiceDefaults
     {
         internal const string ServiceHostCloseTimeoutString = "00:00:10";
         internal const string CloseTimeoutString = "00:01:00";

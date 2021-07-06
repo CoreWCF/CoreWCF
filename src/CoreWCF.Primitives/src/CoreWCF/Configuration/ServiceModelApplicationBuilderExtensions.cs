@@ -7,6 +7,7 @@ using CoreWCF.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
@@ -27,6 +28,14 @@ namespace CoreWCF.Configuration
             ILoggerFactory loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             ILogger logger = loggerFactory.CreateLogger(nameof(ServiceModelApplicationBuilderExtensions));
             ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
+
+            var serviceModelOptions = app.ApplicationServices.GetRequiredService<ServiceModelOptions>();
+            var configureOptions = app.ApplicationServices.GetService<IConfigureOptions<ServiceModelOptions>>();
+            if (configureOptions != null)
+            {
+                configureOptions.Configure(serviceModelOptions);
+            }
+
             configureServices(serviceBuilder);
 
             IEnumerable<ITransportServiceBuilder> transportServiceBuilders = app.ApplicationServices.GetServices<ITransportServiceBuilder>();

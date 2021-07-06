@@ -17,7 +17,7 @@ namespace CoreWCF.Configuration
 
         private readonly IConfigurationHolder _holder;
 
-        public ConfigurationManagerServiceModelOptions(IServiceProvider builder, string path, bool isOptional)
+        public ConfigurationManagerServiceModelOptions(IServiceProvider builder, string path)
         {
             _holder = builder.GetRequiredService<IConfigurationHolder>();
             _file = new WrappedConfigurationFile(path);
@@ -27,7 +27,7 @@ namespace CoreWCF.Configuration
                 System.Configuration.Configuration configuration = ConfigurationManager.OpenMappedMachineConfiguration(new ConfigurationFileMap(_file.ConfigPath));
                 var section = ServiceModelSectionGroup.GetSectionGroup(configuration);
 
-                if (section is null && !isOptional)
+                if (section is null)
                 {
                     throw new ServiceModelConfigurationException("Section not found");
                 }
@@ -38,17 +38,25 @@ namespace CoreWCF.Configuration
 
         public void Dispose() => _file.Dispose();
 
-        public void Configure(ServiceModelOptions options)
-        {
-            Configure(ServiceModelDefaults.DefaultName, options);
-        }
-
         public void Configure(string name, ServiceModelOptions options)
         {
-            Configure(_section.Value);
+            Configure(options);
         }
 
-        private void Configure(ServiceModelSectionGroup group)
+        public void Configure(ServiceModelOptions options)
+        {
+            var configHolder = ParseConfig();
+            foreach (var endpointName in configHolder.Endpoints.Keys)
+            {
+                IXmlConfigEndpoint configEndpoint = configHolder.GetXmlConfigEndpoint(endpointName);
+                options.ConfigureService(configEndpoint.Service, serviceConfig =>
+                {
+                    serviceConfig.ConfigureServiceEndpoint(configEndpoint.Service, configEndpoint.Contract, configEndpoint.Binding, configEndpoint.Address, null);
+                });
+            }
+        }
+
+        private void ReadConfigSection(ServiceModelSectionGroup group)
         {
             if (group is null)
             {
@@ -89,5 +97,13 @@ namespace CoreWCF.Configuration
                 _holder.AddBinding(binding);
             }
         }
+
+        private IConfigurationHolder ParseConfig()
+        {
+            ReadConfigSection(_section.Value);
+            return _holder;
+        }
+
+
     }
 }

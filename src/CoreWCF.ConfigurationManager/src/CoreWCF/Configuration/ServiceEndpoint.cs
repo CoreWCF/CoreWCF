@@ -5,7 +5,7 @@ using System;
 
 namespace CoreWCF.Configuration
 {
-    internal class ServiceEndpoint
+    public class ServiceEndpoint
     {
         public string ServiceName { get; set; }
         public Uri Address { get; set; }

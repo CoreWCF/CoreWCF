@@ -116,7 +116,7 @@ namespace CoreWCF.Configuration
         //}
     }
 
-    static class EncoderDefaults
+    internal static class EncoderDefaults
     {
         internal const int MaxReadPoolSize = 64;
         internal const int MaxWritePoolSize = 16;

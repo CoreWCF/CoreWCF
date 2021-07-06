@@ -40,8 +40,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             {
                 using (ServiceProvider provider = CreateProvider(fs.Name))
                 {
-                    IConfigurationHolder settingHolder = provider.GetService<IConfigurationHolder>();
-                    settingHolder.Initialize();
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
 
                     IXmlConfigEndpoint endpoint = settingHolder.GetXmlConfigEndpoint(expectedEndpointName);
                     Assert.Equal(expectedServiceName, endpoint.Service.FullName);

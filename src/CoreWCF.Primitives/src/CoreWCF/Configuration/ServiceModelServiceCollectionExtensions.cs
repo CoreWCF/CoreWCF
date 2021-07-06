@@ -88,6 +88,7 @@ namespace CoreWCF.Configuration
             services.AddScoped<ServiceChannel.SessionIdleManager>();
             services.AddSingleton(typeof(ServiceHostObjectModel<>));
             services.AddSingleton(typeof(TransportCompressionSupportHelper));
+            services.AddSingleton(typeof(ServiceModelOptions));
             return services;
         }
     }

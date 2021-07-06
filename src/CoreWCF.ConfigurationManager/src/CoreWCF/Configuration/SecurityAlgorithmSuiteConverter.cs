@@ -8,7 +8,7 @@ using CoreWCF.Security;
 
 namespace CoreWCF.Configuration
 {
-    class SecurityAlgorithmSuiteConverter : TypeConverter
+    internal class SecurityAlgorithmSuiteConverter : TypeConverter
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {

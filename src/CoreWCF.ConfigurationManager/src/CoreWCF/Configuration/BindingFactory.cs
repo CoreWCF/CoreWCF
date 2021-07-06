@@ -6,7 +6,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
-    class BindingFactory : ICreateBinding
+    internal class BindingFactory : IBindingFactory
     {
         public Binding Create(string bindingType)
         {
@@ -27,7 +27,7 @@ namespace CoreWCF.Configuration
                 case "netHttpBinding":
                     return new NetHttpBinding();
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new NotFoundBindingException());
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new BindingNotFoundException());
             }
         }
     }

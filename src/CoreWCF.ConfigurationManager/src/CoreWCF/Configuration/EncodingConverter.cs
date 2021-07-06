@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CoreWCF.Configuration
 {
-    class EncodingConverter : TypeConverter
+    internal class EncodingConverter : TypeConverter
     {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {

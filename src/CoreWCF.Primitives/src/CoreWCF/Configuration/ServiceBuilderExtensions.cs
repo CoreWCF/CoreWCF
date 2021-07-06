@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
@@ -16,14 +17,11 @@ namespace CoreWCF.Configuration
             holder.AddConfigDelegate(func);
         }
 
-        public static void AddServiceEndpoint(this IServiceBuilder builder, string name)
+        public static void ConfigureXmlConfigSupport(this IServiceBuilder builder)
         {
             var serviceBuilder = builder as ServiceBuilder;
-            IConfigurationHolder configHolder = serviceBuilder.ServiceProvider.GetService<IConfigurationHolder>();
-            configHolder.Initialize();
-            IXmlConfigEndpoint endpoint = configHolder.GetXmlConfigEndpoint(name);
-
-            serviceBuilder.AddServiceEndpoint(endpoint.Service, endpoint.Contract, endpoint.Binding, endpoint.Address, null);
+            var options = serviceBuilder.ServiceProvider.GetRequiredService<ServiceModelOptions>();
+            options.ConfigureServiceBuilder(builder);
         }
     }
 }

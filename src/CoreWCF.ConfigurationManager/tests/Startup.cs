@@ -23,8 +23,7 @@ namespace CoreWCF.ConfigurationManager.Tests
         {
             app.UseServiceModel(builder =>
             {
-                builder.AddService<SomeService>();
-                builder.AddServiceEndpoint("SomeEndpoint");
+                builder.ConfigureXmlConfigSupport();                    
             });
         }
 

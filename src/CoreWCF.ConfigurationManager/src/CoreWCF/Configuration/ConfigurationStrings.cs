@@ -5,7 +5,7 @@ using System;
 
 namespace CoreWCF.Configuration
 {
-    static class ConfigurationStrings
+    internal static class ConfigurationStrings
     {
         internal const string AcknowledgementInterval = "acknowledgementInterval";
         internal const string ActivityTracing = "activityTracing";

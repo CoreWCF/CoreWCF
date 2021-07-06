@@ -14,19 +14,14 @@ namespace CoreWCF.Configuration
         private readonly ConcurrentDictionary<string, Binding> _bindings = new ConcurrentDictionary<string, Binding>();
         private readonly ConcurrentDictionary<string, ServiceEndpoint> _endpoints = new ConcurrentDictionary<string, ServiceEndpoint>();
         private readonly IServiceProvider _provider;
-        private readonly ICreateBinding _factoryBinding;
+        private readonly IBindingFactory _factoryBinding;
 
-        public ConfigurationHolder(IServiceProvider serviceProvider, ICreateBinding factory)
+        public ConcurrentDictionary<string, ServiceEndpoint> Endpoints => _endpoints;
+
+        public ConfigurationHolder(IServiceProvider serviceProvider, IBindingFactory factory)
         {
             _provider = serviceProvider;
             _factoryBinding = factory;
-        }
-
-        public void Initialize()
-        {
-            // hack
-            IConfigureOptions<ServiceModelOptions> options = _provider.GetRequiredService<IConfigureOptions<ServiceModelOptions>>();
-            options.Configure(new ServiceModelOptions());
         }
 
         public void AddBinding(Binding binding)
@@ -51,7 +46,7 @@ namespace CoreWCF.Configuration
                 return binding;
             }
 
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new NotFoundBindingException());
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new BindingNotFoundException());
         }
 
         public IXmlConfigEndpoint GetXmlConfigEndpoint(string name)
@@ -70,7 +65,7 @@ namespace CoreWCF.Configuration
                 return new XmlConfigEndpoint(service, contract, binding, endpoint.Address);
             }
 
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new NotFoundEndpointException());
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new EndpointNotFoundException($"Endpoint {name} not found in xml configuration"));
 
         }
 
