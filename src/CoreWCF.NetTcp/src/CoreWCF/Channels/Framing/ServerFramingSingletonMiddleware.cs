@@ -108,7 +108,7 @@ namespace CoreWCF.Channels.Framing
                                         buffer = ReadOnlySequence<byte>.Empty;
                                         try
                                         {
-                                            await UpgradeConnectionAsync(connection);
+                                            await UpgradeConnectionAsync(connection, decoder.Upgrade);
                                             ChangeUpgradeState(ref upgradeState, UpgradeState.EndUpgrade);
                                         }
                                         catch (Exception exception)
@@ -242,11 +242,13 @@ namespace CoreWCF.Channels.Framing
             currentState = newState;
         }
 
-        public static async Task UpgradeConnectionAsync(FramingConnection connection)
+        public static async Task UpgradeConnectionAsync(FramingConnection connection, string contentType)
         {
-            connection.RawStream = new RawStream(connection);
+            var duplexPipeStream = new DuplexPipeStream(connection.Input, connection.Output);
+            connection.RawStream = duplexPipeStream;
             StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
             Stream stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
+            duplexPipeStream.SetContentType(contentType);
             CreatePipelineFromStream(connection, stream);
         }
 

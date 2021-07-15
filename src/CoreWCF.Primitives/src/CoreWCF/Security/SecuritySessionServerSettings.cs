@@ -2097,8 +2097,6 @@ namespace CoreWCF.Security
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(TimeSpan.FromMinutes(30));
                 await ((ISessionChannel<IDuplexSession>)_duplexSessionChannel).Session.CloseOutputSessionAsync(timeoutHelper.GetCancellationToken());
-               //await _duplexSessionChannel.CloseAsync(timeoutHelper.GetCancellationToken());
-               // _duplexSessionChannel.Abort();
                
                 TimeSpan iterationTimeout = timeoutHelper.RemainingTime();
                 bool lastIteration = (iterationTimeout == TimeSpan.Zero);
