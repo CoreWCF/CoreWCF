@@ -58,18 +58,18 @@ namespace CoreWCF.NetTcp.Tests
                     {
                         Assert.ThrowsAny<System.ServiceModel.CommunicationException>(() =>
                         {
-                ((IChannel)channel).Open();
+                            ((IChannel)channel).Open();
                         }); ;
                         ((IChannel)channel).Abort();
                     }
                     else
                     {
                         ((IChannel)channel).Open();
-                string result = channel.EchoString(testString);
-                Assert.Equal(testString, result);
-                ((IChannel)channel).Abort();
-                factory.Close();
-            }
+                        string result = channel.EchoString(testString);
+                        Assert.Equal(testString, result);
+                        ((IChannel)channel).Close();
+                        factory.Close();
+                    }
                 }
                 finally
                 {
