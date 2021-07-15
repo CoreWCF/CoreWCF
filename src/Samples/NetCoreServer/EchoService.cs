@@ -1,8 +1,9 @@
 ﻿using Contract;
+using CoreWCF;
 
 namespace NetCoreServer
 {
-    public class EchoService : Contract.IEchoService
+    public class EchoService : IEchoService
     {
         public string Echo(string text)
         {
@@ -15,5 +16,9 @@ namespace NetCoreServer
             System.Console.WriteLine($"Received {text.Text} from client!");
             return text.Text;
         }
+
+        public string FailEcho(string text)
+            => throw new FaultException<EchoFault>(new EchoFault() { Text = "WCF Fault OK" }, new FaultReason("FailReason"));
+
     }
 }

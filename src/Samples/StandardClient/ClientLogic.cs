@@ -1,37 +1,67 @@
 ﻿using System;
 using System.ServiceModel;
+using System.ServiceModel.Description;
 using System.Text;
 using Contract;
+using CoreWCF.Samples.StandardCommon;
 
 namespace StandardClient
 {
     public class ClientLogic
     {
-        public class Settings
-        {
-            public bool UseHttps { get; set; } = true;
-            public string basicHttpAddress { get; set; }
-            public string basicHttpsAddress { get; set; }
-            public string wsHttpAddress { get; set; }
-            public string wsHttpsAddress { get; set; }
-            public string netTcpAddress { get; set; }
-        }
 
         public static void CallUsingWcf(
             Settings settings,
             Action<string> log)
         {
-            var echo = (Func<IEchoService, string>)((IEchoService channel) =>
+            var echo = (Func<IEchoService, string>)(channel =>
                channel.Echo("Hello"));
+            var echoFault = (Func<IEchoService, bool>)(channel =>
+            {
+                try
+                {
+                    channel.FailEcho("Hello Fault");
+                }
+                catch (FaultException<EchoFault> e)
+                {
+                    Console.WriteLine("FaultException<EchoFault>: fault with " + e.Detail.Text);
+                    ((IClientChannel)channel).Abort();
+                }
+                return false;
+            });
 
             log($"BasicHttp:\n\tEcho(\"Hello\") => "
                 + echo.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress));
+
+            log($"BasicHttp:\nFailEcho(\"Hello Fault\") => "
+                + echoFault.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress));
 
             log($"WsHttp:\n\tEcho(\"Hello\") => "
                 + echo.WcfInvoke(new WSHttpBinding(SecurityMode.None), settings.wsHttpAddress));
 
             log($"NetHttp:\n\tEcho(\"Hello\") => "
                 + echo.WcfInvoke(new NetTcpBinding(), settings.netTcpAddress));
+
+            void RunExampleWsHttpsTransportWithMessageCredential ()
+            {
+                WSHttpBinding binding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
+                binding.ApplyDebugTimeouts();
+                binding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
+                log($"WsHttps TransportWithMessageCredential:\n\tEcho(\"Hello\") => "
+                    + echo.WcfInvoke(binding,
+                        settings.wsHttpAddressValidateUserPassword,
+                        channel => {
+                            var clientCredentials = (ClientCredentials)channel.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                            clientCredentials.UserName.UserName = "UserName_valid";
+                            clientCredentials.UserName.Password = "Password_valid";
+                            channel.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                            {
+                                CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                            };
+                        }
+                        )
+                        );
+            }
 
             if (settings.UseHttps)
             {
@@ -40,6 +70,8 @@ namespace StandardClient
 
                 log($"WsHttps:\n\tEcho(\"Hello\") => "
                     + echo.WcfInvoke(new WSHttpBinding(SecurityMode.Transport), settings.wsHttpsAddress));
+
+                RunExampleWsHttpsTransportWithMessageCredential();
             }
 
             var echoComplex = (Func<IEchoService, string>)((IEchoService channel) =>
@@ -53,7 +85,7 @@ namespace StandardClient
         /// Creates a basic web request to the specified endpoint,
         /// sends the SOAP request and reads the response
         /// </summary>
-        public static string CallUsingWebRequest(string address)
+        public static string CallUsingWebRequest(Uri address)
         {
             string _soapEnvelopeContent =
 @"<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>
@@ -66,17 +98,17 @@ namespace StandardClient
 
             // Prepare the raw content
             var utf8Encoder = new UTF8Encoding();
-            var bodyContentBytes = utf8Encoder.GetBytes(_soapEnvelopeContent);
+            byte[] bodyContentBytes = utf8Encoder.GetBytes(_soapEnvelopeContent);
 
             // Create the web request
-            var webRequest = System.Net.WebRequest.Create(new Uri(address));
+            var webRequest = System.Net.WebRequest.Create(address);
             webRequest.Headers.Add("SOAPAction", "http://tempuri.org/IEchoService/Echo");
             webRequest.ContentType = "text/xml";
             webRequest.Method = "POST";
             webRequest.ContentLength = bodyContentBytes.Length;
 
             // Append the content
-            var requestContentStream = webRequest.GetRequestStream();
+            System.IO.Stream requestContentStream = webRequest.GetRequestStream();
             requestContentStream.Write(bodyContentBytes, 0, bodyContentBytes.Length);
 
             // Send the request and read the response
@@ -84,7 +116,7 @@ namespace StandardClient
             {
                 using (System.IO.StreamReader responsereader = new System.IO.StreamReader(responseStream))
                 {
-                    var soapResponse = responsereader.ReadToEnd();
+                    string soapResponse = responsereader.ReadToEnd();
                     return soapResponse;
                 }
             }

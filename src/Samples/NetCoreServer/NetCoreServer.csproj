@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -14,6 +13,7 @@
     <ProjectReference Include="..\..\CoreWCF.Http\src\CoreWCF.Http.csproj" />
     <ProjectReference Include="..\..\CoreWCF.NetTcp\src\CoreWCF.NetTcp.csproj" />
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="..\StandardCommon\Samples.StandardCommon.csproj" />
   </ItemGroup>
 
 </Project>
