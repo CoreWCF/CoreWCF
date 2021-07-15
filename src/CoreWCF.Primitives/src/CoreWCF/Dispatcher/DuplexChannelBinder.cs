@@ -400,6 +400,7 @@ namespace CoreWCF.Dispatcher
         public Task DispatchAsync(Message message)
         {
             Fx.Assert(_next != null, "SetNextDispatcher wasn't called");
+            Fx.Assert(_channel.State != CommunicationState.Closed, "Expected dispatcher state to be Opened or Faulted, instead it's " + _channel.State.ToString());
             if (_channel.State == CommunicationState.Faulted || message == null)
             {
                 AbortRequests();

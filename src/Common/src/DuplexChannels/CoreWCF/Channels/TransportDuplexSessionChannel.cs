@@ -19,6 +19,7 @@ namespace CoreWCF.Channels
         private bool _isInputSessionClosed;
         private bool _isOutputSessionClosed;
         private ChannelBinding _channelBindingToken;
+        private TaskCompletionSource<object> _inputSessionClosedTcs;
 
         protected TransportDuplexSessionChannel(
           ITransportFactorySettings settings,
@@ -33,6 +34,7 @@ namespace CoreWCF.Channels
             BufferManager = settings.BufferManager;
             MessageEncoder = settings.MessageEncoderFactory.CreateSessionEncoder();
             Session = new ConnectionDuplexSession(this);
+            _inputSessionClosedTcs = new TaskCompletionSource<object>();
         }
 
         public EndpointAddress LocalAddress { get; }
@@ -221,8 +223,7 @@ namespace CoreWCF.Channels
             // close input session if necessary
             if (!_isInputSessionClosed)
             {
-                // TODO: Come up with some way to know when the input is closed. Maybe register something on the connection transport or have a Task which gets completed on close
-               // await EnsureInputClosedAsync(token);
+                await EnsureInputClosedAsync(token);
                 OnInputSessionClosed();
             }
 
@@ -355,7 +356,7 @@ namespace CoreWCF.Channels
 
         async Task EnsureInputClosedAsync(CancellationToken token)
         {
-            Message message = await this.MessageSource.ReceiveAsync(token);
+            Message message = await MessageSource.ReceiveAsync(token);
             if (message != null)
             {
                 using (message)
@@ -376,6 +377,7 @@ namespace CoreWCF.Channels
                 }
 
                 _isInputSessionClosed = true;
+                _inputSessionClosedTcs.TrySetResult(null);
             }
         }
 
