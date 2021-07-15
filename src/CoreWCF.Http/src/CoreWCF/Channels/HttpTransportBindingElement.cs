@@ -9,6 +9,10 @@ using Microsoft.AspNetCore.Builder;
 
 namespace CoreWCF.Channels
 {
+    /// <summary>
+    /// This TransportBindingElement is used to specify an HTTP transport for transmitting messages.
+    /// </summary>
+    /// <remarks>HttpTransportBindingElement is also used as a starting point for creating a custom bindings using HTTP.</remarks>
     public class HttpTransportBindingElement : TransportBindingElement
     {
         private int _maxBufferSize;
@@ -20,6 +24,10 @@ namespace CoreWCF.Channels
 
         //HttpAnonymousUriPrefixMatcher _anonymousUriPrefixMatcher;
 
+        /// <summary>
+        /// Initializes a new instance of the HttpTransportBindingElement class.
+        /// </summary>
+        /// <remarks>The defaults are AuthenticationSchemes.Anonymous, TransferMode.Buffered, MaxBufferSize = 65536, and KeepAliveEnabled.</remarks>
         public HttpTransportBindingElement()
         {
             AuthenticationScheme = HttpTransportDefaults.AuthenticationScheme;
@@ -38,10 +46,23 @@ namespace CoreWCF.Channels
             TransferMode = elementToBeCloned.TransferMode;
             WebSocketSettings = elementToBeCloned.WebSocketSettings.Clone();
         }
+
         // public bool AllowCookies { get { return default(bool); } set { } }
+
+        /// <summary>
+        /// Gets or sets the authentication scheme.
+        /// </summary>
+        /// <value>The authentication scheme.</value>
         public AuthenticationSchemes AuthenticationScheme { get; set; }
 
         // public System.Net.AuthenticationSchemes AuthenticationScheme { get { return default(System.Net.AuthenticationSchemes); } set { } }
+
+        /// <summary>
+        /// Gets or sets the maximum size of the buffer.
+        /// </summary>
+        /// <value>The maximum size of the buffer.</value>
+        /// <exception cref="ArgumentOutOfRangeException">The value is less than or equal to 0.</exception>
+        /// <remarks>If not set, this defaults the to lessor of MaxReceivedMessageSize and Int32.MaxValue.</remarks>
         public int MaxBufferSize
         {
             get
@@ -88,8 +109,17 @@ namespace CoreWCF.Channels
             }
         }
 
+        /// <summary>
+        /// Gets the HTTP scheme.
+        /// </summary>
+        /// <value>The HTTP scheme.</value>
+        /// <remarks>This will be 'http' unless overridden in a subclass.</remarks>
         public override string Scheme => "http";
 
+        /// <summary>
+        /// Gets or sets the transfer mode.
+        /// </summary>
+        /// <value>The transfer mode.</value>
         public TransferMode TransferMode
         {
             get
@@ -103,6 +133,10 @@ namespace CoreWCF.Channels
             }
         }
 
+        /// <summary>
+        /// Gets or sets the web socket settings.
+        /// </summary>
+        /// <value>The web socket settings. This may not be null.</value>
         public WebSocketTransportSettings WebSocketSettings
         {
             get
@@ -127,6 +161,9 @@ namespace CoreWCF.Channels
                 effectiveAuthenticationSchemes.IsNotSet(AuthenticationSchemes.Anonymous);
         }
 
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
         public override BindingElement Clone()
         {
             return new HttpTransportBindingElement(this);
@@ -230,7 +267,6 @@ namespace CoreWCF.Channels
             {
                 return currentAuthenticationSchemes;
             }
-
 
             if (!AuthenticationSchemesBindingParameter.TryExtract(bindingParameters, out AuthenticationSchemes hostSupportedAuthenticationSchemes))
             {

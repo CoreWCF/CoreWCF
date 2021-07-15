@@ -11,6 +11,7 @@ using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
@@ -681,7 +682,6 @@ namespace CoreWCF.Description
                 }
 
                 ContractDescription contract = serviceHost.ReflectedContracts[endpointConfig.Contract];
-
                 Uri uri = serviceHost.MakeAbsoluteUri(endpointConfig.Address, endpointConfig.Binding);
                 var serviceEndpoint = new ServiceEndpoint(
                     contract,
@@ -691,9 +691,9 @@ namespace CoreWCF.Description
                 serviceHost.Description.Endpoints.Add(serviceEndpoint);
             }
 
-            InitializeServiceHost(serviceHost, services);
             ServiceConfigurationDelegateHolder<TService> configDelegate = services.GetService<ServiceConfigurationDelegateHolder<TService>>();
             configDelegate?.Configure(serviceHost);
+            InitializeServiceHost(serviceHost, services);
 
             // TODO: Add error checking to make sure property chain is correctly populated with objects
             var dispatchers = new List<IServiceDispatcher>(serviceHost.ChannelDispatchers.Count);

@@ -14,6 +14,8 @@ namespace CoreWCF.Configuration
 {
     public static class ServiceModelServiceCollectionExtensions
     {
+        private const string IISHttpServerTypeName = "Microsoft.AspNetCore.Server.IIS.Core.IISHttpServer";
+
         public static IServiceCollection AddServiceModelServices(this IServiceCollection services)
         {
             if (services == null)
@@ -27,6 +29,12 @@ namespace CoreWCF.Configuration
                 {
                     if (services[i].ImplementationType != null)
                     {
+                        if (services[i].ImplementationType.FullName.Equals(IISHttpServerTypeName))
+                        {
+                            // Don't wrap IISHttpServer as there isn't a console app to discover any thrown exception at startup
+                            continue;
+                        }
+
                         Type implType = services[i].ImplementationType;
                         if (!services.Any(d => d.ServiceType == implType))
                         {

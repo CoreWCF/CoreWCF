@@ -3,6 +3,19 @@ using System.ServiceModel;
 
 namespace Contract
 {
+    [DataContract]
+    public class EchoFault
+    {
+        private string text;
+
+        [DataMember]
+        public string Text
+        {
+            get { return text; }
+            set { text = value; }
+        }
+    }
+
     [ServiceContract]
     public interface IEchoService
     {
@@ -11,6 +24,10 @@ namespace Contract
 
         [OperationContract]
         string ComplexEcho(EchoMessage text);
+
+        [OperationContract]
+        [FaultContract(typeof(EchoFault))]
+        string FailEcho(string text);
     }
 
     [DataContract]

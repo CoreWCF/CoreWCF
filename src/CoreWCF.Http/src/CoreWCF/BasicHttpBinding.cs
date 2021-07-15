@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
@@ -21,6 +22,16 @@ namespace CoreWCF
         internal WSMessageEncoding MessageEncoding { get; set; } = BasicHttpBindingDefaults.MessageEncoding;
 
         internal override BasicHttpSecurity BasicHttpSecurity => _basicHttpSecurity;
+
+        public BasicHttpSecurity Security
+        {
+            get => _basicHttpSecurity;
+
+            set
+            {
+                _basicHttpSecurity = value ?? throw Fx.Exception.ArgumentNull(nameof(value));
+            }
+        }
 
         public override BindingElementCollection CreateBindingElements()
         {

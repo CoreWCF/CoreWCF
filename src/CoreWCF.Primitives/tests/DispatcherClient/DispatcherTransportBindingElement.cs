@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel.Channels;
+using CoreWCF;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DispatcherClient
@@ -10,15 +11,17 @@ namespace DispatcherClient
     internal class DispatcherTransportBindingElement<TService, TContract> : TransportBindingElement where TService : class
     {
         private readonly Action<IServiceCollection> _configureServices;
+        private readonly Action<ServiceHostBase> _configureServiceHostBase;
 
-        internal DispatcherTransportBindingElement(Action<IServiceCollection> configureServices)
+        internal DispatcherTransportBindingElement(Action<IServiceCollection> configureServices, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default)
         {
             _configureServices = configureServices;
+            _configureServiceHostBase = configureServiceHostBase;
         }
 
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
-            return new DispatcherChannelFactory<TChannel, TService, TContract>(_configureServices);
+            return new DispatcherChannelFactory<TChannel, TService, TContract>(_configureServices, _configureServiceHostBase);
         }
 
         public override bool CanBuildChannelFactory<TChannel>(BindingContext context)
