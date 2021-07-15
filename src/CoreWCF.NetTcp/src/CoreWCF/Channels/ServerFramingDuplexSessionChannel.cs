@@ -113,18 +113,18 @@ namespace CoreWCF.Channels
                             _connection.Input.AdvanceTo(readResult.Buffer.Start);
                         }
 
-                            EnsureDecoderAtEof();
-                            _connection.EOF = true;
-                        }
+                        EnsureDecoderAtEof();
+                        _connection.EOF = true;
+                    }
 
-                        if (_connection.EOF)
-                        {
-                            return null;
-                        }
+                    if (_connection.EOF)
+                    {
+                        return null;
+                    }
 
-                        buffer = readResult.Buffer;
-                        message = DecodeMessage(ref buffer);
-                        _connection.Input.AdvanceTo(buffer.Start);
+                    buffer = readResult.Buffer;
+                    message = DecodeMessage(ref buffer);
+                    _connection.Input.AdvanceTo(buffer.Start);
 
                     _connection.Logger.ReceivedMessage(message);
                     if (message != null)
@@ -137,18 +137,11 @@ namespace CoreWCF.Channels
                         return null;
                     }
 
-                        if (buffer.Length != 0)
-                        {
-                            throw Fx.AssertAndThrow("Receive: DecodeMessage() should consume the outstanding buffer or return a message.");
-                        }
+                    if (buffer.Length != 0)
+                    {
+                        throw Fx.AssertAndThrow("Receive: DecodeMessage() should consume the outstanding buffer or return a message.");
                     }
-                }catch(Exception ex)
-                {
-
-                    Console.Write("error");
-                    throw;
                 }
-
             }
 
             public Task<bool> WaitForMessageAsync(CancellationToken token)

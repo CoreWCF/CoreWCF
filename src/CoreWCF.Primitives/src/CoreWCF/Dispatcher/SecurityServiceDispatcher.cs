@@ -542,7 +542,7 @@ namespace CoreWCF.Dispatcher
     sealed class SecurityDuplexSessionChannelDispatcher : SecurityDuplexChannel<IDuplexSessionChannel>, IDuplexSessionChannel
     {
         bool sendUnsecuredFaults;
-
+        private IServiceChannelDispatcher _serviceChannelDispatcher;
         public SecurityDuplexSessionChannelDispatcher(SecurityServiceDispatcher serviceDispatcher, IDuplexSessionChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
             : base(serviceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
         {
@@ -563,11 +563,11 @@ namespace CoreWCF.Dispatcher
 
         public CommunicationState State => InnerDuplexChannel.State;
 
-        public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
+        public event EventHandler Closed;
 
         public void Abort()
         {
