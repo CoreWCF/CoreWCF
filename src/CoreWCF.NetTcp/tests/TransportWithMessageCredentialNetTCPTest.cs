@@ -71,13 +71,9 @@ namespace CoreWCF.NetTcp.Tests
                         factory.Close();
                     }
                 }
-                catch(Exception ex)
-                {
-
-                }
                 finally
                 {
-                  //  ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
             }
         }

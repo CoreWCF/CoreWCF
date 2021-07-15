@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels.Framing;
@@ -61,7 +62,7 @@ namespace CoreWCF.Channels
                 //{
                 //    TD.ServerMaxPooledConnectionsQuotaReached();
                 //}
-
+                connection.Logger.ConnectionPoolFull();
                 // No space left in the connection pool
                 return false;
             }
@@ -75,20 +76,25 @@ namespace CoreWCF.Channels
                     new TimeoutHelper(_idleTimeout).GetCancellationToken(),
                     cancellationToken))
                 {
-                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync(linkedCts.Token);
-                    connection.Input.AdvanceTo(readResult.Buffer.Start); // Don't consume any bytes. The pending read is to know when a new client connects.
-                    if (readResult.Buffer.IsEmpty && !readResult.IsCompleted && !readResult.IsCanceled)
+                    connection.Logger.StartPendingReadOnIdleSocket();
+                    Debug.Assert(connection.Transport == connection.RawTransport);
+                    var readResult = await connection.Input.ReadAsync(linkedCts.Token);
+                    connection.Logger.EndPendingReadOnIdleSocket(readResult);
+                    if (readResult.IsCompleted)
                     {
-                        // After pending read is canceled, next ReadAsync can return immediately with a 0 byte response so another ReadAsync call is needed
-                        readResult = await connection.Input.ReadAsync(linkedCts.Token);
-                        connection.Input.AdvanceTo(readResult.Buffer.Start); // Don't consume any bytes. The pending read is to know when a new client connects.
+                        connection.Logger.IdleConnectionClosed();
+                        connection.Output.Complete();
+                        return false;
                     }
+
+                    connection.Input.AdvanceTo(readResult.Buffer.Start); // Don't consume any bytes. The pending read is to know when a new client connects.
                 }
 
                 return true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                connection.Logger.FailureInConnectionReuse(e);
                 return false;
             }
             finally
