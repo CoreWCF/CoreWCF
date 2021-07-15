@@ -116,18 +116,6 @@ namespace CoreWCF
             }
         }
 
-        internal SecurityBindingElement CreateMessageSecurity()
-        {
-            if (Security.Mode == SecurityMode.Message || Security.Mode == SecurityMode.TransportWithMessageCredential)
-            {
-                return Security.CreateMessageSecurity(false);//ReliableSession.Enabled);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public NetTcpSecurity Security
         {
             get { return _security; }
