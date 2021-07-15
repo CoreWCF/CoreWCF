@@ -19,15 +19,17 @@ namespace CoreWCF.Channels.Framing
         private readonly IServiceBuilder _serviceBuilder;
         private readonly IDispatcherBuilder _dispatcherBuilder;
         private readonly HandshakeDelegate _handshake;
+        private readonly ILogger _framingLogger;
         private readonly IServiceProvider _services;
 
         public List<ListenOptions> ListenOptions { get; } = new List<ListenOptions>();
 
-        public NetMessageFramingConnectionHandler(IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, IFramingConnectionHandshakeBuilder handshakeBuilder)
+        public NetMessageFramingConnectionHandler(IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, IFramingConnectionHandshakeBuilder handshakeBuilder, ILogger<FramingConnection> framingLogger)
         {
             _serviceBuilder = serviceBuilder;
             _dispatcherBuilder = dispatcherBuilder;
             _handshake = BuildHandshake(handshakeBuilder);
+            _framingLogger = framingLogger;
             _services = handshakeBuilder.HandshakeServices;
             serviceBuilder.Opened += OnServiceBuilderOpened;
         }
@@ -183,7 +185,7 @@ namespace CoreWCF.Channels.Framing
 
         public override Task OnConnectedAsync(ConnectionContext context)
         {
-            var connection = new FramingConnection(context);
+            var connection = new FramingConnection(context, _framingLogger);
             return _handshake(connection);
         }
     }

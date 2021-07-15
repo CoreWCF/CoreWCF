@@ -542,7 +542,7 @@ namespace CoreWCF.Dispatcher
     sealed class SecurityDuplexSessionChannelDispatcher : SecurityDuplexChannel<IDuplexSessionChannel>, IDuplexSessionChannel
     {
         bool sendUnsecuredFaults;
-
+        private IServiceChannelDispatcher _serviceChannelDispatcher;
         public SecurityDuplexSessionChannelDispatcher(SecurityServiceDispatcher serviceDispatcher, IDuplexSessionChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
             : base(serviceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
         {
@@ -563,11 +563,11 @@ namespace CoreWCF.Dispatcher
 
         public CommunicationState State => InnerDuplexChannel.State;
 
-        public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
+        public event EventHandler Closed;
 
         public void Abort()
         {
@@ -601,10 +601,14 @@ namespace CoreWCF.Dispatcher
 
         public override async Task DispatchAsync(Message message)
         {
+            Fx.Assert(State == CommunicationState.Opened, "Expected dispatcher state to be Opened, instead it's " + State.ToString());
             ProcessInnerItem(message, ServiceDefaults.SendTimeout);
-            IServiceChannelDispatcher serviceChannelDispatcher =
-            await SecurityServiceDispatcher.GetAuthChannelDispatcher(this);
-            await serviceChannelDispatcher.DispatchAsync(message);
+            if(_serviceChannelDispatcher ==null)
+            {
+                _serviceChannelDispatcher = await SecurityServiceDispatcher.
+                 SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(this);
+            }
+            await _serviceChannelDispatcher.DispatchAsync(message);
         }
 
         public Task SendAsync(Message message)

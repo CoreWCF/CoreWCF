@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Runtime;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -63,7 +64,7 @@ namespace CoreWCF.Channels.Framing
                                 {
                                     connection.Input.AdvanceTo(buffer.Start);
                                     buffer = ReadOnlySequence<byte>.Empty;
-                                    await UpgradeConnectionAsync(connection);
+                                    await UpgradeConnectionAsync(connection, decoder.Upgrade);
                                     // TODO: ChannelBinding
                                     //if (this.channelBindingProvider != null && this.channelBindingProvider.IsChannelBindingSupportEnabled)
                                     //{
@@ -148,11 +149,15 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        public static async Task UpgradeConnectionAsync(FramingConnection connection)
+        public static async Task UpgradeConnectionAsync(FramingConnection connection, string contentType)
         {
-            connection.RawStream = new RawStream(connection);
+            var duplexPipeStream = new DuplexPipeStream(connection.Input, connection.Output);
+            connection.RawStream = duplexPipeStream;
             StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
+            connection.Logger.StartStreamUpgradeAccept(upgradeAcceptor);
             Stream stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
+            duplexPipeStream.SetContentType(contentType);
+            connection.Logger.CompleteStreamUpgradeAccept(upgradeAcceptor);
             CreatePipelineFromStream(connection, stream);
         }
 

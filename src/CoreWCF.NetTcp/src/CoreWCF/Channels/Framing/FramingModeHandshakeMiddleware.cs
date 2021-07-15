@@ -31,7 +31,7 @@ namespace CoreWCF.Channels.Framing
                 do
                 {
                     System.IO.Pipelines.PipeReader inputPipe = connection.Input;
-                    var modeDecoder = new ServerModeDecoder();
+                    var modeDecoder = new ServerModeDecoder(connection.Logger);
                     try
                     {
                         if (!await modeDecoder.ReadModeAsync(inputPipe))
