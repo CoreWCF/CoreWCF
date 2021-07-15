@@ -501,6 +501,9 @@ namespace CoreWCF.Security
                 if (typeof(IReplyChannel).Equals(AcceptorChannelType))
                 {
                     ChannelBuilder.AddServiceDispatcher<IReplyChannel>(sessionServiceDispatcher, new ChannelDemuxerFilter(sctFilter, int.MaxValue));
+                }else if (typeof(IDuplexSessionChannel).Equals(AcceptorChannelType))
+                {
+                    ChannelBuilder.AddServiceDispatcher<IDuplexSessionChannel>(sessionServiceDispatcher, new ChannelDemuxerFilter(sctFilter, int.MaxValue));
                 }
                 else if (typeof(IDuplexSessionChannel).Equals(AcceptorChannelType))
                 {
@@ -1664,6 +1667,26 @@ namespace CoreWCF.Security
             }
         }
 
+                public string Id => _securityContextTokenId.ToString();
+
+                public EndpointIdentity RemoteIdentity { get; }
+
+                public void WriteSessionTokenIdentifier(XmlDictionaryWriter writer)
+                {
+                    _standardsManager.SecurityTokenSerializer.WriteKeyIdentifierClause(writer, _sessionTokenIdentifier);
+                }
+
+                public bool TryReadSessionTokenIdentifier(XmlReader reader)
+                {
+                    if (!_standardsManager.SecurityTokenSerializer.CanReadKeyIdentifierClause(reader))
+                    {
+                        return false;
+                    }
+                    return _standardsManager.SecurityTokenSerializer.ReadKeyIdentifierClause(reader) is SecurityContextKeyIdentifierClause incomingTokenIdentifier && incomingTokenIdentifier.Matches(_securityContextTokenId, null);
+                }
+            }
+        }
+
         private abstract class ServerSecuritySimplexSessionChannel : ServerSecuritySessionChannel
         {
             private readonly SoapSecurityInputSession _session;
@@ -1817,7 +1840,7 @@ namespace CoreWCF.Security
                 }
                 if (SendCloseResponseOnCloseReceivedIfRequiredAsync(requestContext, message, correlationState, token).Result)
                 {
-                    // inputSessionClosedHandle.Set();
+                  // inputSessionClosedHandle.Set();
                 }
             }
 
@@ -2497,6 +2520,542 @@ namespace CoreWCF.Security
 
                 public Task OpenAsync(CancellationToken token)
                 {
+                    return Task.CompletedTask;
+                }
+            }
+        }
+
+        private class ServerSecurityDuplexSessionChannel : ServerSecuritySessionChannel //, IDuplexSessionChannel 
+        {
+            private SoapSecurityServerDuplexSession _session;
+            private bool _isInputClosed;
+            private bool _isOutputClosed;
+            private bool _sentClose;
+            private bool _receivedClose;
+            private RequestContext _closeRequestContext;
+            private Message _closeResponseMessage;
+            private InterruptibleWaitObject _outputSessionCloseHandle = new InterruptibleWaitObject(true);
+            private InterruptibleWaitObject _inputSessionCloseHandle = new InterruptibleWaitObject(false);
+            private DuplexCommunication _duplexCommObj;
+            private IDuplexSessionChannel _duplexSessionChannel;
+
+            public ServerSecurityDuplexSessionChannel(
+                SecuritySessionServerSettings settings,
+                SecurityContextSecurityToken sessionToken,
+                object listenerSecurityState, SecurityListenerSettingsLifetimeManager settingsLifetimeManager, EndpointAddress address, IChannel channel)
+                : base(settings,
+                      sessionToken, listenerSecurityState, settingsLifetimeManager, address)
+            {
+                _session = new SoapSecurityServerDuplexSession(sessionToken, settings, this);
+                _duplexCommObj = new DuplexCommunication();
+                _duplexSessionChannel = (IDuplexSessionChannel) channel;
+            }
+
+            public EndpointAddress RemoteAddress
+            {
+                get
+                {
+                    return LocalAddress;
+                }
+            }
+
+            public Uri Via
+            {
+                get
+                {
+                    return RemoteAddress.Uri;
+                }
+            }
+
+            public IDuplexSession Session
+            {
+                get
+                {
+                    return _session;
+                }
+            }
+
+            protected override void AbortCore()
+            {
+                _duplexSessionChannel.Abort();
+                base.AbortCore();
+                Settings.RemoveSessionChannel(_session.Id);
+                CleanupPendingCloseState();
+                _inputSessionCloseHandle.Abort(_duplexCommObj);
+                _outputSessionCloseHandle.Abort(_duplexCommObj);
+            }
+
+            private void CleanupPendingCloseState()
+            {
+                lock (LocalLock)
+                {
+                    if (this._closeResponseMessage != null)
+                    {
+                        _closeResponseMessage.Close();
+                        _closeResponseMessage = null;
+                    }
+                    if (_closeRequestContext != null)
+                    {
+                        _closeRequestContext.Abort();
+                        _closeRequestContext = null;
+                    }
+                }
+            }
+
+            public void Abort()
+            {
+                AbortCore();
+            }
+
+            public Task CloseAsync()
+            {
+                return CloseAsync(new TimeoutHelper(ServiceDefaults.CloseTimeout).GetCancellationToken());
+            }
+
+            public async Task CloseAsync(CancellationToken token)
+            {
+                // step 1: close output session
+                await CloseOutputSessionAsync(token);
+
+                // if the channel was aborted while closing the output session, return
+                if (State == CommunicationState.Closed)
+                {
+                    return;
+                }
+                // step 2: wait for input session to be closed
+                
+                bool wasAborted;
+                bool didInputSessionClose;
+                (didInputSessionClose,wasAborted) = await WaitForInputSessionCloseAsync(ServiceDefaults.CloseTimeout);
+                if (wasAborted)
+                {
+                    return;
+                }
+                if (!didInputSessionClose)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.Format(SR.ServiceSecurityCloseTimeout, ServiceDefaults.CloseTimeout)));
+                }
+
+                // wait for any concurrent CloseOutputSessions to finish
+                bool didOutputSessionClose;
+                (didOutputSessionClose, wasAborted) =  await WaitForOutputSessionCloseAsync(ServiceDefaults.CloseTimeout);
+                if (wasAborted)
+                {
+                    return;
+                }
+
+                if (!didOutputSessionClose)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new TimeoutException(SR.Format(SR.ServiceSecurityCloseOutputSessionTimeout, ServiceDefaults.CloseTimeout)));
+                }
+                await CloseDuplexSessionChannelAsync(token);
+                await CloseCoreAsync(token);
+                Settings.RemoveSessionChannel(_session.Id);
+            }
+
+            private async Task CloseDuplexSessionChannelAsync(CancellationToken token)
+            {
+                TimeoutHelper timeoutHelper = new TimeoutHelper(TimeSpan.FromMinutes(30));
+                await ((ISessionChannel<IDuplexSession>)_duplexSessionChannel).Session.CloseOutputSessionAsync(timeoutHelper.GetCancellationToken());
+               
+                TimeSpan iterationTimeout = timeoutHelper.RemainingTime();
+                bool lastIteration = (iterationTimeout == TimeSpan.Zero);
+
+                while (true)
+                {
+                    Message message = null;
+                    bool receiveThrowing = true;
+                    try
+                    {
+                        (Message receiveMessage, bool success) = await _duplexSessionChannel.TryReceiveAsync(timeoutHelper.GetCancellationToken());
+
+                        receiveThrowing = false;
+                        if (success && receiveMessage == null)
+                        {
+                            await _duplexSessionChannel.CloseAsync(timeoutHelper.GetCancellationToken());
+                            return;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        if (Fx.IsFatal(e))
+                            throw;
+
+                        if (receiveThrowing)
+                        {
+                            receiveThrowing = false;
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                    finally
+                    {
+                        if (message != null)
+                            message.Close();
+
+                        if (receiveThrowing)
+                            _duplexSessionChannel.Abort();
+                    }
+
+                    if (lastIteration || _duplexSessionChannel.State != CommunicationState.Opened)
+                        break;
+
+                    iterationTimeout = timeoutHelper.RemainingTime();
+                    lastIteration = (iterationTimeout == TimeSpan.Zero);
+                }
+                _duplexSessionChannel.Abort();
+            }
+
+            private void DetermineCloseOutputSessionMessage(out bool sendClose, out bool sendCloseResponse, out Message pendingCloseResponseMessage, out RequestContext pendingCloseRequestContext)
+            {
+                sendClose = false;
+                sendCloseResponse = false;
+                pendingCloseResponseMessage = null;
+                pendingCloseRequestContext = null;
+                lock (LocalLock)
+                {
+                    if (!_isOutputClosed)
+                    {
+                        _isOutputClosed = true;
+                        if (_receivedClose)
+                        {
+                            if (_closeResponseMessage != null)
+                            {
+                                pendingCloseResponseMessage = _closeResponseMessage;
+                                pendingCloseRequestContext = _closeRequestContext;
+                                _closeResponseMessage = null;
+                                _closeRequestContext = null;
+                                sendCloseResponse = true;
+                            }
+                        }
+                        else
+                        {
+                            sendClose = true;
+                            _sentClose = true;
+                        }
+                        _outputSessionCloseHandle.Reset();
+                    }
+                }
+            }
+
+            private async Task CloseOutputSessionAsync(CancellationToken token)
+            {
+                bool sendClose = false;
+                bool sendCloseResponse = false;
+                Message pendingCloseResponseMessage;
+                RequestContext pendingCloseRequestContext;
+                try
+                {
+                    DetermineCloseOutputSessionMessage(out sendClose, out sendCloseResponse, out pendingCloseResponseMessage, out pendingCloseRequestContext);
+                    if (sendCloseResponse)
+                    {
+                        bool cleanupCloseState = true;
+                        try
+                        {
+                            await SendCloseResponseAsync(pendingCloseRequestContext, pendingCloseResponseMessage, token);
+                            cleanupCloseState = false;
+                        }
+                        finally
+                        {
+                            if (cleanupCloseState)
+                            {
+                                pendingCloseResponseMessage.Close();
+                                pendingCloseRequestContext.Abort();
+                            }
+                        }
+                    }
+                    else if (sendClose)
+                    {
+                        await SendCloseAsync(token);
+                    }
+                }
+                catch (CommunicationObjectAbortedException)
+                {
+                    if (State != CommunicationState.Closed) throw;
+                    // a parallel thread aborted the channel. ignore the exception
+                }
+                finally
+                {
+                    if (sendClose || sendCloseResponse)
+                    {
+                        _outputSessionCloseHandle.Set();
+                    }
+                }
+            }
+
+            protected override void OnCloseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
+            {
+                if (State == CommunicationState.Created)
+                {
+                    Fx.Assert("ServerSecurityDuplexSessionChannel.OnCloseMessageReceived (State == Created)");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ServerReceivedCloseMessageStateIsCreated, GetType().ToString())));
+                }
+
+                bool setInputSessionCloseHandle = false;
+                bool cleanupContext = true;
+                try
+                {
+                    lock (LocalLock)
+                    {
+                        _receivedClose = true;
+                        if (!_isInputClosed)
+                        {
+                            _isInputClosed = true;
+                            setInputSessionCloseHandle = true;
+
+                            if (!_isOutputClosed)
+                            {
+                                _closeRequestContext = requestContext;
+                                // CreateCloseResponse closes the message passed in
+                                _closeResponseMessage = CreateCloseResponse(message, null, token);
+                                cleanupContext = false;
+                            }
+                        }
+                    }
+
+                    if (setInputSessionCloseHandle)
+                    {
+                       _inputSessionCloseHandle.Set();
+                    }
+                    if (cleanupContext)
+                    {
+                        requestContext.CloseAsync();
+                        cleanupContext = false;
+                    }
+                }
+                finally
+                {
+                    message.Close();
+                    if (cleanupContext)
+                    {
+                        requestContext.Abort();
+                    }
+                }
+            }
+
+            protected override void OnCloseResponseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, TimeSpan timeout)
+            {
+                bool cleanupContext = true;
+                try
+                {
+                    bool isCloseResponseExpected = false;
+                    bool setInputSessionCloseHandle = false;
+                    lock (LocalLock)
+                    {
+                        isCloseResponseExpected = _sentClose;
+                        if (isCloseResponseExpected && !_isInputClosed)
+                        {
+                            _isInputClosed = true;
+                            setInputSessionCloseHandle = true;
+                        }
+                    }
+                    if (!isCloseResponseExpected)
+                    {
+                        _duplexCommObj.Fault(new ProtocolException(SR.Format(SR.UnexpectedSecuritySessionCloseResponse)));
+                        return;
+                    }
+                    if (setInputSessionCloseHandle)
+                    {
+                        _inputSessionCloseHandle.Set();
+                    }
+
+                    requestContext.CloseAsync();
+                    cleanupContext = false;
+                }
+                finally
+                {
+                    message.Close();
+                    if (cleanupContext)
+                    {
+                        requestContext.Abort();
+                    }
+                }
+            }
+
+            internal async Task<(bool success, bool wasAborted)> WaitForOutputSessionCloseAsync(TimeSpan timeout)
+            {
+                try
+                {
+                    return (await _outputSessionCloseHandle.WaitAsync(timeout, false), false);
+                }
+                catch (CommunicationObjectAbortedException)
+                {
+                    if (State != CommunicationState.Closed) throw;
+                    return (true, true);
+                }
+            }
+
+            private async Task<(bool success, bool wasAborted)> WaitForInputSessionCloseAsync(TimeSpan timeout)
+            {
+                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+                RequestContext context;
+                bool wasAborted = false;
+                try
+                {
+                    if (!TryReceiveRequest(timeoutHelper.RemainingTime(), out context))
+                    {
+                        return (false, wasAborted);
+                    }
+
+                    if (context != null && context.RequestMessage !=null)
+                    {
+                        Message message = context.RequestMessage;
+                        using (message)
+                        {
+                            ProtocolException error = ProtocolException.ReceiveShutdownReturnedNonNull(message);
+                            throw TraceUtility.ThrowHelperWarning(error, message);
+                        }
+                    }
+                    bool result = await _inputSessionCloseHandle.WaitAsync(timeoutHelper.RemainingTime(), false);
+                    if (!result)
+                    {
+                        return (false, wasAborted);
+                    }
+                    else
+                    {
+                        lock (LocalLock)
+                        {
+                            if (!(_isInputClosed))
+                            {
+                                Fx.Assert("Shutdown request was not received.");
+                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ShutdownRequestWasNotReceived)));
+                            }
+                        }
+                        return (true, wasAborted);
+                    }
+                }
+                catch (CommunicationObjectAbortedException)
+                {
+                    if (State != CommunicationState.Closed)
+                    {
+                        throw;
+                    }
+                    wasAborted = true;
+                }
+                return (false, wasAborted);
+            }
+
+            private class SoapSecurityServerDuplexSession : SoapSecurityInputSession, IDuplexSession
+            {
+                private ServerSecurityDuplexSessionChannel _channel;
+
+                public SoapSecurityServerDuplexSession(SecurityContextSecurityToken sessionToken, SecuritySessionServerSettings settings, ServerSecurityDuplexSessionChannel channel)
+                    : base(sessionToken, settings, channel)
+                {
+                    _channel = channel;
+                }
+
+                public Task CloseOutputSessionAsync()
+                {
+                    return CloseOutputSessionAsync(ServiceDefaults.CloseTimeout); ;
+                }
+
+                public Task CloseOutputSessionAsync(CancellationToken token)
+                {
+                    return CloseOutputSessionAsync();
+                }
+
+                private async Task CloseOutputSessionAsync(TimeSpan timeout)
+                {
+                    // channel.ThrowIfFaulted();
+                    // channel.ThrowIfNotOpened();
+                    Exception pendingException = null;
+                    try
+                    {
+                        await _channel.CloseOutputSessionAsync(new TimeoutHelper(timeout).GetCancellationToken());
+                    }
+                    catch (Exception e)
+                    {
+                        if (Fx.IsFatal(e))
+                        {
+                            throw;
+                        }
+                        pendingException = e;
+                    }
+                    if (pendingException != null)
+                    {
+                        _channel.OnFaulted(pendingException);
+                        if (pendingException is CommunicationException)
+                        {
+                            throw pendingException;
+                        }
+                        else
+                        {
+                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(pendingException);
+                        }
+                    }
+                }
+            }
+
+            public class ServerSecurityDuplexSessionChannelDispatcher : ServerSecurityDuplexSessionChannel, IDuplexSessionChannel, IServiceChannelDispatcher
+            {
+                private readonly IServiceProvider _serviceProvider;
+                private volatile IServiceChannelDispatcher _channelDispatcher;
+
+                public ServerSecurityDuplexSessionChannelDispatcher(
+                    SecuritySessionServerSettings settings,
+                    SecurityContextSecurityToken sessionToken,
+                    object listenerSecurityState, SecurityListenerSettingsLifetimeManager settingsLifetimeManager
+                    , IChannel channel, EndpointAddress address)
+                    : base(settings,
+                          sessionToken, listenerSecurityState, settingsLifetimeManager, address, channel)
+                {
+                    IncomingChannel = (IDuplexSessionChannel)channel;
+                    _serviceProvider = IncomingChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
+                }
+
+                public IDuplexSessionChannel IncomingChannel { get; set; }
+                public IServiceChannelDispatcher ChannelDispatcher { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                public event EventHandler Closed;
+                public event EventHandler Closing;
+                public event EventHandler Faulted;
+                public event EventHandler Opened;
+                public event EventHandler Opening;
+
+                public Task DispatchAsync(RequestContext context)
+                {
+                    return DispatchAsync(context.RequestMessage);
+                }
+
+                public Task DispatchAsync(Message message)
+                {
+                    DuplexSessionRequestContext duplexSessionRequestContext = new
+                        DuplexSessionRequestContext(IncomingChannel, message);
+                    RequestContext context =  ReceiveRequest(duplexSessionRequestContext);
+                    return _channelDispatcher.DispatchAsync(context == null ? null :context.RequestMessage);
+                }
+
+                public T GetProperty<T>() where T : class
+                {
+                    T tObj = _serviceProvider.GetService<T>();
+                    if (tObj == null)
+                    {
+                        return IncomingChannel.GetProperty<T>();
+                    }
+                    else
+                    {
+                        return tObj;
+                    }
+                }
+
+                public Task OpenAsync()
+                {
+                    return Task.CompletedTask;
+                    // NO op, call by Channel Handler in the upper chain from CreateServiceChannel dispatcher from below OpenAsync.
+                }
+
+                public override async Task OpenAsync(TimeSpan timeout)
+                {
+                    await base.OpenAsync(timeout);
+                    _channelDispatcher = await Settings.SecurityServiceDispatcher.
+                        GetInnerServiceChannelDispatcher(this);
+                }
+
+                public Task OpenAsync(CancellationToken token)
+                {
                     return OpenAsync();
                 }
 
@@ -2549,7 +3108,7 @@ namespace CoreWCF.Security
 
             protected override TimeSpan DefaultOpenTimeout => ServiceDefaults.OpenTimeout;
 
-            protected override void OnAbort() { }
+            protected override void OnAbort() {}
             protected override Task OnCloseAsync(CancellationToken token) => throw new NotImplementedException();
             protected override Task OnOpenAsync(CancellationToken token) => throw new NotImplementedException();
         }
