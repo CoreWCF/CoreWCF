@@ -501,7 +501,8 @@ namespace CoreWCF.Security
                 if (typeof(IReplyChannel).Equals(AcceptorChannelType))
                 {
                     ChannelBuilder.AddServiceDispatcher<IReplyChannel>(sessionServiceDispatcher, new ChannelDemuxerFilter(sctFilter, int.MaxValue));
-                }else if (typeof(IDuplexSessionChannel).Equals(AcceptorChannelType))
+                }
+                else if (typeof(IDuplexSessionChannel).Equals(AcceptorChannelType))
                 {
                     ChannelBuilder.AddServiceDispatcher<IDuplexSessionChannel>(sessionServiceDispatcher, new ChannelDemuxerFilter(sctFilter, int.MaxValue));
                 }
@@ -830,16 +831,16 @@ namespace CoreWCF.Security
                                 _replySessionChannelDispatcher = new ServerSecurityDuplexSessionChannel.
                                  ServerSecurityDuplexSessionChannelDispatcher(_settings, _sessionToken,
                                  null, _settings.SettingsLifetimeManager, channel, _remoteAddress);
-                               
+
                             }
-                            else if(_settings.AcceptorChannelType == typeof(IReplyChannel))
+                            else if (_settings.AcceptorChannelType == typeof(IReplyChannel))
                             {
                                 _replySessionChannelDispatcher = new ServerSecuritySimplexSessionChannel.
                                     SecurityReplySessionServiceChannelDispatcher(_settings, _sessionToken,
                                     null, _settings.SettingsLifetimeManager, channel, _remoteAddress);
                             }
                             await _replySessionChannelDispatcher.OpenAsync(ServiceDefaults.OpenTimeout);
-                            _sessionChannelDispatcher = (IServiceChannelDispatcher) _replySessionChannelDispatcher;
+                            _sessionChannelDispatcher = (IServiceChannelDispatcher)_replySessionChannelDispatcher;
                             _settings.AddSessionChannel(_sessionToken.ContextId, _replySessionChannelDispatcher, _messageFilter);
                         }
                     }
@@ -1538,7 +1539,7 @@ namespace CoreWCF.Security
                 {
                     using (closeResponse)
                     {
-                       await SendMessageAsync(requestContext, closeResponse, token);
+                        await SendMessageAsync(requestContext, closeResponse, token);
                     }
 
                     TraceSessionClosedResponseSuccess();
@@ -1816,7 +1817,7 @@ namespace CoreWCF.Security
                 }
                 if (SendCloseResponseOnCloseReceivedIfRequiredAsync(requestContext, message, correlationState, token).Result)
                 {
-                  // inputSessionClosedHandle.Set();
+                    // inputSessionClosedHandle.Set();
                 }
             }
 
@@ -1988,7 +1989,7 @@ namespace CoreWCF.Security
             {
                 _session = new SoapSecurityServerDuplexSession(sessionToken, settings, this);
                 _duplexCommObj = new DuplexCommunication();
-                _duplexSessionChannel = (IDuplexSessionChannel) channel;
+                _duplexSessionChannel = (IDuplexSessionChannel)channel;
             }
 
             public EndpointAddress RemoteAddress
@@ -2052,23 +2053,24 @@ namespace CoreWCF.Security
                 return CloseAsync(new TimeoutHelper(ServiceDefaults.CloseTimeout).GetCancellationToken());
             }
 
-            public Task CloseAsync(CancellationToken token)
+            public async Task CloseAsync(CancellationToken token)
             {
                 // step 1: close output session
-                CloseOutputSession(token);
+                await CloseOutputSessionAsync(token);
 
                 // if the channel was aborted while closing the output session, return
                 if (State == CommunicationState.Closed)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
                 // step 2: wait for input session to be closed
-                
+
                 bool wasAborted;
-                bool didInputSessionClose = WaitForInputSessionClose(ServiceDefaults.CloseTimeout, out wasAborted);
+                bool didInputSessionClose;
+                (didInputSessionClose, wasAborted) = await WaitForInputSessionCloseAsync(ServiceDefaults.CloseTimeout);
                 if (wasAborted)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
                 if (!didInputSessionClose)
                 {
@@ -2077,10 +2079,10 @@ namespace CoreWCF.Security
 
                 // wait for any concurrent CloseOutputSessions to finish
                 bool didOutputSessionClose;
-                (didOutputSessionClose, wasAborted) =  await WaitForOutputSessionCloseAsync(ServiceDefaults.CloseTimeout);
+                (didOutputSessionClose, wasAborted) = await WaitForOutputSessionCloseAsync(ServiceDefaults.CloseTimeout);
                 if (wasAborted)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
 
                 if (!didOutputSessionClose)
@@ -2090,14 +2092,13 @@ namespace CoreWCF.Security
                 await CloseDuplexSessionChannelAsync(token);
                 await CloseCoreAsync(token);
                 Settings.RemoveSessionChannel(_session.Id);
-                return Task.CompletedTask;
             }
 
             private async Task CloseDuplexSessionChannelAsync(CancellationToken token)
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(TimeSpan.FromMinutes(30));
                 await ((ISessionChannel<IDuplexSession>)_duplexSessionChannel).Session.CloseOutputSessionAsync(timeoutHelper.GetCancellationToken());
-               
+
                 TimeSpan iterationTimeout = timeoutHelper.RemainingTime();
                 bool lastIteration = (iterationTimeout == TimeSpan.Zero);
 
@@ -2257,7 +2258,7 @@ namespace CoreWCF.Security
 
                     if (setInputSessionCloseHandle)
                     {
-                       _inputSessionCloseHandle.Set();
+                        _inputSessionCloseHandle.Set();
                     }
                     if (cleanupContext)
                     {
@@ -2314,35 +2315,32 @@ namespace CoreWCF.Security
                 }
             }
 
-            internal bool WaitForOutputSessionClose(TimeSpan timeout, out bool wasAborted)
+            internal async Task<(bool success, bool wasAborted)> WaitForOutputSessionCloseAsync(TimeSpan timeout)
             {
-                wasAborted = false;
                 try
                 {
-                    Task<bool> waitTask = _outputSessionCloseHandle.WaitAsync(timeout, false);
-                    return waitTask.GetAwaiter().GetResult();
+                    return (await _outputSessionCloseHandle.WaitAsync(timeout, false), false);
                 }
                 catch (CommunicationObjectAbortedException)
                 {
                     if (State != CommunicationState.Closed) throw;
-                    wasAborted = true;
-                    return true;
+                    return (true, true);
                 }
             }
 
-            private bool WaitForInputSessionClose(TimeSpan timeout, out bool wasAborted)
+            private async Task<(bool success, bool wasAborted)> WaitForInputSessionCloseAsync(TimeSpan timeout)
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 RequestContext context;
-                wasAborted = false;
+                bool wasAborted = false;
                 try
                 {
                     if (!TryReceiveRequest(timeoutHelper.RemainingTime(), out context))
                     {
-                        return false;
+                        return (false, wasAborted);
                     }
 
-                    if (context != null && context.RequestMessage !=null)
+                    if (context != null && context.RequestMessage != null)
                     {
                         Message message = context.RequestMessage;
                         using (message)
@@ -2351,11 +2349,10 @@ namespace CoreWCF.Security
                             throw TraceUtility.ThrowHelperWarning(error, message);
                         }
                     }
-                    Task<bool> waitTask = _inputSessionCloseHandle.WaitAsync(timeoutHelper.RemainingTime(), false);
-                    // wait for remote close
-                    if (!waitTask.GetAwaiter().GetResult())
+                    bool result = await _inputSessionCloseHandle.WaitAsync(timeoutHelper.RemainingTime(), false);
+                    if (!result)
                     {
-                        return false;
+                        return (false, wasAborted);
                     }
                     else
                     {
@@ -2367,7 +2364,7 @@ namespace CoreWCF.Security
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ShutdownRequestWasNotReceived)));
                             }
                         }
-                        return true;
+                        return (true, wasAborted);
                     }
                 }
                 catch (CommunicationObjectAbortedException)
@@ -2378,7 +2375,7 @@ namespace CoreWCF.Security
                     }
                     wasAborted = true;
                 }
-                return false;
+                return (false, wasAborted);
             }
 
             private class SoapSecurityServerDuplexSession : SoapSecurityInputSession, IDuplexSession
@@ -2435,7 +2432,6 @@ namespace CoreWCF.Security
 
             public class ServerSecurityDuplexSessionChannelDispatcher : ServerSecurityDuplexSessionChannel, IDuplexSessionChannel, IServiceChannelDispatcher
             {
-
                 private readonly IServiceProvider _serviceProvider;
                 private volatile IServiceChannelDispatcher _channelDispatcher;
 
@@ -2469,8 +2465,8 @@ namespace CoreWCF.Security
                 {
                     DuplexSessionRequestContext duplexSessionRequestContext = new
                         DuplexSessionRequestContext(IncomingChannel, message);
-                    RequestContext context =  ReceiveRequest(duplexSessionRequestContext);
-                    return _channelDispatcher.DispatchAsync(context == null ? null :context.RequestMessage);
+                    RequestContext context = ReceiveRequest(duplexSessionRequestContext);
+                    return _channelDispatcher.DispatchAsync(context == null ? null : context.RequestMessage);
                 }
 
                 public T GetProperty<T>() where T : class
@@ -2553,7 +2549,7 @@ namespace CoreWCF.Security
 
             protected override TimeSpan DefaultOpenTimeout => ServiceDefaults.OpenTimeout;
 
-            protected override void OnAbort() {}
+            protected override void OnAbort() { }
             protected override Task OnCloseAsync(CancellationToken token) => throw new NotImplementedException();
             protected override Task OnOpenAsync(CancellationToken token) => throw new NotImplementedException();
         }
@@ -2651,7 +2647,7 @@ namespace CoreWCF.Security
                 }
                 return faultMessage;
             }
-           
+
             public Task HandleDemuxFailureAsync(Message message)
             {
                 throw new NotImplementedException();

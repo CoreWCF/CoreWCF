@@ -1,10 +1,4 @@
-﻿using System;
-using System.ServiceModel.Channels;
-using System.ServiceModel.Description;
-using System.ServiceModel.Dispatcher;
-
-using System.ServiceModel.Description;
-using System.ServiceModel.Dispatcher;
+﻿using System.ServiceModel;
 
 namespace DesktopServer
 {
@@ -28,5 +22,4 @@ namespace DesktopServer
             throw new FaultException<Contract.EchoFault>(new Contract.EchoFault() { Text = "CoreWCF Fault OK" });
         }
     }
-}
 }

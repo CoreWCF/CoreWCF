@@ -29,27 +29,15 @@ namespace CoreWCF.NetTcp.Tests
             _output = output;
         }
 
-        [Fact ]
-        public void BasicUserNameAuth()
+        [Theory]
+        [InlineData(false, "testuser@corewcf")]
+        [InlineData(true, "randomuser@corewcf")]
+        private void BasicUserNameAuth(bool isError, string userName)
         {
-            runTest(false, "testuser@corewcf", _output);
-        }
-
-        [Fact]
-        public void BasicUserNameAuthError()
-        {
-            runTest(true, "randomuser@corewcf", _output);
-        }
-
-        private void runTest(bool isError, String userName, ITestOutputHelper _output)
-        {
-            bool isException = false;
-            try
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
+            using (host)
             {
-                string testString = new string('a', 3000);
-                IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
-                using (host)
-                {
 
                 host.Start();
                 System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
@@ -88,7 +76,6 @@ namespace CoreWCF.NetTcp.Tests
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
             }
-
         }
 
         private static Random random = new Random();
@@ -112,7 +99,7 @@ namespace CoreWCF.NetTcp.Tests
             public void ChangeHostBehavior(ServiceHostBase host)
             {
                 var srvCredentials = new CoreWCF.Description.ServiceCredentials();
-                srvCredentials.ServiceCertificate.Certificate=  ServiceHelper.GetServiceCertificate();
+                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetServiceCertificate();
                 srvCredentials.UserNameAuthentication.UserNamePasswordValidationMode
                 = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
                 srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator
@@ -137,7 +124,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 public override void Validate(string userName, string password)
                 {
-                    if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0 && password.Length >0)
+                    if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0 && password.Length > 0)
                     {
                         //Write custom logic
                         return;
