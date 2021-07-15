@@ -496,11 +496,11 @@ namespace CoreWCF.Dispatcher
         private readonly IDuplexChannel innerDuplexChannel;
         private readonly IServiceProvider _serviceProvider;
         public SecurityDuplexChannel(SecurityServiceDispatcher serviceDispatcher, IDuplexChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
-          //  : base(channelManager, innerChannel, securityProtocol, settingsLifetimeManager)
+        //  : base(channelManager, innerChannel, securityProtocol, settingsLifetimeManager)
         {
-           innerDuplexChannel = innerChannel;
+            innerDuplexChannel = innerChannel;
             SecurityProtocol = securityProtocol;
-           _serviceProvider = InnerDuplexChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
+            _serviceProvider = InnerDuplexChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
         }
 
         public EndpointAddress RemoteAddress
@@ -520,7 +520,7 @@ namespace CoreWCF.Dispatcher
 
         internal SecurityProtocol SecurityProtocol { get; set; }
 
-      //  public IReplyChannel OuterChannel { get; private set; }
+        //  public IReplyChannel OuterChannel { get; private set; }
 
         public T GetProperty<T>() where T : class
         {
@@ -534,7 +534,7 @@ namespace CoreWCF.Dispatcher
         public Task SendAsync(Message message, TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            message = SecurityProtocol.SecureOutgoingMessage (message, timeoutHelper.GetCancellationToken());
+            message = SecurityProtocol.SecureOutgoingMessage(message, timeoutHelper.GetCancellationToken());
             return InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
         }
     }
@@ -603,7 +603,7 @@ namespace CoreWCF.Dispatcher
         {
             Fx.Assert(State == CommunicationState.Opened, "Expected dispatcher state to be Opened, instead it's " + State.ToString());
             ProcessInnerItem(message, ServiceDefaults.SendTimeout);
-            if(_serviceChannelDispatcher ==null)
+            if (_serviceChannelDispatcher == null)
             {
                 _serviceChannelDispatcher = await SecurityServiceDispatcher.
                  SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(this);
@@ -618,177 +618,7 @@ namespace CoreWCF.Dispatcher
 
         public Task SendAsync(Message message, CancellationToken token)
         {
-           return SendAsync(message);
-        }
-
-        private Message ProcessInnerItem(Message innerItem, TimeSpan timeout)
-        {
-            if (innerItem == null)
-            {
-                return null;
-            }
-            SecurityProtocol.VerifyIncomingMessage(ref innerItem, timeout);
-            return innerItem;
-        }
-
-        void SendFaultIfRequired(Exception e, Message unverifiedMessage, TimeSpan timeout)
-        {
-            if (!sendUnsecuredFaults)
-            {
-                return;
-            }
-            MessageFault fault = SecurityUtils.CreateSecurityMessageFault(e, this.SecurityProtocol.SecurityProtocolFactory.StandardsManager);
-            if (fault == null)
-            {
-                return;
-            }
-            try
-            {
-                using (Message faultMessage = Message.CreateMessage(unverifiedMessage.Version, fault, unverifiedMessage.Version.Addressing.DefaultFaultAction))
-                {
-                    if (unverifiedMessage.Headers.MessageId != null)
-                        faultMessage.InitializeReply(unverifiedMessage);
-                    ((IDuplexChannel)InnerDuplexChannel).SendAsync(faultMessage);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (Fx.IsFatal(ex))
-                    throw;
-            }
-        }
-
-        public Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token) => throw new NotImplementedException();
-    }
-
-    internal abstract class SecurityDuplexChannel<UChannel> : IServiceChannelDispatcher where UChannel : class
-    {
-        private readonly IDuplexChannel innerDuplexChannel;
-        private readonly IServiceProvider _serviceProvider;
-        public SecurityDuplexChannel(SecurityServiceDispatcher serviceDispatcher, IDuplexChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
-          //  : base(channelManager, innerChannel, securityProtocol, settingsLifetimeManager)
-        {
-           innerDuplexChannel = innerChannel;
-            SecurityProtocol = securityProtocol;
-           _serviceProvider = InnerDuplexChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
-        }
-
-        public EndpointAddress RemoteAddress
-        {
-            get { return this.innerDuplexChannel.RemoteAddress; }
-        }
-
-        public Uri Via
-        {
-            get { return this.innerDuplexChannel.Via; }
-        }
-
-        protected IDuplexChannel InnerDuplexChannel
-        {
-            get { return this.innerDuplexChannel; }
-        }
-
-        internal SecurityProtocol SecurityProtocol { get; set; }
-
-      //  public IReplyChannel OuterChannel { get; private set; }
-
-        public T GetProperty<T>() where T : class
-        {
-            T tObj = _serviceProvider.GetService<T>();
-            return tObj ?? InnerDuplexChannel.GetProperty<T>();
-        }
-
-        public abstract Task DispatchAsync(RequestContext context);
-        public abstract Task DispatchAsync(Message message);
-
-        public Task SendAsync(Message message, TimeSpan timeout)
-        {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            message = SecurityProtocol.SecureOutgoingMessage (message, timeoutHelper.GetCancellationToken());
-            return InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
-        }
-    }
-
-    sealed class SecurityDuplexSessionChannelDispatcher : SecurityDuplexChannel<IDuplexSessionChannel>, IDuplexSessionChannel
-    {
-        bool sendUnsecuredFaults;
-        private IServiceChannelDispatcher _serviceChannelDispatcher;
-        public SecurityDuplexSessionChannelDispatcher(SecurityServiceDispatcher serviceDispatcher, IDuplexSessionChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
-            : base(serviceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
-        {
-            // sendUnsecuredFaults = channelManager.SendUnsecuredFaults;
-            SecurityServiceDispatcher = serviceDispatcher;
-        }
-
-        public IDuplexSession Session
-        {
-            get { return ((IDuplexSessionChannel)InnerDuplexChannel).Session; }
-        }
-
-        public EndpointAddress LocalAddress => throw new NotImplementedException();
-
-        public IServiceChannelDispatcher ChannelDispatcher { get; set; }
-
-        public SecurityServiceDispatcher SecurityServiceDispatcher { get; }
-
-        public CommunicationState State => InnerDuplexChannel.State;
-
-        public event EventHandler Closing;
-        public event EventHandler Faulted;
-        public event EventHandler Opened;
-        public event EventHandler Opening;
-        public event EventHandler Closed;
-
-        public void Abort()
-        {
-            return;
-        }
-
-        public async Task CloseAsync()
-        {
-            await InnerDuplexChannel.CloseAsync();
-        }
-
-        public Task CloseAsync(CancellationToken token)
-        {
-            return CloseAsync();
-        }
-
-        public Task OpenAsync()
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task OpenAsync(CancellationToken token)
-        {
-            return OpenAsync();
-        }
-
-        public override Task DispatchAsync(RequestContext context)
-        {
-            return DispatchAsync(context.RequestMessage);
-        }
-
-        public override async Task DispatchAsync(Message message)
-        {
-            Fx.Assert(State == CommunicationState.Opened, "Expected dispatcher state to be Opened, instead it's " + State.ToString());
-            ProcessInnerItem(message, ServiceDefaults.SendTimeout);
-            if(_serviceChannelDispatcher ==null)
-            {
-                _serviceChannelDispatcher = await SecurityServiceDispatcher.
-                 SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(this);
-            }
-            await _serviceChannelDispatcher.DispatchAsync(message);
-        }
-
-        public Task SendAsync(Message message)
-        {
-            return base.SendAsync(message, ServiceDefaults.SendTimeout);
-        }
-
-        public Task SendAsync(Message message, CancellationToken token)
-        {
-           return SendAsync(message);
+            return SendAsync(message);
         }
 
         private Message ProcessInnerItem(Message innerItem, TimeSpan timeout)
