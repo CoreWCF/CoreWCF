@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.IO;
+using System.ComponentModel;
 using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Channels;
+using System.Threading;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.Security;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -78,12 +75,57 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
+        [Fact, Description("Demuxer-failure-nettcp")]
+        public void NetTCPRequestReplyWithTransportMessageEchoStringDemuxFailure()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTCDemuxFailure>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                    new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
+                System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                clientCredentials.UserName.UserName = "testuser@corewcf";
+                clientCredentials.UserName.Password = RandomString(10);
+                var channel = factory.CreateChannel();
+                try
+                {
+                    ((IChannel)channel).Open();
+                    Thread.Sleep(6000);
+                    string result = channel.EchoString(testString);
+                }
+                catch (Exception ex)
+                {
+                    Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
+                    Assert.Contains("expired security context token", ex.InnerException.Message);
+                }
+            }
+        }
+
         private static Random random = new Random();
         private static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public class StartUpPermissionBaseForTCDemuxFailure : StartUpPermissionBaseForTC
+        {
+            public override CoreWCF.Channels.Binding ChangeBinding(NetTcpBinding binding)
+            {
+                CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding(binding);
+                CoreWCF.Channels.SecurityBindingElement security = customBinding.Elements.Find<CoreWCF.Channels.SecurityBindingElement>();
+                security.LocalServiceSettings.InactivityTimeout = TimeSpan.FromSeconds(3);
+                return customBinding;
+            }
         }
 
         public class StartUpPermissionBaseForTC
@@ -114,10 +156,15 @@ namespace CoreWCF.NetTcp.Tests
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
-                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(serverBinding, WindowsAuthRelativePath);
+                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(ChangeBinding(serverBinding), WindowsAuthRelativePath);
                     Action<ServiceHostBase> serviceHost = host => ChangeHostBehavior(host);
                     builder.ConfigureServiceHostBase<Services.TestService>(serviceHost);
                 });
+            }
+
+            public virtual CoreWCF.Channels.Binding ChangeBinding(NetTcpBinding netTCPBinding)
+            {
+                return netTCPBinding;
             }
 
             internal class CustomTestValidator : UserNamePasswordValidator

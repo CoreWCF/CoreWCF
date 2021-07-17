@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using static CoreWCF.Security.SecuritySessionServerSettings;
 
 namespace CoreWCF.Channels
 {
@@ -267,7 +268,8 @@ namespace CoreWCF.Channels
             {
                 if (DemuxFailureHandler != null)
                 {
-                    await DemuxFailureHandler.HandleDemuxFailureAsync(message);
+                    DuplexSessionRequestContext duplexSessionRequestContext = new DuplexSessionRequestContext(channel, message);
+                    await DemuxFailureHandler.HandleDemuxFailureAsync(message, duplexSessionRequestContext);
                     abortItem = false;
                 }
 
