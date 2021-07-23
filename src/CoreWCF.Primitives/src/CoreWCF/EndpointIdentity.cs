@@ -59,12 +59,10 @@ namespace CoreWCF
             }
             else if (identity.ClaimType.Equals(ClaimTypes.Spn))
             {
-                //throw new PlatformNotSupportedException();
                 return new SpnEndpointIdentity(identity);
             }
             else if (identity.ClaimType.Equals(ClaimTypes.Upn))
             {
-               // throw new PlatformNotSupportedException();
                 return new UpnEndpointIdentity(identity);
             }
             else if (identity.ClaimType.Equals(ClaimTypes.Rsa))
