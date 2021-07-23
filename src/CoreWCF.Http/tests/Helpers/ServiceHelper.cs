@@ -16,6 +16,7 @@ using System.Security.Authentication;
 #endif // NET472
 using System.Text;
 using Xunit.Abstractions;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Helpers
 {
@@ -308,6 +309,45 @@ namespace Helpers
             }
             Stream stream = input.stream;
             return GetStringFrom(stream);
+        }
+
+        //only for test, don't use in production code
+        public static X509Certificate2 GetServiceCertificate()
+        {
+            string AspNetHttpsOid = "1.3.6.1.4.1.311.84.1.1";
+            X509Certificate2 foundCert = null;
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            {
+                // X509Store.Certificates creates a new instance of X509Certificate2Collection with
+                // each access to the property. The collection needs to be cleaned up correctly so
+                // keeping a single reference to fetched collection.
+                store.Open(OpenFlags.ReadOnly);
+                var certificates = store.Certificates;
+                foreach (var cert in certificates)
+                {
+                    foreach (var extension in cert.Extensions)
+                    {
+                        if (AspNetHttpsOid.Equals(extension.Oid?.Value))
+                        {
+                            // Always clone certificate instances when you don't own the creation
+                            foundCert = new X509Certificate2(cert);
+                            break;
+                        }
+                    }
+
+                    if (foundCert != null)
+                    {
+                        break;
+                    }
+                }
+                // Cleanup
+                foreach (var cert in certificates)
+                {
+                    cert.Dispose();
+                }
+            }
+
+            return foundCert;
         }
     }
 }

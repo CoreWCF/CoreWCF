@@ -15,7 +15,7 @@ using SessionIdleManager = CoreWCF.Channels.ServiceChannel.SessionIdleManager;
 
 namespace CoreWCF.Dispatcher
 {
-    internal class ChannelHandler : IServiceChannelDispatcher
+    internal class ChannelHandler : IServiceChannelDispatcher, IDefaultCommunicationTimeouts
     {
         public static readonly TimeSpan CloseAfterFaultTimeout = TimeSpan.FromSeconds(10);
         public const string MessageBufferPropertyName = "_RequestMessageBuffer_";
@@ -1019,6 +1019,11 @@ namespace CoreWCF.Dispatcher
                 _asyncManualResetEvent.Reset();
             }
         }
+
+        TimeSpan IDefaultCommunicationTimeouts.CloseTimeout => _serviceDispatcher.Binding.CloseTimeout;
+        TimeSpan IDefaultCommunicationTimeouts.OpenTimeout => _serviceDispatcher.Binding.OpenTimeout;
+        TimeSpan IDefaultCommunicationTimeouts.ReceiveTimeout => _serviceDispatcher.Binding.ReceiveTimeout;
+        TimeSpan IDefaultCommunicationTimeouts.SendTimeout => _serviceDispatcher.Binding.SendTimeout;
 
         // TODO: Revert back to struct or pool objects.
         internal class RequestInfo

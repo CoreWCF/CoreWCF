@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,15 +19,17 @@ namespace CoreWCF.Channels.Framing
         private readonly IServiceBuilder _serviceBuilder;
         private readonly IDispatcherBuilder _dispatcherBuilder;
         private readonly HandshakeDelegate _handshake;
+        private readonly ILogger _framingLogger;
         private readonly IServiceProvider _services;
 
         public List<ListenOptions> ListenOptions { get; } = new List<ListenOptions>();
 
-        public NetMessageFramingConnectionHandler(IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, IFramingConnectionHandshakeBuilder handshakeBuilder)
+        public NetMessageFramingConnectionHandler(IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, IFramingConnectionHandshakeBuilder handshakeBuilder, ILogger<FramingConnection> framingLogger)
         {
             _serviceBuilder = serviceBuilder;
             _dispatcherBuilder = dispatcherBuilder;
             _handshake = BuildHandshake(handshakeBuilder);
+            _framingLogger = framingLogger;
             _services = handshakeBuilder.HandshakeServices;
             serviceBuilder.Opened += OnServiceBuilderOpened;
         }
@@ -97,7 +100,19 @@ namespace CoreWCF.Channels.Framing
                         continue;
                     }
 
-                    HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(dispatcher);
+                    IServiceDispatcher _serviceDispatcher = null;
+                    var _customBinding = new CustomBinding(dispatcher.Binding);
+                    if (_customBinding.Elements.Find<ConnectionOrientedTransportBindingElement>() != null)
+                    {
+                        var parameters = new BindingParameterCollection();
+                        if (_customBinding.CanBuildServiceDispatcher<IDuplexSessionChannel>(parameters))
+                        {
+                            _serviceDispatcher = _customBinding.BuildServiceDispatcher<IDuplexSessionChannel>(parameters, dispatcher);
+                        }
+                    }
+                    _serviceDispatcher = _serviceDispatcher ?? dispatcher;
+                    HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(_serviceDispatcher);
+
                     logger.LogDebug($"Registering URI {dispatcher.BaseAddress} with NetMessageFramingConnectionHandler");
                     addressTable.RegisterUri(dispatcher.BaseAddress, cotbe.HostNameComparisonMode, handshake);
                 }
@@ -127,7 +142,12 @@ namespace CoreWCF.Channels.Framing
             // TODO: Limit NamedPipes to prevent it using SslStreamSecurityUpgradeProvider
             else if ((upgradeBindingElements.Count == 1) /*&& this.SupportsUpgrade(upgradeBindingElements[0])*/)
             {
+                SecurityCredentialsManager credentialsManager = dispatcher.Host.Description.Behaviors.Find<SecurityCredentialsManager>();
                 var bindingContext = new BindingContext(new CustomBinding(dispatcher.Binding), new BindingParameterCollection());
+
+                if (credentialsManager != null)
+                    bindingContext.BindingParameters.Add(credentialsManager);
+
                 streamUpgradeProvider = upgradeBindingElements[0].BuildServerStreamUpgradeProvider(bindingContext);
                 streamUpgradeProvider.OpenAsync().GetAwaiter().GetResult();
                 securityCapabilities = upgradeBindingElements[0].GetProperty<ISecurityCapabilities>(bindingContext);
@@ -165,7 +185,7 @@ namespace CoreWCF.Channels.Framing
 
         public override Task OnConnectedAsync(ConnectionContext context)
         {
-            var connection = new FramingConnection(context);
+            var connection = new FramingConnection(context, _framingLogger);
             return _handshake(connection);
         }
     }

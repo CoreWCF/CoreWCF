@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Xml;
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
@@ -103,6 +104,18 @@ namespace CoreWCF
             get { return EnvelopeVersion.Soap12; }
         }
 
+        internal SecurityBindingElement CreateMessageSecurity()
+        {
+            if (Security.Mode == SecurityMode.Message || Security.Mode == SecurityMode.TransportWithMessageCredential)
+            {
+                return Security.CreateMessageSecurity(false);//ReliableSession.Enabled);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public NetTcpSecurity Security
         {
             get { return _security; }
@@ -118,35 +131,8 @@ namespace CoreWCF
             _encoding = new BinaryMessageEncodingBindingElement();
         }
 
-        private void CheckSettings()
-        {
-            NetTcpSecurity security = Security;
-            if (security == null)
-            {
-                return;
-            }
-
-            SecurityMode mode = security.Mode;
-            if (mode == SecurityMode.None)
-            {
-                return;
-            }
-            else if (mode == SecurityMode.Message)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
-            }
-
-            // Message.ClientCredentialType = Certificate, IssuedToken or Windows are not supported.
-            if (mode == SecurityMode.TransportWithMessageCredential)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
-            }
-        }
-
         public override BindingElementCollection CreateBindingElements()
         {
-            CheckSettings();
-
             // return collection of BindingElements
             BindingElementCollection bindingElements = new BindingElementCollection
             {
@@ -154,6 +140,11 @@ namespace CoreWCF
                 // add encoding
                 _encoding
             };
+            SecurityBindingElement wsSecurity = CreateMessageSecurity();
+            if (wsSecurity != null)
+            {
+                bindingElements.Add(wsSecurity);
+            }
             // add transport security
             BindingElement transportSecurity = CreateTransportSecurity();
             if (transportSecurity != null)

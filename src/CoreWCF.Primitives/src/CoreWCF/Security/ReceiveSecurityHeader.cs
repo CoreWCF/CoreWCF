@@ -524,11 +524,11 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tracker));
             }
 
-            Fx.Assert(tracker.spec != null, "Supporting token trackers cannot have null specification.");
+            Fx.Assert(tracker.Spec != null, "Supporting token trackers cannot have null specification.");
 
-            SupportingTokenAuthenticatorSpecification spec = tracker.spec;
+            SupportingTokenAuthenticatorSpecification spec = tracker.Spec;
 
-            if (tracker.token == null)
+            if (tracker.Token == null)
             {
                 if (spec.IsTokenOptional)
                 {
@@ -550,14 +550,14 @@ namespace CoreWCF.Security
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SupportingSignatureIsNotDerivedFrom, spec.TokenParameters)));
                     }
-                    EnsureSupportingTokens(ref _endorsingTokens).Add(tracker.token);
+                    EnsureSupportingTokens(ref _endorsingTokens).Add(tracker.Token);
                     break;
                 case SecurityTokenAttachmentMode.Signed:
                     if (!tracker.IsSigned && RequireMessageProtection)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SupportingTokenIsNotSigned, spec.TokenParameters)));
                     }
-                    EnsureSupportingTokens(ref _signedTokens).Add(tracker.token);
+                    EnsureSupportingTokens(ref _signedTokens).Add(tracker.Token);
                     break;
                 case SecurityTokenAttachmentMode.SignedEncrypted:
                     if (!tracker.IsSigned && RequireMessageProtection)
@@ -568,7 +568,7 @@ namespace CoreWCF.Security
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SupportingTokenIsNotEncrypted, spec.TokenParameters)));
                     }
-                    EnsureSupportingTokens(ref _basicTokens).Add(tracker.token);
+                    EnsureSupportingTokens(ref _basicTokens).Add(tracker.Token);
                     break;
                 case SecurityTokenAttachmentMode.SignedEndorsing:
                     if (!tracker.IsSigned && RequireMessageProtection)
@@ -583,7 +583,7 @@ namespace CoreWCF.Security
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SupportingSignatureIsNotDerivedFrom, spec.TokenParameters)));
                     }
-                    EnsureSupportingTokens(ref _signedEndorsingTokens).Add(tracker.token);
+                    EnsureSupportingTokens(ref _signedEndorsingTokens).Add(tracker.Token);
                     break;
 
                 default:
@@ -1339,7 +1339,7 @@ namespace CoreWCF.Security
 
             for (int i = 0; i < _supportingTokenTrackers.Count; ++i)
             {
-                if (_supportingTokenTrackers[i].token == token)
+                if (_supportingTokenTrackers[i].Token == token)
                 {
                     return _supportingTokenTrackers[i];
                 }
@@ -1461,7 +1461,7 @@ namespace CoreWCF.Security
         private bool IsPrimaryToken(SecurityToken token)
         {
             bool result = (token == _outOfBandPrimaryToken
-                || (_primaryTokenTracker != null && token == _primaryTokenTracker.token)
+                || (_primaryTokenTracker != null && token == _primaryTokenTracker.Token)
                 || ((token is WrappedKeySecurityToken) && ((WrappedKeySecurityToken)token).WrappingToken == _wrappingToken));
             if (!result && _outOfBandPrimaryTokenCollection != null)
             {
@@ -1543,7 +1543,7 @@ namespace CoreWCF.Security
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.UnknownTokenAuthenticatorUsedInTokenProcessing, usedTokenAuthenticator)));
                 }
-                if (supportingTokenTracker.token != null)
+                if (supportingTokenTracker.Token != null)
                 {
                     supportingTokenTracker = new TokenTracker(supportingTokenSpec);
                     _supportingTokenTrackers.Add(supportingTokenTracker);
@@ -1848,14 +1848,14 @@ namespace CoreWCF.Security
 
     internal class TokenTracker
     {
-        public SecurityToken token;
+        public SecurityToken Token;
         public bool IsDerivedFrom;
         public bool IsSigned;
         public bool IsEncrypted;
         public bool IsEndorsing;
         public bool AlreadyReadEndorsingSignature;
+        public SupportingTokenAuthenticatorSpecification Spec;
         private bool _allowFirstTokenMismatch;
-        public SupportingTokenAuthenticatorSpecification spec;
 
         public TokenTracker(SupportingTokenAuthenticatorSpecification spec)
             : this(spec, null, false)
@@ -1864,27 +1864,27 @@ namespace CoreWCF.Security
 
         public TokenTracker(SupportingTokenAuthenticatorSpecification spec, SecurityToken token, bool allowFirstTokenMismatch)
         {
-            this.spec = spec;
-            this.token = token;
+            Spec = spec;
+            Token = token;
             _allowFirstTokenMismatch = allowFirstTokenMismatch;
         }
 
         public void RecordToken(SecurityToken token)
         {
-            if (this.token == null)
+            if (Token == null)
             {
-                this.token = token;
+                Token = token;
             }
             else if (_allowFirstTokenMismatch)
             {
-                if (!AreTokensEqual(this.token, token))
+                if (!AreTokensEqual(Token, token))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.MismatchInSecurityOperationToken));
                 }
-                this.token = token;
+                Token = token;
                 _allowFirstTokenMismatch = false;
             }
-            else if (!ReferenceEquals(this.token, token))
+            else if (!ReferenceEquals(Token, token))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.MismatchInSecurityOperationToken));
             }

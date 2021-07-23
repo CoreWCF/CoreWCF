@@ -33,7 +33,7 @@ namespace NetCoreServer
         {
             app.UseServiceModel(builder =>
             {
-                WSHttpBinding GetTransportWithMessageCredentialBinding ()
+                WSHttpBinding GetTransportWithMessageCredentialBinding()
                 {
                     var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
                     serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
@@ -42,7 +42,7 @@ namespace NetCoreServer
 
                 builder.ConfigureServiceHostBase<EchoService>(CustomUserNamePasswordValidatorCore.AddToHost);
 
-                void ConfigureSoapService<TService,TContract>(string serviceprefix) where TService : class
+                void ConfigureSoapService<TService, TContract>(string serviceprefix) where TService : class
                 {
                     Settings settings = new Settings().SetDefaults("localhost", serviceprefix);
                     builder.AddService<TService>()

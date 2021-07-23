@@ -134,7 +134,7 @@ namespace CoreWCF.Dispatcher
             {
                 rpc.InstanceContext = new InstanceContext(rpc.Host, false)
                 {
-                    ServiceThrottle = rpc.channelHandler.InstanceContextServiceThrottle
+                    ServiceThrottle = rpc.ChannelHandler.InstanceContextServiceThrottle
                 };
                 rpc.MessageRpcOwnsInstanceContextThrottle = false;
             }

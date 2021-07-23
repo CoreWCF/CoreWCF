@@ -215,7 +215,7 @@ namespace CoreWCF.Channels.Framing
             {
                 _connection = connection;
                 _timeouts = defaultTimeouts;
-                _decoder = new SingletonMessageDecoder();
+                _decoder = new SingletonMessageDecoder(connection.Logger);
                 _chunkBytesRemaining = 0;
                 _timeoutHelper = new TimeoutHelper(_timeouts.ReceiveTimeout);
             }

@@ -12,29 +12,29 @@ namespace CoreWCF.Dispatcher
     //
     internal struct QueryRange
     {
-        internal int end;       // INCLUSIVE - the end of the range
-        internal int start;     // INCLUSIVE - the start of the range
+        private int _end;       // INCLUSIVE - the end of the range
+        private int _start;     // INCLUSIVE - the start of the range
         internal QueryRange(int start, int end)
         {
-            this.start = start;
-            this.end = end;
+            _start = start;
+            _end = end;
         }
 
         internal int Count
         {
             get
             {
-                return end - start + 1;
+                return _end - _start + 1;
             }
         }
         internal bool IsInRange(int point)
         {
-            return (start <= point && point <= end);
+            return (_start <= point && point <= _end);
         }
         internal void Shift(int offset)
         {
-            start += offset;
-            end += offset;
+            _start += offset;
+            _end += offset;
         }
     }
 
