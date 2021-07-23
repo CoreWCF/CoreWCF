@@ -50,7 +50,6 @@ namespace WSHttp
         [Fact, Description("transport-security-with-an-anonymous-client")]
         public void WSHttpRequestReplyEchoStringTransportSecurity()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportSecurityOnly>(_output).Build();
             using (host)
@@ -76,7 +75,6 @@ namespace WSHttp
         [Fact , Description("Demuxer-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
             using (host)
@@ -110,7 +108,6 @@ namespace WSHttp
         [Fact, Description("transport-security-with-basic-authentication")]
         public void WSHttpRequestReplyWithTransportMessageEchoString()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).Build();
             using (host)
@@ -138,11 +135,9 @@ namespace WSHttp
             }
         }
 
-        // [Fact, Description("transport-security-with-certificate-authentication")]
-        //TODO set up in container, tested locally and this works
+         [Fact, Description("transport-security-with-certificate-authentication")]
         internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificate>(_output).Build();
             using (host)
@@ -153,12 +148,11 @@ namespace WSHttp
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
                 ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.ClientCertificate.SetCertificate(
-                StoreLocation.LocalMachine,
-                StoreName.My, X509FindType.FindBySubjectName
-                , "birojtestcert"
-                );
-
+                clientCredentials.ClientCertificate.Certificate = ServiceHelper.GetServiceCertificate();
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
@@ -166,11 +160,6 @@ namespace WSHttp
                 ((IChannel)channel).Close();
                 Console.WriteLine("read ");
             }
-        }
-
-        private static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
-        {
-            return true;
         }
 
         internal class CustomTestValidator : UserNamePasswordValidator
@@ -199,14 +188,27 @@ namespace WSHttp
             {
                 var srvCredentials = new CoreWCF.Description.ServiceCredentials();
                 srvCredentials.ClientCertificate.Authentication.CertificateValidationMode
-                    = CoreWCF.Security.X509CertificateValidationMode.PeerOrChainTrust;
-                srvCredentials.ClientCertificate.Authentication.TrustedStoreLocation = StoreLocation.LocalMachine;
-                srvCredentials.ServiceCertificate.SetCertificate(
-                    StoreLocation.LocalMachine,
-                    StoreName.Root, X509FindType.FindBySubjectName
-                    , "birojtestcert"
-                    );
+                    = CoreWCF.Security.X509CertificateValidationMode.Custom;
+                srvCredentials.ClientCertificate.Authentication.CustomCertificateValidator
+                    = new MyX509CertificateValidator();
+                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetServiceCertificate();
                 host.Description.Behaviors.Add(srvCredentials);
+            }
+
+            public class MyX509CertificateValidator : X509CertificateValidator
+            {
+                public MyX509CertificateValidator()
+                {
+                }
+
+                public override void Validate(X509Certificate2 certificate)
+                {
+                    // just Check that there is a certificate.
+                    if (certificate == null)
+                    {
+                        throw new ArgumentNullException("certificate");
+                    }
+                }
             }
         }
 

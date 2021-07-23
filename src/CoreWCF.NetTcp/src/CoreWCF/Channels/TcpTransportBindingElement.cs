@@ -3,6 +3,7 @@
 
 using System;
 using System.Security.Authentication.ExtendedProtection;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
@@ -107,6 +108,11 @@ namespace CoreWCF.Channels
             {
                 return base.GetProperty<T>(context);
             }
+        }
+
+        public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
+        {
+            return innerDispatcher;
         }
     }
 }

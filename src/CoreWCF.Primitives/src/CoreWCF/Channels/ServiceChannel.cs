@@ -1642,7 +1642,10 @@ namespace CoreWCF.Channels
             private object _thisLock;
             private bool? _isNeeded = null;
 
-            public SessionIdleManager() { }
+            public SessionIdleManager()
+            {
+                _thisLock = new object();
+            }
 
             internal SessionIdleManager UseIfNeeded(IChannelBinder binder, TimeSpan idle)
             {
@@ -1657,7 +1660,6 @@ namespace CoreWCF.Channels
                     _timer = new IOThreadTimer(GetTimerCallback(), this, false);
                     _idleTicks = Ticks.FromTimeSpan(idle);
                     _timer.SetAt(Ticks.Now + _idleTicks);
-                    _thisLock = new object();
                     _isNeeded = true;
                     return this;
                 }
@@ -1684,7 +1686,7 @@ namespace CoreWCF.Channels
                 lock (_thisLock)
                 {
                     _isTimerCancelled = true;
-                    _timer.Cancel();
+                    _timer?.Cancel();
                 }
             }
 

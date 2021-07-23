@@ -1,4 +1,5 @@
-﻿using Contract;
+﻿using System.Threading.Tasks;
+using Contract;
 using CoreWCF;
 
 namespace NetCoreServer

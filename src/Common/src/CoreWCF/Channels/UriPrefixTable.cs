@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using CoreWCF.Runtime;
 using CoreWCF.Runtime.Collections;
 
 namespace CoreWCF.Channels
 {
-    internal sealed class UriPrefixTable<TItem>
+    internal sealed class UriPrefixTable<TItem> : IEnumerable<KeyValuePair<BaseUriWithWildcard, TItem>>
         where TItem : class
     {
         private const int HopperSize = 128;
@@ -219,6 +221,9 @@ namespace CoreWCF.Channels
             }
             return current;
         }
+
+        public IEnumerator<KeyValuePair<BaseUriWithWildcard, TItem>> GetEnumerator() => GetAll().GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetAll().GetEnumerator();
 
         private static class UriSegmenter
         {

@@ -33,7 +33,7 @@ namespace CoreWCF.Dispatcher
                 if (_filters.ContainsKey(filter))
                 {
                     _filters[filter] = value;
-                    _filterData[filter].data = value;
+                    _filterData[filter]._data = value;
                 }
                 else
                 {
@@ -147,14 +147,14 @@ namespace CoreWCF.Dispatcher
             FilterDataPair pair = null;
             for (int i = 0; i < pairs.Count; ++i)
             {
-                if (pairs[i].filter.Filter2.Match(message))
+                if (pairs[i]._filter.Filter2.Match(message))
                 {
                     if (pair != null)
                     {
                         Collection<MessageFilter> matches = new Collection<MessageFilter>
                         {
-                            pair.filter,
-                            pairs[i].filter
+                            pair._filter,
+                            pairs[i]._filter
                         };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches), message);
                     }
@@ -173,14 +173,14 @@ namespace CoreWCF.Dispatcher
             FilterDataPair pair = null;
             for (int i = 0; i < pairs.Count; ++i)
             {
-                if (pairs[i].filter.Filter2.Match(messageBuffer))
+                if (pairs[i]._filter.Filter2.Match(messageBuffer))
                 {
                     if (pair != null)
                     {
                         Collection<MessageFilter> matches = new Collection<MessageFilter>
                         {
-                            pair.filter,
-                            pairs[i].filter
+                            pair._filter,
+                            pairs[i]._filter
                         };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches));
                     }
@@ -198,9 +198,9 @@ namespace CoreWCF.Dispatcher
 
             for (int i = 0; i < pairs.Count; ++i)
             {
-                if (pairs[i].filter.Filter2.Match(message))
+                if (pairs[i]._filter.Filter2.Match(message))
                 {
-                    results.Add(pairs[i].filter);
+                    results.Add(pairs[i]._filter);
                 }
             }
         }
@@ -212,9 +212,9 @@ namespace CoreWCF.Dispatcher
 
             for (int i = 0; i < pairs.Count; ++i)
             {
-                if (pairs[i].filter.Filter2.Match(message))
+                if (pairs[i]._filter.Filter2.Match(message))
                 {
-                    results.Add(pairs[i].data);
+                    results.Add(pairs[i]._data);
                 }
             }
         }
@@ -226,9 +226,9 @@ namespace CoreWCF.Dispatcher
 
             for (int i = 0; i < pairs.Count; ++i)
             {
-                if (pairs[i].filter.Filter2.Match(messageBuffer))
+                if (pairs[i]._filter.Filter2.Match(messageBuffer))
                 {
-                    results.Add(pairs[i].filter);
+                    results.Add(pairs[i]._filter);
                 }
             }
         }
@@ -240,9 +240,9 @@ namespace CoreWCF.Dispatcher
 
             for (int i = 0; i < pairs.Count; ++i)
             {
-                if (pairs[i].filter.Filter2.Match(messageBuffer))
+                if (pairs[i]._filter.Filter2.Match(messageBuffer))
                 {
-                    results.Add(pairs[i].data);
+                    results.Add(pairs[i]._data);
                 }
             }
         }
@@ -260,14 +260,14 @@ namespace CoreWCF.Dispatcher
             FilterDataPair pair = null;
             for (int i = 0; i < pairs.Count; ++i)
             {
-                if (pairs[i].filter.Filter2.Match(message))
+                if (pairs[i]._filter.Filter2.Match(message))
                 {
                     if (pair != null)
                     {
                         Collection<MessageFilter> matches = new Collection<MessageFilter>
                         {
-                            pair.filter,
-                            pairs[i].filter
+                            pair._filter,
+                            pairs[i]._filter
                         };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches), message);
                     }
@@ -281,7 +281,7 @@ namespace CoreWCF.Dispatcher
                 return false;
             }
 
-            data = pair.data;
+            data = pair._data;
             return true;
         }
 
@@ -299,7 +299,7 @@ namespace CoreWCF.Dispatcher
                 return false;
             }
 
-            data = pair.data;
+            data = pair._data;
             return true;
         }
 
@@ -318,7 +318,7 @@ namespace CoreWCF.Dispatcher
                 return false;
             }
 
-            data = pair.data;
+            data = pair._data;
             return true;
         }
 
@@ -336,7 +336,7 @@ namespace CoreWCF.Dispatcher
                 return false;
             }
 
-            filter = pair.filter;
+            filter = pair._filter;
             return true;
         }
 
@@ -355,7 +355,7 @@ namespace CoreWCF.Dispatcher
                 return false;
             }
 
-            filter = pair.filter;
+            filter = pair._filter;
             return true;
         }
 
@@ -469,13 +469,13 @@ namespace CoreWCF.Dispatcher
 
         internal class FilterDataPair
         {
-            internal AndMessageFilter filter;
-            internal FilterData data;
+            internal AndMessageFilter _filter;
+            internal FilterData _data;
 
             internal FilterDataPair(AndMessageFilter filter, FilterData data)
             {
-                this.filter = filter;
-                this.data = data;
+                _filter = filter;
+                _data = data;
             }
         }
 

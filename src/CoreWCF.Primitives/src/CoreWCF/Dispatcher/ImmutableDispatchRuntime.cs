@@ -872,9 +872,9 @@ namespace CoreWCF.Dispatcher
             finally
             {
                 // TODO: Add the code for the other half of InstanceContextServiceThrottle being acquired
-                if (rpc.MessageRpcOwnsInstanceContextThrottle && rpc.channelHandler.InstanceContextServiceThrottle != null)
+                if (rpc.MessageRpcOwnsInstanceContextThrottle && rpc.ChannelHandler.InstanceContextServiceThrottle != null)
                 {
-                    rpc.channelHandler.InstanceContextServiceThrottle.DeactivateInstanceContext();
+                    rpc.ChannelHandler.InstanceContextServiceThrottle.DeactivateInstanceContext();
                 }
 
                 //if (rpc.Activity != null && DiagnosticUtility.ShouldUseActivity)
