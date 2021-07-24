@@ -1,8 +1,10 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CoreWCF.Collections.Generic;
+using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.Dispatcher
 {
@@ -17,6 +19,7 @@ namespace CoreWCF.Dispatcher
         private bool _deserializeRequest = true;
         private bool _serializeReply = true;
         private bool _autoDisposeParameters = true;
+        private ConcurrentDictionary<string, List<Claim>> _authorizeClaims;
 
         public DispatchOperation(DispatchRuntime parent, string name, string action)
         {
@@ -29,6 +32,7 @@ namespace CoreWCF.Dispatcher
             FaultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
             ParameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
             IsOneWay = true;
+            _authorizeClaims = new ConcurrentDictionary<string, List<Claim>>();
         }
 
         internal DispatchOperation(DispatchRuntime parent, string name, string action, string replyAction) : this(parent, name, action)
@@ -117,6 +121,19 @@ namespace CoreWCF.Dispatcher
                 {
                     Parent.InvalidateRuntime();
                     _impersonation = value;
+                }
+            }
+        }
+
+        public ConcurrentDictionary<string,List<Claim>> AuthorizeClaims //need help with naming
+        {
+            get { return _authorizeClaims; }
+            set
+            {
+                lock (Parent.ThisLock)
+                {
+                    Parent.InvalidateRuntime();
+                    _authorizeClaims = value;
                 }
             }
         }

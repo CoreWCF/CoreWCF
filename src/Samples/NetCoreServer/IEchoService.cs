@@ -28,6 +28,9 @@ namespace Contract
         [OperationContract]
         [FaultContract(typeof(EchoFault))]
         string FailEcho(string text);
+
+        [OperationContract]
+        string EchoForPermission(string text);
     }
 
     [DataContract]
