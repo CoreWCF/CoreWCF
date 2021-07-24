@@ -128,11 +128,11 @@ namespace CoreWCF
             Fx.Assert(BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
 
             BasicHttpSecurity basicHttpSecurity = BasicHttpSecurity;
-            if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential || basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
+            if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
             {
                 throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.TransportWithMessageCredential));
             }
-            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport)
+            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport || basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential)
             {
                 basicHttpSecurity.EnableTransportSecurity(_httpsTransport);
                 return _httpsTransport;

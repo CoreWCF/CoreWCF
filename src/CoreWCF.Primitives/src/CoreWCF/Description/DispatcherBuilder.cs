@@ -647,6 +647,11 @@ namespace CoreWCF.Description
                             IOperationBehavior behavior = operation.Behaviors[j];
                             behavior.ApplyDispatchBehavior(operation, dispatchOperation);
                         }
+                        for (int k = 0; k < operation.AuthorizeOperation.Count; k++)
+                        {
+                            IAuthorizeOperation authorizeOperation = operation.AuthorizeOperation[k];
+                            authorizeOperation.BuildClaim(operation, dispatchOperation);
+                        }
                     }
                 }
             }

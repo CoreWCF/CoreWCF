@@ -4,6 +4,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Net;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace CoreWCF.Security
         private bool _extractGroupsForWindowsAccounts;
         private NetworkCredential _serverCredential;
         private bool _allowUnauthenticatedCallers;
+        private LdapSettings _ldapSettings;
 
         // SafeFreeCredentials credentialsHandle;
         private NegotiateInternalState _negotiateHandler;
@@ -48,6 +50,16 @@ namespace CoreWCF.Security
             {
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 _serverCredential = value;
+            }
+        }
+
+        public LdapSettings LdapSettings
+        {
+            get => _ldapSettings;
+            set
+            {
+                CommunicationObject.ThrowIfDisposedOrImmutable();
+                _ldapSettings = value;
             }
         }
 
@@ -104,7 +116,7 @@ namespace CoreWCF.Security
 
         protected override SspiNegotiationTokenAuthenticatorState CreateSspiState(byte[] incomingBlob, string incomingValueTypeUri)
         {
-            ISspiNegotiation windowsNegotiation = new WindowsSspiNegotiation("Negotiate", DefaultServiceBinding, GetNegotiateState());
+            ISspiNegotiation windowsNegotiation = new WindowsSspiNegotiation("Negotiate", GetNegotiateState());
             return new SspiNegotiationTokenAuthenticatorState(windowsNegotiation);
         }
 
@@ -135,22 +147,19 @@ namespace CoreWCF.Security
         {
             IIdentity remoteIdentity = identity;
             SecurityToken token;
-            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+            WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts, _ldapSettings);
             if (remoteIdentity is WindowsIdentity)
             {
                 WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
-                Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, _allowUnauthenticatedCallers);
-                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(_extractGroupsForWindowsAccounts);
+                SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
                 token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
-                authorizationPolicies = authenticator.ValidateToken(token);
             }
             else
             {
+                ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                 token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
-                GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator();
-                authorizationPolicies = authenticator.ValidateToken(token);
             }
-            return authorizationPolicies;
+            return authenticator.ValidateToken(token);
         }
 
         private NegotiateInternalState GetNegotiateState() => (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();

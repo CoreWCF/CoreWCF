@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Security.Principal;
 using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
@@ -12,6 +13,7 @@ namespace CoreWCF.IdentityModel.Tokens
         private readonly string _id;
         private readonly DateTime _effectiveTime;
         private readonly DateTime _expirationTime;
+        private readonly GenericIdentity _genericIdentity;
 
         internal GenericSecurityToken(string name, string id)
         {
@@ -19,6 +21,8 @@ namespace CoreWCF.IdentityModel.Tokens
             _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             _effectiveTime = DateTime.UtcNow;
             _expirationTime = DateTime.UtcNow.AddHours(10);
+            _genericIdentity = (GenericIdentity) SecurityUtils.CreateIdentity(name);
+
         }
 
         public override string Id
@@ -42,6 +46,14 @@ namespace CoreWCF.IdentityModel.Tokens
         }
 
         public string Name { get; }
+
+        public virtual GenericIdentity GenericIdentity
+        {
+            get
+            {
+                return _genericIdentity;
+            }
+        }
     }
 }
 

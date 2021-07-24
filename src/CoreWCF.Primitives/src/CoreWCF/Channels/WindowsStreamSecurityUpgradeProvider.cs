@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,8 +50,12 @@ namespace CoreWCF.Channels
                 //}
             }
 
-
-            _securityTokenManager = credentialProvider.CreateSecurityTokenManager();
+           if(credentialProvider is ServiceCredentials)
+            {
+                ServiceCredentials serviceCred = (ServiceCredentials)credentialProvider;
+                LdapSettings = serviceCred.WindowsAuthentication.LdapSetting;
+            }
+           _securityTokenManager = credentialProvider.CreateSecurityTokenManager();
         }
 
         public string Scheme { get; }
@@ -84,6 +89,8 @@ namespace CoreWCF.Channels
         public ProtectionLevel ProtectionLevel { get; }
 
         private NetworkCredential ServerCredential { get; set; }
+
+        protected LdapSettings LdapSettings { get; private set; }
 
         public override StreamUpgradeAcceptor CreateUpgradeAcceptor()
         {
@@ -129,12 +136,14 @@ namespace CoreWCF.Channels
         {
             private readonly WindowsStreamSecurityUpgradeProvider _parent;
             private readonly SecurityMessageProperty _clientSecurity;
+            private readonly LdapSettings _ldapSettings;
 
             public WindowsStreamSecurityUpgradeAcceptor(WindowsStreamSecurityUpgradeProvider parent)
                 : base(FramingUpgradeString.Negotiate)
             {
                 _parent = parent;
                 _clientSecurity = new SecurityMessageProperty();
+                _ldapSettings = parent.LdapSettings;
             }
 
             protected override async Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
@@ -169,20 +178,19 @@ namespace CoreWCF.Channels
                 IIdentity remoteIdentity = negotiateStream.RemoteIdentity;
                 SecurityToken token;
                 ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts, _ldapSettings);
                 if (remoteIdentity is WindowsIdentity)
                 {
                     WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
                     SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
-                    WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
                     token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
-                    authorizationPolicies = authenticator.ValidateToken(token);
                 }
                 else
                 {
+                    ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                     token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
-                    GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator();
-                    authorizationPolicies = authenticator.ValidateToken(token);
                 }
+                authorizationPolicies = authenticator.ValidateToken(token);
                 SecurityMessageProperty clientSecurity = new SecurityMessageProperty
                 {
                     TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),

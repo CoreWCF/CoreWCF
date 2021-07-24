@@ -2,11 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 
@@ -40,6 +45,7 @@ namespace CoreWCF.Dispatcher
             ParameterInspectors = EmptyArray<IParameterInspector>.ToArray(operation.ParameterInspectors);
             FaultFormatter = operation.FaultFormatter;
             Impersonation = operation.Impersonation;
+            AuthorizeClaims = operation.AuthorizeClaims;
             _deserializeRequest = operation.DeserializeRequest;
             SerializeReply = operation.SerializeReply;
             Formatter = operation.Formatter;
@@ -98,6 +104,8 @@ namespace CoreWCF.Dispatcher
         internal IDispatchMessageFormatter Formatter { get; }
 
         internal ImpersonationOption Impersonation { get; }
+
+        internal ConcurrentDictionary<string, List<Claim>> AuthorizeClaims { get; }
 
         internal IOperationInvoker Invoker { get; }
 
@@ -328,6 +336,7 @@ namespace CoreWCF.Dispatcher
                     DeserializeInputs(rpc);
                     InspectInputs(rpc);
                     ValidateMustUnderstand(rpc);
+                    ValidateAuthorizedClaims(rpc);
 
                     if (Parent.RequireClaimsPrincipalOnOperationContext)
                     {
@@ -530,6 +539,47 @@ namespace CoreWCF.Dispatcher
                         new MustUnderstandSoapException(rpc.NotUnderstoodHeaders, rpc.Request.Version.Envelope));
                 }
             }
+        }
+
+        private void ValidateAuthorizedClaims(MessageRpc rpc)
+        {
+            if (AuthorizeClaims.IsEmpty || AuthorizeClaims.Keys.Count == 0)
+                return;
+            if (rpc.OperationContext?.ServiceSecurityContext.AuthorizationPolicies == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
+            }
+
+            foreach (var eachAuthClaim in AuthorizeClaims)
+            {
+                List<Claim> allClaims = eachAuthClaim.Value;
+                if(!IsClaimFound(rpc.OperationContext?.ServiceSecurityContext.AuthorizationPolicies, allClaims))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
+                }
+            }
+        }
+
+        private bool IsClaimFound(ReadOnlyCollection<IAuthorizationPolicy> policies, List<Claim> anyClaims)
+        {
+            foreach (var policy in policies)
+            {
+                if(policy is UnconditionalPolicy)
+                {
+                    var claimSets = ((UnconditionalPolicy)policy).Issuances;
+                    foreach (var claim in anyClaims)
+                    {
+                        foreach (var claimSet in claimSets)
+                        {
+                            if (claimSet.ContainsClaim(claim))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
         }
     }
 }

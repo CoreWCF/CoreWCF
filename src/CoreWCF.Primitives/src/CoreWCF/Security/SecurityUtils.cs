@@ -1098,7 +1098,8 @@ namespace CoreWCF.Security
                     new SecurityTokenValidationException(SR.AnonymousLogonsAreNotAllowed));
             }
         }
-        internal static ReadOnlyCollection<IAuthorizationPolicy> CreatePrincipalNameAuthorizationPolicies(string principalName)
+
+        /*internal static ReadOnlyCollection<IAuthorizationPolicy> CreatePrincipalNameAuthorizationPolicies(string principalName, LdapSettings ldapSettings)
         {
             if (principalName == null)
             {
@@ -1124,12 +1125,13 @@ namespace CoreWCF.Security
                 primaryPrincipal
             };
 
+
             List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>(1)
             {
                 new UnconditionalPolicy(CreateIdentity(principalName), new DefaultClaimSet(ClaimSet.Anonymous, claims))
             };
             return policies.AsReadOnly();
-        }
+        }*/
 
         public static SecurityBindingElement GetIssuerSecurityBindingElement(ServiceModelSecurityTokenRequirement requirement)
         {

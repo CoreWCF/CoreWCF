@@ -42,5 +42,13 @@ namespace ServiceContract
         [OperationContract(Name = "EchoForImpersonation", Action = Constants.OPERATION_BASE + "EchoForImpersonation",
         ReplyAction = Constants.OPERATION_BASE + "EchoForImpersonationResponse")]
         string EchoForImpersonation(string echo);
+
+        [OperationContract(Name = "EchoForAuthorizarionOneRole", Action = Constants.OPERATION_BASE + "EchoForAuthorizarionOneRole",
+        ReplyAction = Constants.OPERATION_BASE + "EchoForAuthorizarionOneRoleResponse")]
+        string EchoForAuthorizarionOneRole(string echo);
+
+        [OperationContract(Name = "EchoForAuthorizarionNoRole", Action = Constants.OPERATION_BASE + "EchoForAuthorizarionNoRole",
+        ReplyAction = Constants.OPERATION_BASE + "EchoForAuthorizarionNoRoleResponse")]
+        string EchoForAuthorizarionNoRole(string echo);
     }
 }
