@@ -20,7 +20,7 @@ namespace CoreWCF.Dispatcher
     internal class MessageRpc
     {
         internal readonly ServiceChannel Channel;
-        internal readonly ChannelHandler channelHandler;
+        internal readonly ChannelHandler ChannelHandler;
         internal readonly object[] Correlation;
         internal readonly ServiceHostBase Host;
         internal readonly OperationContext OperationContext;
@@ -81,7 +81,7 @@ namespace CoreWCF.Dispatcher
             TaskResult = null;
             CanSendReply = true;
             Channel = channel;
-            this.channelHandler = channelHandler;
+            ChannelHandler = channelHandler;
             Correlation = EmptyArray.Allocate(operation.Parent.CorrelationCount);
             DidDeserializeRequestBody = false;
             Error = null;
@@ -194,7 +194,7 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                channelHandler.HandleError(e);
+                ChannelHandler.HandleError(e);
             }
         }
 
@@ -254,7 +254,7 @@ namespace CoreWCF.Dispatcher
                 }
 
                 AbortRequestContext(context);
-                channelHandler.HandleError(e);
+                ChannelHandler.HandleError(e);
             }
         }
 
@@ -273,7 +273,7 @@ namespace CoreWCF.Dispatcher
                         throw;
                     }
 
-                    channelHandler.HandleError(e);
+                    ChannelHandler.HandleError(e);
                 }
             }
         }
@@ -295,7 +295,7 @@ namespace CoreWCF.Dispatcher
                         throw;
                     }
 
-                    channelHandler.HandleError(e);
+                    ChannelHandler.HandleError(e);
                 }
             }
         }
@@ -315,7 +315,7 @@ namespace CoreWCF.Dispatcher
                         throw;
                     }
 
-                    channelHandler.HandleError(e);
+                    ChannelHandler.HandleError(e);
                 }
             }
         }
@@ -324,7 +324,7 @@ namespace CoreWCF.Dispatcher
         {
             //using (ServiceModelActivity.BoundOperation(this.Activity))
             //{
-            channelHandler.EnsureReceive();
+            ChannelHandler.EnsureReceive();
             //}
         }
 
@@ -410,7 +410,7 @@ namespace CoreWCF.Dispatcher
                             throw;
                         }
 
-                        channelHandler.HandleError(e);
+                        ChannelHandler.HandleError(e);
                     }
                 }
 
@@ -437,7 +437,7 @@ namespace CoreWCF.Dispatcher
                                 throw;
                             }
 
-                            channelHandler.HandleError(e);
+                            ChannelHandler.HandleError(e);
                         }
                     }
                 }

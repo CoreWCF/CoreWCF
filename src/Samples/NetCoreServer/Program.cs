@@ -11,7 +11,7 @@ namespace NetCoreServer
     {
         static void Main(string[] args)
         {
-            var host = CreateWebHostBuilder(args).Build();
+            IWebHost host = CreateWebHostBuilder(args).Build();
             host.Run();
         }
 
@@ -23,7 +23,6 @@ namespace NetCoreServer
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {
-
 #if NET472
                         httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
 #endif // NET472

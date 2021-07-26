@@ -21,10 +21,9 @@ namespace CoreWCF.Security
         private readonly string _defaultServiceBinding;
         private readonly NegotiateInternalState _negotiateState;
 
-        public WindowsSspiNegotiation(string package, string defaultServiceBinding, NegotiateInternalState passedNegotiateState)
+        public WindowsSspiNegotiation(string package, NegotiateInternalState passedNegotiateState)
         {
             _package = package;
-            _defaultServiceBinding = defaultServiceBinding;
             _negotiateState = passedNegotiateState;
         }
 

@@ -16,8 +16,8 @@ namespace CoreWCF.Dispatcher
     public sealed class ClientRuntime
     {
         //bool addTransactionFlowProperties = true;
-        internal SynchronizedCollection<IClientMessageInspector> messageInspectors;
-        internal SynchronizedKeyedCollection<string, ClientOperation> operations;
+        internal SynchronizedCollection<IClientMessageInspector> _messageInspectors;
+        internal SynchronizedKeyedCollection<string, ClientOperation> _operations;
         private Type _callbackProxyType;
         private readonly ProxyBehaviorCollection<IChannelInitializer> _channelInitializers;
         private Type _contractProxyType;
@@ -54,9 +54,9 @@ namespace CoreWCF.Dispatcher
             _shared = shared;
 
             OperationCollection operations = new OperationCollection(this);
-            this.operations = operations;
+            _operations = operations;
             _channelInitializers = new ProxyBehaviorCollection<IChannelInitializer>(this);
-            messageInspectors = new ProxyBehaviorCollection<IClientMessageInspector>(this);
+            _messageInspectors = new ProxyBehaviorCollection<IClientMessageInspector>(this);
 
             UnhandledClientOperation = new ClientOperation(this, "*", MessageHeaders.WildcardAction, MessageHeaders.WildcardAction)
             {
@@ -274,9 +274,9 @@ namespace CoreWCF.Dispatcher
                 {
                     int max = 0;
 
-                    for (int i = 0; i < operations.Count; i++)
+                    for (int i = 0; i < _operations.Count; i++)
                     {
-                        max = Math.Max(max, operations[i].ParameterInspectors.Count);
+                        max = Math.Max(max, _operations[i].ParameterInspectors.Count);
                     }
 
                     return max;
@@ -291,7 +291,7 @@ namespace CoreWCF.Dispatcher
 
         internal SynchronizedCollection<IClientMessageInspector> MessageInspectors
         {
-            get { return messageInspectors; }
+            get { return _messageInspectors; }
         }
 
         public ICollection<ClientOperation> ClientOperations
@@ -301,7 +301,7 @@ namespace CoreWCF.Dispatcher
 
         internal SynchronizedKeyedCollection<string, ClientOperation> Operations
         {
-            get { return operations; }
+            get { return _operations; }
         }
 
         internal IClientOperationSelector OperationSelector

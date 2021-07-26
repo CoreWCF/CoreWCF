@@ -728,54 +728,50 @@ namespace CoreWCF.Dispatcher
 
         internal abstract class OperationFormatterHeader : MessageHeader
         {
-            protected MessageHeader innerHeader; //use innerHeader to handle versionSupported, actor/role handling etc.
-            protected OperationFormatter operationFormatter;
-            protected MessageVersion version;
+            private readonly MessageHeader _innerHeader; //use innerHeader to handle versionSupported, actor/role handling etc.
 
             public OperationFormatterHeader(OperationFormatter operationFormatter, MessageVersion version, string name, string ns, bool mustUnderstand, string actor, bool relay)
             {
-                this.operationFormatter = operationFormatter;
-                this.version = version;
                 if (actor != null)
                 {
-                    innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, actor, relay);
+                    _innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, actor, relay);
                 }
                 else
                 {
-                    innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, "", relay);
+                    _innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, "", relay);
                 }
             }
 
 
             public override bool IsMessageVersionSupported(MessageVersion messageVersion)
             {
-                return innerHeader.IsMessageVersionSupported(messageVersion);
+                return _innerHeader.IsMessageVersionSupported(messageVersion);
             }
 
 
             public override string Name
             {
-                get { return innerHeader.Name; }
+                get { return _innerHeader.Name; }
             }
 
             public override string Namespace
             {
-                get { return innerHeader.Namespace; }
+                get { return _innerHeader.Namespace; }
             }
 
             public override bool MustUnderstand
             {
-                get { return innerHeader.MustUnderstand; }
+                get { return _innerHeader.MustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return innerHeader.Relay; }
+                get { return _innerHeader.Relay; }
             }
 
             public override string Actor
             {
-                get { return innerHeader.Actor; }
+                get { return _innerHeader.Actor; }
             }
 
             protected override void OnWriteStartHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)

@@ -107,6 +107,11 @@ namespace CoreWCF
             return result;
         }
 
+        internal BindingElement CreateTransportProtectionOnly()
+        {
+            return CreateSslBindingElement(false);
+        }
+
         internal BindingElement CreateTransportProtectionAndAuthentication()
         {
             if (_clientCredentialType == TcpClientCredentialType.Certificate || _clientCredentialType == TcpClientCredentialType.None)

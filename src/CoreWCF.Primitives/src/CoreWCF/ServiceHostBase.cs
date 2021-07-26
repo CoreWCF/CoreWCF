@@ -229,7 +229,7 @@ namespace CoreWCF
 
         protected virtual void ApplyConfiguration()
         {
-            if (this.Description == null)
+            if (Description == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxServiceHostBaseCannotApplyConfigurationWithoutDescription));
             }

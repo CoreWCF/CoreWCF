@@ -21,6 +21,21 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
+            // If the remote client aborts or the connection, AspNetCore throws an exceptions which
+            // bubbles all the way up to here and causes a critical level event to be logged. This is a normal thing
+            // to happen so just swallowing the exception to suppress the critical log output.
+            try
+            {
+                await OnConnectedCoreAsync(connection);
+            }
+            catch (Microsoft.AspNetCore.Connections.ConnectionAbortedException) { }
+            catch (Microsoft.AspNetCore.Connections.ConnectionResetException) { }
+            catch (CoreWCF.Security.SecurityNegotiationException) { } // TODO: Work out where this needs to be caught
+            catch (System.IO.IOException) { } // TODO: Work out where this needs to be caught
+        }
+
+        public async Task OnConnectedCoreAsync(FramingConnection connection)
+        {
             using (_appLifetime.ApplicationStopped.Register(() =>
              {
                  connection.RawTransport.Input.Complete();
@@ -31,7 +46,7 @@ namespace CoreWCF.Channels.Framing
                 do
                 {
                     System.IO.Pipelines.PipeReader inputPipe = connection.Input;
-                    var modeDecoder = new ServerModeDecoder();
+                    var modeDecoder = new ServerModeDecoder(connection.Logger);
                     try
                     {
                         if (!await modeDecoder.ReadModeAsync(inputPipe))

@@ -37,8 +37,8 @@ namespace CoreWCF.Dispatcher
                 EndpointAddressProcessor p = _processor;
                 if (null != p)
                 {
-                    _processor = (EndpointAddressProcessor)p.next;
-                    p.next = null;
+                    _processor = p.Next;
+                    p.Next = null;
                     return p;
                 }
                 return null;
@@ -46,7 +46,7 @@ namespace CoreWCF.Dispatcher
 
             internal void Push(EndpointAddressProcessor p)
             {
-                p.next = _processor;
+                p.Next = _processor;
                 _processor = p;
             }
         }
@@ -81,7 +81,7 @@ namespace CoreWCF.Dispatcher
                 if (filters.ContainsKey(filter))
                 {
                     filters[filter] = value;
-                    candidates[filter].data = value;
+                    candidates[filter]._data = value;
                 }
                 else
                 {
@@ -164,7 +164,7 @@ namespace CoreWCF.Dispatcher
                     _toNoHostLookup.Add(soapToAddress, cset);
                 }
             }
-            cset.candidates.Add(can);
+            cset._candidates.Add(can);
 
             IncrementQNameCount(cset, filter.Address);
         }
@@ -178,13 +178,13 @@ namespace CoreWCF.Dispatcher
                 AddressHeader parameter = address.Headers[i];
                 qname.name = parameter.Name;
                 qname.ns = parameter.Namespace;
-                if (cset.qnames.TryGetValue(qname, out int cnt))
+                if (cset._qnames.TryGetValue(qname, out int cnt))
                 {
-                    cset.qnames[qname] = cnt + 1;
+                    cset._qnames[qname] = cnt + 1;
                 }
                 else
                 {
-                    cset.qnames.Add(qname, 1);
+                    cset._qnames.Add(qname, 1);
                 }
             }
         }
@@ -345,8 +345,8 @@ namespace CoreWCF.Dispatcher
                     {
                         Collection<MessageFilter> matches = new Collection<MessageFilter>
                         {
-                            can.filter,
-                            c.filter
+                            can._filter,
+                            c._filter
                         };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches));
                     }
@@ -359,9 +359,9 @@ namespace CoreWCF.Dispatcher
 
         private Candidate GetSingleMatch(CandidateSet cset, Message message)
         {
-            int candiCount = cset.candidates.Count;
+            int candiCount = cset._candidates.Count;
 
-            if (cset.qnames.Count == 0)
+            if (cset._qnames.Count == 0)
             {
                 if (candiCount == 0)
                 {
@@ -369,34 +369,34 @@ namespace CoreWCF.Dispatcher
                 }
                 else if (candiCount == 1)
                 {
-                    return cset.candidates[0];
+                    return cset._candidates[0];
                 }
                 else
                 {
                     Collection<MessageFilter> matches = new Collection<MessageFilter>();
                     for (int i = 0; i < candiCount; ++i)
                     {
-                        matches.Add(cset.candidates[i].filter);
+                        matches.Add(cset._candidates[i]._filter);
                     }
                     throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches), message);
                 }
             }
 
             EndpointAddressProcessor context = CreateProcessor(_size);
-            context.ProcessHeaders(message, cset.qnames, _headerLookup);
+            context.ProcessHeaders(message, cset._qnames, _headerLookup);
 
             Candidate can = null;
-            List<Candidate> candis = cset.candidates;
+            List<Candidate> candis = cset._candidates;
             for (int i = 0; i < candiCount; ++i)
             {
-                if (context.TestMask(candis[i].mask))
+                if (context.TestMask(candis[i]._mask))
                 {
                     if (can != null)
                     {
                         Collection<MessageFilter> matches = new Collection<MessageFilter>
                         {
-                            can.filter,
-                            candis[i].filter
+                            can._filter,
+                            candis[i]._filter
                         };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, matches), message);
                     }
@@ -428,14 +428,14 @@ namespace CoreWCF.Dispatcher
         private void InnerMatchData(Message message, ICollection<TFilterData> results, CandidateSet cset)
         {
             EndpointAddressProcessor context = CreateProcessor(_size);
-            context.ProcessHeaders(message, cset.qnames, _headerLookup);
+            context.ProcessHeaders(message, cset._qnames, _headerLookup);
 
-            List<Candidate> candis = cset.candidates;
+            List<Candidate> candis = cset._candidates;
             for (int i = 0; i < candis.Count; ++i)
             {
-                if (context.TestMask(candis[i].mask))
+                if (context.TestMask(candis[i]._mask))
                 {
-                    results.Add(candis[i].data);
+                    results.Add(candis[i]._data);
                 }
             }
 
@@ -461,14 +461,14 @@ namespace CoreWCF.Dispatcher
         private void InnerMatchFilters(Message message, ICollection<MessageFilter> results, CandidateSet cset)
         {
             EndpointAddressProcessor context = CreateProcessor(_size);
-            context.ProcessHeaders(message, cset.qnames, _headerLookup);
+            context.ProcessHeaders(message, cset._qnames, _headerLookup);
 
-            List<Candidate> candis = cset.candidates;
+            List<Candidate> candis = cset._candidates;
             for (int i = 0; i < candis.Count; ++i)
             {
-                if (context.TestMask(candis[i].mask))
+                if (context.TestMask(candis[i]._mask))
                 {
-                    results.Add(candis[i].filter);
+                    results.Add(candis[i]._filter);
                 }
             }
 
@@ -489,7 +489,7 @@ namespace CoreWCF.Dispatcher
                 return false;
             }
 
-            data = can.data;
+            data = can._data;
             return true;
         }
 
@@ -517,7 +517,7 @@ namespace CoreWCF.Dispatcher
                 return false;
             }
 
-            data = can.data;
+            data = can._data;
             return true;
         }
 
@@ -573,7 +573,7 @@ namespace CoreWCF.Dispatcher
             Candidate can = InnerMatch(message);
             if (can != null)
             {
-                filter = can.filter;
+                filter = can._filter;
                 return true;
             }
 
@@ -601,7 +601,7 @@ namespace CoreWCF.Dispatcher
 
             if (can != null)
             {
-                filter = can.filter;
+                filter = can._filter;
                 return true;
             }
 
@@ -662,7 +662,7 @@ namespace CoreWCF.Dispatcher
             // Rebuild the masks
             foreach (Candidate can in candidates.Values)
             {
-                can.mask = BuildMask(can.headerLookup);
+                can._mask = BuildMask(can._headerLookup);
             }
         }
 
@@ -721,7 +721,7 @@ namespace CoreWCF.Dispatcher
 
             candidates.Remove(filter);
 
-            if (cset.candidates.Count == 1)
+            if (cset._candidates.Count == 1)
             {
                 if (filter.IncludeHostNameInComparison)
                 {
@@ -737,7 +737,7 @@ namespace CoreWCF.Dispatcher
                 DecrementQNameCount(cset, filter.Address);
 
                 // Remove Candidate
-                cset.candidates.Remove(can);
+                cset._candidates.Remove(can);
             }
 
             RebuildMasks();
@@ -753,14 +753,14 @@ namespace CoreWCF.Dispatcher
                 AddressHeader parameter = address.Headers[i];
                 qname.name = parameter.Name;
                 qname.ns = parameter.Namespace;
-                int cnt = cset.qnames[qname];
+                int cnt = cset._qnames[qname];
                 if (cnt == 1)
                 {
-                    cset.qnames.Remove(qname);
+                    cset._qnames.Remove(qname);
                 }
                 else
                 {
-                    cset.qnames[qname] = cnt - 1;
+                    cset._qnames[qname] = cnt - 1;
                 }
             }
         }
@@ -776,29 +776,29 @@ namespace CoreWCF.Dispatcher
 
         internal class Candidate
         {
-            internal MessageFilter filter;
-            internal TFilterData data;
-            internal byte[] mask;
-            internal Dictionary<string, HeaderBit[]> headerLookup;
+            internal MessageFilter _filter;
+            internal TFilterData _data;
+            internal byte[] _mask;
+            internal Dictionary<string, HeaderBit[]> _headerLookup;
 
             internal Candidate(MessageFilter filter, TFilterData data, byte[] mask, Dictionary<string, HeaderBit[]> headerLookup)
             {
-                this.filter = filter;
-                this.data = data;
-                this.mask = mask;
-                this.headerLookup = headerLookup;
+                _filter = filter;
+                _data = data;
+                _mask = mask;
+                _headerLookup = headerLookup;
             }
         }
 
         internal class CandidateSet
         {
-            internal Dictionary<QName, int> qnames;
-            internal List<Candidate> candidates;
+            internal Dictionary<QName, int> _qnames;
+            internal List<Candidate> _candidates;
 
             internal CandidateSet()
             {
-                qnames = new Dictionary<QName, int>(EndpointAddressProcessor.QNameComparer);
-                candidates = new List<Candidate>();
+                _qnames = new Dictionary<QName, int>(EndpointAddressProcessor.QNameComparer);
+                _candidates = new List<Candidate>();
             }
         }
 
