@@ -107,7 +107,7 @@ namespace CoreWCF.NetTcp.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
+                    Assert.Equal(typeof(System.ServiceModel.FaultException), ex.InnerException?.GetType());
                     Assert.Contains("expired security context token", ex.InnerException.Message);
                 }
             }
