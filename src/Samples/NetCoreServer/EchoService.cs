@@ -21,7 +21,7 @@ namespace NetCoreServer
         public string FailEcho(string text)
             => throw new FaultException<EchoFault>(new EchoFault() { Text = "WCF Fault OK" }, new FaultReason("FailReason"));
 
-        [AuthorizeRole(AllowedRoles = "CoreWCFGroupAdmin")]
+        [AuthorizeRole("CoreWCFGroupAdmin")]
         public string EchoForPermission(string echo)
         {
             return echo;
