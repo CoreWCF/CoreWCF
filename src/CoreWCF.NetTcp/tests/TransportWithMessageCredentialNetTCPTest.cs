@@ -38,8 +38,10 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                UriBuilder uriBuilder = new UriBuilder(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath);
+                uriBuilder.Host = "localhost"; // Replace 127.0.0.1 with localhost so Identity has correct value
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                    new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
+                    new System.ServiceModel.EndpointAddress(uriBuilder.ToString()));
                 System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
                 factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
                 {
@@ -85,8 +87,10 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                UriBuilder uriBuilder = new UriBuilder(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath);
+                uriBuilder.Host = "localhost"; // Replace 127.0.0.1 with localhost so Identity has correct value
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                    new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
+                    new System.ServiceModel.EndpointAddress(uriBuilder.ToString()));
                 System.ServiceModel.Description.ClientCredentials clientCredentials = (System.ServiceModel.Description.ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(System.ServiceModel.Description.ClientCredentials)];
                 factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
                 {
