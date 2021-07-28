@@ -22,16 +22,16 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing">
       <Version Condition="'$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'net472'">2.2.0</Version>
-      <Version Condition="!('$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'net472')">3.1.7</Version>
+      <Version Condition="!('$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'net472')">3.1.17</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Server.HttpSys" Version="2.1.12" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.ServiceModel.Http" Version="4.7.0" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
+    <PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
