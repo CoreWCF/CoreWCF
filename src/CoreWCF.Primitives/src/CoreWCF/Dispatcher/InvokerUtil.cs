@@ -133,7 +133,7 @@ namespace CoreWCF.Dispatcher
 
                     for (int i = 0; i < outputPos.Length; i++)
                     {
-                        outputs[i] = inputs[outputPos[i]];
+                        outputs[i] = inputsLocal[outputPos[i]];
                     }
 
                     return result;
