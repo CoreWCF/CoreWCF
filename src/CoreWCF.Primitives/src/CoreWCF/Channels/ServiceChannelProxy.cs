@@ -15,7 +15,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    internal sealed class ServiceChannelProxy : DispatchProxy, ICommunicationObject, IChannel, IClientChannel, IOutputChannel, IRequestChannel, IServiceChannel, IDuplexContextChannel
+    public class ServiceChannelProxy : DispatchProxy, ICommunicationObject, IChannel, IClientChannel, IOutputChannel, IRequestChannel, IServiceChannel, IDuplexContextChannel
     {
         private const string activityIdSlotName = "E2ETrace.ActivityID";
         private Type _proxiedType;
