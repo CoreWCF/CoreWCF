@@ -165,8 +165,14 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
                 {
+                    listenOptions.UseHttps(httpsOptions =>
+                    {
+#if NET472
+                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+#endif // NET472
+                    });
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();
