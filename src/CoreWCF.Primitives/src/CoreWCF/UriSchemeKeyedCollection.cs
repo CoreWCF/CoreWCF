@@ -28,7 +28,7 @@ namespace CoreWCF
 
         protected override string GetKeyForItem(Uri item)
         {
-            return item.Scheme;
+            return item.Scheme + ":" + item.Port;
         }
 
         protected override void InsertItem(int index, Uri item)
