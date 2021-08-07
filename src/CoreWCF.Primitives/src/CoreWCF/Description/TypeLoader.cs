@@ -840,11 +840,14 @@ namespace CoreWCF.Description
         {
             if (attrProvider != null)
             {
-                if (attrProvider.IsDefined(typeof(XmlSerializerFormatAttribute), false))
+                var attributes = attrProvider.GetCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<XmlSerializerFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
-                if (attrProvider.IsDefined(typeof(DataContractFormatAttribute), false))
+
+                attributes = attrProvider.GetCustomAttributes(typeof(DataContractFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<DataContractFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
@@ -2079,11 +2082,14 @@ namespace CoreWCF.Description
         {
             if (attrProvider != null)
             {
-                if (attrProvider.IsDefined(typeof(XmlSerializerFormatAttribute), false))
+                var attributes = attrProvider.GetCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<XmlSerializerFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
-                if (attrProvider.IsDefined(typeof(DataContractFormatAttribute), false))
+
+                attributes = attrProvider.GetCustomAttributes(typeof(DataContractFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<DataContractFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
