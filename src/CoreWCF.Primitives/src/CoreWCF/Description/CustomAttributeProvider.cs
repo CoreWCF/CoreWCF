@@ -143,6 +143,14 @@ namespace CoreWCF.Description
                         result[i] = ConvertFromServiceModelMessageParameterAttribute(result[i]);
                     }
                 }
+                else if (attributeType == typeof(XmlSerializerFormatAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMXmlSerializerFormatAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelXmlSerializerFormatAttribute(result[i]);
+                    }
+                }
             }
             return result;
         }
@@ -276,6 +284,21 @@ namespace CoreWCF.Description
             return messageParameter;
         }
 
+        private static XmlSerializerFormatAttribute ConvertFromServiceModelXmlSerializerFormatAttribute(object attr)
+        {
+            var xmlSerializerFormatAttribute = new XmlSerializerFormatAttribute();
+
+            xmlSerializerFormatAttribute.Style = GetProperty<OperationFormatStyle>(attr, nameof(XmlSerializerFormatAttribute.Style));
+            xmlSerializerFormatAttribute.SupportFaults = GetProperty<bool>(attr, nameof(XmlSerializerFormatAttribute.SupportFaults));
+            xmlSerializerFormatAttribute.Use = GetProperty<OperationFormatUse>(attr, nameof(XmlSerializerFormatAttribute.Use));
+
+            // XmlSerializerFormatAttribute.IsEncoded does not exist in SSM, defaults to false
+            // xmlSerializerFormatAttribute.IsEncoded = GetProperty<bool>(attr, nameof(XmlSerializerFormatAttribute.IsEncoded));
+            xmlSerializerFormatAttribute.IsEncoded = false;
+
+            return xmlSerializerFormatAttribute;
+        }
+
         private static OperationContractAttribute ConvertFromServiceModelOperationContractAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMOperationContractAttributeFullName), "Expected attribute of type S.SM.OperationContractAttribute");
@@ -329,22 +352,22 @@ namespace CoreWCF.Description
             }
         }
 
-        public bool IsDefined(Type attributeType, bool inherit)
-        {
-            switch (ProviderType)
-            {
-                case AttributeProviderType.Type:
-                    return Type.GetTypeInfo().IsDefined(attributeType, inherit);
-                case AttributeProviderType.MethodInfo:
-                    return MethodInfo.IsDefined(attributeType, inherit);
-                case AttributeProviderType.MemberInfo:
-                    return MemberInfo.IsDefined(attributeType, inherit);
-                case AttributeProviderType.ParameterInfo:
-                    return ParameterInfo.IsDefined(attributeType, inherit);
-            }
-            Contract.Assert(false, "This should never execute.");
-            throw new InvalidOperationException();
-        }
+        //public bool IsDefined(Type attributeType, bool inherit)
+        //{
+        //    switch (ProviderType)
+        //    {
+        //        case AttributeProviderType.Type:
+        //            return Type.GetTypeInfo().IsDefined(attributeType, inherit);
+        //        case AttributeProviderType.MethodInfo:
+        //            return MethodInfo.IsDefined(attributeType, inherit);
+        //        case AttributeProviderType.MemberInfo:
+        //            return MemberInfo.IsDefined(attributeType, inherit);
+        //        case AttributeProviderType.ParameterInfo:
+        //            return ParameterInfo.IsDefined(attributeType, inherit);
+        //    }
+        //    Contract.Assert(false, "This should never execute.");
+        //    throw new InvalidOperationException();
+        //}
 
         public static implicit operator CustomAttributeProvider(MemberInfo attrProvider)
         {
