@@ -45,7 +45,7 @@ namespace CoreWCF.Dispatcher
 
         internal SynchronizedCollection<ICallContextInitializer> CallContextInitializers { get; }
 
-        internal SynchronizedCollection<FaultContractInfo> FaultContractInfos { get; }
+        public SynchronizedCollection<FaultContractInfo> FaultContractInfos { get; }
 
         internal IDispatchMessageFormatter Formatter
         {
