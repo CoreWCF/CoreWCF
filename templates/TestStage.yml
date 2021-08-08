@@ -18,6 +18,10 @@ stages:
           imageName: 'windows-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: ''
+        Windows_net5.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net5.0'
+          testArgs: ''
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
@@ -29,6 +33,10 @@ stages:
         Linux_netcore3.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp3.1'
+          testArgs: '--filter Category!=WindowsOnly'
+        Linux_net5.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net5.0'
           testArgs: '--filter Category!=WindowsOnly'
     displayName: Test Release
     pool:
@@ -70,6 +78,10 @@ stages:
         Windows_netcore3.1:
           imageName: 'windows-latest'
           targetFramework: 'netcoreapp3.1'
+          testArgs: ''       
+        Windows_net5.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net5.0'
           testArgs: ''
         Windows_netfx:
           imageName: 'windows-latest'
@@ -82,6 +94,10 @@ stages:
         Linux_netcore3.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp3.1'
+          testArgs: '--filter Category!=WindowsOnly'
+        Linux_net5.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net5.0'
           testArgs: '--filter Category!=WindowsOnly'
     displayName: Test Debug
     pool:
