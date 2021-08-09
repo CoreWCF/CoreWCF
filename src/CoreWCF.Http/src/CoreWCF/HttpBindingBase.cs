@@ -42,7 +42,7 @@ namespace CoreWCF
             set
             {
                 _httpTransport.MaxReceivedMessageSize = value;
-                //_httpsTransport.MaxReceivedMessageSize = value;
+                _httpsTransport.MaxReceivedMessageSize = value;
             }
         }
 
@@ -52,7 +52,7 @@ namespace CoreWCF
             set
             {
                 _httpTransport.MaxBufferSize = value;
-                //_httpsTransport.MaxBufferSize = value;
+                _httpsTransport.MaxBufferSize = value;
             }
         }
 
