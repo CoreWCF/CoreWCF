@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF;
 using CoreWCF.Channels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helpers
 {
@@ -195,6 +196,20 @@ namespace Helpers
                     comObj.Abort();
                 }
             }
+        }
+
+        public static void RegisterApplicationLifetime(this IServiceCollection services)
+        {
+#if NET5_0 || NETCOREAPP3_1
+            services.AddSingleton<Microsoft.Extensions.Hosting.IHostApplicationLifetime, Microsoft.Extensions.Hosting.Internal.ApplicationLifetime>();
+            var genericWebHostApplicationLifetimeType =
+                typeof(Microsoft.AspNetCore.Hosting.WebHostBuilder).Assembly.GetType(
+                    "Microsoft.AspNetCore.Hosting.GenericWebHostApplicationLifetime");
+            services.AddSingleton(typeof(Microsoft.AspNetCore.Hosting.IApplicationLifetime), genericWebHostApplicationLifetimeType!);
+#else
+            services.AddSingleton<Microsoft.AspNetCore.Hosting.IApplicationLifetime, Microsoft.AspNetCore.Hosting.Internal.ApplicationLifetime>();
+#endif
+
         }
     }
 }
