@@ -1,4 +1,7 @@
-﻿using CoreWCF.Configuration;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -344,13 +347,13 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.OldContractA();
             output = null;
             clientProxy.Method_OldContractA_out(input, out output);
-            //Assert.True(output != null, "ClientOldServerNew Method_ClientOldServerNew_out output should not be null ");
+            Assert.True(output != null, "ClientOldServerNew Method_ClientOldServerNew_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_ClientOldServerNew] Method_ClientOldServerNew_ref ");
             input = new ServiceContract.OldContractA();
             output = null;
             output = clientProxy.Method_OldContractA_ref(ref input);
-            //Assert.True(output != null, "ClientOldServerNew Method_ClientOldServerNew_ref output should not be null ");
+            Assert.True(output != null, "ClientOldServerNew Method_ClientOldServerNew_ref output should not be null ");
         }
 
         private void Variation_ClientOldServerOld(ClientContract.IVersioningClientOld clientProxy)
@@ -365,14 +368,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.OldContractA();
             output = null;
             clientProxy.Method_OldContractA_out(input, out output);
-            //Assert.True(output != null, "ClientOldServerOld Method_ClientOldServerOld_out output should not be null ");
+            Assert.True(output != null, "ClientOldServerOld Method_ClientOldServerOld_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_ClientOldServerOld] Method_ClientOldServerOld_ref ");
             input = new ServiceContract.OldContractA();
             output = null;
             output = clientProxy.Method_OldContractA_ref(ref input);
             _output.WriteLine("Method_ClientOldServerOld_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "ClientOldServerOld Method_ClientOldServerOld_ref output should not be null ");
+            Assert.True(output != null, "ClientOldServerOld Method_ClientOldServerOld_ref output should not be null ");
         }
 
         private void Variation_ClientNewServerOld(ClientContract.IVersioningClientNew clientProxy)
@@ -386,14 +389,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.NewContractA();
             output = null;
             clientProxy.Method_NewContractA_out(input, out output);
-            //Assert.True(output != null, "ClientNewServerOld Method_ClientNewServerOld_out output should not be null ");
+            Assert.True(output != null, "ClientNewServerOld Method_ClientNewServerOld_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_ClientNewServerOld] Method_ClientNewServerOld_ref ");
             input = new ServiceContract.NewContractA();
             output = null;
             output = clientProxy.Method_NewContractA_ref(ref input);
             _output.WriteLine("Method_ClientNewServerOld_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "ClientNewServerOld Method_ClientNewServerOld_ref output should not be null ");
+            Assert.True(output != null, "ClientNewServerOld Method_ClientNewServerOld_ref output should not be null ");
         }
 
         private void Variation_ClientNewServerNew(ClientContract.IVersioningClientNew clientProxy)
@@ -408,14 +411,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.NewContractA();
             output = null;
             clientProxy.Method_NewContractA_out(input, out output);
-            //Assert.True(output != null, "ClientNewServerNew Method_ClientNewServerNew_out output should not be null ");
+            Assert.True(output != null, "ClientNewServerNew Method_ClientNewServerNew_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_ClientNewServerNew] Method_ClientNewServerNew_ref ");
             input = new ServiceContract.NewContractA();
             output = null;
             output = clientProxy.Method_NewContractA_ref(ref input);
             _output.WriteLine("Method_ClientNewServerNew_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "ClientNewServerNew Method_ClientNewServerNew_ref output should not be null ");
+            Assert.True(output != null, "ClientNewServerNew Method_ClientNewServerNew_ref output should not be null ");
         }
 
         private void Variation_DataContractEvents_All(ClientContract.IDataContractEventsService clientProxy)
@@ -431,14 +434,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.DataContractEvents_All();
             output = null;
             clientProxy.Method_All_out(input, out output);
-            //Assert.True(ServiceContract.DataContractEvents_All.Validate(input, output), string.Format("Method_All_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(ServiceContract.DataContractEvents_All.Validate(input, output), string.Format("Method_All_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
 
             _output.WriteLine("Testing [Variation_DataContractEvents_All] Method_All_ref ");
             input = new ServiceContract.DataContractEvents_All();
             output = null;
             output = clientProxy.Method_All_ref(ref input);
-            // Assert.True(output != null, "DataContractEvents_All Method_All_ref output should not be null ");
-            // Assert.False((input.myCallBacksCalled != DeserializationCallbacks || output.myCallBacksCalled != DeserializationCallbacks), string.Format("Method_All_ref Recived bad values input: {0} output: {1}", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_All Method_All_ref output should not be null ");
+            Assert.False((input.myCallBacksCalled != DeserializationCallbacks || output.myCallBacksCalled != DeserializationCallbacks), string.Format("Method_All_ref Recived bad values input: {0} output: {1}", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
         }
 
         private void Variation_DataContractEvents_OnSerializing(ClientContract.IDataContractEventsService clientProxy)
@@ -454,8 +457,8 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.DataContractEvents_OnSerializing();
             output = null;
             clientProxy.Method_OnSerializing_out(input, out output);
-            //Assert.True(output != null, "DataContractEvents_OnSerializing Method_OnSerializing_out output should not be null ");
-            //Assert.True(ServiceContract.DataContractEvents_OnSerializing.Validate(input, output), string.Format("Method_OnSerializing_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_OnSerializing Method_OnSerializing_out output should not be null ");
+            Assert.True(ServiceContract.DataContractEvents_OnSerializing.Validate(input, output), string.Format("Method_OnSerializing_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
 
             _output.WriteLine("Testing [Variation_DataContractEvents_OnSerializing] Method_OnSerializing_ref ");
             input = new ServiceContract.DataContractEvents_OnSerializing();
@@ -463,8 +466,8 @@ namespace CoreWCF.Http.Tests
             output = clientProxy.Method_OnSerializing_ref(ref input);
             _output.WriteLine("Method_OnSerializing_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
 
-            //Assert.True(output != null, "DataContractEvents_OnSerializing Method_OnSerializing_ref output should not  be  null ");
-            //Assert.False((input.myCallBacksCalled != ServiceContract.CallBacksCalled.None || output.myCallBacksCalled != ServiceContract.CallBacksCalled.None), string.Format("Method_All_ref Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_OnSerializing Method_OnSerializing_ref output should not  be  null ");
+            Assert.False((input.myCallBacksCalled != ServiceContract.CallBacksCalled.None || output.myCallBacksCalled != ServiceContract.CallBacksCalled.None), string.Format("Method_All_ref Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
         }
 
         private void Variation_DataContractEvents_OnSerialized(ClientContract.IDataContractEventsService clientProxy)
@@ -480,16 +483,16 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.DataContractEvents_OnSerialized();
             output = null;
             clientProxy.Method_OnSerialized_out(input, out output);
-            //Assert.True(output != null, "DataContractEvents_OnSerialized Method_OnSerialized_out output should not be null ");
-            //Assert.True(ServiceContract.DataContractEvents_OnSerialized.Validate(input, output), string.Format("Method_OnSerialized_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_OnSerialized Method_OnSerialized_out output should not be null ");
+            Assert.True(ServiceContract.DataContractEvents_OnSerialized.Validate(input, output), string.Format("Method_OnSerialized_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
             _output.WriteLine("Testing [Variation_DataContractEvents_OnSerialized] Method_OnSerialized_ref ");
 
             input = new ServiceContract.DataContractEvents_OnSerialized();
             output = null;
             output = clientProxy.Method_OnSerialized_ref(ref input);
             _output.WriteLine("Method_OnSerialized_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "DataContractEvents_OnSerialized Method_OnSerialized_ref output should not be null ");
-            //Assert.False((input.myCallBacksCalled != ServiceContract.CallBacksCalled.None || output.myCallBacksCalled != ServiceContract.CallBacksCalled.None), string.Format("Method_All_ref Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_OnSerialized Method_OnSerialized_ref output should not be null ");
+            Assert.False((input.myCallBacksCalled != ServiceContract.CallBacksCalled.None || output.myCallBacksCalled != ServiceContract.CallBacksCalled.None), string.Format("Method_All_ref Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
         }
 
         private void Variation_DataContractEvents_OnDeserializing(ClientContract.IDataContractEventsService clientProxy)
@@ -505,8 +508,8 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.DataContractEvents_OnDeserializing();
             output = null;
             clientProxy.Method_OnDeserializing_out(input, out output);
-            //Assert.True(output != null, "DataContractEvents_OnDeserializing Method_OnDeserializing_out output should not be null ");
-            //Assert.True(ServiceContract.DataContractEvents_OnDeserializing.Validate(input, output), string.Format("Method_OnDeserializing_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_OnDeserializing Method_OnDeserializing_out output should not be null ");
+            Assert.True(ServiceContract.DataContractEvents_OnDeserializing.Validate(input, output), string.Format("Method_OnDeserializing_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
 
             _output.WriteLine("Testing [Variation_DataContractEvents_OnDeserializing] Method_OnDeserializing_ref ");
             input = new ServiceContract.DataContractEvents_OnDeserializing();
@@ -514,8 +517,8 @@ namespace CoreWCF.Http.Tests
             output = clientProxy.Method_OnDeserializing_ref(ref input);
             _output.WriteLine("Method_OnDeserializing_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
 
-            //Assert.True(output != null, "DataContractEvents_OnDeserializing Method_OnDeserializing_ref output should not be null ");
-            //Assert.False((input.myCallBacksCalled != ServiceContract.CallBacksCalled.OnDeserializing || output.myCallBacksCalled != ServiceContract.CallBacksCalled.OnDeserializing), string.Format("Method_All_ref Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_OnDeserializing Method_OnDeserializing_ref output should not be null ");
+            Assert.False((input.myCallBacksCalled != ServiceContract.CallBacksCalled.OnDeserializing || output.myCallBacksCalled != ServiceContract.CallBacksCalled.OnDeserializing), string.Format("Method_All_ref Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
 
         }
 
@@ -532,16 +535,16 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.DataContractEvents_OnDeserialized();
             output = null;
             clientProxy.Method_OnDeserialized_out(input, out output);
-            //Assert.True(output != null, "DataContractEvents_OnDeserialized Method_OnDeserialized_out output should not be null ");
-            //Assert.True(ServiceContract.DataContractEvents_OnDeserialized.Validate(input, output), string.Format("Method_OnDeserialized_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_OnDeserialized Method_OnDeserialized_out output should not be null ");
+            Assert.True(ServiceContract.DataContractEvents_OnDeserialized.Validate(input, output), string.Format("Method_OnDeserialized_out Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
 
             _output.WriteLine("Testing [Variation_DataContractEvents_OnDeserialized] Method_OnDeserialized_ref ");
             input = new ServiceContract.DataContractEvents_OnDeserialized();
             output = null;
             output = clientProxy.Method_OnDeserialized_ref(ref input);
             _output.WriteLine("Method_OnDeserialized_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "DataContractEvents_OnDeserialized Method_OnDeserialized_ref output should not be null ");
-            //Assert.False((input.myCallBacksCalled != ServiceContract.CallBacksCalled.OnDeserialized || output.myCallBacksCalled != ServiceContract.CallBacksCalled.OnDeserialized), string.Format("Method_All_ref Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
+            Assert.True(output != null, "DataContractEvents_OnDeserialized Method_OnDeserialized_ref output should not be null ");
+            Assert.False((input.myCallBacksCalled != ServiceContract.CallBacksCalled.OnDeserialized || output.myCallBacksCalled != ServiceContract.CallBacksCalled.OnDeserialized), string.Format("Method_All_ref Recived bad values input: {0} {2} output: {1} ", input.myCallBacksCalled, output.myCallBacksCalled, Environment.NewLine));
         }
 
         private void Variation_TypeWithDCInheritingFromSer(ClientContract.IDataContractInheritanceService clientProxy)
@@ -556,13 +559,13 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithDCInheritingFromSer();
             output = null;
             clientProxy.Method_TypeWithDCInheritingFromSer_out(input, out output);
-            //Assert.True(output != null, "TypeWithDCInheritingFromSer Method_TypeWithDCInheritingFromSer_out output should not be null "); 
+            Assert.True(output != null, "TypeWithDCInheritingFromSer Method_TypeWithDCInheritingFromSer_out output should not be null "); 
 
             _output.WriteLine("Testing [Variation_TypeWithDCInheritingFromSer] Method_TypeWithDCInheritingFromSer_ref ");
             input = new ServiceContract.TypeWithDCInheritingFromSer();
             output = null;
             output = clientProxy.Method_TypeWithDCInheritingFromSer_ref(ref input);
-            // Assert.True(output != null, "TypeWithDCInheritingFromSer Method_TypeWithDCInheritingFromSer_ref output should not be null ");
+            Assert.True(output != null, "TypeWithDCInheritingFromSer Method_TypeWithDCInheritingFromSer_ref output should not be null ");
 
         }
 
@@ -578,14 +581,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithSerInheritingFromDC();
             output = null;
             clientProxy.Method_TypeWithSerInheritingFromDC_out(input, out output);
-            // Assert.True(output != null, "TypeWithSerInheritingFromDC Method_TypeWithSerInheritingFromDC_out output should not be null ");
+            Assert.True(output != null, "TypeWithSerInheritingFromDC Method_TypeWithSerInheritingFromDC_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithSerInheritingFromDC] Method_TypeWithSerInheritingFromDC_ref ");
             input = new ServiceContract.TypeWithSerInheritingFromDC();
             output = null;
             output = clientProxy.Method_TypeWithSerInheritingFromDC_ref(ref input);
             _output.WriteLine("Method_TypeWithSerInheritingFromDC_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            // Assert.True(output != null, "TypeWithSerInheritingFromDC Method_TypeWithSerInheritingFromDC_ref output should not be null ");
+            Assert.True(output != null, "TypeWithSerInheritingFromDC Method_TypeWithSerInheritingFromDC_ref output should not be null ");
         }
 
         private void Variation_BaseDC(ClientContract.IDataContractInheritanceService clientProxy)
@@ -600,14 +603,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.BaseDC();
             output = null;
             clientProxy.Method_BaseDC_out(input, out output);
-            // Assert.True(output != null, "BaseDC Method_BaseDC_out output should not be null ");
+            Assert.True(output != null, "BaseDC Method_BaseDC_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_BaseDC] Method_BaseDC_ref ");
             input = new ServiceContract.BaseDC();
             output = null;
             output = clientProxy.Method_BaseDC_ref(ref input);
             _output.WriteLine("Method_BaseDC_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            // Assert.True(output != null, "BaseDC Method_BaseDC_ref output should not be null ");
+            Assert.True(output != null, "BaseDC Method_BaseDC_ref output should not be null ");
         }
 
         private void Variation_TypeWithRelativeNamespace(ClientContract.IDataContractNamespaceService clientProxy)
@@ -622,13 +625,13 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithRelativeNamespace();
             output = null;
             clientProxy.Method_TypeWithRelativeNamespace_out(input, out output);
-            //Assert.True(output != null, "TypeWithRelativeNamespace Method_TypeWithRelativeNamespace_out output should not be null ");
+            Assert.True(output != null, "TypeWithRelativeNamespace Method_TypeWithRelativeNamespace_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithRelativeNamespace] Method_TypeWithRelativeNamespace_ref ");
             input = new ServiceContract.TypeWithRelativeNamespace();
             output = null;
             output = clientProxy.Method_TypeWithRelativeNamespace_ref(ref input);
-            //Assert.True(output != null, "TypeWithRelativeNamespace Method_TypeWithRelativeNamespace_ref output should not be null ");
+            Assert.True(output != null, "TypeWithRelativeNamespace Method_TypeWithRelativeNamespace_ref output should not be null ");
         }
 
         private void Variation_TypeWithNumberInNamespace(ClientContract.IDataContractNamespaceService clientProxy)
@@ -643,14 +646,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithNumberInNamespace();
             output = null;
             clientProxy.Method_TypeWithNumberInNamespace_out(input, out output);
-            //Assert.True(output != null, "TypeWithNumberInNamespace Method_TypeWithNumberInNamespace_out output should not be null ");
+            Assert.True(output != null, "TypeWithNumberInNamespace Method_TypeWithNumberInNamespace_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithNumberInNamespace] Method_TypeWithNumberInNamespace_ref ");
             input = new ServiceContract.TypeWithNumberInNamespace();
             output = null;
             output = clientProxy.Method_TypeWithNumberInNamespace_ref(ref input);
             _output.WriteLine("Method_TypeWithNumberInNamespace_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "TypeWithNumberInNamespace Method_TypeWithNumberInNamespace_ref output should not be null ");
+            Assert.True(output != null, "TypeWithNumberInNamespace Method_TypeWithNumberInNamespace_ref output should not be null ");
         }
 
         private void Variation_TypeWithEmptyNamespace(ClientContract.IDataContractNamespaceService clientProxy)
@@ -665,14 +668,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithEmptyNamespace();
             output = null;
             clientProxy.Method_TypeWithEmptyNamespace_out(input, out output);
-            //Assert.True(output != null, "TypeWithEmptyNamespace Method_TypeWithEmptyNamespace_out output should not be null ");
+            Assert.True(output != null, "TypeWithEmptyNamespace Method_TypeWithEmptyNamespace_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithEmptyNamespace] Method_TypeWithEmptyNamespace_ref ");
             input = new ServiceContract.TypeWithEmptyNamespace();
             output = null;
             output = clientProxy.Method_TypeWithEmptyNamespace_ref(ref input);
             _output.WriteLine("Method_TypeWithEmptyNamespace_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            // Assert.True(output != null, "TypeWithEmptyNamespace Method_TypeWithEmptyNamespace_ref output should not be null ");
+            Assert.True(output != null, "TypeWithEmptyNamespace Method_TypeWithEmptyNamespace_ref output should not be null ");
         }
 
         private void Variation_TypeWithLongNamespace(ClientContract.IDataContractNamespaceService clientProxy)
@@ -687,7 +690,7 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithLongNamespace();
             output = null;
             clientProxy.Method_TypeWithLongNamespace_out(input, out output);
-            //Assert.True(output != null, "TypeWithLongNamespace Method_TypeWithLongNamespace_out output should not be null ");
+            Assert.True(output != null, "TypeWithLongNamespace Method_TypeWithLongNamespace_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithLongNamespace] Method_TypeWithLongNamespace_ref ");
 
@@ -695,7 +698,7 @@ namespace CoreWCF.Http.Tests
             output = null;
             output = clientProxy.Method_TypeWithLongNamespace_ref(ref input);
             _output.WriteLine("Method_TypeWithLongNamespace_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "TypeWithLongNamespace Method_TypeWithLongNamespace_ref output should not be null ");
+            Assert.True(output != null, "TypeWithLongNamespace Method_TypeWithLongNamespace_ref output should not be null ");
         }
 
         private void Variation_TypeWithDefaultNamespace(ClientContract.IDataContractNamespaceService clientProxy)
@@ -710,14 +713,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithDefaultNamespace();
             output = null;
             clientProxy.Method_TypeWithDefaultNamespace_out(input, out output);
-            //Assert.True(output != null, "TypeWithDefaultNamespace Method_TypeWithDefaultNamespace_out output should not be null ");
+            Assert.True(output != null, "TypeWithDefaultNamespace Method_TypeWithDefaultNamespace_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithDefaultNamespace] Method_TypeWithDefaultNamespace_ref ");
             input = new ServiceContract.TypeWithDefaultNamespace();
             output = null;
             output = clientProxy.Method_TypeWithDefaultNamespace_ref(ref input);
             _output.WriteLine("Method_TypeWithDefaultNamespace_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "TypeWithDefaultNamespace Method_TypeWithDefaultNamespace_ref output should not be null ");
+            Assert.True(output != null, "TypeWithDefaultNamespace Method_TypeWithDefaultNamespace_ref output should not be null ");
         }
 
         private void Variation_TypeWithKeywordsInNamespace(ClientContract.IDataContractNamespaceService clientProxy)
@@ -732,14 +735,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithKeywordsInNamespace();
             output = null;
             clientProxy.Method_TypeWithKeywordsInNamespace_out(input, out output);
-            // Assert.True(output != null, "TypeWithKeywordsInNamespace Method_TypeWithKeywordsInNamespace_out output should not be null ");
+            Assert.True(output != null, "TypeWithKeywordsInNamespace Method_TypeWithKeywordsInNamespace_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithKeywordsInNamespace] Method_TypeWithKeywordsInNamespace_ref ");
             input = new ServiceContract.TypeWithKeywordsInNamespace();
             output = null;
             output = clientProxy.Method_TypeWithKeywordsInNamespace_ref(ref input);
             _output.WriteLine("Method_TypeWithKeywordsInNamespace_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "TypeWithKeywordsInNamespace Method_TypeWithKeywordsInNamespace_ref output should not be null ");
+            Assert.True(output != null, "TypeWithKeywordsInNamespace Method_TypeWithKeywordsInNamespace_ref output should not be null ");
         }
 
         private void Variation_TypeWithUnicodeInNamespace(ClientContract.IDataContractNamespaceService clientProxy)
@@ -754,14 +757,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithUnicodeInNamespace();
             output = null;
             clientProxy.Method_TypeWithUnicodeInNamespace_out(input, out output);
-            //Assert.True(output != null, "TypeWithUnicodeInNamespace Method_TypeWithUnicodeInNamespace_out output should not be null ");
+            Assert.True(output != null, "TypeWithUnicodeInNamespace Method_TypeWithUnicodeInNamespace_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithUnicodeInNamespace] Method_TypeWithUnicodeInNamespace_ref ");
             input = new ServiceContract.TypeWithUnicodeInNamespace();
             output = null;
             output = clientProxy.Method_TypeWithUnicodeInNamespace_ref(ref input);
             _output.WriteLine("Method_TypeWithUnicodeInNamespace_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "TypeWithUnicodeInNamespace Method_TypeWithUnicodeInNamespace_ref output should not be null ");
+            Assert.True(output != null, "TypeWithUnicodeInNamespace Method_TypeWithUnicodeInNamespace_ref output should not be null ");
         }
 
         private void Variation_MyISerClass(ClientContract.IISerializableService clientProxy)
@@ -776,13 +779,13 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.MyISerClass();
             output = null;
             clientProxy.Method_MyISerClass_out(input, out output);
-            // Assert.True(output != null, "MyISerClass Method_MyISerClass_out output should not be null ");
+            Assert.True(output != null, "MyISerClass Method_MyISerClass_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_MyISerClass] Method_MyISerClass_ref ");
             input = new ServiceContract.MyISerClass();
             output = null;
             output = clientProxy.Method_MyISerClass_ref(ref input);
-            //Assert.True(output != null, "MyISerClass Method_MyISerClass_ref output should not be null ");                     
+            Assert.True(output != null, "MyISerClass Method_MyISerClass_ref output should not be null ");                     
         }
 
         private void Variation_MyISerStruct(ClientContract.IISerializableService clientProxy)
@@ -815,14 +818,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.MyISerClassFromClass();
             output = null;
             clientProxy.Method_MyISerClassFromClass_out(input, out output);
-            //Assert.True(output != null, "MyISerClassFromClass Method_MyISerClassFromClass_out output should not be null ");
+            Assert.True(output != null, "MyISerClassFromClass Method_MyISerClassFromClass_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_MyISerClassFromClass] Method_MyISerClassFromClass_ref ");
             input = new ServiceContract.MyISerClassFromClass();
             output = null;
             output = clientProxy.Method_MyISerClassFromClass_ref(ref input);
             _output.WriteLine("Method_MyISerClassFromClass_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            // Assert.True(output != null, "MyISerClassFromClass Method_MyISerClassFromClass_ref output should not be null ");                     
+            Assert.True(output != null, "MyISerClassFromClass Method_MyISerClassFromClass_ref output should not be null ");                     
         }
 
         private void Variation_BoxedStructHolder(ClientContract.IISerializableService clientProxy)
@@ -837,14 +840,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.BoxedStructHolder();
             output = null;
             clientProxy.Method_BoxedStructHolder_out(input, out output);
-            //Assert.True(output != null, "BoxedStructHolder Method_BoxedStructHolder_out output should not be null ");
+            Assert.True(output != null, "BoxedStructHolder Method_BoxedStructHolder_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_BoxedStructHolder] Method_BoxedStructHolder_ref ");
             input = new ServiceContract.BoxedStructHolder();
             output = null;
             output = clientProxy.Method_BoxedStructHolder_ref(ref input);
             _output.WriteLine("Method_BoxedStructHolder_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output != null, "BoxedStructHolder Method_BoxedStructHolder_ref output should not be null ");          
+            Assert.True(output != null, "BoxedStructHolder Method_BoxedStructHolder_ref output should not be null ");          
         }
 
         private void Variation_MyISerClassFromSerializable(ClientContract.IISerializableService clientProxy)
@@ -859,14 +862,14 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.MyISerClassFromSerializable();
             output = null;
             clientProxy.Method_MyISerClassFromSerializable_out(input, out output);
-            //Assert.True(output != null, "MyISerClassFromSerializable Method_MyISerClassFromSerializable_out output should not be null ");
+            Assert.True(output != null, "MyISerClassFromSerializable Method_MyISerClassFromSerializable_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_MyISerClassFromSerializable] Method_MyISerClassFromSerializable_ref ");
             input = new ServiceContract.MyISerClassFromSerializable();
             output = null;
             output = clientProxy.Method_MyISerClassFromSerializable_ref(ref input);
             _output.WriteLine("Method_MyISerClassFromSerializable_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            //Assert.True(output!=null,"MyISerClassFromSerializable Method_MyISerClassFromSerializable_ref output should not be null ");                   
+            Assert.True(output!=null,"MyISerClassFromSerializable Method_MyISerClassFromSerializable_ref output should not be null ");                   
         }
 
         private void Variation_IReadWriteXmlLotsOfData(ClientContract.IIXMLSerializableService clientProxy)
@@ -883,13 +886,13 @@ namespace CoreWCF.Http.Tests
                 input = new ServiceContract.IReadWriteXmlLotsOfData();
                 output = null;
                 clientProxy.Method_IReadWriteXmlLotsOfData_out(input, out output);
-                //Assert.True(output != null, "IReadWriteXmlLotsOfData Method_IReadWriteXmlLotsOfData_out output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlLotsOfData Method_IReadWriteXmlLotsOfData_out output should not be null ");
 
                 _output.WriteLine("Testing [Variation_IReadWriteXmlLotsOfData] Method_IReadWriteXmlLotsOfData_ref ");
                 input = new ServiceContract.IReadWriteXmlLotsOfData();
                 output = null;
                 output = clientProxy.Method_IReadWriteXmlLotsOfData_ref(ref input);
-                //Assert.True(output != null, "IReadWriteXmlLotsOfData Method_IReadWriteXmlLotsOfData_ref output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlLotsOfData Method_IReadWriteXmlLotsOfData_ref output should not be null ");
             }
             finally
             {
@@ -911,14 +914,14 @@ namespace CoreWCF.Http.Tests
                 input = new ServiceContract.IReadWriteXmlNestedWriteString();
                 output = null;
                 clientProxy.Method_IReadWriteXmlNestedWriteString_out(input, out output);
-                //Assert.True(output != null, "IReadWriteXmlNestedWriteString Method_IReadWriteXmlNestedWriteString_out output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlNestedWriteString Method_IReadWriteXmlNestedWriteString_out output should not be null ");
 
                 _output.WriteLine("Testing [Variation_IReadWriteXmlNestedWriteString] Method_IReadWriteXmlNestedWriteString_ref ");
                 input = new ServiceContract.IReadWriteXmlNestedWriteString();
                 output = null;
                 output = clientProxy.Method_IReadWriteXmlNestedWriteString_ref(ref input);
                 _output.WriteLine("Method_IReadWriteXmlNestedWriteString_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-                //Assert.True(output != null, "IReadWriteXmlNestedWriteString Method_IReadWriteXmlNestedWriteString_ref output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlNestedWriteString Method_IReadWriteXmlNestedWriteString_ref output should not be null ");
             }
             finally
             {
@@ -940,14 +943,14 @@ namespace CoreWCF.Http.Tests
                 input = new ServiceContract.IReadWriteXmlWriteAttributesFromReader();
                 output = null;
                 clientProxy.Method_IReadWriteXmlWriteAttributesFromReader_out(input, out output);
-                //Assert.True(output != null, "IReadWriteXmlWriteAttributesFromReader Method_IReadWriteXmlWriteAttributesFromReader_out output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlWriteAttributesFromReader Method_IReadWriteXmlWriteAttributesFromReader_out output should not be null ");
 
                 _output.WriteLine("Testing [Variation_IReadWriteXmlWriteAttributesFromReader] Method_IReadWriteXmlWriteAttributesFromReader_ref ");
                 input = new ServiceContract.IReadWriteXmlWriteAttributesFromReader();
                 output = null;
                 output = clientProxy.Method_IReadWriteXmlWriteAttributesFromReader_ref(ref input);
                 _output.WriteLine("Method_IReadWriteXmlWriteAttributesFromReader_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-                //Assert.True(output != null, "IReadWriteXmlWriteAttributesFromReader Method_IReadWriteXmlWriteAttributesFromReader_ref output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlWriteAttributesFromReader Method_IReadWriteXmlWriteAttributesFromReader_ref output should not be null ");
             }
             finally
             {
@@ -969,14 +972,14 @@ namespace CoreWCF.Http.Tests
                 input = new ServiceContract.IReadWriteXmlWriteName();
                 output = null;
                 clientProxy.Method_IReadWriteXmlWriteName_out(input, out output);
-                //Assert.True(output != null, "IReadWriteXmlWriteName Method_IReadWriteXmlWriteName_out output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlWriteName Method_IReadWriteXmlWriteName_out output should not be null ");
 
                 _output.WriteLine("Testing [Variation_IReadWriteXmlWriteName] Method_IReadWriteXmlWriteName_ref ");
                 input = new ServiceContract.IReadWriteXmlWriteName();
                 output = null;
                 output = clientProxy.Method_IReadWriteXmlWriteName_ref(ref input);
                 _output.WriteLine("Method_IReadWriteXmlWriteName_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-                //Assert.True(output != null, "IReadWriteXmlWriteName Method_IReadWriteXmlWriteName_ref output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlWriteName Method_IReadWriteXmlWriteName_ref output should not be null ");
             }
             finally
             {
@@ -998,14 +1001,14 @@ namespace CoreWCF.Http.Tests
                 input = new ServiceContract.IReadWriteXmlWriteStartAttribute();
                 output = null;
                 clientProxy.Method_IReadWriteXmlWriteStartAttribute_out(input, out output);
-                //Assert.True(output != null, "IReadWriteXmlWriteStartAttribute Method_IReadWriteXmlWriteStartAttribute_out output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlWriteStartAttribute Method_IReadWriteXmlWriteStartAttribute_out output should not be null ");
 
                 _output.WriteLine("Testing [Variation_IReadWriteXmlWriteStartAttribute] Method_IReadWriteXmlWriteStartAttribute_ref ");
                 input = new ServiceContract.IReadWriteXmlWriteStartAttribute();
                 output = null;
                 output = clientProxy.Method_IReadWriteXmlWriteStartAttribute_ref(ref input);
                 _output.WriteLine("Method_IReadWriteXmlWriteStartAttribute_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-                //Assert.True(output != null, "IReadWriteXmlWriteStartAttribute Method_IReadWriteXmlWriteStartAttribute_ref output should not be null ");
+                Assert.True(output != null, "IReadWriteXmlWriteStartAttribute Method_IReadWriteXmlWriteStartAttribute_ref output should not be null ");
             }
             finally
             {
