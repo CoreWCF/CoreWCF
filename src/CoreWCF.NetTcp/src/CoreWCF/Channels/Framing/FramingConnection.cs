@@ -23,7 +23,6 @@ namespace CoreWCF.Channels.Framing
     {
         private readonly ConnectionContext _context;
         private IDuplexPipe _transport;
-        private Lazy<IPEndPoint> _remoteEndpoint;
 
         public FramingConnection(ConnectionContext context) : this(context, NullLogger.Instance) { }
 
@@ -38,7 +37,7 @@ namespace CoreWCF.Channels.Framing
 #else
             Transport = RawTransport = _context.Transport;
 #endif
-            _remoteEndpoint = new Lazy<IPEndPoint>(() => GetRemoteEndPoint(context));
+            RemoteEndpoint = GetRemoteEndPoint(context);
         }
 
         public MessageEncoderFactory MessageEncoderFactory { get; internal set; }
@@ -69,7 +68,7 @@ namespace CoreWCF.Channels.Framing
         public TransferMode TransferMode { get; internal set; }
         internal Stream RawStream { get; set; }
         public ILogger Logger { get; }
-        public IPEndPoint RemoteEndpoint => _remoteEndpoint.Value;
+        public IPEndPoint RemoteEndpoint { get; }
 
         internal void Reset()
         {
