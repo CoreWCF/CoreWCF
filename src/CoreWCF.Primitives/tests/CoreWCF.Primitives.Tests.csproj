@@ -18,9 +18,17 @@
     </PackageReference>
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.1" />
   </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net5.0'">
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="../src/CoreWCF.Primitives.csproj" />
   </ItemGroup>

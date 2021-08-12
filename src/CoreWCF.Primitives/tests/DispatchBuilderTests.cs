@@ -29,7 +29,7 @@ namespace DispatchBuilder
             IServer server = new MockServer();
             services.AddSingleton(server);
             services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
-            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            services.RegisterApplicationLifetime();
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
@@ -62,7 +62,7 @@ namespace DispatchBuilder
             IServer server = new MockServer();
             services.AddSingleton(server);
             services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
-            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            services.RegisterApplicationLifetime();
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
@@ -96,7 +96,7 @@ namespace DispatchBuilder
             services.AddSingleton(server);
             services.AddSingleton(new SimpleSingletonService());
             services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
-            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            services.RegisterApplicationLifetime();
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
@@ -131,7 +131,7 @@ namespace DispatchBuilder
             IServer server = new MockServer();
             services.AddSingleton(server);
             services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
-            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            services.RegisterApplicationLifetime();
 
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();

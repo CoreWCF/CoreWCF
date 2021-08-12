@@ -5,8 +5,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Linq.Expressions;
 using System.Net;
-using System.Threading;
+using System.Reflection;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Runtime;
@@ -22,6 +23,7 @@ namespace CoreWCF.Channels.Framing
     {
         private readonly ConnectionContext _context;
         private IDuplexPipe _transport;
+        private Lazy<IPEndPoint> _remoteEndpoint;
 
         public FramingConnection(ConnectionContext context) : this(context, NullLogger.Instance) { }
 
@@ -36,6 +38,7 @@ namespace CoreWCF.Channels.Framing
 #else
             Transport = RawTransport = _context.Transport;
 #endif
+            _remoteEndpoint = new Lazy<IPEndPoint>(() => GetRemoteEndPoint(context));
         }
 
         public MessageEncoderFactory MessageEncoderFactory { get; internal set; }
@@ -66,20 +69,7 @@ namespace CoreWCF.Channels.Framing
         public TransferMode TransferMode { get; internal set; }
         internal Stream RawStream { get; set; }
         public ILogger Logger { get; }
-
-        public IPEndPoint RemoteEndpoint
-        {
-            get
-            {
-                IHttpConnectionFeature connectionFeature = _context.Features.Get<IHttpConnectionFeature>();
-                if (connectionFeature == null)
-                {
-                    return null;
-                }
-
-                return new IPEndPoint(connectionFeature.RemoteIpAddress, connectionFeature.RemotePort);
-            }
-        }
+        public IPEndPoint RemoteEndpoint => _remoteEndpoint.Value;
 
         internal void Reset()
         {
@@ -208,6 +198,57 @@ namespace CoreWCF.Channels.Framing
                     return;
                 }
             }
+        }
+
+        /// <summary>
+        /// Tries to extract the remote endpoint from the given <see cref="ConnectionContext"/> in a
+        /// version agnostic way.
+        /// </summary>
+        /// <param name="context">The ASP.net core connection context to extract the remote endpoint from.</param>
+        /// <returns>The endpoint of the remote party or null if it was not provided.</returns>
+        private static IPEndPoint GetRemoteEndPoint(ConnectionContext context)
+        {
+            // 1st chance: Server might provide remote endpoint via HTTP feature
+            // (mostly the case in ASP.net core v2.x)
+            IHttpConnectionFeature connectionFeature = context.Features.Get<IHttpConnectionFeature>();
+            if (connectionFeature != null)
+            {
+                return new IPEndPoint(connectionFeature.RemoteIpAddress, connectionFeature.RemotePort);
+            }
+
+            // 2nd chance: on ASP.net core 5.0 the ConnectionContext has a direct Property RemoteEndpoint
+            // via baseclass.
+            var net5RemoteEndPointPropertyAccessor = s_net5RemoteEndPointPropertyAccessor;
+            if (net5RemoteEndPointPropertyAccessor != null)
+            {
+                return net5RemoteEndPointPropertyAccessor(context);
+            }
+
+            // last chance: server does likely not support access to remote endpoint. could be
+            // a non-tcp server like the ASP.net core test server
+            return null;
+        }
+
+
+        private static readonly Func<ConnectionContext, IPEndPoint> s_net5RemoteEndPointPropertyAccessor =
+            BuildNet5RemoteEndPointPropertyAccessor();
+
+        private static Func<ConnectionContext, IPEndPoint> BuildNet5RemoteEndPointPropertyAccessor()
+        {
+            // https://github.com/dotnet/aspnetcore/blob/v5.0.9/src/Servers/Connections.Abstractions/src/BaseConnectionContext.cs
+            var property =
+                typeof(ConnectionContext).GetProperty("RemoteEndPoint", BindingFlags.Instance | BindingFlags.Public);
+            if (property == null)
+            {
+                return null;
+            }
+
+            // context => context.RemoteEndPoint as IPEndpoint
+            var contextParam = Expression.Parameter(typeof(ConnectionContext), "context");
+            return Expression.Lambda<Func<ConnectionContext, IPEndPoint>>(
+                 Expression.TypeAs(Expression.Property(contextParam, property),  typeof(IPEndPoint)),
+                contextParam
+            ).Compile();
         }
 
         private class ConnectionIdWrappingLogger : ILogger
