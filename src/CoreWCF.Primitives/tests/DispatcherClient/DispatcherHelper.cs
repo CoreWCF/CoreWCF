@@ -3,10 +3,7 @@
 
 using System;
 using System.ServiceModel;
-using CoreWCF.Description;
 using Helpers;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
