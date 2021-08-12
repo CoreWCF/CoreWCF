@@ -1,12 +1,19 @@
-﻿using Helpers;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Threading;
+using CoreWCF.Channels;
+using CoreWCF.Configuration;
+using Helpers;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Channels;
-using CoreWCF.Configuration;
-using System.Threading;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using System;
 
 namespace DispatchBuilder
 {
@@ -17,26 +24,28 @@ namespace DispatchBuilder
         {
             string serviceAddress = "http://localhost/dummy";
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddServiceModelServices();
-            var serverAddressesFeature = new ServerAddressesFeature();
-            serverAddressesFeature.Addresses.Add(serviceAddress);
             IServer server = new MockServer();
-            server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
             services.AddSingleton(server);
-            var serviceProvider = services.BuildServiceProvider();
-            var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
             serviceBuilder.AddService<SimpleService>();
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleService, ISimpleService>(binding, serviceAddress);
-            var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
-            var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleService));
+            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
+            IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleService));
             Assert.Single(dispatchers);
-            var serviceDispatcher = dispatchers[0];
+            IServiceDispatcher serviceDispatcher = dispatchers[0];
             Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
+            IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
             dispatcher.DispatchAsync(requestContext).Wait();
             Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
@@ -48,26 +57,28 @@ namespace DispatchBuilder
         {
             string serviceAddress = "http://localhost/dummy";
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddServiceModelServices();
-            var serverAddressesFeature = new ServerAddressesFeature();
-            serverAddressesFeature.Addresses.Add(serviceAddress);
             IServer server = new MockServer();
-            server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
             services.AddSingleton(server);
-            var serviceProvider = services.BuildServiceProvider();
-            var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
             serviceBuilder.AddService<SimpleSingletonService>();
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleSingletonService, ISimpleService>(binding, serviceAddress);
-            var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
-            var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
+            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
+            IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
             Assert.Single(dispatchers);
-            var serviceDispatcher = dispatchers[0];
+            IServiceDispatcher serviceDispatcher = dispatchers[0];
             Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
+            IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
             dispatcher.DispatchAsync(requestContext).Wait();
             Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
@@ -79,27 +90,29 @@ namespace DispatchBuilder
         {
             string serviceAddress = "http://localhost/dummy";
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddServiceModelServices();
-            var serverAddressesFeature = new ServerAddressesFeature();
-            serverAddressesFeature.Addresses.Add(serviceAddress);
             IServer server = new MockServer();
-            server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
             services.AddSingleton(server);
             services.AddSingleton(new SimpleSingletonService());
-            var serviceProvider = services.BuildServiceProvider();
-            var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
             serviceBuilder.AddService<SimpleSingletonService>();
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleSingletonService, ISimpleService>(binding, serviceAddress);
-            var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
-            var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
+            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
+            IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
             Assert.Single(dispatchers);
-            var serviceDispatcher = dispatchers[0];
+            IServiceDispatcher serviceDispatcher = dispatchers[0];
             Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
+            IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
             dispatcher.DispatchAsync(requestContext).Wait();
             Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
@@ -109,36 +122,37 @@ namespace DispatchBuilder
         [Fact]
         public static void BuildDispatcherWithConfiguration_XmlSerializer()
         {
-            var serviceAddress = "http://localhost/dummy";
+            string serviceAddress = "http://localhost/dummy";
 
             var services = new ServiceCollection();
+            services.AddLogging();
             services.AddServiceModelServices();
 
-            var serverAddressesFeature = new ServerAddressesFeature();
-            serverAddressesFeature.Addresses.Add(serviceAddress);
-
             IServer server = new MockServer();
-            server.Features.Set<IServerAddressesFeature>(serverAddressesFeature);
             services.AddSingleton(server);
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
 
-            var serviceProvider = services.BuildServiceProvider();
-            var serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
             serviceBuilder.AddService<SimpleXmlSerializerService>();
 
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleXmlSerializerService, ISimpleXmlSerializerService>(binding, serviceAddress);
+            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
 
-            var dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
-            var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleXmlSerializerService));
+            IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleXmlSerializerService));
             Assert.Single(dispatchers);
 
-            var serviceDispatcher = dispatchers[0];
+            IServiceDispatcher serviceDispatcher = dispatchers[0];
             Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
 
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            var dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
+            IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = XmlSerializerTestRequestContext.Create(serviceAddress);
             dispatcher.DispatchAsync(requestContext).Wait();
             Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");

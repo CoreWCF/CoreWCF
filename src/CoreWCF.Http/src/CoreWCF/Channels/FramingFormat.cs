@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 namespace CoreWCF.Channels
 {
-    static class FramingEncodingString
+    internal static class FramingEncodingString
     {
         public const string Binary = "application/soap+msbin1";
         public const string BinarySession = "application/soap+msbinsession1";

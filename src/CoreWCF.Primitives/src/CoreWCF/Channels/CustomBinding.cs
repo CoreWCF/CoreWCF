@@ -1,11 +1,12 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
 
 namespace CoreWCF.Channels
 {
     public class CustomBinding : Binding
     {
-        BindingElementCollection _bindingElements = new BindingElementCollection();
-
         public CustomBinding()
         {
         }
@@ -19,7 +20,7 @@ namespace CoreWCF.Channels
 
             foreach (BindingElement element in bindingElementsInTopDownChannelStackOrder)
             {
-                _bindingElements.Add(element);
+                Elements.Add(element);
             }
         }
 
@@ -33,7 +34,7 @@ namespace CoreWCF.Channels
 
             foreach (BindingElement element in bindingElementsInTopDownChannelStackOrder)
             {
-                _bindingElements.Add(element);
+                Elements.Add(element);
             }
         }
 
@@ -46,7 +47,7 @@ namespace CoreWCF.Channels
 
             foreach (BindingElement element in bindingElementsInTopDownChannelStackOrder)
             {
-                _bindingElements.Add(element);
+                Elements.Add(element);
             }
         }
 
@@ -55,7 +56,7 @@ namespace CoreWCF.Channels
         {
         }
 
-        static BindingElementCollection SafeCreateBindingElements(Binding binding)
+        private static BindingElementCollection SafeCreateBindingElements(Binding binding)
         {
             if (binding == null)
             {
@@ -84,28 +85,22 @@ namespace CoreWCF.Channels
 
             for (int i = 0; i < elements.Count; i++)
             {
-                _bindingElements.Add(elements[i]);
+                Elements.Add(elements[i]);
             }
         }
 
-        public BindingElementCollection Elements
-        {
-            get
-            {
-                return _bindingElements;
-            }
-        }
+        public BindingElementCollection Elements { get; } = new BindingElementCollection();
 
         public override BindingElementCollection CreateBindingElements()
         {
-            return _bindingElements.Clone();
+            return Elements.Clone();
         }
 
         public override string Scheme
         {
             get
             {
-                TransportBindingElement transport = _bindingElements.Find<TransportBindingElement>();
+                TransportBindingElement transport = Elements.Find<TransportBindingElement>();
                 if (transport == null)
                 {
                     return string.Empty;

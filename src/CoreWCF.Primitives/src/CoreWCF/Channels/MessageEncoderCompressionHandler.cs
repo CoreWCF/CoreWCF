@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.IO.Compression;
 
@@ -45,8 +48,7 @@ namespace CoreWCF.Channels
                     bufferManager.ReturnBuffer(tempBuffer);
                 }
 
-                int length = 0;
-                byte[] decompressedBytes = bufferedOutStream.ToArray(out length);
+                byte[] decompressedBytes = bufferedOutStream.ToArray(out int length);
                 bufferManager.ReturnBuffer(buffer.Array);
                 buffer = new ArraySegment<byte>(decompressedBytes, buffer.Offset, length - buffer.Offset);
             }
@@ -65,8 +67,7 @@ namespace CoreWCF.Channels
                     ds.Write(buffer.Array, buffer.Offset, buffer.Count);
                 }
 
-                int length = 0;
-                byte[] compressedBytes = bufferedOutStream.ToArray(out length);
+                byte[] compressedBytes = bufferedOutStream.ToArray(out int length);
                 bufferManager.ReturnBuffer(buffer.Array);
                 buffer = new ArraySegment<byte>(compressedBytes, buffer.Offset, length - buffer.Offset);
             }

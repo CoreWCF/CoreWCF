@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
@@ -9,16 +12,16 @@ namespace CoreWCF.Dispatcher
     [DataContract]
     internal class ActionMessageFilter : MessageFilter
     {
-        Dictionary<string, int> actions;
-        ReadOnlyCollection<string> actionSet;
+        private Dictionary<string, int> _actions;
+        private ReadOnlyCollection<string> _actionSet;
 
         [DataMember(IsRequired = true)]
         internal string[] DCActions
         {
             get
             {
-                string[] act = new string[actions.Count];
-                actions.Keys.CopyTo(act, 0);
+                string[] act = new string[_actions.Count];
+                _actions.Keys.CopyTo(act, 0);
                 return act;
             }
             set
@@ -37,20 +40,20 @@ namespace CoreWCF.Dispatcher
             Init(actions);
         }
 
-        void Init(string[] actions)
+        private void Init(string[] actions)
         {
             if (actions.Length == 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.ActionFilterEmptyList, nameof(actions)));
             }
 
-            this.actions = new Dictionary<string, int>();
+            _actions = new Dictionary<string, int>();
             for (int i = 0; i < actions.Length; ++i)
             {
                 // Duplicates are removed
-                if (!this.actions.ContainsKey(actions[i]))
+                if (!_actions.ContainsKey(actions[i]))
                 {
-                    this.actions.Add(actions[i], 0);
+                    _actions.Add(actions[i], 0);
                 }
             }
         }
@@ -59,11 +62,11 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (actionSet == null)
+                if (_actionSet == null)
                 {
-                    actionSet = new ReadOnlyCollection<string>(new List<string>(actions.Keys));
+                    _actionSet = new ReadOnlyCollection<string>(new List<string>(_actions.Keys));
                 }
-                return actionSet;
+                return _actionSet;
             }
         }
 
@@ -72,7 +75,7 @@ namespace CoreWCF.Dispatcher
             return new ActionMessageFilterTable<FilterData>();
         }
 
-        bool InnerMatch(Message message)
+        private bool InnerMatch(Message message)
         {
             string act = message.Headers.Action;
             if (act == null)
@@ -80,7 +83,7 @@ namespace CoreWCF.Dispatcher
                 act = string.Empty;
             }
 
-            return actions.ContainsKey(act);
+            return _actions.ContainsKey(act);
         }
 
         public override bool Match(Message message)
@@ -111,5 +114,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

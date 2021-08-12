@@ -1,5 +1,6 @@
-﻿using System.IO;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF;
 
 namespace ServiceContract
@@ -41,5 +42,13 @@ namespace ServiceContract
         [OperationContract(Name = "EchoForImpersonation", Action = Constants.OPERATION_BASE + "EchoForImpersonation",
         ReplyAction = Constants.OPERATION_BASE + "EchoForImpersonationResponse")]
         string EchoForImpersonation(string echo);
+
+        [OperationContract(Name = "EchoForAuthorizarionOneRole", Action = Constants.OPERATION_BASE + "EchoForAuthorizarionOneRole",
+        ReplyAction = Constants.OPERATION_BASE + "EchoForAuthorizarionOneRoleResponse")]
+        string EchoForAuthorizarionOneRole(string echo);
+
+        [OperationContract(Name = "EchoForAuthorizarionNoRole", Action = Constants.OPERATION_BASE + "EchoForAuthorizarionNoRole",
+        ReplyAction = Constants.OPERATION_BASE + "EchoForAuthorizarionNoRoleResponse")]
+        string EchoForAuthorizarionNoRole(string echo);
     }
 }

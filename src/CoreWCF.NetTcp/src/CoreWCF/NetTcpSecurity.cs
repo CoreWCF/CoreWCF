@@ -1,60 +1,76 @@
-using CoreWCF.Runtime;
-using CoreWCF.Channels;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.ComponentModel;
+using CoreWCF.Channels;
+using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF
 {
     public sealed partial class NetTcpSecurity
     {
         internal const SecurityMode DefaultMode = SecurityMode.Transport;
-
-        SecurityMode mode;
-        TcpTransportSecurity transportSecurity;
+        private SecurityMode _mode;
 
         public NetTcpSecurity()
-            : this(DefaultMode, new TcpTransportSecurity())
+            : this(DefaultMode, new TcpTransportSecurity(), new MessageSecurityOverTcp())
         {
         }
 
-        NetTcpSecurity(SecurityMode mode, TcpTransportSecurity transportSecurity)
+        private NetTcpSecurity(SecurityMode mode, TcpTransportSecurity transportSecurity, MessageSecurityOverTcp messageSecurity)
         {
             Fx.Assert(SecurityModeHelper.IsDefined(mode), string.Format("Invalid SecurityMode value: {0}.", mode.ToString()));
 
-            this.mode = mode;
-            this.transportSecurity = transportSecurity == null ? new TcpTransportSecurity() : transportSecurity;
+            _mode = mode;
+            Transport = transportSecurity ?? new TcpTransportSecurity();
+            Message = messageSecurity ?? new MessageSecurityOverTcp();
         }
 
         [DefaultValue(DefaultMode)]
         public SecurityMode Mode
         {
-            get { return mode; }
+            get { return _mode; }
             set
             {
                 if (!SecurityModeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
-                mode = value;
+                _mode = value;
             }
         }
 
-        public TcpTransportSecurity Transport
-        {
-            get { return transportSecurity; }
-            set { transportSecurity = value; }
-        }
+        public TcpTransportSecurity Transport { get; set; }
+
+        public MessageSecurityOverTcp Message { get; set; }
 
         internal BindingElement CreateTransportSecurity()
         {
-            if (mode == SecurityMode.TransportWithMessageCredential)
+            if (_mode == SecurityMode.TransportWithMessageCredential)
             {
-                throw new PlatformNotSupportedException("TransportWithMessageCredential");
-                //return this.transportSecurity.CreateTransportProtectionOnly();
+                return Transport.CreateTransportProtectionOnly();
             }
-            else if (mode == SecurityMode.Transport)
+            else if (_mode == SecurityMode.Transport)
             {
-                return transportSecurity.CreateTransportProtectionAndAuthentication();
+                return Transport.CreateTransportProtectionAndAuthentication();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        internal SecurityBindingElement CreateMessageSecurity(bool isReliableSessionEnabled)
+        {
+            if (_mode == SecurityMode.Message)
+            {
+                return Message.CreateSecurityBindingElement(false, isReliableSessionEnabled, null);
+            }
+            else if (_mode == SecurityMode.TransportWithMessageCredential)
+            {
+                return Message.CreateSecurityBindingElement(true, isReliableSessionEnabled, CreateTransportSecurity());
             }
             else
             {

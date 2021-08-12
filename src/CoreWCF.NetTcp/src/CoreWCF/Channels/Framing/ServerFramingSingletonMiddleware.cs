@@ -1,16 +1,18 @@
-﻿using CoreWCF.Configuration;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Buffers;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {
     internal class ServerFramingSingletonMiddleware
     {
-        private HandshakeDelegate _next;
+        private readonly HandshakeDelegate _next;
 
         public ServerFramingSingletonMiddleware(HandshakeDelegate next)
         {
@@ -19,7 +21,7 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            var receiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout;
+            TimeSpan receiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout;
             var timeoutHelper = new TimeoutHelper(receiveTimeout);
             bool success = false;
             try
@@ -36,7 +38,7 @@ namespace CoreWCF.Channels.Framing
                 {
                     if (buffer.Length == 0 && CanReadAndDecode(upgradeState))
                     {
-                        var readResult = await connection.Input.ReadAsync();
+                        System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
                         buffer = readResult.Buffer;
                         if (readResult.IsCompleted)
                         {
@@ -106,13 +108,15 @@ namespace CoreWCF.Channels.Framing
                                         buffer = ReadOnlySequence<byte>.Empty;
                                         try
                                         {
-                                            await UpgradeConnectionAsync(connection);
+                                            await UpgradeConnectionAsync(connection, decoder.Upgrade);
                                             ChangeUpgradeState(ref upgradeState, UpgradeState.EndUpgrade);
                                         }
                                         catch (Exception exception)
                                         {
                                             if (Fx.IsFatal(exception))
+                                            {
                                                 throw;
+                                            }
 
                                             throw;
                                         }
@@ -175,7 +179,7 @@ namespace CoreWCF.Channels.Framing
                 || upgradeState == UpgradeState.UpgradeComplete;
         }
 
-        void ChangeUpgradeState(ref UpgradeState currentState, UpgradeState newState)
+        private void ChangeUpgradeState(ref UpgradeState currentState, UpgradeState newState)
         {
             switch (newState)
             {
@@ -238,11 +242,13 @@ namespace CoreWCF.Channels.Framing
             currentState = newState;
         }
 
-        public static async Task UpgradeConnectionAsync(FramingConnection connection)
+        public static async Task UpgradeConnectionAsync(FramingConnection connection, string contentType)
         {
-            connection.RawStream = new RawStream(connection.Input, connection.Output);
-            var upgradeAcceptor = connection.StreamUpgradeAcceptor;
-            var stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
+            var duplexPipeStream = new DuplexPipeStream(connection.Input, connection.Output);
+            connection.RawStream = duplexPipeStream;
+            StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
+            Stream stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
+            duplexPipeStream.SetContentType(contentType);
             CreatePipelineFromStream(connection, stream);
         }
 
@@ -254,10 +260,9 @@ namespace CoreWCF.Channels.Framing
 
         private static void SetupSecurityIfNecessary(FramingConnection connection)
         {
-            StreamSecurityUpgradeAcceptor securityUpgradeAcceptor = connection.StreamUpgradeAcceptor as StreamSecurityUpgradeAcceptor;
-            if (securityUpgradeAcceptor != null)
+            if (connection.StreamUpgradeAcceptor is StreamSecurityUpgradeAcceptor securityUpgradeAcceptor)
             {
-                var remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
+                Security.SecurityMessageProperty remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
 
                 if (remoteSecurity == null)
                 {
@@ -275,7 +280,7 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        enum UpgradeState
+        private enum UpgradeState
         {
             None,
             VerifyingUpgradeRequest,

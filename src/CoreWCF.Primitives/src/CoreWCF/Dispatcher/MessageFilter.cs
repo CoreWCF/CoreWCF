@@ -1,9 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
 
@@ -14,7 +15,7 @@ namespace CoreWCF.Dispatcher
     //[KnownType(typeof(ActionMessageFilter))]
     //[KnownType(typeof(MatchAllMessageFilter))]
     //[KnownType(typeof(MatchNoneMessageFilter))]
-    internal abstract class MessageFilter
+    public abstract class MessageFilter
     {
         protected MessageFilter()
         {
@@ -41,11 +42,11 @@ namespace CoreWCF.Dispatcher
 
     internal class SequentialMessageFilterTable<FilterData> : IMessageFilterTable<FilterData>
     {
-        Dictionary<MessageFilter, FilterData> filters;
+        private readonly Dictionary<MessageFilter, FilterData> _filters;
 
         public SequentialMessageFilterTable()
         {
-            filters = new Dictionary<MessageFilter, FilterData>();
+            _filters = new Dictionary<MessageFilter, FilterData>();
         }
 
         //
@@ -56,29 +57,31 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return filters.Count;
+                return _filters.Count;
             }
         }
 
         public void Clear()
         {
-            filters.Clear();
+            _filters.Clear();
         }
 
         public bool GetMatchingValue(Message message, out FilterData data)
         {
             bool dataSet = false;
             MessageFilter filter = null;
-            data = default(FilterData);
-            foreach (KeyValuePair<MessageFilter, FilterData> item in filters)
+            data = default;
+            foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(message))
                 {
                     if (dataSet)
                     {
-                        Collection<MessageFilter> f = new Collection<MessageFilter>();
-                        f.Add(filter);
-                        f.Add(item.Key);
+                        Collection<MessageFilter> f = new Collection<MessageFilter>
+                        {
+                            filter,
+                            item.Key
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, f), message);
                     }
 
@@ -95,16 +98,18 @@ namespace CoreWCF.Dispatcher
         {
             bool dataSet = false;
             MessageFilter filter = null;
-            data = default(FilterData);
-            foreach (KeyValuePair<MessageFilter, FilterData> item in filters)
+            data = default;
+            foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(buffer))
                 {
                     if (dataSet)
                     {
-                        Collection<MessageFilter> f = new Collection<MessageFilter>();
-                        f.Add(filter);
-                        f.Add(item.Key);
+                        Collection<MessageFilter> f = new Collection<MessageFilter>
+                        {
+                            filter,
+                            item.Key
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, f));
                     }
 
@@ -120,7 +125,7 @@ namespace CoreWCF.Dispatcher
         public bool GetMatchingValues(Message message, ICollection<FilterData> results)
         {
             int count = results.Count;
-            foreach (KeyValuePair<MessageFilter, FilterData> item in filters)
+            foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(message))
                 {
@@ -133,7 +138,7 @@ namespace CoreWCF.Dispatcher
         public bool GetMatchingValues(MessageBuffer buffer, ICollection<FilterData> results)
         {
             int count = results.Count;
-            foreach (KeyValuePair<MessageFilter, FilterData> item in filters)
+            foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(buffer))
                 {
@@ -146,15 +151,17 @@ namespace CoreWCF.Dispatcher
         public bool GetMatchingFilter(Message message, out MessageFilter filter)
         {
             filter = null;
-            foreach (KeyValuePair<MessageFilter, FilterData> item in filters)
+            foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(message))
                 {
                     if (filter != null)
                     {
-                        Collection<MessageFilter> f = new Collection<MessageFilter>();
-                        f.Add(filter);
-                        f.Add(item.Key);
+                        Collection<MessageFilter> f = new Collection<MessageFilter>
+                        {
+                            filter,
+                            item.Key
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, f), message);
                     }
 
@@ -168,15 +175,17 @@ namespace CoreWCF.Dispatcher
         public bool GetMatchingFilter(MessageBuffer buffer, out MessageFilter filter)
         {
             filter = null;
-            foreach (KeyValuePair<MessageFilter, FilterData> item in filters)
+            foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(buffer))
                 {
                     if (filter != null)
                     {
-                        Collection<MessageFilter> f = new Collection<MessageFilter>();
-                        f.Add(filter);
-                        f.Add(item.Key);
+                        Collection<MessageFilter> f = new Collection<MessageFilter>
+                        {
+                            filter,
+                            item.Key
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, f));
                     }
 
@@ -190,7 +199,7 @@ namespace CoreWCF.Dispatcher
         public bool GetMatchingFilters(Message message, ICollection<MessageFilter> results)
         {
             int count = results.Count;
-            foreach (KeyValuePair<MessageFilter, FilterData> item in filters)
+            foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(message))
                 {
@@ -203,7 +212,7 @@ namespace CoreWCF.Dispatcher
         public bool GetMatchingFilters(MessageBuffer buffer, ICollection<MessageFilter> results)
         {
             int count = results.Count;
-            foreach (KeyValuePair<MessageFilter, FilterData> item in filters)
+            foreach (KeyValuePair<MessageFilter, FilterData> item in _filters)
             {
                 if (item.Key.Match(buffer))
                 {
@@ -221,11 +230,11 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return filters[key];
+                return _filters[key];
             }
             set
             {
-                filters[key] = value;
+                _filters[key] = value;
             }
         }
 
@@ -233,7 +242,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return filters.Keys;
+                return _filters.Keys;
             }
         }
 
@@ -241,23 +250,23 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return filters.Values;
+                return _filters.Values;
             }
         }
 
         public bool ContainsKey(MessageFilter key)
         {
-            return filters.ContainsKey(key);
+            return _filters.ContainsKey(key);
         }
 
         public void Add(MessageFilter key, FilterData value)
         {
-            filters.Add(key, value);
+            _filters.Add(key, value);
         }
 
         public bool Remove(MessageFilter key)
         {
-            return filters.Remove(key);
+            return _filters.Remove(key);
         }
 
         //
@@ -274,22 +283,22 @@ namespace CoreWCF.Dispatcher
 
         void ICollection<KeyValuePair<MessageFilter, FilterData>>.Add(KeyValuePair<MessageFilter, FilterData> item)
         {
-            ((ICollection<KeyValuePair<MessageFilter, FilterData>>)filters).Add(item);
+            ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_filters).Add(item);
         }
 
         bool ICollection<KeyValuePair<MessageFilter, FilterData>>.Contains(KeyValuePair<MessageFilter, FilterData> item)
         {
-            return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)filters).Contains(item);
+            return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_filters).Contains(item);
         }
 
         void ICollection<KeyValuePair<MessageFilter, FilterData>>.CopyTo(KeyValuePair<MessageFilter, FilterData>[] array, int arrayIndex)
         {
-            ((ICollection<KeyValuePair<MessageFilter, FilterData>>)filters).CopyTo(array, arrayIndex);
+            ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_filters).CopyTo(array, arrayIndex);
         }
 
         bool ICollection<KeyValuePair<MessageFilter, FilterData>>.Remove(KeyValuePair<MessageFilter, FilterData> item)
         {
-            return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)filters).Remove(item);
+            return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_filters).Remove(item);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -299,13 +308,12 @@ namespace CoreWCF.Dispatcher
 
         IEnumerator<KeyValuePair<MessageFilter, FilterData>> IEnumerable<KeyValuePair<MessageFilter, FilterData>>.GetEnumerator()
         {
-            return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)filters).GetEnumerator();
+            return ((ICollection<KeyValuePair<MessageFilter, FilterData>>)_filters).GetEnumerator();
         }
 
         public bool TryGetValue(MessageFilter filter, out FilterData data)
         {
-            return filters.TryGetValue(filter, out data);
+            return _filters.TryGetValue(filter, out data);
         }
     }
-
 }

@@ -1,44 +1,54 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 
 namespace CoreWCF
 {
-    class ServiceModelDictionary : IXmlDictionary
+    internal class ServiceModelDictionary : IXmlDictionary
     {
-        static public readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
-        ServiceModelStrings strings;
-        int count;
-        XmlDictionaryString[] dictionaryStrings1;
-        XmlDictionaryString[] dictionaryStrings2;
-        Dictionary<string, int> dictionary;
-        XmlDictionaryString[] versionedDictionaryStrings;
+        public static readonly ServiceModelDictionary Version1 = new ServiceModelDictionary(new ServiceModelStringsVersion1());
+        private readonly ServiceModelStrings _strings;
+        private readonly int _count;
+        private XmlDictionaryString[] _dictionaryStrings1;
+        private XmlDictionaryString[] _dictionaryStrings2;
+        private Dictionary<string, int> _dictionary;
+        private XmlDictionaryString[] _versionedDictionaryStrings;
 
         public ServiceModelDictionary(ServiceModelStrings strings)
         {
-            this.strings = strings;
-            this.count = strings.Count;
+            _strings = strings;
+            _count = strings.Count;
         }
 
-        static public ServiceModelDictionary CurrentVersion => Version1;
+        public static ServiceModelDictionary CurrentVersion => Version1;
 
         public XmlDictionaryString CreateString(string value, int key) => new XmlDictionaryString(this, value, key);
 
         public bool TryLookup(string key, out XmlDictionaryString value)
         {
             if (key == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
-            if (this.dictionary == null)
             {
-                Dictionary<string, int> dictionary = new Dictionary<string, int>(count);
-                for (int i = 0; i < count; i++)
-                    dictionary.Add(strings[i], i);
-                this.dictionary = dictionary;
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
             }
-            int id;
-            if (this.dictionary.TryGetValue(key, out id))
+
+            if (_dictionary == null)
+            {
+                Dictionary<string, int> dictionary = new Dictionary<string, int>(_count);
+                for (int i = 0; i < _count; i++)
+                {
+                    dictionary.Add(_strings[i], i);
+                }
+
+                _dictionary = dictionary;
+            }
+            if (_dictionary.TryGetValue(key, out int id))
+            {
                 return TryLookup(id, out value);
+            }
+
             value = null;
             return false;
         }
@@ -46,7 +56,7 @@ namespace CoreWCF
         public bool TryLookup(int key, out XmlDictionaryString value)
         {
             const int keyThreshold = 32;
-            if (key < 0 || key >= count)
+            if (key < 0 || key >= _count)
             {
                 value = null;
                 return false;
@@ -54,24 +64,30 @@ namespace CoreWCF
             XmlDictionaryString s;
             if (key < keyThreshold)
             {
-                if (dictionaryStrings1 == null)
-                    dictionaryStrings1 = new XmlDictionaryString[keyThreshold];
-                s = dictionaryStrings1[key];
+                if (_dictionaryStrings1 == null)
+                {
+                    _dictionaryStrings1 = new XmlDictionaryString[keyThreshold];
+                }
+
+                s = _dictionaryStrings1[key];
                 if (s == null)
                 {
-                    s = CreateString(strings[key], key);
-                    dictionaryStrings1[key] = s;
+                    s = CreateString(_strings[key], key);
+                    _dictionaryStrings1[key] = s;
                 }
             }
             else
             {
-                if (dictionaryStrings2 == null)
-                    dictionaryStrings2 = new XmlDictionaryString[count - keyThreshold];
-                s = dictionaryStrings2[key - keyThreshold];
+                if (_dictionaryStrings2 == null)
+                {
+                    _dictionaryStrings2 = new XmlDictionaryString[_count - keyThreshold];
+                }
+
+                s = _dictionaryStrings2[key - keyThreshold];
                 if (s == null)
                 {
-                    s = CreateString(strings[key], key);
-                    dictionaryStrings2[key - keyThreshold] = s;
+                    s = CreateString(_strings[key], key);
+                    _dictionaryStrings2[key - keyThreshold] = s;
                 }
             }
             value = s;
@@ -81,7 +97,10 @@ namespace CoreWCF
         public bool TryLookup(XmlDictionaryString key, out XmlDictionaryString value)
         {
             if (key == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("key"));
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(key)));
+            }
+
             if (key.Dictionary == this)
             {
                 value = key;
@@ -89,9 +108,12 @@ namespace CoreWCF
             }
             if (key.Dictionary == CurrentVersion)
             {
-                if (versionedDictionaryStrings == null)
-                    versionedDictionaryStrings = new XmlDictionaryString[CurrentVersion.count];
-                XmlDictionaryString s = versionedDictionaryStrings[key.Key];
+                if (_versionedDictionaryStrings == null)
+                {
+                    _versionedDictionaryStrings = new XmlDictionaryString[CurrentVersion._count];
+                }
+
+                XmlDictionaryString s = _versionedDictionaryStrings[key.Key];
                 if (s == null)
                 {
                     if (!TryLookup(key.Value, out s))
@@ -99,7 +121,7 @@ namespace CoreWCF
                         value = null;
                         return false;
                     }
-                    versionedDictionaryStrings[key.Key] = s;
+                    _versionedDictionaryStrings[key.Key] = s;
                 }
                 value = s;
                 return true;

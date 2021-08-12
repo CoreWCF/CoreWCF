@@ -1,15 +1,17 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Xml;
-using System.Xml.Schema;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
-    class EndpointAddressProcessor
+    internal class EndpointAddressProcessor
     {
         internal static readonly QNameKeyComparer QNameComparer = new QNameKeyComparer();
 
@@ -22,28 +24,16 @@ namespace CoreWCF.Dispatcher
         internal const string FactoryTypeLN = "FactoryType";
 
         // Pooling
-        internal EndpointAddressProcessor next;
-
-        StringBuilder builder;
-        byte[] resultData;
+        private readonly StringBuilder _builder;
+        private byte[] _resultData;
 
         internal EndpointAddressProcessor(int length)
         {
-            builder = new StringBuilder();
-            resultData = new byte[length];
+            _builder = new StringBuilder();
+            _resultData = new byte[length];
         }
 
-        internal EndpointAddressProcessor Next
-        {
-            get
-            {
-                return next;
-            }
-            set
-            {
-                next = value;
-            }
-        }
+        internal EndpointAddressProcessor Next { get; set; }
 
         internal static string GetComparableForm(StringBuilder builder, XmlReader reader)
         {
@@ -84,8 +74,7 @@ namespace CoreWCF.Dispatcher
                                 if ((reader.LocalName == TypeLN && reader.NamespaceURI == XsiNs) ||
                                     (reader.NamespaceURI == SerNs && (reader.LocalName == ItemTypeLN || reader.LocalName == FactoryTypeLN)))
                                 {
-                                    string local, ns;
-                                    XmlUtil.ParseQName(reader, val, out local, out ns);
+                                    XmlUtil.ParseQName(reader, val, out string local, out string ns);
                                     val = local + "^" + local.Length.ToString(CultureInfo.InvariantCulture) + ":" + ns + "^" + ns.Length.ToString(CultureInfo.InvariantCulture);
                                 }
                                 else if (reader.LocalName == XD.UtilityDictionary.IdAttribute.Value && reader.NamespaceURI == XD.UtilityDictionary.Namespace.Value)
@@ -105,19 +94,24 @@ namespace CoreWCF.Dispatcher
                             {
                                 Attr a = attrSet[i];
 
-                                AppendString(builder, a.local);
+                                AppendString(builder, a._local);
                                 builder.Append(":");
-                                AppendString(builder, a.ns);
+                                AppendString(builder, a._ns);
                                 builder.Append("=\"");
-                                AppendString(builder, a.val);
+                                AppendString(builder, a._val);
                                 builder.Append("\" ");
                             }
                         }
 
                         if (reader.IsEmptyElement)
+                        {
                             builder.Append("></>");  // Should be the same as an empty tag.
+                        }
                         else
+                        {
                             builder.Append(">");
+                        }
+
                         break;
 
                     case XmlNodeType.EndElement:
@@ -139,7 +133,9 @@ namespace CoreWCF.Dispatcher
                     case XmlNodeType.SignificantWhitespace:
                     case XmlNodeType.Text:
                         if (valueLength < 0)
+                        {
                             valueLength = builder.Length;
+                        }
 
                         builder.Append(reader.Value);
                         break;
@@ -153,17 +149,19 @@ namespace CoreWCF.Dispatcher
             return builder.ToString();
         }
 
-        static void AppendString(StringBuilder builder, string s)
+        private static void AppendString(StringBuilder builder, string s)
         {
             builder.Append(s);
             builder.Append("^");
             builder.Append(s.Length.ToString(CultureInfo.InvariantCulture));
         }
 
-        static void CompleteValue(StringBuilder builder, int startLength)
+        private static void CompleteValue(StringBuilder builder, int startLength)
         {
             if (startLength < 0)
+            {
                 return;
+            }
 
             int len = builder.Length - startLength;
             builder.Append("^");
@@ -172,20 +170,19 @@ namespace CoreWCF.Dispatcher
 
         internal void Clear(int length)
         {
-            if (resultData.Length == length)
+            if (_resultData.Length == length)
             {
-                Array.Clear(resultData, 0, resultData.Length);
+                Array.Clear(_resultData, 0, _resultData.Length);
             }
             else
             {
-                resultData = new byte[length];
+                _resultData = new byte[length];
             }
         }
 
         internal void ProcessHeaders(Message msg, Dictionary<QName, int> qnameLookup, Dictionary<string, HeaderBit[]> headerLookup)
         {
             string key;
-            HeaderBit[] bits;
             QName qname;
             MessageHeaders headers = msg.Headers;
             for (int j = 0; j < headers.Count; ++j)
@@ -199,12 +196,12 @@ namespace CoreWCF.Dispatcher
                 }
                 if (qnameLookup.ContainsKey(qname))
                 {
-                    builder.Remove(0, builder.Length);
+                    _builder.Remove(0, _builder.Length);
                     XmlReader reader = headers.GetReaderAtHeader(j).ReadSubtree();
                     reader.Read();  // Needed after call to ReadSubtree
-                    key = GetComparableForm(builder, reader);
+                    key = GetComparableForm(_builder, reader);
 
-                    if (headerLookup.TryGetValue(key, out bits))
+                    if (headerLookup.TryGetValue(key, out HeaderBit[] bits))
                     {
                         SetBit(bits);
                     }
@@ -216,16 +213,16 @@ namespace CoreWCF.Dispatcher
         {
             if (bits.Length == 1)
             {
-                resultData[bits[0].index] |= bits[0].mask;
+                _resultData[bits[0]._index] |= bits[0]._mask;
             }
             else
             {
-                byte[] results = resultData;
+                byte[] results = _resultData;
                 for (int i = 0; i < bits.Length; ++i)
                 {
-                    if ((results[bits[i].index] & bits[i].mask) == 0)
+                    if ((results[bits[i]._index] & bits[i]._mask) == 0)
                     {
-                        results[bits[i].index] |= bits[i].mask;
+                        results[bits[i]._index] |= bits[i]._mask;
                         break;
                     }
                 }
@@ -234,9 +231,9 @@ namespace CoreWCF.Dispatcher
 
         internal bool TestExact(byte[] exact)
         {
-            Fx.Assert(resultData.Length == exact.Length, "");
+            Fx.Assert(_resultData.Length == exact.Length, "");
 
-            byte[] results = resultData;
+            byte[] results = _resultData;
             for (int i = 0; i < exact.Length; ++i)
             {
                 if (results[i] != exact[i])
@@ -255,7 +252,7 @@ namespace CoreWCF.Dispatcher
                 return true;
             }
 
-            byte[] results = resultData;
+            byte[] results = _resultData;
             for (int i = 0; i < mask.Length; ++i)
             {
                 if ((results[i] & mask[i]) != mask[i])
@@ -283,7 +280,9 @@ namespace CoreWCF.Dispatcher
             {
                 int i = string.CompareOrdinal(x.name, y.name);
                 if (i != 0)
+                {
                     return i;
+                }
 
                 return string.CompareOrdinal(x.ns, y.ns);
             }
@@ -292,7 +291,9 @@ namespace CoreWCF.Dispatcher
             {
                 int i = string.CompareOrdinal(x.name, y.name);
                 if (i != 0)
+                {
                     return false;
+                }
 
                 return string.CompareOrdinal(x.ns, y.ns) == 0;
             }
@@ -305,48 +306,48 @@ namespace CoreWCF.Dispatcher
 
         internal struct HeaderBit
         {
-            internal int index;
-            internal byte mask;
+            internal int _index;
+            internal byte _mask;
 
             internal HeaderBit(int bitNum)
             {
-                index = bitNum / 8;
-                mask = (byte)(1 << (bitNum % 8));
+                _index = bitNum / 8;
+                _mask = (byte)(1 << (bitNum % 8));
             }
 
             internal void AddToMask(ref byte[] mask)
             {
                 if (mask == null)
                 {
-                    mask = new byte[index + 1];
+                    mask = new byte[_index + 1];
                 }
-                else if (mask.Length <= index)
+                else if (mask.Length <= _index)
                 {
-                    Array.Resize(ref mask, index + 1);
+                    Array.Resize(ref mask, _index + 1);
                 }
 
-                mask[index] |= this.mask;
+                mask[_index] |= _mask;
             }
         }
 
-        class Attr : IComparable<Attr>
+        private class Attr : IComparable<Attr>
         {
-            internal string local;
-            internal string ns;
-            internal string val;
-            string key;
+            internal string _local;
+            internal string _ns;
+            internal string _val;
+            private readonly string _key;
 
             internal Attr(string l, string ns, string v)
             {
-                local = l;
-                this.ns = ns;
-                val = v;
-                key = ns + ":" + l;
+                _local = l;
+                _ns = ns;
+                _val = v;
+                _key = ns + ":" + l;
             }
 
             public int CompareTo(Attr a)
             {
-                return string.Compare(key, a.key, StringComparison.Ordinal);
+                return string.Compare(_key, a._key, StringComparison.Ordinal);
             }
         }
     }

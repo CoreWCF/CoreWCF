@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Security.Principal;
-using System.Text;
 
 namespace CoreWCF.Security.Tokens
 {
-    class WindowsSidIdentity : IIdentity
+    internal class WindowsSidIdentity : IIdentity
     {
-        string _name;
+        private string _name;
 
         public WindowsSidIdentity(SecurityIdentifier sid)
         {
@@ -36,7 +36,10 @@ namespace CoreWCF.Security.Tokens
             get
             {
                 if (_name == null)
+                {
                     _name = ((NTAccount)SecurityIdentifier.Translate(typeof(NTAccount))).Value;
+                }
+
                 return _name;
             }
         }
@@ -44,11 +47,14 @@ namespace CoreWCF.Security.Tokens
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
+            {
                 return true;
+            }
 
-            var sidIdentity = obj as WindowsSidIdentity;
-            if (sidIdentity == null)
+            if (!(obj is WindowsSidIdentity sidIdentity))
+            {
                 return false;
+            }
 
             return SecurityIdentifier == sidIdentity.SecurityIdentifier;
         }

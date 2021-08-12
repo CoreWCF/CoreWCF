@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CoreWCF.Channels;
@@ -11,19 +14,18 @@ namespace CoreWCF
     public sealed class ServiceBehaviorAttribute : Attribute, IServiceBehavior
     {
         private ConcurrencyMode _concurrencyMode;
-        bool _ensureOrderedDispatch = false;
+        private readonly bool _ensureOrderedDispatch = false;
         private string _configurationName;
-        bool _includeExceptionDetailInFaults = false;
         private InstanceContextMode _instanceMode;
         private object _wellKnownSingleton;  // if the user passes an object to the ServiceHost, it is stored here
         private object _hiddenSingleton;     // if the user passes a type to the ServiceHost, and instanceMode==Single, we store the instance here
-        bool _validateMustUnderstand = true;
-        bool _ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
-        int _maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
-        bool _automaticSessionShutdown = true;
-        IInstanceProvider _instanceProvider = null;
-        bool _useSynchronizationContext = true;
-        AddressFilterMode _addressFilterMode = AddressFilterMode.Exact;
+        private readonly bool _validateMustUnderstand = true;
+        private readonly bool _ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
+        private readonly int _maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
+        private readonly bool _automaticSessionShutdown = true;
+        private IInstanceProvider _instanceProvider = null;
+        private readonly bool _useSynchronizationContext = true;
+        private AddressFilterMode _addressFilterMode = AddressFilterMode.Exact;
 
         [DefaultValue(null)]
         public string Name { get; set; }
@@ -72,6 +74,9 @@ namespace CoreWCF
             }
         }
 
+        [DefaultValue(false)]
+        public bool IncludeExceptionDetailInFaults { get; set; } = false;
+
         [DefaultValue(ConcurrencyMode.Single)]
         public ConcurrencyMode ConcurrencyMode
         {
@@ -109,10 +114,7 @@ namespace CoreWCF
 
         internal void SetWellKnownSingleton(object value)
         {
-            if (value == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-
-            _wellKnownSingleton = value;
+            _wellKnownSingleton = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
         }
 
         internal object GetHiddenSingleton()
@@ -122,10 +124,7 @@ namespace CoreWCF
 
         internal void SetHiddenSingleton(object value)
         {
-            if (value == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-
-            _hiddenSingleton = value;
+            _hiddenSingleton = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
         }
 
         void IServiceBehavior.Validate(ServiceDescription description, ServiceHostBase serviceHostBase)
@@ -147,10 +146,9 @@ namespace CoreWCF
         {
             for (int i = 0; i < serviceHostBase.ChannelDispatchers.Count; i++)
             {
-                ChannelDispatcher channelDispatcher = serviceHostBase.ChannelDispatchers[i] as ChannelDispatcher;
-                if (channelDispatcher != null)
+                if (serviceHostBase.ChannelDispatchers[i] is ChannelDispatcher channelDispatcher)
                 {
-                    channelDispatcher.IncludeExceptionDetailInFaults = _includeExceptionDetailInFaults;
+                    channelDispatcher.IncludeExceptionDetailInFaults = IncludeExceptionDetailInFaults;
 
                     if (channelDispatcher.HasApplicationEndpoints)
                     {
@@ -194,15 +192,14 @@ namespace CoreWCF
             ApplyInstancing(description, serviceHostBase);
         }
 
-        void ApplyInstancing(ServiceDescription description, ServiceHostBase serviceHostBase)
+        private void ApplyInstancing(ServiceDescription description, ServiceHostBase serviceHostBase)
         {
             Type serviceType = description.ServiceType;
             InstanceContext singleton = null;
 
             for (int i = 0; i < serviceHostBase.ChannelDispatchers.Count; i++)
             {
-                ChannelDispatcher channelDispatcher = serviceHostBase.ChannelDispatchers[i] as ChannelDispatcher;
-                if (channelDispatcher != null)
+                if (serviceHostBase.ChannelDispatchers[i] is ChannelDispatcher channelDispatcher)
                 {
                     foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
                     {
@@ -216,10 +213,14 @@ namespace CoreWCF
                             if (_instanceProvider == null)
                             {
                                 if (serviceType == null && _wellKnownSingleton == null)
+                                {
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.InstanceSettingsMustHaveTypeOrWellKnownObject0));
+                                }
 
                                 if (_instanceMode != InstanceContextMode.Single && _wellKnownSingleton != null)
+                                {
                                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxWellKnownNonSingleton0));
+                                }
                             }
                             else
                             {
@@ -255,6 +256,5 @@ namespace CoreWCF
                 }
             }
         }
-
     }
 }

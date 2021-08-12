@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 
 namespace CoreWCF.Channels
 {
@@ -74,7 +77,7 @@ namespace CoreWCF.Channels
         preamble-end-record-type = octet (0xC)
     */
 
-    enum FramingRecordType
+    internal enum FramingRecordType
     {
         Version = 0x0,
         Mode = 0x1,
@@ -91,7 +94,7 @@ namespace CoreWCF.Channels
         PreambleEnd = 0xC,
     }
 
-    enum FramingMode
+    internal enum FramingMode
     {
         Singleton = 0x1,
         Duplex = 0x2,
@@ -99,13 +102,13 @@ namespace CoreWCF.Channels
         SingletonSized = 0x4,
     }
 
-    static class FramingUpgradeString
+    internal static class FramingUpgradeString
     {
         public const string SslOrTls = "application/ssl-tls";
         public const string Negotiate = "application/negotiate";
     }
 
-    enum FramingEncodingType
+    internal enum FramingEncodingType
     {
         Soap11Utf8 = 0x0,
         Soap11Utf16 = 0x1,
@@ -118,7 +121,7 @@ namespace CoreWCF.Channels
         BinarySession = 0x8,
     }
 
-    static class FramingEncodingString
+    internal static class FramingEncodingString
     {
         public const string Soap11Utf8 = "text/xml; charset=utf-8";
         public const string Soap11Utf16 = "text/xml; charset=utf16";
@@ -134,7 +137,7 @@ namespace CoreWCF.Channels
         public const string ExtendedBinaryDeflate = Binary + "+deflate";
         public const string ExtendedBinarySessionDeflate = BinarySession + "+deflate";
         public const string NamespaceUri = "http://schemas.microsoft.com/ws/2006/05/framing";
-        const string FaultBaseUri = NamespaceUri + "/faults/";
+        private const string FaultBaseUri = NamespaceUri + "/faults/";
         public const string ContentTypeInvalidFault = FaultBaseUri + "ContentTypeInvalid";
         public const string ContentTypeTooLongFault = FaultBaseUri + "ContentTypeTooLong";
         public const string ConnectionDispatchFailedFault = FaultBaseUri + "ConnectionDispatchFailed";
@@ -147,14 +150,13 @@ namespace CoreWCF.Channels
         public const string UnsupportedVersionFault = FaultBaseUri + "UnsupportedVersion";
         public const string UpgradeInvalidFault = FaultBaseUri + "UpgradeInvalid";
         public const string ViaTooLongFault = FaultBaseUri + "ViaTooLong";
-
-        const string ExceptionKey = "FramingEncodingString";
+        private const string ExceptionKey = "FramingEncodingString";
         public static bool TryGetFaultString(Exception exception, out string framingFault)
         {
             framingFault = null;
-            if (exception.Data.Contains(FramingEncodingString.ExceptionKey))
+            if (exception.Data.Contains(ExceptionKey))
             {
-                framingFault = exception.Data[FramingEncodingString.ExceptionKey] as string;
+                framingFault = exception.Data[ExceptionKey] as string;
                 if (framingFault != null)
                 {
                     return true;
@@ -166,11 +168,11 @@ namespace CoreWCF.Channels
 
         public static void AddFaultString(Exception exception, string framingFault)
         {
-            exception.Data[FramingEncodingString.ExceptionKey] = framingFault;
+            exception.Data[ExceptionKey] = framingFault;
         }
     }
 
-    static class FramingVersion
+    internal static class FramingVersion
     {
         public const int Major = 0x1;
         public const int Minor = 0x0;

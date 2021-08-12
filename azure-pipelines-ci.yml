@@ -1,0 +1,35 @@
+trigger:
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - src/
+    exclude:
+    - src/Samples/
+
+pr: none
+
+variables:
+  _solution: 'src/CoreWCF.sln'
+  _libraryProjects: 'src/CoreWCF.*/src/CoreWCF.*.csproj'
+  _testProjects: '**/*.Tests.csproj'
+  disable.coverage.autogenerate: 'true'
+
+stages:
+- template: templates/BuildStage.yml
+  parameters:
+    buildProjects: $(_libraryProjects)
+
+- template: templates/TestStage.yml
+  parameters:
+    testProjects: $(_testProjects)
+
+- template: templates/PackStage.yml
+  parameters:
+    packProjects: $(_libraryProjects)
+
+- template: templates/CodeSignStage.yml
+
+- template: templates/PublishStage.yml

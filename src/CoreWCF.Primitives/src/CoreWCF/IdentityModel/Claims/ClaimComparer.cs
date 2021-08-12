@@ -1,42 +1,68 @@
-﻿using System;
-using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CoreWCF.IdentityModel.Claims
 {
     internal class ClaimComparer : IEqualityComparer<Claim>
     {
-        static IEqualityComparer<Claim> defaultComparer;
-        static IEqualityComparer<Claim> hashComparer;
-        static IEqualityComparer<Claim> dnsComparer;
-        //static IEqualityComparer<Claim> rsaComparer;
-        static IEqualityComparer<Claim> thumbprintComparer;
-        //static IEqualityComparer<Claim> upnComparer;
-        //static IEqualityComparer<Claim> x500DistinguishedNameComparer;
-        IEqualityComparer resourceComparer;
+        private static IEqualityComparer<Claim> s_defaultComparer;
+        private static IEqualityComparer<Claim> s_hashComparer;
+        private static IEqualityComparer<Claim> s_dnsComparer;
+        private static IEqualityComparer<Claim> s_rsaComparer;
+        private static IEqualityComparer<Claim> s_thumbprintComparer;
+        //private static IEqualityComparer<Claim> upnComparer;
+        private static IEqualityComparer<Claim> s_x500DistinguishedNameComparer;
 
-        ClaimComparer(IEqualityComparer resourceComparer)
+        private readonly IEqualityComparer _resourceComparer;
+
+        private ClaimComparer(IEqualityComparer resourceComparer)
         {
-            this.resourceComparer = resourceComparer;
+            _resourceComparer = resourceComparer;
         }
 
         public static IEqualityComparer<Claim> GetComparer(string claimType)
         {
             if (claimType == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claimType));
+            }
+
             if (claimType == ClaimTypes.Dns)
+            {
                 return Dns;
+            }
+
             if (claimType == ClaimTypes.Hash)
+            {
                 return Hash;
+            }
+
             if (claimType == ClaimTypes.Rsa)
+            {
                 return Rsa;
+            }
+
             if (claimType == ClaimTypes.Thumbprint)
+            {
                 return Thumbprint;
+            }
+
             if (claimType == ClaimTypes.Upn)
+            {
                 return Upn;
+            }
+
             if (claimType == ClaimTypes.X500DistinguishedName)
+            {
                 return X500DistinguishedName;
+            }
+
             return Default;
         }
 
@@ -44,11 +70,12 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (defaultComparer == null)
+                if (s_defaultComparer == null)
                 {
-                    defaultComparer = new ClaimComparer(new ObjectComparer());
+                    s_defaultComparer = new ClaimComparer(new ObjectComparer());
                 }
-                return defaultComparer;
+
+                return s_defaultComparer;
             }
         }
 
@@ -56,11 +83,12 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (dnsComparer == null)
+                if (s_dnsComparer == null)
                 {
-                    dnsComparer = new ClaimComparer(StringComparer.OrdinalIgnoreCase);
+                    s_dnsComparer = new ClaimComparer(StringComparer.OrdinalIgnoreCase);
                 }
-                return dnsComparer;
+
+                return s_dnsComparer;
             }
         }
 
@@ -68,11 +96,12 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (hashComparer == null)
+                if (s_hashComparer == null)
                 {
-                    hashComparer = new ClaimComparer(new BinaryObjectComparer());
+                    s_hashComparer = new ClaimComparer(new BinaryObjectComparer());
                 }
-                return hashComparer;
+
+                return s_hashComparer;
             }
         }
 
@@ -80,12 +109,12 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                throw new PlatformNotSupportedException();
-                //if (rsaComparer == null)
-                //{
-                //    rsaComparer = new ClaimComparer(new RsaObjectComparer());
-                //}
-                //return rsaComparer;
+                if (s_rsaComparer == null)
+                {
+                    s_rsaComparer = new ClaimComparer(new RsaObjectComparer());
+                }
+
+                return s_rsaComparer;
             }
         }
 
@@ -93,11 +122,12 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                if (thumbprintComparer == null)
+                if (s_thumbprintComparer == null)
                 {
-                    thumbprintComparer = new ClaimComparer(new BinaryObjectComparer());
+                    s_thumbprintComparer = new ClaimComparer(new BinaryObjectComparer());
                 }
-                return thumbprintComparer;
+
+                return s_thumbprintComparer;
             }
         }
 
@@ -107,7 +137,7 @@ namespace CoreWCF.IdentityModel.Claims
             {
                 return Default;
                 //The UpnComparer behavior in Core is different than .NET Framework.
-                //In .NET Framework the UpnComparer has a dependency on NTAccount, 
+                //In .NET Framework the UpnComparer has a dependency on NTAccount,
                 // which isn't available on Core.
             }
         }
@@ -116,12 +146,12 @@ namespace CoreWCF.IdentityModel.Claims
         {
             get
             {
-                throw new PlatformNotSupportedException();
-                //if (x500DistinguishedNameComparer == null)
-                //{
-                //    x500DistinguishedNameComparer = new ClaimComparer(new X500DistinguishedNameObjectComparer());
-                //}
-                //return x500DistinguishedNameComparer;
+                if (s_x500DistinguishedNameComparer == null)
+                {
+                    s_x500DistinguishedNameComparer = new ClaimComparer(new X500DistinguishedNameObjectComparer());
+                }
+
+                return s_x500DistinguishedNameComparer;
             }
         }
 
@@ -129,64 +159,86 @@ namespace CoreWCF.IdentityModel.Claims
         public bool Equals(Claim claim1, Claim claim2)
         {
             if (ReferenceEquals(claim1, claim2))
+            {
                 return true;
+            }
 
             if (claim1 == null || claim2 == null)
+            {
                 return false;
+            }
 
             if (claim1.ClaimType != claim2.ClaimType || claim1.Right != claim2.Right)
+            {
                 return false;
+            }
 
-            return resourceComparer.Equals(claim1.Resource, claim2.Resource);
+            return _resourceComparer.Equals(claim1.Resource, claim2.Resource);
         }
 
         public int GetHashCode(Claim claim)
         {
             if (claim == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claim));
+            }
 
             return claim.ClaimType.GetHashCode() ^ claim.Right.GetHashCode()
-                ^ ((claim.Resource == null) ? 0 : resourceComparer.GetHashCode(claim.Resource));
+                ^ ((claim.Resource == null) ? 0 : _resourceComparer.GetHashCode(claim.Resource));
         }
 
-        class ObjectComparer : IEqualityComparer
+        private class ObjectComparer : IEqualityComparer
         {
             bool IEqualityComparer.Equals(object obj1, object obj2)
             {
                 if (obj1 == null && obj2 == null)
+                {
                     return true;
+                }
+
                 if (obj1 == null || obj2 == null)
+                {
                     return false;
+                }
+
                 return obj1.Equals(obj2);
             }
 
             int IEqualityComparer.GetHashCode(object obj)
             {
                 if (obj == null)
+                {
                     return 0;
+                }
+
                 return obj.GetHashCode();
             }
         }
 
-        class BinaryObjectComparer : IEqualityComparer
+        private class BinaryObjectComparer : IEqualityComparer
         {
             bool IEqualityComparer.Equals(object obj1, object obj2)
             {
                 if (ReferenceEquals(obj1, obj2))
+                {
                     return true;
-
-                byte[] bytes1 = obj1 as byte[];
-                byte[] bytes2 = obj2 as byte[];
-                if (bytes1 == null || bytes2 == null)
+                }
+                if (!(obj1 is byte[] bytes1) || !(obj2 is byte[] bytes2))
+                {
                     return false;
+                }
 
                 if (bytes1.Length != bytes2.Length)
+                {
                     return false;
+                }
 
                 for (int i = 0; i < bytes1.Length; ++i)
                 {
                     if (bytes1[i] != bytes2[i])
+                    {
                         return false;
+                    }
                 }
 
                 return true;
@@ -194,9 +246,10 @@ namespace CoreWCF.IdentityModel.Claims
 
             int IEqualityComparer.GetHashCode(object obj)
             {
-                byte[] bytes = obj as byte[];
-                if (bytes == null)
+                if (!(obj is byte[] bytes))
+                {
                     return 0;
+                }
 
                 int hashCode = 0;
                 for (int i = 0; i < bytes.Length && i < 4; ++i)
@@ -208,85 +261,99 @@ namespace CoreWCF.IdentityModel.Claims
             }
         }
 
-        //class RsaObjectComparer : IEqualityComparer
-        //{
-        //    bool IEqualityComparer.Equals(object obj1, object obj2)
-        //    {
-        //        if (ReferenceEquals(obj1, obj2))
-        //            return true;
+        private class RsaObjectComparer : IEqualityComparer
+        {
+            bool IEqualityComparer.Equals(object obj1, object obj2)
+            {
+                if (ReferenceEquals(obj1, obj2))
+                {
+                    return true;
+                }
+                if (!(obj1 is RSA rsa1) || !(obj2 is RSA rsa2))
+                {
+                    return false;
+                }
 
-        //        RSA rsa1 = obj1 as RSA;
-        //        RSA rsa2 = obj2 as RSA;
-        //        if (rsa1 == null || rsa2 == null)
-        //            return false;
+                RSAParameters parm1 = rsa1.ExportParameters(false);
+                RSAParameters parm2 = rsa2.ExportParameters(false);
 
-        //        RSAParameters parm1 = rsa1.ExportParameters(false);
-        //        RSAParameters parm2 = rsa2.ExportParameters(false);
+                if (parm1.Modulus.Length != parm2.Modulus.Length ||
+                    parm1.Exponent.Length != parm2.Exponent.Length)
+                {
+                    return false;
+                }
 
-        //        if (parm1.Modulus.Length != parm2.Modulus.Length ||
-        //            parm1.Exponent.Length != parm2.Exponent.Length)
-        //            return false;
+                for (int i = 0; i < parm1.Modulus.Length; ++i)
+                {
+                    if (parm1.Modulus[i] != parm2.Modulus[i])
+                    {
+                        return false;
+                    }
+                }
 
-        //        for (int i = 0; i < parm1.Modulus.Length; ++i)
-        //        {
-        //            if (parm1.Modulus[i] != parm2.Modulus[i])
-        //                return false;
-        //        }
-        //        for (int i = 0; i < parm1.Exponent.Length; ++i)
-        //        {
-        //            if (parm1.Exponent[i] != parm2.Exponent[i])
-        //                return false;
-        //        }
-        //        return true;
-        //    }
+                for (int i = 0; i < parm1.Exponent.Length; ++i)
+                {
+                    if (parm1.Exponent[i] != parm2.Exponent[i])
+                    {
+                        return false;
+                    }
+                }
 
-        //    int IEqualityComparer.GetHashCode(object obj)
-        //    {
-        //        RSA rsa = obj as RSA;
-        //        if (rsa == null)
-        //            return 0;
+                return true;
+            }
 
-        //        RSAParameters parm = rsa.ExportParameters(false);
-        //        return parm.Modulus.Length ^ parm.Exponent.Length;
-        //    }
-        //}
+            int IEqualityComparer.GetHashCode(object obj)
+            {
+                if (!(obj is RSA rsa))
+                {
+                    return 0;
+                }
 
-        //class X500DistinguishedNameObjectComparer : IEqualityComparer
-        //{
-        //    IEqualityComparer binaryComparer;
-        //    public X500DistinguishedNameObjectComparer()
-        //    {
-        //        binaryComparer = new BinaryObjectComparer();
-        //    }
+                RSAParameters parm = rsa.ExportParameters(false);
+                return parm.Modulus.Length ^ parm.Exponent.Length;
+            }
+        }
 
-        //    bool IEqualityComparer.Equals(object obj1, object obj2)
-        //    {
-        //        if (ReferenceEquals(obj1, obj2))
-        //            return true;
+        private class X500DistinguishedNameObjectComparer : IEqualityComparer
+        {
+            private readonly IEqualityComparer _binaryComparer;
+            public X500DistinguishedNameObjectComparer()
+            {
+                _binaryComparer = new BinaryObjectComparer();
+            }
 
-        //        X500DistinguishedName dn1 = obj1 as X500DistinguishedName;
-        //        X500DistinguishedName dn2 = obj2 as X500DistinguishedName;
-        //        if (dn1 == null || dn2 == null)
-        //            return false;
+            bool IEqualityComparer.Equals(object obj1, object obj2)
+            {
+                if (ReferenceEquals(obj1, obj2))
+                {
+                    return true;
+                }
+                if (!(obj1 is X500DistinguishedName dn1) || !(obj2 is X500DistinguishedName dn2))
+                {
+                    return false;
+                }
 
-        //        // 1) Hopefully cover most cases (perf reason).
-        //        if (StringComparer.Ordinal.Equals(dn1.Name, dn2.Name))
-        //            return true;
+                // 1) Hopefully cover most cases (perf reason).
+                if (StringComparer.Ordinal.Equals(dn1.Name, dn2.Name))
+                {
+                    return true;
+                }
 
-        //        // 2) Raw byte compare.  Note: we assume the rawbyte is in the same order 
-        //        // (default = X500DistinguishedNameFlags.Reversed). 
-        //        return binaryComparer.Equals(dn1.RawData, dn2.RawData);
-        //    }
+                // 2) Raw byte compare.  Note: we assume the rawbyte is in the same order 
+                // (default = X500DistinguishedNameFlags.Reversed). 
+                return _binaryComparer.Equals(dn1.RawData, dn2.RawData);
+            }
 
-        //    int IEqualityComparer.GetHashCode(object obj)
-        //    {
-        //        X500DistinguishedName dn = obj as X500DistinguishedName;
-        //        if (dn == null)
-        //            return 0;
+            int IEqualityComparer.GetHashCode(object obj)
+            {
+                if (!(obj is X500DistinguishedName dn))
+                {
+                    return 0;
+                }
 
-        //        return binaryComparer.GetHashCode(dn.RawData);
-        //    }
-        //}
+                return _binaryComparer.GetHashCode(dn.RawData);
+            }
+        }
 
         //class UpnObjectComparer : IEqualityComparer
         //{
@@ -342,5 +409,4 @@ namespace CoreWCF.IdentityModel.Claims
         //    }
         //}
     }
-
 }

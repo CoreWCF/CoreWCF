@@ -1,22 +1,22 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class SecurityKeyIdentifier : IEnumerable<SecurityKeyIdentifierClause>
+    public class SecurityKeyIdentifier : IEnumerable<SecurityKeyIdentifierClause>
     {
-        const int InitialSize = 2;
-        readonly List<SecurityKeyIdentifierClause> clauses;
-        bool isReadOnly;
+        private const int InitialSize = 2;
+        private readonly List<SecurityKeyIdentifierClause> _clauses;
 
         public SecurityKeyIdentifier()
         {
-            clauses = new List<SecurityKeyIdentifierClause>(InitialSize);
+            _clauses = new List<SecurityKeyIdentifierClause>(InitialSize);
         }
 
         public SecurityKeyIdentifier(params SecurityKeyIdentifierClause[] clauses)
@@ -25,7 +25,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(clauses));
             }
-            this.clauses = new List<SecurityKeyIdentifierClause>(clauses.Length);
+            _clauses = new List<SecurityKeyIdentifierClause>(clauses.Length);
             for (int i = 0; i < clauses.Length; i++)
             {
                 Add(clauses[i]);
@@ -34,7 +34,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public SecurityKeyIdentifierClause this[int index]
         {
-            get { return clauses[index]; }
+            get { return _clauses[index]; }
         }
 
         public bool CanCreateKey
@@ -54,25 +54,22 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public int Count
         {
-            get { return clauses.Count; }
+            get { return _clauses.Count; }
         }
 
-        public bool IsReadOnly
-        {
-            get { return isReadOnly; }
-        }
+        public bool IsReadOnly { get; private set; }
 
         public void Add(SecurityKeyIdentifierClause clause)
         {
-            if (isReadOnly)
+            if (IsReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
             if (clause == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("clause"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(clause)));
             }
-            clauses.Add(clause);
+            _clauses.Add(clause);
         }
 
         public SecurityKey CreateKey()
@@ -89,8 +86,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public TClause Find<TClause>() where TClause : SecurityKeyIdentifierClause
         {
-            TClause clause;
-            if (!TryFind<TClause>(out clause))
+            if (!TryFind<TClause>(out TClause clause))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.NoKeyIdentifierClauseFound, typeof(TClause)), "TClause"));
             }
@@ -99,12 +95,12 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public IEnumerator<SecurityKeyIdentifierClause> GetEnumerator()
         {
-            return clauses.GetEnumerator();
+            return _clauses.GetEnumerator();
         }
 
         public void MakeReadOnly()
         {
-            isReadOnly = true;
+            IsReadOnly = true;
         }
 
         public override string ToString()
@@ -126,10 +122,9 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public bool TryFind<TClause>(out TClause clause) where TClause : SecurityKeyIdentifierClause
         {
-            for (int i = 0; i < clauses.Count; i++)
+            for (int i = 0; i < _clauses.Count; i++)
             {
-                TClause c = clauses[i] as TClause;
-                if (c != null)
+                if (_clauses[i] is TClause c)
                 {
                     clause = c;
                     return true;
@@ -144,5 +139,4 @@ namespace CoreWCF.IdentityModel.Tokens
             return GetEnumerator();
         }
     }
-
 }

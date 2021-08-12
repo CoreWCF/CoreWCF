@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
 using System.Runtime.Serialization;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
@@ -11,12 +13,10 @@ namespace CoreWCF.Dispatcher
 {
     internal class MessageFilterTable<TFilterData> : IMessageFilterTable<TFilterData>
     {
-        Dictionary<Type, Type> filterTypeMappings;
-        Dictionary<MessageFilter, TFilterData> filters;
-        SortedBuffer<FilterTableEntry, TableEntryComparer> tables;
-        int defaultPriority;
-
-        static readonly TableEntryComparer staticComparerInstance = new TableEntryComparer();
+        private Dictionary<Type, Type> _filterTypeMappings;
+        private Dictionary<MessageFilter, TFilterData> _filters;
+        private SortedBuffer<FilterTableEntry, TableEntryComparer> _tables;
+        private static readonly TableEntryComparer s_staticComparerInstance = new TableEntryComparer();
 
         public MessageFilterTable()
             : this(0)
@@ -34,17 +34,17 @@ namespace CoreWCF.Dispatcher
             Init(0);
         }
 
-        void Init(int defaultPriority)
+        private void Init(int defaultPriority)
         {
             CreateEmptyTables();
-            this.defaultPriority = defaultPriority;
+            DefaultPriority = defaultPriority;
         }
 
         public TFilterData this[MessageFilter filter]
         {
             get
             {
-                return filters[filter];
+                return _filters[filter];
             }
             set
             {
@@ -56,7 +56,7 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    Add(filter, value, defaultPriority);
+                    Add(filter, value, DefaultPriority);
                 }
             }
         }
@@ -65,31 +65,21 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return filters.Count;
+                return _filters.Count;
             }
         }
 
         [DataMember]
-        public int DefaultPriority
-        {
-            get
-            {
-                return defaultPriority;
-            }
-            set
-            {
-                defaultPriority = value;
-            }
-        }
+        public int DefaultPriority { get; set; }
 
         [DataMember]
-        Entry[] Entries
+        private Entry[] Entries
         {
             get
             {
                 Entry[] entries = new Entry[Count];
                 int i = 0;
-                foreach (KeyValuePair<MessageFilter, TFilterData> item in filters)
+                foreach (KeyValuePair<MessageFilter, TFilterData> item in _filters)
                 {
                     entries[i++] = new Entry(item.Key, item.Value, GetPriority(item.Key));
                 }
@@ -117,7 +107,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return filters.Keys;
+                return _filters.Keys;
             }
         }
 
@@ -125,13 +115,13 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return filters.Values;
+                return _filters.Values;
             }
         }
 
         public void Add(MessageFilter filter, TFilterData data)
         {
-            Add(filter, data, defaultPriority);
+            Add(filter, data, DefaultPriority);
         }
 
         public void Add(MessageFilter filter, TFilterData data, int priority)
@@ -141,22 +131,21 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            if (filters.ContainsKey(filter))
+            if (_filters.ContainsKey(filter))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("filter", SR.FilterExists);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(filter), SR.FilterExists);
             }
 
             Type filterType = filter.GetType();
-            Type tableType = null;
             IMessageFilterTable<TFilterData> table = null;
 
-            if (filterTypeMappings.TryGetValue(filterType, out tableType))
+            if (_filterTypeMappings.TryGetValue(filterType, out Type tableType))
             {
-                for (int i = 0; i < tables.Count; ++i)
+                for (int i = 0; i < _tables.Count; ++i)
                 {
-                    if (tables[i].priority == priority && tables[i].table.GetType().Equals(tableType))
+                    if (_tables[i].priority == priority && _tables[i].table.GetType().Equals(tableType))
                     {
-                        table = tables[i].table;
+                        table = _tables[i].table;
                         break;
                     }
                 }
@@ -169,7 +158,7 @@ namespace CoreWCF.Dispatcher
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FilterTableTypeMismatch));
                     }
                     table.Add(filter, data);
-                    tables.Add(new FilterTableEntry(priority, table));
+                    _tables.Add(new FilterTableEntry(priority, table));
                 }
                 else
                 {
@@ -180,23 +169,23 @@ namespace CoreWCF.Dispatcher
             {
                 table = CreateFilterTable(filter);
                 ValidateTable(table);
-                filterTypeMappings.Add(filterType, table.GetType());
+                _filterTypeMappings.Add(filterType, table.GetType());
 
                 FilterTableEntry entry = new FilterTableEntry(priority, table);
-                int idx = tables.IndexOf(entry);
+                int idx = _tables.IndexOf(entry);
                 if (idx >= 0)
                 {
-                    table = tables[idx].table;
+                    table = _tables[idx].table;
                 }
                 else
                 {
-                    tables.Add(entry);
+                    _tables.Add(entry);
                 }
 
                 table.Add(filter, data);
             }
 
-            filters.Add(filter, data);
+            _filters.Add(filter, data);
         }
 
         public void Add(KeyValuePair<MessageFilter, TFilterData> item)
@@ -206,30 +195,30 @@ namespace CoreWCF.Dispatcher
 
         public void Clear()
         {
-            filters.Clear();
-            tables.Clear();
+            _filters.Clear();
+            _tables.Clear();
         }
 
         public bool Contains(KeyValuePair<MessageFilter, TFilterData> item)
         {
-            return ((ICollection<KeyValuePair<MessageFilter, TFilterData>>)filters).Contains(item);
+            return ((ICollection<KeyValuePair<MessageFilter, TFilterData>>)_filters).Contains(item);
         }
 
         public bool ContainsKey(MessageFilter filter)
         {
-            return filters.ContainsKey(filter);
+            return _filters.ContainsKey(filter);
         }
 
         public void CopyTo(KeyValuePair<MessageFilter, TFilterData>[] array, int arrayIndex)
         {
-            ((ICollection<KeyValuePair<MessageFilter, TFilterData>>)filters).CopyTo(array, arrayIndex);
+            ((ICollection<KeyValuePair<MessageFilter, TFilterData>>)_filters).CopyTo(array, arrayIndex);
         }
 
-        void CreateEmptyTables()
+        private void CreateEmptyTables()
         {
-            filterTypeMappings = new Dictionary<Type, Type>();
-            filters = new Dictionary<MessageFilter, TFilterData>();
-            tables = new SortedBuffer<FilterTableEntry, TableEntryComparer>(staticComparerInstance);
+            _filterTypeMappings = new Dictionary<Type, Type>();
+            _filters = new Dictionary<MessageFilter, TFilterData>();
+            _tables = new SortedBuffer<FilterTableEntry, TableEntryComparer>(s_staticComparerInstance);
         }
 
         protected virtual IMessageFilterTable<TFilterData> CreateFilterTable(MessageFilter filter)
@@ -237,7 +226,9 @@ namespace CoreWCF.Dispatcher
             IMessageFilterTable<TFilterData> ft = filter.CreateFilterTable<TFilterData>();
 
             if (ft == null)
+            {
                 return new SequentialMessageFilterTable<TFilterData>();
+            }
 
             return ft;
         }
@@ -249,17 +240,17 @@ namespace CoreWCF.Dispatcher
 
         public IEnumerator<KeyValuePair<MessageFilter, TFilterData>> GetEnumerator()
         {
-            return ((ICollection<KeyValuePair<MessageFilter, TFilterData>>)filters).GetEnumerator();
+            return ((ICollection<KeyValuePair<MessageFilter, TFilterData>>)_filters).GetEnumerator();
         }
 
         public int GetPriority(MessageFilter filter)
         {
-            TFilterData d = filters[filter];
-            for (int i = 0; i < tables.Count; ++i)
+            TFilterData d = _filters[filter];
+            for (int i = 0; i < _tables.Count; ++i)
             {
-                if (tables[i].table.ContainsKey(filter))
+                if (_tables[i].table.ContainsKey(filter))
                 {
-                    return tables[i].priority;
+                    return _tables[i].priority;
                 }
             }
 
@@ -272,19 +263,18 @@ namespace CoreWCF.Dispatcher
             bool dataSet = false;
             int pri = int.MinValue;
 
-            data = default(TFilterData);
-            for (int i = 0; i < tables.Count; ++i)
+            data = default;
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && dataSet)
+                if (pri > _tables[i].priority && dataSet)
                 {
                     break;
                 }
-                pri = tables[i].priority;
+                pri = _tables[i].priority;
 
-                TFilterData currentData;
 
-                if (tables[i].table.GetMatchingValue(message, out currentData))
+                if (_tables[i].table.GetMatchingValue(message, out TFilterData currentData))
                 {
                     if (dataSet)
                     {
@@ -303,25 +293,23 @@ namespace CoreWCF.Dispatcher
         {
             bool dataSet = false;
             int pri = int.MinValue;
-            data = default(TFilterData);
+            data = default;
             addressMatched = false;
-            for (int i = 0; i < tables.Count; ++i)
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && dataSet)
+                if (pri > _tables[i].priority && dataSet)
                 {
                     break;
                 }
-                pri = tables[i].priority;
+                pri = _tables[i].priority;
 
                 bool matchResult;
                 TFilterData currentData;
-                IMessageFilterTable<TFilterData> table = tables[i].table;
-                AndMessageFilterTable<TFilterData> andTable = table as AndMessageFilterTable<TFilterData>;
-                if (andTable != null)
+                IMessageFilterTable<TFilterData> table = _tables[i].table;
+                if (table is AndMessageFilterTable<TFilterData> andTable)
                 {
-                    bool addressResult;
-                    matchResult = andTable.GetMatchingValue(message, out currentData, out addressResult);
+                    matchResult = andTable.GetMatchingValue(message, out currentData, out bool addressResult);
                     addressMatched |= addressResult;
                 }
                 else
@@ -355,27 +343,27 @@ namespace CoreWCF.Dispatcher
         {
             bool dataSet = false;
             int pri = int.MinValue;
-            data = default(TFilterData);
-            for (int i = 0; i < tables.Count; ++i)
+            data = default;
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && dataSet)
+                if (pri > _tables[i].priority && dataSet)
                 {
                     break;
                 }
-                pri = tables[i].priority;
+                pri = _tables[i].priority;
 
                 TFilterData currentData;
-                bool result = false;
-                if (messageToReadHeaders != null && tables[i].table is ActionMessageFilterTable<TFilterData>)
+                bool result;
+                if (messageToReadHeaders != null && _tables[i].table is ActionMessageFilterTable<TFilterData>)
                 {
                     // this is an action message, in this case we can pass in the message itself since the filter will only read from the header
-                    result = tables[i].table.GetMatchingValue(messageToReadHeaders, out currentData);
+                    result = _tables[i].table.GetMatchingValue(messageToReadHeaders, out currentData);
                 }
                 else
                 {
                     // this is a custom filter that might read from the message body, pass in the message buffer itself in this case
-                    result = tables[i].table.GetMatchingValue(buffer, out currentData);
+                    result = _tables[i].table.GetMatchingValue(buffer, out currentData);
                 }
                 if (result)
                 {
@@ -400,15 +388,15 @@ namespace CoreWCF.Dispatcher
             }
             int count = results.Count;
             int pri = int.MinValue;
-            for (int i = 0; i < tables.Count; ++i)
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && count != results.Count)
+                if (pri > _tables[i].priority && count != results.Count)
                 {
                     break;
                 }
-                pri = tables[i].priority;
-                tables[i].table.GetMatchingValues(message, results);
+                pri = _tables[i].priority;
+                _tables[i].table.GetMatchingValues(message, results);
             }
 
             return count != results.Count;
@@ -422,15 +410,15 @@ namespace CoreWCF.Dispatcher
             }
             int count = results.Count;
             int pri = int.MinValue;
-            for (int i = 0; i < tables.Count; ++i)
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && count != results.Count)
+                if (pri > _tables[i].priority && count != results.Count)
                 {
                     break;
                 }
-                pri = tables[i].priority;
-                tables[i].table.GetMatchingValues(buffer, results);
+                pri = _tables[i].priority;
+                _tables[i].table.GetMatchingValues(buffer, results);
             }
 
             return count != results.Count;
@@ -438,19 +426,18 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingFilter(Message message, out MessageFilter filter)
         {
-            MessageFilter f;
             int pri = int.MinValue;
             filter = null;
-            for (int i = 0; i < tables.Count; ++i)
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && filter != null)
+                if (pri > _tables[i].priority && filter != null)
                 {
                     break;
                 }
-                pri = tables[i].priority;
+                pri = _tables[i].priority;
 
-                if (tables[i].table.GetMatchingFilter(message, out f))
+                if (_tables[i].table.GetMatchingFilter(message, out MessageFilter f))
                 {
                     if (filter == null)
                     {
@@ -458,9 +445,11 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        Collection<MessageFilter> c = new Collection<MessageFilter>();
-                        c.Add(filter);
-                        c.Add(f);
+                        Collection<MessageFilter> c = new Collection<MessageFilter>
+                        {
+                            filter,
+                            f
+                        };
                         throw TraceUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, c), message);
                     }
                 }
@@ -471,19 +460,18 @@ namespace CoreWCF.Dispatcher
 
         public bool GetMatchingFilter(MessageBuffer buffer, out MessageFilter filter)
         {
-            MessageFilter f;
             int pri = int.MinValue;
             filter = null;
-            for (int i = 0; i < tables.Count; ++i)
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && filter != null)
+                if (pri > _tables[i].priority && filter != null)
                 {
                     break;
                 }
-                pri = tables[i].priority;
+                pri = _tables[i].priority;
 
-                if (tables[i].table.GetMatchingFilter(buffer, out f))
+                if (_tables[i].table.GetMatchingFilter(buffer, out MessageFilter f))
                 {
                     if (filter == null)
                     {
@@ -491,9 +479,11 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        Collection<MessageFilter> c = new Collection<MessageFilter>();
-                        c.Add(filter);
-                        c.Add(f);
+                        Collection<MessageFilter> c = new Collection<MessageFilter>
+                        {
+                            filter,
+                            f
+                        };
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MultipleFilterMatchesException(SR.FilterMultipleMatches, null, c));
                     }
                 }
@@ -510,15 +500,15 @@ namespace CoreWCF.Dispatcher
             }
             int count = results.Count;
             int pri = int.MinValue;
-            for (int i = 0; i < tables.Count; ++i)
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && count != results.Count)
+                if (pri > _tables[i].priority && count != results.Count)
                 {
                     break;
                 }
-                pri = tables[i].priority;
-                tables[i].table.GetMatchingFilters(message, results);
+                pri = _tables[i].priority;
+                _tables[i].table.GetMatchingFilters(message, results);
             }
 
             return count != results.Count;
@@ -532,15 +522,15 @@ namespace CoreWCF.Dispatcher
             }
             int count = results.Count;
             int pri = int.MinValue;
-            for (int i = 0; i < tables.Count; ++i)
+            for (int i = 0; i < _tables.Count; ++i)
             {
                 // Watch for the end of a bucket
-                if (pri > tables[i].priority && count != results.Count)
+                if (pri > _tables[i].priority && count != results.Count)
                 {
                     break;
                 }
-                pri = tables[i].priority;
-                tables[i].table.GetMatchingFilters(buffer, results);
+                pri = _tables[i].priority;
+                _tables[i].table.GetMatchingFilters(buffer, results);
             }
 
             return count != results.Count;
@@ -548,15 +538,15 @@ namespace CoreWCF.Dispatcher
 
         public bool Remove(MessageFilter filter)
         {
-            for (int i = 0; i < tables.Count; ++i)
+            for (int i = 0; i < _tables.Count; ++i)
             {
-                if (tables[i].table.Remove(filter))
+                if (_tables[i].table.Remove(filter))
                 {
-                    if (tables[i].table.Count == 0)
+                    if (_tables[i].table.Count == 0)
                     {
-                        tables.RemoveAt(i);
+                        _tables.RemoveAt(i);
                     }
-                    return filters.Remove(filter);
+                    return _filters.Remove(filter);
                 }
             }
             return false;
@@ -564,7 +554,7 @@ namespace CoreWCF.Dispatcher
 
         public bool Remove(KeyValuePair<MessageFilter, TFilterData> item)
         {
-            if (((ICollection<KeyValuePair<MessageFilter, TFilterData>>)filters).Contains(item))
+            if (((ICollection<KeyValuePair<MessageFilter, TFilterData>>)_filters).Contains(item))
             {
                 return Remove(item.Key);
             }
@@ -573,10 +563,10 @@ namespace CoreWCF.Dispatcher
 
         public bool TryGetValue(MessageFilter filter, out TFilterData data)
         {
-            return filters.TryGetValue(filter, out data);
+            return _filters.TryGetValue(filter, out data);
         }
 
-        void ValidateTable(IMessageFilterTable<TFilterData> table)
+        private void ValidateTable(IMessageFilterTable<TFilterData> table)
         {
             Type t = GetType();
             if (t.IsInstanceOfType(table))
@@ -587,7 +577,7 @@ namespace CoreWCF.Dispatcher
 
         ///////////////////////////////////////////////////
 
-        struct FilterTableEntry
+        private struct FilterTableEntry
         {
             internal IMessageFilterTable<TFilterData> table;
             internal int priority;
@@ -599,7 +589,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        class TableEntryComparer : IComparer<FilterTableEntry>
+        private class TableEntryComparer : IComparer<FilterTableEntry>
         {
             public TableEntryComparer() { }
 
@@ -634,7 +624,7 @@ namespace CoreWCF.Dispatcher
         }
 
         [DataContract]
-        class Entry
+        private class Entry
         {
             [DataMember(IsRequired = true)]
             internal MessageFilter filter;
@@ -653,5 +643,4 @@ namespace CoreWCF.Dispatcher
             }
         }
     }
-
 }

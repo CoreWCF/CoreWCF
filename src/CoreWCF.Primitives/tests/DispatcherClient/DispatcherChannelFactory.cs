@@ -1,7 +1,6 @@
-﻿using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -9,6 +8,10 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DispatcherClient
 {
@@ -23,13 +26,15 @@ namespace DispatcherClient
 
     internal class DispatcherChannelFactory<TChannel, TService, TContract> : DispatcherChannelFactory, IChannelFactory<TChannel> where TService : class
     {
-        private IServiceProvider _serviceProvider;
-        private IDictionary<object, IServiceChannelDispatcher> _serviceChannelDispatchers = new Dictionary<object, IServiceChannelDispatcher>();
-        private object _lock = new object();
+        private readonly IServiceProvider _serviceProvider;
+        private readonly Action<CoreWCF.ServiceHostBase> _configureServiceHostBase;
+        private readonly IDictionary<object, IServiceChannelDispatcher> _serviceChannelDispatchers = new Dictionary<object, IServiceChannelDispatcher>();
+        private readonly object _lock = new object();
 
-        public DispatcherChannelFactory(Action<IServiceCollection> configureServices)
+        public DispatcherChannelFactory(Action<IServiceCollection> configureServices, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default)
         {
             _serviceProvider = BuildServiceProvider(configureServices);
+            _configureServiceHostBase = configureServiceHostBase;
         }
 
         private IServiceProvider BuildServiceProvider(Action<IServiceCollection> configureServices)
@@ -38,12 +43,13 @@ namespace DispatcherClient
             services.AddSingleton<DispatcherChannelFactory>(this);
             services.AddScoped<DispatcherReplyChannel>();
             services.AddServiceModelServices();
+            services.AddLogging();
             IServer server = new Helpers.MockServer();
             services.AddSingleton(server);
             services.AddSingleton(GetType(), this);
             configureServices?.Invoke(services);
-            var serviceProvider = services.BuildServiceProvider();
-            var serverAddressesFeature = serviceProvider.GetRequiredService<IServerAddressesFeature>();
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServerAddressesFeature serverAddressesFeature = serviceProvider.GetRequiredService<IServerAddressesFeature>();
             server.Features.Set(serverAddressesFeature);
             return serviceProvider;
         }
@@ -58,8 +64,8 @@ namespace DispatcherClient
 
         public TChannel CreateChannel(EndpointAddress to, Uri via)
         {
-            var servicesScopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
-            var serviceScope = servicesScopeFactory.CreateScope();
+            IServiceScopeFactory servicesScopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
+            IServiceScope serviceScope = servicesScopeFactory.CreateScope();
 
             if (typeof(TChannel) == typeof(IRequestChannel))
             {
@@ -90,15 +96,20 @@ namespace DispatcherClient
                     return dispatcher;
                 }
             }
-            
-            var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
+
+            IServiceBuilder serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>();
             serviceBuilder.AddService<TService>();
             var binding = new CoreWCF.Channels.CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new Helpers.MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<TService, TContract>(binding, channel.Via);
-            var dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
-            var dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
-            var serviceDispatcher = dispatchers[0];
+            if (_configureServiceHostBase != null)
+            {
+                serviceBuilder.ConfigureServiceHostBase<TService>(_configureServiceHostBase);
+            }
+            await serviceBuilder.OpenAsync();
+            IDispatcherBuilder dispatcherBuilder = _serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(TService));
+            IServiceDispatcher serviceDispatcher = dispatchers[0];
             CoreWCF.Channels.IChannel replyChannel;
             if (channel is DispatcherRequestSessionChannel)
             {

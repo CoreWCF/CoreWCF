@@ -1,9 +1,12 @@
-﻿using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Text;
 using System.Xml;
+using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
@@ -58,7 +61,9 @@ namespace CoreWCF.Channels
             for (int i = 0; i < supportedEncodings.Length; i++)
             {
                 if (charSet == supportedEncodings[i].WebName)
+                {
                     return;
+                }
             }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
@@ -73,10 +78,14 @@ namespace CoreWCF.Channels
             {
                 Encoding enc = charSetEncodings[i].Encoding;
                 if (enc == null)
+                {
                     continue;
+                }
 
                 if (enc.WebName == webName)
+                {
                     return charSetEncodings[i].CharSet;
+                }
             }
             return null;
         }
@@ -100,7 +109,9 @@ namespace CoreWCF.Channels
             {
                 string compare = charSetEncodings[i].CharSet;
                 if (compare == null)
+                {
                     continue;
+                }
 
                 if (compare.Equals(charSet, StringComparison.OrdinalIgnoreCase))
                 {
@@ -126,7 +137,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    static class BinaryEncoderDefaults
+    internal static class BinaryEncoderDefaults
     {
         internal static EnvelopeVersion EnvelopeVersion { get { return EnvelopeVersion.Soap12; } }
         internal static BinaryVersion BinaryVersion { get { return BinaryVersion.Version1; } }
@@ -138,15 +149,13 @@ namespace CoreWCF.Channels
         internal const bool ExtractGroupsForWindowsAccounts = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
         internal const bool ManualAddressing = false;
         internal const long MaxReceivedMessageSize = 65536;
-        internal const int MaxBufferSize = (int) MaxReceivedMessageSize;
+        internal const int MaxBufferSize = (int)MaxReceivedMessageSize;
         internal const long MaxBufferPoolSize = 512 * 1024;
         internal const int MaxFaultSize = MaxBufferSize;
         internal const bool RequireClientCertificate = false;
         internal const int TcpUriDefaultPort = 808;
 
-        internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.Tls |
-                                                   System.Security.Authentication.SslProtocols.Tls11 |
-                                                   System.Security.Authentication.SslProtocols.Tls12;
+        internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.None; // Let the OS decide
 
         internal static MessageEncoderFactory GetDefaultMessageEncoderFactory()
         {

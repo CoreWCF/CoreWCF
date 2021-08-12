@@ -1,13 +1,16 @@
-﻿using System;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
     internal class PrefixEndpointAddressMessageFilterTable<TFilterData> : EndpointAddressMessageFilterTable<TFilterData>
     {
-        UriPrefixTable<CandidateSet> toHostTable;
-        UriPrefixTable<CandidateSet> toNoHostTable;
+        private UriPrefixTable<CandidateSet> _toHostTable;
+        private UriPrefixTable<CandidateSet> _toNoHostTable;
 
         public PrefixEndpointAddressMessageFilterTable()
             : base()
@@ -16,8 +19,8 @@ namespace CoreWCF.Dispatcher
 
         protected override void InitializeLookupTables()
         {
-            toHostTable = new UriPrefixTable<CandidateSet>();
-            toNoHostTable = new UriPrefixTable<CandidateSet>();
+            _toHostTable = new UriPrefixTable<CandidateSet>();
+            _toNoHostTable = new UriPrefixTable<CandidateSet>();
         }
 
         public override void Add(MessageFilter filter, TFilterData data)
@@ -57,25 +60,24 @@ namespace CoreWCF.Dispatcher
 
             Uri soapToAddress = filter.Address.Uri;
 
-            CandidateSet cset;
-            if (!TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out cset))
+            if (!TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out CandidateSet cset))
             {
                 cset = new CandidateSet();
                 GetAddressTable(filter.IncludeHostNameInComparison).RegisterUri(soapToAddress, GetComparisonMode(filter.IncludeHostNameInComparison), cset);
             }
-            cset.candidates.Add(can);
+            cset._candidates.Add(can);
 
             IncrementQNameCount(cset, filter.Address);
         }
 
-        HostNameComparisonMode GetComparisonMode(bool includeHostNameInComparison)
+        private HostNameComparisonMode GetComparisonMode(bool includeHostNameInComparison)
         {
             return includeHostNameInComparison ? HostNameComparisonMode.Exact : HostNameComparisonMode.StrongWildcard;
         }
 
-        UriPrefixTable<CandidateSet> GetAddressTable(bool includeHostNameInComparison)
+        private UriPrefixTable<CandidateSet> GetAddressTable(bool includeHostNameInComparison)
         {
-            return includeHostNameInComparison ? toHostTable : toNoHostTable;
+            return includeHostNameInComparison ? _toHostTable : _toNoHostTable;
         }
 
         internal override bool TryMatchCandidateSet(Uri to, bool includeHostNameInComparison, out CandidateSet cset)
@@ -85,8 +87,8 @@ namespace CoreWCF.Dispatcher
 
         protected override void ClearLookupTables()
         {
-            toHostTable = new UriPrefixTable<EndpointAddressMessageFilterTable<TFilterData>.CandidateSet>();
-            toNoHostTable = new UriPrefixTable<EndpointAddressMessageFilterTable<TFilterData>.CandidateSet>();
+            _toHostTable = new UriPrefixTable<EndpointAddressMessageFilterTable<TFilterData>.CandidateSet>();
+            _toNoHostTable = new UriPrefixTable<EndpointAddressMessageFilterTable<TFilterData>.CandidateSet>();
         }
 
         public override bool Remove(MessageFilter filter)
@@ -96,8 +98,7 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(filter));
             }
 
-            PrefixEndpointAddressMessageFilter pFilter = filter as PrefixEndpointAddressMessageFilter;
-            if (pFilter != null)
+            if (filter is PrefixEndpointAddressMessageFilter pFilter)
             {
                 return Remove(pFilter);
             }
@@ -131,10 +132,9 @@ namespace CoreWCF.Dispatcher
             Candidate can = candidates[filter];
             Uri soapToAddress = filter.Address.Uri;
 
-            CandidateSet cset = null;
-            if (TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out cset))
+            if (TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out CandidateSet cset))
             {
-                if (cset.candidates.Count == 1)
+                if (cset._candidates.Count == 1)
                 {
                     GetAddressTable(filter.IncludeHostNameInComparison).UnregisterUri(soapToAddress, GetComparisonMode(filter.IncludeHostNameInComparison));
                 }
@@ -143,7 +143,7 @@ namespace CoreWCF.Dispatcher
                     DecrementQNameCount(cset, filter.Address);
 
                     // Remove Candidate
-                    cset.candidates.Remove(can);
+                    cset._candidates.Remove(can);
                 }
             }
             candidates.Remove(filter);
@@ -152,5 +152,4 @@ namespace CoreWCF.Dispatcher
             return true;
         }
     }
-
 }

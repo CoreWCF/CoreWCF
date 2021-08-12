@@ -1,6 +1,9 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
@@ -18,11 +21,6 @@ namespace CoreWCF.Dispatcher
 
         private readonly ServiceHostBase _host;
 
-        // TODO: Performance counters
-        //ServicePerformanceCountersBase servicePerformanceCounters;
-        private bool _isActive;
-        readonly object _thisLock = new object();
-
         internal ServiceThrottle(ServiceHostBase host)
         {
             if (!((host != null)))
@@ -34,10 +32,10 @@ namespace CoreWCF.Dispatcher
             MaxConcurrentCalls = DefaultMaxConcurrentCallsCpuCount;
             MaxConcurrentSessions = DefaultMaxConcurrentSessionsCpuCount;
 
-            _isActive = true;
+            IsActive = true;
         }
 
-        FlowThrottle Calls
+        private FlowThrottle Calls
         {
             get
             {
@@ -61,7 +59,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        FlowThrottle Sessions
+        private FlowThrottle Sessions
         {
             get
             {
@@ -85,7 +83,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        QuotaThrottle Dynamic
+        private QuotaThrottle Dynamic
         {
             get
             {
@@ -95,8 +93,10 @@ namespace CoreWCF.Dispatcher
                     {
                         if (_dynamic == null)
                         {
-                            QuotaThrottle dynamicQt = new QuotaThrottle(new object());
-                            dynamicQt.Owner = "ServiceHost";
+                            QuotaThrottle dynamicQt = new QuotaThrottle(new object())
+                            {
+                                Owner = "ServiceHost"
+                            };
 
                             _dynamic = dynamicQt;
                         }
@@ -114,8 +114,8 @@ namespace CoreWCF.Dispatcher
             set { Dynamic.SetLimit(value); }
         }
 
-        const string MaxConcurrentCallsPropertyName = "MaxConcurrentCalls";
-        const string MaxConcurrentCallsConfigName = "maxConcurrentCalls";
+        private const string MaxConcurrentCallsPropertyName = "MaxConcurrentCalls";
+        private const string MaxConcurrentCallsConfigName = "maxConcurrentCalls";
         public int MaxConcurrentCalls
         {
             get { return Calls.Capacity; }
@@ -131,8 +131,8 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        const string MaxConcurrentSessionsPropertyName = "MaxConcurrentSessions";
-        const string MaxConcurrentSessionsConfigName = "maxConcurrentSessions";
+        private const string MaxConcurrentSessionsPropertyName = "MaxConcurrentSessions";
+        private const string MaxConcurrentSessionsConfigName = "maxConcurrentSessions";
         public int MaxConcurrentSessions
         {
             get { return Sessions.Capacity; }
@@ -148,8 +148,8 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        const string MaxConcurrentInstancesPropertyName = "MaxConcurrentInstances";
-        const string MaxConcurrentInstancesConfigName = "maxConcurrentInstances";
+        private const string MaxConcurrentInstancesPropertyName = "MaxConcurrentInstances";
+        private const string MaxConcurrentInstancesConfigName = "maxConcurrentInstances";
         public int MaxConcurrentInstances
         {
             get { return InstanceContexts.Capacity; }
@@ -165,7 +165,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        FlowThrottle InstanceContexts
+        private FlowThrottle InstanceContexts
         {
             get
             {
@@ -175,7 +175,7 @@ namespace CoreWCF.Dispatcher
                     {
                         if (_instanceContexts == null)
                         {
-                            FlowThrottle instanceContextsFt = new FlowThrottle(Int32.MaxValue,
+                            FlowThrottle instanceContextsFt = new FlowThrottle(int.MaxValue,
                                                                      MaxConcurrentInstancesPropertyName, MaxConcurrentInstancesConfigName);
                             instanceContextsFt.SetRatio(RatioInstancesToken);
 
@@ -193,15 +193,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal bool IsActive
-        {
-            get { return _isActive; }
-        }
+        internal bool IsActive { get; private set; }
 
-        internal object ThisLock
-        {
-            get { return _thisLock; }
-        }
+        internal object ThisLock { get; } = new object();
 
         //internal void SetServicePerformanceCounters(ServicePerformanceCountersBase counters)
         //{
@@ -316,25 +310,29 @@ namespace CoreWCF.Dispatcher
 
         internal void DeactivateChannel()
         {
-            if (_isActive)
+            if (IsActive)
             {
                 if (_sessions != null)
+                {
                     _sessions.Release();
+                }
             }
         }
 
         internal void DeactivateCall()
         {
-            if (_isActive)
+            if (IsActive)
             {
                 if (_calls != null)
+                {
                     _calls.Release();
+                }
             }
         }
 
         internal void DeactivateInstanceContext()
         {
-            if (_isActive)
+            if (IsActive)
             {
                 if (_instanceContexts != null)
                 {
@@ -348,7 +346,7 @@ namespace CoreWCF.Dispatcher
             return Dynamic.IncrementLimit(incrementBy);
         }
 
-        void ThrowIfClosedOrOpened(string memberName)
+        private void ThrowIfClosedOrOpened(string memberName)
         {
             if (_host.State == CommunicationState.Opened)
             {
@@ -360,12 +358,12 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void UpdateIsActive()
+        private void UpdateIsActive()
         {
-            _isActive = ((_dynamic != null) ||
-                             ((_calls != null) && (_calls.Capacity != Int32.MaxValue)) ||
-                             ((_sessions != null) && (_sessions.Capacity != Int32.MaxValue)) ||
-                             ((_instanceContexts != null) && (_instanceContexts.Capacity != Int32.MaxValue)));
+            IsActive = ((_dynamic != null) ||
+                             ((_calls != null) && (_calls.Capacity != int.MaxValue)) ||
+                             ((_sessions != null) && (_sessions.Capacity != int.MaxValue)) ||
+                             ((_instanceContexts != null) && (_instanceContexts.Capacity != int.MaxValue)));
         }
 
         //internal void AcquiredCallsToken()

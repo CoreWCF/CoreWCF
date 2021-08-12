@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
@@ -8,11 +11,6 @@ namespace CoreWCF
 {
     public class MessageHeader<T>
     {
-        string actor;
-        bool mustUnderstand;
-        bool relay;
-        T content;
-
         public MessageHeader()
         {
         }
@@ -24,35 +22,19 @@ namespace CoreWCF
 
         public MessageHeader(T content, bool mustUnderstand, string actor, bool relay)
         {
-            this.content = content;
-            this.mustUnderstand = mustUnderstand;
-            this.actor = actor;
-            this.relay = relay;
+            Content = content;
+            MustUnderstand = mustUnderstand;
+            Actor = actor;
+            Relay = relay;
         }
 
-        public string Actor
-        {
-            get { return actor; }
-            set { actor = value; }
-        }
+        public string Actor { get; set; }
 
-        public T Content
-        {
-            get { return content; }
-            set { content = value; }
-        }
+        public T Content { get; set; }
 
-        public bool MustUnderstand
-        {
-            get { return mustUnderstand; }
-            set { mustUnderstand = value; }
-        }
+        public bool MustUnderstand { get; set; }
 
-        public bool Relay
-        {
-            get { return relay; }
-            set { relay = value; }
-        }
+        public bool Relay { get; set; }
 
         internal Type GetGenericArgument()
         {
@@ -61,7 +43,7 @@ namespace CoreWCF
 
         public MessageHeader GetUntypedHeader(string name, string ns)
         {
-            return MessageHeader.CreateHeader(name, ns, content, mustUnderstand, actor, relay);
+            return MessageHeader.CreateHeader(name, ns, Content, MustUnderstand, Actor, Relay);
         }
     }
 
@@ -74,9 +56,9 @@ namespace CoreWCF
     // you'd still have the creation problem...).  the issue with that is you now have a new public interface
     internal abstract class TypedHeaderManager
     {
-        static Dictionary<Type, TypedHeaderManager> cache = new Dictionary<Type, TypedHeaderManager>();
-        static ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
-        static Type GenericAdapterType = typeof(GenericAdapter<>);
+        private static readonly Dictionary<Type, TypedHeaderManager> s_cache = new Dictionary<Type, TypedHeaderManager>();
+        private static readonly ReaderWriterLockSlim s_cacheLock = new ReaderWriterLockSlim();
+        private static readonly Type s_genericAdapterType = typeof(GenericAdapter<>);
 
         internal static object Create(Type t, object content, bool mustUnderstand, bool relay, string actor)
         {
@@ -95,11 +77,14 @@ namespace CoreWCF
         internal static Type GetHeaderType(Type headerParameterType)
         {
             if (headerParameterType.GetTypeInfo().IsGenericType && headerParameterType.GetGenericTypeDefinition() == typeof(MessageHeader<>))
+            {
                 return headerParameterType.GetGenericArguments()[0];
+            }
+
             return headerParameterType;
         }
 
-        static TypedHeaderManager GetTypedHeaderManager(Type t)
+        private static TypedHeaderManager GetTypedHeaderManager(Type t)
         {
             TypedHeaderManager result = null;
 
@@ -112,17 +97,17 @@ namespace CoreWCF
                 }
                 finally
                 {
-                    cacheLock.TryEnterUpgradeableReadLock(Timeout.Infinite);
+                    s_cacheLock.TryEnterUpgradeableReadLock(Timeout.Infinite);
                     readerLockHeld = true;
                 }
-                if (!cache.TryGetValue(t, out result))
+                if (!s_cache.TryGetValue(t, out result))
                 {
-                    cacheLock.TryEnterWriteLock(Timeout.Infinite);
+                    s_cacheLock.TryEnterWriteLock(Timeout.Infinite);
                     writerLockHeld = true;
-                    if (!cache.TryGetValue(t, out result))
+                    if (!s_cache.TryGetValue(t, out result))
                     {
-                        result = (TypedHeaderManager) Activator.CreateInstance(GenericAdapterType.MakeGenericType(t));
-                        cache.Add(t, result);
+                        result = (TypedHeaderManager)Activator.CreateInstance(s_genericAdapterType.MakeGenericType(t));
+                        s_cache.Add(t, result);
                     }
                 }
             }
@@ -130,11 +115,11 @@ namespace CoreWCF
             {
                 if (writerLockHeld)
                 {
-                    cacheLock.ExitWriteLock();
+                    s_cacheLock.ExitWriteLock();
                 }
                 if (readerLockHeld)
                 {
-                    cacheLock.ExitUpgradeableReadLock();
+                    s_cacheLock.ExitUpgradeableReadLock();
                 }
             }
 
@@ -145,15 +130,17 @@ namespace CoreWCF
         protected abstract object GetContent(object typedHeaderInstance, out bool mustUnderstand, out bool relay, out string actor);
         protected abstract Type GetMessageHeaderType();
 
-        class GenericAdapter<T> : TypedHeaderManager
+        private class GenericAdapter<T> : TypedHeaderManager
         {
             protected override object Create(object content, bool mustUnderstand, bool relay, string actor)
             {
-                MessageHeader<T> header = new MessageHeader<T>();
-                header.Content = (T)content;
-                header.MustUnderstand = mustUnderstand;
-                header.Relay = relay;
-                header.Actor = actor;
+                MessageHeader<T> header = new MessageHeader<T>
+                {
+                    Content = (T)content,
+                    MustUnderstand = mustUnderstand,
+                    Relay = relay,
+                    Actor = actor
+                };
                 return header;
             }
 
@@ -163,11 +150,15 @@ namespace CoreWCF
                 relay = false;
                 actor = null;
                 if (typedHeaderInstance == null)
+                {
                     return null;
+                }
 
-                MessageHeader<T> header = typedHeaderInstance as MessageHeader<T>;
-                if (header == null)
+                if (!(typedHeaderInstance is MessageHeader<T> header))
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException("typedHeaderInstance"));
+                }
+
                 mustUnderstand = header.MustUnderstand;
                 relay = header.Relay;
                 actor = header.Actor;
@@ -180,5 +171,4 @@ namespace CoreWCF
             }
         }
     }
-
 }

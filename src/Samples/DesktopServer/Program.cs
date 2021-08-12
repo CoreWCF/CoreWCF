@@ -1,29 +1,55 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
+using CoreWCF.Samples.StandardCommon;
 
 namespace DesktopServer
 {
     class Program
     {
-        static void Main(string[] args)
+        private static ServiceHost ConfigureWcfHost<TService, TContract>(string servicePrefix)
         {
-            var host = new ServiceHost(typeof(EchoService), 
-                new Uri("net.tcp://localhost:8808/"), 
-                new Uri("http://localhost:8080/"));
-            host.AddServiceEndpoint(typeof(Contract.IEchoService), new NetTcpBinding(), "/nettcp");
-            host.AddServiceEndpoint(typeof(Contract.IEchoService), new BasicHttpBinding(), "/basichttp");
-            host.Open();
-            foreach(var endpoint in host.Description.Endpoints)
+            Settings settings = new Settings().SetDefaults("localhost", servicePrefix);
+
+            Uri[] baseUriList = settings.GetBaseAddresses().ToArray();
+
+            Type contract = typeof(TContract);
+            var host = new ServiceHost(typeof(TService), baseUriList);
+
+            var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
+            serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
+            host.AddServiceEndpoint(contract, serverBindingHttpsUserPassword, settings.wsHttpAddressValidateUserPassword.LocalPath);
+            CustomUserNamePasswordValidator.AddToHost(host);
+
+            host.AddServiceEndpoint(contract, new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress.LocalPath);
+            host.AddServiceEndpoint(contract, new BasicHttpsBinding(BasicHttpsSecurityMode.Transport), settings.basicHttpsAddress.LocalPath);
+            host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.None), settings.wsHttpAddress.LocalPath);
+            host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.Transport), settings.wsHttpsAddress.LocalPath);
+            host.AddServiceEndpoint(contract, new NetTcpBinding(), settings.netTcpAddress.LocalPath);
+            return host;
+        }
+
+        private static void LogHostUrls(ServiceHost host)
+        {
+            foreach (System.ServiceModel.Description.ServiceEndpoint endpoint in host.Description.Endpoints)
             {
                 Console.WriteLine("Listening on " + endpoint.ListenUri.ToString());
             }
+        }
+
+
+        static void Main()
+        {
+            var hostEchoService = ConfigureWcfHost<EchoService, Contract.IEchoService>("EchoService");
+
+            hostEchoService.Open();
+
+            LogHostUrls(hostEchoService);
+
             Console.WriteLine("Hit enter to close");
             Console.ReadLine();
-            host.Close();
+
+            hostEchoService.Close();
         }
     }
 }

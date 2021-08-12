@@ -1,11 +1,14 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 
 namespace CoreWCF
 {
     [AttributeUsage(CoreWCFAttributeTargets.MessageMember, Inherited = false)]
     public class MessageBodyMemberAttribute : MessageContractMemberAttribute
     {
-        int _order = -1;
+        private int _order = -1;
         internal const string OrderPropertyName = "Order";
         public int Order
         {
@@ -13,12 +16,13 @@ namespace CoreWCF
             set
             {
                 if (value < 0)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
                                                     SR.ValueMustBeNonNegative));
+                }
 
                 _order = value;
             }
         }
-
     }
 }

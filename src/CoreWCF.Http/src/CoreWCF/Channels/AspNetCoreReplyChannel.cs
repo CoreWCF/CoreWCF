@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -13,8 +14,8 @@ namespace CoreWCF.Channels
 {
     internal class AspNetCoreReplyChannel : IReplyChannel
     {
-        private IServiceProvider _serviceProvider;
-        private HttpTransportSettings _httpSettings;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly HttpTransportSettings _httpSettings;
 
         public AspNetCoreReplyChannel(IServiceProvider serviceProvider, HttpTransportSettings httpSettings)
         {
@@ -31,15 +32,16 @@ namespace CoreWCF.Channels
 
         public IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
+#pragma warning disable CS0067 // The event is never used - see issue #290
         public event EventHandler Closed;
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
+#pragma warning restore CS0067 // The event is never used
 
         public void Abort()
         {
-            
         }
 
         public Task CloseAsync()
@@ -96,9 +98,8 @@ namespace CoreWCF.Channels
             }
 
             var requestContext = HttpRequestContext.CreateContext(_httpSettings, context);
-            var httpInput = requestContext.GetHttpInput(true);
-            Exception requestException;
-            Message requestMessage = httpInput.ParseIncomingMessage(out requestException);
+            HttpInput httpInput = requestContext.GetHttpInput(true);
+            (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
             if ((requestMessage == null) && (requestException == null))
             {
                 throw Fx.Exception.AsError(
@@ -108,6 +109,11 @@ namespace CoreWCF.Channels
             }
 
             requestContext.SetMessage(requestMessage, requestException);
+            if (requestMessage != null)
+            {
+                requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
+            }
+
             await ChannelDispatcher.DispatchAsync(requestContext);
             await requestContext.ReplySent;
         }

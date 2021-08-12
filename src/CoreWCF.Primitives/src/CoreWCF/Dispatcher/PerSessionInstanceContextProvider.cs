@@ -1,12 +1,14 @@
-﻿using System;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
-    class PerSessionInstanceContextProvider : InstanceContextProviderBase
+    internal class PerSessionInstanceContextProvider : InstanceContextProviderBase
     {
-
         internal PerSessionInstanceContextProvider(DispatchRuntime dispatchRuntime)
             : base(dispatchRuntime)
         {
@@ -24,7 +26,7 @@ namespace CoreWCF.Dispatcher
             //  7. For all further requests on the same channel, we will return ServiceChannel.InstanceContext which will be non null.
             ServiceChannel serviceChannel = GetServiceChannelFromProxy(channel);
             Fx.Assert((serviceChannel != null), "CoreWCF.Dispatcher.PerSessionInstanceContextProvider.GetExistingInstanceContext(), serviceChannel != null");
-            return (serviceChannel != null) ? serviceChannel.InstanceContext : null;
+            return serviceChannel?.InstanceContext;
         }
 
         public override void InitializeInstanceContext(InstanceContext instanceContext, Message message, IContextChannel channel)
@@ -48,5 +50,4 @@ namespace CoreWCF.Dispatcher
             //no-op
         }
     }
-
 }

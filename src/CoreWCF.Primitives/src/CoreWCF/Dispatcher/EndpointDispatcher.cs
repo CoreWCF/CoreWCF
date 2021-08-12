@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using CoreWCF.Channels;
@@ -6,28 +9,15 @@ namespace CoreWCF.Dispatcher
 {
     public class EndpointDispatcher
     {
-        MessageFilter addressFilter;
-        bool addressFilterSetExplicit;
-        ChannelDispatcher channelDispatcher;
-        MessageFilter contractFilter;
-        string contractName;
-        string contractNamespace;
-        ServiceChannel datagramChannel;
-        DispatchRuntime dispatchRuntime;
-        MessageFilter endpointFilter;
-        int filterPriority;
-        Uri listenUri;
-        EndpointAddress originalAddress;
-        //string perfCounterId;
-        //string perfCounterBaseId;
-        string id; // for ServiceMetadataBehavior, to help get EndpointIdentity of ServiceEndpoint from EndpointDispatcher
-        bool isSystemEndpoint;
+        private MessageFilter _addressFilter;
+        private MessageFilter _contractFilter;
+        private MessageFilter _endpointFilter;
 
         internal EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, string id, bool isSystemEndpoint)
             : this(address, contractName, contractNamespace)
         {
-            this.id = id;
-            this.isSystemEndpoint = isSystemEndpoint;
+            Id = id;
+            IsSystemEndpoint = isSystemEndpoint;
         }
 
         public EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace)
@@ -37,26 +27,26 @@ namespace CoreWCF.Dispatcher
 
         public EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, bool isSystemEndpoint)
         {
-            originalAddress = address;
-            this.contractName = contractName;
-            this.contractNamespace = contractNamespace;
+            OriginalAddress = address;
+            ContractName = contractName;
+            ContractNamespace = contractNamespace;
 
             if (address != null)
             {
-                addressFilter = new EndpointAddressMessageFilter(address);
+                _addressFilter = new EndpointAddressMessageFilter(address);
             }
             else
             {
-                addressFilter = new MatchAllMessageFilter();
+                _addressFilter = new MatchAllMessageFilter();
             }
 
-            contractFilter = new MatchAllMessageFilter();
-            dispatchRuntime = new DispatchRuntime(this);
-            filterPriority = 0;
-            this.isSystemEndpoint = isSystemEndpoint;
+            _contractFilter = new MatchAllMessageFilter();
+            DispatchRuntime = new DispatchRuntime(this);
+            FilterPriority = 0;
+            IsSystemEndpoint = isSystemEndpoint;
         }
 
-        EndpointDispatcher(EndpointDispatcher baseEndpoint, IEnumerable<AddressHeader> headers)
+        private EndpointDispatcher(EndpointDispatcher baseEndpoint, IEnumerable<AddressHeader> headers)
         {
             EndpointAddressBuilder builder = new EndpointAddressBuilder(baseEndpoint.EndpointAddress);
             foreach (AddressHeader h in headers)
@@ -65,116 +55,83 @@ namespace CoreWCF.Dispatcher
             }
             EndpointAddress address = builder.ToEndpointAddress();
 
-            addressFilter = new EndpointAddressMessageFilter(address);
+            _addressFilter = new EndpointAddressMessageFilter(address);
             // channelDispatcher is Attached
-            contractFilter = baseEndpoint.ContractFilter;
-            contractName = baseEndpoint.ContractName;
-            contractNamespace = baseEndpoint.ContractNamespace;
-            dispatchRuntime = baseEndpoint.DispatchRuntime;
+            _contractFilter = baseEndpoint.ContractFilter;
+            ContractName = baseEndpoint.ContractName;
+            ContractNamespace = baseEndpoint.ContractNamespace;
+            DispatchRuntime = baseEndpoint.DispatchRuntime;
             // endpointFilter is lazy
-            filterPriority = baseEndpoint.FilterPriority + 1;
-            originalAddress = address;
+            FilterPriority = baseEndpoint.FilterPriority + 1;
+            OriginalAddress = address;
             //if (PerformanceCounters.PerformanceCountersEnabled)
             //{
             //    this.perfCounterId = baseEndpoint.perfCounterId;
             //    this.perfCounterBaseId = baseEndpoint.perfCounterBaseId;
             //}
-            id = baseEndpoint.id;
+            Id = baseEndpoint.Id;
         }
 
-        internal MessageFilter AddressFilter
+        public MessageFilter AddressFilter
         {
-            get { return addressFilter; }
+            get { return _addressFilter; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
                 ThrowIfDisposedOrImmutable();
-                addressFilter = value;
-                addressFilterSetExplicit = true;
+                _addressFilter = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                AddressFilterSetExplicit = true;
             }
         }
 
-        internal bool AddressFilterSetExplicit
-        {
-            get { return addressFilterSetExplicit; }
-        }
+        internal bool AddressFilterSetExplicit { get; private set; }
 
-        internal ChannelDispatcher ChannelDispatcher
-        {
-            get { return channelDispatcher; }
-        }
+        public ChannelDispatcher ChannelDispatcher { get; private set; }
 
         internal MessageFilter ContractFilter
         {
-            get { return contractFilter; }
+            get { return _contractFilter; }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
                 ThrowIfDisposedOrImmutable();
-                contractFilter = value;
+                _contractFilter = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
-        public string ContractName
-        {
-            get { return contractName; }
-        }
+        public string ContractName { get; }
 
-        public string ContractNamespace
-        {
-            get { return contractNamespace; }
-        }
+        public string ContractNamespace { get; }
 
-        internal ServiceChannel DatagramChannel
-        {
-            get { return datagramChannel; }
-            set { datagramChannel = value; }
-        }
+        internal ServiceChannel DatagramChannel { get; set; }
 
-        public DispatchRuntime DispatchRuntime
-        {
-            get { return dispatchRuntime; }
-        }
+        public DispatchRuntime DispatchRuntime { get; }
 
-        internal Uri ListenUri
-        {
-            get { return listenUri; }
-        }
+        internal Uri ListenUri { get; }
 
-        internal EndpointAddress OriginalAddress
-        {
-            get { return originalAddress; }
-        }
+        internal EndpointAddress OriginalAddress { get; }
 
         public EndpointAddress EndpointAddress
         {
             get
             {
-                if (channelDispatcher == null)
+                if (ChannelDispatcher == null)
                 {
-                    return originalAddress;
+                    return OriginalAddress;
                 }
 
-                if ((originalAddress != null) && (originalAddress.Identity != null))
+                if ((OriginalAddress != null) && (OriginalAddress.Identity != null))
                 {
-                    return originalAddress;
+                    return OriginalAddress;
                 }
 
-                if (originalAddress != null)
+                if (OriginalAddress != null)
                 {
-                    return originalAddress;
+                    return OriginalAddress;
                 }
 
                 EndpointAddressBuilder builder;
-                if (originalAddress != null)
+                if (OriginalAddress != null)
                 {
-                    builder = new EndpointAddressBuilder(originalAddress);
+                    builder = new EndpointAddressBuilder(OriginalAddress);
                     return builder.ToEndpointAddress();
                 }
                 else
@@ -184,47 +141,36 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public bool IsSystemEndpoint
-        {
-            get { return isSystemEndpoint; }
-        }
+        public bool IsSystemEndpoint { get; }
 
         internal MessageFilter EndpointFilter
         {
             get
             {
-                if (endpointFilter == null)
+                if (_endpointFilter == null)
                 {
-                    MessageFilter addressFilter = this.addressFilter;
-                    MessageFilter contractFilter = this.contractFilter;
+                    MessageFilter addressFilter = _addressFilter;
+                    MessageFilter contractFilter = _contractFilter;
 
                     // Can't optimize addressFilter similarly.
                     // AndMessageFilter tracks when the address filter matched so the correct
                     // fault can be sent back.
                     if (contractFilter is MatchAllMessageFilter)
                     {
-                        endpointFilter = addressFilter;
+                        _endpointFilter = addressFilter;
                     }
                     else
                     {
-                        endpointFilter = new AndMessageFilter(addressFilter, contractFilter);
+                        _endpointFilter = new AndMessageFilter(addressFilter, contractFilter);
                     }
                 }
-                return endpointFilter;
+                return _endpointFilter;
             }
         }
 
-        public int FilterPriority
-        {
-            get { return filterPriority; }
-            set { filterPriority = value; }
-        }
+        public int FilterPriority { get; set; }
 
-        internal string Id
-        {
-            get { return id; }
-            set { id = value; }
-        }
+        internal string Id { get; set; }
 
         //internal string PerfCounterId
         //{
@@ -238,7 +184,7 @@ namespace CoreWCF.Dispatcher
 
         internal int PerfCounterInstanceId { get; set; }
 
-        static internal EndpointDispatcher AddEndpointDispatcher(EndpointDispatcher baseEndpoint,
+        internal static EndpointDispatcher AddEndpointDispatcher(EndpointDispatcher baseEndpoint,
                                                                  IEnumerable<AddressHeader> headers)
         {
             EndpointDispatcher endpoint = new EndpointDispatcher(baseEndpoint, headers);
@@ -248,18 +194,13 @@ namespace CoreWCF.Dispatcher
 
         internal void Attach(ChannelDispatcher channelDispatcher)
         {
-            if (channelDispatcher == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelDispatcher));
-            }
-
-            if (this.channelDispatcher != null)
+            if (ChannelDispatcher != null)
             {
                 Exception error = new InvalidOperationException(SR.SFxEndpointDispatcherMultipleChannelDispatcher0);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
             }
 
-            this.channelDispatcher = channelDispatcher;
+            ChannelDispatcher = channelDispatcher ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelDispatcher));
             // TODO: Plumb through the listening Uri
             //listenUri = channelDispatcher.Listener?.Uri;
         }
@@ -271,14 +212,14 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(channelDispatcher));
             }
 
-            if (this.channelDispatcher != channelDispatcher)
+            if (ChannelDispatcher != channelDispatcher)
             {
                 Exception error = new InvalidOperationException(SR.SFxEndpointDispatcherDifferentChannelDispatcher0);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(error);
             }
 
             //this.ReleasePerformanceCounters();
-            this.channelDispatcher = null;
+            ChannelDispatcher = null;
         }
 
         //internal void ReleasePerformanceCounters()
@@ -318,14 +259,13 @@ namespace CoreWCF.Dispatcher
         //    }
         //}
 
-        void ThrowIfDisposedOrImmutable()
+        private void ThrowIfDisposedOrImmutable()
         {
-            ChannelDispatcher channelDispatcher = this.channelDispatcher;
+            ChannelDispatcher channelDispatcher = ChannelDispatcher;
             if (channelDispatcher != null)
             {
                 channelDispatcher.ThrowIfDisposedOrImmutable();
             }
         }
     }
-
 }

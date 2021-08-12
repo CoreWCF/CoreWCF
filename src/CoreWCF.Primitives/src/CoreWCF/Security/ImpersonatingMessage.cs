@@ -1,122 +1,120 @@
-﻿using System.Security.Principal;
-using CoreWCF.Channels;
-using System.Xml;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Threading.Tasks;
+using System.Xml;
+using CoreWCF.Channels;
 
 namespace CoreWCF.Security
 {
-    sealed class ImpersonatingMessage : Message
+    internal sealed class ImpersonatingMessage : Message
     {
-        Message innerMessage;
+        private readonly Message _innerMessage;
 
         public ImpersonatingMessage(Message innerMessage)
         {
-            if (innerMessage == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerMessage));
-            }
-            this.innerMessage = innerMessage;
+            _innerMessage = innerMessage ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(innerMessage));
         }
 
         public override bool IsEmpty
         {
             get
             {
-                return innerMessage.IsEmpty;
+                return _innerMessage.IsEmpty;
             }
         }
 
         public override bool IsFault
         {
-            get { return innerMessage.IsFault; }
+            get { return _innerMessage.IsFault; }
         }
 
         public override MessageHeaders Headers
         {
-            get { return innerMessage.Headers; }
+            get { return _innerMessage.Headers; }
         }
 
         public override MessageProperties Properties
         {
-            get { return innerMessage.Properties; }
+            get { return _innerMessage.Properties; }
         }
 
         public override MessageVersion Version
         {
-            get { return innerMessage.Version; }
+            get { return _innerMessage.Version; }
         }
 
         internal override RecycledMessageState RecycledMessageState
         {
             get
             {
-                return innerMessage.RecycledMessageState;
+                return _innerMessage.RecycledMessageState;
             }
         }
 
         protected override void OnClose()
         {
             base.OnClose();
-            innerMessage.Close();
+            _innerMessage.Close();
         }
 
         //Runs impersonated.
         public override Task OnWriteMessageAsync(XmlDictionaryWriter writer)
         {
-            return ImpersonateCall(() => innerMessage.WriteMessageAsync(writer));
+            return ImpersonateCall(() => _innerMessage.WriteMessageAsync(writer));
         }
 
         //Runs impersonated.
         protected override void OnWriteMessage(XmlDictionaryWriter writer)
         {
-            ImpersonateCall(() => innerMessage.WriteMessage(writer));
+            ImpersonateCall(() => _innerMessage.WriteMessage(writer));
         }
 
         protected override void OnWriteStartEnvelope(XmlDictionaryWriter writer)
         {
-            innerMessage.WriteStartEnvelope(writer);
+            _innerMessage.WriteStartEnvelope(writer);
         }
 
         protected override void OnWriteStartHeaders(XmlDictionaryWriter writer)
         {
-            innerMessage.WriteStartHeaders(writer);
+            _innerMessage.WriteStartHeaders(writer);
         }
 
         protected override void OnWriteStartBody(XmlDictionaryWriter writer)
         {
-            innerMessage.WriteStartBody(writer);
+            _innerMessage.WriteStartBody(writer);
         }
 
         protected override string OnGetBodyAttribute(string localName, string ns)
         {
-            return innerMessage.GetBodyAttribute(localName, ns);
+            return _innerMessage.GetBodyAttribute(localName, ns);
         }
 
         protected override MessageBuffer OnCreateBufferedCopy(int maxBufferSize)
         {
-            return innerMessage.CreateBufferedCopy(maxBufferSize);
+            return _innerMessage.CreateBufferedCopy(maxBufferSize);
         }
 
         internal override Task OnWriteBodyContentsAsync(XmlDictionaryWriter writer)
         {
-            return ImpersonateCall(() => innerMessage.WriteBodyContentsAsync(writer));
+            return ImpersonateCall(() => _innerMessage.WriteBodyContentsAsync(writer));
         }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            ImpersonateCall(() => innerMessage.WriteBodyContents(writer));
+            ImpersonateCall(() => _innerMessage.WriteBodyContents(writer));
         }
 
         //Runs impersonated.
         protected override void OnBodyToString(XmlDictionaryWriter writer)
         {
-            ImpersonateCall(() => innerMessage.BodyToString(writer));
+            ImpersonateCall(() => _innerMessage.BodyToString(writer));
         }
 
         private void ImpersonateCall(Action callToImpersonate)
         {
-            if (ImpersonateOnSerializingReplyMessageProperty.TryGet(innerMessage, out ImpersonateOnSerializingReplyMessageProperty impersonationProperty))
+            if (ImpersonateOnSerializingReplyMessageProperty.TryGet(_innerMessage, out ImpersonateOnSerializingReplyMessageProperty impersonationProperty))
             {
                 _ = impersonationProperty.RunImpersonated(() =>
                       {
@@ -132,14 +130,13 @@ namespace CoreWCF.Security
 
         private T ImpersonateCall<T>(Func<T> callToImpersonate)
         {
-            if (ImpersonateOnSerializingReplyMessageProperty.TryGet(innerMessage, out ImpersonateOnSerializingReplyMessageProperty impersonationProperty))
+            if (ImpersonateOnSerializingReplyMessageProperty.TryGet(_innerMessage, out ImpersonateOnSerializingReplyMessageProperty impersonationProperty))
             {
                 return impersonationProperty.RunImpersonated(callToImpersonate);
             }
             else
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.UnableToImpersonateWhileSerializingReponse));
-
             }
         }
     }

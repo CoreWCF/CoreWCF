@@ -1,14 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
-using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Dispatcher
 {
     internal class SyncMethodInvoker : IOperationInvoker
     {
-        private readonly MethodInfo _method;
         private InvokeDelegate _invokeDelegate;
         private int _inputParameterCount;
         private int _outputParameterCount;
@@ -16,28 +17,20 @@ namespace CoreWCF.Dispatcher
 
         public SyncMethodInvoker(MethodInfo method)
         {
-            if (method == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(method));
-            }
-
-            _method = method;
+            Method = method ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(method));
         }
 
-        public MethodInfo Method
-        {
-            get
-            {
-                return _method;
-            }
-        }
+        public MethodInfo Method { get; }
 
         public string MethodName
         {
             get
             {
                 if (_methodName == null)
-                    _methodName = _method.Name;
+                {
+                    _methodName = Method.Name;
+                }
+
                 return _methodName;
             }
         }
@@ -61,7 +54,7 @@ namespace CoreWCF.Dispatcher
 
         public object InvokeEnd(object instance, out object[] outputs, IAsyncResult result)
         {
-            var tuple = TaskHelpers.ToApmEnd<Tuple<object, object[]>>(result);
+            Tuple<object, object[]> tuple = TaskHelpers.ToApmEnd<Tuple<object, object[]>>(result);
             outputs = tuple.Item2;
             return tuple.Item1;
         }
@@ -71,16 +64,23 @@ namespace CoreWCF.Dispatcher
             EnsureIsInitialized();
 
             if (instance == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoServiceObject));
+            }
+
             if (inputs == null)
             {
                 if (_inputParameterCount > 0)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInputParametersToServiceNull, _inputParameterCount)));
+                }
             }
             else if (inputs.Length != _inputParameterCount)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInputParametersToServiceInvalid, _inputParameterCount, inputs.Length)));
+            }
 
-            var outputs = EmptyArray<object>.Allocate(_outputParameterCount);
+            object[] outputs = EmptyArray<object>.Allocate(_outputParameterCount);
 
             //long beginOperation = 0;
             //bool callSucceeded = false;
@@ -192,9 +192,7 @@ namespace CoreWCF.Dispatcher
         {
             // Only pass locals byref because InvokerUtil may store temporary results in the byref.
             // If two threads both reference this.count, temporary results may interact.
-            int inputParameterCount;
-            int outputParameterCount;
-            var invokeDelegate = new InvokerUtil().GenerateInvokeDelegate(Method, out inputParameterCount, out outputParameterCount);
+            InvokeDelegate invokeDelegate = InvokerUtil.GenerateInvokeDelegate(Method, out int inputParameterCount, out int outputParameterCount);
             _outputParameterCount = outputParameterCount;
             _inputParameterCount = inputParameterCount;
             _invokeDelegate = invokeDelegate;  // must set this last due to race

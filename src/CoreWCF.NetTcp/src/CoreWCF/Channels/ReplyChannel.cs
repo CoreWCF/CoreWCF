@@ -1,21 +1,19 @@
-﻿using System.Threading;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
-    class ReplyChannel : ServiceChannelBase, IReplyChannel
+    internal class ReplyChannel : ServiceChannelBase, IReplyChannel
     {
-        EndpointAddress localAddress;
-
         public ReplyChannel(IDefaultCommunicationTimeouts timeouts, EndpointAddress localAddress) : base(timeouts)
         {
-            this.localAddress = localAddress;
+            LocalAddress = localAddress;
         }
 
-        public EndpointAddress LocalAddress
-        {
-            get { return localAddress; }
-        }
+        public EndpointAddress LocalAddress { get; }
 
         public override T GetProperty<T>()
         {

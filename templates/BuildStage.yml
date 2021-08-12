@@ -1,0 +1,51 @@
+parameters:
+- name: buildProjects
+  default: ''
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    strategy:
+      matrix:
+        Release:
+          _buildConfig: 'Release'
+        Debug:
+          _buildConfig: 'Debug'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core sdk'
+        inputs:
+          packageType: sdk
+          version: 5.0.x
+          installationPath: $(Agent.ToolsDirectory)/dotnet
+
+      # NGBV project at https://github.com/dotnet/Nerdbank.GitVersioning
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: custom
+          custom: tool
+          arguments: install --tool-path . nbgv
+        displayName: Install NBGV tool
+
+      - script: nbgv cloud
+        displayName: Set Version
+
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: 'build'
+          projects: ${{ parameters.buildProjects}}
+          arguments: '--configuration $(_buildConfig) /t:restore'
+
+      - task: DotNetCoreCLI@2
+        displayName: Build $(_buildConfig)
+        inputs:
+          command: 'build'
+          projects: ${{ parameters.buildProjects}}
+          arguments: '--no-restore --configuration $(_buildConfig)'
+      - publish: $(System.DefaultWorkingDirectory)/bin
+        artifact: $(_buildConfig)Build

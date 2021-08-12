@@ -1,13 +1,14 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
-using System.Text;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class HttpAnonymousUriPrefixMatcher : IAnonymousUriPrefixMatcher
+    internal class HttpAnonymousUriPrefixMatcher : IAnonymousUriPrefixMatcher
     {
-        UriPrefixTable<Uri> anonymousUriPrefixes;
+        private UriPrefixTable<Uri> _anonymousUriPrefixes;
 
         internal HttpAnonymousUriPrefixMatcher()
         {
@@ -16,9 +17,9 @@ namespace CoreWCF.Channels
         internal HttpAnonymousUriPrefixMatcher(HttpAnonymousUriPrefixMatcher objectToClone)
             : this()
         {
-            if (objectToClone.anonymousUriPrefixes != null)
+            if (objectToClone._anonymousUriPrefixes != null)
             {
-                this.anonymousUriPrefixes = new UriPrefixTable<Uri>(objectToClone.anonymousUriPrefixes);
+                _anonymousUriPrefixes = new UriPrefixTable<Uri>(objectToClone._anonymousUriPrefixes);
             }
         }
 
@@ -34,14 +35,14 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(anonymousUriPrefix), SR.UriMustBeAbsolute);
             }
 
-            if (this.anonymousUriPrefixes == null)
+            if (_anonymousUriPrefixes == null)
             {
-                this.anonymousUriPrefixes = new UriPrefixTable<Uri>(true);
+                _anonymousUriPrefixes = new UriPrefixTable<Uri>(true);
             }
 
-            if (!this.anonymousUriPrefixes.IsRegistered(new BaseUriWithWildcard(anonymousUriPrefix, HostNameComparisonMode.Exact)))
+            if (!_anonymousUriPrefixes.IsRegistered(new BaseUriWithWildcard(anonymousUriPrefix, HostNameComparisonMode.Exact)))
             {
-                this.anonymousUriPrefixes.RegisterUri(anonymousUriPrefix, HostNameComparisonMode.Exact, anonymousUriPrefix);
+                _anonymousUriPrefixes.RegisterUri(anonymousUriPrefix, HostNameComparisonMode.Exact, anonymousUriPrefix);
             }
         }
 
@@ -49,13 +50,12 @@ namespace CoreWCF.Channels
         {
             Fx.Assert(to == null || to.IsAbsoluteUri, SR.UriMustBeAbsolute);
 
-            if (this.anonymousUriPrefixes == null)
+            if (_anonymousUriPrefixes == null)
             {
                 return false;
             }
 
-            Uri returnValue;
-            return this.anonymousUriPrefixes.TryLookupUri(to, HostNameComparisonMode.Exact, out returnValue);
+            return _anonymousUriPrefixes.TryLookupUri(to, HostNameComparisonMode.Exact, out Uri returnValue);
         }
     }
 }

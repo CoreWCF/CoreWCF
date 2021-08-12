@@ -1,9 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.Serialization;
 using CoreWCF.Runtime;
-using System.Diagnostics;
 
 namespace CoreWCF.Channels
 {
@@ -12,20 +15,19 @@ namespace CoreWCF.Channels
     public sealed class BaseUriWithWildcard
     {
         [DataMember]
-        Uri _baseAddress;
-
-        const char segmentDelimiter = '/';
+        private readonly Uri _baseAddress;
+        private const char segmentDelimiter = '/';
 
         [DataMember]
-        HostNameComparisonMode _hostNameComparisonMode;
-        const string plus = "+";
-        const string star = "*";
-        const int HttpUriDefaultPort = 80;
-        const int HttpsUriDefaultPort = 443;
+        private HostNameComparisonMode _hostNameComparisonMode;
+        private const string plus = "+";
+        private const string star = "*";
+        private const int HttpUriDefaultPort = 80;
+        private const int HttpsUriDefaultPort = 443;
 
         // Derived from [DataMember] fields
-        Comparand _comparand;
-        int _hashCode;
+        private Comparand _comparand;
+        private int _hashCode;
 
         public BaseUriWithWildcard(Uri baseAddress, HostNameComparisonMode hostNameComparisonMode)
         {
@@ -37,7 +39,7 @@ namespace CoreWCF.Channels
             // So do not check IsValid().
         }
 
-        BaseUriWithWildcard(string protocol, int defaultPort, string binding, int segmentCount, string path, string sampleBinding)
+        private BaseUriWithWildcard(string protocol, int defaultPort, string binding, int segmentCount, string path, string sampleBinding)
         {
             string[] urlParameters = SplitBinding(binding);
 
@@ -100,10 +102,9 @@ namespace CoreWCF.Channels
             get { return _hostNameComparisonMode; }
         }
 
-        static string[] SplitBinding(string binding)
+        private static string[] SplitBinding(string binding)
         {
             bool parsingIPv6Address = false;
-            string[] tokens = null;
             const char splitChar = ':', startIPv6Address = '[', endIPv6Address = ']';
 
             List<int> splitLocations = null;
@@ -128,6 +129,7 @@ namespace CoreWCF.Channels
                 }
             }
 
+            string[] tokens;
             if (splitLocations == null)
             {
                 tokens = new[] { binding };
@@ -197,9 +199,7 @@ namespace CoreWCF.Channels
 
         public override bool Equals(object o)
         {
-            BaseUriWithWildcard other = o as BaseUriWithWildcard;
-
-            if (other == null || other._hashCode != _hashCode || other._hostNameComparisonMode != _hostNameComparisonMode ||
+            if (!(o is BaseUriWithWildcard other) || other._hashCode != _hashCode || other._hostNameComparisonMode != _hostNameComparisonMode ||
                 other._comparand.Port != _comparand.Port)
             {
                 return false;
@@ -260,12 +260,12 @@ namespace CoreWCF.Channels
 
             if (!HostNameComparisonModeHelper.IsDefined(HostNameComparisonMode))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("context", SR.Hosting_BaseUriDeserializedNotValid);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(context), SR.Hosting_BaseUriDeserializedNotValid);
             }
             SetComparisonAddressAndHashCode();
         }
 
-        string ParseHostAndHostNameComparisonMode(string host)
+        private string ParseHostAndHostNameComparisonMode(string host)
         {
             if (string.IsNullOrEmpty(host) || host.Equals(star))
             {
@@ -284,7 +284,7 @@ namespace CoreWCF.Channels
             return host;
         }
 
-        void SetComparisonAddressAndHashCode()
+        private void SetComparisonAddressAndHashCode()
         {
             if (HostNameComparisonMode == HostNameComparisonMode.Exact)
             {
@@ -313,12 +313,11 @@ namespace CoreWCF.Channels
             return string.Format(CultureInfo.InvariantCulture, "{0}:{1}", HostNameComparisonMode, BaseAddress);
         }
 
-        struct Comparand
+        private struct Comparand
         {
             public string Address;
             public int Port;
             public string Scheme;
         }
     }
-
 }

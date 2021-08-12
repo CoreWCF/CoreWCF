@@ -1,14 +1,16 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Description;
 
 namespace CoreWCF
 {
     public abstract class MessageContractMemberAttribute : Attribute
     {
-        string _name;
-        string _ns;
-        bool _isNameSetExplicit;
-        bool _isNamespaceSetExplicit;
+        private string _name;
+        private string _ns;
+
         //ProtectionLevel protectionLevel = ProtectionLevel.None;
         //bool hasProtectionLevel = false;
 
@@ -28,14 +30,11 @@ namespace CoreWCF
                     NamingHelper.CheckUriProperty(value, "Namespace");
                 }
                 _ns = value;
-                _isNamespaceSetExplicit = true;
+                IsNamespaceSetExplicit = true;
             }
         }
 
-        internal bool IsNamespaceSetExplicit
-        {
-            get { return _isNamespaceSetExplicit; }
-        }
+        internal bool IsNamespaceSetExplicit { get; private set; }
 
         internal const string NamePropertyName = "Name";
         public string Name
@@ -54,14 +53,11 @@ namespace CoreWCF
                         SR.SFxNameCannotBeEmpty));
                 }
 
-                _name = value; _isNameSetExplicit = true;
+                _name = value; IsNameSetExplicit = true;
             }
         }
 
-        internal bool IsNameSetExplicit
-        {
-            get { return _isNameSetExplicit; }
-        }
+        internal bool IsNameSetExplicit { get; private set; }
 
         //internal const string ProtectionLevelPropertyName = "ProtectionLevel";
         //public ProtectionLevel ProtectionLevel
@@ -84,5 +80,4 @@ namespace CoreWCF
         //    get { return this.hasProtectionLevel; }
         //}
     }
-
 }

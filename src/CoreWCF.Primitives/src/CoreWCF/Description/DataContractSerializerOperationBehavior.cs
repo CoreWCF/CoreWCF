@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml;
@@ -7,22 +10,13 @@ using CoreWCF.Dispatcher;
 
 namespace CoreWCF.Description
 {
-    internal class DataContractSerializerOperationBehavior : IOperationBehavior //, IWsdlExportExtension
+    public class DataContractSerializerOperationBehavior : IOperationBehavior //, IWsdlExportExtension
     {
-        readonly bool builtInOperationBehavior;
-
-        OperationDescription operation;
-        DataContractFormatAttribute dataContractFormatAttribute;
+        private readonly OperationDescription _operation;
         internal bool ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
-        bool ignoreExtensionDataObjectSetExplicit;
         internal int maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
-        bool maxItemsInObjectGraphSetExplicit;
-        DataContractResolver dataContractResolver;
 
-        public DataContractFormatAttribute DataContractFormatAttribute
-        {
-            get { return dataContractFormatAttribute; }
-        }
+        public DataContractFormatAttribute DataContractFormatAttribute { get; }
 
         public DataContractSerializerOperationBehavior(OperationDescription operation)
             : this(operation, null)
@@ -31,21 +25,18 @@ namespace CoreWCF.Description
 
         public DataContractSerializerOperationBehavior(OperationDescription operation, DataContractFormatAttribute dataContractFormatAttribute)
         {
-            this.dataContractFormatAttribute = dataContractFormatAttribute ?? new DataContractFormatAttribute();
-            this.operation = operation;
+            DataContractFormatAttribute = dataContractFormatAttribute ?? new DataContractFormatAttribute();
+            _operation = operation;
         }
 
-        internal DataContractSerializerOperationBehavior(OperationDescription operation,
+        public DataContractSerializerOperationBehavior(OperationDescription operation,
             DataContractFormatAttribute dataContractFormatAttribute, bool builtInOperationBehavior)
             : this(operation, dataContractFormatAttribute)
         {
-            this.builtInOperationBehavior = builtInOperationBehavior;
+            IsBuiltInOperationBehavior = builtInOperationBehavior;
         }
 
-        internal bool IsBuiltInOperationBehavior
-        {
-            get { return builtInOperationBehavior; }
-        }
+        internal bool IsBuiltInOperationBehavior { get; }
 
         public int MaxItemsInObjectGraph
         {
@@ -53,15 +44,11 @@ namespace CoreWCF.Description
             set
             {
                 maxItemsInObjectGraph = value;
-                maxItemsInObjectGraphSetExplicit = true;
+                MaxItemsInObjectGraphSetExplicit = true;
             }
         }
 
-        internal bool MaxItemsInObjectGraphSetExplicit
-        {
-            get { return maxItemsInObjectGraphSetExplicit; }
-            set { maxItemsInObjectGraphSetExplicit = value; }
-        }
+        internal bool MaxItemsInObjectGraphSetExplicit { get; set; }
 
         public bool IgnoreExtensionDataObject
         {
@@ -69,21 +56,13 @@ namespace CoreWCF.Description
             set
             {
                 ignoreExtensionDataObject = value;
-                ignoreExtensionDataObjectSetExplicit = true;
+                IgnoreExtensionDataObjectSetExplicit = true;
             }
         }
 
-        internal bool IgnoreExtensionDataObjectSetExplicit
-        {
-            get { return ignoreExtensionDataObjectSetExplicit; }
-            set { ignoreExtensionDataObjectSetExplicit = value; }
-        }
+        internal bool IgnoreExtensionDataObjectSetExplicit { get; set; }
 
-        public DataContractResolver DataContractResolver
-        {
-            get { return dataContractResolver; }
-            set { dataContractResolver = value; }
-        }
+        public DataContractResolver DataContractResolver { get; set; }
 
         public virtual XmlObjectSerializer CreateSerializer(Type type, string name, string ns, IList<Type> knownTypes)
         {
@@ -100,7 +79,9 @@ namespace CoreWCF.Description
             MessageDescription request = operation.Messages[0];
             MessageDescription response = null;
             if (operation.Messages.Count == 2)
+            {
                 response = operation.Messages[1];
+            }
 
             formatRequest = (request != null) && !request.IsUntypedMessage;
             formatReply = (response != null) && !response.IsUntypedMessage;
@@ -108,9 +89,13 @@ namespace CoreWCF.Description
             if (formatRequest || formatReply)
             {
                 if (PrimitiveOperationFormatter.IsContractSupported(operation))
-                    return new PrimitiveOperationFormatter(operation, dataContractFormatAttribute.Style == OperationFormatStyle.Rpc);
+                {
+                    return new PrimitiveOperationFormatter(operation, DataContractFormatAttribute.Style == OperationFormatStyle.Rpc);
+                }
                 else
-                    return new DataContractSerializerOperationFormatter(operation, dataContractFormatAttribute, this);
+                {
+                    return new DataContractSerializerOperationFormatter(operation, DataContractFormatAttribute, this);
+                }
             }
 
             return null;
@@ -128,17 +113,21 @@ namespace CoreWCF.Description
         void IOperationBehavior.ApplyDispatchBehavior(OperationDescription description, DispatchOperation dispatch)
         {
             if (description == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
+            }
 
             if (dispatch == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(dispatch));
+            }
 
             if (dispatch.Formatter != null)
+            {
                 return;
+            }
 
-            bool formatRequest;
-            bool formatReply;
-            dispatch.Formatter = (IDispatchMessageFormatter)GetFormatter(description, out formatRequest, out formatReply, false);
+            dispatch.Formatter = (IDispatchMessageFormatter)GetFormatter(description, out bool formatRequest, out bool formatReply, false);
             dispatch.DeserializeRequest = formatRequest;
             dispatch.SerializeReply = formatReply;
         }
@@ -146,17 +135,21 @@ namespace CoreWCF.Description
         void IOperationBehavior.ApplyClientBehavior(OperationDescription description, ClientOperation proxy)
         {
             if (description == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(description));
+            }
 
             if (proxy == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(proxy));
+            }
 
             if (proxy.Formatter != null)
+            {
                 return;
+            }
 
-            bool formatRequest;
-            bool formatReply;
-            proxy.Formatter = (IClientMessageFormatter)GetFormatter(description, out formatRequest, out formatReply, true);
+            proxy.Formatter = (IClientMessageFormatter)GetFormatter(description, out bool formatRequest, out bool formatReply, true);
             proxy.SerializeRequest = formatRequest;
             proxy.DeserializeReply = formatReply;
         }

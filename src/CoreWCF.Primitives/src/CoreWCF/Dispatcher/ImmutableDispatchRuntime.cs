@@ -1,55 +1,51 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
-using CoreWCF.Runtime;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
-using System.Collections.Generic;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
-    class ImmutableDispatchRuntime
+    internal class ImmutableDispatchRuntime
     {
-        readonly AuthenticationBehavior _authenticationBehavior;
-        readonly AuthorizationBehavior _authorizationBehavior;
-        readonly int _correlationCount;
-        readonly ConcurrencyBehavior _concurrency;
-        readonly IDemuxer _demuxer;
-        readonly ErrorBehavior _error;
-        readonly bool _enableFaults;
-        readonly bool _impersonateOnSerializingReply;
-        readonly IInputSessionShutdown[] _inputSessionShutdownHandlers;
-        readonly bool _isOnServer;
-        readonly bool _manualAddressing;
-        readonly IDispatchMessageInspector[] _messageInspectors;
-        readonly SecurityImpersonationBehavior _securityImpersonation;
-        readonly TerminatingOperationBehavior _terminate;
-        readonly ThreadBehavior _thread;
-
-        readonly MessageRpcErrorHandler _processMessageNonCleanupError;
-        readonly MessageRpcErrorHandler _processMessageCleanupError;
+        private readonly AuthenticationBehavior _authenticationBehavior;
+        private readonly AuthorizationBehavior _authorizationBehavior;
+        private readonly ConcurrencyBehavior _concurrency;
+        private readonly IDemuxer _demuxer;
+        private readonly IInputSessionShutdown[] _inputSessionShutdownHandlers;
+        private readonly bool _isOnServer;
+        private readonly IDispatchMessageInspector[] _messageInspectors;
+        private readonly TerminatingOperationBehavior _terminate;
+        private readonly ThreadBehavior _thread;
+        private readonly MessageRpcErrorHandler _processMessageNonCleanupError;
+        private readonly MessageRpcErrorHandler _processMessageCleanupError;
 
         internal ImmutableDispatchRuntime(DispatchRuntime dispatch)
         {
             _authenticationBehavior = AuthenticationBehavior.TryCreate(dispatch);
             _authorizationBehavior = AuthorizationBehavior.TryCreate(dispatch);
             _concurrency = new ConcurrencyBehavior(dispatch);
-            _error = new ErrorBehavior(dispatch.ChannelDispatcher);
-            _enableFaults = dispatch.EnableFaults;
+            ErrorBehavior = new ErrorBehavior(dispatch.ChannelDispatcher);
+            EnableFaults = dispatch.EnableFaults;
             _inputSessionShutdownHandlers = EmptyArray<IInputSessionShutdown>.ToArray(dispatch.InputSessionShutdownHandlers);
             InstanceBehavior = new InstanceBehavior(dispatch, this);
             _isOnServer = dispatch.IsOnServer;
-            _manualAddressing = dispatch.ManualAddressing;
+            ManualAddressing = dispatch.ManualAddressing;
             _messageInspectors = EmptyArray<IDispatchMessageInspector>.ToArray(dispatch.MessageInspectors);
-            _securityImpersonation = SecurityImpersonationBehavior.CreateIfNecessary(dispatch);
+            SecurityImpersonation = SecurityImpersonationBehavior.CreateIfNecessary(dispatch);
             RequireClaimsPrincipalOnOperationContext = dispatch.RequireClaimsPrincipalOnOperationContext;
-            _impersonateOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
+            IsImpersonationEnabledOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
             _terminate = TerminatingOperationBehavior.CreateIfNecessary(dispatch);
             _thread = new ThreadBehavior(dispatch);
             ValidateMustUnderstand = dispatch.ValidateMustUnderstand;
             ParameterInspectorCorrelationOffset = (dispatch.MessageInspectors.Count +
                 dispatch.MaxCallContextInitializers);
-            _correlationCount = ParameterInspectorCorrelationOffset + dispatch.MaxParameterInspectors;
+            CorrelationCount = ParameterInspectorCorrelationOffset + dispatch.MaxParameterInspectors;
 
             DispatchOperationRuntime unhandled = new DispatchOperationRuntime(dispatch.UnhandledDispatchOperation, this);
 
@@ -89,29 +85,17 @@ namespace CoreWCF.Dispatcher
             get { return _messageInspectors.Length; }
         }
 
-        internal int CorrelationCount
-        {
-            get { return _correlationCount; }
-        }
+        internal int CorrelationCount { get; }
 
-        internal bool EnableFaults
-        {
-            get { return _enableFaults; }
-        }
+        internal bool EnableFaults { get; }
 
         internal InstanceBehavior InstanceBehavior { get; }
 
-        internal bool IsImpersonationEnabledOnSerializingReply
-        {
-            get { return _impersonateOnSerializingReply; }
-        }
+        internal bool IsImpersonationEnabledOnSerializingReply { get; }
 
         internal bool RequireClaimsPrincipalOnOperationContext { get; }
 
-        internal bool ManualAddressing
-        {
-            get { return _manualAddressing; }
-        }
+        internal bool ManualAddressing { get; }
 
         internal int ParameterInspectorCorrelationOffset { get; }
 
@@ -120,19 +104,13 @@ namespace CoreWCF.Dispatcher
         //            get { return this.requestReplyCorrelator; }
         //        }
 
-        internal SecurityImpersonationBehavior SecurityImpersonation
-        {
-            get { return _securityImpersonation; }
-        }
+        internal SecurityImpersonationBehavior SecurityImpersonation { get; }
 
         internal bool ValidateMustUnderstand { get; }
 
-        internal ErrorBehavior ErrorBehavior
-        {
-            get { return _error; }
-        }
+        internal ErrorBehavior ErrorBehavior { get; }
 
-        Task AcquireDynamicInstanceContextAsync(MessageRpc rpc)
+        private Task AcquireDynamicInstanceContextAsync(MessageRpc rpc)
         {
             if (rpc.InstanceContext.QuotaThrottle != null)
             {
@@ -144,7 +122,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        Task AcquireDynamicInstanceContextCoreAsync(MessageRpc rpc)
+        private Task AcquireDynamicInstanceContextCoreAsync(MessageRpc rpc)
         {
             return rpc.InstanceContext.QuotaThrottle.AcquireAsync();
         }
@@ -184,7 +162,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void BeforeSendReply(MessageRpc rpc, ref Exception exception, ref bool thereIsAnUnhandledException)
+        private void BeforeSendReply(MessageRpc rpc, ref Exception exception, ref bool thereIsAnUnhandledException)
         {
             if (_messageInspectors.Length > 0)
             {
@@ -229,7 +207,7 @@ namespace CoreWCF.Dispatcher
                     {
                         exception = e;
                     }
-                    thereIsAnUnhandledException = (!_error.HandleError(e)) || thereIsAnUnhandledException;
+                    thereIsAnUnhandledException = (!ErrorBehavior.HandleError(e)) || thereIsAnUnhandledException;
                 }
             }
         }
@@ -252,11 +230,11 @@ namespace CoreWCF.Dispatcher
             }
             catch (CommunicationException e)
             {
-                _error.HandleError(e);
+                ErrorBehavior.HandleError(e);
             }
             catch (TimeoutException e)
             {
-                _error.HandleError(e);
+                ErrorBehavior.HandleError(e);
             }
             catch (Exception e)
             {
@@ -272,7 +250,7 @@ namespace CoreWCF.Dispatcher
                 //        this, e);
                 //}
 
-                if (!_error.HandleError(e))
+                if (!ErrorBehavior.HandleError(e))
                 {
                     rpc.RequestContextThrewOnReply = true;
                     rpc.CanSendReply = false;
@@ -286,7 +264,7 @@ namespace CoreWCF.Dispatcher
         {
             rpc.ErrorProcessor = ProcessError;
             rpc.AsyncProcessor = ProcessMessageAsync;
-            var task = rpc.ProcessAsync(isOperationContextSet);
+            Task<MessageRpc> task = rpc.ProcessAsync(isOperationContextSet);
             rpc._processCallReturned = true;
             return task;
         }
@@ -299,11 +277,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InputSessionDoneReceivingCore(ServiceChannel channel)
+        private void InputSessionDoneReceivingCore(ServiceChannel channel)
         {
-            IDuplexContextChannel proxy = channel.Proxy as IDuplexContextChannel;
-
-            if (proxy != null)
+            if (channel.Proxy is IDuplexContextChannel proxy)
             {
                 IInputSessionShutdown[] handlers = _inputSessionShutdownHandlers;
                 try
@@ -319,7 +295,7 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    if (!_error.HandleError(e))
+                    if (!ErrorBehavior.HandleError(e))
                     {
                         proxy.Abort();
                     }
@@ -340,11 +316,9 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InputSessionFaultedCore(ServiceChannel channel)
+        private void InputSessionFaultedCore(ServiceChannel channel)
         {
-            IDuplexContextChannel proxy = channel.Proxy as IDuplexContextChannel;
-
-            if (proxy != null)
+            if (channel.Proxy is IDuplexContextChannel proxy)
             {
                 IInputSessionShutdown[] handlers = _inputSessionShutdownHandlers;
                 try
@@ -360,7 +334,7 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    if (!_error.HandleError(e))
+                    if (!ErrorBehavior.HandleError(e))
                     {
                         proxy.Abort();
                     }
@@ -368,7 +342,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void AddMessageProperties(Message message, OperationContext context, ServiceChannel replyChannel)
+        private void AddMessageProperties(Message message, OperationContext context, ServiceChannel replyChannel)
         {
             if (context.InternalServiceChannel == replyChannel)
             {
@@ -384,7 +358,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void PrepareReply(MessageRpc rpc)
+        private void PrepareReply(MessageRpc rpc)
         {
             RequestContext context = rpc.OperationContext.RequestContext;
             Exception exception = null;
@@ -426,7 +400,7 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        thereIsAnUnhandledException = (!_error.HandleError(e)) || thereIsAnUnhandledException;
+                        thereIsAnUnhandledException = (!ErrorBehavior.HandleError(e)) || thereIsAnUnhandledException;
                         exception = e;
                     }
                 }
@@ -448,7 +422,7 @@ namespace CoreWCF.Dispatcher
                     // ProvideFault to expect that SFx will address the reply.  Instead
                     // we always just do 'internal server error' processing.
                     rpc.Error = exception;
-                    _error.ProvideOnlyFaultOfLastResort(ref rpc);
+                    ErrorBehavior.ProvideOnlyFaultOfLastResort(ref rpc);
 
                     try
                     {
@@ -460,7 +434,7 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        _error.HandleError(e);
+                        ErrorBehavior.HandleError(e);
                     }
                 }
             }
@@ -470,13 +444,13 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        bool PrepareAndAddressReply(ref MessageRpc rpc)
+        private bool PrepareAndAddressReply(ref MessageRpc rpc)
         {
             bool canSendReply = true;
 
-            if (!_manualAddressing)
+            if (!ManualAddressing)
             {
-                if (!object.ReferenceEquals(rpc.RequestID, null))
+                if (!ReferenceEquals(rpc.RequestID, null))
                 {
                     RequestReplyCorrelator.PrepareReply(rpc.Reply, rpc.RequestID);
                 }
@@ -518,7 +492,7 @@ namespace CoreWCF.Dispatcher
                     throw TraceUtility.ThrowHelperError(error, rpc.Request);
                 }
 
-                if (!_manualAddressing)
+                if (!ManualAddressing)
                 {
                     EndpointAddress replyTo = rpc.ReplyToInfo.ReplyTo;
                     if (replyTo != null && replyTo.IsNone && rpc.Channel.IsReplyChannel)
@@ -617,7 +591,7 @@ namespace CoreWCF.Dispatcher
             if (_concurrency.IsConcurrent(rpc))
             {
                 rpc.EnsureReceive();
-                if(!rpc._processCallReturned)
+                if (!rpc._processCallReturned)
                 {
                     // To allow transport receive loop to get next request, the call to dispatch the current message needs to return.
                     // If all previous await's have completed synchronously, execution needs to be forced to continue on another thread.
@@ -670,7 +644,7 @@ namespace CoreWCF.Dispatcher
         {
             try
             {
-                _error.ProvideMessageFault(rpc);
+                ErrorBehavior.ProvideMessageFault(rpc);
             }
             catch (Exception e)
             {
@@ -679,7 +653,7 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                _error.HandleError(e);
+                ErrorBehavior.HandleError(e);
             }
 
             PrepareReply(rpc);
@@ -734,10 +708,10 @@ namespace CoreWCF.Dispatcher
         // message was consumed after deserializing but before calling
         // the user.  This is stored as rpc.DidDeserializeRequestBody.
         //
-        void ProcessMessageCleanup(MessageRpc rpc)
+        private void ProcessMessageCleanup(MessageRpc rpc)
         {
             Fx.Assert(
-                !object.ReferenceEquals(rpc.ErrorProcessor, _processMessageCleanupError),
+                !ReferenceEquals(rpc.ErrorProcessor, _processMessageCleanupError),
                 "ProcessMessageCleanup run twice on the same MessageRpc!");
             rpc.ErrorProcessor = _processMessageCleanupError;
 
@@ -763,7 +737,7 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    _error.HandleError(e);
+                    ErrorBehavior.HandleError(e);
                 }
 
                 rpc.DisposeParameters(false); //Dispose all input/output/return parameters
@@ -806,7 +780,7 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        _error.HandleError(e);
+                        ErrorBehavior.HandleError(e);
                     }
                 }
 
@@ -824,7 +798,7 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        _error.HandleError(e);
+                        ErrorBehavior.HandleError(e);
                     }
                 }
 
@@ -842,7 +816,7 @@ namespace CoreWCF.Dispatcher
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperCallback(e);
                 }
 
-                InstanceBehavior.AfterReply(ref rpc, _error);
+                InstanceBehavior.AfterReply(ref rpc, ErrorBehavior);
 
                 if (rpc.SuccessfullyLockedInstance)
                 {
@@ -859,7 +833,7 @@ namespace CoreWCF.Dispatcher
 
                         Fx.Assert("Exceptions should be caught by callee");
                         rpc.InstanceContext.FaultInternal();
-                        _error.HandleError(e);
+                        ErrorBehavior.HandleError(e);
                     }
                 }
 
@@ -875,7 +849,7 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        _error.HandleError(e);
+                        ErrorBehavior.HandleError(e);
                     }
                 }
 
@@ -891,16 +865,16 @@ namespace CoreWCF.Dispatcher
                         {
                             throw;
                         }
-                        _error.HandleError(e);
+                        ErrorBehavior.HandleError(e);
                     }
                 }
             }
             finally
             {
                 // TODO: Add the code for the other half of InstanceContextServiceThrottle being acquired
-                if (rpc.MessageRpcOwnsInstanceContextThrottle && rpc.channelHandler.InstanceContextServiceThrottle != null)
+                if (rpc.MessageRpcOwnsInstanceContextThrottle && rpc.ChannelHandler.InstanceContextServiceThrottle != null)
                 {
-                    rpc.channelHandler.InstanceContextServiceThrottle.DeactivateInstanceContext();
+                    rpc.ChannelHandler.InstanceContextServiceThrottle.DeactivateInstanceContext();
                 }
 
                 //if (rpc.Activity != null && DiagnosticUtility.ShouldUseActivity)
@@ -909,14 +883,14 @@ namespace CoreWCF.Dispatcher
                 //}
             }
 
-            _error.HandleError(rpc);
+            ErrorBehavior.HandleError(rpc);
         }
 
-        Task ProcessMessageNonCleanupError(MessageRpc rpc)
+        private Task ProcessMessageNonCleanupError(MessageRpc rpc)
         {
             try
             {
-                _error.ProvideMessageFault(rpc);
+                ErrorBehavior.ProvideMessageFault(rpc);
             }
             catch (Exception e)
             {
@@ -925,20 +899,20 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                _error.HandleError(e);
+                ErrorBehavior.HandleError(e);
             }
 
             PrepareReply(rpc);
             return Task.CompletedTask;
         }
 
-        Task ProcessMessageCleanupError(MessageRpc rpc)
+        private Task ProcessMessageCleanupError(MessageRpc rpc)
         {
-            _error.HandleError(rpc);
+            ErrorBehavior.HandleError(rpc);
             return Task.CompletedTask;
         }
 
-        void SetActivityIdOnThread(MessageRpc rpc)
+        private void SetActivityIdOnThread(MessageRpc rpc)
         {
             //if (FxTrace.Trace.IsEnd2EndActivityTracingEnabled && rpc.EventTraceActivity != null)
             //{
@@ -947,7 +921,7 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        void TransferChannelFromPendingList(MessageRpc rpc)
+        private void TransferChannelFromPendingList(MessageRpc rpc)
         {
             if (rpc.Channel.IsPending)
             {
@@ -971,34 +945,34 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        interface IDemuxer
+        private interface IDemuxer
         {
             DispatchOperationRuntime GetOperation(ref Message request);
         }
 
-        class ActionDemuxer : IDemuxer
+        private class ActionDemuxer : IDemuxer
         {
-            HybridDictionary map;
-            DispatchOperationRuntime unhandled;
+            private readonly HybridDictionary _map;
+            private DispatchOperationRuntime _unhandled;
 
             internal ActionDemuxer()
             {
-                map = new HybridDictionary();
+                _map = new HybridDictionary();
             }
 
             internal void Add(string action, DispatchOperationRuntime operation)
             {
-                if (map.Contains(action))
+                if (_map.Contains(action))
                 {
-                    DispatchOperationRuntime existingOperation = (DispatchOperationRuntime)map[action];
+                    DispatchOperationRuntime existingOperation = (DispatchOperationRuntime)_map[action];
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxActionDemuxerDuplicate, existingOperation.Name, operation.Name, action)));
                 }
-                map.Add(action, operation);
+                _map.Add(action, operation);
             }
 
             internal void SetUnhandled(DispatchOperationRuntime operation)
             {
-                unhandled = operation;
+                _unhandled = operation;
             }
 
             public DispatchOperationRuntime GetOperation(ref Message request)
@@ -1008,21 +982,21 @@ namespace CoreWCF.Dispatcher
                 {
                     action = MessageHeaders.WildcardAction;
                 }
-                DispatchOperationRuntime operation = (DispatchOperationRuntime)map[action];
+                DispatchOperationRuntime operation = (DispatchOperationRuntime)_map[action];
                 if (operation != null)
                 {
                     return operation;
                 }
 
-                return unhandled;
+                return _unhandled;
             }
         }
 
-        class CustomDemuxer : IDemuxer
+        private class CustomDemuxer : IDemuxer
         {
-            Dictionary<string, DispatchOperationRuntime> _map;
-            IDispatchOperationSelector _selector;
-            DispatchOperationRuntime _unhandled;
+            private readonly Dictionary<string, DispatchOperationRuntime> _map;
+            private readonly IDispatchOperationSelector _selector;
+            private DispatchOperationRuntime _unhandled;
 
             internal CustomDemuxer(IDispatchOperationSelector selector)
             {
@@ -1043,8 +1017,7 @@ namespace CoreWCF.Dispatcher
             public DispatchOperationRuntime GetOperation(ref Message request)
             {
                 string operationName = _selector.SelectOperation(ref request);
-                DispatchOperationRuntime operation = null;
-                if (_map.TryGetValue(operationName, out operation))
+                if (_map.TryGetValue(operationName, out DispatchOperationRuntime operation))
                 {
                     return operation;
                 }

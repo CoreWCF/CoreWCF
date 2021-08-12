@@ -1,17 +1,20 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
 using System.Net.WebSockets;
 using System.Security.Principal;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
     internal class ServiceWebSocketContext : WebSocketContext
     {
-        WebSocketContext _context;
-        IPrincipal _user;
+        private readonly WebSocketContext _context;
+        private readonly IPrincipal _user;
 
         public ServiceWebSocketContext(WebSocketContext context, IPrincipal user)
         {
@@ -72,7 +75,7 @@ namespace CoreWCF.Channels
 
         public override IPrincipal User
         {
-            get { return _user != null ? _user : _context.User; }
+            get { return _user ?? _context.User; }
         }
 
         public override WebSocket WebSocket

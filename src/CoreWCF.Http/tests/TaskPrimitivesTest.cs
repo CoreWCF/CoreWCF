@@ -1,12 +1,15 @@
-﻿using ClientContract;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
+using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Globalization;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,24 +17,27 @@ namespace BasicHttp
 {
     public class TaskPrimitivesTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public static DateTime TestDateTime = new DateTime(2010, 09, 04, new GregorianCalendar(GregorianCalendarTypes.USEnglish));
         public TaskPrimitivesTest(ITestOutputHelper output)
         {
             _output = output;
         }
 
+#if NET472
+        // Unstable on NET472
+#else
         [Fact]
         public void InvokeTaskBaseAsycn()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestPrimitives>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/TaskPrimitives/basichttp.svc")));
-                var channel = factory.CreateChannel();
+                ITestPrimitives channel = factory.CreateChannel();
 
                 Task[] tasks = new Task[22];
                 tasks[0] = channel.GetInt();
@@ -79,9 +85,10 @@ namespace BasicHttp
                 Assert.Equal(100, ((Task<int?>)tasks[18]).Result);
                 Assert.Equal("00:00:05", ((Task<TimeSpan>)tasks[19]).Result.ToString());
                 Assert.Equal("7a1c7e9a-f4ce-4861-852c-c05ec59fad4d", ((Task<Guid>)tasks[20]).Result.ToString());
-                Assert.Equal(Color.Blue, ((Task<Color>)tasks[21]).Result);               
-            }            
+                Assert.Equal(Color.Blue, ((Task<Color>)tasks[21]).Result);
+            }
         }
+#endif
 
         internal class Startup
         {

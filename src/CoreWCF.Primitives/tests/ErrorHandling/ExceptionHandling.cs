@@ -1,9 +1,14 @@
-﻿using DispatcherClient;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF;
+using DispatcherClient;
 using Helpers;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace ErrorHandling
@@ -13,23 +18,17 @@ namespace ErrorHandling
         [Fact]
         public static void ServiceThrowsTimeoutException()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ThrowingService, ISimpleService>(
-                (services) => 
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<ThrowingService, ISimpleService>(
+                (services) =>
                 {
                     services.AddSingleton(new ThrowingService(new TimeoutException()));
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
-            System.ServiceModel.FaultException exceptionThrown = null;
-            try
+            ISimpleService channel = factory.CreateChannel();
+            System.ServiceModel.FaultException exceptionThrown = Assert.Throws<System.ServiceModel.FaultException>(() =>
             {
-                var echo = channel.Echo("hello");
-            }
-            catch(System.ServiceModel.FaultException e)
-            {
-                exceptionThrown = e;
-            }
-
+                _ = channel.Echo("hello");
+            });
             Assert.NotNull(exceptionThrown);
             Assert.True(exceptionThrown.Code.IsReceiverFault);
             Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
@@ -41,24 +40,18 @@ namespace ErrorHandling
         [Fact]
         public static async Task AsyncServiceThrowsTimeoutExceptionBeforeAwait()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ThrowingAsyncService, ISimpleAsyncService>(
+            System.ServiceModel.ChannelFactory<ISimpleAsyncService> factory = DispatcherHelper.CreateChannelFactory<ThrowingAsyncService, ISimpleAsyncService>(
                 (services) =>
                 {
                     services.AddSingleton(new ThrowingAsyncService(new TimeoutException(), beforeAwait: true));
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleAsyncService channel = factory.CreateChannel();
             ((System.ServiceModel.IClientChannel)channel).Open();
-            System.ServiceModel.FaultException exceptionThrown = null;
-            try
+            System.ServiceModel.FaultException exceptionThrown = await Assert.ThrowsAsync<System.ServiceModel.FaultException>(async () =>
             {
-                var echo = await channel.EchoAsync("hello");
-            }
-            catch (System.ServiceModel.FaultException e)
-            {
-                exceptionThrown = e;
-            }
-
+                _ = await channel.EchoAsync("hello");
+            });
             Assert.NotNull(exceptionThrown);
             Assert.True(exceptionThrown.Code.IsReceiverFault);
             Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
@@ -70,24 +63,18 @@ namespace ErrorHandling
         [Fact]
         public static async Task AsyncServiceThrowsTimeoutExceptionAfterAwait()
         {
-            var factory = DispatcherHelper.CreateChannelFactory<ThrowingAsyncService, ISimpleAsyncService>(
+            System.ServiceModel.ChannelFactory<ISimpleAsyncService> factory = DispatcherHelper.CreateChannelFactory<ThrowingAsyncService, ISimpleAsyncService>(
                 (services) =>
                 {
                     services.AddSingleton(new ThrowingAsyncService(new TimeoutException(), beforeAwait: false));
                 });
             factory.Open();
-            var channel = factory.CreateChannel();
+            ISimpleAsyncService channel = factory.CreateChannel();
             ((System.ServiceModel.IClientChannel)channel).Open();
-            System.ServiceModel.FaultException exceptionThrown = null;
-            try
+            System.ServiceModel.FaultException exceptionThrown = await Assert.ThrowsAsync<System.ServiceModel.FaultException>(async () =>
             {
-                var echo = await channel.EchoAsync("hello");
-            }
-            catch (System.ServiceModel.FaultException e)
-            {
-                exceptionThrown = e;
-            }
-
+                _ = await channel.EchoAsync("hello");
+            });
             Assert.NotNull(exceptionThrown);
             Assert.True(exceptionThrown.Code.IsReceiverFault);
             Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
@@ -95,11 +82,47 @@ namespace ErrorHandling
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
         }
+
+        [Fact]
+        [UseCulture("en-US")]
+        public static void ServiceThrowsExceptionDetailsIncludedInFault()
+        {
+            string exceptionMessage = "This is the exception message";
+            string stackTraceTopMethod = "   at ErrorHandling.ThrowingService.Echo(String echo)";
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<ThrowingDetailInFaultService, ISimpleService>(
+                (services) =>
+                {
+                    services.AddSingleton(new ThrowingDetailInFaultService(new Exception(exceptionMessage)));
+                });
+            factory.Open();
+            ISimpleService channel = factory.CreateChannel();
+            ((System.ServiceModel.IClientChannel)channel).Open();
+            System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail> exceptionThrown = Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() =>
+            {
+                _ = channel.Echo("hello");
+            });
+            Assert.NotNull(exceptionThrown);
+            Assert.NotNull(exceptionThrown.Detail);
+            Assert.True(exceptionThrown.Code.IsReceiverFault);
+            System.ServiceModel.ExceptionDetail detail = exceptionThrown.Detail;
+            Assert.Equal(exceptionMessage, detail.Message);
+            Assert.StartsWith(stackTraceTopMethod, detail.StackTrace);
+            Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
+            ((System.ServiceModel.Channels.IChannel)channel).Close();
+            factory.Close();
+            TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
+        }
+    }
+
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
+    public class ThrowingDetailInFaultService : ThrowingService
+    {
+        public ThrowingDetailInFaultService(Exception exception) : base(exception) { }
     }
 
     public class ThrowingService : ISimpleService
     {
-        private Exception _exception;
+        private readonly Exception _exception;
 
         public ThrowingService(Exception exception)
         {
@@ -113,8 +136,8 @@ namespace ErrorHandling
 
     public class ThrowingAsyncService : ISimpleAsyncService
     {
-        private Exception _exception;
-        private bool _beforeAwait;
+        private readonly Exception _exception;
+        private readonly bool _beforeAwait;
 
         public ThrowingAsyncService(Exception exception, bool beforeAwait)
         {

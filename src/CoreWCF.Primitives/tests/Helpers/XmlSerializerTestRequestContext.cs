@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -8,11 +11,11 @@ using Xunit;
 
 namespace Helpers
 {
-    class XmlSerializerTestRequestContext : RequestContext
+    internal class XmlSerializerTestRequestContext : RequestContext
     {
-        private Message _requestMessage;
+        private readonly Message _requestMessage;
         private string _replyMessageString;
-        private ManualResetEvent _mre;
+        private readonly ManualResetEvent _mre;
 
         public XmlSerializerTestRequestContext(Message requestMessage)
         {
@@ -54,11 +57,11 @@ namespace Helpers
         internal void SerializeReply()
         {
             MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
-            var mef = mebe.CreateMessageEncoderFactory();
-            var me = mef.Encoder;
+            MessageEncoderFactory mef = mebe.CreateMessageEncoderFactory();
+            MessageEncoder me = mef.Encoder;
             MemoryStream ms = new MemoryStream();
-            me.WriteMessage(ReplyMessage, ms);
-            var messageBytes = ms.ToArray();
+            me.WriteMessageAsync(ReplyMessage, ms);
+            byte[] messageBytes = ms.ToArray();
             _replyMessageString = Encoding.UTF8.GetString(messageBytes);
         }
 
@@ -75,16 +78,16 @@ namespace Helpers
         internal static XmlSerializerTestRequestContext Create(string toAddress)
         {
             MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
-            var mef = mebe.CreateMessageEncoderFactory();
-            var me = mef.Encoder;
-            var requestMessageBytes = Encoding.UTF8.GetBytes(s_requestMessage);
-            var requestMessage = me.ReadMessage(new ArraySegment<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
+            MessageEncoderFactory mef = mebe.CreateMessageEncoderFactory();
+            MessageEncoder me = mef.Encoder;
+            byte[] requestMessageBytes = Encoding.UTF8.GetBytes(s_requestMessage);
+            Message requestMessage = me.ReadMessage(new ArraySegment<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
             requestMessage.Headers.To = new Uri(toAddress);
             requestMessage.Headers.Action = "http://tempuri.org/ISimpleXmlSerializerService/Echo";
             return new XmlSerializerTestRequestContext(requestMessage);
         }
 
-        private static string s_requestMessage = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private static readonly string s_requestMessage = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"">
   <s:Body>
     <Echo xmlns=""http://tempuri.org/"">
@@ -93,6 +96,6 @@ namespace Helpers
   </s:Body>
 </s:Envelope>";
 
-        private static string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleXmlSerializerService/EchoResponse</Action></s:Header><s:Body xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
+        private static readonly string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleXmlSerializerService/EchoResponse</Action></s:Header><s:Body xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
     }
 }

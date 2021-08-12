@@ -1,22 +1,26 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Security.Authentication.ExtendedProtection;
+using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
-using System;
-using System.Diagnostics;
-using System.Security.Authentication.ExtendedProtection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
 {
     internal abstract class TransportDuplexSessionChannel : TransportOutputChannel, IDuplexSessionChannel
     {
-        bool _isInputSessionClosed;
-        bool _isOutputSessionClosed;
-        ChannelBinding _channelBindingToken;
-        private IServiceChannelDispatcher _channelDispatcher;
+        private bool _isInputSessionClosed;
+        private bool _isOutputSessionClosed;
+        private ChannelBinding _channelBindingToken;
+        private TaskCompletionSource<object> _inputSessionClosedTcs;
 
         protected TransportDuplexSessionChannel(
           ITransportFactorySettings settings,
@@ -31,6 +35,7 @@ namespace CoreWCF.Channels
             BufferManager = settings.BufferManager;
             MessageEncoder = settings.MessageEncoderFactory.CreateSessionEncoder();
             Session = new ConnectionDuplexSession(this);
+            _inputSessionClosedTcs = new TaskCompletionSource<object>();
         }
 
         public EndpointAddress LocalAddress { get; }
@@ -69,13 +74,13 @@ namespace CoreWCF.Channels
 
             while (true)
             {
-                var result = await TryReceiveAsync(CancellationToken.None);
-                if (result.success)
+                (Message message, bool success) = await TryReceiveAsync(CancellationToken.None);
+                if (success)
                 {
-                    await ChannelDispatcher.DispatchAsync(result.message);
+                    await ChannelDispatcher.DispatchAsync(message);
                 }
 
-                if (result.message == null) // NULL message means client sent FIN byte
+                if (message == null || this.DoneReceivingInCurrentState()) // NULL message means client sent FIN byte
                 {
                     return;
                 }
@@ -214,8 +219,7 @@ namespace CoreWCF.Channels
             // close input session if necessary
             if (!_isInputSessionClosed)
             {
-                // TODO: Come up with some way to know when the input is closed. Maybe register something on the connection transport or have a Task which gets completed on close
-                //await EnsureInputClosedAsync(token);
+                await EnsureInputClosedAsync(token);
                 OnInputSessionClosed();
             }
 
@@ -338,7 +342,7 @@ namespace CoreWCF.Channels
         // cleanup after the framing handshake has completed
         protected abstract Task CompleteCloseAsync(CancellationToken token);
 
-        void ThrowIfOutputSessionClosed()
+        private void ThrowIfOutputSessionClosed()
         {
             if (_isOutputSessionClosed)
             {
@@ -346,7 +350,20 @@ namespace CoreWCF.Channels
             }
         }
 
-        void OnInputSessionClosed()
+        private async Task EnsureInputClosedAsync(CancellationToken token)
+        {
+            Message message = await MessageSource.ReceiveAsync(token);
+            if (message != null)
+            {
+                using (message)
+                {
+                    ProtocolException error = ReceiveShutdownReturnedNonNull(message);
+                    throw TraceUtility.ThrowHelperError(error, message);
+                }
+            }
+        }
+
+        private void OnInputSessionClosed()
         {
             lock (ThisLock)
             {
@@ -356,10 +373,11 @@ namespace CoreWCF.Channels
                 }
 
                 _isInputSessionClosed = true;
+                _inputSessionClosedTcs.TrySetResult(null);
             }
         }
 
-        void OnOutputSessionClosed(CancellationToken token)
+        private void OnOutputSessionClosed(CancellationToken token)
         {
             bool releaseConnection = false;
             lock (ThisLock)
@@ -412,10 +430,34 @@ namespace CoreWCF.Channels
             return new CommunicationObjectFaultedException(message);
         }
 
+        internal ProtocolException ReceiveShutdownReturnedNonNull(Message message)
+        {
+            if (message.IsFault)
+            {
+                try
+                {
+                    MessageFault fault = MessageFault.CreateFault(message, 64 * 1024);
+                    FaultReasonText reason = fault.Reason.GetMatchingTranslation(CultureInfo.CurrentCulture);
+                    string text = SR.Format(SR.ReceiveShutdownReturnedFault, reason.Text);
+                    return new ProtocolException(text);
+                }
+                catch (QuotaExceededException)
+                {
+                    string text = SR.Format(SR.ReceiveShutdownReturnedLargeFault, message.Headers.Action);
+                    return new ProtocolException(text);
+                }
+            }
+            else
+            {
+                string text = SR.Format(SR.ReceiveShutdownReturnedMessage, message.Headers.Action);
+                return new ProtocolException(text);
+            }
+        }
+
         internal class ConnectionDuplexSession : IDuplexSession
         {
-            static UriGenerator _uriGenerator;
-            string _id;
+            private static UriGenerator s_uriGenerator;
+            private string _id;
 
             public ConnectionDuplexSession(TransportDuplexSessionChannel channel)
                 : base()
@@ -444,16 +486,16 @@ namespace CoreWCF.Channels
 
             public TransportDuplexSessionChannel Channel { get; }
 
-            static UriGenerator UriGenerator
+            private static UriGenerator UriGenerator
             {
                 get
                 {
-                    if (_uriGenerator == null)
+                    if (s_uriGenerator == null)
                     {
-                        _uriGenerator = new UriGenerator();
+                        s_uriGenerator = new UriGenerator();
                     }
 
-                    return _uriGenerator;
+                    return s_uriGenerator;
                 }
             }
 
@@ -468,6 +510,5 @@ namespace CoreWCF.Channels
                 return Channel.CloseOutputSessionAsync(token);
             }
         }
-
     }
 }

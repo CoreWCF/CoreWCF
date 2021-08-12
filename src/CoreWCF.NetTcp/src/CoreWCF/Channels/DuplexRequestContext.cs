@@ -1,22 +1,22 @@
-﻿using CoreWCF.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    class DuplexRequestContext : RequestContextBase
+    internal class DuplexRequestContext : RequestContextBase
     {
-        IDuplexChannel channel;
-        TaskCompletionSource<object> dispatchInvokedTcs;
-        Task dispatchInvokedTask;
+        private readonly IDuplexChannel _channel;
+        private TaskCompletionSource<object> _dispatchInvokedTcs;
+        private Task _dispatchInvokedTask;
 
         internal DuplexRequestContext(IDuplexChannel channel, Message request, IDefaultCommunicationTimeouts timeouts)
             : base(request, timeouts.CloseTimeout, timeouts.SendTimeout)
         {
-            this.channel = channel;
+            _channel = channel;
         }
 
         protected override void OnAbort()
@@ -32,7 +32,7 @@ namespace CoreWCF.Channels
         {
             if (message != null)
             {
-                return channel.SendAsync(message, token);
+                return _channel.SendAsync(message, token);
             }
 
             return Task.CompletedTask;
@@ -40,16 +40,16 @@ namespace CoreWCF.Channels
 
         public override void OnOperationInvoke()
         {
-            if (dispatchInvokedTask == null)
+            if (_dispatchInvokedTask == null)
             {
-                if (Interlocked.CompareExchange(ref dispatchInvokedTask, Task.CompletedTask, null) == null)
+                if (Interlocked.CompareExchange(ref _dispatchInvokedTask, Task.CompletedTask, null) == null)
                 {
                     return;
                 }
             }
 
-            Fx.Assert(dispatchInvokedTcs != null, "A non-null Task should have the associated TCS set");
-            dispatchInvokedTcs.TrySetResult(null);
+            Fx.Assert(_dispatchInvokedTcs != null, "A non-null Task should have the associated TCS set");
+            _dispatchInvokedTcs.TrySetResult(null);
         }
 
         // TODO: Switch to ValueTask as in many scenarios this will be completed before being requested;
@@ -57,9 +57,9 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (dispatchInvokedTask != null)
+                if (_dispatchInvokedTask != null)
                 {
-                    return dispatchInvokedTask;
+                    return _dispatchInvokedTask;
                 }
 
                 // There's a small race here where we could create a TCS and dispatchInvokedTask is set via OnOperationInvoke.
@@ -67,15 +67,15 @@ namespace CoreWCF.Channels
                 // always set using Interlocked.CompareExchance, we guarantee returning the correct Task;
                 // Creating with RunContinuationsAsynchronously otherwise the method awaiting the Task will continue executing on
                 // the thread which calls OnOperationInvoke;
-                dispatchInvokedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
-                if (Interlocked.CompareExchange(ref dispatchInvokedTask, dispatchInvokedTcs.Task, null) == null)
+                _dispatchInvokedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+                if (Interlocked.CompareExchange(ref _dispatchInvokedTask, _dispatchInvokedTcs.Task, null) == null)
                 {
-                    return dispatchInvokedTcs.Task;
+                    return _dispatchInvokedTcs.Task;
                 }
                 else
                 {
-                    dispatchInvokedTcs = null;
-                    return dispatchInvokedTask;
+                    _dispatchInvokedTcs = null;
+                    return _dispatchInvokedTask;
                 }
             }
         }

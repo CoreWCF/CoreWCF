@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -5,15 +8,14 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
     public abstract class Message : System.IDisposable
     {
-        MessageState state;
         //SeekableMessageNavigator messageNavigator;
         internal const int InitialBufferSize = 1024;
 
@@ -21,7 +23,7 @@ namespace CoreWCF.Channels
 
         protected bool IsDisposed
         {
-            get { return state == MessageState.Closed; }
+            get { return State == MessageState.Closed; }
         }
 
         public virtual bool IsFault
@@ -29,7 +31,9 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
+                }
 
                 return false;
             }
@@ -40,7 +44,9 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
+                }
 
                 return false;
             }
@@ -55,10 +61,7 @@ namespace CoreWCF.Channels
             get { return null; }
         }
 
-        public MessageState State
-        {
-            get { return state; }
-        }
+        public MessageState State { get; private set; }
 
         internal void BodyToString(XmlDictionaryWriter writer)
         {
@@ -67,9 +70,9 @@ namespace CoreWCF.Channels
 
         public void Close()
         {
-            if (state != MessageState.Closed)
+            if (State != MessageState.Closed)
             {
-                state = MessageState.Closed;
+                State = MessageState.Closed;
                 OnClose();
                 //if (DiagnosticUtility.ShouldTraceVerbose)
                 //{
@@ -90,12 +93,15 @@ namespace CoreWCF.Channels
         public MessageBuffer CreateBufferedCopy(int maxBufferSize)
         {
             if (maxBufferSize < 0)
+            {
                 throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxBufferSize), maxBufferSize,
                                                     SR.ValueMustBeNonNegative), this);
-            switch (state)
+            }
+
+            switch (State)
             {
                 case MessageState.Created:
-                    state = MessageState.Copied;
+                    State = MessageState.Copied;
                     //if (DiagnosticUtility.ShouldTraceVerbose)
                     //{
                     //    TraceUtility.TraceEvent(TraceEventType.Verbose, TraceCode.MessageCopied,
@@ -130,9 +136,15 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(MessageVersion version, string action, object body, XmlObjectSerializer serializer)
         {
             if (version == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+            }
+
             if (serializer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
+            }
+
             return new BodyWriterMessage(version, action, new XmlObjectSerializerBodyWriter(body, serializer));
         }
 
@@ -144,9 +156,14 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(MessageVersion version, string action, XmlDictionaryReader body)
         {
             if (body == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(body));
+            }
+
             if (version == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+            }
 
             return CreateMessage(version, action, new XmlReaderBodyWriter(body, version.Envelope));
         }
@@ -154,25 +171,40 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(MessageVersion version, string action, BodyWriter body)
         {
             if (version == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+            }
+
             if (body == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(body));
+            }
+
             return new BodyWriterMessage(version, action, body);
         }
 
         internal static Message CreateMessage(MessageVersion version, ActionHeader actionHeader, BodyWriter body)
         {
             if (version == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+            }
+
             if (body == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(body));
+            }
+
             return new BodyWriterMessage(version, actionHeader, body);
         }
 
         public static Message CreateMessage(MessageVersion version, string action)
         {
             if (version == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+            }
+
             return new BodyWriterMessage(version, action, EmptyBodyWriter.Value);
         }
 
@@ -191,9 +223,15 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(XmlDictionaryReader envelopeReader, int maxSizeOfHeaders, MessageVersion version)
         {
             if (envelopeReader == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(envelopeReader));
+            }
+
             if (version == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+            }
+
             Message message = new StreamedMessage(envelopeReader, maxSizeOfHeaders, version);
             return message;
         }
@@ -201,11 +239,19 @@ namespace CoreWCF.Channels
         internal static Message CreateMessage(MessageVersion version, FaultCode faultCode, string reason, string action)
         {
             if (version == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+            }
+
             if (faultCode == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(faultCode));
+            }
+
             if (reason == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reason));
+            }
 
             return CreateMessage(version, MessageFault.CreateFault(faultCode, reason), action);
         }
@@ -226,9 +272,15 @@ namespace CoreWCF.Channels
         public static Message CreateMessage(MessageVersion version, MessageFault fault, string action)
         {
             if (fault == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(fault));
+            }
+
             if (version == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));
+            }
+
             return new BodyWriterMessage(version, action, new FaultBodyWriter(fault, version.Envelope));
         }
 
@@ -256,11 +308,14 @@ namespace CoreWCF.Channels
         public T GetBody<T>(XmlObjectSerializer serializer)
         {
             if (serializer == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serializer));
+            }
+
             return GetBodyCore<T>(GetReaderAtBodyContents(), serializer);
         }
 
-        T GetBodyCore<T>(XmlDictionaryReader reader, XmlObjectSerializer serializer)
+        private T GetBodyCore<T>(XmlDictionaryReader reader, XmlObjectSerializer serializer)
         {
             T value;
             using (reader)
@@ -278,7 +333,10 @@ namespace CoreWCF.Channels
             WriteStartEnvelope(writer);
             MessageHeaders headers = Headers;
             for (int i = 0; i < headers.Count; i++)
+            {
                 headers.WriteHeader(i, writer);
+            }
+
             writer.WriteEndElement();
             writer.WriteEndElement();
             buffer.CloseSection();
@@ -293,16 +351,19 @@ namespace CoreWCF.Channels
         {
             EnsureReadMessageState();
             if (IsEmpty)
+            {
                 throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.MessageIsEmpty), this);
+            }
+
             return OnGetReaderAtBodyContents();
         }
 
         internal void EnsureReadMessageState()
         {
-            switch (state)
+            switch (State)
             {
                 case MessageState.Created:
-                    state = MessageState.Read;
+                    State = MessageState.Read;
                     //if (DiagnosticUtility.ShouldTraceVerbose)
                     //{
                     //    TraceUtility.TraceEvent(TraceEventType.Verbose, TraceCode.MessageRead, SR.Format(SR.TraceCodeMessageRead), this);
@@ -338,15 +399,13 @@ namespace CoreWCF.Channels
         //    return this.messageNavigator;
         //}
 
-        //internal void InitializeReply(Message request)
-        //{
-        //    UniqueId requestMessageID = request.Headers.MessageId;
-        //    if (requestMessageID == null)
-        //        throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.RequestMessageDoesNotHaveAMessageID)), request);
-        //    Headers.RelatesTo = requestMessageID;
-        //}
+        internal void InitializeReply(Message request)
+        {
+            UniqueId requestMessageID = request.Headers.MessageId;
+            Headers.RelatesTo = requestMessageID ?? throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.RequestMessageDoesNotHaveAMessageID)), request);
+        }
 
-        static internal bool IsFaultStartElement(XmlDictionaryReader reader, EnvelopeVersion version)
+        internal static bool IsFaultStartElement(XmlDictionaryReader reader, EnvelopeVersion version)
         {
             return reader.IsStartElement(XD.MessageDictionary.Fault, version.DictionaryNamespace);
         }
@@ -452,7 +511,9 @@ namespace CoreWCF.Channels
         public void WriteStartEnvelope(XmlDictionaryWriter writer)
         {
             if (writer == null)
+            {
                 throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(writer)), this);
+            }
 
             OnWriteStartEnvelope(writer);
         }
@@ -485,27 +546,21 @@ namespace CoreWCF.Channels
                 return base.ToString();
             }
 
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Indent = true;
-
-            using (StringWriter stringWriter = new StringWriter(CultureInfo.InvariantCulture))
+            StringWriter stringWriter = new StringWriter(CultureInfo.InvariantCulture);
+            EncodingFallbackAwareXmlTextWriter textWriter = new EncodingFallbackAwareXmlTextWriter(stringWriter)
             {
-                using (XmlWriter textWriter = XmlWriter.Create(stringWriter, settings))
-                {
-                    using (XmlDictionaryWriter writer = XmlDictionaryWriter.CreateDictionaryWriter(textWriter))
-                    {
-                        try
-                        {
-                            ToString(writer);
-                            writer.Flush();
-                            return stringWriter.ToString();
-                        }
-                        catch (XmlException e)
-                        {
-                            return SR.Format(SR.MessageBodyToStringError, e.GetType().ToString(), e.Message);
-                        }
-                    }
-                }
+                Formatting = Formatting.Indented
+            };
+            XmlDictionaryWriter writer = XmlDictionaryWriter.CreateDictionaryWriter(textWriter);
+            try
+            {
+                ToString(writer);
+                writer.Flush();
+                return stringWriter.ToString();
+            }
+            catch (XmlException e)
+            {
+                return SR.Format(SR.MessageBodyToStringError, e.GetType().ToString(), e.Message);
             }
         }
 
@@ -543,10 +598,16 @@ namespace CoreWCF.Channels
         public string GetBodyAttribute(string localName, string ns)
         {
             if (localName == null)
+            {
                 throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(localName)), this);
+            }
+
             if (ns == null)
+            {
                 throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(ns)), this);
-            switch (state)
+            }
+
+            switch (State)
             {
                 case MessageState.Created:
                     break;
@@ -572,10 +633,10 @@ namespace CoreWCF.Channels
 
         internal void ReadFromBodyContentsToEnd(XmlDictionaryReader reader)
         {
-            Message.ReadFromBodyContentsToEnd(reader, Version.Envelope);
+            ReadFromBodyContentsToEnd(reader, Version.Envelope);
         }
 
-        static void ReadFromBodyContentsToEnd(XmlDictionaryReader reader, EnvelopeVersion envelopeVersion)
+        private static void ReadFromBodyContentsToEnd(XmlDictionaryReader reader, EnvelopeVersion envelopeVersion)
         {
             if (envelopeVersion != EnvelopeVersion.None)
             {
@@ -599,7 +660,10 @@ namespace CoreWCF.Channels
             {
                 reader.Read();
                 if (reader.NodeType != XmlNodeType.Element)
+                {
                     reader.MoveToContent();
+                }
+
                 if (reader.NodeType == XmlNodeType.Element)
                 {
                     isFault = IsFaultStartElement(reader, envelopeVersion);
@@ -609,7 +673,7 @@ namespace CoreWCF.Channels
                 {
                     isEmpty = true;
                     isFault = false;
-                    Message.ReadFromBodyContentsToEnd(reader, envelopeVersion);
+                    ReadFromBodyContentsToEnd(reader, envelopeVersion);
                     return false;
                 }
                 else
@@ -642,7 +706,10 @@ namespace CoreWCF.Channels
         public void WriteStartBody(XmlDictionaryWriter writer)
         {
             if (writer == null)
+            {
                 throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(writer)), this);
+            }
+
             OnWriteStartBody(writer);
         }
 
@@ -677,7 +744,6 @@ namespace CoreWCF.Channels
         public virtual async Task OnWriteMessageAsync(XmlDictionaryWriter writer)
         {
             WriteMessagePreamble(writer);
-
             // We should call OnWriteBodyContentsAsync instead of WriteBodyContentsAsync here,
             // otherwise EnsureWriteMessageState would get called twice. Also see OnWriteMessage()
             // for the example.
@@ -685,14 +751,17 @@ namespace CoreWCF.Channels
             WriteMessagePostamble(writer);
         }
 
-        void EnsureWriteMessageState(XmlDictionaryWriter writer)
+        private void EnsureWriteMessageState(XmlDictionaryWriter writer)
         {
             if (writer == null)
+            {
                 throw TraceUtility.ThrowHelperError(new ArgumentNullException(nameof(writer)), this);
-            switch (state)
+            }
+
+            switch (State)
             {
                 case MessageState.Created:
-                    state = MessageState.Written;
+                    State = MessageState.Written;
                     //if (DiagnosticUtility.ShouldTraceVerbose)
                     //{
                     //    TraceUtility.TraceEvent(TraceEventType.Verbose, TraceCode.MessageWritten, SR.TraceCodeMessageWritten, this);
@@ -773,8 +842,7 @@ namespace CoreWCF.Channels
                     continue;
                 }
 
-                IMessageHeaderWithSharedNamespace headerWithSharedNamespace = headers[i] as IMessageHeaderWithSharedNamespace;
-                if (headerWithSharedNamespace != null)
+                if (headers[i] is IMessageHeaderWithSharedNamespace headerWithSharedNamespace)
                 {
                     XmlDictionaryString prefix = headerWithSharedNamespace.SharedPrefix;
                     string prefixString = prefix.Value;
@@ -801,11 +869,11 @@ namespace CoreWCF.Channels
         }
     }
 
-    class EmptyBodyWriter : BodyWriter
+    internal class EmptyBodyWriter : BodyWriter
     {
-        static EmptyBodyWriter value;
+        private static EmptyBodyWriter s_value;
 
-        EmptyBodyWriter()
+        private EmptyBodyWriter()
             : base(true)
         {
         }
@@ -814,9 +882,12 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (value == null)
-                    value = new EmptyBodyWriter();
-                return value;
+                if (s_value == null)
+                {
+                    s_value = new EmptyBodyWriter();
+                }
+
+                return s_value;
             }
         }
 
@@ -830,16 +901,16 @@ namespace CoreWCF.Channels
         }
     }
 
-    class FaultBodyWriter : BodyWriter
+    internal class FaultBodyWriter : BodyWriter
     {
-        MessageFault fault;
-        EnvelopeVersion version;
+        private readonly MessageFault _fault;
+        private readonly EnvelopeVersion _version;
 
         public FaultBodyWriter(MessageFault fault, EnvelopeVersion version)
             : base(true)
         {
-            this.fault = fault;
-            this.version = version;
+            _fault = fault;
+            _version = version;
         }
 
         internal override bool IsFault
@@ -849,23 +920,23 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            fault.WriteTo(writer, version);
+            _fault.WriteTo(writer, _version);
         }
     }
 
-    class XmlObjectSerializerBodyWriter : BodyWriter
+    internal class XmlObjectSerializerBodyWriter : BodyWriter
     {
-        object body;
-        XmlObjectSerializer serializer;
+        private readonly object _body;
+        private readonly XmlObjectSerializer _serializer;
 
         public XmlObjectSerializerBodyWriter(object body, XmlObjectSerializer serializer)
             : base(true)
         {
-            this.body = body;
-            this.serializer = serializer;
+            _body = body;
+            _serializer = serializer;
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return this; }
         }
@@ -874,86 +945,92 @@ namespace CoreWCF.Channels
         {
             lock (ThisLock)
             {
-                serializer.WriteObject(writer, body);
+                _serializer.WriteObject(writer, _body);
             }
         }
     }
 
-    class XmlReaderBodyWriter : BodyWriter
+    internal class XmlReaderBodyWriter : BodyWriter
     {
-        XmlDictionaryReader reader;
-        bool isFault;
+        private readonly XmlDictionaryReader _reader;
+        private readonly bool _isFault;
 
         public XmlReaderBodyWriter(XmlDictionaryReader reader, EnvelopeVersion version)
             : base(false)
         {
-            this.reader = reader;
+            _reader = reader;
             if (reader.MoveToContent() != XmlNodeType.Element)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.InvalidReaderPositionOnCreateMessage, nameof(reader)));
+            }
 
-            isFault = Message.IsFaultStartElement(reader, version);
+            _isFault = Message.IsFaultStartElement(reader, version);
         }
 
         internal override bool IsFault
         {
             get
             {
-                return isFault;
+                return _isFault;
             }
         }
 
         protected override BodyWriter OnCreateBufferedCopy(int maxBufferSize)
         {
-            return OnCreateBufferedCopy(maxBufferSize, reader.Quotas);
+            return OnCreateBufferedCopy(maxBufferSize, _reader.Quotas);
         }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            using (reader)
+            using (_reader)
             {
-                XmlNodeType type = reader.MoveToContent();
-                while (!reader.EOF && type != XmlNodeType.EndElement)
+                XmlNodeType type = _reader.MoveToContent();
+                while (!_reader.EOF && type != XmlNodeType.EndElement)
                 {
                     if (type != XmlNodeType.Element)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.InvalidReaderPositionOnCreateMessage, "reader"));
-                    writer.WriteNode(reader, false);
+                    }
 
-                    type = reader.MoveToContent();
+                    writer.WriteNode(_reader, false);
+
+                    type = _reader.MoveToContent();
                 }
             }
         }
     }
 
-    class BodyWriterMessage : Message
+    internal class BodyWriterMessage : Message
     {
-        MessageProperties properties;
-        MessageHeaders headers;
-        BodyWriter bodyWriter;
+        private MessageProperties _properties;
+        private readonly MessageHeaders _headers;
 
-        BodyWriterMessage(BodyWriter bodyWriter)
+        private BodyWriterMessage(BodyWriter bodyWriter)
         {
-            this.bodyWriter = bodyWriter;
+            BodyWriter = bodyWriter;
         }
 
         public BodyWriterMessage(MessageVersion version, string action, BodyWriter bodyWriter)
             : this(bodyWriter)
         {
-            headers = new MessageHeaders(version);
-            headers.Action = action;
+            _headers = new MessageHeaders(version)
+            {
+                Action = action
+            };
         }
 
         public BodyWriterMessage(MessageVersion version, ActionHeader actionHeader, BodyWriter bodyWriter)
             : this(bodyWriter)
         {
-            headers = new MessageHeaders(version);
-            headers.SetActionHeader(actionHeader);
+            _headers = new MessageHeaders(version);
+            _headers.SetActionHeader(actionHeader);
         }
 
         public BodyWriterMessage(MessageHeaders headers, KeyValuePair<string, object>[] properties, BodyWriter bodyWriter)
             : this(bodyWriter)
         {
-            this.headers = new MessageHeaders(headers);
-            this.properties = new MessageProperties(properties);
+            _headers = new MessageHeaders(headers);
+            _properties = new MessageProperties(properties);
         }
 
         public override bool IsFault
@@ -961,8 +1038,11 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
-                return bodyWriter.IsFault;
+                }
+
+                return BodyWriter.IsFault;
             }
         }
 
@@ -971,8 +1051,11 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
-                return bodyWriter.IsEmpty;
+                }
+
+                return BodyWriter.IsEmpty;
             }
         }
 
@@ -981,8 +1064,11 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
-                return headers;
+                }
+
+                return _headers;
             }
         }
 
@@ -991,10 +1077,16 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
-                if (properties == null)
-                    properties = new MessageProperties();
-                return properties;
+                }
+
+                if (_properties == null)
+                {
+                    _properties = new MessageProperties();
+                }
+
+                return _properties;
             }
         }
 
@@ -1003,25 +1095,28 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
-                return headers.MessageVersion;
+                }
+
+                return _headers.MessageVersion;
             }
         }
 
         protected override MessageBuffer OnCreateBufferedCopy(int maxBufferSize)
         {
             BodyWriter bufferedBodyWriter;
-            if (bodyWriter.IsBuffered)
+            if (BodyWriter.IsBuffered)
             {
-                bufferedBodyWriter = bodyWriter;
+                bufferedBodyWriter = BodyWriter;
             }
             else
             {
-                bufferedBodyWriter = bodyWriter.CreateBufferedCopy(maxBufferSize);
+                bufferedBodyWriter = BodyWriter.CreateBufferedCopy(maxBufferSize);
             }
             KeyValuePair<string, object>[] properties = new KeyValuePair<string, object>[Properties.Count];
             ((ICollection<KeyValuePair<string, object>>)Properties).CopyTo(properties, 0);
-            return new BodyWriterMessageBuffer(headers, properties, bufferedBodyWriter);
+            return new BodyWriterMessageBuffer(_headers, properties, bufferedBodyWriter);
         }
 
         protected override void OnClose()
@@ -1034,50 +1129,63 @@ namespace CoreWCF.Channels
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 ex = e;
             }
 
             try
             {
-                if (properties != null)
-                    properties.Dispose();
+                if (_properties != null)
+                {
+                    _properties.Dispose();
+                }
             }
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 if (ex == null)
+                {
                     ex = e;
+                }
             }
 
             if (ex != null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(ex);
+            }
 
-            bodyWriter = null;
+            BodyWriter = null;
         }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            bodyWriter.WriteBodyContents(writer);
+            BodyWriter.WriteBodyContents(writer);
         }
 
         public override async Task OnWriteMessageAsync(XmlDictionaryWriter writer)
         {
+            WriteMessagePreamble(writer);
             await OnWriteBodyContentsAsync(writer);
             WriteMessagePostamble(writer);
         }
 
         internal override Task OnWriteBodyContentsAsync(XmlDictionaryWriter writer)
         {
-            return bodyWriter.WriteBodyContentsAsync(writer);
+            return BodyWriter.WriteBodyContentsAsync(writer);
         }
 
         protected override void OnBodyToString(XmlDictionaryWriter writer)
         {
-            if (bodyWriter.IsBuffered)
+            if (BodyWriter.IsBuffered)
             {
-                bodyWriter.WriteBodyContents(writer);
+                BodyWriter.WriteBodyContents(writer);
             }
             else
             {
@@ -1085,28 +1193,22 @@ namespace CoreWCF.Channels
             }
         }
 
-        protected internal BodyWriter BodyWriter
-        {
-            get
-            {
-                return bodyWriter;
-            }
-        }
+        protected internal BodyWriter BodyWriter { get; private set; }
     }
 
-    abstract class ReceivedMessage : Message
+    internal abstract class ReceivedMessage : Message
     {
-        bool isFault;
-        bool isEmpty;
+        private bool _isFault;
+        private bool _isEmpty;
 
         public override bool IsEmpty
         {
-            get { return isEmpty; }
+            get { return _isEmpty; }
         }
 
         public override bool IsFault
         {
-            get { return isFault; }
+            get { return _isFault; }
         }
 
         protected static bool HasHeaderElement(XmlDictionaryReader reader, EnvelopeVersion envelopeVersion)
@@ -1116,12 +1218,14 @@ namespace CoreWCF.Channels
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
-            if (!isEmpty)
+            if (!_isEmpty)
             {
                 using (XmlDictionaryReader bodyReader = OnGetReaderAtBodyContents())
                 {
                     if (bodyReader.ReadState == ReadState.Error || bodyReader.ReadState == ReadState.Closed)
+                    {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.MessageBodyReaderInvalidReadState, bodyReader.ReadState.ToString())));
+                    }
 
                     while (bodyReader.NodeType != XmlNodeType.EndElement && !bodyReader.EOF)
                     {
@@ -1135,7 +1239,7 @@ namespace CoreWCF.Channels
 
         protected bool ReadStartBody(XmlDictionaryReader reader)
         {
-            return Message.ReadStartBody(reader, Version.Envelope, out isFault, out isEmpty);
+            return ReadStartBody(reader, Version.Envelope, out _isFault, out _isEmpty);
         }
 
         protected static EnvelopeVersion ReadStartEnvelope(XmlDictionaryReader reader)
@@ -1143,13 +1247,23 @@ namespace CoreWCF.Channels
             EnvelopeVersion envelopeVersion;
 
             if (reader.IsStartElement(XD.MessageDictionary.Envelope, XD.Message12Dictionary.Namespace))
+            {
                 envelopeVersion = EnvelopeVersion.Soap12;
+            }
             else if (reader.IsStartElement(XD.MessageDictionary.Envelope, XD.Message11Dictionary.Namespace))
+            {
                 envelopeVersion = EnvelopeVersion.Soap11;
+            }
             else
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(SR.MessageVersionUnknown));
+            }
+
             if (reader.IsEmptyElement)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(SR.MessageBodyMissing));
+            }
+
             reader.Read();
             return envelopeVersion;
         }
@@ -1157,39 +1271,43 @@ namespace CoreWCF.Channels
         protected static void VerifyStartBody(XmlDictionaryReader reader, EnvelopeVersion version)
         {
             if (!reader.IsStartElement(XD.MessageDictionary.Body, version.DictionaryNamespace))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(SR.MessageBodyMissing));
+            }
         }
     }
 
-    sealed class StreamedMessage : ReceivedMessage
+    internal sealed class StreamedMessage : ReceivedMessage
     {
-        MessageHeaders headers;
-        XmlAttributeHolder[] envelopeAttributes;
-        XmlAttributeHolder[] headerAttributes;
-        XmlAttributeHolder[] bodyAttributes;
-        string envelopePrefix;
-        string headerPrefix;
-        string bodyPrefix;
-        MessageProperties properties;
-        XmlDictionaryReader reader;
-        XmlDictionaryReaderQuotas quotas;
+        private readonly MessageHeaders _headers;
+        private readonly XmlAttributeHolder[] _envelopeAttributes;
+        private readonly XmlAttributeHolder[] _headerAttributes;
+        private readonly XmlAttributeHolder[] _bodyAttributes;
+        private readonly string _envelopePrefix;
+        private readonly string _headerPrefix;
+        private readonly string _bodyPrefix;
+        private readonly MessageProperties _properties;
+        private XmlDictionaryReader _reader;
+        private readonly XmlDictionaryReaderQuotas _quotas;
 
         public StreamedMessage(XmlDictionaryReader reader, int maxSizeOfHeaders, MessageVersion desiredVersion)
         {
-            properties = new MessageProperties();
+            _properties = new MessageProperties();
             if (reader.NodeType != XmlNodeType.Element)
+            {
                 reader.MoveToContent();
+            }
 
             if (desiredVersion.Envelope == EnvelopeVersion.None)
             {
-                this.reader = reader;
-                headerAttributes = XmlAttributeHolder.emptyArray;
-                headers = new MessageHeaders(desiredVersion);
+                _reader = reader;
+                _headerAttributes = XmlAttributeHolder.emptyArray;
+                _headers = new MessageHeaders(desiredVersion);
             }
             else
             {
-                envelopeAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfHeaders);
-                envelopePrefix = reader.Prefix;
+                _envelopeAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfHeaders);
+                _envelopePrefix = reader.Prefix;
                 EnvelopeVersion envelopeVersion = ReadStartEnvelope(reader);
                 if (desiredVersion.Envelope != envelopeVersion)
                 {
@@ -1201,29 +1319,32 @@ namespace CoreWCF.Channels
 
                 if (HasHeaderElement(reader, envelopeVersion))
                 {
-                    headerPrefix = reader.Prefix;
-                    headerAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfHeaders);
-                    headers = new MessageHeaders(desiredVersion, reader, envelopeAttributes, headerAttributes, ref maxSizeOfHeaders);
+                    _headerPrefix = reader.Prefix;
+                    _headerAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfHeaders);
+                    _headers = new MessageHeaders(desiredVersion, reader, _envelopeAttributes, _headerAttributes, ref maxSizeOfHeaders);
                 }
                 else
                 {
-                    headerAttributes = XmlAttributeHolder.emptyArray;
-                    headers = new MessageHeaders(desiredVersion);
+                    _headerAttributes = XmlAttributeHolder.emptyArray;
+                    _headers = new MessageHeaders(desiredVersion);
                 }
 
                 if (reader.NodeType != XmlNodeType.Element)
+                {
                     reader.MoveToContent();
-                bodyPrefix = reader.Prefix;
+                }
+
+                _bodyPrefix = reader.Prefix;
                 VerifyStartBody(reader, envelopeVersion);
-                bodyAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfHeaders);
+                _bodyAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfHeaders);
                 if (ReadStartBody(reader))
                 {
-                    this.reader = reader;
+                    _reader = reader;
                 }
                 else
                 {
-                    quotas = new XmlDictionaryReaderQuotas();
-                    reader.Quotas.CopyTo(quotas);
+                    _quotas = new XmlDictionaryReaderQuotas();
+                    reader.Quotas.CopyTo(_quotas);
                     reader.Dispose();
                 }
             }
@@ -1234,8 +1355,11 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
-                return headers;
+                }
+
+                return _headers;
             }
         }
 
@@ -1243,7 +1367,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return headers.MessageVersion;
+                return _headers.MessageVersion;
             }
         }
 
@@ -1251,7 +1375,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return properties;
+                return _properties;
             }
         }
 
@@ -1270,82 +1394,100 @@ namespace CoreWCF.Channels
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 ex = e;
             }
 
             try
             {
-                properties.Dispose();
+                _properties.Dispose();
             }
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 if (ex == null)
+                {
                     ex = e;
+                }
             }
 
             try
             {
-                if (reader != null)
+                if (_reader != null)
                 {
-                    reader.Dispose();
+                    _reader.Dispose();
                 }
             }
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 if (ex == null)
+                {
                     ex = e;
+                }
             }
 
             if (ex != null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(ex);
+            }
         }
 
         protected override XmlDictionaryReader OnGetReaderAtBodyContents()
         {
-            XmlDictionaryReader reader = this.reader;
-            this.reader = null;
+            XmlDictionaryReader reader = _reader;
+            _reader = null;
             return reader;
         }
 
         protected override MessageBuffer OnCreateBufferedCopy(int maxBufferSize)
         {
-            if (reader != null)
-                return OnCreateBufferedCopy(maxBufferSize, reader.Quotas);
-            return OnCreateBufferedCopy(maxBufferSize, quotas);
+            if (_reader != null)
+            {
+                return OnCreateBufferedCopy(maxBufferSize, _reader.Quotas);
+            }
+
+            return OnCreateBufferedCopy(maxBufferSize, _quotas);
         }
 
         protected override void OnWriteStartBody(XmlDictionaryWriter writer)
         {
-            writer.WriteStartElement(bodyPrefix, MessageStrings.Body, Version.Envelope.Namespace);
-            XmlAttributeHolder.WriteAttributes(bodyAttributes, writer);
+            writer.WriteStartElement(_bodyPrefix, MessageStrings.Body, Version.Envelope.Namespace);
+            XmlAttributeHolder.WriteAttributes(_bodyAttributes, writer);
         }
 
         protected override void OnWriteStartEnvelope(XmlDictionaryWriter writer)
         {
             EnvelopeVersion envelopeVersion = Version.Envelope;
-            writer.WriteStartElement(envelopePrefix, MessageStrings.Envelope, envelopeVersion.Namespace);
-            XmlAttributeHolder.WriteAttributes(envelopeAttributes, writer);
+            writer.WriteStartElement(_envelopePrefix, MessageStrings.Envelope, envelopeVersion.Namespace);
+            XmlAttributeHolder.WriteAttributes(_envelopeAttributes, writer);
         }
 
         protected override void OnWriteStartHeaders(XmlDictionaryWriter writer)
         {
             EnvelopeVersion envelopeVersion = Version.Envelope;
-            writer.WriteStartElement(headerPrefix, MessageStrings.Header, envelopeVersion.Namespace);
-            XmlAttributeHolder.WriteAttributes(headerAttributes, writer);
+            writer.WriteStartElement(_headerPrefix, MessageStrings.Header, envelopeVersion.Namespace);
+            XmlAttributeHolder.WriteAttributes(_headerAttributes, writer);
         }
 
         protected override string OnGetBodyAttribute(string localName, string ns)
         {
-            return XmlAttributeHolder.GetAttribute(bodyAttributes, localName, ns);
+            return XmlAttributeHolder.GetAttribute(_bodyAttributes, localName, ns);
         }
     }
 
-    interface IBufferedMessageData
+    internal interface IBufferedMessageData
     {
         MessageEncoder MessageEncoder { get; }
         ArraySegment<byte> Buffer { get; }
@@ -1358,14 +1500,13 @@ namespace CoreWCF.Channels
         RecycledMessageState TakeMessageState();
     }
 
-    sealed class BufferedMessage : ReceivedMessage
+    internal sealed class BufferedMessage : ReceivedMessage
     {
-        MessageHeaders headers;
-        MessageProperties properties;
-        IBufferedMessageData messageData;
-        RecycledMessageState recycledMessageState;
-        XmlDictionaryReader reader;
-        XmlAttributeHolder[] bodyAttributes;
+        private readonly MessageHeaders _headers;
+        private readonly MessageProperties _properties;
+        private RecycledMessageState _recycledMessageState;
+        private XmlDictionaryReader _reader;
+        private readonly XmlAttributeHolder[] _bodyAttributes;
 
         public BufferedMessage(IBufferedMessageData messageData, RecycledMessageState recycledMessageState)
             : this(messageData, recycledMessageState, null, false)
@@ -1377,63 +1518,69 @@ namespace CoreWCF.Channels
             //bool throwing = true;
             //try
             //{
-                this.recycledMessageState = recycledMessageState;
-                this.messageData = messageData;
-                properties = recycledMessageState.TakeProperties();
-                if (properties == null)
-                    properties = new MessageProperties();
-                XmlDictionaryReader reader = messageData.GetMessageReader();
-                MessageVersion desiredVersion = messageData.MessageEncoder.MessageVersion;
+            _recycledMessageState = recycledMessageState;
+            MessageData = messageData;
+            _properties = recycledMessageState.TakeProperties();
+            if (_properties == null)
+            {
+                _properties = new MessageProperties();
+            }
 
-                if (desiredVersion.Envelope == EnvelopeVersion.None)
+            XmlDictionaryReader reader = messageData.GetMessageReader();
+            MessageVersion desiredVersion = messageData.MessageEncoder.MessageVersion;
+
+            if (desiredVersion.Envelope == EnvelopeVersion.None)
+            {
+                _reader = reader;
+                _headers = new MessageHeaders(desiredVersion);
+            }
+            else
+            {
+                EnvelopeVersion envelopeVersion = ReadStartEnvelope(reader);
+                if (desiredVersion.Envelope != envelopeVersion)
                 {
-                    this.reader = reader;
-                    headers = new MessageHeaders(desiredVersion);
+                    Exception versionMismatchException = new ArgumentException(SR.Format(SR.EncoderEnvelopeVersionMismatch, envelopeVersion, desiredVersion.Envelope), "reader");
+                    throw TraceUtility.ThrowHelperError(
+                        new CommunicationException(versionMismatchException.Message, versionMismatchException),
+                        this);
+                }
+
+                if (HasHeaderElement(reader, envelopeVersion))
+                {
+                    _headers = recycledMessageState.TakeHeaders();
+                    if (_headers == null)
+                    {
+                        _headers = new MessageHeaders(desiredVersion, reader, messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
+                    }
+                    else
+                    {
+                        _headers.Init(desiredVersion, reader, messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
+                    }
                 }
                 else
                 {
-                    EnvelopeVersion envelopeVersion = ReadStartEnvelope(reader);
-                    if (desiredVersion.Envelope != envelopeVersion)
-                    {
-                        Exception versionMismatchException = new ArgumentException(SR.Format(SR.EncoderEnvelopeVersionMismatch, envelopeVersion, desiredVersion.Envelope), "reader");
-                        throw TraceUtility.ThrowHelperError(
-                            new CommunicationException(versionMismatchException.Message, versionMismatchException),
-                            this);
-                    }
-
-                    if (HasHeaderElement(reader, envelopeVersion))
-                    {
-                        headers = recycledMessageState.TakeHeaders();
-                        if (headers == null)
-                        {
-                            headers = new MessageHeaders(desiredVersion, reader, messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
-                        }
-                        else
-                        {
-                            headers.Init(desiredVersion, reader, messageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
-                        }
-                    }
-                    else
-                    {
-                        headers = new MessageHeaders(desiredVersion);
-                    }
-
-                    VerifyStartBody(reader, envelopeVersion);
-
-                    int maxSizeOfAttributes = int.MaxValue;
-                    bodyAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfAttributes);
-                    if (maxSizeOfAttributes < int.MaxValue - 4096)
-                        bodyAttributes = null;
-                    if (ReadStartBody(reader))
-                    {
-                        this.reader = reader;
-                    }
-                    else
-                    {
-                        reader.Dispose();
-                    }
+                    _headers = new MessageHeaders(desiredVersion);
                 }
-                //throwing = false;
+
+                VerifyStartBody(reader, envelopeVersion);
+
+                int maxSizeOfAttributes = int.MaxValue;
+                _bodyAttributes = XmlAttributeHolder.ReadAttributes(reader, ref maxSizeOfAttributes);
+                if (maxSizeOfAttributes < int.MaxValue - 4096)
+                {
+                    _bodyAttributes = null;
+                }
+
+                if (ReadStartBody(reader))
+                {
+                    _reader = reader;
+                }
+                else
+                {
+                    reader.Dispose();
+                }
+            }
+            //throwing = false;
             //}
             //finally
             //{
@@ -1449,81 +1596,98 @@ namespace CoreWCF.Channels
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
-                return headers;
+                }
+
+                return _headers;
             }
         }
 
-        internal IBufferedMessageData MessageData
-        {
-            get
-            {
-                return messageData;
-            }
-        }
+        internal IBufferedMessageData MessageData { get; private set; }
 
         public override MessageProperties Properties
         {
             get
             {
                 if (IsDisposed)
+                {
                     throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
-                return properties;
+                }
+
+                return _properties;
             }
         }
 
         internal override RecycledMessageState RecycledMessageState
         {
-            get { return recycledMessageState; }
+            get { return _recycledMessageState; }
         }
 
         public override MessageVersion Version
         {
             get
             {
-                return headers.MessageVersion;
+                return _headers.MessageVersion;
             }
         }
 
         protected override XmlDictionaryReader OnGetReaderAtBodyContents()
         {
-            XmlDictionaryReader reader = this.reader;
-            this.reader = null;
+            XmlDictionaryReader reader = _reader;
+            _reader = null;
             return reader;
         }
 
         internal override XmlDictionaryReader GetReaderAtHeader()
         {
-            if (!headers.ContainsOnlyBufferedMessageHeaders)
+            if (!_headers.ContainsOnlyBufferedMessageHeaders)
+            {
                 return base.GetReaderAtHeader();
-            XmlDictionaryReader reader = messageData.GetMessageReader();
+            }
+
+            XmlDictionaryReader reader = MessageData.GetMessageReader();
             if (reader.NodeType != XmlNodeType.Element)
+            {
                 reader.MoveToContent();
+            }
+
             reader.Read();
-            if (HasHeaderElement(reader, headers.MessageVersion.Envelope))
+            if (HasHeaderElement(reader, _headers.MessageVersion.Envelope))
+            {
                 return reader;
+            }
+
             return base.GetReaderAtHeader();
         }
 
         public XmlDictionaryReader GetBufferedReaderAtBody()
         {
-            XmlDictionaryReader reader = messageData.GetMessageReader();
+            XmlDictionaryReader reader = MessageData.GetMessageReader();
             if (reader.NodeType != XmlNodeType.Element)
+            {
                 reader.MoveToContent();
+            }
+
             if (Version.Envelope != EnvelopeVersion.None)
             {
                 reader.Read();
-                if (HasHeaderElement(reader, headers.MessageVersion.Envelope))
+                if (HasHeaderElement(reader, _headers.MessageVersion.Envelope))
+                {
                     reader.Skip();
+                }
+
                 if (reader.NodeType != XmlNodeType.Element)
+                {
                     reader.MoveToContent();
+                }
             }
             return reader;
         }
 
         public XmlDictionaryReader GetMessageReader()
         {
-            return messageData.GetMessageReader();
+            return MessageData.GetMessageReader();
         }
 
         protected override void OnBodyToString(XmlDictionaryWriter writer)
@@ -1540,7 +1704,9 @@ namespace CoreWCF.Channels
                     {
                         reader.ReadStartElement();
                         while (reader.NodeType != XmlNodeType.EndElement)
+                        {
                             writer.WriteNode(reader, false);
+                        }
                     }
                 }
             }
@@ -1556,56 +1722,76 @@ namespace CoreWCF.Channels
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 ex = e;
             }
 
             try
             {
-                properties.Dispose();
+                _properties.Dispose();
             }
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 if (ex == null)
+                {
                     ex = e;
+                }
             }
 
             try
             {
-                if (reader != null)
+                if (_reader != null)
                 {
-                    reader.Dispose();
+                    _reader.Dispose();
                 }
             }
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 if (ex == null)
+                {
                     ex = e;
+                }
             }
 
             try
             {
-                recycledMessageState.ReturnHeaders(headers);
-                recycledMessageState.ReturnProperties(properties);
-                messageData.ReturnMessageState(recycledMessageState);
-                recycledMessageState = null;
-                messageData.Close();
-                messageData = null;
+                _recycledMessageState.ReturnHeaders(_headers);
+                _recycledMessageState.ReturnProperties(_properties);
+                MessageData.ReturnMessageState(_recycledMessageState);
+                _recycledMessageState = null;
+                MessageData.Close();
+                MessageData = null;
             }
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
+                {
                     throw;
+                }
+
                 if (ex == null)
+                {
                     ex = e;
+                }
             }
 
             if (ex != null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(ex);
+            }
         }
 
         protected override void OnWriteStartEnvelope(XmlDictionaryWriter writer)
@@ -1649,34 +1835,40 @@ namespace CoreWCF.Channels
 
         protected override MessageBuffer OnCreateBufferedCopy(int maxBufferSize)
         {
-            if (headers.ContainsOnlyBufferedMessageHeaders)
+            if (_headers.ContainsOnlyBufferedMessageHeaders)
             {
                 KeyValuePair<string, object>[] properties = new KeyValuePair<string, object>[Properties.Count];
                 ((ICollection<KeyValuePair<string, object>>)Properties).CopyTo(properties, 0);
-                messageData.EnableMultipleUsers();
+                MessageData.EnableMultipleUsers();
                 bool[] understoodHeaders = null;
-                if (headers.HasMustUnderstandBeenModified)
+                if (_headers.HasMustUnderstandBeenModified)
                 {
-                    understoodHeaders = new bool[headers.Count];
-                    for (int i = 0; i < headers.Count; i++)
+                    understoodHeaders = new bool[_headers.Count];
+                    for (int i = 0; i < _headers.Count; i++)
                     {
-                        understoodHeaders[i] = headers.IsUnderstood(i);
+                        understoodHeaders[i] = _headers.IsUnderstood(i);
                     }
                 }
-                return new BufferedMessageBuffer(messageData, properties, understoodHeaders, headers.HasMustUnderstandBeenModified);
+                return new BufferedMessageBuffer(MessageData, properties, understoodHeaders, _headers.HasMustUnderstandBeenModified);
             }
             else
             {
-                if (reader != null)
-                    return OnCreateBufferedCopy(maxBufferSize, reader.Quotas);
+                if (_reader != null)
+                {
+                    return OnCreateBufferedCopy(maxBufferSize, _reader.Quotas);
+                }
+
                 return OnCreateBufferedCopy(maxBufferSize, XmlDictionaryReaderQuotas.Max);
             }
         }
 
         protected override string OnGetBodyAttribute(string localName, string ns)
         {
-            if (bodyAttributes != null)
-                return XmlAttributeHolder.GetAttribute(bodyAttributes, localName, ns);
+            if (_bodyAttributes != null)
+            {
+                return XmlAttributeHolder.GetAttribute(_bodyAttributes, localName, ns);
+            }
+
             using (XmlDictionaryReader reader = GetBufferedReaderAtBody())
             {
                 return reader.GetAttribute(localName, ns);
@@ -1684,54 +1876,39 @@ namespace CoreWCF.Channels
         }
     }
 
-    struct XmlAttributeHolder
+    internal struct XmlAttributeHolder
     {
-        string prefix;
-        string ns;
-        string localName;
-        string value;
-
-        public static XmlAttributeHolder[] emptyArray = new XmlAttributeHolder[0];
+        public static XmlAttributeHolder[] emptyArray = Array.Empty<XmlAttributeHolder>();
 
         public XmlAttributeHolder(string prefix, string localName, string ns, string value)
         {
-            this.prefix = prefix;
-            this.localName = localName;
-            this.ns = ns;
-            this.value = value;
+            Prefix = prefix;
+            LocalName = localName;
+            NamespaceUri = ns;
+            Value = value;
         }
 
-        public string Prefix
-        {
-            get { return prefix; }
-        }
+        public string Prefix { get; }
 
-        public string NamespaceUri
-        {
-            get { return ns; }
-        }
+        public string NamespaceUri { get; }
 
-        public string LocalName
-        {
-            get { return localName; }
-        }
+        public string LocalName { get; }
 
-        public string Value
-        {
-            get { return value; }
-        }
+        public string Value { get; }
 
         public void WriteTo(XmlWriter writer)
         {
-            writer.WriteStartAttribute(prefix, localName, ns);
-            writer.WriteString(value);
+            writer.WriteStartAttribute(Prefix, LocalName, NamespaceUri);
+            writer.WriteString(Value);
             writer.WriteEndAttribute();
         }
 
         public static void WriteAttributes(XmlAttributeHolder[] attributes, XmlWriter writer)
         {
             for (int i = 0; i < attributes.Length; i++)
+            {
                 attributes[i].WriteTo(writer);
+            }
         }
 
         public static XmlAttributeHolder[] ReadAttributes(XmlDictionaryReader reader)
@@ -1743,7 +1920,10 @@ namespace CoreWCF.Channels
         public static XmlAttributeHolder[] ReadAttributes(XmlDictionaryReader reader, ref int maxSizeOfHeaders)
         {
             if (reader.AttributeCount == 0)
+            {
                 return emptyArray;
+            }
+
             XmlAttributeHolder[] attributes = new XmlAttributeHolder[reader.AttributeCount];
             reader.MoveToFirstAttribute();
             for (int i = 0; i < attributes.Length; i++)
@@ -1755,9 +1935,13 @@ namespace CoreWCF.Channels
                 while (reader.ReadAttributeValue())
                 {
                     if (value.Length == 0)
+                    {
                         value = reader.Value;
+                    }
                     else
+                    {
                         value += reader.Value;
+                    }
                 }
                 Deduct(prefix, ref maxSizeOfHeaders);
                 Deduct(localName, ref maxSizeOfHeaders);
@@ -1770,7 +1954,7 @@ namespace CoreWCF.Channels
             return attributes;
         }
 
-        static void Deduct(string s, ref int maxSizeOfHeaders)
+        private static void Deduct(string s, ref int maxSizeOfHeaders)
         {
             int byteCount = s.Length * sizeof(char);
             if (byteCount > maxSizeOfHeaders)
@@ -1785,28 +1969,33 @@ namespace CoreWCF.Channels
         public static string GetAttribute(XmlAttributeHolder[] attributes, string localName, string ns)
         {
             for (int i = 0; i < attributes.Length; i++)
+            {
                 if (attributes[i].LocalName == localName && attributes[i].NamespaceUri == ns)
+                {
                     return attributes[i].Value;
+                }
+            }
+
             return null;
         }
     }
 
-    class RecycledMessageState
+    internal class RecycledMessageState
     {
-        MessageHeaders recycledHeaders;
-        MessageProperties recycledProperties;
-        UriCache uriCache;
-        HeaderInfoCache headerInfoCache;
+        private MessageHeaders _recycledHeaders;
+        private MessageProperties _recycledProperties;
+        private UriCache _uriCache;
+        private HeaderInfoCache _headerInfoCache;
 
         public HeaderInfoCache HeaderInfoCache
         {
             get
             {
-                if (headerInfoCache == null)
+                if (_headerInfoCache == null)
                 {
-                    headerInfoCache = new HeaderInfoCache();
+                    _headerInfoCache = new HeaderInfoCache();
                 }
-                return headerInfoCache;
+                return _headerInfoCache;
             }
         }
 
@@ -1814,16 +2003,19 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (uriCache == null)
-                    uriCache = new UriCache();
-                return uriCache;
+                if (_uriCache == null)
+                {
+                    _uriCache = new UriCache();
+                }
+
+                return _uriCache;
             }
         }
 
         public MessageProperties TakeProperties()
         {
-            MessageProperties taken = recycledProperties;
-            recycledProperties = null;
+            MessageProperties taken = _recycledProperties;
+            _recycledProperties = null;
             return taken;
         }
 
@@ -1832,14 +2024,14 @@ namespace CoreWCF.Channels
             if (properties.CanRecycle)
             {
                 properties.Recycle();
-                recycledProperties = properties;
+                _recycledProperties = properties;
             }
         }
 
         public MessageHeaders TakeHeaders()
         {
-            MessageHeaders taken = recycledHeaders;
-            recycledHeaders = null;
+            MessageHeaders taken = _recycledHeaders;
+            _recycledHeaders = null;
             return taken;
         }
 
@@ -1848,36 +2040,36 @@ namespace CoreWCF.Channels
             if (headers.CanRecycle)
             {
                 headers.Recycle(HeaderInfoCache);
-                recycledHeaders = headers;
+                _recycledHeaders = headers;
             }
         }
     }
 
-    class HeaderInfoCache
+    internal class HeaderInfoCache
     {
-        const int maxHeaderInfos = 4;
-        HeaderInfo[] headerInfos;
-        int index;
+        private const int maxHeaderInfos = 4;
+        private HeaderInfo[] _headerInfos;
+        private int _index;
 
         public MessageHeaderInfo TakeHeaderInfo(XmlDictionaryReader reader, string actor, bool mustUnderstand, bool relay, bool isRefParam)
         {
-            if (headerInfos != null)
+            if (_headerInfos != null)
             {
-                int i = index;
-                for (;;)
+                int i = _index;
+                for (; ; )
                 {
-                    HeaderInfo headerInfo = headerInfos[i];
+                    HeaderInfo headerInfo = _headerInfos[i];
                     if (headerInfo != null)
                     {
                         if (headerInfo.Matches(reader, actor, mustUnderstand, relay, isRefParam))
                         {
-                            headerInfos[i] = null;
-                            index = (i + 1) % maxHeaderInfos;
+                            _headerInfos[i] = null;
+                            _index = (i + 1) % maxHeaderInfos;
                             return headerInfo;
                         }
                     }
                     i = (i + 1) % maxHeaderInfos;
-                    if (i == index)
+                    if (i == _index)
                     {
                         break;
                     }
@@ -1889,98 +2081,97 @@ namespace CoreWCF.Channels
 
         public void ReturnHeaderInfo(MessageHeaderInfo headerInfo)
         {
-            HeaderInfo headerInfoToReturn = headerInfo as HeaderInfo;
-            if (headerInfoToReturn != null)
+            if (headerInfo is HeaderInfo headerInfoToReturn)
             {
-                if (headerInfos == null)
+                if (_headerInfos == null)
                 {
-                    headerInfos = new HeaderInfo[maxHeaderInfos];
+                    _headerInfos = new HeaderInfo[maxHeaderInfos];
                 }
-                int i = index;
-                for (;;)
+                int i = _index;
+                for (; ; )
                 {
-                    if (headerInfos[i] == null)
+                    if (_headerInfos[i] == null)
                     {
                         break;
                     }
                     i = (i + 1) % maxHeaderInfos;
-                    if (i == index)
+                    if (i == _index)
                     {
                         break;
                     }
                 }
-                headerInfos[i] = headerInfoToReturn;
-                index = (i + 1) % maxHeaderInfos;
+                _headerInfos[i] = headerInfoToReturn;
+                _index = (i + 1) % maxHeaderInfos;
             }
         }
 
-        class HeaderInfo : MessageHeaderInfo
+        public class HeaderInfo : MessageHeaderInfo
         {
-            string name;
-            string ns;
-            string actor;
-            bool isReferenceParameter;
-            bool mustUnderstand;
-            bool relay;
+            private readonly string _name;
+            private readonly string _ns;
+            private readonly string _actor;
+            private readonly bool _isReferenceParameter;
+            private readonly bool _mustUnderstand;
+            private readonly bool _relay;
 
             public HeaderInfo(XmlDictionaryReader reader, string actor, bool mustUnderstand, bool relay, bool isReferenceParameter)
             {
-                this.actor = actor;
-                this.mustUnderstand = mustUnderstand;
-                this.relay = relay;
-                this.isReferenceParameter = isReferenceParameter;
-                name = reader.LocalName;
-                ns = reader.NamespaceURI;
+                _actor = actor;
+                _mustUnderstand = mustUnderstand;
+                _relay = relay;
+                _isReferenceParameter = isReferenceParameter;
+                _name = reader.LocalName;
+                _ns = reader.NamespaceURI;
             }
 
             public override string Name
             {
-                get { return name; }
+                get { return _name; }
             }
 
             public override string Namespace
             {
-                get { return ns; }
+                get { return _ns; }
             }
 
             public override bool IsReferenceParameter
             {
-                get { return isReferenceParameter; }
+                get { return _isReferenceParameter; }
             }
 
             public override string Actor
             {
-                get { return actor; }
+                get { return _actor; }
             }
 
             public override bool MustUnderstand
             {
-                get { return mustUnderstand; }
+                get { return _mustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return relay; }
+                get { return _relay; }
             }
 
             public bool Matches(XmlDictionaryReader reader, string actor, bool mustUnderstand, bool relay, bool isRefParam)
             {
-                return reader.IsStartElement(name, ns) &&
-                    this.actor == actor && this.mustUnderstand == mustUnderstand && this.relay == relay && isReferenceParameter == isRefParam;
+                return reader.IsStartElement(_name, _ns) &&
+                    _actor == actor && _mustUnderstand == mustUnderstand && _relay == relay && _isReferenceParameter == isRefParam;
             }
         }
     }
 
-    class UriCache
+    internal class UriCache
     {
-        const int MaxKeyLength = 128;
-        const int MaxEntries = 8;
-        Entry[] entries;
-        int count;
+        private const int MaxKeyLength = 128;
+        private const int MaxEntries = 8;
+        private readonly Entry[] _entries;
+        private int _count;
 
         public UriCache()
         {
-            entries = new Entry[MaxEntries];
+            _entries = new Entry[MaxEntries];
         }
 
         public Uri CreateUri(string uriString)
@@ -1994,52 +2185,53 @@ namespace CoreWCF.Channels
             return uri;
         }
 
-        Uri Get(string key)
+        private Uri Get(string key)
         {
             if (key.Length > MaxKeyLength)
+            {
                 return null;
-            for (int i = count - 1; i >= 0; i--)
-                if (entries[i].Key == key)
-                    return entries[i].Value;
+            }
+
+            for (int i = _count - 1; i >= 0; i--)
+            {
+                if (_entries[i].Key == key)
+                {
+                    return _entries[i].Value;
+                }
+            }
+
             return null;
         }
 
-        void Set(string key, Uri value)
+        private void Set(string key, Uri value)
         {
             if (key.Length > MaxKeyLength)
-                return;
-            if (count < entries.Length)
             {
-                entries[count++] = new Entry(key, value);
+                return;
+            }
+
+            if (_count < _entries.Length)
+            {
+                _entries[_count++] = new Entry(key, value);
             }
             else
             {
-                Array.Copy(entries, 1, entries, 0, entries.Length - 1);
-                entries[count - 1] = new Entry(key, value);
+                Array.Copy(_entries, 1, _entries, 0, _entries.Length - 1);
+                _entries[_count - 1] = new Entry(key, value);
             }
         }
 
-        struct Entry
+        private struct Entry
         {
-            string key;
-            Uri value;
-
             public Entry(string key, Uri value)
             {
-                this.key = key;
-                this.value = value;
+                Key = key;
+                Value = value;
             }
 
-            public string Key
-            {
-                get { return key; }
-            }
+            public string Key { get; }
 
-            public Uri Value
-            {
-                get { return value; }
-            }
+            public Uri Value { get; }
         }
     }
-
 }

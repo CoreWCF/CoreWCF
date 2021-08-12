@@ -1,4 +1,7 @@
-﻿namespace CoreWCF.Xml
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+namespace CoreWCF.Xml
 {
     // Element           => StartElement Attribute* Content EndElement
     //                    | StartElement Attribute* Text // Text must be WithEndElement

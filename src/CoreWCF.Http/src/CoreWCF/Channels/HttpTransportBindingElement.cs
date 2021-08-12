@@ -1,11 +1,18 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Net;
+using System.Security.Authentication.ExtendedProtection;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
-using System;
-using System.ComponentModel;
-using System.Net;
 
 namespace CoreWCF.Channels
 {
+    /// <summary>
+    /// This TransportBindingElement is used to specify an HTTP transport for transmitting messages.
+    /// </summary>
+    /// <remarks>HttpTransportBindingElement is also used as a starting point for creating a custom bindings using HTTP.</remarks>
     public class HttpTransportBindingElement : TransportBindingElement
     {
         private int _maxBufferSize;
@@ -13,13 +20,18 @@ namespace CoreWCF.Channels
         private string _realm;
         private TransferMode _transferMode;
         private WebSocketTransportSettings _webSocketSettings;
+        private ExtendedProtectionPolicy _extendedProtectionPolicy;
 
         //HttpAnonymousUriPrefixMatcher _anonymousUriPrefixMatcher;
 
+        /// <summary>
+        /// Initializes a new instance of the HttpTransportBindingElement class.
+        /// </summary>
+        /// <remarks>The defaults are AuthenticationSchemes.Anonymous, TransferMode.Buffered, MaxBufferSize = 65536, and KeepAliveEnabled.</remarks>
         public HttpTransportBindingElement()
         {
             AuthenticationScheme = HttpTransportDefaults.AuthenticationScheme;
-            MaxBufferSize = TransportDefaults.MaxBufferSize;
+            _maxBufferSize = TransportDefaults.MaxBufferSize;
             KeepAliveEnabled = HttpTransportDefaults.KeepAliveEnabled;
             TransferMode = HttpTransportDefaults.TransferMode;
             WebSocketSettings = HttpTransportDefaults.GetDefaultWebSocketTransportSettings();
@@ -28,27 +40,47 @@ namespace CoreWCF.Channels
         protected HttpTransportBindingElement(HttpTransportBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
             AuthenticationScheme = elementToBeCloned.AuthenticationScheme;
-            MaxBufferSize = elementToBeCloned.MaxBufferSize;
+            _maxBufferSize = elementToBeCloned._maxBufferSize;
+            _maxBufferSizeInitialized = elementToBeCloned._maxBufferSizeInitialized;
             KeepAliveEnabled = elementToBeCloned.KeepAliveEnabled;
             TransferMode = elementToBeCloned.TransferMode;
             WebSocketSettings = elementToBeCloned.WebSocketSettings.Clone();
         }
+
         // public bool AllowCookies { get { return default(bool); } set { } }
+
+        /// <summary>
+        /// Gets or sets the authentication scheme.
+        /// </summary>
+        /// <value>The authentication scheme.</value>
         public AuthenticationSchemes AuthenticationScheme { get; set; }
 
         // public System.Net.AuthenticationSchemes AuthenticationScheme { get { return default(System.Net.AuthenticationSchemes); } set { } }
+
+        /// <summary>
+        /// Gets or sets the maximum size of the buffer.
+        /// </summary>
+        /// <value>The maximum size of the buffer.</value>
+        /// <exception cref="ArgumentOutOfRangeException">The value is less than or equal to 0.</exception>
+        /// <remarks>If not set, this defaults the to lessor of MaxReceivedMessageSize and Int32.MaxValue.</remarks>
         public int MaxBufferSize
         {
             get
             {
                 if (_maxBufferSizeInitialized || TransferMode != TransferMode.Buffered)
+                {
                     return _maxBufferSize;
+                }
 
                 long maxReceivedMessageSize = MaxReceivedMessageSize;
                 if (maxReceivedMessageSize > int.MaxValue)
+                {
                     return int.MaxValue;
+                }
                 else
+                {
                     return (int)maxReceivedMessageSize;
+                }
             }
             set
             {
@@ -73,17 +105,21 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-
-                _realm = value;
+                _realm = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
+        /// <summary>
+        /// Gets the HTTP scheme.
+        /// </summary>
+        /// <value>The HTTP scheme.</value>
+        /// <remarks>This will be 'http' unless overridden in a subclass.</remarks>
         public override string Scheme => "http";
 
+        /// <summary>
+        /// Gets or sets the transfer mode.
+        /// </summary>
+        /// <value>The transfer mode.</value>
         public TransferMode TransferMode
         {
             get
@@ -97,6 +133,10 @@ namespace CoreWCF.Channels
             }
         }
 
+        /// <summary>
+        /// Gets or sets the web socket settings.
+        /// </summary>
+        /// <value>The web socket settings. This may not be null.</value>
         public WebSocketTransportSettings WebSocketSettings
         {
             get
@@ -105,11 +145,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                if (value == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                }
-                _webSocketSettings = value;
+                _webSocketSettings = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
@@ -125,6 +161,9 @@ namespace CoreWCF.Channels
                 effectiveAuthenticationSchemes.IsNotSet(AuthenticationSchemes.Anonymous);
         }
 
+        /// <summary>
+        /// Clones this instance.
+        /// </summary>
         public override BindingElement Clone()
         {
             return new HttpTransportBindingElement(this);
@@ -132,7 +171,7 @@ namespace CoreWCF.Channels
 
         public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
         {
-            var app = context.BindingParameters.Find<IApplicationBuilder>();
+            IApplicationBuilder app = context.BindingParameters.Find<IApplicationBuilder>();
             if (app == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(IApplicationBuilder));
@@ -148,11 +187,11 @@ namespace CoreWCF.Channels
         {
             if (typeof(TChannel) == typeof(IReplyChannel))
             {
-                return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always;
+                return WebSocketSettings.TransportUsage != WebSocketTransportUsage.Always;
             }
             else if (typeof(TChannel) == typeof(IDuplexSessionChannel))
             {
-                return this.WebSocketSettings.TransportUsage != WebSocketTransportUsage.Never;
+                return WebSocketSettings.TransportUsage != WebSocketTransportUsage.Never;
             }
 
             return false;
@@ -201,10 +240,17 @@ namespace CoreWCF.Channels
 
             //    return (T)(object)_anonymousUriPrefixMatcher;
             //}
-            //else if (typeof(T) == typeof(ITransportCompressionSupport))
-            //{
-            //    return (T)(object)new TransportCompressionSupportHelper();
-            //}
+            else if (typeof(T).FullName.Equals("CoreWCF.Channels.ITransportCompressionSupport"))
+            {
+                IApplicationBuilder app = context.BindingParameters.Find<IApplicationBuilder>();
+                if (app == null)
+                {
+                    return base.GetProperty<T>(context);
+                }
+
+                object tcs = app.ApplicationServices.GetService(typeof(T).Assembly.GetType("CoreWCF.Channels.TransportCompressionSupportHelper"));
+                return (T)tcs;
+            }
             else
             {
                 if (context.BindingParameters.Find<MessageEncodingBindingElement>() == null)
@@ -222,9 +268,7 @@ namespace CoreWCF.Channels
                 return currentAuthenticationSchemes;
             }
 
-            AuthenticationSchemes hostSupportedAuthenticationSchemes;
-
-            if (!AuthenticationSchemesBindingParameter.TryExtract(bindingParameters, out hostSupportedAuthenticationSchemes))
+            if (!AuthenticationSchemesBindingParameter.TryExtract(bindingParameters, out AuthenticationSchemes hostSupportedAuthenticationSchemes))
             {
                 return currentAuthenticationSchemes;
             }
@@ -253,9 +297,34 @@ namespace CoreWCF.Channels
             //}
             //else
             //{
-                //build intersection between AuthenticationSchemes supported on the HttpTransportbidningELement and ServiceHost/IIS
-                return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
+            //build intersection between AuthenticationSchemes supported on the HttpTransportbidningELement and ServiceHost/IIS
+            return currentAuthenticationSchemes & hostSupportedAuthenticationSchemes;
             //}
         }
+
+        public ExtendedProtectionPolicy ExtendedProtectionPolicy
+        {
+            get
+            {
+                return _extendedProtectionPolicy;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
+                if (value.PolicyEnforcement == PolicyEnforcement.Always &&
+                    !ExtendedProtectionPolicy.OSSupportsExtendedProtection)
+                {
+                    throw new PlatformNotSupportedException(SR.ExtendedProtectionNotSupported);
+                }
+
+                _extendedProtectionPolicy = value;
+            }
+        }
+
+        //  public override Type MiddlewareType => typeof(ServiceModelHttpMiddleware);
     }
 }

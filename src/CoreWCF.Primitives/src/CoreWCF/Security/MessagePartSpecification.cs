@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Xml;
@@ -8,10 +11,9 @@ namespace CoreWCF.Security
 {
     internal class MessagePartSpecification
     {
-        List<XmlQualifiedName> _headerTypes;
-        bool _isBodyIncluded;
-        bool _isReadOnly;
-        static MessagePartSpecification _noParts;
+        private List<XmlQualifiedName> _headerTypes;
+        private bool _isBodyIncluded;
+        private static MessagePartSpecification s_noParts;
 
         public ICollection<XmlQualifiedName> HeaderTypes
         {
@@ -22,7 +24,7 @@ namespace CoreWCF.Security
                     _headerTypes = new List<XmlQualifiedName>();
                 }
 
-                if (_isReadOnly)
+                if (IsReadOnly)
                 {
                     return new ReadOnlyCollection<XmlQualifiedName>(_headerTypes);
                 }
@@ -46,51 +48,57 @@ namespace CoreWCF.Security
             }
             set
             {
-                if (_isReadOnly)
+                if (IsReadOnly)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
+                }
 
                 _isBodyIncluded = value;
             }
         }
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return _isReadOnly;
-            }
-        }
+        public bool IsReadOnly { get; private set; }
 
-        static public MessagePartSpecification NoParts
+        public static MessagePartSpecification NoParts
         {
             get
             {
-                if (_noParts == null)
+                if (s_noParts == null)
                 {
                     MessagePartSpecification parts = new MessagePartSpecification();
                     parts.MakeReadOnly();
-                    _noParts = parts;
+                    s_noParts = parts;
                 }
-                return _noParts;
+                return s_noParts;
             }
         }
 
         public void Clear()
         {
-            if (_isReadOnly)
+            if (IsReadOnly)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
+            }
 
             if (_headerTypes != null)
+            {
                 _headerTypes.Clear();
+            }
+
             _isBodyIncluded = false;
         }
 
         public void Union(MessagePartSpecification specification)
         {
-            if (_isReadOnly)
+            if (IsReadOnly)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
+            }
+
             if (specification == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(specification));
+            }
 
             _isBodyIncluded |= specification.IsBodyIncluded;
 
@@ -112,8 +120,10 @@ namespace CoreWCF.Security
 
         public void MakeReadOnly()
         {
-            if (_isReadOnly)
+            if (IsReadOnly)
+            {
                 return;
+            }
 
             if (_headerTypes != null)
             {
@@ -136,14 +146,16 @@ namespace CoreWCF.Security
                         }
 
                         if (include)
+                        {
                             noDuplicates.Add(qname);
+                        }
                     }
                 }
 
                 _headerTypes = noDuplicates;
             }
 
-            _isReadOnly = true;
+            IsReadOnly = true;
         }
 
         public MessagePartSpecification()
@@ -178,7 +190,9 @@ namespace CoreWCF.Security
         internal bool IsHeaderIncluded(MessageHeader header)
         {
             if (header == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(header));
+            }
 
             return IsHeaderIncluded(header.Name, header.Namespace);
         }
@@ -186,9 +200,14 @@ namespace CoreWCF.Security
         internal bool IsHeaderIncluded(string name, string ns)
         {
             if (name == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            }
+
             if (ns == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(ns));
+            }
 
             if (_headerTypes != null)
             {
@@ -219,7 +238,9 @@ namespace CoreWCF.Security
         internal bool IsEmpty()
         {
             if (_headerTypes != null && _headerTypes.Count > 0)
+            {
                 return false;
+            }
 
             return !IsBodyIncluded;
         }

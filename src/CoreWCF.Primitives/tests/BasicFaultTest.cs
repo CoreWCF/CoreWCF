@@ -1,8 +1,11 @@
-﻿using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
+using CoreWCF.Channels;
+using Helpers;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Primitives.Tests
 {
@@ -18,12 +21,14 @@ namespace CoreWCF.Primitives.Tests
                 version = (version == MessageVersion.Soap11) ? MessageVersion.Soap12WSAddressing10 : null
             )
             {
-                var translations = new List<FaultReasonText>();
-                translations.Add(new FaultReasonText("Reason: auto-generated fault for testing.", "en-us"));
-                translations.Add(new FaultReasonText("Raison: auto-generat error pour examiner.", "fr"));
+                var translations = new List<FaultReasonText>
+                {
+                    new FaultReasonText("Reason: auto-generated fault for testing.", "en-us"),
+                    new FaultReasonText("Raison: auto-generat error pour examiner.", "fr")
+                };
 
                 var reason = new FaultReason(translations);
-                Object detail = "Sample fault detail content.";
+                object detail = "Sample fault detail content.";
 
                 MessageFault fault = MessageFault.CreateFault(new FaultCode("Sender"), reason, detail, new System.Runtime.Serialization.DataContractSerializer(typeof(string)), "", "");
                 Message message = Message.CreateMessage(MessageVersion.Soap12WSAddressing10, fault, "http://www.w3.org/2005/08/addressing/fault");
@@ -58,32 +63,11 @@ namespace CoreWCF.Primitives.Tests
 
             if (!(f1.HasDetail ^ f2.HasDetail))
             {
-                if (f1.GetDetail<String>() != f2.GetDetail<String>())
+                if (f1.GetDetail<string>() != f2.GetDetail<string>())
                 {
                     throw new ApplicationException("Message Fault Detail are not equal");
                 }
             }
-        }
-    }
-
-    internal class MessageTestUtilities
-    {
-        public static Message SendAndReceiveMessage(Message toSend)
-        {
-            MessageEncoder encoder = null;
-            if (toSend.Version.Envelope == EnvelopeVersion.Soap11)
-            {
-                encoder = new TextMessageEncodingBindingElement(toSend.Version, System.Text.Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
-            }
-            else
-            {
-                encoder = new BinaryMessageEncodingBindingElement().CreateMessageEncoderFactory().Encoder;
-            }
-            BufferManager bufferManager = BufferManager.CreateBufferManager(int.MaxValue, int.MaxValue);
-            ArraySegment<byte> encodedMessage = encoder.WriteMessage(toSend, int.MaxValue, bufferManager);
-
-            Message r = encoder.ReadMessage(encodedMessage, bufferManager);
-            return r;
         }
     }
 }

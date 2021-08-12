@@ -1,66 +1,61 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CoreWCF.Collections.Generic;
+using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.Dispatcher
 {
     public sealed class DispatchOperation
     {
-        string action;
-        SynchronizedCollection<FaultContractInfo> faultContractInfos;
-        IDispatchMessageFormatter formatter;
-        IDispatchFaultFormatter faultFormatter;
-        ImpersonationOption impersonation;
-        IOperationInvoker invoker;
-        bool isTerminating;
-        bool isSessionOpenNotificationEnabled;
-        string name;
-        bool releaseInstanceAfterCall;
-        bool releaseInstanceBeforeCall;
-        string replyAction;
-        bool deserializeRequest = true;
-        bool serializeReply = true;
-        bool autoDisposeParameters = true;
+        private IDispatchFaultFormatter _faultFormatter;
+        private ImpersonationOption _impersonation;
+        private bool _isTerminating;
+        private bool _isSessionOpenNotificationEnabled;
+        private bool _releaseInstanceAfterCall;
+        private bool _releaseInstanceBeforeCall;
+        private bool _deserializeRequest = true;
+        private bool _serializeReply = true;
+        private bool _autoDisposeParameters = true;
+        private ConcurrentDictionary<string, List<Claim>> _authorizeClaims;
 
         public DispatchOperation(DispatchRuntime parent, string name, string action)
         {
             Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            this.name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
-            this.action = action;
-            this.impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
+            Name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+            Action = action;
+            _impersonation = OperationBehaviorAttribute.DefaultImpersonationOption;
             // Not necessary for basic functionality
             CallContextInitializers = parent.NewBehaviorCollection<ICallContextInitializer>();
-            faultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
+            FaultContractInfos = parent.NewBehaviorCollection<FaultContractInfo>();
             ParameterInspectors = parent.NewBehaviorCollection<IParameterInspector>();
             IsOneWay = true;
+            _authorizeClaims = new ConcurrentDictionary<string, List<Claim>>();
         }
 
         internal DispatchOperation(DispatchRuntime parent, string name, string action, string replyAction) : this(parent, name, action)
         {
-            this.replyAction = replyAction;
+            ReplyAction = replyAction;
             IsOneWay = false;
         }
 
-        public string Action
-        {
-            get { return action; }
-        }
+        public string Action { get; }
 
         internal SynchronizedCollection<ICallContextInitializer> CallContextInitializers { get; }
 
-        internal SynchronizedCollection<FaultContractInfo> FaultContractInfos
-        {
-            get { return faultContractInfos; }
-        }
+        public SynchronizedCollection<FaultContractInfo> FaultContractInfos { get; }
 
         internal IDispatchMessageFormatter Formatter
         {
-            get { return formatter; }
+            get { return InternalFormatter; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    formatter = value;
+                    InternalFormatter = value;
                 }
             }
         }
@@ -69,18 +64,18 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                if (faultFormatter == null)
+                if (_faultFormatter == null)
                 {
-                    faultFormatter = new DataContractSerializerFaultFormatter(faultContractInfos);
+                    _faultFormatter = new DataContractSerializerFaultFormatter(FaultContractInfos);
                 }
-                return faultFormatter;
+                return _faultFormatter;
             }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    faultFormatter = value;
+                    _faultFormatter = value;
                     IsFaultFormatterSetExplicit = true;
                 }
             }
@@ -90,27 +85,27 @@ namespace CoreWCF.Dispatcher
 
         public bool AutoDisposeParameters
         {
-            get { return autoDisposeParameters; }
+            get { return _autoDisposeParameters; }
 
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    autoDisposeParameters = value;
+                    _autoDisposeParameters = value;
                 }
             }
         }
 
         public bool DeserializeRequest
         {
-            get { return deserializeRequest; }
+            get { return _deserializeRequest; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    deserializeRequest = value;
+                    _deserializeRequest = value;
                 }
             }
         }
@@ -119,74 +114,76 @@ namespace CoreWCF.Dispatcher
 
         public ImpersonationOption Impersonation
         {
-            get { return this.impersonation; }
+            get { return _impersonation; }
             set
             {
-                lock (this.Parent.ThisLock)
+                lock (Parent.ThisLock)
                 {
-                    this.Parent.InvalidateRuntime();
-                    this.impersonation = value;
+                    Parent.InvalidateRuntime();
+                    _impersonation = value;
+                }
+            }
+        }
+
+        public ConcurrentDictionary<string,List<Claim>> AuthorizeClaims //need help with naming
+        {
+            get { return _authorizeClaims; }
+            set
+            {
+                lock (Parent.ThisLock)
+                {
+                    Parent.InvalidateRuntime();
+                    _authorizeClaims = value;
                 }
             }
         }
 
         internal bool HasNoDisposableParameters { get; set; }
 
-        internal IDispatchMessageFormatter InternalFormatter
-        {
-            get { return formatter; }
-            set { formatter = value; }
-        }
+        internal IDispatchMessageFormatter InternalFormatter { get; set; }
 
-        internal IOperationInvoker InternalInvoker
-        {
-            get { return invoker; }
-            set { invoker = value; }
-        }
+        internal IOperationInvoker InternalInvoker { get; set; }
 
         public IOperationInvoker Invoker
         {
-            get { return invoker; }
+            get { return InternalInvoker; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    invoker = value;
+                    InternalInvoker = value;
                 }
             }
         }
 
         internal bool IsTerminating
         {
-            get { return isTerminating; }
+            get { return _isTerminating; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    isTerminating = value;
+                    _isTerminating = value;
                 }
             }
         }
 
         internal bool IsSessionOpenNotificationEnabled
         {
-            get { return isSessionOpenNotificationEnabled; }
+            get { return _isSessionOpenNotificationEnabled; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    isSessionOpenNotificationEnabled = value;
+                    _isSessionOpenNotificationEnabled = value;
                 }
             }
         }
 
-        public string Name
-        {
-            get { return name; }
-        }
+        public string Name { get; }
 
         public ICollection<IParameterInspector> ParameterInspectors { get; }
 
@@ -196,44 +193,41 @@ namespace CoreWCF.Dispatcher
 
         internal bool ReleaseInstanceAfterCall
         {
-            get { return releaseInstanceAfterCall; }
+            get { return _releaseInstanceAfterCall; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    releaseInstanceAfterCall = value;
+                    _releaseInstanceAfterCall = value;
                 }
             }
         }
 
         internal bool ReleaseInstanceBeforeCall
         {
-            get { return releaseInstanceBeforeCall; }
+            get { return _releaseInstanceBeforeCall; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    releaseInstanceBeforeCall = value;
+                    _releaseInstanceBeforeCall = value;
                 }
             }
         }
 
-        public string ReplyAction
-        {
-            get { return replyAction; }
-        }
+        public string ReplyAction { get; }
 
         public bool SerializeReply
         {
-            get { return serializeReply; }
+            get { return _serializeReply; }
             set
             {
                 lock (Parent.ThisLock)
                 {
                     Parent.InvalidateRuntime();
-                    serializeReply = value;
+                    _serializeReply = value;
                 }
             }
         }

@@ -1,48 +1,43 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using CoreWCF.Runtime;
-using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
     internal class ImmutableClientRuntime
     {
-        int correlationCount;
-        //bool addTransactionFlowProperties;
-        //IInteractiveChannelInitializer[] interactiveChannelInitializers;
-        IClientOperationSelector operationSelector;
-        IChannelInitializer[] channelInitializers;
-        IClientMessageInspector[] messageInspectors;
-        Dictionary<string, ProxyOperationRuntime> operations;
-        ProxyOperationRuntime unhandled;
-        bool useSynchronizationContext;
-        bool validateMustUnderstand;
+        private readonly IChannelInitializer[] _channelInitializers;
+        private readonly IClientMessageInspector[] _messageInspectors;
+        private readonly Dictionary<string, ProxyOperationRuntime> _operations;
 
         internal ImmutableClientRuntime(ClientRuntime behavior)
         {
-            channelInitializers = EmptyArray<IChannelInitializer>.ToArray(behavior.ChannelInitializers);
+            _channelInitializers = EmptyArray<IChannelInitializer>.ToArray(behavior.ChannelInitializers);
             //this.interactiveChannelInitializers = EmptyArray<IInteractiveChannelInitializer>.ToArray(behavior.InteractiveChannelInitializers);
-            messageInspectors = EmptyArray<IClientMessageInspector>.ToArray(behavior.MessageInspectors);
+            _messageInspectors = EmptyArray<IClientMessageInspector>.ToArray(behavior.MessageInspectors);
 
-            operationSelector = behavior.OperationSelector;
-            useSynchronizationContext = behavior.UseSynchronizationContext;
-            validateMustUnderstand = behavior.ValidateMustUnderstand;
+            OperationSelector = behavior.OperationSelector;
+            UseSynchronizationContext = behavior.UseSynchronizationContext;
+            ValidateMustUnderstand = behavior.ValidateMustUnderstand;
 
-            unhandled = new ProxyOperationRuntime(behavior.UnhandledClientOperation, this);
+            UnhandledProxyOperation = new ProxyOperationRuntime(behavior.UnhandledClientOperation, this);
 
             //this.addTransactionFlowProperties = behavior.AddTransactionFlowProperties;
 
-            operations = new Dictionary<string, ProxyOperationRuntime>();
+            _operations = new Dictionary<string, ProxyOperationRuntime>();
 
             for (int i = 0; i < behavior.Operations.Count; i++)
             {
                 ClientOperation operation = behavior.Operations[i];
                 ProxyOperationRuntime operationRuntime = new ProxyOperationRuntime(operation, this);
-                operations.Add(operation.Name, operationRuntime);
+                _operations.Add(operation.Name, operationRuntime);
             }
 
-            correlationCount = messageInspectors.Length + behavior.MaxParameterInspectors;
+            CorrelationCount = _messageInspectors.Length + behavior.MaxParameterInspectors;
         }
 
         internal int MessageInspectorCorrelationOffset
@@ -52,43 +47,27 @@ namespace CoreWCF.Dispatcher
 
         internal int ParameterInspectorCorrelationOffset
         {
-            get { return messageInspectors.Length; }
+            get { return _messageInspectors.Length; }
         }
 
-        internal int CorrelationCount
-        {
-            get { return correlationCount; }
-        }
+        internal int CorrelationCount { get; }
 
-        internal IClientOperationSelector OperationSelector
-        {
-            get { return operationSelector; }
-        }
+        internal IClientOperationSelector OperationSelector { get; }
 
-        internal ProxyOperationRuntime UnhandledProxyOperation
-        {
-            get { return unhandled; }
-        }
+        internal ProxyOperationRuntime UnhandledProxyOperation { get; }
 
-        internal bool UseSynchronizationContext
-        {
-            get { return useSynchronizationContext; }
-        }
+        internal bool UseSynchronizationContext { get; }
 
-        internal bool ValidateMustUnderstand
-        {
-            get { return validateMustUnderstand; }
-            set { validateMustUnderstand = value; }
-        }
+        internal bool ValidateMustUnderstand { get; set; }
 
         internal void AfterReceiveReply(ref ProxyRpc rpc)
         {
             int offset = MessageInspectorCorrelationOffset;
             try
             {
-                for (int i = 0; i < messageInspectors.Length; i++)
+                for (int i = 0; i < _messageInspectors.Length; i++)
                 {
-                    messageInspectors[i].AfterReceiveReply(ref rpc.Reply, rpc.Correlation[offset + i]);
+                    _messageInspectors[i].AfterReceiveReply(ref rpc.Reply, rpc.Correlation[offset + i]);
                     //if (TD.ClientMessageInspectorAfterReceiveInvokedIsEnabled())
                     //{
                     //    TD.ClientMessageInspectorAfterReceiveInvoked(rpc.EventTraceActivity, this.messageInspectors[i].GetType().FullName);
@@ -114,9 +93,9 @@ namespace CoreWCF.Dispatcher
             int offset = MessageInspectorCorrelationOffset;
             try
             {
-                for (int i = 0; i < messageInspectors.Length; i++)
+                for (int i = 0; i < _messageInspectors.Length; i++)
                 {
-                    rpc.Correlation[offset + i] = messageInspectors[i].BeforeSendRequest(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy);
+                    rpc.Correlation[offset + i] = _messageInspectors[i].BeforeSendRequest(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy);
                     //if (TD.ClientMessageInspectorBeforeSendInvokedIsEnabled())
                     //{
                     //    TD.ClientMessageInspectorBeforeSendInvoked(rpc.EventTraceActivity, this.messageInspectors[i].GetType().FullName);
@@ -154,9 +133,9 @@ namespace CoreWCF.Dispatcher
         {
             try
             {
-                for (int i = 0; i < channelInitializers.Length; ++i)
+                for (int i = 0; i < _channelInitializers.Length; ++i)
                 {
-                    channelInitializers[i].Initialize(channel);
+                    _channelInitializers[i].Initialize(channel);
                 }
             }
             catch (Exception e)
@@ -175,7 +154,7 @@ namespace CoreWCF.Dispatcher
 
         internal ProxyOperationRuntime GetOperation(MethodBase methodBase, object[] args, out bool canCacheResult)
         {
-            if (operationSelector == null)
+            if (OperationSelector == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException
                                                         (SR.Format(SR.SFxNeedProxyBehaviorOperationSelector2, methodBase.Name,
@@ -184,7 +163,7 @@ namespace CoreWCF.Dispatcher
 
             try
             {
-                if (operationSelector.AreParametersRequiredForSelection)
+                if (OperationSelector.AreParametersRequiredForSelection)
                 {
                     canCacheResult = false;
                 }
@@ -193,9 +172,8 @@ namespace CoreWCF.Dispatcher
                     args = null;
                     canCacheResult = true;
                 }
-                string operationName = operationSelector.SelectOperation(methodBase, args);
-                ProxyOperationRuntime operation;
-                if ((operationName != null) && operations.TryGetValue(operationName, out operation))
+                string operationName = OperationSelector.SelectOperation(methodBase, args);
+                if ((operationName != null) && _operations.TryGetValue(operationName, out ProxyOperationRuntime operation))
                 {
                     return operation;
                 }
@@ -222,11 +200,14 @@ namespace CoreWCF.Dispatcher
 
         internal ProxyOperationRuntime GetOperationByName(string operationName)
         {
-            ProxyOperationRuntime operation = null;
-            if (operations.TryGetValue(operationName, out operation))
+            if (_operations.TryGetValue(operationName, out ProxyOperationRuntime operation))
+            {
                 return operation;
+            }
             else
+            {
                 return null;
+            }
         }
     }
 }

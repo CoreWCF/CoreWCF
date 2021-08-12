@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Globalization;
 using System.Text;
@@ -42,7 +45,6 @@ namespace CoreWCF.Channels
                 string listenUriRelativeAddress)
         {
             Binding = binding;
-
             RemainingBindingElements = new BindingElementCollection(remainingBindingElements);
             BindingParameters = new BindingParameterCollection(parameters);
             ListenUriBaseAddress = listenUriBaseAddress;
@@ -59,21 +61,18 @@ namespace CoreWCF.Channels
 
         public BindingElementCollection RemainingBindingElements { get; private set; }
 
-        public IServiceDispatcher BuildNextServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher)
-    where TChannel : class, IChannel
+        public IServiceDispatcher BuildNextServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
-            return this.RemoveNextElement().BuildServiceDispatcher<TChannel>(this, innerDispatcher);
+            return RemoveNextElement().BuildServiceDispatcher<TChannel>(this, innerDispatcher);
         }
 
-        public bool CanBuildNextServiceDispatcher<TChannel>()
-    where TChannel : class, IChannel
+        public bool CanBuildNextServiceDispatcher<TChannel>() where TChannel : class, IChannel
         {
-            BindingContext clone = this.Clone();
+            BindingContext clone = Clone();
             return clone.RemoveNextElement().CanBuildServiceDispatcher<TChannel>(clone);
         }
 
-        public T GetInnerProperty<T>()
-            where T : class
+        public T GetInnerProperty<T>() where T : class
         {
             if (RemainingBindingElements.Count == 0)
             {
@@ -95,7 +94,10 @@ namespace CoreWCF.Channels
         {
             BindingElement element = RemainingBindingElements.Remove<BindingElement>();
             if (element != null)
+            {
                 return element;
+            }
+
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
                 SR.NoChannelBuilderAvailable, Binding.Name, Binding.Namespace)));
         }

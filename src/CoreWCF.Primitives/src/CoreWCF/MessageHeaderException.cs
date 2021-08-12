@@ -1,19 +1,16 @@
-﻿using System;
-using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Runtime.Serialization;
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
-    //[Serializable]
+    [Serializable]
     public class MessageHeaderException : ProtocolException
     {
-        //[NonSerialized]
-        string headerName;
-        //[NonSerialized]
-        string headerNamespace;
-        //[NonSerialized]
-        bool isDuplicate;
-
         public MessageHeaderException(string message)
             : this(message, null, null)
         {
@@ -41,30 +38,33 @@ namespace CoreWCF
         public MessageHeaderException(string message, string headerName, string ns, bool isDuplicate, Exception innerException)
             : base(message, innerException)
         {
-            this.headerName = headerName;
-            headerNamespace = ns;
-            this.isDuplicate = isDuplicate;
+            HeaderName = headerName;
+            HeaderNamespace = ns;
+            IsDuplicate = isDuplicate;
         }
 
-        public string HeaderName { get { return headerName; } }
+        public string HeaderName { get; }
 
-        public string HeaderNamespace { get { return headerNamespace; } }
+        public string HeaderNamespace { get; }
 
         // IsDuplicate==true means there was more than one; IsDuplicate==false means there were zero
-        public bool IsDuplicate { get { return isDuplicate; } }
+        public bool IsDuplicate { get; }
+        public StreamingContext Context { get; }
 
         internal Message ProvideFault(MessageVersion messageVersion)
         {
             Fx.Assert(messageVersion.Addressing == AddressingVersion.WSAddressing10, "");
             WSAddressing10ProblemHeaderQNameFault phf = new WSAddressing10ProblemHeaderQNameFault(this);
-            Message message = CoreWCF.Channels.Message.CreateMessage(messageVersion, phf, AddressingVersion.WSAddressing10.FaultAction);
+            Message message = Channels.Message.CreateMessage(messageVersion, phf, AddressingVersion.WSAddressing10.FaultAction);
             phf.AddHeaders(message.Headers);
             return message;
         }
 
         // for serialization
         public MessageHeaderException() { }
-        //protected MessageHeaderException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        protected MessageHeaderException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+            Context = context;
+        }
     }
-
 }

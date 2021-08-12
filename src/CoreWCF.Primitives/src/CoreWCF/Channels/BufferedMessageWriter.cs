@@ -1,20 +1,23 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.Xml;
 
 namespace CoreWCF.Channels
 {
-    abstract class BufferedMessageWriter
+    internal abstract class BufferedMessageWriter
     {
-        int[] sizeHistory;
-        int sizeHistoryIndex;
-        const int sizeHistoryCount = 4;
-        const int expectedSizeVariance = 256;
-        BufferManagerOutputStream stream;
+        private int[] _sizeHistory;
+        private int _sizeHistoryIndex;
+        private const int sizeHistoryCount = 4;
+        private const int expectedSizeVariance = 256;
+        private readonly BufferManagerOutputStream _stream;
 
         public BufferedMessageWriter()
         {
-            stream = new BufferManagerOutputStream(SR.MaxSentMessageSizeExceeded);
+            _stream = new BufferManagerOutputStream(SR.MaxSentMessageSizeExceeded);
             InitMessagePredictor();
         }
 
@@ -28,35 +31,42 @@ namespace CoreWCF.Channels
             // make sure that maxSize has room for initialOffset without overflowing, since
             // the effective buffer size is message size + initialOffset
             if (maxSizeQuota <= int.MaxValue - initialOffset)
+            {
                 effectiveMaxSize = maxSizeQuota + initialOffset;
+            }
             else
+            {
                 effectiveMaxSize = int.MaxValue;
+            }
 
             int predictedMessageSize = PredictMessageSize();
             if (predictedMessageSize > effectiveMaxSize)
+            {
                 predictedMessageSize = effectiveMaxSize;
+            }
             else if (predictedMessageSize < initialOffset)
+            {
                 predictedMessageSize = initialOffset;
+            }
 
             try
             {
-                stream.Init(predictedMessageSize, maxSizeQuota, effectiveMaxSize, bufferManager);
-                stream.Skip(initialOffset);
+                _stream.Init(predictedMessageSize, maxSizeQuota, effectiveMaxSize, bufferManager);
+                _stream.Skip(initialOffset);
 
-                XmlDictionaryWriter writer = TakeXmlWriter(stream);
+                XmlDictionaryWriter writer = TakeXmlWriter(_stream);
                 OnWriteStartMessage(writer);
                 message.WriteMessage(writer);
                 OnWriteEndMessage(writer);
                 writer.Flush();
                 ReturnXmlWriter(writer);
-                int size;
-                byte[] buffer = stream.ToArray(out size);
+                byte[] buffer = _stream.ToArray(out int size);
                 RecordActualMessageSize(size);
                 return new ArraySegment<byte>(buffer, initialOffset, size - initialOffset);
             }
             finally
             {
-                stream.Clear();
+                _stream.Clear();
             }
         }
 
@@ -68,27 +78,33 @@ namespace CoreWCF.Channels
         {
         }
 
-        void InitMessagePredictor()
+        private void InitMessagePredictor()
         {
-            sizeHistory = new int[4];
+            _sizeHistory = new int[4];
             for (int i = 0; i < sizeHistoryCount; i++)
-                sizeHistory[i] = 256;
+            {
+                _sizeHistory[i] = 256;
+            }
         }
 
-        int PredictMessageSize()
+        private int PredictMessageSize()
         {
             int max = 0;
             for (int i = 0; i < sizeHistoryCount; i++)
-                if (sizeHistory[i] > max)
-                    max = sizeHistory[i];
+            {
+                if (_sizeHistory[i] > max)
+                {
+                    max = _sizeHistory[i];
+                }
+            }
+
             return max + expectedSizeVariance;
         }
 
-        void RecordActualMessageSize(int size)
+        private void RecordActualMessageSize(int size)
         {
-            sizeHistory[sizeHistoryIndex] = size;
-            sizeHistoryIndex = (sizeHistoryIndex + 1) % sizeHistoryCount;
+            _sizeHistory[_sizeHistoryIndex] = size;
+            _sizeHistoryIndex = (_sizeHistoryIndex + 1) % sizeHistoryCount;
         }
     }
-
 }

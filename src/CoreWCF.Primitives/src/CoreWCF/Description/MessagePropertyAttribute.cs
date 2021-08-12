@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 
 namespace CoreWCF.Description
 {
@@ -6,8 +9,7 @@ namespace CoreWCF.Description
     [AttributeUsage(CoreWCFAttributeTargets.MessageMember, Inherited = false)]
     internal sealed class MessagePropertyAttribute : Attribute
     {
-        string _name;
-        bool _isNameSetExplicit;
+        private string _name;
 
         public MessagePropertyAttribute()
         {
@@ -21,16 +23,10 @@ namespace CoreWCF.Description
             }
             set
             {
-                _isNameSetExplicit = true;
+                IsNameSetExplicit = true;
                 _name = value;
             }
         }
-        internal bool IsNameSetExplicit
-        {
-            get
-            {
-                return _isNameSetExplicit;
-            }
-        }
+        internal bool IsNameSetExplicit { get; private set; }
     }
 }

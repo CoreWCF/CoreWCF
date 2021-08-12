@@ -1,50 +1,88 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting.Server.Features;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels
 {
     public partial class ServiceModelHttpMiddleware
     {
-        private RequestDelegate _next;
-        private ILogger<ServiceModelHttpMiddleware> _logger;
+        private readonly IApplicationBuilder _app;
+        private readonly IServiceBuilder _serviceBuilder;
+        private readonly IDispatcherBuilder _dispatcherBuilder;
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ServiceModelHttpMiddleware> _logger;
         private RequestDelegate _branch;
+        private bool _branchBuilt;
 
         public ServiceModelHttpMiddleware(RequestDelegate next, IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, ILogger<ServiceModelHttpMiddleware> logger)
         {
+            _app = app;
+            _serviceBuilder = serviceBuilder;
+            _dispatcherBuilder = dispatcherBuilder;
             _next = next;
             _logger = logger;
-            _branch = BuildBranch(app, serviceBuilder, dispatcherBuilder);
+            _branch = BuildBranchAndInvoke;
+            serviceBuilder.Opened += ServiceBuilderOpenedCallback;
         }
 
-        public Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context)
         {
-            return _branch(context);
+            // Update the path
+            var path = context.Request.Path;
+            var pathBase = context.Request.PathBase;
+            context.Request.Path = pathBase.Add(path);
+            context.Request.PathBase = "";
+
+            try
+            {
+                await _branch(context);
+            }
+            finally
+            {
+                context.Request.PathBase = pathBase;
+                context.Request.Path = path;
+            }
         }
 
-        private RequestDelegate BuildBranch(IApplicationBuilder app, IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder)
+        private Task BuildBranchAndInvoke(HttpContext request)
+        {
+            EnsureBranchBuilt();
+            return _branch(request);
+        }
+
+        private void EnsureBranchBuilt()
+        {
+            lock (this)
+            {
+                if (!_branchBuilt)
+                {
+                    _branch = BuildBranch();
+                    _branchBuilt = true;
+                }
+            }
+        }
+
+        private void ServiceBuilderOpenedCallback(object sender, EventArgs e)
+        {
+            EnsureBranchBuilt();
+        }
+
+        private RequestDelegate BuildBranch()
         {
             _logger.LogDebug("Building branch map");
-            var branchApp = app.New();
-            var serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
-            foreach (var address in serverAddressesFeature.Addresses)
-            {
-                _logger.LogDebug($"Adding base address {address} to serviceBuilder");
-                serviceBuilder.BaseAddresses.Add(new Uri(address));
-            }
+            IApplicationBuilder branchApp = _app.New();
 
-            foreach (var serviceType in serviceBuilder.Services)
+            foreach (Type serviceType in _serviceBuilder.Services)
             {
-                var dispatchers = dispatcherBuilder.BuildDispatchers(serviceType);
-                foreach (var dispatcher in dispatchers)
+                System.Collections.Generic.List<IServiceDispatcher> dispatchers = _dispatcherBuilder.BuildDispatchers(serviceType);
+                foreach (IServiceDispatcher dispatcher in dispatchers)
                 {
                     if (dispatcher.BaseAddress == null)
                     {
@@ -52,19 +90,23 @@ namespace CoreWCF.Channels
                         continue;
                     }
 
-                    var binding = new CustomBinding(dispatcher.Binding);
+                    if (!(dispatcher.Binding is CustomBinding binding))
+                    {
+                        binding = new CustomBinding(dispatcher.Binding);
+                    }
                     if (binding.Elements.Find<HttpTransportBindingElement>() == null)
                     {
                         _logger.LogDebug($"Binding for address {dispatcher.BaseAddress} is not an HTTP[S] binding ao skipping");
                         continue; // Not an HTTP(S) dispatcher
                     }
 
-                    var parameters = new BindingParameterCollection();
-                    parameters.Add(app);
-                    parameters.Add(serverAddressesFeature);
+                    var parameters = new BindingParameterCollection
+                    {
+                        _app
+                    };
                     Type supportedChannelType = null;
                     IServiceDispatcher serviceDispatcher = null;
-                    var supportedChannels = dispatcher.SupportedChannelTypes;
+                    System.Collections.Generic.IList<Type> supportedChannels = dispatcher.SupportedChannelTypes;
                     for (int i = 0; i < supportedChannels.Count; i++)
                     {
                         Type channelType = supportedChannels[i];
@@ -90,7 +132,6 @@ namespace CoreWCF.Channels
                         {
                             if (binding.CanBuildServiceDispatcher<IDuplexChannel>(parameters))
                             {
-
                                 serviceDispatcher = binding.BuildServiceDispatcher<IDuplexChannel>(parameters, dispatcher);
                                 supportedChannelType = typeof(IDuplexChannel);
                             }
@@ -124,7 +165,7 @@ namespace CoreWCF.Channels
                     _logger.LogInformation($"Mapping CoreWCF branch app for path {dispatcher.BaseAddress.AbsolutePath}");
                     branchApp.Map(dispatcher.BaseAddress.AbsolutePath, wcfApp =>
                     {
-                        var servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
+                        IServiceScopeFactory servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
                         var requestHandler = new RequestDelegateHandler(serviceDispatcher, servicesScopeFactory);
                         if (requestHandler.WebSocketOptions != null)
                         {

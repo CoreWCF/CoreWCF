@@ -1,11 +1,15 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Runtime
 {
     // This class is based on the blog post https://blogs.msdn.microsoft.com/pfxteam/2012/02/11/building-async-coordination-primitives-part-1-asyncmanualresetevent/
-    internal class AsyncManualResetEvent : IDisposable
+    // move this to common folder - TODO Biroj
+    public class AsyncManualResetEvent : IDisposable
     {
         private TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -33,11 +37,10 @@ namespace CoreWCF.Runtime
             var localTcs = new TaskCompletionSource<bool>();
             using (token.Register(TokenCancelledCallback, localTcs))
             {
-                var tcs = _tcs;
+                TaskCompletionSource<bool> tcs = _tcs;
                 CheckDisposed();
                 return await await Task.WhenAny(localTcs.Task, tcs.Task);
             }
-
         }
 
         private static void TokenCancelledCallback(object obj)
@@ -57,7 +60,7 @@ namespace CoreWCF.Runtime
             CheckDisposed();
             while (true)
             {
-                var tcs = _tcs;
+                TaskCompletionSource<bool> tcs = _tcs;
                 if (tcs == null)
                 {
                     return; // Disposed
@@ -65,7 +68,9 @@ namespace CoreWCF.Runtime
 
                 if (!tcs.Task.IsCompleted ||
                 Interlocked.CompareExchange(ref _tcs, new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously), tcs) == tcs)
+                {
                     return;
+                }
             }
         }
 
@@ -79,7 +84,7 @@ namespace CoreWCF.Runtime
 
         public void Dispose()
         {
-            var tcs = Interlocked.Exchange(ref _tcs, null);
+            TaskCompletionSource<bool> tcs = Interlocked.Exchange(ref _tcs, null);
             tcs?.TrySetResult(false);
         }
     }

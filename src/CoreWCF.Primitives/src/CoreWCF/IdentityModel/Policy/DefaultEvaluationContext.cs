@@ -1,71 +1,79 @@
-﻿using CoreWCF.IdentityModel.Claims;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Policy
 {
     internal class DefaultEvaluationContext : EvaluationContext
     {
-        List<ClaimSet> claimSets;
-        Dictionary<string, object> properties;
-        DateTime expirationTime = SecurityUtils.MaxUtcDateTime;
-        int generation;
-
-        ReadOnlyCollection<ClaimSet> readOnlyClaimSets;
+        private List<ClaimSet> _claimSets;
+        private readonly Dictionary<string, object> _properties;
+        private int _generation;
+        private ReadOnlyCollection<ClaimSet> _readOnlyClaimSets;
 
         public DefaultEvaluationContext()
         {
-            this.properties = new Dictionary<string, object>();
-            this.generation = 0;
+            _properties = new Dictionary<string, object>();
+            _generation = 0;
         }
 
         public override int Generation
         {
-            get { return this.generation; }
+            get { return _generation; }
         }
 
         public override ReadOnlyCollection<ClaimSet> ClaimSets
         {
             get
             {
-                if (this.claimSets == null)
+                if (_claimSets == null)
+                {
                     return EmptyReadOnlyCollection<ClaimSet>.Instance;
+                }
 
-                if (this.readOnlyClaimSets == null)
-                    this.readOnlyClaimSets = new ReadOnlyCollection<ClaimSet>(this.claimSets);
+                if (_readOnlyClaimSets == null)
+                {
+                    _readOnlyClaimSets = new ReadOnlyCollection<ClaimSet>(_claimSets);
+                }
 
-                return this.readOnlyClaimSets;
+                return _readOnlyClaimSets;
             }
         }
 
         public override IDictionary<string, object> Properties
         {
-            get { return this.properties; }
+            get { return _properties; }
         }
 
-        public DateTime ExpirationTime
-        {
-            get { return this.expirationTime; }
-        }
+        public DateTime ExpirationTime { get; private set; } = SecurityUtils.MaxUtcDateTime;
 
         public override void AddClaimSet(IAuthorizationPolicy policy, ClaimSet claimSet)
         {
             if (claimSet == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("claimSet");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(claimSet));
+            }
 
-            if (this.claimSets == null)
-                this.claimSets = new List<ClaimSet>();
+            if (_claimSets == null)
+            {
+                _claimSets = new List<ClaimSet>();
+            }
 
-            this.claimSets.Add(claimSet);
-            ++this.generation;
+            _claimSets.Add(claimSet);
+            ++_generation;
         }
 
         public override void RecordExpirationTime(DateTime expirationTime)
         {
-            if (this.expirationTime > expirationTime)
-                this.expirationTime = expirationTime;
+            if (ExpirationTime > expirationTime)
+            {
+                ExpirationTime = expirationTime;
+            }
         }
     }
 }

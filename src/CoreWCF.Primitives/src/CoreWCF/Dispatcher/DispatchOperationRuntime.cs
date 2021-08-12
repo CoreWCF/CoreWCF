@@ -1,38 +1,30 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reflection;
-using System.Security;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
-using CoreWCF.Diagnostics;
+using CoreWCF.IdentityModel.Claims;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Runtime;
 using CoreWCF.Security;
 
 namespace CoreWCF.Dispatcher
 {
     internal class DispatchOperationRuntime
     {
-        readonly string action;
-        readonly ICallContextInitializer[] callContextInitializers;
-        readonly IDispatchFaultFormatter faultFormatter;
-        readonly IDispatchMessageFormatter formatter;
-        readonly ImpersonationOption impersonation;
-        readonly IParameterInspector[] inspectors;
-        readonly IOperationInvoker invoker;
-        readonly bool isTerminating;
-        readonly bool isSessionOpenNotificationEnabled;
-        readonly string name;
-        readonly ImmutableDispatchRuntime parent;
-        readonly bool releaseInstanceAfterCall;
-        readonly bool releaseInstanceBeforeCall;
-        readonly string replyAction;
+        private readonly bool _isSessionOpenNotificationEnabled;
+
         //readonly bool transactionAutoComplete;
         //readonly bool transactionRequired;
-        readonly bool deserializeRequest;
-        readonly bool serializeReply;
-        readonly bool isOneWay;
-        readonly bool disposeParameters;
-        readonly ReceiveContextAcknowledgementMode receiveContextAcknowledgementMode;
+        private readonly bool _deserializeRequest;
+
         //readonly bool isInsideTransactedReceiveScope;
 
         internal DispatchOperationRuntime(DispatchOperation operation, ImmutableDispatchRuntime parent)
@@ -41,44 +33,41 @@ namespace CoreWCF.Dispatcher
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operation));
             }
-            if (parent == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
-            }
+
             if (operation.Invoker == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.RuntimeRequiresInvoker0));
             }
 
-            disposeParameters = ((operation.AutoDisposeParameters) && (!operation.HasNoDisposableParameters));
-            this.parent = parent;
-            callContextInitializers = EmptyArray<ICallContextInitializer>.ToArray(operation.CallContextInitializers);
-            inspectors = EmptyArray<IParameterInspector>.ToArray(operation.ParameterInspectors);
-            faultFormatter = operation.FaultFormatter;
-            impersonation = operation.Impersonation;
-            deserializeRequest = operation.DeserializeRequest;
-            serializeReply = operation.SerializeReply;
-            formatter = operation.Formatter;
-            invoker = operation.Invoker;
-            isTerminating = operation.IsTerminating;
-            isSessionOpenNotificationEnabled = operation.IsSessionOpenNotificationEnabled;
-            action = operation.Action;
-            name = operation.Name;
-            releaseInstanceAfterCall = operation.ReleaseInstanceAfterCall;
-            releaseInstanceBeforeCall = operation.ReleaseInstanceBeforeCall;
-            replyAction = operation.ReplyAction;
-            isOneWay = operation.IsOneWay;
-            receiveContextAcknowledgementMode = operation.ReceiveContextAcknowledgementMode;
+            DisposeParameters = ((operation.AutoDisposeParameters) && (!operation.HasNoDisposableParameters));
+            Parent = parent ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(parent));
+            CallContextInitializers = EmptyArray<ICallContextInitializer>.ToArray(operation.CallContextInitializers);
+            ParameterInspectors = EmptyArray<IParameterInspector>.ToArray(operation.ParameterInspectors);
+            FaultFormatter = operation.FaultFormatter;
+            Impersonation = operation.Impersonation;
+            AuthorizeClaims = operation.AuthorizeClaims;
+            _deserializeRequest = operation.DeserializeRequest;
+            SerializeReply = operation.SerializeReply;
+            Formatter = operation.Formatter;
+            Invoker = operation.Invoker;
+            IsTerminating = operation.IsTerminating;
+            _isSessionOpenNotificationEnabled = operation.IsSessionOpenNotificationEnabled;
+            Action = operation.Action;
+            Name = operation.Name;
+            ReleaseInstanceAfterCall = operation.ReleaseInstanceAfterCall;
+            ReleaseInstanceBeforeCall = operation.ReleaseInstanceBeforeCall;
+            ReplyAction = operation.ReplyAction;
+            IsOneWay = operation.IsOneWay;
+            ReceiveContextAcknowledgementMode = operation.ReceiveContextAcknowledgementMode;
 
-            if (formatter == null && (deserializeRequest || serializeReply))
+            if (Formatter == null && (_deserializeRequest || SerializeReply))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.DispatchRuntimeRequiresFormatter0, name)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.DispatchRuntimeRequiresFormatter0, Name)));
             }
 
             if ((operation.Parent.InstanceProvider == null) && (operation.Parent.Type != null))
             {
-                SyncMethodInvoker sync = invoker as SyncMethodInvoker;
-                if (sync != null)
+                if (Invoker is SyncMethodInvoker sync)
                 {
                     ValidateInstanceType(operation.Parent.Type, sync.Method);
                 }
@@ -90,103 +79,53 @@ namespace CoreWCF.Dispatcher
                 //    this.ValidateInstanceType(operation.Parent.Type, async.EndMethod);
                 //}
 
-                TaskMethodInvoker task = invoker as TaskMethodInvoker;
-                if (task != null)
+                if (Invoker is TaskMethodInvoker task)
                 {
                     ValidateInstanceType(operation.Parent.Type, task.TaskMethod);
                 }
             }
         }
 
-        internal string Action
-        {
-            get { return action; }
-        }
+        internal string Action { get; }
 
-        internal ICallContextInitializer[] CallContextInitializers
-        {
-            get { return callContextInitializers; }
-        }
+        internal ICallContextInitializer[] CallContextInitializers { get; }
 
-        internal bool DisposeParameters
-        {
-            get { return disposeParameters; }
-        }
+        internal bool DisposeParameters { get; }
 
         internal bool HasDefaultUnhandledActionInvoker
         {
-            get { return (invoker is DispatchRuntime.UnhandledActionInvoker); }
+            get { return (Invoker is DispatchRuntime.UnhandledActionInvoker); }
         }
 
-        internal bool SerializeReply
-        {
-            get { return serializeReply; }
-        }
+        internal bool SerializeReply { get; }
 
-        internal IDispatchFaultFormatter FaultFormatter
-        {
-            get { return faultFormatter; }
-        }
+        internal IDispatchFaultFormatter FaultFormatter { get; }
 
-        internal IDispatchMessageFormatter Formatter
-        {
-            get { return formatter; }
-        }
+        internal IDispatchMessageFormatter Formatter { get; }
 
-        internal ImpersonationOption Impersonation
-        {
-            get { return impersonation; }
-        }
+        internal ImpersonationOption Impersonation { get; }
 
-        internal IOperationInvoker Invoker
-        {
-            get { return invoker; }
-        }
+        internal ConcurrentDictionary<string, List<Claim>> AuthorizeClaims { get; }
 
-        internal bool IsOneWay
-        {
-            get { return isOneWay; }
-        }
+        internal IOperationInvoker Invoker { get; }
 
-        internal bool IsTerminating
-        {
-            get { return isTerminating; }
-        }
+        internal bool IsOneWay { get; }
 
-        internal string Name
-        {
-            get { return name; }
-        }
+        internal bool IsTerminating { get; }
 
-        internal IParameterInspector[] ParameterInspectors
-        {
-            get { return inspectors; }
-        }
+        internal string Name { get; }
 
-        internal ImmutableDispatchRuntime Parent
-        {
-            get { return parent; }
-        }
+        internal IParameterInspector[] ParameterInspectors { get; }
 
-        internal ReceiveContextAcknowledgementMode ReceiveContextAcknowledgementMode
-        {
-            get { return receiveContextAcknowledgementMode; }
-        }
+        internal ImmutableDispatchRuntime Parent { get; }
 
-        internal bool ReleaseInstanceAfterCall
-        {
-            get { return releaseInstanceAfterCall; }
-        }
+        internal ReceiveContextAcknowledgementMode ReceiveContextAcknowledgementMode { get; }
 
-        internal bool ReleaseInstanceBeforeCall
-        {
-            get { return releaseInstanceBeforeCall; }
-        }
+        internal bool ReleaseInstanceAfterCall { get; }
 
-        internal string ReplyAction
-        {
-            get { return replyAction; }
-        }
+        internal bool ReleaseInstanceBeforeCall { get; }
+
+        internal string ReplyAction { get; }
 
         //internal bool TransactionAutoComplete
         //{
@@ -203,7 +142,7 @@ namespace CoreWCF.Dispatcher
         //    get { return this.isInsideTransactedReceiveScope; }
         //}
 
-        void DeserializeInputs(MessageRpc rpc)
+        private void DeserializeInputs(MessageRpc rpc)
         {
             //bool success = false;
             try
@@ -229,9 +168,9 @@ namespace CoreWCF.Dispatcher
                     // If the field is true, then this operation is to be invoked at the time the service 
                     // channel is opened. The incoming message is created at ChannelHandler level with no 
                     // content, so we don't need to deserialize the message.
-                    if (!isSessionOpenNotificationEnabled)
+                    if (!_isSessionOpenNotificationEnabled)
                     {
-                        if (deserializeRequest)
+                        if (_deserializeRequest)
                         {
                             //if (TD.DispatchFormatterDeserializeRequestStartIsEnabled())
                             //{
@@ -277,7 +216,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InitializeCallContext(MessageRpc rpc)
+        private void InitializeCallContext(MessageRpc rpc)
         {
             if (CallContextInitializers.Length > 0)
             {
@@ -285,7 +224,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InitializeCallContextCore(MessageRpc rpc)
+        private void InitializeCallContextCore(MessageRpc rpc)
         {
             IClientChannel channel = rpc.Channel.Proxy as IClientChannel;
             int offset = Parent.CallContextCorrelationOffset;
@@ -312,7 +251,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void UninitializeCallContext(MessageRpc rpc)
+        private void UninitializeCallContext(MessageRpc rpc)
         {
             if (CallContextInitializers.Length > 0)
             {
@@ -320,7 +259,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void UninitializeCallContextCore(MessageRpc rpc)
+        private void UninitializeCallContextCore(MessageRpc rpc)
         {
             IClientChannel channel = rpc.Channel.Proxy as IClientChannel;
             int offset = Parent.CallContextCorrelationOffset;
@@ -340,7 +279,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectInputs(MessageRpc rpc)
+        private void InspectInputs(MessageRpc rpc)
         {
             if (ParameterInspectors.Length > 0)
             {
@@ -348,7 +287,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectInputsCore(MessageRpc rpc)
+        private void InspectInputsCore(MessageRpc rpc)
         {
             int offset = Parent.ParameterInspectorCorrelationOffset;
 
@@ -363,7 +302,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectOutputs(MessageRpc rpc)
+        private void InspectOutputs(MessageRpc rpc)
         {
             if (ParameterInspectors.Length > 0)
             {
@@ -371,7 +310,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void InspectOutputsCore(MessageRpc rpc)
+        private void InspectOutputsCore(MessageRpc rpc)
         {
             int offset = Parent.ParameterInspectorCorrelationOffset;
 
@@ -397,15 +336,16 @@ namespace CoreWCF.Dispatcher
                     DeserializeInputs(rpc);
                     InspectInputs(rpc);
                     ValidateMustUnderstand(rpc);
+                    ValidateAuthorizedClaims(rpc);
 
-                    if (parent.RequireClaimsPrincipalOnOperationContext)
+                    if (Parent.RequireClaimsPrincipalOnOperationContext)
                     {
                         SetClaimsPrincipalToOperationContext(rpc);
                     }
 
-                    if (parent.SecurityImpersonation != null)
+                    if (Parent.SecurityImpersonation != null)
                     {
-                        await parent.SecurityImpersonation.RunImpersonated(rpc, async () =>
+                        await Parent.SecurityImpersonation.RunImpersonated(rpc, async () =>
                         {
                             (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
                         });
@@ -418,9 +358,12 @@ namespace CoreWCF.Dispatcher
                     InspectOutputs(rpc);
                     SerializeOutputs(rpc);
                 }
-                catch(Exception ex) {
-                    throw ex; 
+#pragma warning disable CA1031 // Do not catch general exception types
+                catch (Exception ex)
+                {
+                    ExceptionDispatchInfo.Capture(ex).Throw();
                 } // Make sure user Exception filters are not impersonated.
+#pragma warning restore CA1031 // Do not catch general exception types
                 finally
                 {
                     UninitializeCallContext(rpc);
@@ -430,7 +373,7 @@ namespace CoreWCF.Dispatcher
             return rpc;
         }
 
-        void SetClaimsPrincipalToOperationContext(MessageRpc rpc)
+        private void SetClaimsPrincipalToOperationContext(MessageRpc rpc)
         {
             // TODO: Reenable this code
 
@@ -465,12 +408,12 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        void SerializeOutputs(MessageRpc rpc)
+        private void SerializeOutputs(MessageRpc rpc)
         {
-            if (!IsOneWay && parent.EnableFaults)
+            if (!IsOneWay && Parent.EnableFaults)
             {
                 Message reply;
-                if (serializeReply)
+                if (SerializeReply)
                 {
                     try
                     {
@@ -501,7 +444,7 @@ namespace CoreWCF.Dispatcher
 
                     if (reply == null)
                     {
-                        string message = SR.Format(SR.SFxNullReplyFromFormatter2, Formatter.GetType().ToString(), (name ?? ""));
+                        string message = SR.Format(SR.SFxNullReplyFromFormatter2, Formatter.GetType().ToString(), (Name ?? ""));
                         ErrorBehavior.ThrowAndCatch(new InvalidOperationException(message));
                     }
                 }
@@ -509,7 +452,7 @@ namespace CoreWCF.Dispatcher
                 {
                     if ((rpc.ReturnParameter == null) && (rpc.OperationContext.RequestContext != null))
                     {
-                        string message = SR.Format(SR.SFxDispatchRuntimeMessageCannotBeNull, name);
+                        string message = SR.Format(SR.SFxDispatchRuntimeMessageCannotBeNull, Name);
                         ErrorBehavior.ThrowAndCatch(new InvalidOperationException(message));
                     }
 
@@ -556,9 +499,9 @@ namespace CoreWCF.Dispatcher
                 // a. reply message is not null.
                 // b. Impersonation is enabled on serializing Reply
 
-                if (reply != null && this.parent.IsImpersonationEnabledOnSerializingReply)
+                if (reply != null && Parent.IsImpersonationEnabledOnSerializingReply)
                 {
-                    bool shouldImpersonate = this.parent.SecurityImpersonation != null && this.parent.SecurityImpersonation.IsImpersonationEnabledOnCurrentOperation(rpc);
+                    bool shouldImpersonate = Parent.SecurityImpersonation != null && Parent.SecurityImpersonation.IsImpersonationEnabledOnCurrentOperation(rpc);
                     if (shouldImpersonate)
                     {
                         reply.Properties.Add(ImpersonateOnSerializingReplyMessageProperty.Name, new ImpersonateOnSerializingReplyMessageProperty(rpc));
@@ -574,20 +517,20 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        void ValidateInstanceType(Type type, MethodInfo method)
+        private void ValidateInstanceType(Type type, MethodInfo method)
         {
             if (!method.DeclaringType.IsAssignableFrom(type))
             {
-                string message = SR.Format(SR.SFxMethodNotSupportedByType2,type.FullName,
+                string message = SR.Format(SR.SFxMethodNotSupportedByType2, type.FullName,
                                               method.DeclaringType.FullName);
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(message));
             }
         }
 
-        void ValidateMustUnderstand(MessageRpc rpc)
+        private void ValidateMustUnderstand(MessageRpc rpc)
         {
-            if (parent.ValidateMustUnderstand)
+            if (Parent.ValidateMustUnderstand)
             {
                 rpc.NotUnderstoodHeaders = rpc.Request.Headers.GetHeadersNotUnderstood();
                 if (rpc.NotUnderstoodHeaders != null)
@@ -597,6 +540,46 @@ namespace CoreWCF.Dispatcher
                 }
             }
         }
-    }
 
+        private void ValidateAuthorizedClaims(MessageRpc rpc)
+        {
+            if (AuthorizeClaims.IsEmpty || AuthorizeClaims.Keys.Count == 0)
+                return;
+            if (rpc.OperationContext?.ServiceSecurityContext.AuthorizationPolicies == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
+            }
+
+            foreach (var eachAuthClaim in AuthorizeClaims)
+            {
+                List<Claim> allClaims = eachAuthClaim.Value;
+                if(!IsClaimFound(rpc.OperationContext?.ServiceSecurityContext.AuthorizationPolicies, allClaims))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
+                }
+            }
+        }
+
+        private bool IsClaimFound(ReadOnlyCollection<IAuthorizationPolicy> policies, List<Claim> anyClaims)
+        {
+            foreach (var policy in policies)
+            {
+                if(policy is UnconditionalPolicy)
+                {
+                    var claimSets = ((UnconditionalPolicy)policy).Issuances;
+                    foreach (var claim in anyClaims)
+                    {
+                        foreach (var claimSet in claimSets)
+                        {
+                            if (claimSet.ContainsClaim(claim))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    }
 }

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
@@ -9,7 +12,7 @@ namespace CoreWCF.Channels
     public class ServiceChannelFactory
     {
         private delegate object CreateProxyDelegate(MessageDirection direction, ServiceChannel serviceChannel);
-        private static IDictionary<Type, CreateProxyDelegate> s_createProxyDelegateCache = new ConcurrentDictionary<Type, CreateProxyDelegate>();
+        private static readonly IDictionary<Type, CreateProxyDelegate> s_createProxyDelegateCache = new ConcurrentDictionary<Type, CreateProxyDelegate>();
 
         internal static object CreateProxy(Type interfaceType, Type proxiedType, MessageDirection direction, ServiceChannel serviceChannel)
         {
@@ -18,8 +21,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxChannelFactoryTypeMustBeInterface));
             }
 
-            CreateProxyDelegate createProxyDelegate;
-            if (!s_createProxyDelegateCache.TryGetValue(proxiedType, out createProxyDelegate))
+            if (!s_createProxyDelegateCache.TryGetValue(proxiedType, out CreateProxyDelegate createProxyDelegate))
             {
                 MethodInfo method = typeof(ServiceChannelFactory).GetMethod(nameof(CreateProxyWithType),
                     BindingFlags.NonPublic | BindingFlags.Static);
@@ -43,12 +45,14 @@ namespace CoreWCF.Channels
 
         internal static ServiceChannel GetServiceChannel(object transparentProxy)
         {
-            ServiceChannelProxy proxy = transparentProxy as ServiceChannelProxy;
-
-            if (proxy != null)
+            if (transparentProxy is ServiceChannelProxy proxy)
+            {
                 return proxy.GetServiceChannel();
+            }
             else
+            {
                 return null;
+            }
         }
     }
 }

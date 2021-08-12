@@ -1,9 +1,9 @@
-﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.ObjectModel;
-using System.Text;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
@@ -15,12 +15,12 @@ namespace CoreWCF.IdentityModel.Selectors
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
-            return token is UserNameSecurityToken;
+            return token is USerNameSecurityToken;
         }
 
         protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
         {
-            UserNameSecurityToken userNameToken = (UserNameSecurityToken)token;
+            USerNameSecurityToken userNameToken = (USerNameSecurityToken)token;
             return ValidateUserNamePasswordCore(userNameToken.UserName, userNameToken.Password);
         }
 

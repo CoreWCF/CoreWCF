@@ -1,35 +1,22 @@
-﻿using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.ObjectModel;
-using System.Text;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.Security
 {
-    internal class SecurityTokenSpecification
+    public class SecurityTokenSpecification
     {
-        SecurityToken token;
-        ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies;
-
         public SecurityTokenSpecification(SecurityToken token, ReadOnlyCollection<IAuthorizationPolicy> tokenPolicies)
         {
-            this.token = token;
-            if (tokenPolicies == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenPolicies));
-            }
-            this.tokenPolicies = tokenPolicies;
+            SecurityToken = token;
+            SecurityTokenPolicies = tokenPolicies ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(tokenPolicies));
         }
 
-        public SecurityToken SecurityToken
-        {
-            get { return token; }
-        }
+        public SecurityToken SecurityToken { get; }
 
-        public ReadOnlyCollection<IAuthorizationPolicy> SecurityTokenPolicies
-        {
-            get { return tokenPolicies; }
-        }
+        public ReadOnlyCollection<IAuthorizationPolicy> SecurityTokenPolicies { get; }
     }
 }

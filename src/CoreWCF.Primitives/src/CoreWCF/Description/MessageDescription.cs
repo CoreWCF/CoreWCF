@@ -1,17 +1,16 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Xml;
 using CoreWCF.Channels;
 
 namespace CoreWCF.Description
 {
     public class MessageDescription
     {
-        static Type typeOfUntypedMessage;
-        string action;
-        MessageDirection direction;
-        MessageDescriptionItems items;
-        XmlName messageName;
-        Type messageType;
+        private static Type s_typeOfUntypedMessage;
+        private MessageDescriptionItems _items;
+
         //XmlQualifiedName xsdType;
 
         public MessageDescription(string action, MessageDirection direction) : this(action, direction, null) { }
@@ -19,28 +18,23 @@ namespace CoreWCF.Description
         internal MessageDescription(string action, MessageDirection direction, MessageDescriptionItems items)
         {
             if (!MessageDirectionHelper.IsDefined(direction))
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(direction)));
+            }
 
-            this.action = action;
-            this.direction = direction;
-            this.items = items;
+            Action = action;
+            Direction = direction;
+            _items = items;
         }
 
-        public string Action
-        {
-            get { return action; }
-            internal set { action = value; }
-        }
+        public string Action { get; internal set; }
 
         public MessageBodyDescription Body
         {
             get { return Items.Body; }
         }
 
-        public MessageDirection Direction
-        {
-            get { return direction; }
-        }
+        public MessageDirection Direction { get; }
 
         public MessageHeaderDescriptionCollection Headers
         {
@@ -56,9 +50,12 @@ namespace CoreWCF.Description
         {
             get
             {
-                if (items == null)
-                    items = new MessageDescriptionItems();
-                return items;
+                if (_items == null)
+                {
+                    _items = new MessageDescriptionItems();
+                }
+
+                return _items;
             }
         }
 
@@ -68,31 +65,23 @@ namespace CoreWCF.Description
         {
             get
             {
-                if (typeOfUntypedMessage == null)
+                if (s_typeOfUntypedMessage == null)
                 {
-                    typeOfUntypedMessage = typeof(Message);
+                    s_typeOfUntypedMessage = typeof(Message);
                 }
-                return typeOfUntypedMessage;
+                return s_typeOfUntypedMessage;
             }
         }
 
-        internal XmlName MessageName
-        {
-            get { return messageName; }
-            set { messageName = value; }
-        }
+        internal XmlName MessageName { get; set; }
 
-        public Type MessageType
-        {
-            get { return messageType; }
-            set { messageType = value; }
-        }
+        public Type MessageType { get; set; }
 
         internal bool IsTypedMessage
         {
             get
             {
-                return messageType != null;
+                return MessageType != null;
             }
         }
 
@@ -116,21 +105,24 @@ namespace CoreWCF.Description
 
     internal class MessageDescriptionItems
     {
-        MessageHeaderDescriptionCollection headers;
-        MessageBodyDescription body;
-        MessagePropertyDescriptionCollection properties;
+        private MessageHeaderDescriptionCollection _headers;
+        private MessageBodyDescription _body;
+        private MessagePropertyDescriptionCollection _properties;
 
         internal MessageBodyDescription Body
         {
             get
             {
-                if (body == null)
-                    body = new MessageBodyDescription();
-                return body;
+                if (_body == null)
+                {
+                    _body = new MessageBodyDescription();
+                }
+
+                return _body;
             }
             set
             {
-                body = value;
+                _body = value;
             }
         }
 
@@ -138,9 +130,12 @@ namespace CoreWCF.Description
         {
             get
             {
-                if (headers == null)
-                    headers = new MessageHeaderDescriptionCollection();
-                return headers;
+                if (_headers == null)
+                {
+                    _headers = new MessageHeaderDescriptionCollection();
+                }
+
+                return _headers;
             }
         }
 
@@ -148,11 +143,13 @@ namespace CoreWCF.Description
         {
             get
             {
-                if (properties == null)
-                    properties = new MessagePropertyDescriptionCollection();
-                return properties;
+                if (_properties == null)
+                {
+                    _properties = new MessagePropertyDescriptionCollection();
+                }
+
+                return _properties;
             }
         }
     }
-
 }

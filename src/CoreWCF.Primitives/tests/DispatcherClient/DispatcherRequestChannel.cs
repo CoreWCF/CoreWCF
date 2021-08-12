@@ -1,16 +1,19 @@
-﻿using CoreWCF.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DispatcherClient
 {
     internal class DispatcherRequestChannel : CommunicationObject, IRequestChannel
     {
-        private IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
         private IServiceChannelDispatcher _serviceChannelDispatch;
 
         public DispatcherRequestChannel(IServiceProvider serviceProvider, EndpointAddress to, Uri via)
@@ -72,8 +75,8 @@ namespace DispatcherClient
             RemoteAddress?.ApplyTo(message);
             var requestContext = new DispatcherClientRequestContext(message);
             await _serviceChannelDispatch.DispatchAsync(requestContext);
-            var coreReplyMessage = await requestContext.ReplyMessageTask;
-            var replyMessage = Helpers.TestHelper.ConvertMessage(coreReplyMessage);
+            CoreWCF.Channels.Message coreReplyMessage = await requestContext.ReplyMessageTask;
+            Message replyMessage = Helpers.TestHelper.ConvertMessage(coreReplyMessage);
             return replyMessage;
         }
 

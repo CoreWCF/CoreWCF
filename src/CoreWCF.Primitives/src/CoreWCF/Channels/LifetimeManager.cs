@@ -1,64 +1,58 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    enum LifetimeState
+    internal enum LifetimeState
     {
         Opened,
         Closing,
         Closed
     }
 
-    class LifetimeManager
+    internal class LifetimeManager
     {
-        bool _aborted;
-        int _busyCount;
-        ICommunicationWaiter _busyWaiter;
-        int _busyWaiterCount;
-        object _mutex;
-        LifetimeState _state;
+        private bool _aborted;
+        private ICommunicationWaiter _busyWaiter;
+        private int _busyWaiterCount;
 
         public LifetimeManager(object mutex)
         {
-            _mutex = mutex;
-            _state = LifetimeState.Opened;
+            ThisLock = mutex;
+            State = LifetimeState.Opened;
         }
 
-        public int BusyCount
-        {
-            get { return _busyCount; }
-        }
+        public int BusyCount { get; private set; }
 
-        protected LifetimeState State
-        {
-            get { return _state; }
-        }
+        protected LifetimeState State { get; private set; }
 
-        protected object ThisLock
-        {
-            get { return _mutex; }
-        }
+        protected object ThisLock { get; }
 
         public void Abort()
         {
             lock (ThisLock)
             {
                 if (State == LifetimeState.Closed || _aborted)
+                {
                     return;
+                }
+
                 _aborted = true;
-                _state = LifetimeState.Closing;
+                State = LifetimeState.Closing;
             }
 
             OnAbort();
-            _state = LifetimeState.Closed;
+            State = LifetimeState.Closed;
         }
 
-        void ThrowIfNotOpened()
+        private void ThrowIfNotOpened()
         {
-            if (!_aborted && _state != LifetimeState.Opened)
+            if (!_aborted && State != LifetimeState.Opened)
             {
             }
         }
@@ -69,11 +63,11 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 ThrowIfNotOpened();
-                _state = LifetimeState.Closing;
+                State = LifetimeState.Closing;
             }
 
             await OnCloseAsync(token);
-            _state = LifetimeState.Closed;
+            State = LifetimeState.Closed;
         }
 
         protected virtual async Task OnCloseAsync(CancellationToken token)
@@ -96,12 +90,15 @@ namespace CoreWCF.Channels
 
             lock (ThisLock)
             {
-                if (_busyCount > 0)
+                if (BusyCount > 0)
                 {
                     if (_busyWaiter != null)
                     {
                         if (!aborting && _aborted)
+                        {
                             return CommunicationWaitResult.Aborted;
+                        }
+
                         busyWaiter = _busyWaiter;
                     }
                     else
@@ -126,14 +123,14 @@ namespace CoreWCF.Channels
             return result;
         }
 
-        CommunicationWaitResult AbortCore(CancellationToken token)
+        private CommunicationWaitResult AbortCore(CancellationToken token)
         {
             ICommunicationWaiter busyWaiter = null;
             CommunicationWaitResult result = CommunicationWaitResult.Succeeded;
 
             lock (ThisLock)
             {
-                if (_busyCount > 0)
+                if (BusyCount > 0)
                 {
                     if (_busyWaiter != null)
                     {
@@ -168,11 +165,11 @@ namespace CoreWCF.Channels
 
             lock (ThisLock)
             {
-                if (_busyCount <= 0)
+                if (BusyCount <= 0)
                 {
                     throw Fx.AssertAndThrow("LifetimeManager.DecrementBusyCount: (this.busyCount > 0)");
                 }
-                if (--_busyCount == 0)
+                if (--BusyCount == 0)
                 {
                     if (_busyWaiter != null)
                     {
@@ -194,7 +191,9 @@ namespace CoreWCF.Channels
             }
 
             if (empty && State == LifetimeState.Opened)
+            {
                 OnEmpty();
+            }
         }
 
         protected virtual void IncrementBusyCount()
@@ -202,14 +201,14 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 Fx.Assert(State == LifetimeState.Opened, "LifetimeManager.IncrementBusyCount: (this.State == LifetimeState.Opened)");
-                _busyCount++;
+                BusyCount++;
             }
         }
 
         protected virtual void IncrementBusyCountWithoutLock()
         {
             Fx.Assert(State == LifetimeState.Opened, "LifetimeManager.IncrementBusyCountWithoutLock: (this.State == LifetimeState.Opened)");
-            _busyCount++;
+            BusyCount++;
         }
 
         protected virtual void OnAbort()
@@ -223,7 +222,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    enum CommunicationWaitResult
+    internal enum CommunicationWaitResult
     {
         Waiting,
         Succeeded,
@@ -231,7 +230,7 @@ namespace CoreWCF.Channels
         Aborted
     }
 
-    interface ICommunicationWaiter : IDisposable
+    internal interface ICommunicationWaiter : IDisposable
     {
         void Signal();
         Task<CommunicationWaitResult> WaitAsync(bool aborting, CancellationToken token);
@@ -241,28 +240,27 @@ namespace CoreWCF.Channels
     internal class AsyncCommunicationWaiter : ICommunicationWaiter
     {
         private bool _closed;
-        private object _mutex;
         private CommunicationWaitResult _result;
 
         private TaskCompletionSource<bool> _tcs;
 
         internal AsyncCommunicationWaiter(object mutex)
         {
-            _mutex = mutex;
+            ThisLock = mutex;
             _tcs = new TaskCompletionSource<bool>();
         }
 
-        private object ThisLock
-        {
-            get { return _mutex; }
-        }
+        private object ThisLock { get; }
 
         public void Dispose()
         {
             lock (ThisLock)
             {
                 if (_closed)
+                {
                     return;
+                }
+
                 _closed = true;
                 _tcs?.TrySetResult(false);
             }
@@ -273,7 +271,10 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 if (_closed)
+                {
                     return;
+                }
+
                 _tcs.TrySetResult(true);
             }
         }

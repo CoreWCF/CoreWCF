@@ -1,36 +1,24 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 
 namespace CoreWCF.Description
 {
     public class FaultDescription
     {
-        string _action;
-        Type _detailType;
-        XmlName _elementName;
-        XmlName _name;
-        string _ns;
+        private XmlName _name;
 
         public FaultDescription(string action)
         {
-            if (action == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
-
-            _action = action;
+            Action = action ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(action));
         }
 
-        public string Action
-        {
-            get { return _action; }
-            internal set { _action = value; }
-        }
+        public string Action { get; internal set; }
 
         // Not serializable on purpose, metadata import/export cannot
         // produce it, only available when binding to runtime
-        public Type DetailType
-        {
-            get { return _detailType; }
-            set { _detailType = value; }
-        }
+        public Type DetailType { get; set; }
 
         public string Name
         {
@@ -38,23 +26,15 @@ namespace CoreWCF.Description
             set { SetNameAndElement(new XmlName(value, true /*isEncoded*/)); }
         }
 
-        public string Namespace
-        {
-            get { return _ns; }
-            set { _ns = value; }
-        }
+        public string Namespace { get; set; }
 
-        internal XmlName ElementName
-        {
-            get { return _elementName; }
-            set { _elementName = value; }
-        }
+        internal XmlName ElementName { get; set; }
 
         internal bool HasProtectionLevel => false;
 
         internal void SetNameAndElement(XmlName name)
         {
-            _elementName = _name = name;
+            ElementName = _name = name;
         }
 
         internal void SetNameOnly(XmlName name)

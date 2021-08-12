@@ -1,19 +1,34 @@
-using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Channels;
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF.Channels;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Configuration
 {
-    internal class ServiceBuilder : IServiceBuilder
+    internal class ServiceBuilder : CommunicationObject, IServiceBuilder
     {
-        private IServiceProvider _serviceProvider;
-        private IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
+        private readonly IDictionary<Type, IServiceConfiguration> _services = new Dictionary<Type, IServiceConfiguration>();
+        private readonly TaskCompletionSource<object> _openingCompletedTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public ServiceBuilder(IServiceProvider serviceProvider)
+        public ServiceBuilder(IServiceProvider serviceProvider, IApplicationLifetime appLifetime)
         {
-            _serviceProvider = serviceProvider;
+            ServiceProvider = serviceProvider;
+            appLifetime.ApplicationStarted.Register(() =>
+            {
+                if (State == CommunicationState.Created)
+                {
+                    // Using discard as any exceptions are swallowed from the ApplicationStarted
+                    // callback and no place to await the OpenAsync call. Should only hit this code
+                    // when hosting in IIS.
+                    _ = OpenAsync();
+                }
+            });
         }
 
         public ICollection<IServiceConfiguration> ServiceConfigurations => _services.Values;
@@ -22,65 +37,92 @@ namespace CoreWCF.Configuration
 
         ICollection<Type> IServiceBuilder.Services => _services.Keys;
 
-        public void AddService<TService>() where TService : class
+        public IServiceProvider ServiceProvider { get; }
+
+        protected override TimeSpan DefaultCloseTimeout => TimeSpan.FromMinutes(1);
+
+        protected override TimeSpan DefaultOpenTimeout => TimeSpan.FromMinutes(1);
+
+        public IServiceBuilder AddService<TService>() where TService : class
         {
-            var serviceConfig = _serviceProvider.GetRequiredService<IServiceConfiguration<TService>>();
+            return AddService(typeof(TService));
+        }
+
+        public IServiceBuilder AddService(Type service)
+        {
+            if (service is null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(service)));
+            }
+            var serviceConfig = (IServiceConfiguration)ServiceProvider.GetRequiredService(
+                typeof(IServiceConfiguration<>).MakeGenericType(service));
             _services[serviceConfig.ServiceType] = serviceConfig;
+            return this;
         }
 
-        public void AddServiceEndpoint<TService, TContract>(Binding binding, string address)
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address)
         {
-            AddServiceEndpoint<TService>(typeof(TContract), binding, address);
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address);
         }
 
-        public void AddServiceEndpoint<TService, TContract>(Binding binding, Uri address)
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address)
         {
-            AddServiceEndpoint<TService>(typeof(TContract), binding, address);
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address);
         }
 
-        public void AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri)
         {
-            AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
         }
 
-        public void AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Uri listenUri)
         {
-            AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
         }
 
-        public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address)
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address)
         {
-            AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
+            return AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
         }
 
-        public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address)
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address)
         {
-            AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
+            return AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
         }
 
-        public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri)
         {
-            if (address == null)
+            if (address is null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(address)));
             }
 
-            AddServiceEndpoint<TService>(implementedContract, binding, new Uri(address, UriKind.RelativeOrAbsolute), listenUri);
+            return AddServiceEndpoint<TService>(implementedContract, binding, new Uri(address, UriKind.RelativeOrAbsolute), listenUri);
         }
 
-        public void AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri)
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri)
         {
-            if (implementedContract == null)
+            return AddServiceEndpoint(typeof(TService), implementedContract, binding, address, listenUri);
+        }
+
+        public IServiceBuilder AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri)
+        {
+            if (service is null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(service)));
+            }
+
+            if (implementedContract is null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(implementedContract)));
             }
 
-            if (binding == null)
+            if (binding is null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(binding)));
             }
 
-            if (_services.TryGetValue(typeof(TService), out IServiceConfiguration serviceConfig))
+            if (_services.TryGetValue(service, out IServiceConfiguration serviceConfig))
             {
                 serviceConfig.Endpoints.Add(new ServiceEndpointConfiguration()
                 {
@@ -93,8 +135,38 @@ namespace CoreWCF.Configuration
             else
             {
                 // TODO: Either find an existing SR to use or create a new one.
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(nameof(TService)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(nameof(service)));
             }
+
+            return this;
+        }
+
+        protected override void OnAbort()
+        {
+        }
+
+        protected override Task OnCloseAsync(CancellationToken token)
+        {
+            return Task.CompletedTask;
+        }
+
+        protected override Task OnOpenAsync(CancellationToken token)
+        {
+            _openingCompletedTcs.TrySetResult(null);
+            return Task.CompletedTask;
+        }
+
+        protected override void OnFaulted()
+        {
+            base.OnFaulted();
+            _openingCompletedTcs.TrySetResult(null);
+        }
+
+        // This is to allow the ServiceHostObjectModel to wait until all the Opening event handlers have ran
+        // to do some configuration such as adding base addresses before the actual service dispatcher is created.
+        internal Task WaitForOpening()
+        {
+            return _openingCompletedTcs.Task;
         }
     }
 }

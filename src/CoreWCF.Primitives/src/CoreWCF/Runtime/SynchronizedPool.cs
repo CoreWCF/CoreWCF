@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -40,17 +43,17 @@ namespace CoreWCF.Runtime
     // Since the statistics are a heuristic as to how often something is happening, they 
     // do not need to be perfect.
     // 
-    class SynchronizedPool<T> where T : class
+    internal class SynchronizedPool<T> where T : class
     {
-        const int maxPendingEntries = 128;
-        const int maxPromotionFailures = 64;
-        const int maxReturnsBeforePromotion = 64;
-        const int maxThreadItemsPerProcessor = 16;
-        Entry[] _entries;
-        readonly GlobalPool _globalPool;
-        readonly int _maxCount;
-        PendingEntry[] _pending;
-        int _promotionFailures;
+        private const int maxPendingEntries = 128;
+        private const int maxPromotionFailures = 64;
+        private const int maxReturnsBeforePromotion = 64;
+        private const int maxThreadItemsPerProcessor = 16;
+        private Entry[] _entries;
+        private readonly GlobalPool _globalPool;
+        private readonly int _maxCount;
+        private PendingEntry[] _pending;
+        private int _promotionFailures;
 
         public SynchronizedPool(int maxCount)
         {
@@ -66,7 +69,7 @@ namespace CoreWCF.Runtime
             _globalPool = new GlobalPool(maxCount);
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get
             {
@@ -86,7 +89,7 @@ namespace CoreWCF.Runtime
             _globalPool.Clear();
         }
 
-        void HandlePromotionFailure(int thisThreadID)
+        private void HandlePromotionFailure(int thisThreadID)
         {
             int newPromotionFailures = _promotionFailures + 1;
 
@@ -107,7 +110,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        bool PromoteThread(int thisThreadID)
+        private bool PromoteThread(int thisThreadID)
         {
             lock (ThisLock)
             {
@@ -131,7 +134,7 @@ namespace CoreWCF.Runtime
             return false;
         }
 
-        void RecordReturnToGlobalPool(int thisThreadID)
+        private void RecordReturnToGlobalPool(int thisThreadID)
         {
             PendingEntry[] localPending = _pending;
 
@@ -165,7 +168,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        void RecordTakeFromGlobalPool(int thisThreadID)
+        private void RecordTakeFromGlobalPool(int thisThreadID)
         {
             PendingEntry[] localPending = _pending;
 
@@ -219,7 +222,7 @@ namespace CoreWCF.Runtime
             return ReturnToGlobalPool(thisThreadID, value);
         }
 
-        bool ReturnToPerThreadPool(int thisThreadID, T value)
+        private bool ReturnToPerThreadPool(int thisThreadID, T value)
         {
             Entry[] entries = _entries;
 
@@ -248,7 +251,7 @@ namespace CoreWCF.Runtime
             return false;
         }
 
-        bool ReturnToGlobalPool(int thisThreadID, T value)
+        private bool ReturnToGlobalPool(int thisThreadID, T value)
         {
             RecordReturnToGlobalPool(thisThreadID);
 
@@ -274,7 +277,7 @@ namespace CoreWCF.Runtime
             return TakeFromGlobalPool(thisThreadID);
         }
 
-        T TakeFromPerThreadPool(int thisThreadID)
+        private T TakeFromPerThreadPool(int thisThreadID)
         {
             Entry[] entries = _entries;
 
@@ -305,40 +308,39 @@ namespace CoreWCF.Runtime
             return null;
         }
 
-        T TakeFromGlobalPool(int thisThreadID)
+        private T TakeFromGlobalPool(int thisThreadID)
         {
             RecordTakeFromGlobalPool(thisThreadID);
 
             return _globalPool.Take();
         }
 
-        struct Entry
+        private struct Entry
         {
             public int threadID;
             public T value;
         }
 
-        struct PendingEntry
+        private struct PendingEntry
         {
             public int returnCount;
             public int threadID;
         }
 
-        static class SynchronizedPoolHelper
+        private static class SynchronizedPoolHelper
         {
             public static readonly int ProcessorCount = GetProcessorCount();
 
-            static int GetProcessorCount()
+            private static int GetProcessorCount()
             {
                 return Environment.ProcessorCount;
             }
         }
 
-        class GlobalPool
+        private class GlobalPool
         {
-            readonly Stack<T> _items;
-
-            int _maxCount;
+            private readonly Stack<T> _items;
+            private int _maxCount;
 
             public GlobalPool(int maxCount)
             {
@@ -365,7 +367,7 @@ namespace CoreWCF.Runtime
                 }
             }
 
-            object ThisLock
+            private object ThisLock
             {
                 get
                 {
@@ -425,5 +427,4 @@ namespace CoreWCF.Runtime
             }
         }
     }
-
 }

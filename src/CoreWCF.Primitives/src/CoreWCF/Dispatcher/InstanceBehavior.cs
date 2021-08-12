@@ -1,78 +1,64 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Reflection;
-using CoreWCF.Runtime;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
     internal class InstanceBehavior
     {
-        const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
-
-        IInstanceContextInitializer[] initializers;
-        IInstanceContextProvider instanceContextProvider;
-        IInstanceProvider provider;
-        InstanceContext singleton;
-        bool isSynchronized;
-        ImmutableDispatchRuntime immutableRuntime;
+        private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
+        private readonly IInstanceContextInitializer[] _initializers;
+        private readonly IInstanceProvider _provider;
+        private readonly InstanceContext _singleton;
+        private readonly ImmutableDispatchRuntime _immutableRuntime;
 
         internal InstanceBehavior(DispatchRuntime dispatch, ImmutableDispatchRuntime immutableRuntime)
         {
-            this.immutableRuntime = immutableRuntime;
-            initializers = EmptyArray<IInstanceContextInitializer>.ToArray(dispatch.InstanceContextInitializers);
-            provider = dispatch.InstanceProvider;
-            singleton = dispatch.SingletonInstanceContext;
-            isSynchronized = (dispatch.ConcurrencyMode != ConcurrencyMode.Multiple);
-            instanceContextProvider = dispatch.InstanceContextProvider;
+            _immutableRuntime = immutableRuntime;
+            _initializers = EmptyArray<IInstanceContextInitializer>.ToArray(dispatch.InstanceContextInitializers);
+            _provider = dispatch.InstanceProvider;
+            _singleton = dispatch.SingletonInstanceContext;
+            InstanceContextProvider = dispatch.InstanceContextProvider;
 
-            if (provider == null)
+            if (_provider == null)
             {
-                ConstructorInfo constructor = null;
-                if (dispatch.Type != null)
-                {
-                    constructor = InstanceBehavior.GetConstructor(dispatch.Type);
-                }
-
-                if (singleton == null)
+                bool hasDefaultConstructor = dispatch.Type != null && InvokerUtil.HasDefaultConstructor(dispatch.Type);
+                if (_singleton == null)
                 {
                     if (dispatch.Type != null && (dispatch.Type.GetTypeInfo().IsAbstract || dispatch.Type.GetTypeInfo().IsInterface))
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxServiceTypeNotCreatable));
                     }
 
-                    if (constructor == null)
+                    if (!hasDefaultConstructor)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor));
                     }
                 }
 
-                if (constructor != null)
+                if (!hasDefaultConstructor)
                 {
-                    if (singleton == null || !singleton.IsWellKnown)
+                    if (_singleton == null || !_singleton.IsWellKnown)
                     {
-                        InvokerUtil util = new InvokerUtil();
-                        CreateInstanceDelegate creator = util.GenerateCreateInstanceDelegate(dispatch.Type, constructor);
-                        provider = new InstanceProvider(creator);
+                        CreateInstanceDelegate creator = InvokerUtil.GenerateCreateInstanceDelegate(dispatch.Type);
+                        _provider = new InstanceProvider(creator);
                     }
                 }
             }
 
-            if (singleton != null)
+            if (_singleton != null)
             {
-                singleton.Behavior = this;
+                _singleton.Behavior = this;
             }
         }
 
-        internal IInstanceContextProvider InstanceContextProvider
-        {
-            get
-            {
-                return instanceContextProvider;
-            }
-        }
+        internal IInstanceContextProvider InstanceContextProvider { get; }
 
         internal void AfterReply(ref MessageRpc rpc, ErrorBehavior error)
         {
@@ -116,17 +102,21 @@ namespace CoreWCF.Dispatcher
 
         internal bool CanUnload(InstanceContext instanceContext)
         {
-            if (InstanceContextProviderBase.IsProviderSingleton(instanceContextProvider))
+            if (InstanceContextProviderBase.IsProviderSingleton(InstanceContextProvider))
+            {
                 return false;
+            }
 
-            if (InstanceContextProviderBase.IsProviderPerCall(instanceContextProvider) ||
-                InstanceContextProviderBase.IsProviderSessionful(instanceContextProvider))
+            if (InstanceContextProviderBase.IsProviderPerCall(InstanceContextProvider) ||
+                InstanceContextProviderBase.IsProviderSessionful(InstanceContextProvider))
+            {
                 return true;
+            }
 
             //User provided InstanceContextProvider. Call the provider to check for idle.
-            if (!instanceContextProvider.IsIdle(instanceContext))
+            if (!InstanceContextProvider.IsIdle(instanceContext))
             {
-                instanceContextProvider.NotifyIdle(InstanceContext.NotifyIdleCallback, instanceContext);
+                InstanceContextProvider.NotifyIdle(InstanceContext.NotifyIdleCallback, instanceContext);
                 return false;
             }
             return true;
@@ -136,8 +126,10 @@ namespace CoreWCF.Dispatcher
         {
             if (rpc.InstanceContext == null)
             {
-                rpc.InstanceContext = new InstanceContext(rpc.Host, false);
-                rpc.InstanceContext.ServiceThrottle = rpc.channelHandler.InstanceContextServiceThrottle;
+                rpc.InstanceContext = new InstanceContext(rpc.Host, false)
+                {
+                    ServiceThrottle = rpc.ChannelHandler.InstanceContextServiceThrottle
+                };
                 rpc.MessageRpcOwnsInstanceContextThrottle = false;
             }
 
@@ -165,49 +157,53 @@ namespace CoreWCF.Dispatcher
             rpc.InstanceContext.BindRpc(rpc);
         }
 
-        static ConstructorInfo GetConstructor(Type type)
+        private static ConstructorInfo GetConstructor(Type type)
         {
-            foreach (var constructor in type.GetConstructors(DefaultBindingFlags))
+            foreach (ConstructorInfo constructor in type.GetConstructors(DefaultBindingFlags))
             {
                 if (constructor.GetParameters().Length == 0)
+                {
                     return constructor;
+                }
             }
             return null;
         }
 
         internal object GetInstance(InstanceContext instanceContext)
         {
-            if (provider == null)
+            if (_provider == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor));
             }
 
-            return provider.GetInstance(instanceContext);
+            return _provider.GetInstance(instanceContext);
         }
 
         internal object GetInstance(InstanceContext instanceContext, Message request)
         {
-            if (provider == null)
+            if (_provider == null)
             {
                 throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor), request);
             }
 
-            return provider.GetInstance(instanceContext, request);
+            return _provider.GetInstance(instanceContext, request);
         }
 
         internal void Initialize(InstanceContext instanceContext)
         {
             OperationContext current = OperationContext.Current;
-            Message message = (current != null) ? current.IncomingMessage : null;
+            Message message = current?.IncomingMessage;
 
             if (current != null && current.InternalServiceChannel != null)
             {
                 IContextChannel transparentProxy = (IContextChannel)current.InternalServiceChannel.Proxy;
-                instanceContextProvider.InitializeInstanceContext(instanceContext, message, transparentProxy);
+                InstanceContextProvider.InitializeInstanceContext(instanceContext, message, transparentProxy);
             }
 
-            for (int i = 0; i < initializers.Length; i++)
-                initializers[i].Initialize(instanceContext, message);
+            for (int i = 0; i < _initializers.Length; i++)
+            {
+                _initializers[i].Initialize(instanceContext, message);
+            }
         }
 
         internal void EnsureServiceInstance(MessageRpc rpc)
@@ -232,11 +228,11 @@ namespace CoreWCF.Dispatcher
 
         internal void ReleaseInstance(InstanceContext instanceContext, object instance)
         {
-            if (provider != null)
+            if (_provider != null)
             {
                 try
                 {
-                    provider.ReleaseInstance(instanceContext, instance);
+                    _provider.ReleaseInstance(instanceContext, instance);
                 }
                 catch (Exception e)
                 {
@@ -244,40 +240,37 @@ namespace CoreWCF.Dispatcher
                     {
                         throw;
                     }
-                    immutableRuntime.ErrorBehavior.HandleError(e);
+                    _immutableRuntime.ErrorBehavior.HandleError(e);
                 }
             }
         }
     }
 
-    class InstanceProvider : IInstanceProvider
+    internal class InstanceProvider : IInstanceProvider
     {
-        CreateInstanceDelegate creator;
+        private readonly CreateInstanceDelegate _creator;
 
         internal InstanceProvider(CreateInstanceDelegate creator)
         {
-            if (creator == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(creator));
-
-            this.creator = creator;
+            _creator = creator ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(creator));
         }
 
         public object GetInstance(InstanceContext instanceContext)
         {
-            return creator();
+            return _creator();
         }
 
         public object GetInstance(InstanceContext instanceContext, Message message)
         {
-            return creator();
+            return _creator();
         }
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
         {
-            IDisposable dispose = instance as IDisposable;
-            if (dispose != null)
+            if (instance is IDisposable dispose)
+            {
                 dispose.Dispose();
+            }
         }
     }
-
 }

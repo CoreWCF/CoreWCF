@@ -1,19 +1,17 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Configuration;
-using System.Threading.Tasks;
-using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Threading;
-using CoreWCF.Runtime;
-using System.Diagnostics;
-using System.IO.Pipelines;
+using System.Threading.Tasks;
+using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Hosting;
 
 namespace CoreWCF.Channels.Framing
 {
     internal class FramingModeHandshakeMiddleware
     {
-        private HandshakeDelegate _next;
-        private IApplicationLifetime _appLifetime;
+        private readonly HandshakeDelegate _next;
+        private readonly IApplicationLifetime _appLifetime;
 
         public FramingModeHandshakeMiddleware(HandshakeDelegate next, IApplicationLifetime appLifetime)
         {
@@ -22,6 +20,21 @@ namespace CoreWCF.Channels.Framing
         }
 
         public async Task OnConnectedAsync(FramingConnection connection)
+        {
+            // If the remote client aborts or the connection, AspNetCore throws an exceptions which
+            // bubbles all the way up to here and causes a critical level event to be logged. This is a normal thing
+            // to happen so just swallowing the exception to suppress the critical log output.
+            try
+            {
+                await OnConnectedCoreAsync(connection);
+            }
+            catch (Microsoft.AspNetCore.Connections.ConnectionAbortedException) { }
+            catch (Microsoft.AspNetCore.Connections.ConnectionResetException) { }
+            catch (CoreWCF.Security.SecurityNegotiationException) { } // TODO: Work out where this needs to be caught
+            catch (System.IO.IOException) { } // TODO: Work out where this needs to be caught
+        }
+
+        public async Task OnConnectedCoreAsync(FramingConnection connection)
         {
             using (_appLifetime.ApplicationStopped.Register(() =>
              {
@@ -32,8 +45,8 @@ namespace CoreWCF.Channels.Framing
                 IConnectionReuseHandler reuseHandler = null;
                 do
                 {
-                    var inputPipe = connection.Input;
-                    var modeDecoder = new ServerModeDecoder();
+                    System.IO.Pipelines.PipeReader inputPipe = connection.Input;
+                    var modeDecoder = new ServerModeDecoder(connection.Logger);
                     try
                     {
                         if (!await modeDecoder.ReadModeAsync(inputPipe))
@@ -44,8 +57,7 @@ namespace CoreWCF.Channels.Framing
                     catch (CommunicationException e)
                     {
                         // see if we need to send back a framing fault
-                        string framingFault;
-                        if (FramingEncodingString.TryGetFaultString(e, out framingFault))
+                        if (FramingEncodingString.TryGetFaultString(e, out string framingFault))
                         {
                             // TODO: Timeouts
                             await connection.SendFaultAsync(framingFault, Timeout.InfiniteTimeSpan/*GetRemainingTimeout()*/,

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using CoreWCF.Channels;
 
 namespace CoreWCF.Security
@@ -6,8 +9,8 @@ namespace CoreWCF.Security
     [Serializable]
     public class MessageSecurityException : CommunicationException
     {
-        MessageFault fault;
-        bool isReplay = false;
+        private readonly MessageFault _fault;
+        private readonly bool _isReplay = false;
 
         public MessageSecurityException()
             : base()
@@ -32,27 +35,26 @@ namespace CoreWCF.Security
         internal MessageSecurityException(string message, Exception innerException, MessageFault fault)
             : base(message, innerException)
         {
-            this.fault = fault;
+            _fault = fault;
         }
 
         internal MessageSecurityException(string message, bool isReplay)
             : base(message)
         {
-            this.isReplay = isReplay;
+            _isReplay = isReplay;
         }
 
         internal bool ReplayDetected
         {
             get
             {
-                return isReplay;
+                return _isReplay;
             }
         }
 
         internal MessageFault Fault
         {
-            get { return fault; }
+            get { return _fault; }
         }
     }
-
 }

@@ -1,12 +1,15 @@
-﻿using CoreWCF.Configuration;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Text;
+using System.Threading.Tasks;
+using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceContract;
-using System;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,7 +17,7 @@ namespace CoreWCF.Http.Tests
 {
     public class AggregateExceptionTests
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         public AggregateExceptionTests(ITestOutputHelper output)
         {
             _output = output;
@@ -29,11 +32,11 @@ namespace CoreWCF.Http.Tests
         [InlineData("SimpleOperationThrowingFault_WithTask")]
         public void ServiceOp_ThrowsFaultException(string serviceOpType)
         {
-            var host = ServiceHelper.CreateWebHostBuilder<AggregateExceptionStartup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<AggregateExceptionStartup>(_output).Build();
             using (host)
             {
                 host.Start();
-                var sampleServiceClient = ClientHelper.GetProxy<ClientContract.IAggregateExceptionService>();
+                ClientContract.IAggregateExceptionService sampleServiceClient = ClientHelper.GetProxy<ClientContract.IAggregateExceptionService>();
                 try
                 {
                     switch (serviceOpType)
@@ -70,12 +73,12 @@ namespace CoreWCF.Http.Tests
                 }
                 catch (System.ServiceModel.FaultException<ClientContract.SampleServiceFault> faultEx)
                 {
-                    this.VerifyFaultThrown(faultEx);
+                    VerifyFaultThrown(faultEx);
                 }
                 catch (AggregateException ex)
                 {
                     System.ServiceModel.FaultException<ClientContract.SampleServiceFault> faultEx2 = ex.InnerExceptions[0] as System.ServiceModel.FaultException<ClientContract.SampleServiceFault>;
-                    this.VerifyFaultThrown(faultEx2);
+                    VerifyFaultThrown(faultEx2);
                 }
                 catch (Exception ex2)
                 {
@@ -95,7 +98,7 @@ namespace CoreWCF.Http.Tests
         {
             if (faultEx == null)
             {
-                throw new ArgumentNullException("faultEx");
+                throw new ArgumentNullException(nameof(faultEx));
             }
             ClientContract.SampleServiceFault detail = faultEx.Detail;
             Assert.True(detail.ID.Equals("101") && detail.Message.Equals("Error has occurred while performing an operation."));

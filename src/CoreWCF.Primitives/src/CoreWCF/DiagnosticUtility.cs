@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using CoreWCF.Runtime;
@@ -7,33 +10,35 @@ namespace CoreWCF
 {
     internal class DiagnosticUtility
     {
-        private static ExceptionUtility exceptionUtility = (ExceptionUtility)null;
-        private static object lockObject = new object();
+        private static ExceptionUtility s_exceptionUtility = (ExceptionUtility)null;
+        private static readonly object s_lockObject = new object();
 
         internal static ExceptionUtility ExceptionUtility
         {
             get
             {
-                return exceptionUtility ?? GetExceptionUtility();
+                return s_exceptionUtility ?? GetExceptionUtility();
             }
         }
 
         private static ExceptionUtility GetExceptionUtility()
         {
-            lock (lockObject)
+            lock (s_lockObject)
             {
-                if (exceptionUtility == null)
+                if (s_exceptionUtility == null)
+                {
                     // TODO: Make this generic shared code used by multiple assemblies
                     //exceptionUtility = new ExceptionUtility("System.ServiceModel", "System.ServiceModel 4.0.0.0", (object)DiagnosticUtility.diagnosticTrace, (object)FxTrace.Exception);
-                    exceptionUtility = new ExceptionUtility();
+                    s_exceptionUtility = new ExceptionUtility();
+                }
             }
 
-            return exceptionUtility;
+            return s_exceptionUtility;
         }
 
         internal static void TraceHandledException(Exception exception, TraceEventType traceEventType)
         {
-            //FxTrace.Exception.TraceHandledException(exception, traceEventType);
+            Fx.Exception.TraceHandledException(exception, traceEventType);
         }
 
         [Conditional("DEBUG")]

@@ -268,3 +268,12 @@ Session.vim
 # Private test configuration and binaries.
 config.ps1
 **/IISApplications
+
+#dotnet local tool install folder
+.store/
+
+#SignClient - prevent adding the signing client if locally installed
+SignClient.exe
+
+# Nerdbank versioning tool
+nbgv.exe

@@ -1,21 +1,24 @@
-﻿using CoreWCF.Runtime;
-using CoreWCF.Channels;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Runtime.Serialization;
+using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
     [Serializable]
     internal class ActionMismatchAddressingException : ProtocolException
     {
-        string httpActionHeader;
-        string soapActionHeader;
+        private readonly string _httpActionHeader;
+        private readonly string _soapActionHeader;
 
         public ActionMismatchAddressingException(string message, string soapActionHeader, string httpActionHeader)
             : base(message)
         {
-            this.httpActionHeader = httpActionHeader;
-            this.soapActionHeader = soapActionHeader;
+            _httpActionHeader = httpActionHeader;
+            _soapActionHeader = soapActionHeader;
         }
 
         protected ActionMismatchAddressingException(SerializationInfo info, StreamingContext context)
@@ -27,7 +30,7 @@ namespace CoreWCF
         {
             get
             {
-                return httpActionHeader;
+                return _httpActionHeader;
             }
         }
 
@@ -35,7 +38,7 @@ namespace CoreWCF
         {
             get
             {
-                return soapActionHeader;
+                return _soapActionHeader;
             }
         }
 
@@ -43,7 +46,7 @@ namespace CoreWCF
         {
             Fx.Assert(messageVersion.Addressing == AddressingVersion.WSAddressing10, "");
             WSAddressing10ProblemHeaderQNameFault phf = new WSAddressing10ProblemHeaderQNameFault(this);
-            Message message = CoreWCF.Channels.Message.CreateMessage(messageVersion, phf, messageVersion.Addressing.FaultAction);
+            Message message = Channels.Message.CreateMessage(messageVersion, phf, messageVersion.Addressing.FaultAction);
             phf.AddHeaders(message.Headers);
             return message;
         }

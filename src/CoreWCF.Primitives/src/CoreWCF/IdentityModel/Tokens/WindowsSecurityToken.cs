@@ -1,9 +1,10 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Security.Principal;
-using System.Text;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
@@ -42,9 +43,11 @@ namespace CoreWCF.IdentityModel.Tokens
 
         protected void Initialize(string id, string authenticationType, DateTime effectiveTime, DateTime expirationTime, WindowsIdentity windowsIdentity, bool clone)
         {
-
             if (windowsIdentity == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
+            }
+
             _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             AuthenticationType = authenticationType;
             _effectiveTime = effectiveTime;

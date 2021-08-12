@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.IO;
 using System.Net.Http.Headers;
@@ -16,31 +19,30 @@ namespace CoreWCF.Channels
 
         public virtual T GetProperty<T>() where T : class
         {
-            if (typeof (T) == typeof (FaultConverter))
+            if (typeof(T) == typeof(FaultConverter))
             {
-                return (T) (object) FaultConverter.GetDefaultFaultConverter(MessageVersion);
+                return (T)(object)FaultConverter.GetDefaultFaultConverter(MessageVersion);
             }
 
             return null;
         }
 
-        public Message ReadMessage(Stream stream, int maxSizeOfHeaders)
+        public Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders)
         {
-            return ReadMessage(stream, maxSizeOfHeaders, null);
+            return ReadMessageAsync(stream, maxSizeOfHeaders, null);
         }
 
-        public abstract Message ReadMessage(Stream stream, int maxSizeOfHeaders, string contentType);
+        public abstract Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType);
 
         public Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager)
         {
-            Message message = ReadMessage(buffer, bufferManager, null);
-            return message;
+            return ReadMessage(buffer, bufferManager, null);
         }
 
         public abstract Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType);
 
         // used for buffered streaming
-        internal ArraySegment<byte> BufferMessageStream(Stream stream, BufferManager bufferManager, int maxBufferSize)
+        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
         {
             byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
             int offset = 0;
@@ -48,7 +50,7 @@ namespace CoreWCF.Channels
 
             while (offset < currentBufferSize)
             {
-                int count = stream.Read(buffer, offset, currentBufferSize - offset);
+                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
                 if (count == 0)
                 {
                     stream.Dispose();
@@ -64,7 +66,7 @@ namespace CoreWCF.Channels
                             MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
                     }
 
-                    currentBufferSize = Math.Min(currentBufferSize*2, maxBufferSize);
+                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
                     byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
                     Buffer.BlockCopy(buffer, 0, temp, 0, offset);
                     bufferManager.ReturnBuffer(buffer);
@@ -76,10 +78,10 @@ namespace CoreWCF.Channels
         }
 
         // used for buffered streaming
-        internal virtual Message ReadMessage(Stream stream, BufferManager bufferManager, int maxBufferSize,
+        internal virtual async Task<Message> ReadMessageAsync(Stream stream, BufferManager bufferManager, int maxBufferSize,
             string contentType)
         {
-            return ReadMessage(BufferMessageStream(stream, bufferManager, maxBufferSize), bufferManager, contentType);
+            return ReadMessage(await BufferMessageStreamAsync(stream, bufferManager, maxBufferSize), bufferManager, contentType);
         }
 
         public override string ToString()
@@ -87,13 +89,7 @@ namespace CoreWCF.Channels
             return ContentType;
         }
 
-        public abstract void WriteMessage(Message message, Stream stream);
-
-        // TODO: Work out what to do about the async message writing, add to contract
-        public virtual Task WriteMessageAsync(Message message, Stream stream)
-        {
-            return Task.Run(() => WriteMessage(message, stream));
-        }
+        public abstract Task WriteMessageAsync(Message message, Stream stream);
 
         public ArraySegment<byte> WriteMessage(Message message, int maxMessageSize, BufferManager bufferManager)
         {
@@ -107,7 +103,9 @@ namespace CoreWCF.Channels
         public virtual bool IsContentTypeSupported(string contentType)
         {
             if (contentType == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("contentType"));
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(contentType)));
+            }
 
             return IsContentTypeSupported(contentType, ContentType, MediaType);
         }
@@ -115,12 +113,16 @@ namespace CoreWCF.Channels
         internal bool IsContentTypeSupported(string contentType, string supportedContentType, string supportedMediaType)
         {
             if (supportedContentType == contentType)
+            {
                 return true;
+            }
 
             if (contentType.Length > supportedContentType.Length &&
                 contentType.StartsWith(supportedContentType, StringComparison.Ordinal) &&
                 contentType[supportedContentType.Length] == ';')
+            {
                 return true;
+            }
 
             // now check case-insensitively
             if (contentType.StartsWith(supportedContentType, StringComparison.OrdinalIgnoreCase))
@@ -156,12 +158,17 @@ namespace CoreWCF.Channels
                         {
                             ch = contentType[i];
                             if (ch != ' ' && ch != '\t')
+                            {
                                 break;
+                            }
+
                             ++i;
                         }
                     }
                     if (ch == ';' || i == contentType.Length)
+                    {
                         return true;
+                    }
                 }
             }
 
@@ -172,10 +179,14 @@ namespace CoreWCF.Channels
                 MediaTypeHeaderValue parsedContentType = MediaTypeHeaderValue.Parse(contentType);
 
                 if (supportedMediaType.Length > 0 && !supportedMediaType.Equals(parsedContentType.MediaType, StringComparison.OrdinalIgnoreCase))
+                {
                     return false;
+                }
 
                 if (!IsCharSetSupported(parsedContentType.CharSet))
+                {
                     return false;
+                }
             }
             catch (FormatException)
             {

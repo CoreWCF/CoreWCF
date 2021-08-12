@@ -1,10 +1,13 @@
-﻿using CoreWCF.Configuration;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.ServiceModel.Channels;
+using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.ServiceModel.Channels;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,11 +15,7 @@ namespace ConnectionHandler
 {
     public class ConnectionHandlerStreamedModeTests
     {
-        private const string NetTcpServiceBaseUri = "net.tcp://localhost:8808";
-        private const string WindowsAuthNetTcpServiceUri = NetTcpServiceBaseUri + Startup.WindowsAuthRelativePath;
-        private const string NoAuthNetTcpServiceUri = NetTcpServiceBaseUri + Startup.NoSecurityRelativePath;
-
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public ConnectionHandlerStreamedModeTests(ITestOutputHelper output)
         {
@@ -28,7 +27,7 @@ namespace ConnectionHandler
         public void SimpleNetTcpClientConnectionWindowsAuth()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -36,12 +35,12 @@ namespace ConnectionHandler
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(WindowsAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoString(testString);
+                    string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
@@ -57,7 +56,7 @@ namespace ConnectionHandler
         public void SimpleNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -65,12 +64,12 @@ namespace ConnectionHandler
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoString(testString);
+                    string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
@@ -86,7 +85,7 @@ namespace ConnectionHandler
         public void MultipleClientsNonConcurrentNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -94,12 +93,12 @@ namespace ConnectionHandler
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoString(testString);
+                    string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     channel = factory.CreateChannel();
@@ -120,7 +119,7 @@ namespace ConnectionHandler
         public void SingleClientMultipleRequestsNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -128,12 +127,12 @@ namespace ConnectionHandler
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var result = channel.EchoString(testString);
+                    string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
@@ -150,7 +149,7 @@ namespace ConnectionHandler
         [Fact]
         public void MultipleClientsUsingPooledSocket()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -158,18 +157,18 @@ namespace ConnectionHandler
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var clientIpEndpoint = channel.GetClientIpEndpoint();
+                    string clientIpEndpoint = channel.GetClientIpEndpoint();
                     ((IChannel)channel).Close();
                     for (int i = 0; i < 10; i++)
                     {
                         channel = factory.CreateChannel();
                         ((IChannel)channel).Open();
-                        var clientIpEndpoint2 = channel.GetClientIpEndpoint();
+                        string clientIpEndpoint2 = channel.GetClientIpEndpoint();
                         Assert.Equal(clientIpEndpoint, clientIpEndpoint2);
                         ((IChannel)channel).Close();
                     }
@@ -185,7 +184,7 @@ namespace ConnectionHandler
         [Fact]
         public void SingleClientsUsingPooledSocketForMultipleRequests()
         {
-            var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -193,15 +192,15 @@ namespace ConnectionHandler
                 host.Start();
                 try
                 {
-                    var binding = ClientHelper.GetStreamedModeBinding();
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetStreamedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NoAuthNetTcpServiceUri)));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    var clientIpEndpoint = channel.GetClientIpEndpoint();
+                    string clientIpEndpoint = channel.GetClientIpEndpoint();
                     for (int i = 0; i < 10; i++)
                     {
-                        var clientIpEndpoint2 = channel.GetClientIpEndpoint();
+                        string clientIpEndpoint2 = channel.GetClientIpEndpoint();
                         Assert.Equal(clientIpEndpoint, clientIpEndpoint2);
                     }
                 ((IChannel)channel).Close();

@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.ComponentModel;
 using System.Net.Security;
-using System.Text;
 
 namespace CoreWCF.Security
 {
@@ -59,8 +60,9 @@ namespace CoreWCF.Security
                 }
             }
             else
+            {
                 return 1;
+            }
         }
-
     }
 }

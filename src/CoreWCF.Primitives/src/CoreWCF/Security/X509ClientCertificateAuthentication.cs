@@ -1,8 +1,9 @@
-﻿using CoreWCF.IdentityModel.Selectors;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
+using CoreWCF.IdentityModel.Selectors;
 
 namespace CoreWCF.Security
 {
@@ -12,15 +13,14 @@ namespace CoreWCF.Security
         internal const X509RevocationMode DefaultRevocationMode = X509RevocationMode.Online;
         internal const StoreLocation DefaultTrustedStoreLocation = StoreLocation.LocalMachine;
         internal const bool DefaultMapCertificateToWindowsAccount = false;
-        static X509CertificateValidator defaultCertificateValidator;
-
-        X509CertificateValidationMode certificateValidationMode = DefaultCertificateValidationMode;
-        X509RevocationMode revocationMode = DefaultRevocationMode;
-        StoreLocation trustedStoreLocation = DefaultTrustedStoreLocation;
-        X509CertificateValidator customCertificateValidator = null;
-        bool mapClientCertificateToWindowsAccount = DefaultMapCertificateToWindowsAccount;
-        bool includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
-        bool isReadOnly;
+        private static X509CertificateValidator s_defaultCertificateValidator;
+        private X509CertificateValidationMode _certificateValidationMode = DefaultCertificateValidationMode;
+        private X509RevocationMode _revocationMode = DefaultRevocationMode;
+        private StoreLocation _trustedStoreLocation = DefaultTrustedStoreLocation;
+        private X509CertificateValidator _customCertificateValidator = null;
+        private bool _mapClientCertificateToWindowsAccount = DefaultMapCertificateToWindowsAccount;
+        private bool _includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
+        private bool _isReadOnly;
 
         internal X509ClientCertificateAuthentication()
         {
@@ -28,27 +28,29 @@ namespace CoreWCF.Security
 
         internal X509ClientCertificateAuthentication(X509ClientCertificateAuthentication other)
         {
-            certificateValidationMode = other.certificateValidationMode;
-            customCertificateValidator = other.customCertificateValidator;
-            includeWindowsGroups = other.includeWindowsGroups;
-            mapClientCertificateToWindowsAccount = other.mapClientCertificateToWindowsAccount;
-            trustedStoreLocation = other.trustedStoreLocation;
-            revocationMode = other.revocationMode;
-            isReadOnly = other.isReadOnly;
+            _certificateValidationMode = other._certificateValidationMode;
+            _customCertificateValidator = other._customCertificateValidator;
+            _includeWindowsGroups = other._includeWindowsGroups;
+            _mapClientCertificateToWindowsAccount = other._mapClientCertificateToWindowsAccount;
+            _trustedStoreLocation = other._trustedStoreLocation;
+            _revocationMode = other._revocationMode;
+            _isReadOnly = other._isReadOnly;
         }
 
         internal static X509CertificateValidator DefaultCertificateValidator
         {
             get
             {
-                if (defaultCertificateValidator == null)
+                if (s_defaultCertificateValidator == null)
                 {
                     bool useMachineContext = DefaultTrustedStoreLocation == StoreLocation.LocalMachine;
-                    X509ChainPolicy chainPolicy = new X509ChainPolicy();
-                    chainPolicy.RevocationMode = DefaultRevocationMode;
-                    defaultCertificateValidator = X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
+                    X509ChainPolicy chainPolicy = new X509ChainPolicy
+                    {
+                        RevocationMode = DefaultRevocationMode
+                    };
+                    s_defaultCertificateValidator = X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
                 }
-                return defaultCertificateValidator;
+                return s_defaultCertificateValidator;
             }
         }
 
@@ -56,13 +58,13 @@ namespace CoreWCF.Security
         {
             get
             {
-                return certificateValidationMode;
+                return _certificateValidationMode;
             }
             set
             {
                 X509CertificateValidationModeHelper.Validate(value);
                 ThrowIfImmutable();
-                certificateValidationMode = value;
+                _certificateValidationMode = value;
             }
         }
 
@@ -70,12 +72,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return revocationMode;
+                return _revocationMode;
             }
             set
             {
                 ThrowIfImmutable();
-                revocationMode = value;
+                _revocationMode = value;
             }
         }
 
@@ -83,12 +85,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return trustedStoreLocation;
+                return _trustedStoreLocation;
             }
             set
             {
                 ThrowIfImmutable();
-                trustedStoreLocation = value;
+                _trustedStoreLocation = value;
             }
         }
 
@@ -96,12 +98,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return customCertificateValidator;
+                return _customCertificateValidator;
             }
             set
             {
                 ThrowIfImmutable();
-                customCertificateValidator = value;
+                _customCertificateValidator = value;
             }
         }
 
@@ -109,12 +111,12 @@ namespace CoreWCF.Security
         {
             get
             {
-                return mapClientCertificateToWindowsAccount;
+                return _mapClientCertificateToWindowsAccount;
             }
             set
             {
                 ThrowIfImmutable();
-                mapClientCertificateToWindowsAccount = value;
+                _mapClientCertificateToWindowsAccount = value;
             }
         }
 
@@ -122,39 +124,41 @@ namespace CoreWCF.Security
         {
             get
             {
-                return includeWindowsGroups;
+                return _includeWindowsGroups;
             }
             set
             {
                 ThrowIfImmutable();
-                includeWindowsGroups = value;
+                _includeWindowsGroups = value;
             }
         }
 
         internal X509CertificateValidator GetCertificateValidator()
         {
-            if (certificateValidationMode == X509CertificateValidationMode.None)
+            if (_certificateValidationMode == X509CertificateValidationMode.None)
             {
                 return X509CertificateValidator.None;
             }
-            else if (certificateValidationMode == X509CertificateValidationMode.PeerTrust)
+            else if (_certificateValidationMode == X509CertificateValidationMode.PeerTrust)
             {
                 return X509CertificateValidator.PeerTrust;
             }
-            else if (certificateValidationMode == X509CertificateValidationMode.Custom)
+            else if (_certificateValidationMode == X509CertificateValidationMode.Custom)
             {
-                if (customCertificateValidator == null)
+                if (_customCertificateValidator == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.MissingCustomCertificateValidator));
                 }
-                return customCertificateValidator;
+                return _customCertificateValidator;
             }
             else
             {
-                bool useMachineContext = trustedStoreLocation == StoreLocation.LocalMachine;
-                X509ChainPolicy chainPolicy = new X509ChainPolicy();
-                chainPolicy.RevocationMode = revocationMode;
-                if (certificateValidationMode == X509CertificateValidationMode.ChainTrust)
+                bool useMachineContext = _trustedStoreLocation == StoreLocation.LocalMachine;
+                X509ChainPolicy chainPolicy = new X509ChainPolicy
+                {
+                    RevocationMode = _revocationMode
+                };
+                if (_certificateValidationMode == X509CertificateValidationMode.ChainTrust)
                 {
                     return X509CertificateValidator.CreateChainTrustValidator(useMachineContext, chainPolicy);
                 }
@@ -167,16 +171,15 @@ namespace CoreWCF.Security
 
         internal void MakeReadOnly()
         {
-            isReadOnly = true;
+            _isReadOnly = true;
         }
 
-        void ThrowIfImmutable()
+        private void ThrowIfImmutable()
         {
-            if (isReadOnly)
+            if (_isReadOnly)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
         }
-
     }
 }

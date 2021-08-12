@@ -1,14 +1,13 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 
 namespace CoreWCF
 {
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = true, AllowMultiple = true)]
     public sealed class ServiceKnownTypeAttribute : Attribute
     {
-        //Type _declaringType;
-        //string _methodName;
-        readonly Type _type;
-
         private ServiceKnownTypeAttribute()
         {
             // Disallow default constructor
@@ -16,7 +15,7 @@ namespace CoreWCF
 
         public ServiceKnownTypeAttribute(Type type)
         {
-            _type = type;
+            Type = type;
         }
 
         // The named method must take a parameter of ICustomAttributeProvider which isn't available so this overload can't be used
@@ -35,6 +34,6 @@ namespace CoreWCF
 
         //public string MethodName => _methodName;
 
-        public Type Type => _type;
+        public Type Type { get; }
     }
 }

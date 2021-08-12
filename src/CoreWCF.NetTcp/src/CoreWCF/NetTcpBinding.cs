@@ -1,91 +1,93 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-// ------------------------------------------------------------------------------
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.ComponentModel;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
     public class NetTcpBinding : Binding
     {
         // private BindingElements
-        TcpTransportBindingElement transport;
-        BinaryMessageEncodingBindingElement encoding;
-        NetTcpSecurity security = new NetTcpSecurity();
+        private TcpTransportBindingElement _transport;
+        private BinaryMessageEncodingBindingElement _encoding;
+        private NetTcpSecurity _security = new NetTcpSecurity();
 
         public NetTcpBinding() { Initialize(); }
         public NetTcpBinding(SecurityMode securityMode)
             : this()
         {
-            security.Mode = securityMode;
+            _security.Mode = securityMode;
         }
 
         public TransferMode TransferMode
         {
-            get { return transport.TransferMode; }
-            set { transport.TransferMode = value; }
+            get { return _transport.TransferMode; }
+            set { _transport.TransferMode = value; }
         }
 
         public HostNameComparisonMode HostNameComparisonMode
         {
-            get { return transport.HostNameComparisonMode; }
-            set { transport.HostNameComparisonMode = value; }
+            get { return _transport.HostNameComparisonMode; }
+            set { _transport.HostNameComparisonMode = value; }
         }
 
         [DefaultValue(TransportDefaults.MaxBufferPoolSize)]
         public long MaxBufferPoolSize
         {
-            get { return transport.MaxBufferPoolSize; }
+            get { return _transport.MaxBufferPoolSize; }
             set
             {
-                transport.MaxBufferPoolSize = value;
+                _transport.MaxBufferPoolSize = value;
             }
         }
 
         public int MaxBufferSize
         {
-            get { return transport.MaxBufferSize; }
-            set { transport.MaxBufferSize = value; }
+            get { return _transport.MaxBufferSize; }
+            set { _transport.MaxBufferSize = value; }
         }
 
         public int MaxConnections
         {
-            get { return transport.MaxPendingConnections; }
+            get { return _transport.MaxPendingConnections; }
             set
             {
-                transport.MaxPendingConnections = value;
+                _transport.MaxPendingConnections = value;
             }
         }
 
         internal bool IsMaxConnectionsSet
         {
-            get { return transport.IsMaxPendingConnectionsSet; }
+            get { return _transport.IsMaxPendingConnectionsSet; }
         }
 
         public int ListenBacklog
         {
-            get { return transport.ListenBacklog; }
-            set { transport.ListenBacklog = value; }
+            get { return _transport.ListenBacklog; }
+            set { _transport.ListenBacklog = value; }
         }
 
         public long MaxReceivedMessageSize
         {
-            get { return transport.MaxReceivedMessageSize; }
-            set { transport.MaxReceivedMessageSize = value; }
+            get { return _transport.MaxReceivedMessageSize; }
+            set { _transport.MaxReceivedMessageSize = value; }
         }
 
         public XmlDictionaryReaderQuotas ReaderQuotas
         {
-            get { return encoding.ReaderQuotas; }
+            get { return _encoding.ReaderQuotas; }
             set
             {
                 if (value == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                value.CopyTo(encoding.ReaderQuotas);
+                }
+
+                value.CopyTo(_encoding.ReaderQuotas);
             }
         }
 
@@ -95,64 +97,54 @@ namespace CoreWCF
         //    get { return false; }
         //}
 
-        public override string Scheme { get { return transport.Scheme; } }
+        public override string Scheme { get { return _transport.Scheme; } }
 
         public EnvelopeVersion EnvelopeVersion
         {
             get { return EnvelopeVersion.Soap12; }
         }
 
+        internal SecurityBindingElement CreateMessageSecurity()
+        {
+            if (Security.Mode == SecurityMode.Message || Security.Mode == SecurityMode.TransportWithMessageCredential)
+            {
+                return Security.CreateMessageSecurity(false);//ReliableSession.Enabled);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public NetTcpSecurity Security
         {
-            get { return security; }
+            get { return _security; }
             set
             {
-                if (value == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
-                security = value;
+                _security = value ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
             }
         }
 
-        void Initialize()
+        private void Initialize()
         {
-            transport = new TcpTransportBindingElement();
-            encoding = new BinaryMessageEncodingBindingElement();
-        }
-
-        private void CheckSettings()
-        {
-            NetTcpSecurity security = Security;
-            if (security == null)
-            {
-                return;
-            }
-
-            SecurityMode mode = security.Mode;
-            if (mode == SecurityMode.None)
-            {
-                return;
-            }
-            else if (mode == SecurityMode.Message)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
-            }
-
-            // Message.ClientCredentialType = Certificate, IssuedToken or Windows are not supported.
-            if (mode == SecurityMode.TransportWithMessageCredential)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", mode)));
-            }
+            _transport = new TcpTransportBindingElement();
+            _encoding = new BinaryMessageEncodingBindingElement();
         }
 
         public override BindingElementCollection CreateBindingElements()
         {
-            CheckSettings();
-
             // return collection of BindingElements
-            BindingElementCollection bindingElements = new BindingElementCollection();
-            // order of BindingElements is important
-            // add encoding
-            bindingElements.Add(encoding);
+            BindingElementCollection bindingElements = new BindingElementCollection
+            {
+                // order of BindingElements is important
+                // add encoding
+                _encoding
+            };
+            SecurityBindingElement wsSecurity = CreateMessageSecurity();
+            if (wsSecurity != null)
+            {
+                bindingElements.Add(wsSecurity);
+            }
             // add transport security
             BindingElement transportSecurity = CreateTransportSecurity();
             if (transportSecurity != null)
@@ -160,16 +152,16 @@ namespace CoreWCF
                 bindingElements.Add(transportSecurity);
             }
             // TODO: Add ExtendedProtectionPolicy
-            transport.ExtendedProtectionPolicy = security.Transport.ExtendedProtectionPolicy;
+            _transport.ExtendedProtectionPolicy = _security.Transport.ExtendedProtectionPolicy;
             // add transport (tcp)
-            bindingElements.Add(transport);
+            bindingElements.Add(_transport);
 
             return bindingElements.Clone();
         }
 
-        BindingElement CreateTransportSecurity()
+        private BindingElement CreateTransportSecurity()
         {
-            return security.CreateTransportSecurity();
+            return _security.CreateTransportSecurity();
         }
     }
 }

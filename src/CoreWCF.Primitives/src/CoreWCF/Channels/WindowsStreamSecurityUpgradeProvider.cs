@@ -1,27 +1,31 @@
-﻿using CoreWCF.IdentityModel;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.IdentityModel.Selectors;
-using CoreWCF.IdentityModel.Tokens;
-using CoreWCF.Description;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Description;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
-    class WindowsStreamSecurityUpgradeProvider : StreamSecurityUpgradeProvider
+    internal class WindowsStreamSecurityUpgradeProvider : StreamSecurityUpgradeProvider
     {
-        EndpointIdentity _identity;
-        SecurityTokenManager securityTokenManager;
-        bool isClient;
-        Uri listenUri;
+        private EndpointIdentity _identity;
+        private readonly SecurityTokenManager _securityTokenManager;
+        private readonly bool _isClient;
+        private readonly Uri _listenUri;
 
         public WindowsStreamSecurityUpgradeProvider(WindowsStreamSecurityBindingElement bindingElement,
             BindingContext context, bool isClient)
@@ -30,8 +34,8 @@ namespace CoreWCF.Channels
             ExtractGroupsForWindowsAccounts = TransportDefaults.ExtractGroupsForWindowsAccounts;
             ProtectionLevel = bindingElement.ProtectionLevel;
             Scheme = context.Binding.Scheme;
-            this.isClient = isClient;
-            listenUri = TransportSecurityHelpers.GetListenUri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
+            _isClient = isClient;
+            _listenUri = TransportSecurityHelpers.GetListenUri(context.ListenUriBaseAddress, context.ListenUriRelativeAddress);
 
             SecurityCredentialsManager credentialProvider = context.BindingParameters.Find<SecurityCredentialsManager>();
             if (credentialProvider == null)
@@ -46,8 +50,12 @@ namespace CoreWCF.Channels
                 //}
             }
 
-
-            securityTokenManager = credentialProvider.CreateSecurityTokenManager();
+           if(credentialProvider is ServiceCredentials)
+            {
+                ServiceCredentials serviceCred = (ServiceCredentials)credentialProvider;
+                LdapSettings = serviceCred.WindowsAuthentication.LdapSetting;
+            }
+           _securityTokenManager = credentialProvider.CreateSecurityTokenManager();
         }
 
         public string Scheme { get; }
@@ -67,7 +75,7 @@ namespace CoreWCF.Channels
                         {
                             if (_identity == null)
                             {
-                                _identity = Security.SecurityUtils.CreateWindowsIdentity(ServerCredential);
+                                _identity = SecurityUtils.CreateWindowsIdentity(ServerCredential);
                             }
                         }
                     }
@@ -80,7 +88,9 @@ namespace CoreWCF.Channels
 
         public ProtectionLevel ProtectionLevel { get; }
 
-        NetworkCredential ServerCredential { get; set; }
+        private NetworkCredential ServerCredential { get; set; }
+
+        protected LdapSettings LdapSettings { get; private set; }
 
         public override StreamUpgradeAcceptor CreateUpgradeAcceptor()
         {
@@ -99,11 +109,11 @@ namespace CoreWCF.Channels
 
         protected override async Task OnOpenAsync(CancellationToken token)
         {
-            if (!isClient)
+            if (!_isClient)
             {
-                SecurityTokenRequirement sspiTokenRequirement = TransportSecurityHelpers.CreateSspiTokenRequirement(Scheme, listenUri);
+                SecurityTokenRequirement sspiTokenRequirement = TransportSecurityHelpers.CreateSspiTokenRequirement(Scheme, _listenUri);
                 (ServerCredential, ExtractGroupsForWindowsAccounts) = await
-                    TransportSecurityHelpers.GetSspiCredentialAsync(securityTokenManager, sspiTokenRequirement, token);
+                    TransportSecurityHelpers.GetSspiCredentialAsync(_securityTokenManager, sspiTokenRequirement, token);
             }
         }
 
@@ -122,16 +132,18 @@ namespace CoreWCF.Channels
             }
         }
 
-        class WindowsStreamSecurityUpgradeAcceptor : StreamSecurityUpgradeAcceptorBase
+        private class WindowsStreamSecurityUpgradeAcceptor : StreamSecurityUpgradeAcceptorBase
         {
-            WindowsStreamSecurityUpgradeProvider parent;
-            SecurityMessageProperty clientSecurity;
+            private readonly WindowsStreamSecurityUpgradeProvider _parent;
+            private readonly SecurityMessageProperty _clientSecurity;
+            private readonly LdapSettings _ldapSettings;
 
             public WindowsStreamSecurityUpgradeAcceptor(WindowsStreamSecurityUpgradeProvider parent)
                 : base(FramingUpgradeString.Negotiate)
             {
-                this.parent = parent;
-                clientSecurity = new SecurityMessageProperty();
+                _parent = parent;
+                _clientSecurity = new SecurityMessageProperty();
+                _ldapSettings = parent.LdapSettings;
             }
 
             protected override async Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
@@ -142,7 +154,7 @@ namespace CoreWCF.Channels
                 // authenticate
                 try
                 {
-                    await negotiateStream.AuthenticateAsServerAsync(parent.ServerCredential, parent.ProtectionLevel,
+                    await negotiateStream.AuthenticateAsServerAsync(_parent.ServerCredential, _parent.ProtectionLevel,
                         TokenImpersonationLevel.Identification);
                 }
                 catch (AuthenticationException exception)
@@ -156,41 +168,42 @@ namespace CoreWCF.Channels
                         SR.Format(SR.NegotiationFailedIO, ioException.Message), ioException));
                 }
 
-                SecurityMessageProperty remoteSecurity = CreateClientSecurity(negotiateStream, parent.ExtractGroupsForWindowsAccounts);
+                SecurityMessageProperty remoteSecurity = CreateClientSecurity(negotiateStream, _parent.ExtractGroupsForWindowsAccounts);
                 return (negotiateStream, remoteSecurity);
             }
 
-            SecurityMessageProperty CreateClientSecurity(NegotiateStream negotiateStream,
+            private SecurityMessageProperty CreateClientSecurity(NegotiateStream negotiateStream,
                           bool extractGroupsForWindowsAccounts)
             {
                 IIdentity remoteIdentity = negotiateStream.RemoteIdentity;
                 SecurityToken token;
                 ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+                WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts, _ldapSettings);
                 if (remoteIdentity is WindowsIdentity)
                 {
                     WindowsIdentity windowIdentity = (WindowsIdentity)remoteIdentity;
-                    Security.SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
-                    WindowsSecurityTokenAuthenticator authenticator = new WindowsSecurityTokenAuthenticator(extractGroupsForWindowsAccounts);
+                    SecurityUtils.ValidateAnonymityConstraint(windowIdentity, false);
                     token = new WindowsSecurityToken(windowIdentity, SecurityUniqueId.Create().Value, windowIdentity.AuthenticationType);
-                    authorizationPolicies = authenticator.ValidateToken(token);
                 }
                 else
                 {
+                    ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                     token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
-                    GenericSecurityTokenAuthenticator authenticator = new GenericSecurityTokenAuthenticator();
-                    authorizationPolicies = authenticator.ValidateToken(token);
                 }
-                SecurityMessageProperty clientSecurity = new SecurityMessageProperty();
-                clientSecurity.TransportToken = new SecurityTokenSpecification(token, authorizationPolicies);
-                clientSecurity.ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies);
+                authorizationPolicies = authenticator.ValidateToken(token);
+                SecurityMessageProperty clientSecurity = new SecurityMessageProperty
+                {
+                    TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
+                    ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies)
+                };
                 return clientSecurity;
             }
 
             public override SecurityMessageProperty GetRemoteSecurity()
             {
-                if (clientSecurity.TransportToken != null)
+                if (_clientSecurity.TransportToken != null)
                 {
-                    return clientSecurity;
+                    return _clientSecurity;
                 }
                 return base.GetRemoteSecurity();
             }

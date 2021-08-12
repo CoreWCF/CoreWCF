@@ -11,7 +11,7 @@ Please start a discussion on the [core repo issue tracker](https://github.com/Co
 
 ## Platform
 
-Core WCF is built on top of .NET Core 2.2.
+Core WCF is built targeting .NET Standard 2.0
 
 ## Building
 
@@ -19,7 +19,9 @@ Run `dotnet build` from the command line inside the src folder. This builds Core
 
 ## Other discussions
 
-https://gitter.im/CoreWCF/CoreWCF
+https://gitter.im/CoreWCF/CoreWCF  
+
+[Monthly community sync-up meeting](https://github.com/CoreWCF/CoreWCF/wiki/Community-Sync-up-meetings)  
 
 ## Filing issues
 

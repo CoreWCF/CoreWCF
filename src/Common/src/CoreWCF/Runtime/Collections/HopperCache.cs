@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections;
 using System.Threading;
 
@@ -42,26 +45,25 @@ namespace CoreWCF.Runtime.Collections
     // current use of HopperCache - UriPrefixTable.)
     internal class HopperCache
     {
-        readonly int hopperSize;
-        readonly bool weak;
-
-        Hashtable outstandingHopper;
-        Hashtable strongHopper;
-        Hashtable limitedHopper;
-        int promoting;
-        LastHolder mruEntry;
+        private readonly int _hopperSize;
+        private readonly bool _weak;
+        private Hashtable _outstandingHopper;
+        private Hashtable _strongHopper;
+        private Hashtable _limitedHopper;
+        private int _promoting;
+        private LastHolder _mruEntry;
 
 
         public HopperCache(int hopperSize, bool weak)
         {
             Fx.Assert(hopperSize > 0, "HopperCache hopperSize must be positive.");
 
-            this.hopperSize = hopperSize;
-            this.weak = weak;
+            _hopperSize = hopperSize;
+            _weak = weak;
 
-            outstandingHopper = new Hashtable(hopperSize * 2);
-            strongHopper = new Hashtable(hopperSize * 2);
-            limitedHopper = new Hashtable(hopperSize * 2);
+            _outstandingHopper = new Hashtable(hopperSize * 2);
+            _strongHopper = new Hashtable(hopperSize * 2);
+            _limitedHopper = new Hashtable(hopperSize * 2);
         }
 
         // Calls to Add must be synchronized.
@@ -71,17 +73,17 @@ namespace CoreWCF.Runtime.Collections
             Fx.Assert(value != null, "HopperCache value cannot be null.");
 
             // Special-case DBNull since it can never be collected.
-            if (weak && !object.ReferenceEquals(value, DBNull.Value))
+            if (_weak && !ReferenceEquals(value, DBNull.Value))
             {
                 value = new WeakReference(value);
             }
 
-            Fx.Assert(strongHopper.Count <= hopperSize * 2,
+            Fx.Assert(_strongHopper.Count <= _hopperSize * 2,
                 "HopperCache strongHopper is bigger than it's allowed to get.");
 
-            if (strongHopper.Count >= hopperSize * 2)
+            if (_strongHopper.Count >= _hopperSize * 2)
             {
-                Hashtable recycled = limitedHopper;
+                Hashtable recycled = _limitedHopper;
                 recycled.Clear();
                 recycled.Add(key, value);
 
@@ -89,15 +91,15 @@ namespace CoreWCF.Runtime.Collections
                 try { }
                 finally
                 {
-                    limitedHopper = strongHopper;
-                    strongHopper = recycled;
+                    _limitedHopper = _strongHopper;
+                    _strongHopper = recycled;
                 }
             }
             else
             {
                 // We do nothing to prevent things from getting added multiple times.  Also may be writing over
                 // a dead weak entry.
-                strongHopper[key] = value;
+                _strongHopper[key] = value;
             }
         }
 
@@ -111,17 +113,17 @@ namespace CoreWCF.Runtime.Collections
             object value;
 
             // The MruCache does this so we have to too.
-            LastHolder last = mruEntry;
+            LastHolder last = _mruEntry;
             if (last != null && key.Equals(last.Key))
             {
-                if (weak && (weakRef = last.Value as WeakReference) != null)
+                if (_weak && (weakRef = last.Value as WeakReference) != null)
                 {
                     value = weakRef.Target;
                     if (value != null)
                     {
                         return value;
                     }
-                    mruEntry = null;
+                    _mruEntry = null;
                 }
                 else
                 {
@@ -130,21 +132,21 @@ namespace CoreWCF.Runtime.Collections
             }
 
             // Try the first hopper.
-            object origValue = outstandingHopper[key];
-            value = weak && (weakRef = origValue as WeakReference) != null ? weakRef.Target : origValue;
+            object origValue = _outstandingHopper[key];
+            value = _weak && (weakRef = origValue as WeakReference) != null ? weakRef.Target : origValue;
             if (value != null)
             {
-                mruEntry = new LastHolder(key, origValue);
+                _mruEntry = new LastHolder(key, origValue);
                 return value;
             }
 
             // Try the subsequent hoppers.
-            origValue = strongHopper[key];
-            value = weak && (weakRef = origValue as WeakReference) != null ? weakRef.Target : origValue;
+            origValue = _strongHopper[key];
+            value = _weak && (weakRef = origValue as WeakReference) != null ? weakRef.Target : origValue;
             if (value == null)
             {
-                origValue = limitedHopper[key];
-                value = weak && (weakRef = origValue as WeakReference) != null ? weakRef.Target : origValue;
+                origValue = _limitedHopper[key];
+                value = _weak && (weakRef = origValue as WeakReference) != null ? weakRef.Target : origValue;
                 if (value == null)
                 {
                     // Still no value?  It's not here.
@@ -152,7 +154,7 @@ namespace CoreWCF.Runtime.Collections
                 }
             }
 
-            mruEntry = new LastHolder(key, origValue);
+            _mruEntry = new LastHolder(key, origValue);
 
             // If we can get the promoting semaphore, move up to the outstanding hopper.
             int wasPromoting = 1;
@@ -163,20 +165,20 @@ namespace CoreWCF.Runtime.Collections
                 {
                     // This is effectively a lock, which is why it uses lock semantics.  If the Interlocked call
                     // were 'lost', the cache wouldn't deadlock, but it would be permanently broken.
-                    wasPromoting = Interlocked.CompareExchange(ref promoting, 1, 0);
+                    wasPromoting = Interlocked.CompareExchange(ref _promoting, 1, 0);
                 }
 
                 // Only one thread can be inside this 'if' at a time.
                 if (wasPromoting == 0)
                 {
-                    Fx.Assert(outstandingHopper.Count <= hopperSize,
+                    Fx.Assert(_outstandingHopper.Count <= _hopperSize,
                         "HopperCache outstandingHopper is bigger than it's allowed to get.");
 
-                    if (outstandingHopper.Count >= hopperSize)
+                    if (_outstandingHopper.Count >= _hopperSize)
                     {
                         lock (syncObject)
                         {
-                            Hashtable recycled = limitedHopper;
+                            Hashtable recycled = _limitedHopper;
                             recycled.Clear();
                             recycled.Add(key, origValue);
 
@@ -184,9 +186,9 @@ namespace CoreWCF.Runtime.Collections
                             try { }
                             finally
                             {
-                                limitedHopper = strongHopper;
-                                strongHopper = outstandingHopper;
-                                outstandingHopper = recycled;
+                                _limitedHopper = _strongHopper;
+                                _strongHopper = _outstandingHopper;
+                                _outstandingHopper = recycled;
                             }
                         }
                     }
@@ -198,7 +200,7 @@ namespace CoreWCF.Runtime.Collections
                         // during this operation.  We are only allowed to modify the *current* outstandingHopper
                         // while holding the pseudo-lock, which would be violated if it could be shifted out from
                         // under us (and potentially added to by Add in a race).
-                        outstandingHopper[key] = origValue;
+                        _outstandingHopper[key] = origValue;
                     }
                 }
             }
@@ -206,40 +208,24 @@ namespace CoreWCF.Runtime.Collections
             {
                 if (wasPromoting == 0)
                 {
-                    promoting = 0;
+                    _promoting = 0;
                 }
             }
 
             return value;
         }
 
-        class LastHolder
+        private class LastHolder
         {
-            readonly object key;
-            readonly object value;
-
             internal LastHolder(object key, object value)
             {
-                this.key = key;
-                this.value = value;
+                Key = key;
+                Value = value;
             }
 
-            internal object Key
-            {
-                get
-                {
-                    return key;
-                }
-            }
+            internal object Key { get; private set; }
 
-            internal object Value
-            {
-                get
-                {
-                    return value;
-                }
-            }
+            internal object Value { get; private set; }
         }
     }
-
 }

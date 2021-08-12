@@ -1,18 +1,19 @@
-﻿using Microsoft.AspNetCore.Connections;
-using CoreWCF.Runtime;
-using CoreWCF.Configuration;
-using CoreWCF.Security;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Buffers;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Runtime;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels.Framing
 {
     internal class ServerFramingDuplexSessionMiddleware
     {
-        private HandshakeDelegate _next;
+        private readonly HandshakeDelegate _next;
 
         public ServerFramingDuplexSessionMiddleware(HandshakeDelegate next)
         {
@@ -33,7 +34,7 @@ namespace CoreWCF.Channels.Framing
                 ReadOnlySequence<byte> buffer;
                 while (true)
                 {
-                    var readResult = await connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
                     buffer = readResult.Buffer;
                     if (readResult.IsCompleted)
                     {
@@ -63,7 +64,7 @@ namespace CoreWCF.Channels.Framing
                                 {
                                     connection.Input.AdvanceTo(buffer.Start);
                                     buffer = ReadOnlySequence<byte>.Empty;
-                                    await UpgradeConnectionAsync(connection);
+                                    await UpgradeConnectionAsync(connection, decoder.Upgrade);
                                     // TODO: ChannelBinding
                                     //if (this.channelBindingProvider != null && this.channelBindingProvider.IsChannelBindingSupportEnabled)
                                     //{
@@ -75,7 +76,9 @@ namespace CoreWCF.Channels.Framing
                                 catch (Exception exception)
                                 {
                                     if (Fx.IsFatal(exception))
+                                    {
                                         throw;
+                                    }
 
                                     // Audit Authentication Failure
                                     //WriteAuditFailure(upgradeAcceptor as StreamSecurityUpgradeAcceptor, exception);
@@ -85,14 +88,14 @@ namespace CoreWCF.Channels.Framing
 
                             case ServerSessionDecoder.State.Start:
                                 SetupSecurityIfNecessary(connection);
-
                                 // we've finished the preamble. Ack and continue to the next middleware.
                                 await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes);
                                 await connection.Output.FlushAsync();
                                 connection.Input.AdvanceTo(buffer.Start);
-                                success = true;
                                 await _next(connection);
+                                success = true;
                                 return;
+
                         }
                     }
                 }
@@ -108,10 +111,10 @@ namespace CoreWCF.Channels.Framing
 
         private static void ValidateContentType(FramingConnection connection, FramingDecoder decoder)
         {
-            var messageEncoderFactory = connection.MessageEncoderFactory;
+            MessageEncoderFactory messageEncoderFactory = connection.MessageEncoderFactory;
             MessageEncoder messageEncoder = messageEncoderFactory.CreateSessionEncoder();
             connection.MessageEncoder = messageEncoder;
-            
+
             if (!messageEncoder.IsContentTypeSupported(decoder.ContentType))
             {
                 // TODO: Send fault response
@@ -120,8 +123,7 @@ namespace CoreWCF.Channels.Framing
                     SR.ContentTypeMismatch, decoder.ContentType, messageEncoder.ContentType)));
             }
 
-            ICompressedMessageEncoder compressedMessageEncoder = messageEncoder as ICompressedMessageEncoder;
-            if (compressedMessageEncoder != null && compressedMessageEncoder.CompressionEnabled)
+            if (messageEncoder is ICompressedMessageEncoder compressedMessageEncoder && compressedMessageEncoder.CompressionEnabled)
             {
                 compressedMessageEncoder.SetSessionContentType(decoder.ContentType);
             }
@@ -129,7 +131,7 @@ namespace CoreWCF.Channels.Framing
 
         private static void ProcessUpgradeRequest(FramingConnection connection, ServerSessionDecoder decoder)
         {
-            var upgradeAcceptor = connection.StreamUpgradeAcceptor;
+            StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
             if (upgradeAcceptor == null)
             {
                 // TODO: SendFault
@@ -147,20 +149,23 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
-        public static async Task UpgradeConnectionAsync(FramingConnection connection)
+        public static async Task UpgradeConnectionAsync(FramingConnection connection, string contentType)
         {
-            connection.RawStream = new RawStream(connection.Input, connection.Output);
-            var upgradeAcceptor = connection.StreamUpgradeAcceptor;
-            var stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
+            var duplexPipeStream = new DuplexPipeStream(connection.Input, connection.Output);
+            connection.RawStream = duplexPipeStream;
+            StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
+            connection.Logger.StartStreamUpgradeAccept(upgradeAcceptor);
+            Stream stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);
+            duplexPipeStream.SetContentType(contentType);
+            connection.Logger.CompleteStreamUpgradeAccept(upgradeAcceptor);
             CreatePipelineFromStream(connection, stream);
         }
 
         private static void SetupSecurityIfNecessary(FramingConnection connection)
         {
-            StreamSecurityUpgradeAcceptor securityUpgradeAcceptor = connection.StreamUpgradeAcceptor as StreamSecurityUpgradeAcceptor;
-            if (securityUpgradeAcceptor != null)
+            if (connection.StreamUpgradeAcceptor is StreamSecurityUpgradeAcceptor securityUpgradeAcceptor)
             {
-                var remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
+                Security.SecurityMessageProperty remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
 
                 if (remoteSecurity == null)
                 {

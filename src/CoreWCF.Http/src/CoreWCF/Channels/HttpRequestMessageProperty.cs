@@ -1,15 +1,15 @@
-﻿using CoreWCF.Runtime;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Net;
-using System.Net.Http.Headers;
+using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Channels
 {
     public sealed class HttpRequestMessageProperty : IMessageProperty
     {
-        private HttpContextBackedProperty _httpContextBackedProperty;
+        private readonly HttpContextBackedProperty _httpContextBackedProperty;
 
         internal HttpRequestMessageProperty(HttpContext httpContext)
         {
@@ -18,12 +18,26 @@ namespace CoreWCF.Channels
 
         public static string Name => "httpRequest";
 
+        /// <summary>
+        /// Gets the headers from the underlying HTTP Request.
+        /// </summary>
         public WebHeaderCollection Headers => _httpContextBackedProperty.Headers;
 
+        /// <summary>
+        /// Gets the method from the underlying HTTP Request.
+        /// </summary>
         public string Method => _httpContextBackedProperty.Method;
 
+        /// <summary>
+        /// Gets the query string from the underlying HTTP Request.
+        /// </summary>
+        /// <remarks>The leading '?' is removed.</remarks>
         public string QueryString => _httpContextBackedProperty.QueryString;
 
+        /// <summary>
+        /// The entity body is suppressed is the underlying HTTP request has a zero ContentLength.
+        /// </summary>
+        /// <value><c>true</c> if [suppress entity body]; otherwise, <c>false</c>.</value>
         public bool SuppressEntityBody => _httpContextBackedProperty.SuppressEntityBody;
 
         IMessageProperty IMessageProperty.CreateCopy()

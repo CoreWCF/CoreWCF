@@ -1,9 +1,11 @@
-﻿using CoreWCF.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Description
 {
@@ -74,9 +76,11 @@ namespace CoreWCF.Description
 
         public object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
-            var attributes = GetCustomAttributes(inherit);
+            object[] attributes = GetCustomAttributes(inherit);
             if (attributes == null || attributes.Length == 0)
+            {
                 return attributes;
+            }
 
             object[] result = attributes.Where(attribute => attributeType.IsAssignableFrom(attribute.GetType())).ToArray();
 
@@ -112,7 +116,7 @@ namespace CoreWCF.Description
                     result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName)).ToArray();
                     for (int i = 0; i < result.Length; i++)
                     {
-                        result[i] = ConvertFromServiceModelMessageHeadertAttribute(result[i]);
+                        result[i] = ConvertFromServiceModelMessageHeaderAttribute(result[i]);
                     }
                 }
                 else if (attributeType == typeof(MessageBodyMemberAttribute))
@@ -129,6 +133,22 @@ namespace CoreWCF.Description
                     for (int i = 0; i < result.Length; i++)
                     {
                         result[i] = ConvertFromServiceModelMessagePropertyAttribute(result[i]);
+                    }
+                }
+                else if (attributeType == typeof(MessageParameterAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageParameterAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelMessageParameterAttribute(result[i]);
+                    }
+                }
+                else if (attributeType == typeof(XmlSerializerFormatAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMXmlSerializerFormatAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelXmlSerializerFormatAttribute(result[i]);
                     }
                 }
             }
@@ -168,8 +188,10 @@ namespace CoreWCF.Description
         private static MessageContractAttribute ConvertFromServiceModelMessageContractAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageContractAttributeFullName), "Expected attribute of type System.ServiceModel.MessageContract");
-            var messageContract = new MessageContractAttribute();
-            messageContract.IsWrapped = GetProperty<bool>(attr, nameof(MessageContractAttribute.IsWrapped));
+            var messageContract = new MessageContractAttribute
+            {
+                IsWrapped = GetProperty<bool>(attr, nameof(MessageContractAttribute.IsWrapped))
+            };
             string tmpStr = GetProperty<string>(attr, nameof(MessageContractAttribute.WrapperName));
             if (!string.IsNullOrEmpty(tmpStr))
             {
@@ -183,7 +205,7 @@ namespace CoreWCF.Description
             return messageContract;
         }
 
-        private static MessageHeaderAttribute ConvertFromServiceModelMessageHeadertAttribute(object attr)
+        private static MessageHeaderAttribute ConvertFromServiceModelMessageHeaderAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName), "Expected attribute of type System.ServiceModel.MessageHeader");
 
@@ -240,15 +262,43 @@ namespace CoreWCF.Description
 
         private static MessagePropertyAttribute ConvertFromServiceModelMessagePropertyAttribute(object attr)
         {
-            var messsageProperty = new MessagePropertyAttribute();
+            var messageProperty = new MessagePropertyAttribute();
             string tmpStr = GetProperty<string>(attr, nameof(MessagePropertyAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
             {
-                messsageProperty.Name = tmpStr;
+                messageProperty.Name = tmpStr;
             }
 
-            return messsageProperty;
+            return messageProperty;
         }
+
+        private static MessageParameterAttribute ConvertFromServiceModelMessageParameterAttribute(object attr)
+        {
+            var messageParameter = new MessageParameterAttribute();
+            string tmpStr = GetProperty<string>(attr, nameof(MessageParameterAttribute.Name));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                messageParameter.Name = tmpStr;
+            }
+
+            return messageParameter;
+        }
+
+        private static XmlSerializerFormatAttribute ConvertFromServiceModelXmlSerializerFormatAttribute(object attr)
+        {
+            var xmlSerializerFormatAttribute = new XmlSerializerFormatAttribute();
+
+            xmlSerializerFormatAttribute.Style = GetProperty<OperationFormatStyle>(attr, nameof(XmlSerializerFormatAttribute.Style));
+            xmlSerializerFormatAttribute.SupportFaults = GetProperty<bool>(attr, nameof(XmlSerializerFormatAttribute.SupportFaults));
+            xmlSerializerFormatAttribute.Use = GetProperty<OperationFormatUse>(attr, nameof(XmlSerializerFormatAttribute.Use));
+
+            // XmlSerializerFormatAttribute.IsEncoded does not exist in SSM, defaults to false
+            // xmlSerializerFormatAttribute.IsEncoded = GetProperty<bool>(attr, nameof(XmlSerializerFormatAttribute.IsEncoded));
+            xmlSerializerFormatAttribute.IsEncoded = false;
+
+            return xmlSerializerFormatAttribute;
+        }
+
         private static OperationContractAttribute ConvertFromServiceModelOperationContractAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMOperationContractAttributeFullName), "Expected attribute of type S.SM.OperationContractAttribute");
@@ -300,23 +350,6 @@ namespace CoreWCF.Description
                 Fx.Assert(propInfo != null, $"Could not find property with name {propName} of type {typeof(TProp).FullName} on object of type {obj.GetType().FullName}");
                 return (TProp)propInfo.GetValue(obj);
             }
-        }
-
-        public bool IsDefined(Type attributeType, bool inherit)
-        {
-            switch (ProviderType)
-            {
-                case AttributeProviderType.Type:
-                    return Type.GetTypeInfo().IsDefined(attributeType, inherit);
-                case AttributeProviderType.MethodInfo:
-                    return MethodInfo.IsDefined(attributeType, inherit);
-                case AttributeProviderType.MemberInfo:
-                    return MemberInfo.IsDefined(attributeType, inherit);
-                case AttributeProviderType.ParameterInfo:
-                    return ParameterInfo.IsDefined(attributeType, inherit);
-            }
-            Contract.Assert(false, "This should never execute.");
-            throw new InvalidOperationException();
         }
 
         public static implicit operator CustomAttributeProvider(MemberInfo attrProvider)

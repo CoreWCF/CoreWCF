@@ -1,32 +1,42 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
-using System.Text;
-using CoreWCF.Collections.Generic;
-using CoreWCF.Channels;
-using CoreWCF.Description;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Hosting.Server;
-using System.Threading.Tasks;
-using System.Threading;
-using CoreWCF.Configuration;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
+using CoreWCF.Configuration;
+using CoreWCF.Description;
+using CoreWCF.Dispatcher;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF
 {
     internal class ServiceHostObjectModel<TService> : ServiceHostBase where TService : class
     {
         private IDisposable _disposableInstance;
-        private TService _singletonInstance;
         private readonly IServiceProvider _serviceProvider;
-        private IServerAddressesFeature _serverAddresses;
+#pragma warning disable IDE0052 // Remove unread private members - see issue #286
+        private readonly ILogger<ServiceHostObjectModel<TService>> _logger;
+#pragma warning restore IDE0052 // Remove unread private members
 
-        public ServiceHostObjectModel(IServiceProvider serviceProvider, IServer server, IServiceBuilder serviceBuilder)
+        public ServiceHostObjectModel(IServiceProvider serviceProvider, ServiceBuilder serviceBuilder, ILogger<ServiceHostObjectModel<TService>> logger)
         {
             _serviceProvider = serviceProvider;
-            _serverAddresses = server.Features.Get<IServerAddressesFeature>();
+            _logger = logger;
+
+            WaitForServiceBuilderOpening(serviceBuilder);
+
             InitializeDescription(new UriSchemeKeyedCollection(serviceBuilder.BaseAddresses.ToArray()));
         }
 
@@ -44,69 +54,44 @@ namespace CoreWCF
 
         protected override ServiceDescription CreateDescription(out IDictionary<string, ContractDescription> implementedContracts)
         {
-            ServiceDescription description;
-            TService instance = _serviceProvider.GetService<TService>();
-            if (instance != null)
-            {
-                description = ServiceDescription.GetService(instance);
-            }
-            else
-            {
-                description = ServiceDescription.GetService<TService>();
-            }
-
-            // Any user supplied IServiceBehaviors can be applied now
-            var serviceBehaviors = _serviceProvider.GetServices<IServiceBehavior>();
-            foreach (var behavior in serviceBehaviors)
-            {
-                description.Behaviors.Add(behavior);
-            }
+            ServiceDescription description = _serviceProvider.GetService<ServiceDescription<TService>>();
 
             ServiceBehaviorAttribute serviceBehavior = description.Behaviors.Find<ServiceBehaviorAttribute>();
-            object serviceInstanceUsedAsABehavior = serviceBehavior.GetWellKnownSingleton();
+            TService serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetWellKnownSingleton();
             if (serviceInstanceUsedAsABehavior == null)
             {
-                serviceInstanceUsedAsABehavior = serviceBehavior.GetHiddenSingleton();
+                serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetHiddenSingleton();
                 _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
             }
 
+            // serviceInstanceUsedAsBehavior will be null when InstanceContextMode != Single
+            // In this case, we need to check if the service type is a behavior and if it is, create an instance to apply to behaviors
             if ((typeof(IServiceBehavior).IsAssignableFrom(typeof(TService)) || typeof(IContractBehavior).IsAssignableFrom(typeof(TService)))
-                && serviceInstanceUsedAsABehavior == null)
+                    && serviceInstanceUsedAsABehavior == null)
             {
-                if (instance == null)
+                serviceInstanceUsedAsABehavior = _serviceProvider.GetService<TService>(); // First try DI to get an instance
+                if (serviceInstanceUsedAsABehavior == null) // Not in DI so create the old WCF way using reflection
                 {
                     serviceInstanceUsedAsABehavior = ServiceDescription.CreateImplementation<TService>();
                 }
-                else
-                {
-                    serviceInstanceUsedAsABehavior = instance;
-                }
 
                 _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
             }
 
-            if (instance != null)
+            if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
             {
-                if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
-                {
-                    SingletonInstance = instance;
-                }
-                else
-                {
-                    serviceBehavior.InstanceProvider = new DependencyInjectionInstanceProvider(_serviceProvider, typeof(TService));
-                    if (serviceInstanceUsedAsABehavior == null && instance is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
-                }
+                // If using Single, then ServiceBehavior fetched/created the instance and need to set on SingletonInstance
+                Debug.Assert(serviceInstanceUsedAsABehavior != null, "Service behavior should have created a singleton instance");
+                SingletonInstance = serviceInstanceUsedAsABehavior;
+            }
+            else
+            {
+                serviceBehavior.InstanceProvider = new DependencyInjectionWithLegacyFallbackInstanceProvider(_serviceProvider, typeof(TService));
             }
 
-            if (instance == null)
+            if (serviceInstanceUsedAsABehavior is IServiceBehavior behavior)
             {
-                if (serviceInstanceUsedAsABehavior is IServiceBehavior)
-                {
-                    description.Behaviors.Add((IServiceBehavior)serviceInstanceUsedAsABehavior);
-                }
+                description.Behaviors.Add(behavior);
             }
 
             ReflectedContractCollection reflectedContracts = new ReflectedContractCollection();
@@ -116,7 +101,7 @@ namespace CoreWCF
                 Type contractType = interfaces[i];
                 if (!reflectedContracts.Contains(contractType))
                 {
-                    ContractDescription contract = null;
+                    ContractDescription contract;
                     if (serviceInstanceUsedAsABehavior != null)
                     {
                         contract = ContractDescription.GetContract<TService>(contractType, serviceInstanceUsedAsABehavior);
@@ -144,11 +129,6 @@ namespace CoreWCF
             return description;
         }
 
-        protected override void ApplyConfiguration()
-        {
-            // Prevent base class throw by overriding
-        }
-
         internal class ReflectedContractCollection : KeyedCollection<Type, ContractDescription>
         {
             public ReflectedContractCollection()
@@ -159,7 +139,9 @@ namespace CoreWCF
             protected override Type GetKeyForItem(ContractDescription item)
             {
                 if (item == null)
+                {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+                }
 
                 return item.ContractType;
             }
@@ -180,19 +162,19 @@ namespace CoreWCF
             }
         }
 
-        class ReflectedAndBehaviorContractCollection
+        private class ReflectedAndBehaviorContractCollection
         {
-            ReflectedContractCollection reflectedContracts;
-            KeyedByTypeCollection<IServiceBehavior> behaviors;
+            private readonly ReflectedContractCollection _reflectedContracts;
+            private readonly KeyedByTypeCollection<IServiceBehavior> _behaviors;
             public ReflectedAndBehaviorContractCollection(ReflectedContractCollection reflectedContracts, KeyedByTypeCollection<IServiceBehavior> behaviors)
             {
-                this.reflectedContracts = reflectedContracts;
-                this.behaviors = behaviors;
+                _reflectedContracts = reflectedContracts;
+                _behaviors = behaviors;
             }
 
             internal bool Contains(Type implementedContract)
             {
-                if (this.reflectedContracts.Contains(implementedContract))
+                if (_reflectedContracts.Contains(implementedContract))
                 {
                     return true;
                 }
@@ -207,9 +189,9 @@ namespace CoreWCF
 
             internal string GetConfigKey(Type implementedContract)
             {
-                if (reflectedContracts.Contains(implementedContract))
+                if (_reflectedContracts.Contains(implementedContract))
                 {
-                    return ReflectedContractCollection.GetConfigKey(reflectedContracts[implementedContract]);
+                    return ReflectedContractCollection.GetConfigKey(_reflectedContracts[implementedContract]);
                 }
 
                 //if (this.behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
@@ -218,125 +200,61 @@ namespace CoreWCF
                 //}
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SfxReflectedContractKeyNotFound2, implementedContract.FullName, string.Empty)));
-
             }
         }
 
-        internal Uri MakeAbsoluteUri(Uri uri, Binding binding)
+        protected override void ApplyConfiguration()
         {
-            EnsureBaseAddresses();
-            Uri result = uri;
-            if (!result.IsAbsoluteUri)
+            base.ApplyConfiguration();
+            IServer server = _serviceProvider.GetRequiredService<IServer>();
+            IServerAddressesFeature addresses = server.Features.Get<IServerAddressesFeature>();
+            foreach(string address in addresses.Addresses)
             {
-                if (binding.Scheme == string.Empty)
+                if (!address.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxCustomBindingWithoutTransport));
+                    // IIS hosting can populate Addresses with net.tcp/net.pipe/net.msmq addresses
+                    // if the site has those bindings
+                    continue;
                 }
 
-                result = GetVia(binding.Scheme, result, InternalBaseAddresses);
-                if (result == null)
+                var fixedUri = FixUri(address);
+                // ASP.NET Core assumes all listeners are http. Other transports such as NetTcp will already be populated
+                // in the base addresses so filter them out.
+                bool skip = false;
+                foreach(var baseAddress in InternalBaseAddresses)
                 {
-                    UriBuilder listenUriBuilder = new UriBuilder(binding.Scheme, DnsCache.MachineName);
-                    result = new Uri(listenUriBuilder.Uri, uri);
-                }
-            }
-
-            return result;
-        }
-
-        private void EnsureBaseAddresses()
-        {
-            if (_serverAddresses != null)
-            {
-                foreach(var addr in _serverAddresses.Addresses)
-                {
-                    var uri = new Uri(addr);
-                    bool skip = false;
-                    foreach(var baseAddress in InternalBaseAddresses)
+                    if(baseAddress.Port == fixedUri.Port) // Already added with a different protocol
                     {
-                        if (baseAddress.Port == uri.Port && baseAddress.Scheme != uri.Scheme)
-                        {
-                            // ASP.NET Core adds net.tcp uri's as http{s} uri's
-                            skip = true;
-                            break;
-                        }
-                    }
-                    if (!skip && !InternalBaseAddresses.Contains(uri))
-                    {
-
-                        InternalBaseAddresses.Add(uri);
-                    }
-                }
-
-                if (_serverAddresses.Addresses.Count > 0)
-                {
-                    // It was populated by ASP.NET Core so can skip re-adding in future.
-                    _serverAddresses = null;
-                }
-            }
-        }
-
-        internal static String GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
-        {
-            StringBuilder buffer = new StringBuilder();
-            bool firstScheme = true;
-            foreach (Uri address in uriSchemeKeyedCollection)
-            {
-                if (firstScheme)
-                {
-                    buffer.Append(address.Scheme);
-                    firstScheme = false;
-                }
-                else
-                {
-                    buffer.Append(CultureInfo.CurrentCulture.TextInfo.ListSeparator).Append(address.Scheme);
-                }
-            }
-
-            return buffer.ToString();
-        }
-
-        internal static Uri GetVia(string scheme, Uri address, UriSchemeKeyedCollection baseAddresses)
-        {
-            Uri via = address;
-            if (!via.IsAbsoluteUri)
-            {
-                if (!baseAddresses.Contains(scheme))
-                {
-                    return null;
-                }
-
-                via = GetUri(baseAddresses[scheme], address);
-            }
-            return via;
-        }
-
-        internal static Uri GetUri(Uri baseUri, Uri relativeUri)
-        {
-            var path = relativeUri.OriginalString;
-            if (path.StartsWith("/", StringComparison.Ordinal) || path.StartsWith("\\", StringComparison.Ordinal))
-            {
-                int i = 1;
-                for (; i < path.Length; ++i)
-                {
-                    if (path[i] != '/' && path[i] != '\\')
-                    {
+                        skip = true;
                         break;
                     }
                 }
-                path = path.Substring(i);
+
+                if (!skip)
+                {
+                    AddBaseAddress(FixUri(address));
+                }
             }
+        }
 
-            // new Uri(Uri, string.Empty) is broken
-            if (path.Length == 0)
-                return baseUri;
-
-            if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
+        private static Uri FixUri(string address)
+        {
+            if (address.StartsWith("http://+:", StringComparison.OrdinalIgnoreCase) ||
+                address.StartsWith("http://+/", StringComparison.OrdinalIgnoreCase) ||
+                address.StartsWith("http://*:", StringComparison.OrdinalIgnoreCase) ||
+                address.StartsWith("http://*/", StringComparison.OrdinalIgnoreCase))
             {
-                baseUri = new Uri(baseUri.AbsoluteUri + "/");
+                address = "http://localhost" + address.Substring(8);
+            }
+            else if (address.StartsWith("https://+:", StringComparison.OrdinalIgnoreCase) ||
+                     address.StartsWith("https://+/", StringComparison.OrdinalIgnoreCase) ||
+                     address.StartsWith("https://*:", StringComparison.OrdinalIgnoreCase) ||
+                     address.StartsWith("https://*/", StringComparison.OrdinalIgnoreCase))
+            {
+                address = "https://localhost" + address.Substring(8);
             }
 
-            return new Uri(baseUri, path);
+            return new Uri(address);
         }
 
         protected override void OnAbort() { }
@@ -349,6 +267,25 @@ namespace CoreWCF
         protected override Task OnOpenAsync(CancellationToken token)
         {
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Adds any implicitly-bound addresses to the service builder base addresses, so that net.tcp://
+        /// bindings will correctly work on them. This is only necessary when the port provided to `UseNetTcp` is 0.
+        ///
+        /// <remarks>
+        /// Currently, this does not remove the bound address from the server addresses. The framework removes
+        /// the `net.tcp` scheme and replaces with with `http`, so the host name itself is checked.
+        ///
+        /// Another option that might be cleaner, would be to remove the use of `serviceBuilder.BaseAddresses` or
+        /// populate it at runtime once from ServerAddresses, and disallow adding values by hand.
+        /// </remarks>
+        /// </summary>
+        /// <param name="serviceBuilder"></param>
+        private void WaitForServiceBuilderOpening(ServiceBuilder serviceBuilder)
+        {
+            serviceBuilder.WaitForOpening().GetAwaiter().GetResult();
+            serviceBuilder.ThrowIfDisposedOrNotOpen();
         }
     }
 }

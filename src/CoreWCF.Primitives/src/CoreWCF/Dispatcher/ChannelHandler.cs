@@ -1,44 +1,45 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Runtime;
 using CoreWCF.Channels;
+using CoreWCF.Configuration;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 using SessionIdleManager = CoreWCF.Channels.ServiceChannel.SessionIdleManager;
-using System.Diagnostics;
-using CoreWCF.Configuration;
 
 namespace CoreWCF.Dispatcher
 {
-    internal class ChannelHandler : IServiceChannelDispatcher
+    internal class ChannelHandler : IServiceChannelDispatcher, IDefaultCommunicationTimeouts
     {
         public static readonly TimeSpan CloseAfterFaultTimeout = TimeSpan.FromSeconds(10);
         public const string MessageBufferPropertyName = "_RequestMessageBuffer_";
         private ServiceChannel _channel;
         private bool _doneReceiving;
-        private ServiceDispatcher _serviceDispatcher;
-        private MessageVersion _messageVersion;
-        private bool _isManualAddressing;
-        private IChannelBinder _binder;
-        private ServiceThrottle _throttle;
-        private bool _wasChannelThrottled;
-        private DuplexChannelBinder _duplexBinder;
+        private readonly ServiceDispatcher _serviceDispatcher;
+        private readonly MessageVersion _messageVersion;
+        private readonly bool _isManualAddressing;
+        private readonly IChannelBinder _binder;
+        private readonly ServiceThrottle _throttle;
+        private readonly bool _wasChannelThrottled;
+        private readonly DuplexChannelBinder _duplexBinder;
         private readonly ServiceHostBase _host;
-        private bool _hasSession;
-        private bool _isConcurrent;
-        private SessionIdleManager _idleManager;
-        private SessionOpenNotification _sessionOpenNotification;
+        private readonly bool _hasSession;
+        private readonly bool _isConcurrent;
+        private readonly SessionIdleManager _idleManager;
+        private readonly SessionOpenNotification _sessionOpenNotification;
         private bool _needToCreateSessionOpenNotificationMessage;
         //private RequestInfo _requestInfo;
         private bool _isChannelTerminated;
         private bool _shouldRejectMessageWithOnOpenActionHeader;
         private RequestContext _replied;
-        private bool _isCallback;
-        private bool _incrementedActivityCountInConstructor;
-        private ResettableAsyncWaitable _resettableAsyncWaitable;
+        private readonly bool _incrementedActivityCountInConstructor;
+        private readonly AsyncManualResetEvent _asyncManualResetEvent;
         private bool _openCalled;
 
         internal ChannelHandler(MessageVersion messageVersion, IChannelBinder binder, ServiceThrottle throttle,
@@ -82,7 +83,7 @@ namespace CoreWCF.Dispatcher
             _serviceDispatcher.ChannelDispatcher.Channels.IncrementActivityCount();
             _incrementedActivityCountInConstructor = true;
             //}
-            _resettableAsyncWaitable = new ResettableAsyncWaitable();
+            _asyncManualResetEvent = new AsyncManualResetEvent();
         }
 
         internal IServiceChannelDispatcher GetDispatcher()
@@ -139,7 +140,7 @@ namespace CoreWCF.Dispatcher
                 if (_needToCreateSessionOpenNotificationMessage)
                 {
                     _needToCreateSessionOpenNotificationMessage = false;
-                    var requestContext = GetSessionOpenNotificationRequestContext();
+                    RequestContext requestContext = GetSessionOpenNotificationRequestContext();
                     await HandleReceiveCompleteAsync(requestContext);
                     HandleRequestAsync(requestContext);
                 }
@@ -153,30 +154,28 @@ namespace CoreWCF.Dispatcher
 
         internal InstanceContext InstanceContext
         {
-            get { return (_channel != null) ? _channel.InstanceContext : null; }
+            get { return _channel?.InstanceContext; }
         }
 
         internal ServiceThrottle InstanceContextServiceThrottle { get; set; }
 
-        bool IsOpen
+        private bool IsOpen
         {
             get { return _binder.Channel.State == CommunicationState.Opened; }
         }
 
-        EndpointAddress LocalAddress
+        private EndpointAddress LocalAddress
         {
             get
             {
                 if (_binder != null)
                 {
-                    IInputChannel input = _binder.Channel as IInputChannel;
-                    if (input != null)
+                    if (_binder.Channel is IInputChannel input)
                     {
                         return input.LocalAddress;
                     }
 
-                    IReplyChannel reply = _binder.Channel as IReplyChannel;
-                    if (reply != null)
+                    if (_binder.Channel is IReplyChannel reply)
                     {
                         return reply.LocalAddress;
                     }
@@ -186,7 +185,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return this; }
         }
@@ -210,12 +209,12 @@ namespace CoreWCF.Dispatcher
 
         public void EnsureReceive()
         {
-            _resettableAsyncWaitable.Set();
+            _asyncManualResetEvent.Set();
         }
 
         public Task DispatchAsync(Message message)
         {
-            var requestContext = _binder.CreateRequestContext(message);
+            RequestContext requestContext = _binder.CreateRequestContext(message);
             return DispatchAsync(requestContext);
         }
 
@@ -237,7 +236,7 @@ namespace CoreWCF.Dispatcher
             HandleRequestAsync(requestContext);
         }
 
-        RequestContext GetSessionOpenNotificationRequestContext()
+        private RequestContext GetSessionOpenNotificationRequestContext()
         {
             Fx.Assert(_sessionOpenNotification != null, "this.sessionOpenNotification should not be null.");
             Message message = Message.CreateMessage(_binder.Channel.GetProperty<MessageVersion>(), OperationDescription.SessionOpenedAction);
@@ -316,7 +315,6 @@ namespace CoreWCF.Dispatcher
                     return;
                 }
 
-                MessageBuffer buffer = null;
                 Message message;
 
                 //EventTraceActivity eventTraceActivity = TraceDispatchMessageStart(request.RequestMessage);
@@ -326,7 +324,7 @@ namespace CoreWCF.Dispatcher
                 if (operation == null)
                 {
                     Fx.Assert("ChannelHandler.Dispatch (operation == null)");
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(String.Format(CultureInfo.InvariantCulture, "No DispatchOperationRuntime found to process message.")));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "No DispatchOperationRuntime found to process message.")));
                 }
 
                 if (_shouldRejectMessageWithOnOpenActionHeader && message.Headers.Action == OperationDescription.SessionOpenedAction)
@@ -354,11 +352,6 @@ namespace CoreWCF.Dispatcher
                 {
                     hasOperationContextBeenSet = false;
                     currentOperationContext = new OperationContext(request, message, channel, _host);
-                }
-
-                if (dispatchBehavior.PreserveMessage)
-                {
-                    currentOperationContext.IncomingMessageProperties.Add(MessageBufferPropertyName, buffer);
                 }
 
                 if (currentOperationContext.EndpointDispatcher == null && _serviceDispatcher != null)
@@ -511,7 +504,7 @@ namespace CoreWCF.Dispatcher
                 return;
             }
 
-            if (requestInfo.Channel.HasSession || _isCallback)
+            if (requestInfo.Channel.HasSession)
             {
                 requestInfo.DispatchRuntime = requestInfo.Channel.DispatchRuntime;
             }
@@ -521,9 +514,8 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        ServiceChannel GetDatagramChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
+        private ServiceChannel GetDatagramChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
         {
-            addressMatched = false;
             endpoint = GetEndpointDispatcher(message, out addressMatched);
 
             if (endpoint == null)
@@ -537,7 +529,7 @@ namespace CoreWCF.Dispatcher
                 {
                     if (endpoint.DatagramChannel == null)
                     {
-                        endpoint.DatagramChannel = new ServiceChannel(_binder, endpoint, _serviceDispatcher, 
+                        endpoint.DatagramChannel = new ServiceChannel(_binder, endpoint, _serviceDispatcher,
                             _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
                         InitializeServiceChannel(endpoint.DatagramChannel);
                     }
@@ -547,7 +539,7 @@ namespace CoreWCF.Dispatcher
             return endpoint.DatagramChannel;
         }
 
-        ServiceChannel GetSessionChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
+        private ServiceChannel GetSessionChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
         {
             addressMatched = false;
 
@@ -560,7 +552,7 @@ namespace CoreWCF.Dispatcher
                         endpoint = GetEndpointDispatcher(message, out addressMatched);
                         if (endpoint != null)
                         {
-                            _channel = new ServiceChannel(_binder, endpoint, _serviceDispatcher, 
+                            _channel = new ServiceChannel(_binder, endpoint, _serviceDispatcher,
                                 _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
                             InitializeServiceChannel(_channel);
                         }
@@ -579,7 +571,7 @@ namespace CoreWCF.Dispatcher
             return _channel;
         }
 
-        Task InitializeServiceChannel(ServiceChannel channel)
+        private Task InitializeServiceChannel(ServiceChannel channel)
         {
             if (_wasChannelThrottled)
             {
@@ -626,8 +618,7 @@ namespace CoreWCF.Dispatcher
             return ((IChannel)channel).OpenAsync();
         }
 
-
-        void ProvideFault(Exception e, RequestInfo requestInfo, ref ErrorHandlerFaultInfo faultInfo)
+        private void ProvideFault(Exception e, RequestInfo requestInfo, ref ErrorHandlerFaultInfo faultInfo)
         {
             if (_serviceDispatcher != null)
             {
@@ -647,7 +638,7 @@ namespace CoreWCF.Dispatcher
             return HandleError(e, ref dummy);
         }
 
-        bool HandleError(Exception e, ref ErrorHandlerFaultInfo faultInfo)
+        private bool HandleError(Exception e, ref ErrorHandlerFaultInfo faultInfo)
         {
             if (e == null)
             {
@@ -675,7 +666,7 @@ namespace CoreWCF.Dispatcher
             return ProvideFaultAndReplyFailureAsync(request, requestInfo, e, faultInfo);
         }
 
-        Task ReplyAddressFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
+        private Task ReplyAddressFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
         {
             FaultCode code = FaultCode.CreateSenderFaultCode(AddressingStrings.DestinationUnreachable,
                 _messageVersion.Addressing.Namespace);
@@ -684,7 +675,7 @@ namespace CoreWCF.Dispatcher
             return ReplyFailureAsync(request, requestInfo, code, reason);
         }
 
-        Task ReplyContractFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
+        private Task ReplyContractFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
         {
             // By default, the contract filter is just a filter over the set of initiating actions in 
             // the contract, so we do error messages accordingly
@@ -716,13 +707,13 @@ namespace CoreWCF.Dispatcher
             return ReplyFailureAsync(request, requestInfo, fault, action, reason, code);
         }
 
-        Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason)
+        private Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason)
         {
             string action = _messageVersion.Addressing.DefaultFaultAction;
             return ReplyFailureAsync(request, requestInfo, code, reason, action);
         }
 
-        Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason, string action)
+        private Task ReplyFailureAsync(RequestContext request, RequestInfo requestInfo, FaultCode code, string reason, string action)
         {
             Message fault = Message.CreateMessage(_messageVersion, code, reason, action);
             return ReplyFailureAsync(request, requestInfo, fault, action, reason, code);
@@ -732,8 +723,10 @@ namespace CoreWCF.Dispatcher
         {
             FaultException exception = new FaultException(reason, code);
             ErrorBehavior.ThrowAndCatch(exception);
-            ErrorHandlerFaultInfo faultInfo = new ErrorHandlerFaultInfo(action);
-            faultInfo.Fault = fault;
+            ErrorHandlerFaultInfo faultInfo = new ErrorHandlerFaultInfo(action)
+            {
+                Fault = fault
+            };
             faultInfo = await ProvideFaultAndReplyFailureAsync(request, requestInfo, exception, faultInfo);
             HandleError(exception, ref faultInfo);
         }
@@ -805,7 +798,7 @@ namespace CoreWCF.Dispatcher
         /// <param name="request">The request context to prepare</param>
         /// <param name="reply">The reply to prepare</param>
         /// <returns>True if channel is open and prepared reply should be sent; otherwise false.</returns>
-        bool PrepareReply(RequestContext request, Message reply)
+        private bool PrepareReply(RequestContext request, Message reply)
         {
             // Ensure we only reply once (we may hit the same error multiple times)
             if (_replied == request)
@@ -830,18 +823,20 @@ namespace CoreWCF.Dispatcher
                 }
                 // swallow it
             }
-            if (!object.ReferenceEquals(requestMessage, null))
+            if (!ReferenceEquals(requestMessage, null))
             {
                 UniqueId requestID = null;
                 try
                 {
                     requestID = requestMessage.Headers.MessageId;
                 }
+#pragma warning disable CA1031 // Do not catch general exception types - intentionally swallowing this exception
                 catch (MessageHeaderException)
                 {
                     // swallow it - we don't need to correlate the reply if the MessageId header is bad
                 }
-                if (!object.ReferenceEquals(requestID, null) && !_isManualAddressing)
+#pragma warning restore CA1031 // Do not catch general exception types
+                if (!ReferenceEquals(requestID, null) && !_isManualAddressing)
                 {
                     RequestReplyCorrelator.PrepareReply(reply, requestID);
                 }
@@ -851,10 +846,12 @@ namespace CoreWCF.Dispatcher
                     {
                         canSendReply = RequestReplyCorrelator.AddressReply(reply, requestMessage);
                     }
+#pragma warning disable CA1031 // Do not catch general exception types - intentionally swallowing exception
                     catch (MessageHeaderException)
                     {
                         // swallow it - we don't need to address the reply if the FaultTo header is bad
                     }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
 
@@ -865,12 +862,12 @@ namespace CoreWCF.Dispatcher
             return IsOpen && canSendReply;
         }
 
-        EndpointDispatcher GetEndpointDispatcher(Message message, out bool addressMatched)
+        private EndpointDispatcher GetEndpointDispatcher(Message message, out bool addressMatched)
         {
             return _serviceDispatcher.Endpoints.Lookup(message, out addressMatched);
         }
 
-        Task TryAcquireThrottleAsync(RequestContext request, bool acquireInstanceContextThrottle)
+        private Task TryAcquireThrottleAsync(RequestContext request, bool acquireInstanceContextThrottle)
         {
             ServiceThrottle throttle = _throttle;
             if ((throttle != null) && (throttle.IsActive))
@@ -881,7 +878,7 @@ namespace CoreWCF.Dispatcher
             return Task.CompletedTask;
         }
 
-        Task TryAcquireCallThrottleAsync(RequestContext request)
+        private Task TryAcquireCallThrottleAsync(RequestContext request)
         {
             ServiceThrottle throttle = _throttle;
             if ((throttle != null) && (throttle.IsActive))
@@ -1010,7 +1007,7 @@ namespace CoreWCF.Dispatcher
         {
             if (_isConcurrent)
             {
-                _resettableAsyncWaitable.Set();
+                _asyncManualResetEvent.Set();
             }
         }
 
@@ -1018,10 +1015,15 @@ namespace CoreWCF.Dispatcher
         {
             if (_isConcurrent)
             {
-                await _resettableAsyncWaitable;
-                _resettableAsyncWaitable.Reset();
+                await _asyncManualResetEvent.WaitAsync();
+                _asyncManualResetEvent.Reset();
             }
         }
+
+        TimeSpan IDefaultCommunicationTimeouts.CloseTimeout => _serviceDispatcher.Binding.CloseTimeout;
+        TimeSpan IDefaultCommunicationTimeouts.OpenTimeout => _serviceDispatcher.Binding.OpenTimeout;
+        TimeSpan IDefaultCommunicationTimeouts.ReceiveTimeout => _serviceDispatcher.Binding.ReceiveTimeout;
+        TimeSpan IDefaultCommunicationTimeouts.SendTimeout => _serviceDispatcher.Binding.SendTimeout;
 
         // TODO: Revert back to struct or pool objects.
         internal class RequestInfo

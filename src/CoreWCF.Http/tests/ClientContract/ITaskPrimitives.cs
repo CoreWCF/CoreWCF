@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Globalization;
 using System.ServiceModel;
 using System.Threading.Tasks;
@@ -9,7 +12,7 @@ namespace ClientContract
     {
         public static DateTime TestDateTime = new DateTime(2010, 09, 04, new GregorianCalendar(GregorianCalendarTypes.USEnglish));
     }
-   
+
     [ServiceContract(Namespace = "http://microsoft.samples", Name = "ITestPrimitives")]
     public interface ITestPrimitives
     {

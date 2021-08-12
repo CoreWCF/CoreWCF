@@ -1,20 +1,25 @@
-﻿using CoreWCF;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using CoreWCF;
 
 namespace CoreWCF.Runtime
 {
     internal class RecoverableTimeoutCancellationTokenSource : CancellationTokenSource
     {
-        TimeSpan _originalTimeout;
+        private TimeSpan _originalTimeout;
 
         public RecoverableTimeoutCancellationTokenSource(TimeSpan timeout) : base()
         {
             if (timeout.TotalMilliseconds > int.MaxValue)
+            {
                 throw new ArgumentOutOfRangeException(nameof(timeout), $"Only TimeSpan's representing up to {int.MaxValue}ms are supported");
+            }
 
             _originalTimeout = timeout;
         }
@@ -40,18 +45,20 @@ namespace CoreWCF.Runtime
         {
             // Covers CancellationToken.None as well as any other non-cancellable token
             if (!token.CanBeCanceled)
+            {
                 return Timeout.InfiniteTimeSpan;
+            }
 
             return TimeSpan.FromMilliseconds(token.GetHashCode());
         }
     }
 
-    class CancellationTokenSourceIOThreadTimer : IOThreadTimer
+    internal class CancellationTokenSourceIOThreadTimer : IOThreadTimer
     {
-        List<CancellationTokenSource> _cancellationTokenSources = new List<CancellationTokenSource>();
-        bool _timerFired = false;
-        Action<object> _timerFiredCallback;
-        object _timerFiredState;
+        private readonly List<CancellationTokenSource> _cancellationTokenSources = new List<CancellationTokenSource>();
+        private bool _timerFired = false;
+        private Action<object> _timerFiredCallback;
+        private object _timerFiredState;
 
         public CancellationTokenSourceIOThreadTimer() : base(TimerCallback, null, false)
         {
@@ -111,7 +118,7 @@ namespace CoreWCF.Runtime
             }
             // Once _timerFired is set, there's no need to hold the lock as
             // no more will be added to the list.
-            foreach (var cts in _cancellationTokenSources)
+            foreach (CancellationTokenSource cts in _cancellationTokenSources)
             {
                 // TODO: ActionItem.Schedule might be overkill here as I don't expect there
                 // to be many cancellations. There's just no
