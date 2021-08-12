@@ -201,7 +201,11 @@ namespace Helpers
         public static void RegisterApplicationLifetime(this IServiceCollection services)
         {
 #if NET5_0
-            services.AddSingleton(typeof(Microsoft.AspNetCore.Hosting.IApplicationLifetime), typeof(Microsoft.AspNetCore.Hosting.IApplicationLifetime).Assembly.GetType("Microsoft.AspNetCore.Hosting.ApplicationLifetime"));
+            services.AddSingleton<Microsoft.Extensions.Hosting.IHostApplicationLifetime, Microsoft.Extensions.Hosting.Internal.ApplicationLifetime>();
+            var genericWebHostApplicationLifetimeType =
+                typeof(Microsoft.AspNetCore.Hosting.WebHostBuilder).Assembly.GetType(
+                    "Microsoft.AspNetCore.Hosting.GenericWebHostApplicationLifetime");
+            services.AddSingleton(typeof(Microsoft.AspNetCore.Hosting.IApplicationLifetime), genericWebHostApplicationLifetimeType!);
 #else
             services.AddSingleton<Microsoft.AspNetCore.Hosting.IApplicationLifetime, Microsoft.AspNetCore.Hosting.Internal.ApplicationLifetime>();
 #endif
