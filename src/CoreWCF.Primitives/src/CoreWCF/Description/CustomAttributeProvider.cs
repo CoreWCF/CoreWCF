@@ -352,23 +352,6 @@ namespace CoreWCF.Description
             }
         }
 
-        //public bool IsDefined(Type attributeType, bool inherit)
-        //{
-        //    switch (ProviderType)
-        //    {
-        //        case AttributeProviderType.Type:
-        //            return Type.GetTypeInfo().IsDefined(attributeType, inherit);
-        //        case AttributeProviderType.MethodInfo:
-        //            return MethodInfo.IsDefined(attributeType, inherit);
-        //        case AttributeProviderType.MemberInfo:
-        //            return MemberInfo.IsDefined(attributeType, inherit);
-        //        case AttributeProviderType.ParameterInfo:
-        //            return ParameterInfo.IsDefined(attributeType, inherit);
-        //    }
-        //    Contract.Assert(false, "This should never execute.");
-        //    throw new InvalidOperationException();
-        //}
-
         public static implicit operator CustomAttributeProvider(MemberInfo attrProvider)
         {
             return new CustomAttributeProvider(attrProvider);
