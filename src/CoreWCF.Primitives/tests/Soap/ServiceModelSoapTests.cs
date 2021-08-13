@@ -48,7 +48,7 @@ namespace Soap
             var expected = new ComplexMessage
             {
                 Date = System.DateTime.Now,
-                Entities = new InnerComplexMessage[]
+                InnerMessages = new InnerComplexMessage[]
                 {
                     new InnerComplexMessage
                     {
@@ -73,7 +73,7 @@ namespace Soap
             var expected = new ComplexMessage
             {
                 Date = System.DateTime.Now,
-                Entities = new InnerComplexMessage[]
+                InnerMessages = new InnerComplexMessage[]
                 {
                     new InnerComplexMessage
                     {
