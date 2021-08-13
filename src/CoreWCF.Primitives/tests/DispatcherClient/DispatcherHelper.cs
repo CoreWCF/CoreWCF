@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using Helpers;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,7 @@ namespace DispatcherClient
     {
         internal static string s_endpointAddress = "corewcf://localhost/Service.svc";
 
-        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<IServiceCollection> configure, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default) where TService : class
+        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<IServiceCollection> configure, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default, MessageVersion messageVersion = default) where TService : class
         {
             var binding = new DispatcherBinding<TService, TContract>((services) =>
             {
@@ -25,13 +26,13 @@ namespace DispatcherClient
                 services.AddSingleton(serverAddressesFeature);
                 services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
                 services.RegisterApplicationLifetime();
-            }, configureServiceHostBase);
+            }, configureServiceHostBase, messageVersion);
             return new ChannelFactory<TContract>(binding, new EndpointAddress(s_endpointAddress));
         }
 
-        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>() where TService : class
+        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(MessageVersion messageVersion = default) where TService : class
         {
-            return CreateChannelFactory<TService, TContract>(null);
+            return CreateChannelFactory<TService, TContract>(null, null, messageVersion);
         }
     }
 }
