@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 
@@ -87,10 +88,10 @@ namespace CoreWCF.Dispatcher
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
                 int inputCount = parameters.Length;
-                inputParameterCount = inputCount;
+                inputParameterCount = parameters.Where(t => !t.IsOut || t.IsIn).Count();
 
                 var outputParamPositions = new List<int>();
-                for (int i = 0; i < inputParameterCount; i++)
+                for (int i = 0; i < inputCount; i++)
                 {
                     if (parameters[i].ParameterType.IsByRef)
                     {
@@ -108,7 +109,7 @@ namespace CoreWCF.Dispatcher
                     if (inputCount > 0)
                     {
                         inputsLocal = new object[inputCount];
-                        for (int i = 0; i < inputCount; i++)
+                        for (int i = 0; i < inputs.Length; i++)
                         {
                             inputsLocal[i] = inputs[i];
                         }
