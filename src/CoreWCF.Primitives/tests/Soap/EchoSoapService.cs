@@ -9,6 +9,7 @@ namespace CoreWCF.Primitives.Tests.Soap
     {
         private System.Guid _guid;
 
+        [System.Xml.Serialization.SoapAttribute(AttributeName = "testGuid")]
         public System.Guid Guid
         {
             get => _guid;
@@ -24,17 +25,19 @@ namespace CoreWCF.Primitives.Tests.Soap
     [System.Xml.Serialization.SoapType]
     public class ComplexMessage : System.IEquatable<ComplexMessage>
     {
-        private InnerComplexMessage[] _entitiesField;
+        private InnerComplexMessage[] _innerMessages;
         private System.DateTime _date;
 
         /// <remarks/>
-        public InnerComplexMessage[] Entities
+        [System.Xml.Serialization.SoapElement]
+        public InnerComplexMessage[] InnerMessages
         {
-            get => _entitiesField;
-            set => _entitiesField = value;
+            get => _innerMessages;
+            set => _innerMessages = value;
         }
 
         /// <remarks/>
+        [System.Xml.Serialization.SoapElement(ElementName = "testDate")]
         public System.DateTime Date
         {
             get => _date;
@@ -44,8 +47,8 @@ namespace CoreWCF.Primitives.Tests.Soap
         public bool Equals(ComplexMessage other)
             => other != null
                 && _date == other._date
-                && _entitiesField?.Length == other._entitiesField?.Length
-                && System.Linq.Enumerable.SequenceEqual(_entitiesField, other._entitiesField);
+                && _innerMessages?.Length == other._innerMessages?.Length
+                && System.Linq.Enumerable.SequenceEqual(_innerMessages, other._innerMessages);
     }
 
     [System.ServiceModel.ServiceContract]
