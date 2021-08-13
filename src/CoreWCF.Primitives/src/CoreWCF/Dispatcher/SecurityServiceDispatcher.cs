@@ -299,14 +299,14 @@ namespace CoreWCF.Dispatcher
         protected ServerSecurityChannelDispatcher(SecurityServiceDispatcher securityServiceDispatcher, UChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
         {
             SecurityProtocol = securityProtocol;
-            OuterChannel = (IReplyChannel)innerChannel;
+            OuterChannel = (IChannel)innerChannel;
             _serviceProvider = OuterChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
             _secureConversationCloseAction = securityProtocol.SecurityProtocolFactory.StandardsManager.SecureConversationDriver.CloseAction.Value;
         }
 
         internal SecurityProtocol SecurityProtocol { get; set; }
 
-        public IReplyChannel OuterChannel { get; private set; }
+        public IChannel OuterChannel { get; private set; }
 
         public T GetProperty<T>() where T : class
         {
@@ -501,12 +501,12 @@ namespace CoreWCF.Dispatcher
         }
     }
 
-    internal abstract class SecurityDuplexChannel<UChannel> : IServiceChannelDispatcher where UChannel : class
+    internal abstract class SecurityDuplexChannel<UChannel> : ServerSecurityChannelDispatcher<UChannel> where UChannel : class, IDuplexChannel
     {
         private readonly IDuplexChannel _innerDuplexChannel;
         private readonly IServiceProvider _serviceProvider;
-        public SecurityDuplexChannel(SecurityServiceDispatcher serviceDispatcher, IDuplexChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
-        //  : base(channelManager, innerChannel, securityProtocol, settingsLifetimeManager)
+        public SecurityDuplexChannel(SecurityServiceDispatcher serviceDispatcher, UChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
+          : base(serviceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
         {
             _innerDuplexChannel = innerChannel;
             SecurityProtocol = securityProtocol;
@@ -527,19 +527,6 @@ namespace CoreWCF.Dispatcher
         {
             get { return _innerDuplexChannel; }
         }
-
-        internal SecurityProtocol SecurityProtocol { get; set; }
-
-        //  public IReplyChannel OuterChannel { get; private set; }
-
-        public T GetProperty<T>() where T : class
-        {
-            T tObj = _serviceProvider.GetService<T>();
-            return tObj ?? InnerDuplexChannel.GetProperty<T>();
-        }
-
-        public abstract Task DispatchAsync(RequestContext context);
-        public abstract Task DispatchAsync(Message message);
 
         public Task SendAsync(Message message, TimeSpan timeout)
         {
@@ -637,7 +624,22 @@ namespace CoreWCF.Dispatcher
             {
                 return null;
             }
-            SecurityProtocol.VerifyIncomingMessage(ref innerItem, timeout);
+            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+            Exception securityException = null;
+            Message unverifiedMessage = innerItem;
+            try
+            {
+                VerifyIncomingMessage(ref innerItem, timeout);
+            }
+            catch (MessageSecurityException e)
+            {
+                securityException = e;
+            }
+            if (securityException != null)
+            {
+                SendFaultIfRequired(securityException, unverifiedMessage, timeoutHelper.RemainingTime());
+                return null;
+            }
             return innerItem;
         }
 
