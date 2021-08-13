@@ -34,5 +34,8 @@ namespace ServiceContract
 
         [OperationContract]
         List<string> GetLog();
+
+        [OperationContract]
+        string Echo(string value);
     }
 }
