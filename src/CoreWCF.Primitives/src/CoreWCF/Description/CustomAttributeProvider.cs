@@ -292,10 +292,6 @@ namespace CoreWCF.Description
             xmlSerializerFormatAttribute.SupportFaults = GetProperty<bool>(attr, nameof(XmlSerializerFormatAttribute.SupportFaults));
             xmlSerializerFormatAttribute.Use = GetProperty<OperationFormatUse>(attr, nameof(XmlSerializerFormatAttribute.Use));
 
-            // XmlSerializerFormatAttribute.IsEncoded does not exist in SSM, defaults to false
-            // xmlSerializerFormatAttribute.IsEncoded = GetProperty<bool>(attr, nameof(XmlSerializerFormatAttribute.IsEncoded));
-            xmlSerializerFormatAttribute.IsEncoded = false;
-
             return xmlSerializerFormatAttribute;
         }
 
