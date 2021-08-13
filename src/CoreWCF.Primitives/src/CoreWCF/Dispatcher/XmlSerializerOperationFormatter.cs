@@ -88,16 +88,17 @@ namespace CoreWCF.Dispatcher
                     MemoryStream memoryStream = new MemoryStream();
                     XmlDictionaryWriter bufferWriter = XmlDictionaryWriter.CreateTextWriter(memoryStream);
                     bufferWriter.WriteStartElement("root");
-                    // TODO: Use overload which takes encoding once available
-                    serializer.Serialize(bufferWriter, headerValues, null); //, isEncoded ? GetEncoding(message.Version.Envelope) : null);
+                    serializer.Serialize(bufferWriter, headerValues, null, _isEncoded ? GetEncoding(message.Version.Envelope) : null);
                     bufferWriter.WriteEndElement();
                     bufferWriter.Flush();
                     XmlDocument doc = new XmlDocument();
                     memoryStream.Position = 0;
                     doc.Load(memoryStream);
-                    // TODO: XmlTextReader supported in .Net Standard 1.7, prohibiting DtdProcessing is important
+
+                    //TODO: XmlTextReader supported in .Net Standard 1.7, prohibiting DtdProcessing is important
                     //doc.Load(new XmlTextReader(memoryStream) { DtdProcessing = DtdProcessing.Prohibit });
                     //doc.Save(Console.Out);
+
                     foreach (XmlElement element in doc.DocumentElement.ChildNodes)
                     {
                         MessageHeaderDescription matchingHeaderDescription = headerDescriptionTable.Get(element.LocalName, element.NamespaceURI);
@@ -243,8 +244,7 @@ namespace CoreWCF.Dispatcher
                 if (!bufferReader.IsEmptyElement)
                 {
                     bufferReader.ReadStartElement();
-                    // TODO: Use overload with encoding once available
-                    object[] headerValues = (object[])serializer.Deserialize(bufferReader); //, isEncoded ? GetEncoding(message.Version.Envelope) : null);
+                    object[] headerValues = (object[])serializer.Deserialize(bufferReader, _isEncoded ? GetEncoding(message.Version.Envelope) : null);
                     int headerIndex = 0;
                     foreach (MessageHeaderDescription headerDescription in messageDescription.Headers)
                     {
@@ -387,9 +387,8 @@ namespace CoreWCF.Dispatcher
                 bodyParameters[paramIndex++] = parameters[bodyParts[i].Index];
             }
 
-            // TODO: Switch to using encoding once available
-            //string encoding = isEncoded ? GetEncoding(version.Envelope) : null;
-            serializer.Serialize(writer, bodyParameters, null); //, encoding);
+            string encoding = _isEncoded ? GetEncoding(version.Envelope) : null;
+            serializer.Serialize(writer, bodyParameters, null, encoding);
         }
 
 
@@ -459,8 +458,7 @@ namespace CoreWCF.Dispatcher
                     return null;
                 }
 
-                // TODO: Use overload which takes encoding once available
-                object[] bodyParameters = (object[])serializer.Deserialize(reader); //, isEncoded ? GetEncoding(version.Envelope) : null);
+                object[] bodyParameters = (object[])serializer.Deserialize(reader, _isEncoded ? GetEncoding(version.Envelope) : null);
 
                 int paramIndex = 0;
                 if (IsValidReturnValue(returnPart))
