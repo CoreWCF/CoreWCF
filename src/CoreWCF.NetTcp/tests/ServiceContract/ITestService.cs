@@ -5,7 +5,7 @@ using CoreWCF;
 
 namespace ServiceContract
 {
-    internal static class Constants
+    internal static partial class Constants
     {
         public const string NS = "http://tempuri.org/";
         public const string TESTSERVICE_NAME = nameof(ITestService);
