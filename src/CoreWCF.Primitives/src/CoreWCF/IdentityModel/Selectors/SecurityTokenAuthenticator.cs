@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
 
@@ -20,7 +21,7 @@ namespace CoreWCF.IdentityModel.Selectors
             return CanValidateTokenCore(token);
         }
 
-        public ReadOnlyCollection<IAuthorizationPolicy> ValidateToken(SecurityToken token)
+        public async Task<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenAsync(SecurityToken token)
         {
             if (token == null)
             {
@@ -31,7 +32,7 @@ namespace CoreWCF.IdentityModel.Selectors
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenValidationException(SR.Format(SR.CannotValidateSecurityTokenType, this, token.GetType())));
             }
 
-            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = ValidateTokenCore(token);
+            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await ValidateTokenCoreAsync(token);
             if (authorizationPolicies == null)
             {
                 string errorMsg = SR.Format(SR.CannotValidateSecurityTokenType, this, token.GetType());
@@ -42,6 +43,6 @@ namespace CoreWCF.IdentityModel.Selectors
         }
 
         protected abstract bool CanValidateTokenCore(SecurityToken token);
-        protected abstract ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token);
+        protected abstract Task<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token);
     }
 }

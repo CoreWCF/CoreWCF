@@ -298,7 +298,7 @@ namespace CoreWCF.Channels
                 try
                 {
                     SecurityToken token = new X509SecurityToken(certificate2, false);
-                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _parent.ClientCertificateAuthenticator.ValidateToken(token);
+                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _parent.ClientCertificateAuthenticator.ValidateTokenAsync(token).GetAwaiter().GetResult();
                     _clientSecurity = new SecurityMessageProperty
                     {
                         TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
@@ -323,7 +323,7 @@ namespace CoreWCF.Channels
             if (_clientCertificate != null)
             {
                 SecurityToken token = new X509SecurityToken(_clientCertificate);
-                ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.NonValidatingX509Authenticator.ValidateToken(token);
+                ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.NonValidatingX509Authenticator.ValidateTokenAsync(token).GetAwaiter().GetResult();
                 _clientSecurity = new SecurityMessageProperty
                 {
                     TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),

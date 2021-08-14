@@ -190,7 +190,7 @@ namespace CoreWCF.Channels
                     ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                     token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
                 }
-                authorizationPolicies = authenticator.ValidateToken(token);
+                authorizationPolicies = authenticator.ValidateTokenAsync(token).GetAwaiter().GetResult();
                 SecurityMessageProperty clientSecurity = new SecurityMessageProperty
                 {
                     TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),

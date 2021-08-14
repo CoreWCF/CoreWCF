@@ -515,10 +515,10 @@ namespace CoreWCF.Security
             return (token is SecurityContextSecurityToken);
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override Task<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
             SecurityContextSecurityToken sct = (SecurityContextSecurityToken)token;
-            return sct.AuthorizationPolicies;
+            return Task.FromResult(sct.AuthorizationPolicies);
         }
 
         private static bool IsSameIdentity(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, ServiceSecurityContext incomingContext)

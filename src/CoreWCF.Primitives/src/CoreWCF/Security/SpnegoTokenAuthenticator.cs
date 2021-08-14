@@ -159,7 +159,7 @@ namespace CoreWCF.Security
                 ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                 token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
             }
-            return authenticator.ValidateToken(token);
+            return authenticator.ValidateTokenAsync(token).GetAwaiter().GetResult();
         }
 
         private NegotiateInternalState GetNegotiateState() => (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();
