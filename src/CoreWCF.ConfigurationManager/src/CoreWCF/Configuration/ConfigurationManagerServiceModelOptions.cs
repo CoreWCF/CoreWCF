@@ -4,27 +4,33 @@
 using System;
 using System.Collections;
 using System.Configuration;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
-    internal class ConfigurationManagerServiceModelOptions : IConfigureNamedOptions<ServiceModelOptions>, IDisposable
+    internal class ConfigurationManagerServiceModelOptions : IConfigureNamedOptions<ServiceModelOptions>
     {
         private readonly Lazy<ServiceModelSectionGroup> _section;
-        private readonly WrappedConfigurationFile _file;
 
         private readonly IConfigurationHolder _holder;
 
         public ConfigurationManagerServiceModelOptions(IServiceProvider builder, string path)
         {
-            _holder = builder.GetRequiredService<IConfigurationHolder>();
-            _file = new WrappedConfigurationFile(path);
+            _holder = builder.GetRequiredService<IConfigurationHolder>();           
 
             _section = new Lazy<ServiceModelSectionGroup>(() =>
             {
-                System.Configuration.Configuration configuration = ConfigurationManager.OpenMappedMachineConfiguration(new ConfigurationFileMap(_file.ConfigPath));
+                var assembly = Assembly.GetEntryAssembly();
+                var basePath = string.IsNullOrEmpty(assembly?.Location) ? AppContext.BaseDirectory : Path.GetDirectoryName(assembly.Location);
+                var configMap = new ExeConfigurationFileMap(Path.Combine(basePath, "CoreWCF.machine.config"))
+                {
+                    ExeConfigFilename = path
+                };
+                System.Configuration.Configuration configuration = ConfigurationManager.OpenMappedExeConfiguration(configMap, ConfigurationUserLevel.None);
                 var section = ServiceModelSectionGroup.GetSectionGroup(configuration);
 
                 if (section is null)
@@ -35,8 +41,6 @@ namespace CoreWCF.Configuration
                 return section;
             }, true);
         }
-
-        public void Dispose() => _file.Dispose();
 
         public void Configure(string name, ServiceModelOptions options)
         {
