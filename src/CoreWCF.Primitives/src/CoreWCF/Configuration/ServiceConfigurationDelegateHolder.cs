@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace CoreWCF.Configuration
 {
-    internal class ServiceConfigurationDelegateHolder<TService> where TService : class
+    internal class ServiceConfigurationDelegateHolder
     {
         private readonly List<Action<ServiceHostBase>> _configDelegates = new List<Action<ServiceHostBase>>();
 
@@ -22,5 +22,11 @@ namespace CoreWCF.Configuration
                 del(host);
             }
         }
+    }
+
+    internal class ServiceConfigurationDelegateHolder<TService> : ServiceConfigurationDelegateHolder
+        where TService : class
+    {
+        
     }
 }

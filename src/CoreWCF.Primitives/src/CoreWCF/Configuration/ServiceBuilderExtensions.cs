@@ -15,5 +15,23 @@ namespace CoreWCF.Configuration
                 .GetRequiredService<ServiceConfigurationDelegateHolder<TService>>();
             holder.AddConfigDelegate(func);
         }
+
+        public static void ConfigureServiceHostBase(this IServiceBuilder builder, Type serviceType, Action<ServiceHostBase> func)
+        {
+            if (serviceType is null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(serviceType)));
+            }
+
+            if (!serviceType.IsClass)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException($"{serviceType.FullName} should be a class", nameof(serviceType)));
+            }
+
+            var serviceBuilder = builder as ServiceBuilder;
+            ServiceConfigurationDelegateHolder holder = (ServiceConfigurationDelegateHolder)serviceBuilder.ServiceProvider
+                .GetRequiredService(typeof(ServiceConfigurationDelegateHolder<>).MakeGenericType(serviceType));
+            holder.AddConfigDelegate(func);
+        }
     }
 }
