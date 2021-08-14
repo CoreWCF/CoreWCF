@@ -39,7 +39,7 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicHttpConfigureSericeHostBaseEchoString()
+        public void BasicHttpConfigureServiceHostBaseEchoString()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithConfiguration>(_output).Build();
@@ -53,6 +53,24 @@ namespace BasicHttp
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
                 Assert.True(StartupWithConfiguration.ConfigureServiceHostValid);
+            }
+        }
+
+        [Fact]
+        public void BasicHttpNonGenericConfigureServiceHostBaseEchoString()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfiguration>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                string result = channel.EchoString(testString);
+                Assert.Equal(testString, result);
+                Assert.True(StartupWithNonGenericConfiguration.ConfigureServiceHostValid);
             }
         }
 
@@ -94,5 +112,28 @@ namespace BasicHttp
                 });
             }
         }
+
+        internal class StartupWithNonGenericConfiguration
+        {
+            public static bool ConfigureServiceHostValid { get; set; } = false;
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.EchoService>();
+                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                    builder.ConfigureServiceHostBase(typeof(Services.EchoService), serviceHost =>
+                    {
+                        ConfigureServiceHostValid = serviceHost.Description.ServiceType == typeof(Services.EchoService);
+                    });
+                });
+            }
+        }
     }
 }
+
