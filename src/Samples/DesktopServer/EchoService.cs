@@ -21,5 +21,5 @@ namespace DesktopServer
             System.Console.WriteLine($"Received {text} and Fault generated on client!");
             throw new FaultException<Contract.EchoFault>(new Contract.EchoFault() { Text = "CoreWCF Fault OK" });
         }
-}
+    }
 }

@@ -1,4 +1,5 @@
-﻿using Contract;
+using System.Threading.Tasks;
+using Contract;
 using CoreWCF;
 
 namespace NetCoreServer
@@ -20,5 +21,10 @@ namespace NetCoreServer
         public string FailEcho(string text)
             => throw new FaultException<EchoFault>(new EchoFault() { Text = "WCF Fault OK" }, new FaultReason("FailReason"));
 
+        [AuthorizeRole("CoreWCFGroupAdmin")]
+        public string EchoForPermission(string echo)
+        {
+            return echo;
+        }
     }
 }

@@ -65,7 +65,7 @@ namespace CoreWCF.Dispatcher
                 cset = new CandidateSet();
                 GetAddressTable(filter.IncludeHostNameInComparison).RegisterUri(soapToAddress, GetComparisonMode(filter.IncludeHostNameInComparison), cset);
             }
-            cset.candidates.Add(can);
+            cset._candidates.Add(can);
 
             IncrementQNameCount(cset, filter.Address);
         }
@@ -134,7 +134,7 @@ namespace CoreWCF.Dispatcher
 
             if (TryMatchCandidateSet(soapToAddress, filter.IncludeHostNameInComparison, out CandidateSet cset))
             {
-                if (cset.candidates.Count == 1)
+                if (cset._candidates.Count == 1)
                 {
                     GetAddressTable(filter.IncludeHostNameInComparison).UnregisterUri(soapToAddress, GetComparisonMode(filter.IncludeHostNameInComparison));
                 }
@@ -143,7 +143,7 @@ namespace CoreWCF.Dispatcher
                     DecrementQNameCount(cset, filter.Address);
 
                     // Remove Candidate
-                    cset.candidates.Remove(can);
+                    cset._candidates.Remove(can);
                 }
             }
             candidates.Remove(filter);

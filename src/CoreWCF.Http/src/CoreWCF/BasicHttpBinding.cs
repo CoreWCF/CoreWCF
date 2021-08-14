@@ -40,6 +40,11 @@ namespace CoreWCF
             // return collection of BindingElements
             BindingElementCollection bindingElements = new BindingElementCollection();
 
+            SecurityBindingElement wsSecurity = this.BasicHttpSecurity.CreateMessageSecurity();
+            if (wsSecurity != null)
+            {
+                bindingElements.Add(wsSecurity);
+            }
             // order of BindingElements is important
             // add encoding
             if (MessageEncoding == WSMessageEncoding.Text)

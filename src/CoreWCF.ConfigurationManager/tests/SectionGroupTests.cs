@@ -25,8 +25,8 @@ namespace CoreWCF.ConfigurationManager.Tests
             string xml = $@"
 <configuration>
     <configSections>
-        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager, Version = 0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"">
-            <section name=""bindings"" type=""CoreWCF.Configuration.BindingsSection, CoreWCF.ConfigurationManager, Version=0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"" />
+        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager"">
+            <section name=""bindings"" type=""CoreWCF.Configuration.BindingsSection, CoreWCF.ConfigurationManager"" />
         </sectionGroup>         
     </configSections>  
     <system.serviceModel>         
@@ -72,8 +72,8 @@ namespace CoreWCF.ConfigurationManager.Tests
             string xml = $@"
 <configuration>
     <configSections>
-        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager, Version = 0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"">
-            <section name=""bindings"" type=""CoreWCF.Configuration.BindingsSection, CoreWCF.ConfigurationManager, Version=0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"" />
+        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager"">
+            <section name=""bindings"" type=""CoreWCF.Configuration.BindingsSection, CoreWCF.ConfigurationManager"" />
         </sectionGroup>         
     </configSections>  
     <system.serviceModel>         
@@ -119,8 +119,8 @@ namespace CoreWCF.ConfigurationManager.Tests
             string xml = $@"
 <configuration>
     <configSections>
-        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager, Version = 0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"">
-            <section name=""bindings"" type=""CoreWCF.Configuration.BindingsSection, CoreWCF.ConfigurationManager, Version=0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"" />
+        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager"">
+            <section name=""bindings"" type=""CoreWCF.Configuration.BindingsSection, CoreWCF.ConfigurationManager"" />
         </sectionGroup>         
     </configSections>  
     <system.serviceModel>         
@@ -165,8 +165,8 @@ namespace CoreWCF.ConfigurationManager.Tests
             string xml = $@"
 <configuration>
     <configSections>
-        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager, Version = 0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"">
-            <section name=""bindings"" type=""CoreWCF.Configuration.BindingsSection, CoreWCF.ConfigurationManager, Version=0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"" />
+        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager"">
+            <section name=""bindings"" type=""CoreWCF.Configuration.BindingsSection, CoreWCF.ConfigurationManager"" />
         </sectionGroup>         
     </configSections>  
     <system.serviceModel>         
@@ -209,8 +209,8 @@ namespace CoreWCF.ConfigurationManager.Tests
             string xml = $@"
 <configuration>
     <configSections>
-        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager, Version = 0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"">
-            <section name=""services"" type=""CoreWCF.Configuration.ServicesSection, CoreWCF.ConfigurationManager, Version=0.2.0.0, Culture=neutral, PublicKeyToken=64a15a7b0fecbbfb"" />
+        <sectionGroup name=""system.serviceModel"" type=""CoreWCF.Configuration.ServiceModelSectionGroup, CoreWCF.ConfigurationManager"">
+            <section name=""services"" type=""CoreWCF.Configuration.ServicesSection, CoreWCF.ConfigurationManager"" />
         </sectionGroup>         
     </configSections>  
     <system.serviceModel>         

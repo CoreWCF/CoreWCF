@@ -4,6 +4,7 @@
 using System;
 using System.ServiceModel.Channels;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

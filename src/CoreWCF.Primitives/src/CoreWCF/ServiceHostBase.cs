@@ -229,7 +229,7 @@ namespace CoreWCF
 
         protected virtual void ApplyConfiguration()
         {
-            if (this.Description == null)
+            if (Description == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxServiceHostBaseCannotApplyConfigurationWithoutDescription));
             }
@@ -328,12 +328,21 @@ namespace CoreWCF
             Uri via = address;
             if (!via.IsAbsoluteUri)
             {
-                if (!baseAddresses.Contains(scheme))
+                Uri baseAddress = null;
+                foreach(var ba in baseAddresses)
+                {
+                    if (ba.Scheme.Equals(scheme))
+                    {
+                        baseAddress = ba;
+                        break;
+                    }
+                }
+                if (baseAddress == null)
                 {
                     return null;
                 }
 
-                via = GetUri(baseAddresses[scheme], address);
+                via = GetUri(baseAddress, address);
             }
             return via;
         }

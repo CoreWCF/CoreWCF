@@ -10,14 +10,15 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Server.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.23" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.1" />
-    <PackageReference Include="System.DirectoryServices" Version="4.5.0" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.5.0" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="4.5.0" />
-    <PackageReference Include="System.Security.Principal.Windows" Version="4.5.1" />
-    <PackageReference Include="System.Reflection.DispatchProxy" Version="4.5.1" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
+    <PackageReference Include="System.DirectoryServices" Version="5.0.0" />
+    <PackageReference Include="System.DirectoryServices.Protocols" Version="5.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="5.0.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+    <PackageReference Include="System.Reflection.DispatchProxy" Version="4.7.1" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
   </ItemGroup>
 </Project>

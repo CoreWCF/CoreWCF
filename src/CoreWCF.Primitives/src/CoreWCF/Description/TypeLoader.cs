@@ -83,7 +83,7 @@ namespace CoreWCF.Description
                         }
                         UpdateOperationsWithInterfaceAttributes(contractDescription, reflectionInfo);
                         AddBehaviors(contractDescription, false, reflectionInfo);
-
+                        AddAuthorizeOperations(contractDescription,false, reflectionInfo);
                         _contracts.Add(actualContractType, contractDescription);
                     }
                 }
@@ -204,6 +204,28 @@ namespace CoreWCF.Description
             return contract;
         }
 
+        //This needs proper review. 
+        private void AddAuthorizeOperations(ContractDescription contractDesc, bool implIsCallback, ContractReflectionInfo reflectionInfo)
+        {
+
+            for(int i=0; i< contractDesc.Operations.Count; i++)
+            {
+                OperationDescription opDesc = contractDesc.Operations[i];
+                Type targetIface = implIsCallback ? opDesc.DeclaringContract.CallbackContractType : opDesc.DeclaringContract.ContractType;
+                ApplyServiceInheritance(
+                    opDesc.AuthorizeOperation,
+                    delegate (Type currentType, KeyedByTypeCollection<IAuthorizeOperation> behaviors)
+                    {
+                        KeyedByTypeCollection<IAuthorizeOperation> toAdd =
+                        GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType);
+                        for (int j = 0; j < toAdd.Count; j++)
+                        {
+                            opDesc.AuthorizeOperation.Add(toAdd[j]);
+                        }
+                    });
+            }
+        }
+
         private void AddBehaviors(ContractDescription contractDesc, bool implIsCallback, ContractReflectionInfo reflectionInfo)
         {
             ServiceContractAttribute contractAttr = ServiceReflector.GetRequiredSingleAttribute<ServiceContractAttribute>(reflectionInfo.iface);
@@ -230,12 +252,13 @@ namespace CoreWCF.Description
                     delegate (Type currentType, KeyedByTypeCollection<IOperationBehavior> behaviors)
                     {
                         KeyedByTypeCollection<IOperationBehavior> toAdd =
-                            GetIOperationBehaviorAttributesFromType(opDesc, targetIface, currentType);
+                            GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, currentType);
                         for (int j = 0; j < toAdd.Count; j++)
                         {
                             behaviors.Add(toAdd[j]);
                         }
                     });
+
                 // then look for IOperationBehaviors on interface type
                 if (!isInherited)
                 {
@@ -244,7 +267,7 @@ namespace CoreWCF.Description
                         delegate (Type currentType, KeyedByTypeCollection<IOperationBehavior> behaviors)
                         {
                             KeyedByTypeCollection<IOperationBehavior> toAdd =
-                                GetIOperationBehaviorAttributesFromType(opDesc, targetIface, null);
+                                GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, null);
                             for (int j = 0; j < toAdd.Count; j++)
                             {
                                 behaviors.Add(toAdd[j]);
@@ -397,9 +420,9 @@ namespace CoreWCF.Description
             return knownTypes;
         }
 
-        private KeyedByTypeCollection<IOperationBehavior> GetIOperationBehaviorAttributesFromType(OperationDescription opDesc, Type targetIface, Type implType)
+        private KeyedByTypeCollection<TOperation> GetIOperationAttributesFromType<TOperation>(OperationDescription opDesc, Type targetIface, Type implType)
         {
-            var result = new KeyedByTypeCollection<IOperationBehavior>();
+            var result = new KeyedByTypeCollection<TOperation>();
             var ifaceMap = default(InterfaceMapping);
             bool useImplAttrs = false;
             if (implType != null)
@@ -432,8 +455,8 @@ namespace CoreWCF.Description
             return result;
         }
 
-        private void ProcessOpMethod(MethodInfo opMethod, bool canHaveBehaviors,
-                             OperationDescription opDesc, KeyedByTypeCollection<IOperationBehavior> result,
+        private void ProcessOpMethod<IOperation>(MethodInfo opMethod, bool canHaveBehaviors,
+                             OperationDescription opDesc, KeyedByTypeCollection<IOperation> result,
                              InterfaceMapping ifaceMap, bool useImplAttrs)
         {
             MethodInfo method = null;
@@ -462,10 +485,10 @@ namespace CoreWCF.Description
                 method = opMethod;
             }
 
-            object[] methodAttributes = ServiceReflector.GetCustomAttributes(method, typeof(IOperationBehavior), false);
+            object[] methodAttributes = ServiceReflector.GetCustomAttributes(method, typeof(IOperation), false);
             for (int k = 0; k < methodAttributes.Length; k++)
             {
-                IOperationBehavior opBehaviorAttr = (IOperationBehavior)methodAttributes[k];
+                IOperation opBehaviorAttr = (IOperation)methodAttributes[k];
                 if (canHaveBehaviors)
                 {
                     result.Add(opBehaviorAttr);
@@ -817,11 +840,14 @@ namespace CoreWCF.Description
         {
             if (attrProvider != null)
             {
-                if (attrProvider.IsDefined(typeof(XmlSerializerFormatAttribute), false))
+                var attributes = attrProvider.GetCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<XmlSerializerFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
-                if (attrProvider.IsDefined(typeof(DataContractFormatAttribute), false))
+
+                attributes = attrProvider.GetCustomAttributes(typeof(DataContractFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<DataContractFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
@@ -2056,11 +2082,14 @@ namespace CoreWCF.Description
         {
             if (attrProvider != null)
             {
-                if (attrProvider.IsDefined(typeof(XmlSerializerFormatAttribute), false))
+                var attributes = attrProvider.GetCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<XmlSerializerFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
-                if (attrProvider.IsDefined(typeof(DataContractFormatAttribute), false))
+
+                attributes = attrProvider.GetCustomAttributes(typeof(DataContractFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<DataContractFormatAttribute>(attrProvider, s_formatterAttributes);
                 }

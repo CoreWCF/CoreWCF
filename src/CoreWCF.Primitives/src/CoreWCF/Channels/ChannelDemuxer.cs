@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using static CoreWCF.Security.SecuritySessionServerSettings;
 
 namespace CoreWCF.Channels
 {
@@ -16,12 +17,16 @@ namespace CoreWCF.Channels
         public static readonly TimeSpan UseDefaultReceiveTimeout = TimeSpan.MinValue;
         //private TypedChannelDemuxer _inputDemuxer;
         private TypedChannelDemuxer _replyDemuxer;
+        private Dictionary<Type, TypedChannelDemuxer> _typeDemuxers;
+        private object _thisLock = new object(); // Used to protect acces to _typedDemuxers and _replyDemuxer
+
         private TimeSpan _peekTimeout;
 
         public ChannelDemuxer()
         {
             _peekTimeout = UseDefaultReceiveTimeout; //use the default receive timeout (original behavior)
             MaxPendingSessions = 10;
+            _typeDemuxers = new Dictionary<Type, TypedChannelDemuxer>();
         }
 
         public TimeSpan PeekTimeout
@@ -38,22 +43,28 @@ namespace CoreWCF.Channels
 
         public int MaxPendingSessions { get; set; }
 
-       internal IServiceDispatcher CreateServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter, BindingContext context)
+        internal IServiceDispatcher CreateServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter, BindingParameterCollection bindingParameters)
         {
-            return GetTypedServiceDispatcher<TChannel>(context).AddDispatcher(innerDispatcher, filter);
+            return GetTypedServiceDispatcher<TChannel>(bindingParameters).AddDispatcher(innerDispatcher, filter);
         }
 
-        internal IServiceDispatcher CreateServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, BindingContext context)
+        internal IServiceDispatcher CreateServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, BindingParameterCollection bindingParameters)
         {
-            return GetTypedServiceDispatcher<TChannel>(context).AddDispatcher(innerDispatcher, new ChannelDemuxerFilter(new MatchAllMessageFilter(), 0));
+            return GetTypedServiceDispatcher<TChannel>(bindingParameters).AddDispatcher(innerDispatcher, new ChannelDemuxerFilter(new MatchAllMessageFilter(), 0));
         }
 
-        internal void RemoveServiceDispatcher<TChannel>(MessageFilter filter, BindingContext context)
+        internal void RemoveServiceDispatcher<TChannel>(MessageFilter filter, BindingParameterCollection bindingParameters)
         {
-             GetTypedServiceDispatcher<TChannel>(context).RemoveDispatcher(filter);
+            // Don't create if it doesn't already exist as the filter can't be held by a non-existent demuxer
+            TryGetTypedServiceDispatcher(typeof(TChannel), bindingParameters)?.RemoveDispatcher(filter);
         }
 
-        internal TypedChannelDemuxer GetTypedServiceDispatcher<TChannel>(BindingContext context)
+        internal TypedChannelDemuxer GetTypedServiceDispatcher<TChannel>(BindingParameterCollection bindingParameters)
+        {
+            return GetTypedServiceDispatcher(typeof(TChannel), bindingParameters);
+        }
+
+        internal TypedChannelDemuxer TryGetTypedServiceDispatcher(Type channelType, BindingParameterCollection bindingParameters)
         {
             TypedChannelDemuxer typeDemuxer = null;
 
@@ -70,21 +81,21 @@ namespace CoreWCF.Channels
             //    typeDemuxer = this.inputDemuxer;
             //}
             //else
-            if (typeof(TChannel) == typeof(IReplyChannel))
+            Type parentType = GetParentType(channelType);
+            if (parentType == typeof(IReplyChannel))
             {
-                if (_replyDemuxer == null)
-                {
-                    /*_inputDemuxer = */_replyDemuxer = new ReplyChannelDemuxer(context);
-                }
-
                 typeDemuxer = _replyDemuxer;
             }
-            //else if (!this.typeDemuxers.TryGetValue(channelType, out typeDemuxer))
-            //{
-            //    typeDemuxer = this.CreateTypedDemuxer(channelType, context);
-            //    this.typeDemuxers.Add(channelType, typeDemuxer);
-            //    createdDemuxer = true;
-            //}
+            else
+            {
+                lock (_thisLock)
+                {
+                    if (!_typeDemuxers.TryGetValue(parentType, out typeDemuxer))
+                    {
+                        typeDemuxer = null; // When not found, technically typeDemuxer will be undefined
+                    }
+                }
+            }
 
             //if (!createdDemuxer)
             //{
@@ -92,6 +103,81 @@ namespace CoreWCF.Channels
             //}
 
             return typeDemuxer;
+        }
+
+        internal TypedChannelDemuxer GetTypedServiceDispatcher(Type channelType, BindingParameterCollection bindingParameters)
+        {
+            TypedChannelDemuxer typeDemuxer = null;
+
+            //if (typeof(TChannel) == typeof(IInputChannel))
+            //{
+            //    if (this.inputDemuxer == null)
+            //    {
+            //        if (context.CanBuildInnerChannelListener<IReplyChannel>())
+            //            this.inputDemuxer = this.replyDemuxer = new ReplyChannelDemuxer(context);
+            //        else
+            //            this.inputDemuxer = new InputChannelDemuxer(context);
+            //        createdDemuxer = true;
+            //    }
+            //    typeDemuxer = this.inputDemuxer;
+            //}
+            //else
+            Type parentType = GetParentType(channelType);
+            if (parentType == typeof(IReplyChannel))
+            {
+                if (_replyDemuxer == null)
+                {
+                    lock (_thisLock)
+                    {
+                        if (_replyDemuxer == null)
+                        {
+                            _replyDemuxer = new ReplyChannelDemuxer(bindingParameters);
+                        }
+                    }
+                }
+
+                typeDemuxer = _replyDemuxer;
+            }
+            else
+            {
+                lock (_thisLock)
+                {
+                    if (!_typeDemuxers.TryGetValue(parentType, out typeDemuxer))
+                    {
+                        typeDemuxer = CreateTypedDemuxer(channelType, bindingParameters);
+                        _typeDemuxers.Add(channelType, typeDemuxer);
+                    }
+                }
+            }
+
+            //if (!createdDemuxer)
+            //{
+            //    context.RemainingBindingElements.Clear();
+            //}
+
+            return typeDemuxer;
+        }
+
+        private TypedChannelDemuxer CreateTypedDemuxer(Type channelType, BindingParameterCollection bindingParameters)
+        {
+            /* if (channelType == typeof(IDuplexChannel))
+                 return (TypedChannelDemuxer)(object)new DuplexChannelDemuxer(context);
+             if (channelType == typeof(IInputSessionChannel))
+                 return (TypedChannelDemuxer)(object)new InputSessionChannelDemuxer(context, this.peekTimeout, this.maxPendingSessions);
+             if (channelType == typeof(IReplySessionChannel))
+                 return (TypedChannelDemuxer)(object)new ReplySessionChannelDemuxer(context, this.peekTimeout, this.maxPendingSessions);*/
+            if (channelType == typeof(IDuplexSessionChannel))
+                return (TypedChannelDemuxer)(object)new DuplexSessionChannelDemuxer(bindingParameters);//, this.peekTimeout, this.maxPendingSessions);
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
+        }
+
+        private Type GetParentType(Type originalType)
+        {
+            if (typeof(IDuplexSessionChannel).IsAssignableFrom(originalType))
+                return typeof(IDuplexSessionChannel);
+            if (typeof(IReplyChannel).IsAssignableFrom(originalType))
+                return typeof(IReplyChannel);
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
         }
     }
 
@@ -149,6 +235,183 @@ namespace CoreWCF.Channels
     }
 
     //
+    // Session demuxers
+    //
+
+    internal abstract class SessionChannelDemuxer<TInnerChannel, TInnerItem> : TypedChannelDemuxer
+        where TInnerChannel : class, IChannel
+        where TInnerItem : class, IDisposable
+    {
+        private readonly MessageFilterTable<IServiceDispatcher> _filterTable;
+        public SessionChannelDemuxer(BindingParameterCollection bindingParameters)//, TimeSpan peekTimeout, int maxPendingSessions)
+        {
+            _filterTable = new MessageFilterTable<IServiceDispatcher>();
+            DemuxFailureHandler = bindingParameters.Find<IChannelDemuxFailureHandler>();
+        }
+
+        protected object ThisLock
+        {
+            get { return this; }
+        }
+
+        protected IChannelDemuxFailureHandler DemuxFailureHandler { get; }
+
+        public override IServiceDispatcher AddDispatcher(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter)
+        {
+            lock (ThisLock)
+            {
+                _filterTable.Add(filter.Filter, innerDispatcher, filter.Priority);
+            }
+
+            return this;
+        }
+
+        public override void RemoveDispatcher(MessageFilter filter)
+        {
+            lock (ThisLock)
+            {
+                _filterTable.Remove(filter);
+            }
+        }
+
+        protected abstract void AbortItem(TInnerItem item);
+        protected abstract Task EndpointNotFoundAsync(TInnerChannel channel, TInnerItem item);
+        protected abstract Message GetMessage(TInnerItem item);
+
+        protected IServiceDispatcher MatchDispatcher(Message message)
+        {
+            IServiceDispatcher matchingDispatcher = null;
+            lock (ThisLock)
+            {
+                if (_filterTable.GetMatchingValue(message, out matchingDispatcher))
+                {
+                    return matchingDispatcher;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    internal class DuplexSessionChannelDemuxer : SessionChannelDemuxer<IDuplexSessionChannel, Message>
+    {
+        public DuplexSessionChannelDemuxer(BindingParameterCollection bindingParameters)//, TimeSpan peekTimeout, int maxPendingSessions)
+            : base(bindingParameters)//, peekTimeout, maxPendingSessions)
+        {
+        }
+
+        public override Uri BaseAddress => throw new NotImplementedException();
+
+        public override Binding Binding => throw new NotImplementedException();
+
+        public override IList<Type> SupportedChannelTypes => throw new NotImplementedException();
+
+        public override Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
+        {
+            return Task.FromResult<IServiceChannelDispatcher>(new DuplexSessionChannelDispatcher(this, (IDuplexSessionChannel)channel));
+        }
+
+        protected override void AbortItem(Message message)
+        {
+            AbortMessage(message);
+        }
+
+        protected override async Task EndpointNotFoundAsync(IDuplexSessionChannel channel, Message message)
+        {
+            bool abortItem = true;
+            try
+            {
+                if (DemuxFailureHandler != null)
+                {
+                    var duplexSessionRequestContext = new DuplexSessionRequestContext(channel, message);
+                    await DemuxFailureHandler.HandleDemuxFailureAsync(message, duplexSessionRequestContext);
+                    abortItem = false;
+                }
+
+            }
+            catch (CommunicationException e)
+            {
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+            }
+            catch (TimeoutException e)
+            {
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+            }
+            catch (ObjectDisposedException e)
+            {
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e)) throw;
+                throw;
+            }
+            finally
+            {
+                if (abortItem)
+                {
+                    AbortMessage(message);
+                    channel.Abort();
+                }
+            }
+        }
+
+        protected override Message GetMessage(Message message)
+        {
+            return message;
+        }
+
+        internal class DuplexSessionChannelDispatcher : IServiceChannelDispatcher
+        {
+            private readonly DuplexSessionChannelDemuxer _demuxer;
+            private readonly IDuplexSessionChannel _channel;
+            private IServiceChannelDispatcher _serviceChannelDispatcher;
+
+            public DuplexSessionChannelDispatcher(DuplexSessionChannelDemuxer replyChannelDemuxer, IDuplexSessionChannel channel)
+            {
+                _demuxer = replyChannelDemuxer;
+                _channel = channel;
+                channel.OpenAsync();
+            }
+
+            public Task DispatchAsync(RequestContext context)
+            {
+                return Task.FromException(new NotImplementedException());
+            }
+
+            public async Task DispatchAsync(Message message)
+            {
+                if (message == null) //0 bytes
+                {
+                    //We have already closed all channels, return. (Couldn't use DoneReceivingInCurrentState())
+                    if (_channel.State == CommunicationState.Closed
+                        || _channel.State == CommunicationState.Closing
+                        || _channel.State == CommunicationState.Closed)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        await _serviceChannelDispatcher.DispatchAsync(message);
+                        return;
+                    }
+                }
+                IServiceDispatcher serviceDispatcher = _demuxer.MatchDispatcher(message);
+                if (serviceDispatcher == null)
+                {
+                    ErrorBehavior.ThrowAndCatch(
+                        new EndpointNotFoundException(SR.Format(SR.UnableToDemuxChannel, message.Headers.Action)), message);
+                    await _demuxer.EndpointNotFoundAsync((IDuplexSessionChannel) _channel, message);
+                    return;
+                }
+                _serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(_channel);
+                await _serviceChannelDispatcher.DispatchAsync(message);
+            }
+        }
+
+    }
+
+    //
     // Datagram demuxers
     //
 
@@ -161,10 +424,10 @@ namespace CoreWCF.Channels
         // since the OnOuterListenerOpen method will be called for every outer listener and we will open
         // the inner listener only once, we need to ensure that all the outer listeners wait till the 
         // inner listener is opened.
-        public DatagramChannelDemuxer(BindingContext context)
+        public DatagramChannelDemuxer(BindingParameterCollection bindingParameters)
         {
             _filterTable = new MessageFilterTable<IServiceDispatcher>();
-            DemuxFailureHandler = context.BindingParameters?.Find<IChannelDemuxFailureHandler>();
+            DemuxFailureHandler = bindingParameters.Find<IChannelDemuxFailureHandler>();
         }
 
         protected TInnerChannel InnerChannel { get; }
@@ -215,205 +478,6 @@ namespace CoreWCF.Channels
         }
     }
 
-    //class InputChannelDemuxer : DatagramChannelDemuxer<IInputChannel, Message>
-    //{
-    //    public InputChannelDemuxer(BindingContext context)
-    //        : base(context)
-    //    {
-    //    }
-
-    //    protected override void AbortItem(Message message)
-    //    {
-    //        AbortMessage(message);
-    //    }
-
-    //    protected override IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)
-    //    {
-    //        return this.InnerChannel.BeginReceive(timeout, callback, state);
-    //    }
-
-    //    protected override LayeredChannelListener<IInputChannel> CreateListener<IInputChannel>(ChannelDemuxerFilter filter)
-    //    {
-    //        SingletonChannelListener<IInputChannel, InputChannel, Message> listener = new SingletonChannelListener<IInputChannel, InputChannel, Message>(filter, this);
-    //        listener.Acceptor = (IChannelAcceptor<IInputChannel>)new InputChannelAcceptor(listener);
-    //        return listener;
-    //    }
-
-    //    protected override void Dispatch(IChannelListener listener)
-    //    {
-    //        SingletonChannelListener<IInputChannel, InputChannel, Message> singletonListener = (SingletonChannelListener<IInputChannel, InputChannel, Message>)listener;
-    //        singletonListener.Dispatch();
-    //    }
-
-    //    protected override void EndpointNotFoundAsync(Message message)
-    //    {
-    //        if (this.DemuxFailureHandler != null)
-    //        {
-    //            this.DemuxFailureHandler.HandleDemuxFailure(message);
-    //        }
-    //        this.AbortItem(message);
-    //    }
-
-    //    protected override Message EndReceive(IAsyncResult result)
-    //    {
-    //        return this.InnerChannel.EndReceive(result);
-    //    }
-
-    //    protected override void EnqueueAndDispatch(IChannelListener listener, Message message, Action dequeuedCallback, bool canDispatchOnThisThread)
-    //    {
-    //        SingletonChannelListener<IInputChannel, InputChannel, Message> singletonListener = (SingletonChannelListener<IInputChannel, InputChannel, Message>)listener;
-    //        singletonListener.EnqueueAndDispatch(message, dequeuedCallback, canDispatchOnThisThread);
-    //    }
-
-    //    protected override void EnqueueAndDispatch(IChannelListener listener, Exception exception, Action dequeuedCallback, bool canDispatchOnThisThread)
-    //    {
-    //        SingletonChannelListener<IInputChannel, InputChannel, Message> singletonListener = (SingletonChannelListener<IInputChannel, InputChannel, Message>)listener;
-    //        singletonListener.EnqueueAndDispatch(exception, dequeuedCallback, canDispatchOnThisThread);
-    //    }
-
-    //    protected override Message GetMessage(Message message)
-    //    {
-    //        return message;
-    //    }
-    //}
-
-    //class DuplexChannelDemuxer : DatagramChannelDemuxer<IDuplexChannel, Message>
-    //{
-    //    public DuplexChannelDemuxer(BindingContext context)
-    //        : base(context)
-    //    {
-    //    }
-
-    //    protected override void AbortItem(Message message)
-    //    {
-    //        AbortMessage(message);
-    //    }
-
-    //    protected override IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)
-    //    {
-    //        return this.InnerChannel.BeginReceive(timeout, callback, state);
-    //    }
-
-    //    protected override LayeredChannelListener<IDuplexChannel> CreateListener<IDuplexChannel>(ChannelDemuxerFilter filter)
-    //    {
-    //        SingletonChannelListener<IDuplexChannel, DuplexChannel, Message> listener = new SingletonChannelListener<IDuplexChannel, DuplexChannel, Message>(filter, this);
-    //        listener.Acceptor = (IChannelAcceptor<IDuplexChannel>)new DuplexChannelAcceptor(listener, this);
-    //        return listener;
-    //    }
-
-    //    protected override void Dispatch(IChannelListener listener)
-    //    {
-    //        SingletonChannelListener<IDuplexChannel, DuplexChannel, Message> singletonListener = (SingletonChannelListener<IDuplexChannel, DuplexChannel, Message>)listener;
-    //        singletonListener.Dispatch();
-    //    }
-
-    //    protected override void EndpointNotFoundAsync(Message message)
-    //    {
-    //        if (this.DemuxFailureHandler != null)
-    //        {
-    //            this.DemuxFailureHandler.HandleDemuxFailure(message);
-    //        }
-    //        this.AbortItem(message);
-    //    }
-
-    //    protected override Message EndReceive(IAsyncResult result)
-    //    {
-    //        return this.InnerChannel.EndReceive(result);
-    //    }
-
-    //    protected override void EnqueueAndDispatch(IChannelListener listener, Message message, Action dequeuedCallback, bool canDispatchOnThisThread)
-    //    {
-    //        SingletonChannelListener<IDuplexChannel, DuplexChannel, Message> singletonListener = (SingletonChannelListener<IDuplexChannel, DuplexChannel, Message>)listener;
-    //        singletonListener.EnqueueAndDispatch(message, dequeuedCallback, canDispatchOnThisThread);
-    //    }
-
-    //    protected override void EnqueueAndDispatch(IChannelListener listener, Exception exception, Action dequeuedCallback, bool canDispatchOnThisThread)
-    //    {
-    //        SingletonChannelListener<IDuplexChannel, DuplexChannel, Message> singletonListener = (SingletonChannelListener<IDuplexChannel, DuplexChannel, Message>)listener;
-    //        singletonListener.EnqueueAndDispatch(exception, dequeuedCallback, canDispatchOnThisThread);
-    //    }
-
-    //    protected override Message GetMessage(Message message)
-    //    {
-    //        return message;
-    //    }
-
-    //    class DuplexChannelAcceptor : SingletonChannelAcceptor<IDuplexChannel, DuplexChannel, Message>
-    //    {
-    //        DuplexChannelDemuxer demuxer;
-
-    //        public DuplexChannelAcceptor(ChannelManagerBase channelManager, DuplexChannelDemuxer demuxer)
-    //            : base(channelManager)
-    //        {
-    //            this.demuxer = demuxer;
-    //        }
-
-    //        protected override DuplexChannel OnCreateChannel()
-    //        {
-    //            return new DuplexChannelWrapper(this.ChannelManager, demuxer.InnerChannel);
-    //        }
-
-    //        protected override void OnTraceMessageReceived(Message message)
-    //        {
-    //            if (DiagnosticUtility.ShouldTraceInformation)
-    //            {
-    //                TraceUtility.TraceEvent(TraceEventType.Information, TraceCode.MessageReceived, SR.GetString(SR.TraceCodeMessageReceived),
-    //                    MessageTransmitTraceRecord.CreateReceiveTraceRecord(message), this, null);
-    //            }
-    //        }
-    //    }
-
-    //    class DuplexChannelWrapper : DuplexChannel
-    //    {
-    //        IDuplexChannel innerChannel;
-
-    //        public DuplexChannelWrapper(ChannelManagerBase channelManager, IDuplexChannel innerChannel)
-    //            : base(channelManager, innerChannel.LocalAddress)
-    //        {
-    //            this.innerChannel = innerChannel;
-    //        }
-
-    //        public override EndpointAddress RemoteAddress
-    //        {
-    //            get { return this.innerChannel.RemoteAddress; }
-    //        }
-
-    //        public override Uri Via
-    //        {
-    //            get { return this.innerChannel.Via; }
-    //        }
-
-    //        protected override void OnSend(Message message, TimeSpan timeout)
-    //        {
-    //            this.innerChannel.Send(message, timeout);
-    //        }
-
-    //        protected override IAsyncResult OnBeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
-    //        {
-    //            return this.innerChannel.BeginSend(message, timeout, callback, state);
-    //        }
-
-    //        protected override void OnEndSend(IAsyncResult result)
-    //        {
-    //            this.innerChannel.EndSend(result);
-    //        }
-
-    //        protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
-    //        {
-    //            return new CompletedAsyncResult(callback, state);
-    //        }
-
-    //        protected override void OnEndOpen(IAsyncResult result)
-    //        {
-    //            CompletedAsyncResult.End(result);
-    //        }
-
-    //        protected override void OnOpen(TimeSpan timeout)
-    //        {
-    //        }
-    //    }
-    //}
-
     internal class ReplyChannelDemuxer : DatagramChannelDemuxer<IReplyChannel, RequestContext>
     {
         private static readonly IList<Type> s_supportedChannelTypes = new List<Type> { typeof(IReplyChannel) };
@@ -424,7 +488,7 @@ namespace CoreWCF.Channels
 
         public override IList<Type> SupportedChannelTypes => s_supportedChannelTypes;
 
-        public ReplyChannelDemuxer(BindingContext context) : base(context)
+        public ReplyChannelDemuxer(BindingParameterCollection bindingParameters) : base(bindingParameters)
         {
         }
 
@@ -479,7 +543,6 @@ namespace CoreWCF.Channels
             }
         }
 
-
         protected override Message GetMessage(RequestContext request)
         {
             return request.RequestMessage;
@@ -514,7 +577,7 @@ namespace CoreWCF.Channels
 
             public Task DispatchAsync(Message message)
             {
-                throw new NotImplementedException();
+               return Task.FromException(new NotImplementedException());
             }
         }
     }

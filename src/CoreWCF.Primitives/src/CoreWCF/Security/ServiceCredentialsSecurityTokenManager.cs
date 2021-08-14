@@ -132,7 +132,8 @@ namespace CoreWCF.Security
                 SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite,
                 StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this),
                 SecurityStateEncoder = ServiceCredentials.SecureConversationAuthentication.SecurityStateEncoder,
-                KnownTypes = ServiceCredentials.SecureConversationAuthentication.SecurityContextClaimTypes
+                KnownTypes = ServiceCredentials.SecureConversationAuthentication.SecurityContextClaimTypes,
+                LdapSettings = ServiceCredentials.WindowsAuthentication.LdapSetting
             };
             // if the SPNEGO is being done in mixed-mode, the nego blobs are from an anonymous client and so there size bound needs to be enforced.
             if (securityBindingElement is TransportSecurityBindingElement)

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
+using CoreWCF.Dispatcher;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,69 +54,44 @@ namespace CoreWCF
 
         protected override ServiceDescription CreateDescription(out IDictionary<string, ContractDescription> implementedContracts)
         {
-            ServiceDescription description;
-            TService instance = _serviceProvider.GetService<TService>();
-            if (instance != null)
-            {
-                description = ServiceDescription.GetService(instance);
-            }
-            else
-            {
-                description = ServiceDescription.GetService<TService>();
-            }
-
-            // Any user supplied IServiceBehaviors can be applied now
-            IEnumerable<IServiceBehavior> serviceBehaviors = _serviceProvider.GetServices<IServiceBehavior>();
-            foreach (IServiceBehavior behavior in serviceBehaviors)
-            {
-                description.Behaviors.Add(behavior);
-            }
+            ServiceDescription description = _serviceProvider.GetService<ServiceDescription<TService>>();
 
             ServiceBehaviorAttribute serviceBehavior = description.Behaviors.Find<ServiceBehaviorAttribute>();
-            object serviceInstanceUsedAsABehavior = serviceBehavior.GetWellKnownSingleton();
+            TService serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetWellKnownSingleton();
             if (serviceInstanceUsedAsABehavior == null)
             {
-                serviceInstanceUsedAsABehavior = serviceBehavior.GetHiddenSingleton();
+                serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetHiddenSingleton();
                 _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
             }
 
+            // serviceInstanceUsedAsBehavior will be null when InstanceContextMode != Single
+            // In this case, we need to check if the service type is a behavior and if it is, create an instance to apply to behaviors
             if ((typeof(IServiceBehavior).IsAssignableFrom(typeof(TService)) || typeof(IContractBehavior).IsAssignableFrom(typeof(TService)))
-                && serviceInstanceUsedAsABehavior == null)
+                    && serviceInstanceUsedAsABehavior == null)
             {
-                if (instance == null)
+                serviceInstanceUsedAsABehavior = _serviceProvider.GetService<TService>(); // First try DI to get an instance
+                if (serviceInstanceUsedAsABehavior == null) // Not in DI so create the old WCF way using reflection
                 {
                     serviceInstanceUsedAsABehavior = ServiceDescription.CreateImplementation<TService>();
                 }
-                else
-                {
-                    serviceInstanceUsedAsABehavior = instance;
-                }
 
                 _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
             }
 
-            if (instance != null)
+            if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
             {
-                if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
-                {
-                    SingletonInstance = instance;
-                }
-                else
-                {
-                    serviceBehavior.InstanceProvider = new DependencyInjectionInstanceProvider(_serviceProvider, typeof(TService));
-                    if (serviceInstanceUsedAsABehavior == null && instance is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
-                }
+                // If using Single, then ServiceBehavior fetched/created the instance and need to set on SingletonInstance
+                Debug.Assert(serviceInstanceUsedAsABehavior != null, "Service behavior should have created a singleton instance");
+                SingletonInstance = serviceInstanceUsedAsABehavior;
+            }
+            else
+            {
+                serviceBehavior.InstanceProvider = new DependencyInjectionWithLegacyFallbackInstanceProvider(_serviceProvider, typeof(TService));
             }
 
-            if (instance == null)
+            if (serviceInstanceUsedAsABehavior is IServiceBehavior behavior)
             {
-                if (serviceInstanceUsedAsABehavior is IServiceBehavior behavior)
-                {
-                    description.Behaviors.Add(behavior);
-                }
+                description.Behaviors.Add(behavior);
             }
 
             ReflectedContractCollection reflectedContracts = new ReflectedContractCollection();

@@ -16,24 +16,30 @@ namespace CoreWCF.Dispatcher
 
     internal delegate object CreateInstanceDelegate();
 
-    internal sealed class InvokerUtil
+    internal static class InvokerUtil
     {
-        private readonly CriticalHelper _helper;
+        private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
+        // private readonly CriticalHelper _helper;
 
-        public InvokerUtil()
+        //public InvokerUtil()
+        //{
+        //    _helper = new CriticalHelper();
+        //}
+
+        internal static bool HasDefaultConstructor(Type type)
         {
-            _helper = new CriticalHelper();
+            return type.GetConstructor(DefaultBindingFlags, null, Type.EmptyTypes, null) != null;
         }
 
-        internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
+        internal static CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type)
         {
-            return _helper.GenerateCreateInstanceDelegate(type, constructor);
+            return CriticalHelper.GenerateCreateInstanceDelegate(type);
         }
 
-        internal InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount,
+        internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount,
             out int outputParameterCount)
         {
-            return _helper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
+            return CriticalHelper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
         }
 
         //internal InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
@@ -46,9 +52,9 @@ namespace CoreWCF.Dispatcher
         //    return helper.GenerateInvokeEndDelegate(method, out outputParameterCount);
         //}
 
-        private class CriticalHelper
+        private static class CriticalHelper
         {
-            internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
+            internal static CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type)
             {
                 if (type.GetTypeInfo().IsValueType)
                 {
@@ -76,7 +82,7 @@ namespace CoreWCF.Dispatcher
                 return default(T);
             }
 
-            internal InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
+            internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
@@ -127,7 +133,7 @@ namespace CoreWCF.Dispatcher
 
                     for (int i = 0; i < outputPos.Length; i++)
                     {
-                        outputs[i] = inputs[outputPos[i]];
+                        outputs[i] = inputsLocal[outputPos[i]];
                     }
 
                     return result;

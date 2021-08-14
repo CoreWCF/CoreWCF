@@ -31,7 +31,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                 Assert.Single(serviceBuilder.Services);
                 Assert.Single(serviceBuilder.BaseAddresses);
                 Assert.Equal(typeof(SomeService).FullName, serviceBuilder.Services.Single().FullName);
-                Assert.Equal("net.tcp://localhost:6687/", serviceBuilder.BaseAddresses.Single().AbsoluteUri);
+                Assert.Equal("net.tcp://0.0.0.0:6687/", serviceBuilder.BaseAddresses.Single().AbsoluteUri);
             }
         }
     }

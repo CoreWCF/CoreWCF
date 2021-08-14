@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
+using CoreWCF.Security;
 
 namespace CoreWCF
 {
@@ -14,16 +15,17 @@ namespace CoreWCF
         private SecurityMode _mode;
 
         public NetTcpSecurity()
-            : this(DefaultMode, new TcpTransportSecurity())
+            : this(DefaultMode, new TcpTransportSecurity(), new MessageSecurityOverTcp())
         {
         }
 
-        private NetTcpSecurity(SecurityMode mode, TcpTransportSecurity transportSecurity)
+        private NetTcpSecurity(SecurityMode mode, TcpTransportSecurity transportSecurity, MessageSecurityOverTcp messageSecurity)
         {
             Fx.Assert(SecurityModeHelper.IsDefined(mode), string.Format("Invalid SecurityMode value: {0}.", mode.ToString()));
 
             _mode = mode;
             Transport = transportSecurity ?? new TcpTransportSecurity();
+            Message = messageSecurity ?? new MessageSecurityOverTcp();
         }
 
         [DefaultValue(DefaultMode)]
@@ -42,16 +44,33 @@ namespace CoreWCF
 
         public TcpTransportSecurity Transport { get; set; }
 
+        public MessageSecurityOverTcp Message { get; set; }
+
         internal BindingElement CreateTransportSecurity()
         {
             if (_mode == SecurityMode.TransportWithMessageCredential)
             {
-                throw new PlatformNotSupportedException("TransportWithMessageCredential");
-                //return this.transportSecurity.CreateTransportProtectionOnly();
+                return Transport.CreateTransportProtectionOnly();
             }
             else if (_mode == SecurityMode.Transport)
             {
                 return Transport.CreateTransportProtectionAndAuthentication();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        internal SecurityBindingElement CreateMessageSecurity(bool isReliableSessionEnabled)
+        {
+            if (_mode == SecurityMode.Message)
+            {
+                return Message.CreateSecurityBindingElement(false, isReliableSessionEnabled, null);
+            }
+            else if (_mode == SecurityMode.TransportWithMessageCredential)
+            {
+                return Message.CreateSecurityBindingElement(true, isReliableSessionEnabled, CreateTransportSecurity());
             }
             else
             {

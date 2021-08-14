@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Globalization;
 using System.Text;
+using System.Threading;
 using CoreWCF.Channels;
 using Xunit;
 
@@ -11,6 +13,7 @@ namespace CoreWCF.Primitives.Tests
     public static class MessageTests
     {
         [Fact]
+        [UseCulture("en-US")]
         public static void InvalidCharToString()
         {
             string invalidSoap11Message = @"<?xml version=""1.0"" encoding=""utf-8""?>

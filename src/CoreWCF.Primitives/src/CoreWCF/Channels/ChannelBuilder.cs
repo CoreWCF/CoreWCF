@@ -9,12 +9,10 @@ namespace CoreWCF.Channels
 {
     internal class ChannelBuilder
     {
-        private BindingContext _context;
         private readonly bool _isChannelDemuxerRequired = false;
 
         public ChannelBuilder(BindingContext context, bool addChannelDemuxerIfRequired)
         {
-            _context = context;
             _isChannelDemuxerRequired = addChannelDemuxerIfRequired;
             if (_isChannelDemuxerRequired)
             {
@@ -40,21 +38,26 @@ namespace CoreWCF.Channels
 
         public TypedChannelDemuxer GetTypedChannelDemuxer<TChannel>() where TChannel : class, IChannel
         {
-            return ChannelDemuxer.GetTypedServiceDispatcher<TChannel>(_context);
+            return ChannelDemuxer.GetTypedServiceDispatcher<TChannel>(BindingParameters);
+        }
+
+        public TypedChannelDemuxer GetTypedChannelDemuxer(Type channelType)
+        {
+            return ChannelDemuxer.GetTypedServiceDispatcher(channelType, BindingParameters);
         }
 
         public  IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             if (!_isChannelDemuxerRequired)
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            return ChannelDemuxer.CreateServiceDispatcher<TChannel>(innerDispatcher, _context);
+            return ChannelDemuxer.CreateServiceDispatcher<TChannel>(innerDispatcher, BindingParameters);
         }
 
         public IServiceDispatcher AddServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher, ChannelDemuxerFilter filter) where TChannel : class, IChannel
         {
             if (!_isChannelDemuxerRequired)
                 throw new Exception("ChannelDemuxerRequired is set to false");
-            return ChannelDemuxer.CreateServiceDispatcher<TChannel>(innerDispatcher, filter, _context);
+            return ChannelDemuxer.CreateServiceDispatcher<TChannel>(innerDispatcher, filter, BindingParameters);
         }
 
         public void RemoveServiceDispatcher<TChannel>(MessageFilter filter) where TChannel : class, IChannel
@@ -63,22 +66,12 @@ namespace CoreWCF.Channels
             {
                 throw new Exception("Demuxer can't be null");
             }
-            ChannelDemuxer.RemoveServiceDispatcher<TChannel>(filter, _context);
+            ChannelDemuxer.RemoveServiceDispatcher<TChannel>(filter, BindingParameters);
         }
 
         public IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
-            if (_context != null)
-            {
-                IServiceDispatcher listener = _context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);// .BuildInnerChannelListener<TChannel>();
-                // this.listenUri = listener.Uri;
-                _context = null;
-                return listener;
-            }
-            else
-            {
-                return Binding.BuildServiceDispatcher<TChannel>(BindingParameters, innerDispatcher);
-            }
+            return context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
         }
     }
 }

@@ -11,12 +11,14 @@ namespace CoreWCF.Security
 
         private struct SignatureConfirmation
         {
-            public byte[] value;
+            private byte[] _value;
 
             public SignatureConfirmation(byte[] value)
             {
-                this.value = value;
+                _value = value;
             }
+
+            public byte[] Value { get => _value; set => _value = value; }
         }
 
         public SignatureConfirmations()
@@ -47,7 +49,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), SR.Format(SR.ValueMustBeInRange, 0, Count)));
             }
 
-            value = _confirmations[index].value;
+            value = _confirmations[index].Value;
             encrypted = IsMarkedForEncryption;
         }
 

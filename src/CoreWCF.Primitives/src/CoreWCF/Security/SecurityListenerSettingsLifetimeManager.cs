@@ -44,10 +44,10 @@ namespace CoreWCF.Security
                 _sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
             }
 
-            /* if (this.securityProtocolFactory != null)
+            if (_securityProtocolFactory != null)
              {
-                 this.securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
-             }*/
+                _securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
+             }
 
             // this.SetBufferManager();
             return Task.CompletedTask;

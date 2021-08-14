@@ -4,8 +4,7 @@
 using System;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
+using Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -21,7 +20,7 @@ namespace CoreWCF.Primitives.Tests
             var services = new ServiceCollection();
             services.AddServiceModelServices();
             services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
-            services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
+            services.RegisterApplicationLifetime();
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceBuilder builder = serviceProvider.GetRequiredService<IServiceBuilder>();
 

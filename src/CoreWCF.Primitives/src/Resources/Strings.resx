@@ -8038,4 +8038,16 @@
   <data name="TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
     <value>TimeSpan must be greater than TimeSpan.Zero.</value>
   </data>
+    <data name="EnableLdapClaimResolutionServer" xml:space="preserve">
+    <value>'{0}' is set to true but ldap server not set.</value>
+  </data>
+      <data name="EnableLdapClaimResolutionDomain" xml:space="preserve">
+    <value>'{0}' is set to true but '{1} is not set.</value>
+  </data>
+      <data name="EnableLdapClaimResolutionMachine" xml:space="preserve">
+    <value>'{0}' should only be specified when '{1}' is configured.</value>
+  </data>
+      <data name="DuplicateUPN" xml:space="preserve">
+    <value>Duplicate entry for same user exists.</value>
+  </data>
 </root>

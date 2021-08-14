@@ -8,7 +8,7 @@ using CoreWCF.Description;
 
 namespace CoreWCF.Dispatcher
 {
-    internal class FaultContractInfo
+    public class FaultContractInfo
     {
         private DataContractSerializer _serializer;
 
