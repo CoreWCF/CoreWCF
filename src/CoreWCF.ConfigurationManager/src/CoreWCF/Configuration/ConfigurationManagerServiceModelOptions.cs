@@ -7,6 +7,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -26,6 +27,16 @@ namespace CoreWCF.Configuration
             {
                 var assembly = Assembly.GetEntryAssembly();
                 var basePath = string.IsNullOrEmpty(assembly?.Location) ? AppContext.BaseDirectory : Path.GetDirectoryName(assembly.Location);
+
+                // hack - in .net core 2.1 on linux directory not correct(on unit tests),
+                // for example:
+                // /home/vsts/.nuget/packages/microsoft.testplatform.testhost/16.7.1/lib/netcoreapp2.1/
+                var isNetCore21 = RuntimeInformation.FrameworkDescription.Contains(".NET Core 4.6");
+                if (isNetCore21 && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                { 
+                    basePath = AppContext.BaseDirectory;
+                }
+
                 var configMap = new ExeConfigurationFileMap(Path.Combine(basePath, "CoreWCF.machine.config"))
                 {
                     ExeConfigFilename = path
