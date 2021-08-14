@@ -13,7 +13,8 @@ namespace Soap
         [Fact]
         public static void Echo_OperationFormatUseEncoded()
         {
-            System.ServiceModel.ChannelFactory<IEchoSoapService> factory = DispatcherHelper.CreateChannelFactory<EchoSoapService, IEchoSoapService>();
+            System.ServiceModel.ChannelFactory<IEchoSoapService> factory = DispatcherHelper
+                .CreateChannelFactory<EchoSoapService, IEchoSoapService>();
             factory.Open();
             IEchoSoapService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
@@ -27,7 +28,8 @@ namespace Soap
         [Fact]
         public static void Echo_OperationFormatUseLiteral()
         {
-            System.ServiceModel.ChannelFactory<IEchoSoapService> factory = DispatcherHelper.CreateChannelFactory<EchoSoapService, IEchoSoapService>();
+            System.ServiceModel.ChannelFactory<IEchoSoapService> factory = DispatcherHelper
+                .CreateChannelFactory<EchoSoapService, IEchoSoapService>();
             factory.Open();
             IEchoSoapService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
@@ -41,7 +43,8 @@ namespace Soap
         [Fact]
         public static void ComplexMessage_OperationFormatUseEncoded()
         {
-            System.ServiceModel.ChannelFactory<IEchoSoapService> factory = DispatcherHelper.CreateChannelFactory<EchoSoapService, IEchoSoapService>();
+            System.ServiceModel.ChannelFactory<IEchoSoapService> factory = DispatcherHelper
+                .CreateChannelFactory<EchoSoapService, IEchoSoapService>(System.ServiceModel.Channels.MessageVersion.Soap11);
             factory.Open();
             IEchoSoapService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
@@ -66,7 +69,8 @@ namespace Soap
         [Fact]
         public static void ComplexMessage_OperationFormatUseLiteral()
         {
-            System.ServiceModel.ChannelFactory<IEchoSoapService> factory = DispatcherHelper.CreateChannelFactory<EchoSoapService, IEchoSoapService>();
+            System.ServiceModel.ChannelFactory<IEchoSoapService> factory = DispatcherHelper
+                .CreateChannelFactory<EchoSoapService, IEchoSoapService>();
             factory.Open();
             IEchoSoapService channel = factory.CreateChannel();
             ((System.ServiceModel.Channels.IChannel)channel).Open();
