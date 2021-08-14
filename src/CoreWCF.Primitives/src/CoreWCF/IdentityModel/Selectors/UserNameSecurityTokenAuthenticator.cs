@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
 
@@ -15,13 +16,13 @@ namespace CoreWCF.IdentityModel.Selectors
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
-            return token is USerNameSecurityToken;
+            return token is UserNameSecurityToken;
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
-            USerNameSecurityToken userNameToken = (USerNameSecurityToken)token;
-            return ValidateUserNamePasswordCore(userNameToken.UserName, userNameToken.Password);
+            UserNameSecurityToken userNameToken = (UserNameSecurityToken)token;
+            return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(ValidateUserNamePasswordCore(userNameToken.UserName, userNameToken.Password));
         }
 
         protected abstract ReadOnlyCollection<IAuthorizationPolicy> ValidateUserNamePasswordCore(string userName, string password);

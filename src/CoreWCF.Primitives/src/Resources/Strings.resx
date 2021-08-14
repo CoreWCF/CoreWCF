@@ -8051,5 +8051,8 @@
   </data>
   <data name="ConfigureServiceHostBaseTypeMustBeClass" xml:space="preserve">
     <value>The service type '{0}' is not a class.</value>
+  </data>    
+  <data name="SynchronousTokenValidationIsDeprecated" xml:space="preserve">
+    <value>Implementers should implement ValidateTokenCoreAsync instead.</value>
   </data>
 </root>

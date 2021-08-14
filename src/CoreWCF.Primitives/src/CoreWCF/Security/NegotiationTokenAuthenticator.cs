@@ -437,10 +437,10 @@ namespace CoreWCF.Security
 
         protected override bool CanValidateTokenCore(SecurityToken token) => (token is SecurityContextSecurityToken);
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
             SecurityContextSecurityToken sct = (SecurityContextSecurityToken)token;
-            return sct.AuthorizationPolicies;
+            return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(sct.AuthorizationPolicies);
         }
 
         protected abstract Binding GetNegotiationBinding(Binding binding);

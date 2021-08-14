@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
@@ -18,9 +19,9 @@ namespace CoreWCF.Security
             return (token is TTokenType);
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
-            return EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
+            return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance);
         }
     }
 }

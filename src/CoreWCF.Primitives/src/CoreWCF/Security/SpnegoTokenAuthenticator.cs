@@ -156,10 +156,10 @@ namespace CoreWCF.Security
             }
             else
             {
-                ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
+                ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity); // why is this ClaimsIdentity not used in the line below ?
                 token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
             }
-            return authenticator.ValidateToken(token);
+            return authenticator.ValidateTokenAsync(token).AsTask().GetAwaiter().GetResult();
         }
 
         private NegotiateInternalState GetNegotiateState() => (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();
