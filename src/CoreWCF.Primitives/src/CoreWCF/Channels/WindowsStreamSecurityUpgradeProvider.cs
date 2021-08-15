@@ -168,11 +168,11 @@ namespace CoreWCF.Channels
                         SR.Format(SR.NegotiationFailedIO, ioException.Message), ioException));
                 }
 
-                SecurityMessageProperty remoteSecurity = CreateClientSecurity(negotiateStream, _parent.ExtractGroupsForWindowsAccounts);
+                SecurityMessageProperty remoteSecurity = await CreateClientSecurityAsync(negotiateStream, _parent.ExtractGroupsForWindowsAccounts);
                 return (negotiateStream, remoteSecurity);
             }
 
-            private SecurityMessageProperty CreateClientSecurity(NegotiateStream negotiateStream,
+            private async Task<SecurityMessageProperty> CreateClientSecurityAsync(NegotiateStream negotiateStream,
                           bool extractGroupsForWindowsAccounts)
             {
                 IIdentity remoteIdentity = negotiateStream.RemoteIdentity;
@@ -190,7 +190,7 @@ namespace CoreWCF.Channels
                     ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                     token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
                 }
-                authorizationPolicies = authenticator.ValidateTokenAsync(token).GetAwaiter().GetResult();
+                authorizationPolicies = await authenticator.ValidateTokenAsync(token);
                 SecurityMessageProperty clientSecurity = new SecurityMessageProperty
                 {
                     TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
@@ -199,13 +199,13 @@ namespace CoreWCF.Channels
                 return clientSecurity;
             }
 
-            public override SecurityMessageProperty GetRemoteSecurity()
+            public override Task<SecurityMessageProperty> GetRemoteSecurityAsync()
             {
                 if (_clientSecurity.TransportToken != null)
                 {
-                    return _clientSecurity;
+                    return Task.FromResult(_clientSecurity);
                 }
-                return base.GetRemoteSecurity();
+                return base.GetRemoteSecurityAsync();
             }
         }
     }

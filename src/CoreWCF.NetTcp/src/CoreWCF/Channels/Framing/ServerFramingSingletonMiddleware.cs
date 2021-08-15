@@ -132,7 +132,7 @@ namespace CoreWCF.Channels.Framing
                                 }
                                 break;
                             case ServerSingletonDecoder.State.Start:
-                                SetupSecurityIfNecessary(connection);
+                                await SetupSecurityIfNecessaryAsync(connection);
                                 if (upgradeState == UpgradeState.UpgradeComplete //We have done at least one upgrade, but we are now done.
                                     || upgradeState == UpgradeState.None)//no upgrade, just send the preample end bytes
                                 {
@@ -258,11 +258,11 @@ namespace CoreWCF.Channels.Framing
             connection.Transport = wrappedPipeline;
         }
 
-        private static void SetupSecurityIfNecessary(FramingConnection connection)
+        private static async Task SetupSecurityIfNecessaryAsync(FramingConnection connection)
         {
             if (connection.StreamUpgradeAcceptor is StreamSecurityUpgradeAcceptor securityUpgradeAcceptor)
             {
-                Security.SecurityMessageProperty remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
+                Security.SecurityMessageProperty remoteSecurity = await securityUpgradeAcceptor.GetRemoteSecurityAsync();
 
                 if (remoteSecurity == null)
                 {

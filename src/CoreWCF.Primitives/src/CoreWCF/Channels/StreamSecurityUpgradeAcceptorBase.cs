@@ -40,10 +40,10 @@ namespace CoreWCF.Channels
             return (contentType == _upgradeString);
         }
 
-        public override SecurityMessageProperty GetRemoteSecurity()
+        public override Task<SecurityMessageProperty> GetRemoteSecurityAsync()
         {
             // this could be null if upgrade not completed.
-            return _remoteSecurity;
+            return Task.FromResult(_remoteSecurity);
         }
 
         protected abstract Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream);

@@ -87,7 +87,7 @@ namespace CoreWCF.Channels.Framing
                                 break;
 
                             case ServerSessionDecoder.State.Start:
-                                SetupSecurityIfNecessary(connection);
+                                await SetupSecurityIfNecessaryAsync(connection);
                                 // we've finished the preamble. Ack and continue to the next middleware.
                                 await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes);
                                 await connection.Output.FlushAsync();
@@ -161,11 +161,11 @@ namespace CoreWCF.Channels.Framing
             CreatePipelineFromStream(connection, stream);
         }
 
-        private static void SetupSecurityIfNecessary(FramingConnection connection)
+        private static async Task SetupSecurityIfNecessaryAsync(FramingConnection connection)
         {
             if (connection.StreamUpgradeAcceptor is StreamSecurityUpgradeAcceptor securityUpgradeAcceptor)
             {
-                Security.SecurityMessageProperty remoteSecurity = securityUpgradeAcceptor.GetRemoteSecurity();
+                Security.SecurityMessageProperty remoteSecurity = await securityUpgradeAcceptor.GetRemoteSecurityAsync();
 
                 if (remoteSecurity == null)
                 {
