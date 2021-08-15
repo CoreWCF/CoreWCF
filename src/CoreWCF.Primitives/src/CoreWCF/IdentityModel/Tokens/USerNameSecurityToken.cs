@@ -7,17 +7,17 @@ using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class USerNameSecurityToken : SecurityToken
+    internal class UserNameSecurityToken : SecurityToken
     {
         private readonly string _id;
         private readonly DateTime _effectiveTime;
 
-        public USerNameSecurityToken(string userName, string password)
+        public UserNameSecurityToken(string userName, string password)
             : this(userName, password, SecurityUniqueId.Create().Value)
         {
         }
 
-        public USerNameSecurityToken(string userName, string password, string id)
+        public UserNameSecurityToken(string userName, string password, string id)
         {
             if (userName == null)
             {

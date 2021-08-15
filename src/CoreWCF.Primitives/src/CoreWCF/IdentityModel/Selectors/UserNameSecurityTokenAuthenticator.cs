@@ -16,12 +16,12 @@ namespace CoreWCF.IdentityModel.Selectors
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
-            return token is USerNameSecurityToken;
+            return token is UserNameSecurityToken;
         }
 
         protected override Task<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
-            USerNameSecurityToken userNameToken = (USerNameSecurityToken)token;
+            UserNameSecurityToken userNameToken = (UserNameSecurityToken)token;
             return Task.FromResult(ValidateUserNamePasswordCore(userNameToken.UserName, userNameToken.Password));
         }
 
