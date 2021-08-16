@@ -41,6 +41,7 @@ namespace CoreWCF.Dispatcher
         private readonly bool _incrementedActivityCountInConstructor;
         private readonly AsyncManualResetEvent _asyncManualResetEvent;
         private bool _openCalled;
+        private SimpleAsyncLock _thisLock;
 
         internal ChannelHandler(MessageVersion messageVersion, IChannelBinder binder, ServiceThrottle throttle,
              ServiceDispatcher serviceDispatcher, bool wasChannelThrottled, SessionIdleManager idleManager)
@@ -56,6 +57,7 @@ namespace CoreWCF.Dispatcher
             _duplexBinder = binder as DuplexChannelBinder;
             _hasSession = binder.HasSession;
             _isConcurrent = ConcurrencyBehavior.IsConcurrent(channelDispatcher, _hasSession);
+            _thisLock = new SimpleAsyncLock();
 
             // TODO: Work out if MultipleReceiveBinder is necessary
             //if (channelDispatcher.MaxPendingReceives > 1)
@@ -183,11 +185,6 @@ namespace CoreWCF.Dispatcher
 
                 return null;
             }
-        }
-
-        private object ThisLock
-        {
-            get { return this; }
         }
 
         public async Task CloseBinderAsync()
@@ -409,7 +406,7 @@ namespace CoreWCF.Dispatcher
                     if (request == null && _hasSession)
                     {
                         bool close;
-                        lock (ThisLock)
+                        using (await _thisLock.TakeLockAsync())
                         {
                             close = !_doneReceiving;
                             _doneReceiving = true;
@@ -458,21 +455,24 @@ namespace CoreWCF.Dispatcher
 
             if (requestInfo.Channel == null)
             {
-                bool addressMatched;
+                (ServiceChannel serviceChannel, EndpointDispatcher endpoint, bool addressMatched) channelInfo;
                 if (_hasSession)
                 {
-                    requestInfo.Channel = GetSessionChannel(request.RequestMessage, out requestInfo.Endpoint, out addressMatched);
+                    channelInfo = await GetSessionChannelAsync(request.RequestMessage);
                 }
                 else
                 {
-                    requestInfo.Channel = GetDatagramChannel(request.RequestMessage, out requestInfo.Endpoint, out addressMatched);
+                    channelInfo = await GetDatagramChannelAsync(request.RequestMessage);
                 }
+
+                requestInfo.Channel = channelInfo.serviceChannel;
+                requestInfo.Endpoint = channelInfo.endpoint;
 
                 if (requestInfo.Channel == null)
                 {
                     // TODO: Enable UnknownMessageReceived handler
                     //this.host.RaiseUnknownMessageReceived(request.RequestMessage);
-                    if (addressMatched)
+                    if (channelInfo.addressMatched)
                     {
                         await ReplyContractFilterDidNotMatchAsync(request, requestInfo);
                     }
@@ -514,64 +514,56 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private ServiceChannel GetDatagramChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
+        private async Task<(ServiceChannel serviceChannel, EndpointDispatcher endpoint, bool addressMatched)> GetDatagramChannelAsync(Message message)
         {
-            endpoint = GetEndpointDispatcher(message, out addressMatched);
+            var endpoint = GetEndpointDispatcher(message, out var addressMatched);
 
             if (endpoint == null)
             {
-                return null;
+                return (null, null, addressMatched);
             }
 
             if (endpoint.DatagramChannel == null)
             {
-                lock (_serviceDispatcher.ThisLock)
+                using (await _serviceDispatcher.ThisLock.TakeLockAsync())
                 {
                     if (endpoint.DatagramChannel == null)
                     {
                         endpoint.DatagramChannel = new ServiceChannel(_binder, endpoint, _serviceDispatcher,
                             _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
-                        InitializeServiceChannel(endpoint.DatagramChannel);
+                        await InitializeServiceChannelAsync(endpoint.DatagramChannel);
                     }
                 }
             }
 
-            return endpoint.DatagramChannel;
+            return (endpoint.DatagramChannel, endpoint, addressMatched);
         }
 
-        private ServiceChannel GetSessionChannel(Message message, out EndpointDispatcher endpoint, out bool addressMatched)
+        private async Task<(ServiceChannel serviceChannel, EndpointDispatcher endpoint, bool addressMatched)> GetSessionChannelAsync(Message message)
         {
-            addressMatched = false;
+            var addressMatched = false;
 
             if (_channel == null)
             {
-                lock (ThisLock)
+                using (await _thisLock.TakeLockAsync())
                 {
                     if (_channel == null)
                     {
-                        endpoint = GetEndpointDispatcher(message, out addressMatched);
+                        var endpoint = GetEndpointDispatcher(message, out addressMatched);
                         if (endpoint != null)
                         {
                             _channel = new ServiceChannel(_binder, endpoint, _serviceDispatcher,
                                 _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
-                            InitializeServiceChannel(_channel);
+                            await InitializeServiceChannelAsync(_channel);
                         }
                     }
                 }
             }
 
-            if (_channel == null)
-            {
-                endpoint = null;
-            }
-            else
-            {
-                endpoint = _channel.EndpointDispatcher;
-            }
-            return _channel;
+            return (_channel, _channel?.EndpointDispatcher, addressMatched);
         }
 
-        private Task InitializeServiceChannel(ServiceChannel channel)
+        private Task InitializeServiceChannelAsync(ServiceChannel channel)
         {
             if (_wasChannelThrottled)
             {
@@ -579,7 +571,7 @@ namespace CoreWCF.Dispatcher
                 // When the idle timeout was hit, the constructor of ServiceChannel will abort itself directly. So
                 // the session throttle will not be released and thus lead to a service unavailablity.
                 // Note that if the channel is already aborted, the next line "channel.ServiceThrottle = this.throttle;" will throw an exception,
-                // so we are not going to do any more work inside this method. 
+                // so we are not going to do any more work inside this method.
                 // Ideally we should do a thorough refactoring work for this throttling issue. However, it's too risky. We should consider
                 // this in a whole release.
                 // Note that the "wasChannelThrottled" boolean will only be true if we aquired the session throttle. So we don't have to check HasSession
@@ -677,7 +669,7 @@ namespace CoreWCF.Dispatcher
 
         private Task ReplyContractFilterDidNotMatchAsync(RequestContext request, RequestInfo requestInfo)
         {
-            // By default, the contract filter is just a filter over the set of initiating actions in 
+            // By default, the contract filter is just a filter over the set of initiating actions in
             // the contract, so we do error messages accordingly
             AddressingVersion addressingVersion = _messageVersion.Addressing;
             if (addressingVersion != AddressingVersion.None && request.RequestMessage.Headers.Action == null)

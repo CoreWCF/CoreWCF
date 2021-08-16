@@ -11,6 +11,9 @@ using System.Diagnostics;
 
 namespace CoreWCF.Runtime
 {
+    // See https://github.com/CoreWCF/CoreWCF/pull/399#issuecomment-898045090 for remark on broken functionality and memory leak
+    // which justifies the obsolete attribute here.
+    [Obsolete("This class leaks memory and should not be used anymore to provide async locks. Use SimpleAsyncLock instead.")]
     internal class AsyncLock
     {
 #if DEBUG
@@ -134,7 +137,7 @@ namespace CoreWCF.Runtime
             {
 #if DEBUG
                 Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
-#endif 
+#endif
                 existingLocks.Add(this);
             }
 #if DEBUG
@@ -194,7 +197,7 @@ namespace CoreWCF.Runtime
             {
 #if DEBUG
                 Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
-#endif               
+#endif
                 existingLocks.Add(this);
             }
 #if DEBUG
@@ -227,7 +230,7 @@ namespace CoreWCF.Runtime
                 {
 #if DEBUG
                     Debug.Assert(listOfLocks.Contains(_asyncLock), "The list of AsyncLock's didn't contain the expected lock");
-#endif 
+#endif
                     // As locks are expected to be released in the order they are taken and they are always appended to the end,
                     // removal should be O(n) simply to look for the lock and removal should be constant time. If this becomes
                     // a significant overhead, then manual search in reverse will fix it. Keeping simple for now.
