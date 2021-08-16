@@ -461,8 +461,8 @@ namespace CoreWCF.Security
 
 
         // message processing abstract method
-        protected abstract BodyWriter ProcessRequestSecurityToken(Message request, RequestSecurityToken requestSecurityToken, out T negotiationState);
-        protected abstract BodyWriter ProcessRequestSecurityTokenResponse(T negotiationState, Message request, RequestSecurityTokenResponse requestSecurityTokenResponse);
+        protected abstract Task<BodyWriter> ProcessRequestSecurityTokenAsync(Message request, RequestSecurityToken requestSecurityToken, out T negotiationState);
+        protected abstract Task<BodyWriter> ProcessRequestSecurityTokenResponseAsync(T negotiationState, Message request, RequestSecurityTokenResponse requestSecurityTokenResponse);
 
         // message handlers
         protected virtual void ParseMessageBody(Message message, out string context, out RequestSecurityToken requestSecurityToken, out RequestSecurityTokenResponse requestSecurityTokenResponse)
@@ -608,7 +608,7 @@ namespace CoreWCF.Security
             }
         }
 
-        private Message ProcessRequestCore(Message request)
+        private async Task<Message> ProcessRequestCoreAsync(Message request)
         {
             if (request == null)
             {
@@ -661,7 +661,7 @@ namespace CoreWCF.Security
                             {
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new SecurityNegotiationException(SR.Format(SR.NegotiationStateAlreadyPresent, context)));
                             }
-                            replyBody = ProcessRequestSecurityToken(request, rst, out negotiationState);
+                            replyBody = await ProcessRequestSecurityTokenAsync(request, rst, out negotiationState);
                             lock (negotiationState.ThisLock)
                             {
                                 if (negotiationState.IsNegotiationCompleted)
@@ -689,9 +689,9 @@ namespace CoreWCF.Security
                             {
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new SecurityNegotiationException(SR.Format(SR.CannotFindNegotiationState, context)));
                             }
-                            lock (negotiationState.ThisLock)
-                            {
-                                replyBody = ProcessRequestSecurityTokenResponse(negotiationState, request, rstr);
+                            //lock (negotiationState.ThisLock)
+                            //{
+                                replyBody = await ProcessRequestSecurityTokenResponseAsync(negotiationState, request, rstr);
                                 if (negotiationState.IsNegotiationCompleted)
                                 {
                                     // if session-sct add it to cache and add a redirect header
@@ -707,7 +707,7 @@ namespace CoreWCF.Security
                                 {
                                     disposeState = false;
                                 }
-                            }
+                            //}
                         }
 
                         if (negotiationState.IsNegotiationCompleted && null != ListenUri)
@@ -921,15 +921,15 @@ namespace CoreWCF.Security
 
                 public object[] AllocateInputs() => EmptyArray<object>.Allocate(1);
 
-                public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
+                public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
                 {
                     object[] outputs = EmptyArray<object>.Allocate(0);
                     if (!(inputs[0] is Message message))
                     {
-                        return new ValueTask<(object returnValue, object[] outputs)>(((object)null, outputs));
+                        return ((object)null, outputs);
                     }
-                    object returnVal = _parent.ProcessRequestCore(message);
-                    return new ValueTask<(object returnValue, object[] outputs)>((returnVal, outputs));
+                    object returnVal = await _parent.ProcessRequestCoreAsync(message);
+                    return (returnVal, outputs);
                 }
             }
         }
