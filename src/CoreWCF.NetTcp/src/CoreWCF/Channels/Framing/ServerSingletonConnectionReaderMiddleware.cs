@@ -22,7 +22,7 @@ namespace CoreWCF.Channels.Framing
         private readonly IServiceScopeFactory _servicesScopeFactory;
         private ConnectionOrientedTransportReplyChannel _replyChannel;
         private IServiceChannelDispatcher _channelDispatcher;
-        private readonly AsyncLock _lock = new AsyncLock();
+        private readonly ReentrantAsyncLock _lock = new ReentrantAsyncLock();
 
         public ServerSingletonConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory)
         {
