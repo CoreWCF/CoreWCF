@@ -34,7 +34,7 @@ namespace CoreWCF.Dispatcher
 
         public IList<Type> SupportedChannelTypes => ChannelDispatcher.SupportedChannelTypes;
 
-        public SimpleAsyncLock ThisLock { get; } = new SimpleAsyncLock();
+        public NonReentrantAsyncLock ThisLock { get; } = new NonReentrantAsyncLock();
 
         public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
         {

@@ -11,10 +11,7 @@ using System.Diagnostics;
 
 namespace CoreWCF.Runtime
 {
-    // See https://github.com/CoreWCF/CoreWCF/pull/399#issuecomment-898045090 for remark on broken functionality and memory leak
-    // which justifies the obsolete attribute here.
-    [Obsolete("This class leaks memory and should not be used anymore to provide async locks. Use SimpleAsyncLock instead.")]
-    internal class AsyncLock
+    internal class ReentrantAsyncLock
     {
 #if DEBUG
         private StackTrace _lockTakenCallStack;
@@ -24,7 +21,7 @@ namespace CoreWCF.Runtime
         private readonly SafeSemaphoreRelease _semaphoreRelease;
         private static readonly AsyncLocal<object> s_heldLocks = new AsyncLocal<object>(LockTakenValueChanged);
 
-        public AsyncLock()
+        public ReentrantAsyncLock()
         {
             _semaphore = new SemaphoreSlim(1);
             _semaphoreRelease = new SafeSemaphoreRelease(this);
@@ -52,16 +49,16 @@ namespace CoreWCF.Runtime
 #if DEBUG
             object existingValue = s_heldLocks.Value;
 #endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
+            ReentrantAsyncLock existingLock = s_heldLocks.Value as ReentrantAsyncLock;
             if (existingLock == this)
             {
                 return null;
             }
 
-            List<AsyncLock> existingLocks = null;
+            List<ReentrantAsyncLock> existingLocks = null;
             if (existingLock == null)
             {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
+                existingLocks = s_heldLocks.Value as List<ReentrantAsyncLock>;
                 if (existingLocks?.Contains(this) ?? false)
                 {
                     return null;
@@ -81,7 +78,7 @@ namespace CoreWCF.Runtime
             else if (existingLock != null) // A single AsyncLock already entered but not this instance
             {
                 // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
+                s_heldLocks.Value = new List<ReentrantAsyncLock>(new ReentrantAsyncLock[] { existingLock, this });
             }
             else
             {
@@ -102,16 +99,16 @@ namespace CoreWCF.Runtime
 #if DEBUG
             object existingValue = s_heldLocks.Value;
 #endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
+            ReentrantAsyncLock existingLock = s_heldLocks.Value as ReentrantAsyncLock;
             if (existingLock == this)
             {
                 return null;
             }
 
-            List<AsyncLock> existingLocks = null;
+            List<ReentrantAsyncLock> existingLocks = null;
             if (existingLock == null)
             {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
+                existingLocks = s_heldLocks.Value as List<ReentrantAsyncLock>;
                 if (existingLocks?.Contains(this) ?? false)
                 {
                     return null;
@@ -131,7 +128,7 @@ namespace CoreWCF.Runtime
             else if (existingLock != null) // A single AsyncLock already entered but not this instance
             {
                 // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
+                s_heldLocks.Value = new List<ReentrantAsyncLock>(new ReentrantAsyncLock[] { existingLock, this });
             }
             else
             {
@@ -162,16 +159,16 @@ namespace CoreWCF.Runtime
 #if DEBUG
             object existingValue = s_heldLocks.Value;
 #endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
+            ReentrantAsyncLock existingLock = s_heldLocks.Value as ReentrantAsyncLock;
             if (existingLock == this)
             {
                 return null;
             }
 
-            List<AsyncLock> existingLocks = null;
+            List<ReentrantAsyncLock> existingLocks = null;
             if (existingLock == null)
             {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
+                existingLocks = s_heldLocks.Value as List<ReentrantAsyncLock>;
                 if (existingLocks?.Contains(this) ?? false)
                 {
                     return null;
@@ -191,7 +188,7 @@ namespace CoreWCF.Runtime
             else if (existingLock != null) // A single AsyncLock already entered but not this instance
             {
                 // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
+                s_heldLocks.Value = new List<ReentrantAsyncLock>(new ReentrantAsyncLock[] { existingLock, this });
             }
             else
             {
@@ -209,9 +206,9 @@ namespace CoreWCF.Runtime
 
         public struct SafeSemaphoreRelease : IDisposable
         {
-            private readonly AsyncLock _asyncLock;
+            private readonly ReentrantAsyncLock _asyncLock;
 
-            public SafeSemaphoreRelease(AsyncLock asyncLock)
+            public SafeSemaphoreRelease(ReentrantAsyncLock asyncLock)
             {
                 _asyncLock = asyncLock;
             }
@@ -226,7 +223,7 @@ namespace CoreWCF.Runtime
                 {
                     s_heldLocks.Value = null;
                 }
-                else if (s_heldLocks.Value is List<AsyncLock> listOfLocks)
+                else if (s_heldLocks.Value is List<ReentrantAsyncLock> listOfLocks)
                 {
 #if DEBUG
                     Debug.Assert(listOfLocks.Contains(_asyncLock), "The list of AsyncLock's didn't contain the expected lock");

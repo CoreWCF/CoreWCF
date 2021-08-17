@@ -810,7 +810,7 @@ namespace CoreWCF.Security
 
             public ServiceHostBase Host => throw new NotImplementedException();
 
-            public AsyncLock AsyncLock { get; } = new AsyncLock();
+            public ReentrantAsyncLock AsyncLock { get; } = new ReentrantAsyncLock();
 
             public IList<Type> SupportedChannelTypes => throw new NotImplementedException();
 

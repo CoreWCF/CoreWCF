@@ -58,7 +58,7 @@ namespace Extensibility
         public int ReleaseInstanceCallCount { get; private set; }
         public int InstanceHashCode { get; private set; } = -1;
         public int ReleasedInstanceHashCode { get; private set; } = -2;
-        private readonly AsyncLock _asyncLock = new AsyncLock();
+        private readonly ReentrantAsyncLock _asyncLock = new ReentrantAsyncLock();
         private IDisposable _asyncLockHoldObj = null;
 
         public object GetInstance(InstanceContext instanceContext)

@@ -41,7 +41,7 @@ namespace CoreWCF.Dispatcher
         private readonly bool _incrementedActivityCountInConstructor;
         private readonly AsyncManualResetEvent _asyncManualResetEvent;
         private bool _openCalled;
-        private SimpleAsyncLock _thisLock;
+        private NonReentrantAsyncLock _thisLock;
 
         internal ChannelHandler(MessageVersion messageVersion, IChannelBinder binder, ServiceThrottle throttle,
              ServiceDispatcher serviceDispatcher, bool wasChannelThrottled, SessionIdleManager idleManager)
@@ -57,7 +57,7 @@ namespace CoreWCF.Dispatcher
             _duplexBinder = binder as DuplexChannelBinder;
             _hasSession = binder.HasSession;
             _isConcurrent = ConcurrencyBehavior.IsConcurrent(channelDispatcher, _hasSession);
-            _thisLock = new SimpleAsyncLock();
+            _thisLock = new NonReentrantAsyncLock();
 
             // TODO: Work out if MultipleReceiveBinder is necessary
             //if (channelDispatcher.MaxPendingReceives > 1)
