@@ -6,7 +6,7 @@ using System.Net.Security;
 
 namespace CoreWCF.Channels
 {
-    internal class HttpsTransportBindingElement : HttpTransportBindingElement
+    public class HttpsTransportBindingElement : HttpTransportBindingElement
     {
         public HttpsTransportBindingElement() : base()
         {
