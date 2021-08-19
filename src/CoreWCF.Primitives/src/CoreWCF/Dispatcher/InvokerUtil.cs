@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using CoreWCF.Description;
 
 namespace CoreWCF.Dispatcher
 {
@@ -93,21 +94,14 @@ namespace CoreWCF.Dispatcher
                 var outputParamPositions = new List<int>();
                 for (int i = 0; i < parameters.Length; i++)
                 {
-                    if (parameters[i].ParameterType.IsByRef)
-                    {
-                        if (parameters[i].IsOut)
-                        {
-                            outputParamPositions.Add(i);
-                        }
-                        else
-                        {
-                            inputParamPositions.Add(i);
-                            outputParamPositions.Add(i);
-                        }
-                    }
-                    else
+                    if (ServiceReflector.FlowsIn(parameters[i]))
                     {
                         inputParamPositions.Add(i);
+                    }
+
+                    if (ServiceReflector.FlowsOut(parameters[i]))
+                    {
+                        outputParamPositions.Add(i);
                     }
                 }
                 
