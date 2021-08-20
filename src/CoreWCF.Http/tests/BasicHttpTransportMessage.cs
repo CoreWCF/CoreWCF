@@ -61,8 +61,40 @@ namespace BasicHttp
             }
         }
 
-       // [Fact, Description("transport-security-with-certificate-authentication")]
-       // TODO set up in container, tested locally and this works
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BasicHttpsCustomBindingRequestReplyEchoString(bool httpsMode)
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
+            using (host)
+            {
+                String serviceUrl = (httpsMode ? "https" : "http") + "://localhost:8443/BasicHttpWcfService/basichttp.svc";
+                host.Start();
+                System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.Transport);
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri(serviceUrl)));
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                try
+                {
+                    ClientContract.IEchoService channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                }catch(Exception ex)
+                {
+                    Assert.True(!httpsMode && ex.Message.Contains("The provided URI scheme 'http' is invalid"));
+                }
+            }
+        }
+
+        // [Fact, Description("transport-security-with-certificate-authentication")]
+        // TODO set up in container, tested locally and this works
         internal void BasicHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
@@ -184,6 +216,32 @@ namespace BasicHttp
                     builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(ChangeBinding(serverBinding), "/BasicHttpWcfService/basichttp.svc");
                     Action<ServiceHostBase> serviceHost = host => ChangeHostBehavior(host);
                     builder.ConfigureServiceHostBase<Services.EchoService>(serviceHost);
+                });
+            }
+        }
+
+        internal class StartupCustomBinding
+        {
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding();
+
+                var textMessageEncodingBindingElement = new CoreWCF.Channels.TextMessageEncodingBindingElement
+                {
+                    MessageVersion = CoreWCF.Channels.MessageVersion.Soap11
+                };
+                customBinding.Elements.Add(textMessageEncodingBindingElement);
+                customBinding.Elements.Add(new CoreWCF.Channels.HttpsTransportBindingElement());
+
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.EchoService>();
+                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(customBinding, "/BasicHttpWcfService/basichttp.svc");
                 });
             }
         }
