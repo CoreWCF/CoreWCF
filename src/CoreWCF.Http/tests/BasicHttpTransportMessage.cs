@@ -64,13 +64,13 @@ namespace BasicHttp
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void BasicHttpsCustomBindingRequestReplyEchoString(bool httpsMode)
+        public void BasicHttpsCustomBindingRequestReplyEchoString(bool useHttps)
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
             using (host)
             {
-                String serviceUrl = (httpsMode ? "https" : "http") + "://localhost:8443/BasicHttpWcfService/basichttp.svc";
+                String serviceUrl = (useHttps ? "https" : "http") + "://localhost:8443/BasicHttpWcfService/basichttp.svc";
                 host.Start();
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.Transport);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
@@ -88,7 +88,7 @@ namespace BasicHttp
                     ((IChannel)channel).Close();
                 }catch(Exception ex)
                 {
-                    Assert.True(!httpsMode && ex.Message.Contains("The provided URI scheme 'http' is invalid"));
+                    Assert.True(!useHttps && ex.Message.Contains("The provided URI scheme 'http' is invalid"));
                 }
             }
         }
