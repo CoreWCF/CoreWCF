@@ -33,9 +33,9 @@ namespace CoreWCF.Channels.Framing
             Logger = new ConnectionIdWrappingLogger(_logger, context.ConnectionId);
             //TODO: Add a public api mechanism to enable connection logging in RELEASE build
 #if DEBUG
-            Transport = RawTransport = new LoggingDuplexPipe(_context.Transport, Logger) { LoggingEnabled = true };
+            Transport = RawTransport = new ExceptionConvertingDuplexPipe(new LoggingDuplexPipe(_context.Transport, Logger) { LoggingEnabled = true });
 #else
-            Transport = RawTransport = _context.Transport;
+            Transport = RawTransport = new ExceptionConvertingDuplexPipe(_context.Transport);
 #endif
             RemoteEndpoint = GetRemoteEndPoint(context);
         }

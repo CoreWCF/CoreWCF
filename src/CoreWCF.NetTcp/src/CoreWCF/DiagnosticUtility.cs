@@ -81,6 +81,8 @@ namespace CoreWCF
 
     internal class ExceptionUtility
     {
+        internal Exception ThrowHelper(Exception e) => e;
+
         internal ArgumentException ThrowHelperArgument(string message)
         {
             return (ArgumentException)ThrowHelperError(new ArgumentException(message));
