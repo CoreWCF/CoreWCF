@@ -66,7 +66,7 @@ namespace BasicHttp
         [InlineData(true)]
         public void BasicHttpsCustomBindingRequestReplyEchoString(bool useHttps)
         {
-            string testString = new string('a', 3000);
+            string testString = new string('a', 4000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
             using (host)
             {
