@@ -119,7 +119,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             protected override XmlDictionaryString LocalName { get { return CoreWCF.XD.SecurityJan2004Dictionary.UserNameTokenElement; } }
             protected override XmlDictionaryString NamespaceUri { get { return CoreWCF.XD.SecurityJan2004Dictionary.Namespace; } }
-            protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(USerNameSecurityToken) }; }
+            protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(UserNameSecurityToken) }; }
             public override string TokenTypeUri { get { return SecurityJan2004Strings.UPTokenType; } }
             protected override string ValueTypeUri { get { return null; } }
         }

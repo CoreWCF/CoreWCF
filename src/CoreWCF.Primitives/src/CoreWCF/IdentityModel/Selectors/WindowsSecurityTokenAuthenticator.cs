@@ -1,8 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
@@ -30,20 +32,23 @@ namespace CoreWCF.IdentityModel.Selectors
             return (token is WindowsSecurityToken || token is GenericSecurityToken);
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override Task<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
+            ReadOnlyCollection<IAuthorizationPolicy> policies;
             if (token is WindowsSecurityToken)
             {
                 var windowsToken = (WindowsSecurityToken)token;
                 var claimSet = new WindowsClaimSet(windowsToken.WindowsIdentity, windowsToken.AuthenticationType, _includeWindowsGroups, windowsToken.ValidTo);
-                return SecurityUtils.CreateAuthorizationPolicies(claimSet, windowsToken.ValidTo);
+                policies = SecurityUtils.CreateAuthorizationPolicies(claimSet, windowsToken.ValidTo);
             }
             else
             {
                 var genericToken = (GenericSecurityToken)token;
-                var claimSet = new WindowsClaimSet((ClaimsIdentity)genericToken.GenericIdentity,  _includeWindowsGroups, _ldapSettings);
-                return SecurityUtils.CreateAuthorizationPolicies(claimSet);
+                var claimSet = new WindowsClaimSet(genericToken.GenericIdentity,  _includeWindowsGroups, _ldapSettings);
+                policies = SecurityUtils.CreateAuthorizationPolicies(claimSet);
             }
+
+            return Task.FromResult(policies);
         }
     }
 }

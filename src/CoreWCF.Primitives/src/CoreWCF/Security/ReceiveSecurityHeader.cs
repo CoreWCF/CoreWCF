@@ -1618,7 +1618,7 @@ namespace CoreWCF.Security
                     //}
                     //else
                     //{
-                    authorizationPolicies = tokenAuthenticator.ValidateToken(token);
+                    authorizationPolicies = tokenAuthenticator.ValidateTokenAsync(token).GetAwaiter().GetResult();
                     // }
                     SecurityTokenAuthorizationPoliciesMapping.Add(token, authorizationPolicies);
                     usedTokenAuthenticator = tokenAuthenticator;

@@ -279,7 +279,7 @@ namespace CoreWCF.Security
                         if (rsaAuthenticator != null)
                         {
                             token = new RsaSecurityToken(rsaClause.Rsa);
-                            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = rsaAuthenticator.ValidateToken(token);
+                            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = rsaAuthenticator.ValidateTokenAsync(token).GetAwaiter().GetResult();
                             TokenTracker rsaTracker = GetSupportingTokenTracker(rsaAuthenticator, out SupportingTokenAuthenticatorSpecification spec);
                             if (rsaTracker == null)
                             {

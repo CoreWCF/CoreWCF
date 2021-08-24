@@ -120,7 +120,7 @@ namespace CoreWCF.Security
             return new SspiNegotiationTokenAuthenticatorState(windowsNegotiation);
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateSspiNegotiation(ISspiNegotiation sspiNegotiation)
+        protected override async Task<ReadOnlyCollection<IAuthorizationPolicy>> ValidateSspiNegotiationAsync(ISspiNegotiation sspiNegotiation)
         {
             WindowsSspiNegotiation windowsNegotiation = (WindowsSspiNegotiation)sspiNegotiation;
             if (windowsNegotiation.IsValidContext == false)
@@ -135,7 +135,7 @@ namespace CoreWCF.Security
             IIdentity identity = windowsNegotiation.GetIdentity();
             if (identity != null)
             {
-                return GetAuthorizationPolicies(identity);
+                return await GetAuthorizationPoliciesAsync(identity);
             }
             else
             {
@@ -143,7 +143,7 @@ namespace CoreWCF.Security
             }
         }
 
-        private ReadOnlyCollection<IAuthorizationPolicy> GetAuthorizationPolicies(IIdentity identity)
+        private Task<ReadOnlyCollection<IAuthorizationPolicy>> GetAuthorizationPoliciesAsync(IIdentity identity)
         {
             IIdentity remoteIdentity = identity;
             SecurityToken token;
@@ -159,7 +159,7 @@ namespace CoreWCF.Security
                 ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                 token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
             }
-            return authenticator.ValidateToken(token);
+            return authenticator.ValidateTokenAsync(token);
         }
 
         private NegotiateInternalState GetNegotiateState() => (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();

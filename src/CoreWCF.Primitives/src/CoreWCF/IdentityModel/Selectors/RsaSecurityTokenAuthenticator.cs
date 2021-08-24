@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
@@ -20,7 +21,7 @@ namespace CoreWCF.IdentityModel.Selectors
             return token is RsaSecurityToken;
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override Task<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
             RsaSecurityToken rsaToken = (RsaSecurityToken)token;
             List<Claim> claims = new List<Claim>(2)
@@ -34,7 +35,7 @@ namespace CoreWCF.IdentityModel.Selectors
             {
                 new UnconditionalPolicy(claimSet, rsaToken.ValidTo)
             };
-            return policies.AsReadOnly();
+            return Task.FromResult(policies.AsReadOnly());
         }
     }
 }

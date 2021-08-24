@@ -15,6 +15,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Xml;
 using CanonicalizationDriver = CoreWCF.IdentityModel.CanonicalizationDriver;
 using Psha1DerivedKeyGenerator = CoreWCF.IdentityModel.Psha1DerivedKeyGenerator;
@@ -58,7 +59,7 @@ namespace CoreWCF.Security
 
         // abstract methods
         public abstract XmlDictionaryString NegotiationValueType { get; }
-        protected abstract ReadOnlyCollection<IAuthorizationPolicy> ValidateSspiNegotiation(ISspiNegotiation sspiNegotiation);
+        protected abstract Task<ReadOnlyCollection<IAuthorizationPolicy>> ValidateSspiNegotiationAsync(ISspiNegotiation sspiNegotiation);
         protected abstract SspiNegotiationTokenAuthenticatorState CreateSspiState(byte[] incomingBlob, string incomingValueTypeUri);
 
         // helpers
@@ -166,7 +167,7 @@ namespace CoreWCF.Security
             return new SspiNegotiationFilter(this);
         }
 
-        protected override BodyWriter ProcessRequestSecurityToken(Message request, RequestSecurityToken requestSecurityToken, out SspiNegotiationTokenAuthenticatorState negotiationState)
+        protected override Task<BodyWriter> ProcessRequestSecurityTokenAsync(Message request, RequestSecurityToken requestSecurityToken, out SspiNegotiationTokenAuthenticatorState negotiationState)
         {
             if (request == null)
             {
@@ -214,10 +215,10 @@ namespace CoreWCF.Security
 
                 negotiationState.AppliesToSerializer = serializer;
             }
-            return ProcessNegotiation(negotiationState, request, incomingNego);
+            return ProcessNegotiationAsync(negotiationState, request, incomingNego);
         }
 
-        protected override BodyWriter ProcessRequestSecurityTokenResponse(SspiNegotiationTokenAuthenticatorState negotiationState, Message request, RequestSecurityTokenResponse requestSecurityTokenResponse)
+        protected override Task<BodyWriter> ProcessRequestSecurityTokenResponseAsync(SspiNegotiationTokenAuthenticatorState negotiationState, Message request, RequestSecurityTokenResponse requestSecurityTokenResponse)
         {
             if (request == null)
             {
@@ -234,10 +235,10 @@ namespace CoreWCF.Security
             AddToDigest(negotiationState, requestSecurityTokenResponse, true);
             BinaryNegotiation incomingNego = requestSecurityTokenResponse.GetBinaryNegotiation();
             ValidateIncomingBinaryNegotiation(incomingNego);
-            return ProcessNegotiation(negotiationState, request, incomingNego);
+            return ProcessNegotiationAsync(negotiationState, request, incomingNego);
         }
 
-        private BodyWriter ProcessNegotiation(SspiNegotiationTokenAuthenticatorState negotiationState, Message incomingMessage, BinaryNegotiation incomingNego)
+        private async Task<BodyWriter> ProcessNegotiationAsync(SspiNegotiationTokenAuthenticatorState negotiationState, Message incomingMessage, BinaryNegotiation incomingNego)
         {
             ISspiNegotiation sspiNegotiation = negotiationState.SspiNegotiation;
 
@@ -266,7 +267,7 @@ namespace CoreWCF.Security
             BodyWriter replyBody;
             if (sspiNegotiation.IsCompleted)
             {
-                ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = ValidateSspiNegotiation(sspiNegotiation);
+                ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await ValidateSspiNegotiationAsync(sspiNegotiation);
                 SecurityContextSecurityToken serviceToken;
                 WrappedKeySecurityToken proofToken;
                 int issuedKeySize;
