@@ -26,9 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
-    <ProjectReference Include="..\src\CoreWCF.ConfigurationManager.csproj">
-      <Private>true</Private>
-    </ProjectReference>
+    <ProjectReference Include="..\src\CoreWCF.ConfigurationManager.csproj" />     
   </ItemGroup>
 
 </Project>
