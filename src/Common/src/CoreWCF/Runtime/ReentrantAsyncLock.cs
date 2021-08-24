@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace CoreWCF.Runtime
 {
-    internal class AsyncLock
+    internal class ReentrantAsyncLock
     {
 #if DEBUG
         private StackTrace _lockTakenCallStack;
@@ -21,7 +21,7 @@ namespace CoreWCF.Runtime
         private readonly SafeSemaphoreRelease _semaphoreRelease;
         private static readonly AsyncLocal<object> s_heldLocks = new AsyncLocal<object>(LockTakenValueChanged);
 
-        public AsyncLock()
+        public ReentrantAsyncLock()
         {
             _semaphore = new SemaphoreSlim(1);
             _semaphoreRelease = new SafeSemaphoreRelease(this);
@@ -49,16 +49,16 @@ namespace CoreWCF.Runtime
 #if DEBUG
             object existingValue = s_heldLocks.Value;
 #endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
+            ReentrantAsyncLock existingLock = s_heldLocks.Value as ReentrantAsyncLock;
             if (existingLock == this)
             {
                 return null;
             }
 
-            List<AsyncLock> existingLocks = null;
+            List<ReentrantAsyncLock> existingLocks = null;
             if (existingLock == null)
             {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
+                existingLocks = s_heldLocks.Value as List<ReentrantAsyncLock>;
                 if (existingLocks?.Contains(this) ?? false)
                 {
                     return null;
@@ -78,7 +78,7 @@ namespace CoreWCF.Runtime
             else if (existingLock != null) // A single AsyncLock already entered but not this instance
             {
                 // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
+                s_heldLocks.Value = new List<ReentrantAsyncLock>(new ReentrantAsyncLock[] { existingLock, this });
             }
             else
             {
@@ -99,16 +99,16 @@ namespace CoreWCF.Runtime
 #if DEBUG
             object existingValue = s_heldLocks.Value;
 #endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
+            ReentrantAsyncLock existingLock = s_heldLocks.Value as ReentrantAsyncLock;
             if (existingLock == this)
             {
                 return null;
             }
 
-            List<AsyncLock> existingLocks = null;
+            List<ReentrantAsyncLock> existingLocks = null;
             if (existingLock == null)
             {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
+                existingLocks = s_heldLocks.Value as List<ReentrantAsyncLock>;
                 if (existingLocks?.Contains(this) ?? false)
                 {
                     return null;
@@ -128,13 +128,13 @@ namespace CoreWCF.Runtime
             else if (existingLock != null) // A single AsyncLock already entered but not this instance
             {
                 // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
+                s_heldLocks.Value = new List<ReentrantAsyncLock>(new ReentrantAsyncLock[] { existingLock, this });
             }
             else
             {
 #if DEBUG
                 Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
-#endif 
+#endif
                 existingLocks.Add(this);
             }
 #if DEBUG
@@ -159,16 +159,16 @@ namespace CoreWCF.Runtime
 #if DEBUG
             object existingValue = s_heldLocks.Value;
 #endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
+            ReentrantAsyncLock existingLock = s_heldLocks.Value as ReentrantAsyncLock;
             if (existingLock == this)
             {
                 return null;
             }
 
-            List<AsyncLock> existingLocks = null;
+            List<ReentrantAsyncLock> existingLocks = null;
             if (existingLock == null)
             {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
+                existingLocks = s_heldLocks.Value as List<ReentrantAsyncLock>;
                 if (existingLocks?.Contains(this) ?? false)
                 {
                     return null;
@@ -188,13 +188,13 @@ namespace CoreWCF.Runtime
             else if (existingLock != null) // A single AsyncLock already entered but not this instance
             {
                 // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
+                s_heldLocks.Value = new List<ReentrantAsyncLock>(new ReentrantAsyncLock[] { existingLock, this });
             }
             else
             {
 #if DEBUG
                 Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
-#endif               
+#endif
                 existingLocks.Add(this);
             }
 #if DEBUG
@@ -206,9 +206,9 @@ namespace CoreWCF.Runtime
 
         public struct SafeSemaphoreRelease : IDisposable
         {
-            private readonly AsyncLock _asyncLock;
+            private readonly ReentrantAsyncLock _asyncLock;
 
-            public SafeSemaphoreRelease(AsyncLock asyncLock)
+            public SafeSemaphoreRelease(ReentrantAsyncLock asyncLock)
             {
                 _asyncLock = asyncLock;
             }
@@ -223,11 +223,11 @@ namespace CoreWCF.Runtime
                 {
                     s_heldLocks.Value = null;
                 }
-                else if (s_heldLocks.Value is List<AsyncLock> listOfLocks)
+                else if (s_heldLocks.Value is List<ReentrantAsyncLock> listOfLocks)
                 {
 #if DEBUG
                     Debug.Assert(listOfLocks.Contains(_asyncLock), "The list of AsyncLock's didn't contain the expected lock");
-#endif 
+#endif
                     // As locks are expected to be released in the order they are taken and they are always appended to the end,
                     // removal should be O(n) simply to look for the lock and removal should be constant time. If this becomes
                     // a significant overhead, then manual search in reverse will fix it. Keeping simple for now.

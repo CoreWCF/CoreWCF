@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
@@ -32,7 +34,7 @@ namespace CoreWCF.Dispatcher
 
         public IList<Type> SupportedChannelTypes => ChannelDispatcher.SupportedChannelTypes;
 
-        public object ThisLock { get; } = new object();
+        public NonReentrantAsyncLock ThisLock { get; } = new NonReentrantAsyncLock();
 
         public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
         {
