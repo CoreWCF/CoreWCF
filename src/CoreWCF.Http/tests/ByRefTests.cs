@@ -38,6 +38,22 @@ namespace CoreWCF.Http.Tests
 
                 ClientContract.IByRefService channel = factory.CreateChannel();
 
+                // Test that out param behaves as expected
+
+                channel.SetNumber(33);
+
+                channel.GetNumber(out int num1);
+
+                Assert.Equal(33, num1);
+
+                // Test that InAttribute makes no difference
+
+                channel.SetNumberIn(41);
+
+                channel.GetNumber(out int num2);
+
+                Assert.Equal(41, num2);
+
                 // Test that the out param is correctly decided by the input
 
                 channel.GetOutParam("test", out Guid guidA, true);
