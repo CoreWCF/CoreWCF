@@ -25,7 +25,7 @@ namespace CoreWCF.Configuration
 
             if (!serviceType.IsClass)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException($"{serviceType.FullName} should be a class", nameof(serviceType)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.ConfigureServiceHostBaseTypeMustBeClass, serviceType.FullName), nameof(serviceType)));
             }
 
             var serviceBuilder = builder as ServiceBuilder;

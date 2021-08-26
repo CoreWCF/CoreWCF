@@ -74,6 +74,18 @@ namespace BasicHttp
             }
         }
 
+        [Fact]
+        public void BasicHttpNonGenericConfigureServiceHostBaseNotAClassThrows()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfigurationWithInterface>(_output).Build();
+            using (host)
+            {
+                var exception = Assert.Throws<ArgumentException>(() => host.Start());
+                Assert.Equal("serviceType", exception.ParamName);
+            }
+        }
+
         internal class Startup
         {
             public void ConfigureServices(IServiceCollection services)
@@ -130,6 +142,28 @@ namespace BasicHttp
                     builder.ConfigureServiceHostBase(typeof(Services.EchoService), serviceHost =>
                     {
                         ConfigureServiceHostValid = serviceHost.Description.ServiceType == typeof(Services.EchoService);
+                    });
+                });
+            }
+        }
+
+        internal class StartupWithNonGenericConfigurationWithInterface
+        {
+            public static bool ConfigureServiceHostValid { get; set; } = false;
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.EchoService>();
+                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                    builder.ConfigureServiceHostBase(typeof(ServiceContract.IEchoService), serviceHost =>
+                    {
+                        // Noop
                     });
                 });
             }
