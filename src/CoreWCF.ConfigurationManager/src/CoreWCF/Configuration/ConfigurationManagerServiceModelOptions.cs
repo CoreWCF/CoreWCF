@@ -21,7 +21,7 @@ namespace CoreWCF.Configuration
 
         public ConfigurationManagerServiceModelOptions(IServiceProvider builder, string path)
         {
-            _holder = builder.GetRequiredService<IConfigurationHolder>();           
+            _holder = builder.GetRequiredService<IConfigurationHolder>();
 
             _section = new Lazy<ServiceModelSectionGroup>(() =>
             {
@@ -33,7 +33,7 @@ namespace CoreWCF.Configuration
                 // /home/vsts/.nuget/packages/microsoft.testplatform.testhost/16.7.1/lib/netcoreapp2.1/
                 var isNetCore21 = RuntimeInformation.FrameworkDescription.Contains(".NET Core 4.6");
                 if (isNetCore21 && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                { 
+                {
                     basePath = AppContext.BaseDirectory;
                 }
 
@@ -66,7 +66,7 @@ namespace CoreWCF.Configuration
                 IXmlConfigEndpoint configEndpoint = configHolder.GetXmlConfigEndpoint(endpointName);
                 options.ConfigureService(configEndpoint.Service, serviceConfig =>
                 {
-                    serviceConfig.ConfigureServiceEndpoint(configEndpoint.Service, configEndpoint.Contract, configEndpoint.Binding, configEndpoint.Address, null);
+                    serviceConfig.AddServiceEndpoint(configEndpoint.Contract, configEndpoint.Binding, configEndpoint.Address, null);
                 });
             }
         }

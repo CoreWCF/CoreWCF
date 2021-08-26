@@ -6,7 +6,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
-    public class XmlConfigEndpoint : IXmlConfigEndpoint
+    internal class XmlConfigEndpoint : IXmlConfigEndpoint
     {
         public Uri Address { get; private set; }
         public Binding Binding { get; private set; }

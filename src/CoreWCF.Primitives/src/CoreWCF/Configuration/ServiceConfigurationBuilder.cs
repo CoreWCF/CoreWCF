@@ -10,57 +10,54 @@ namespace CoreWCF.Configuration
     public class ServiceConfigurationBuilder
     {
         private readonly List<Action<ServiceConfigurationBuilder>> _configDelegates = new List<Action<ServiceConfigurationBuilder>>();
-        private Dictionary<Type, List<ServiceEndpointConfiguration>> _endpoints;
-
-        internal Type ServiceType { get; set; }
+        private List<ServiceEndpointConfiguration> _endpoints = new List<ServiceEndpointConfiguration>();
+        private Type _serviceType;
 
         public ServiceConfigurationBuilder(Type serviceType)
         {
-            ServiceType = serviceType;
+            _serviceType = serviceType;
         }
 
-        public void AddConfigureDelegate(Action<ServiceConfigurationBuilder> configDelegate)
+        public void Configure(Action<ServiceConfigurationBuilder> configDelegate)
         {
             _configDelegates.Add(configDelegate);
         }
 
-        public void ConfigureServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri)
+        public void AddServiceEndpoint(Type implementedContract, Binding binding, Uri address, Uri listenUri)
         {
-            List<ServiceEndpointConfiguration> serviceEndpoints;
-            if (!_endpoints.TryGetValue(service, out serviceEndpoints))
-            {
-                serviceEndpoints = new List<ServiceEndpointConfiguration>();
-                _endpoints[service] = serviceEndpoints;
-            }
-
-            var endpoint = new ServiceEndpointConfiguration
-            {
-                Contract = implementedContract,
-                Binding = binding,
-                Address = address,
-                ListenUri = listenUri
-            };
-            serviceEndpoints.Add(endpoint);
+            _endpoints.Add(new ServiceEndpointConfiguration(implementedContract, binding, address, listenUri));
         }
 
         internal void ConfigureServiceBuilder(IServiceBuilder serviceBuilder)
         {
-            _endpoints = new Dictionary<Type, List<ServiceEndpointConfiguration>>();
             foreach (var configDelegate in _configDelegates)
             {
                 configDelegate(this);
             }
 
-            foreach (var service in _endpoints)
+            serviceBuilder.AddService(_serviceType);
+            foreach (var endpoint in _endpoints)
             {
-                serviceBuilder.AddService(service.Key);
-                foreach (var serviceEndpoint in service.Value)
-                {
-                    serviceBuilder.AddServiceEndpoint(service.Key, serviceEndpoint.Contract, serviceEndpoint.Binding, serviceEndpoint.Address, serviceEndpoint.ListenUri);
-                }
-
+                serviceBuilder.AddServiceEndpoint(_serviceType, endpoint.Contract, endpoint.Binding, endpoint.Address, endpoint.ListenUri);
             }
-            _endpoints = null;
+
+            _endpoints.Clear();
+        }
+
+        private struct ServiceEndpointConfiguration
+        {
+            public ServiceEndpointConfiguration(Type contract, Binding binding, Uri address, Uri listenUri)
+            {
+                Contract = contract;
+                Binding = binding;
+                Address = address;
+                ListenUri = listenUri;
+            }
+
+            public Uri Address { get; set; }
+            public Binding Binding { get; set; }
+            public Type Contract { get; set; }
+            public Uri ListenUri { get; set; }
         }
     }
 }

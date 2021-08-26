@@ -13,7 +13,7 @@ namespace CoreWCF.ConfigurationManager.Tests
         {
             var services = new ServiceCollection();
             services.AddServiceModelServices();
-            services.AddConfigurationManagerFile(path);
+            services.AddServiceModelConfigurationManagerFile(path);
 
             return services.BuildServiceProvider();
         }

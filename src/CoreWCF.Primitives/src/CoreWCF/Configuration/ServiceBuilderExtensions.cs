@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
@@ -15,13 +14,6 @@ namespace CoreWCF.Configuration
             ServiceConfigurationDelegateHolder<TService> holder = serviceBuilder.ServiceProvider
                 .GetRequiredService<ServiceConfigurationDelegateHolder<TService>>();
             holder.AddConfigDelegate(func);
-        }
-
-        public static void ConfigureXmlConfigSupport(this IServiceBuilder builder)
-        {
-            var serviceBuilder = builder as ServiceBuilder;
-            var options = serviceBuilder.ServiceProvider.GetRequiredService<ServiceModelOptions>();
-            options.ConfigureServiceBuilder(builder);
         }
     }
 }

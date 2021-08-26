@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel;
 using System.Configuration;
 using System.Text;
-using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {

@@ -16,26 +16,23 @@ namespace CoreWCF.ConfigurationManager.Tests
         {
             string pathToXml = GetXmlConfigFilePath();
             services.AddServiceModelServices();
-            services.AddConfigurationManagerFile(pathToXml);
+            services.AddServiceModelConfigurationManagerFile(pathToXml);
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseServiceModel(builder =>
-            {
-                builder.ConfigureXmlConfigSupport();                    
-            });
+            app.UseServiceModel();
         }
 
         private string GetXmlConfigFilePath()
         {
             string xml = $@"
 <configuration> 
-    <system.serviceModel>         
-        <bindings>         
+    <system.serviceModel>
+        <bindings>
             <netTcpBinding>
                 <binding name=""testBinding""/>
-            </netTcpBinding>                             
+            </netTcpBinding>
         </bindings>
         <services>
             <service name=""{typeof(SomeService).FullName}"">

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
-    public class ConfigurationHolder : IConfigurationHolder
+    internal class ConfigurationHolder : IConfigurationHolder
     {
         private readonly ConcurrentDictionary<string, Binding> _bindings = new ConcurrentDictionary<string, Binding>();
         private readonly ConcurrentDictionary<string, ServiceEndpoint> _endpoints = new ConcurrentDictionary<string, ServiceEndpoint>();
@@ -59,7 +59,7 @@ namespace CoreWCF.Configuration
             if (_endpoints.TryGetValue(name, out ServiceEndpoint endpoint))
             {
                 Type contract = ServiceReflector.ResolveTypeFromName(endpoint.Contract);
-                Type service = ServiceReflector.ResolveTypeFromName(endpoint.ServiceName);              
+                Type service = ServiceReflector.ResolveTypeFromName(endpoint.ServiceName);
                 Binding binding = ResolveBinding(endpoint.Binding, endpoint.BindingConfiguration);
 
                 return new XmlConfigEndpoint(service, contract, binding, endpoint.Address);
