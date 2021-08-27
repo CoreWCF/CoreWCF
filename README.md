@@ -12,7 +12,7 @@ There are pre-release packages available from a NuGet feed hosted in Azure DevOp
 
     https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json
 
-If you are using a nuget.config file with only the default nuget.org package source, after adding the CoreWCF feed it would like like this:
+If you are using a nuget.config file with only the default nuget.org package source, after adding the CoreWCF feed it would look like this:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
