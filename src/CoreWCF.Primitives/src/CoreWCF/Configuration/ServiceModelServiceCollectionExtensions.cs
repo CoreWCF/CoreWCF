@@ -89,6 +89,7 @@ namespace CoreWCF.Configuration
             services.AddSingleton(typeof(ServiceHostObjectModel<>));
             services.AddSingleton(typeof(TransportCompressionSupportHelper));
             services.AddSingleton(typeof(ServiceDescription<>));
+            services.AddSingleton(typeof(ServiceModelOptions));
             return services;
         }
     }

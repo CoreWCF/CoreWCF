@@ -7,6 +7,7 @@ using CoreWCF.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
@@ -24,10 +25,22 @@ namespace CoreWCF.Configuration
                 throw new ArgumentNullException(nameof(configureServices));
             }
 
+            ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();          
+
+            configureServices(serviceBuilder);
+
+            return UseServiceModel(app);
+        }
+       
+        public static IApplicationBuilder UseServiceModel(this IApplicationBuilder app)
+        {
+            ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
             ILoggerFactory loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
             ILogger logger = loggerFactory.CreateLogger(nameof(ServiceModelApplicationBuilderExtensions));
-            ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
-            configureServices(serviceBuilder);
+
+            var options = app.ApplicationServices.GetService<IOptions<ServiceModelOptions>>();
+            var serviceModelOptions = options.Value ?? new ServiceModelOptions();
+            serviceModelOptions.ConfigureServiceBuilder(serviceBuilder);
 
             IEnumerable<ITransportServiceBuilder> transportServiceBuilders = app.ApplicationServices.GetServices<ITransportServiceBuilder>();
             var transportServiceBuilderSeenTypes = new HashSet<Type>();

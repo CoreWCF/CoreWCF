@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace />
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CoreWCF.Http\src\CoreWCF.Http.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.NetTcp\src\CoreWCF.NetTcp.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="CoreWCF.machine.config" buildAction="None">
+      <Pack>true</Pack>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="CoreWCF.ConfigurationManager.targets" PackagePath="build/CoreWCF.ConfigurationManager.targets" />
+  </ItemGroup>
+  <ItemGroup Label="FilesToCopy">
+  </ItemGroup>
+
+</Project>
