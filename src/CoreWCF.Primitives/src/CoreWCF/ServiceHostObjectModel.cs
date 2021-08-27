@@ -251,7 +251,7 @@ namespace CoreWCF
                      address.StartsWith("https://*:", StringComparison.OrdinalIgnoreCase) ||
                      address.StartsWith("https://*/", StringComparison.OrdinalIgnoreCase))
             {
-                address = "https://localhost" + address.Substring(8);
+                address = "https://localhost" + address.Substring(9);
             }
 
             return new Uri(address);
