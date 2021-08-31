@@ -6,16 +6,21 @@ namespace NetCoreClient
 {
     class Program
     {
-        private static readonly string s_hostname = "localhost";
-
-        static void Main()
+        /// <remarks>
+        /// use commanline argument localhost
+        /// or something similar to indicate the WCF Server hostname
+        /// </remarks>
+        static void Main(string[] args)
         {
-            Settings settings = new Settings().SetDefaults(s_hostname, "EchoService");
+            string hostname = args.Length >= 1 ? args[0] : null;
+
+            Console.Title = "WCF .Net Core Client";
+            Settings settings = ClientLogic.BuildClientSettings(hostname);
 
             static void log(string value) => Console.WriteLine(value);
-            ClientLogic.CallUsingWcf(settings, log);
+            ClientLogic.InvokeEchoServiceUsingWcf(settings, log);
 
-            string rawSoapResponse = ClientLogic.CallUsingWebRequest(settings.basicHttpAddress);
+            string rawSoapResponse = ClientLogic.InvokeEchoServiceUsingWebRequest(settings.basicHttpAddress);
             Console.WriteLine($"Http SOAP Response:\n{rawSoapResponse}");
 
             Console.WriteLine("Hit enter to exit");

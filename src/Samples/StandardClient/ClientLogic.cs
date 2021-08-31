@@ -9,8 +9,18 @@ namespace StandardClient
 {
     public class ClientLogic
     {
+        public static Settings BuildClientSettings(string hostname)
+        {
+            const string s_hostname = "localhost";
 
-        public static void CallUsingWcf(
+            string title = Console.Title;
+            if (string.IsNullOrWhiteSpace(hostname)) hostname = s_hostname;
+            Console.WriteLine(title + " - " + hostname);
+            Settings settings = new Settings().SetDefaults(hostname, "EchoService");
+            return settings;
+        }
+
+        public static void InvokeEchoServiceUsingWcf(
             Settings settings,
             Action<string> log)
         {
@@ -85,7 +95,7 @@ namespace StandardClient
         /// Creates a basic web request to the specified endpoint,
         /// sends the SOAP request and reads the response
         /// </summary>
-        public static string CallUsingWebRequest(Uri address)
+        public static string InvokeEchoServiceUsingWebRequest(Uri address)
         {
             string _soapEnvelopeContent =
 @"<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>
