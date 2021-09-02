@@ -62,7 +62,7 @@ stages:
         arguments: '--configuration Release --framework $(targetFramework)'
     - task: DotNetCoreCLI@2
       displayName: Run Tests
-      timeoutInMinutes: 5
+      timeoutInMinutes: 6
       inputs:
         command: 'test'
         projects: ${{ parameters.testProjects}}
