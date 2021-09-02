@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.ServiceModel.Channels;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Selectors;
 using Helpers;
@@ -78,7 +79,8 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact, Description("Demuxer-failure-nettcp")]
-        public void NetTCPRequestReplyWithTransportMessageEchoStringDemuxFailure()
+        [UseCulture("en-US")]
+        public async Task NetTCPRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTCDemuxFailure>(_output).Build();
@@ -102,12 +104,12 @@ namespace CoreWCF.NetTcp.Tests
                 try
                 {
                     ((IChannel)channel).Open();
-                    Thread.Sleep(6000);
+                    await Task.Delay(6000);
                     string result = channel.EchoString(testString);
                 }
                 catch (Exception ex)
                 {
-                    Assert.Equal(typeof(System.ServiceModel.FaultException), ex.InnerException?.GetType());
+                    Assert.IsAssignableFrom<System.ServiceModel.FaultException>(ex.InnerException);
                     Assert.Contains("expired security context token", ex.InnerException.Message);
                 }
             }
