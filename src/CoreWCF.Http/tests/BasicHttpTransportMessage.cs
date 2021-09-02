@@ -64,6 +64,7 @@ namespace BasicHttp
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [UseCulture("en-US")]
         public void BasicHttpsCustomBindingRequestReplyEchoString(bool useHttps)
         {
             string testString = new string('a', 4000);

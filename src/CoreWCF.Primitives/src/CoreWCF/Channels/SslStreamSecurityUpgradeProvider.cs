@@ -297,8 +297,8 @@ namespace CoreWCF.Channels
                 _clientCertificate = certificate2;
                 try
                 {
-                    SecurityToken token = new X509SecurityToken(certificate2, false);
-                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _parent.ClientCertificateAuthenticator.ValidateToken(token);
+                    SecurityToken token = new X509SecurityToken(certificate2, true);
+                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _parent.ClientCertificateAuthenticator.ValidateTokenAsync(token).AsTask().GetAwaiter().GetResult();
                     _clientSecurity = new SecurityMessageProperty
                     {
                         TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
@@ -322,13 +322,6 @@ namespace CoreWCF.Channels
             }
             if (_clientCertificate != null)
             {
-                SecurityToken token = new X509SecurityToken(_clientCertificate);
-                ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.NonValidatingX509Authenticator.ValidateToken(token);
-                _clientSecurity = new SecurityMessageProperty
-                {
-                    TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
-                    ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies)
-                };
                 return _clientSecurity;
             }
             return base.GetRemoteSecurity();
