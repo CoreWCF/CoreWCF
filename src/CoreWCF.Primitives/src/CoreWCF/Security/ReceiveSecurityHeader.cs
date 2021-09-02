@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
@@ -600,7 +601,7 @@ namespace CoreWCF.Security
             _clockSkew = clockSkew;
         }
 
-        public void Process(TimeSpan timeout, ChannelBinding channelBinding, ExtendedProtectionPolicy extendedProtectionPolicy)
+        public async ValueTask ProcessAsync(TimeSpan timeout, ChannelBinding channelBinding, ExtendedProtectionPolicy extendedProtectionPolicy)
         {
             Fx.Assert(ReaderQuotas != null, "Reader quotas must be set before processing");
             MessageProtectionOrder actualProtectionOrder = _protectionOrder;
@@ -742,7 +743,7 @@ namespace CoreWCF.Security
             }
 
             SecurityHeaderElementInferenceEngine engine = SecurityHeaderElementInferenceEngine.GetInferenceEngine(Layout);
-            engine.ExecuteProcessingPasses(this, reader);
+            await engine.ExecuteProcessingPassesAsync(this, reader);
             if (RequireMessageProtection)
             {
                 ElementManager.EnsureAllRequiredSecurityHeaderTargetsWereProtected();
@@ -917,7 +918,7 @@ namespace CoreWCF.Security
             }
         }
 
-        internal void ExecuteSubheaderDecryptionPass()
+        internal async ValueTask ExecuteSubheaderDecryptionPassAsync()
         {
             for (int position = 0; position < ElementManager.Count; position++)
             {
@@ -925,12 +926,12 @@ namespace CoreWCF.Security
                 {
                     EncryptedData encryptedData = ElementManager.GetElement<EncryptedData>(position);
                     bool dummy = false;
-                    ProcessEncryptedData(encryptedData, _timeoutHelper.RemainingTime(), position, false, ref dummy);
+                    await ProcessEncryptedDataAsync(encryptedData, _timeoutHelper.RemainingTime(), position, false, dummy);
                 }
             }
         }
 
-        internal void ExecuteReadingPass(XmlDictionaryReader reader)
+        internal async ValueTask ExecuteReadingPassAsync(XmlDictionaryReader reader)
         {
             int position = 0;
             while (reader.IsStartElement())
@@ -965,7 +966,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    ReadToken(reader, AppendPosition, null, null, null, _timeoutHelper.RemainingTime());
+                    await ReadTokenAsync(reader, AppendPosition, null, null, null, _timeoutHelper.RemainingTime());
                 }
                 position++;
             }
@@ -974,7 +975,7 @@ namespace CoreWCF.Security
             reader.Close();
         }
 
-        internal void ExecuteFullPass(XmlDictionaryReader reader)
+        internal async ValueTask ExecuteFullPassAsync(XmlDictionaryReader reader)
         {
             bool primarySignatureFound = !RequireMessageProtection;
             int position = 0;
@@ -1011,7 +1012,7 @@ namespace CoreWCF.Security
                 else if (IsReaderAtEncryptedData(reader))
                 {
                     EncryptedData encryptedData = ReadEncryptedData(reader);
-                    ProcessEncryptedData(encryptedData, _timeoutHelper.RemainingTime(), position, true, ref primarySignatureFound);
+                    primarySignatureFound = await ProcessEncryptedDataAsync(encryptedData, _timeoutHelper.RemainingTime(), position, true, primarySignatureFound);
                 }
                 else if (StandardsManager.SecurityVersion.IsReaderAtSignatureConfirmation(reader))
                 {
@@ -1023,7 +1024,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    ReadToken(reader, AppendPosition, null, null, null, _timeoutHelper.RemainingTime());
+                    await ReadTokenAsync(reader, AppendPosition, null, null, null, _timeoutHelper.RemainingTime());
                 }
                 position++;
             }
@@ -1108,12 +1109,14 @@ namespace CoreWCF.Security
                 );
         }
 
-        private void ProcessEncryptedData(EncryptedData encryptedData, TimeSpan timeout, int position, bool eagerMode, ref bool primarySignatureFound)
+        private async ValueTask<bool> ProcessEncryptedDataAsync(EncryptedData encryptedData, TimeSpan timeout, int position, bool eagerMode, bool primarySignatureFound)
         {
             // if (TD.EncryptedDataProcessingStartIsEnabled())
             // {
             //     TD.EncryptedDataProcessingStart(this.EventTraceActivity);
             // }
+
+            bool result = primarySignatureFound;
 
             string id = encryptedData.Id;
 
@@ -1134,7 +1137,7 @@ namespace CoreWCF.Security
                     }
                     else
                     {
-                        primarySignatureFound = true;
+                        result = true;
                         ElementManager.SetBindingMode(position, ReceiveSecurityHeaderBindingModes.Primary);
                         ProcessPrimarySignature(signedXml, true);
                     }
@@ -1165,7 +1168,7 @@ namespace CoreWCF.Security
 
 
                     // read the actual token and put it into the system
-                    ReadToken(dr, position, db, encryptionToken, id, timeout);
+                    await ReadTokenAsync(dr, position, db, encryptionToken, id, timeout);
 
                     ElementManager.GetElementEntry(position, out ReceiveSecurityHeaderEntry rshe);
 
@@ -1195,9 +1198,11 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    ReadToken(decryptedReader, position, decryptedBuffer, encryptionToken, id, timeout);
+                    await ReadTokenAsync(decryptedReader, position, decryptedBuffer, encryptionToken, id, timeout);
                 }
             }
+
+            return result;
 
             //  if (TD.EncryptedDataProcessingSuccessIsEnabled())
             //  {
@@ -1477,7 +1482,7 @@ namespace CoreWCF.Security
             return result;
         }
 
-        private void ReadToken(XmlDictionaryReader reader, int position, byte[] decryptedBuffer,
+        private async ValueTask ReadTokenAsync(XmlDictionaryReader reader, int position, byte[] decryptedBuffer,
             SecurityToken encryptionToken, string idInEncryptedForm, TimeSpan timeout)
         {
             Fx.Assert((position == AppendPosition) == (decryptedBuffer == null), "inconsistent position, decryptedBuffer parameters");
@@ -1486,7 +1491,7 @@ namespace CoreWCF.Security
             string namespaceUri = reader.NamespaceURI;
             string valueType = reader.GetAttribute(XD.SecurityJan2004Dictionary.ValueType, null);
 
-            SecurityToken token = ReadToken(reader, CombinedUniversalTokenResolver, _allowedAuthenticators, out SecurityTokenAuthenticator usedTokenAuthenticator);
+            (SecurityToken token, SecurityTokenAuthenticator usedTokenAuthenticator) = await ReadTokenAsync(reader, CombinedUniversalTokenResolver, _allowedAuthenticators);
             if (token == null)
             {
                 throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenManagerCouldNotReadToken, localName, namespaceUri, valueType)), Message);
@@ -1586,7 +1591,7 @@ namespace CoreWCF.Security
             }
         }
 
-        private SecurityToken ReadToken(XmlReader reader, SecurityTokenResolver tokenResolver, IList<SecurityTokenAuthenticator> allowedTokenAuthenticators, out SecurityTokenAuthenticator usedTokenAuthenticator)
+        private async ValueTask<(SecurityToken, SecurityTokenAuthenticator)> ReadTokenAsync(XmlReader reader, SecurityTokenResolver tokenResolver, IList<SecurityTokenAuthenticator> allowedTokenAuthenticators)
         {
             SecurityToken token = StandardsManager.SecurityTokenSerializer.ReadToken(reader, tokenResolver);
             if (token is DerivedKeySecurityTokenStub)
@@ -1598,10 +1603,8 @@ namespace CoreWCF.Security
                         SR.Format(SR.UnableToFindTokenAuthenticator, typeof(DerivedKeySecurityToken))));
                 }
 
-                // This is just the stub. Nothing to Validate. Set the usedTokenAuthenticator to 
-                // DerivedKeySecurityTokenAuthenticator.
-                usedTokenAuthenticator = DerivedTokenAuthenticator;
-                return token;
+                // This is just the stub. Nothing to Validate. Return the DerivedKeySecurityTokenAuthenticator.
+                return (token, DerivedTokenAuthenticator);
             }
 
             for (int i = 0; i < allowedTokenAuthenticators.Count; ++i)
@@ -1618,11 +1621,10 @@ namespace CoreWCF.Security
                     //}
                     //else
                     //{
-                    authorizationPolicies = tokenAuthenticator.ValidateToken(token);
+                    authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(token);
                     // }
                     SecurityTokenAuthorizationPoliciesMapping.Add(token, authorizationPolicies);
-                    usedTokenAuthenticator = tokenAuthenticator;
-                    return token;
+                    return (token, tokenAuthenticator);
                 }
             }
 

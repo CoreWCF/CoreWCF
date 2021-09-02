@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
@@ -78,7 +79,7 @@ namespace CoreWCF.Security
             _outgoingSessionToken = token ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
         }
 
-        protected override void VerifyIncomingMessageCore(ref Message message, TimeSpan timeout)
+        protected override async ValueTask<Message> VerifyIncomingMessageCoreAsync(Message message, TimeSpan timeout)
         {
             string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
             ReceiveSecurityHeader securityHeader = Factory.StandardsManager.TryCreateReceiveSecurityHeader(message, actor,
@@ -105,7 +106,7 @@ namespace CoreWCF.Security
             securityHeader.SetTimeParameters(Factory.NonceCache, Factory.ReplayWindow, Factory.MaxClockSkew);
             // do not enforce key derivation requirement for Cancel messages due to WSE interop
             securityHeader.EnforceDerivedKeyRequirement = (message.Headers.Action != Factory.StandardsManager.SecureConversationDriver.CloseAction.Value);
-            securityHeader.Process(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), Factory.ExtendedProtectionPolicy);
+            await securityHeader.ProcessAsync(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), Factory.ExtendedProtectionPolicy);
             if (securityHeader.Timestamp == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.RequiredTimestampMissingInSecurityHeader)));
@@ -127,10 +128,11 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.NoSessionTokenPresentInMessage)));
             }
-            message = securityHeader.ProcessedMessage;
-            AttachRecipientSecurityProperty(message, securityHeader.BasicSupportingTokens, securityHeader.EndorsingSupportingTokens,
+            Message processedMessage = securityHeader.ProcessedMessage;
+            AttachRecipientSecurityProperty(processedMessage, securityHeader.BasicSupportingTokens, securityHeader.EndorsingSupportingTokens,
                 securityHeader.SignedEndorsingSupportingTokens, securityHeader.SignedSupportingTokens, securityHeader.SecurityTokenAuthorizationPoliciesMapping);
-            OnIncomingMessageVerified(message);
+            OnIncomingMessageVerified(processedMessage);
+            return processedMessage;
         }
     }
 }

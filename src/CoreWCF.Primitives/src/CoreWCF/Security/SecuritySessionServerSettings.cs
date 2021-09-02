@@ -1122,15 +1122,18 @@ namespace CoreWCF.Security
                 return true;
             }
 
-            public RequestContext ReceiveRequest(RequestContext initialRequestContext)
+            public ValueTask<RequestContext> ReceiveRequestAsync(RequestContext initialRequestContext)
             {
-                return ReceiveRequest(ServiceDefaults.ReceiveTimeout, initialRequestContext);
+                return ReceiveRequestAsync(ServiceDefaults.ReceiveTimeout, initialRequestContext);
             }
 
-            public RequestContext ReceiveRequest(TimeSpan timeout, RequestContext initialRequestContext)
+            public async ValueTask<RequestContext> ReceiveRequestAsync(TimeSpan timeout, RequestContext initialRequestContext)
             {
                 _initialRequestContext = initialRequestContext;
-                if (TryReceiveRequest(timeout, out RequestContext requestContext))
+                (bool success, RequestContext requestContext) receiveRequestTry = await TryReceiveRequestAsync(timeout);
+                RequestContext requestContext = receiveRequestTry.requestContext;
+
+                if (receiveRequestTry.success)
                 {
                     return requestContext;
                 }
@@ -1140,7 +1143,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            public bool TryReceiveRequest(TimeSpan timeout, out RequestContext requestContext)
+            public async ValueTask<(bool, RequestContext)> TryReceiveRequestAsync(TimeSpan timeout)
             {
                 ThrowIfFaulted();
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
@@ -1152,8 +1155,7 @@ namespace CoreWCF.Security
                     }
                     if (timeoutHelper.RemainingTime() == TimeSpan.Zero)
                     {
-                        requestContext = null;
-                        return false;
+                        return (false, null);
                     }
 
                     RequestContext innerRequestContext;
@@ -1164,8 +1166,7 @@ namespace CoreWCF.Security
                     }
                     else
                     {
-                        requestContext = null;
-                        return false;
+                        return (false, null);
                     }
                     if (innerRequestContext == null)
                     {
@@ -1187,16 +1188,16 @@ namespace CoreWCF.Security
                         }
                     }
 
-                    Message requestMessage = ProcessRequestContext(innerRequestContext, timeoutHelper.RemainingTime(), out SecurityProtocolCorrelationState correlationState, out _);
-                    if (requestMessage != null)
+                    (Message message, SecurityProtocolCorrelationState correlationState, bool _) processedRequestContext = await ProcessRequestContextAsync(innerRequestContext, timeoutHelper.RemainingTime());
+                    if (processedRequestContext.message != null)
                     {
-                        requestContext = new SecuritySessionRequestContext(innerRequestContext, requestMessage, correlationState, this);
-                        return true;
+                        RequestContext requestContext = new SecuritySessionRequestContext(innerRequestContext, processedRequestContext.message, processedRequestContext.correlationState, this);
+                        return (true, requestContext);
                     }
                 }
                 ThrowIfFaulted();
-                requestContext = null;
-                return true;
+                
+                return (true, null);
             }
 
             private void ThrowIfFaulted()
@@ -1268,13 +1269,13 @@ namespace CoreWCF.Security
                 return ((e is FormatException) || (e is XmlException));
             }
 
-            private Message ProcessRequestContext(RequestContext requestContext, TimeSpan timeout, out SecurityProtocolCorrelationState correlationState, out bool isSecurityProcessingFailure)
+            private async ValueTask<(Message, SecurityProtocolCorrelationState, bool)> ProcessRequestContextAsync(RequestContext requestContext, TimeSpan timeout)
             {
-                correlationState = null;
-                isSecurityProcessingFailure = false;
+                SecurityProtocolCorrelationState correlationState = null;
+                bool isSecurityProcessingFailure = false;
                 if (requestContext == null)
                 {
-                    return null;
+                    return (null, correlationState, isSecurityProcessingFailure);
                 }
 
                 Message result = null;
@@ -1287,7 +1288,9 @@ namespace CoreWCF.Security
                     Exception securityException = null;
                     try
                     {
-                        correlationState = VerifyIncomingMessage(ref message, timeoutHelper.RemainingTime());
+                        (Message message, SecurityProtocolCorrelationState correlationState) verifiedIncomingMessage = await VerifyIncomingMessageAsync(message, timeoutHelper.RemainingTime());
+                        message = verifiedIncomingMessage.message;
+                        correlationState = verifiedIncomingMessage.correlationState;
                         // message.Properties.Security
                     }
                     catch (MessageSecurityException e)
@@ -1301,7 +1304,7 @@ namespace CoreWCF.Security
                         // SendFaultIfRequired closes the unverified message and context
                         SendFaultIfRequired(securityException, unverifiedMessage, requestContext, timeoutHelper.RemainingTime());
                         cleanupContextState = false;
-                        return null;
+                        return (null, correlationState, isSecurityProcessingFailure);
                     }
                     else if (CheckIncomingToken(requestContext, message, correlationState, timeoutHelper.RemainingTime()))
                     {
@@ -1348,7 +1351,7 @@ namespace CoreWCF.Security
                     }
                 }
 
-                return result;
+                return (result, correlationState, isSecurityProcessingFailure);
             }
 
             internal void CheckOutgoingToken()
@@ -1375,9 +1378,9 @@ namespace CoreWCF.Security
                 //throw new NotImplementedException();
             }
 
-            internal SecurityProtocolCorrelationState VerifyIncomingMessage(ref Message message, TimeSpan timeout)
+            internal async ValueTask<(Message, SecurityProtocolCorrelationState)> VerifyIncomingMessageAsync(Message message, TimeSpan timeout)
             {
-                return SecurityProtocol.VerifyIncomingMessage(ref message, timeout, null);
+                return await SecurityProtocol.VerifyIncomingMessageAsync(message, timeout, null);
             }
 
             private void PrepareReply(Message request, Message reply)
@@ -1930,10 +1933,10 @@ namespace CoreWCF.Security
                     return Task.CompletedTask;
                 }
 
-                public Task DispatchAsync(RequestContext context)
+                public async Task DispatchAsync(RequestContext context)
                 {
-                    RequestContext securityRequestContext = ReceiveRequest(context);
-                    return _channelDispatcher.DispatchAsync(securityRequestContext);
+                    RequestContext securityRequestContext = await ReceiveRequestAsync(context);
+                    await _channelDispatcher.DispatchAsync(securityRequestContext);
                 }
 
                 public Task DispatchAsync(Message message)
@@ -2342,11 +2345,13 @@ namespace CoreWCF.Security
             private async Task<(bool success, bool wasAborted)> WaitForInputSessionCloseAsync(TimeSpan timeout)
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-                RequestContext context;
+                //RequestContext context;
                 bool wasAborted = false;
                 try
                 {
-                    if (!TryReceiveRequest(timeoutHelper.RemainingTime(), out context))
+                    (bool success, RequestContext requestContext) receivedRequestTry = await TryReceiveRequestAsync(timeoutHelper.RemainingTime());
+                    RequestContext context = receivedRequestTry.requestContext;
+                    if (!receivedRequestTry.success)
                     {
                         return (false, wasAborted);
                     }
@@ -2477,12 +2482,11 @@ namespace CoreWCF.Security
                     return DispatchAsync(context.RequestMessage);
                 }
 
-                public Task DispatchAsync(Message message)
+                public async Task DispatchAsync(Message message)
                 {
-                    DuplexSessionRequestContext duplexSessionRequestContext = new
-                        DuplexSessionRequestContext(IncomingChannel, message);
-                    RequestContext context = ReceiveRequest(duplexSessionRequestContext);
-                    return _channelDispatcher.DispatchAsync(context == null ? null : context.RequestMessage);
+                    DuplexSessionRequestContext duplexSessionRequestContext = new DuplexSessionRequestContext(IncomingChannel, message);
+                    RequestContext context = await ReceiveRequestAsync(duplexSessionRequestContext);
+                    await _channelDispatcher.DispatchAsync(context == null ? null : context.RequestMessage);
                 }
 
                 public T GetProperty<T>() where T : class
