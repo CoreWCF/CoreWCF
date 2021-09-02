@@ -31,7 +31,7 @@ namespace CoreWCF.Security
             MarkElements(securityHeader.ElementManager, securityHeader.RequireMessageProtection);
 
             // pass 3
-            securityHeader.ExecuteSignatureEncryptionProcessingPass();
+            await securityHeader.ExecuteSignatureEncryptionProcessingPassAsync();
         }
 
         public override void MarkElements(ReceiveSecurityHeaderElementManager elementManager, bool messageSecurityMode)

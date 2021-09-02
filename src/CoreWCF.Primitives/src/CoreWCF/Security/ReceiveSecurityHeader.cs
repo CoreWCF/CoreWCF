@@ -874,7 +874,7 @@ namespace CoreWCF.Security
 
         protected abstract void ExecuteMessageProtectionPass(bool hasAtLeastOneSupportingTokenExpectedToBeSigned);
 
-        internal void ExecuteSignatureEncryptionProcessingPass()
+        internal async ValueTask ExecuteSignatureEncryptionProcessingPassAsync()
         {
             for (int position = 0; position < ElementManager.Count; position++)
             {
@@ -884,11 +884,11 @@ namespace CoreWCF.Security
                     case ReceiveSecurityHeaderElementCategory.Signature:
                         if (entry.bindingMode == ReceiveSecurityHeaderBindingModes.Primary)
                         {
-                            ProcessPrimarySignature((SignedXml)entry.element, entry.encrypted);
+                            await ProcessPrimarySignatureAsync((SignedXml)entry.element, entry.encrypted);
                         }
                         else
                         {
-                            ProcessSupportingSignature((SignedXml)entry.element, entry.encrypted);
+                            await ProcessSupportingSignatureAsync((SignedXml)entry.element, entry.encrypted);
                         }
                         break;
                     case ReceiveSecurityHeaderElementCategory.ReferenceList:
@@ -987,13 +987,13 @@ namespace CoreWCF.Security
                     if (primarySignatureFound)
                     {
                         ElementManager.SetBindingMode(position, ReceiveSecurityHeaderBindingModes.Endorsing);
-                        ProcessSupportingSignature(signedXml, false);
+                        await ProcessSupportingSignatureAsync(signedXml, false);
                     }
                     else
                     {
                         primarySignatureFound = true;
                         ElementManager.SetBindingMode(position, ReceiveSecurityHeaderBindingModes.Primary);
-                        ProcessPrimarySignature(signedXml, false);
+                        await ProcessPrimarySignatureAsync(signedXml, false);
                     }
                 }
                 else if (IsReaderAtReferenceList(reader))
@@ -1133,13 +1133,13 @@ namespace CoreWCF.Security
                     if (primarySignatureFound)
                     {
                         ElementManager.SetBindingMode(position, ReceiveSecurityHeaderBindingModes.Endorsing);
-                        ProcessSupportingSignature(signedXml, true);
+                        await ProcessSupportingSignatureAsync(signedXml, true);
                     }
                     else
                     {
                         result = true;
                         ElementManager.SetBindingMode(position, ReceiveSecurityHeaderBindingModes.Primary);
-                        ProcessPrimarySignature(signedXml, true);
+                        await ProcessPrimarySignatureAsync(signedXml, true);
                     }
                 }
             }
@@ -1289,7 +1289,7 @@ namespace CoreWCF.Security
 
         protected abstract void ReadSecurityTokenReference(XmlDictionaryReader reader);
 
-        private void ProcessPrimarySignature(SignedXml signedXml, bool isFromDecryptedSource)
+        private async ValueTask ProcessPrimarySignatureAsync(SignedXml signedXml, bool isFromDecryptedSource)
         {
             _orderTracker.OnProcessSignature(isFromDecryptedSource);
 
@@ -1299,7 +1299,7 @@ namespace CoreWCF.Security
                 CheckNonce(_nonceCache, PrimarySignatureValue);
             }
 
-            SecurityToken signingToken = VerifySignature(signedXml, true, PrimaryTokenResolver, null, null);
+            SecurityToken signingToken = await VerifySignatureAsync(signedXml, true, PrimaryTokenResolver, null, null);
             // verify that the signing token is the same as the primary token
             SecurityToken rootSigningToken = GetRootToken(signingToken);
             bool isDerivedKeySignature = signingToken is DerivedKeySecurityToken;
@@ -1392,7 +1392,7 @@ namespace CoreWCF.Security
             return null;
         }
 
-        private void ProcessSupportingSignature(SignedXml signedXml, bool isFromDecryptedSource)
+        private async ValueTask ProcessSupportingSignatureAsync(SignedXml signedXml, bool isFromDecryptedSource)
         {
             if (!ExpectEndorsingTokens)
             {
@@ -1422,7 +1422,7 @@ namespace CoreWCF.Security
                 signatureTarget = reader ?? throw TraceUtility.ThrowHelperError(new MessageSecurityException(
                         SR.NoPrimarySignatureAvailableForSupportingTokenSignatureVerification), Message);
             }
-            SecurityToken signingToken = VerifySignature(signedXml, false, _universalTokenResolver, signatureTarget, id);
+            SecurityToken signingToken = await VerifySignatureAsync(signedXml, false, _universalTokenResolver, signatureTarget, id);
             if (reader != null)
             {
                 reader.Close();
@@ -1686,7 +1686,7 @@ namespace CoreWCF.Security
 
         protected abstract SignedXml ReadSignatureCore(XmlDictionaryReader signatureReader);
 
-        protected abstract SecurityToken VerifySignature(SignedXml signedXml, bool isPrimarySignature,
+        protected abstract ValueTask<SecurityToken> VerifySignatureAsync(SignedXml signedXml, bool isPrimarySignature,
             SecurityHeaderTokenResolver resolver, object signatureTarget, string id);
 
         protected abstract bool TryDeleteReferenceListEntry(string id);

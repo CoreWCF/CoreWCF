@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
@@ -133,7 +134,7 @@ namespace CoreWCF.Security
             return signedXml;
         }
 
-        protected override SecurityToken VerifySignature(SignedXml signedXml, bool isPrimarySignature, SecurityHeaderTokenResolver resolver, object signatureTarget, string id)
+        protected override async ValueTask<SecurityToken> VerifySignatureAsync(SignedXml signedXml, bool isPrimarySignature, SecurityHeaderTokenResolver resolver, object signatureTarget, string id)
         {
             SecurityKeyIdentifier securityKeyIdentifier = null;
             string keyInfoString = signedXml.Signature.KeyInfo.GetXml().OuterXml;
@@ -147,7 +148,7 @@ namespace CoreWCF.Security
                 throw new Exception("SecurityKeyIdentifier is missing");
             }
 
-            SecurityToken token = ResolveSignatureToken(securityKeyIdentifier, resolver, isPrimarySignature);
+            SecurityToken token = await ResolveSignatureTokenAsync(securityKeyIdentifier, resolver, isPrimarySignature);
             if (isPrimarySignature)
             {
                 RecordSignatureToken(token);
@@ -265,7 +266,7 @@ namespace CoreWCF.Security
             }
         }
 
-        private SecurityToken ResolveSignatureToken(SecurityKeyIdentifier keyIdentifier, SecurityTokenResolver resolver, bool isPrimarySignature)
+        private async ValueTask<SecurityToken> ResolveSignatureTokenAsync(SecurityKeyIdentifier keyIdentifier, SecurityTokenResolver resolver, bool isPrimarySignature)
         {
             TryResolveKeyIdentifier(keyIdentifier, resolver, true, out SecurityToken token);
             if (token == null && !isPrimarySignature)
@@ -279,7 +280,7 @@ namespace CoreWCF.Security
                         if (rsaAuthenticator != null)
                         {
                             token = new RsaSecurityToken(rsaClause.Rsa);
-                            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = rsaAuthenticator.ValidateToken(token);
+                            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await rsaAuthenticator.ValidateTokenAsync(token);
                             TokenTracker rsaTracker = GetSupportingTokenTracker(rsaAuthenticator, out SupportingTokenAuthenticatorSpecification spec);
                             if (rsaTracker == null)
                             {
