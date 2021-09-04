@@ -41,7 +41,7 @@ namespace CoreWCF.Security
         {
             try
             {
-                lock (ThisLock)
+                using (AsyncLock.TakeLock())
                 {
                     if (SspiNegotiation != null)
                     {
