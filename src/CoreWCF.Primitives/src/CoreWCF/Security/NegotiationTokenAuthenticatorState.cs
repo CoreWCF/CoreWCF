@@ -11,9 +11,8 @@ namespace CoreWCF.Security
     {
         private bool _isNegotiationCompleted;
         private SecurityContextSecurityToken _serviceToken;
-        private readonly AsyncLock _asyncLock = new AsyncLock();
 
-        public AsyncLock AsyncLock => _asyncLock;
+        public AsyncLock AsyncLock { get; } = new AsyncLock();
 
         public bool IsNegotiationCompleted => _isNegotiationCompleted;
 
