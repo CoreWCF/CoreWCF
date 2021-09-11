@@ -8052,4 +8052,160 @@
   <data name="ConfigureServiceHostBaseTypeMustBeClass" xml:space="preserve">
     <value>The service type '{0}' is not a class.</value>
   </data>
+  <data name="MtomBoundaryInvalid" xml:space="preserve">
+    <value>'{0}' not a valid MIME boundary.</value>
+  </data>
+  <data name="MtomBufferQuotaExceeded" xml:space="preserve">
+    <value>The maximum buffer size ({0}) has been exceeded while reading MTOM data. This quota may be increased by changing the maxBufferSize setting used when creating the MTOM reader.</value>
+  </data>
+  <data name="MtomContentTransferEncodingNotPresent" xml:space="preserve">
+    <value>Content-Transfer-Encoding header with value '{0}' must be present for binary part.</value>
+  </data>
+  <data name="MtomContentTransferEncodingNotSupported" xml:space="preserve">
+    <value>'{0}' Content-Transfer-Encoding not supported for infoset. Must be one of '{1}', '{2}', or '{3}'.</value>
+  </data>
+  <data name="MtomContentTypeInvalid" xml:space="preserve">
+    <value>contentType must be non-zero length string.</value>
+  </data>
+  <data name="MtomDataMustNotContainXopInclude" xml:space="preserve">
+    <value>XML data contained in MTOM messages must not contain element with name '{0}' from namespace '{1}'.</value>
+  </data>
+  <data name="MtomExceededMaxSizeInBytes" xml:space="preserve">
+    <value>The 'maximum size in bytes' quota ({0}) has been exceeded while writing MTOM data. This quota may be increased by changing the maxSizeInBytes setting used when creating the MTOM writer.</value>
+  </data>
+  <data name="MtomInvalidCIDUri" xml:space="preserve">
+    <value>Invalid URI '{0}' specified for MIME part Content-ID is not conformant cid URI.</value>
+  </data>
+  <data name="MtomInvalidEmptyURI" xml:space="preserve">
+    <value>URI specified for MIME part Content-ID cannot be empty.</value>
+  </data>
+  <data name="MtomInvalidStartUri" xml:space="preserve">
+    <value>Invalid start URI for infoset '{0}'.</value>
+  </data>
+  <data name="MtomInvalidTransferEncodingForMimePart" xml:space="preserve">
+    <value>Content-Transfer-Encoding '{0}' not supported for binary part. Must be '{1}'.</value>
+  </data>
+  <data name="MtomMessageContentTypeNotFound" xml:space="preserve">
+    <value>Content-Type header for MTOM message not found.</value>
+  </data>
+  <data name="MtomMessageInvalidContent" xml:space="preserve">
+    <value>MTOM message not valid. Does not contain correctly formatted content following headers.</value>
+  </data>
+  <data name="MtomMessageInvalidContentInMimePart" xml:space="preserve">
+    <value>MTOM message not valid. One or more MIME parts in the message does not contain correctly formatted content and/or boundary string.</value>
+  </data>
+  <data name="MtomMessageInvalidMimeVersion" xml:space="preserve">
+    <value>'{0}' not a valid MIME version. MTOM messages must have MIME version '{1}'.</value>
+  </data>
+  <data name="MtomMessageNotApplicationXopXml" xml:space="preserve">
+    <value>MTOM messages must have type '{0}'.</value>
+  </data>
+  <data name="MtomMessageNotMultipart" xml:space="preserve">
+    <value>MTOM messages must have media type '{0}' and media subtype '{1}'.</value>
+  </data>
+  <data name="MtomMessageRequiredParamNotSpecified" xml:space="preserve">
+    <value>MTOM messages must have non-zero length '{0}' parameter in Content-Type header.</value>
+  </data>
+  <data name="MtomMimePartReferencedMoreThanOnce" xml:space="preserve">
+    <value>MTOM message not valid. Infoset references MIME part with Content-ID '{0}' more than once.</value>
+  </data>
+  <data name="MtomPartNotFound" xml:space="preserve">
+    <value>MIME part with Content-ID '{0}' not found.</value>
+  </data>
+  <data name="MtomRootContentTypeNotFound" xml:space="preserve">
+    <value>Content-Type header for root MIME part not found.</value>
+  </data>
+  <data name="MtomRootNotApplicationXopXml" xml:space="preserve">
+    <value>Root MIME part must have media type '{0}' and media subtype '{1}'.</value>
+  </data>
+  <data name="MtomRootPartNotFound" xml:space="preserve">
+    <value>Root MIME part containing infoset not found.</value>
+  </data>
+  <data name="MtomRootRequiredParamNotSpecified" xml:space="preserve">
+    <value>Root MIME part must contain non-zero length value for '{0}' parameter in Content-Type header.</value>
+  </data>
+  <data name="MtomRootUnexpectedCharset" xml:space="preserve">
+    <value>Unexpected charset '{0}' found in root MIME part. Expecting '{1}'.</value>
+  </data>
+  <data name="MtomRootUnexpectedType" xml:space="preserve">
+    <value>Unexpected type '{0}' found in root MIME part. Message header specifies '{1}'.</value>
+  </data>
+  <data name="MtomXopIncludeHrefNotSpecified" xml:space="preserve">
+    <value>Mandatory attribute '{0}' not found on XOP Include element.</value>
+  </data>
+  <data name="MtomXopIncludeInvalidXopAttributes" xml:space="preserve">
+    <value>XOP Include element has invalid attribute '{0}' from XOP namespace '{1}'.</value>
+  </data>
+  <data name="MtomXopIncludeInvalidXopElement" xml:space="preserve">
+    <value>XOP Include element has invalid child element '{0}' from XOP namespace '{1}'.</value>
+  </data>
+  <data name="XmlInvalidBinHexSequence" xml:space="preserve">
+    <value>The characters '{0}' at offset {1} are not a valid BinHex sequence.</value>
+  </data>
+  <data name="XmlInvalidBinHexLength" xml:space="preserve">
+    <value>BinHex sequence length ({0}) not valid. Must be a multiple of 2.</value>
+  </data>
+  <data name="XmlArrayTooSmall" xml:space="preserve">
+    <value>Array too small.</value>
+  </data>
+  <data name="XmlMaxStringContentLengthExceeded" xml:space="preserve">
+    <value>The maximum string content length quota ({0}) has been exceeded while reading XML data. This quota may be increased by changing the MaxStringContentLength property on the XmlDictionaryReaderQuotas object used when creating the XML reader.</value>
+  </data>
+  <data name="MimeContentTypeHeaderInvalid" xml:space="preserve">
+    <value>Invalid MIME content-type header encountered on read.</value>
+  </data>
+  <data name="MimeHeaderInvalidCharacter" xml:space="preserve">
+    <value>Character '{0}' (hexadecimal value 0x{1}) not valid in MIME header.</value>
+  </data>
+  <data name="MimeMessageGetContentStreamCalledAlready" xml:space="preserve">
+    <value>Content stream can be retrieved from MIME message only once.</value>
+  </data>
+  <data name="MaxMimePartsExceeded" xml:space="preserve">
+    <value>The number of MIME parts in the MTOM message exceeded the current quota '{0}'. To increase the quota, change the '{1}' setting in the AppSettings section of the configuration file.</value>
+  </data>
+  <data name="MimeReaderHeaderAlreadyExists" xml:space="preserve">
+    <value>'{0}' MIME header is specified multiple times.</value>
+  </data>
+  <data name="MimeReaderMalformedHeader" xml:space="preserve">
+    <value>Malformed header.</value>
+  </data>
+  <data name="MimeReaderResetCalledBeforeEOF" xml:space="preserve">
+    <value>Reset called on MIME header reader before end of file.</value>
+  </data>
+  <data name="MimeReaderTruncated" xml:space="preserve">
+    <value>Unexpected end of file.</value>
+  </data>
+  <data name="MimeVersionHeaderInvalid" xml:space="preserve">
+    <value>Invalid mime-version header encountered on read.</value>
+  </data>
+  <data name="MimeWriterInvalidStateForClose" xml:space="preserve">
+    <value>Cannot call Close on MIME writer in state '{0}'.</value>
+  </data>
+  <data name="MimeWriterInvalidStateForHeader" xml:space="preserve">
+    <value>MIME writer cannot write MIME header in state '{0}'.</value>
+  </data>
+  <data name="MimeWriterInvalidStateForContent" xml:space="preserve">
+    <value>MIME writer cannot write content in state '{0}'.</value>
+  </data>
+  <data name="MimeWriterInvalidStateForStartPart" xml:space="preserve">
+    <value>MIME writer cannot start new MIME part in state '{0}'.</value>
+  </data>
+  <data name="MimeWriterInvalidStateForStartPreface" xml:space="preserve">
+    <value>MIME writer cannot start preface in '{0}' state.</value>
+  </data>
+  <data name="ReadNotSupportedOnStream" xml:space="preserve">
+    <value>Read not supported on stream '{0}'.</value>
+  </data>
+  <data name="SeekNotSupportedOnStream" xml:space="preserve">
+    <value>Seek not supported on stream '{0}'.</value>
+  </data>
+  <data name="WriteBufferOverflow" xml:space="preserve">
+    <value>An internal error has occurred. Overflow on MIME writer buffer.</value>
+  </data>
+  <data name="WriteNotSupportedOnStream" xml:space="preserve">
+    <value>Write not supported on stream '{0}'.</value>
+  </data>
+  <data name="XmlWriterClosed" xml:space="preserve">
+    <value>The XmlWriter is closed.</value>
+  </data>
 </root>
