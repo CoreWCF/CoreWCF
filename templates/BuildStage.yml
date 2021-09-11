@@ -47,7 +47,7 @@ stages:
         displayName: 'Prepare analysis on SonarCloud'
         inputs:
           SonarCloud: SonarCloud
-          organization: CoreWCF
+          organization: corewcf
           projectKey: CoreWCF_CoreWCF
           projectName: 'CoreWCF'
         condition: and(not(eq(variables['build.reason'], 'PullRequest')), eq(variables._buildConfig, 'Release'))

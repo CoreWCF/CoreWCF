@@ -60,7 +60,7 @@ stages:
       displayName: 'Prepare analysis on SonarCloud'
       inputs:
         SonarCloud: SonarCloud
-        organization: CoreWCF
+        organization: corewcf
         projectKey: CoreWCF_CoreWCF
         projectName: 'CoreWCF'
       condition: and(not(eq(variables['build.reason'], 'PullRequest')), and(eq(variables.imageName, 'windows-latest'), eq(variables.targetFramework, 'net5.0')))
@@ -181,7 +181,7 @@ stages:
       displayName: 'Prepare analysis on SonarCloud'
       inputs:
         SonarCloud: SonarCloud
-        organization: CoreWCF
+        organization: corewcf
         projectKey: CoreWCF_CoreWCF
         projectName: 'CoreWCF Code Coverage'
       condition: not(eq(variables['build.reason'], 'PullRequest'))
