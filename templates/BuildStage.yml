@@ -15,6 +15,8 @@ stages:
           _buildConfig: 'Debug'
     pool:
       vmImage: 'windows-latest'
+      demands:
+      - java
     steps:
       - task: UseDotNet@2
         displayName: 'Use .NET Core sdk'
@@ -41,6 +43,15 @@ stages:
           projects: ${{ parameters.buildProjects}}
           arguments: '--configuration $(_buildConfig) /t:restore'
 
+      - task: SonarCloudPrepare@1
+        displayName: 'Prepare analysis on SonarCloud'
+        inputs:
+          SonarCloud: SonarCloud
+          organization: CoreWCF
+          projectKey: CoreWCF_CoreWCF
+          projectName: 'CoreWCF'
+        condition: and(not(eq(variables['build.reason'], 'PullRequest')), eq(variables._buildConfig, 'Release'))
+      
       - task: DotNetCoreCLI@2
         displayName: Build $(_buildConfig)
         inputs:
