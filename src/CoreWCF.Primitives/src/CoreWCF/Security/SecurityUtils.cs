@@ -216,6 +216,25 @@ namespace CoreWCF.Security
             return temp.AsReadOnly();
         }
 
+        internal static SecurityKeyIdentifier CreateSecurityKeyIdentifier(Microsoft.IdentityModel.Xml.KeyInfo keyInfo)
+        {
+            if(keyInfo!=null && keyInfo.RSAKeyValue !=null)
+            {
+                throw new NotSupportedException("RSA key not supported.");
+            }
+
+            foreach (var objdata in keyInfo.X509Data)
+            {
+                foreach (string certificateStr in objdata.Certificates)
+                {
+                    byte[] data = Convert.FromBase64String(certificateStr);
+                    return new SecurityKeyIdentifier(new X509RawDataKeyIdentifierClause(data, false));;
+                }
+            }
+
+            return null;
+        }
+
         internal static IIdentity CreateIdentity(string name)
         {
             return new GenericIdentity(name);

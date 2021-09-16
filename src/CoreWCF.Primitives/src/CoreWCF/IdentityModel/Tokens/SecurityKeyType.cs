@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal enum SecurityKeyType
+    public enum SecurityKeyType
     {
         SymmetricKey,
         AsymmetricKey,
@@ -14,18 +14,18 @@ namespace CoreWCF.IdentityModel.Tokens
 
     internal static class SecurityKeyTypeHelper
     {
-        internal static bool IsDefined(SecurityKeyType value)
+        public static bool IsDefined(SecurityKeyType value)
         {
             return (value == SecurityKeyType.SymmetricKey
                 || value == SecurityKeyType.AsymmetricKey
                 || value == SecurityKeyType.BearerKey);
         }
 
-        internal static void Validate(SecurityKeyType value)
+        public static void Validate(SecurityKeyType value)
         {
             if (!IsDefined(value))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("value", (int)value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
                     typeof(SecurityKeyType)));
             }
         }
