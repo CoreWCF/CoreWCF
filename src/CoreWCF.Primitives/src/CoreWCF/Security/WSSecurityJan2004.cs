@@ -36,6 +36,62 @@ namespace CoreWCF.Security
         public override void PopulateTokenEntries(IList<TokenEntry> tokenEntryList)
         {
             PopulateJan2004TokenEntries(tokenEntryList);
+            tokenEntryList.Add(new SamlTokenEntry(WSSecurityTokenSerializer, SamlSerializer));
+            tokenEntryList.Add(new WrappedKeyTokenEntry(WSSecurityTokenSerializer));
+        }
+
+        protected class SamlTokenEntry : TokenEntry
+        {
+            private readonly SamlSerializer _samlSerializer;
+            private readonly SecurityTokenSerializer _tokenSerializer;
+
+            public SamlTokenEntry(SecurityTokenSerializer tokenSerializer, SamlSerializer samlSerializer)
+            {
+                _tokenSerializer = tokenSerializer;
+                if (samlSerializer != null)
+                {
+                    _samlSerializer = samlSerializer;
+                }
+                else
+                {
+                    _samlSerializer = new SamlSerializer();
+                }
+            }
+
+            protected override XmlDictionaryString LocalName { get { return XD.SecurityJan2004Dictionary.SamlAssertion; } }
+            protected override XmlDictionaryString NamespaceUri { get { return XD.SecurityJan2004Dictionary.SamlUri; } }
+            protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(SamlSecurityToken) }; }
+            public override string TokenTypeUri { get { return null; } }
+            protected override string ValueTypeUri { get { return null; } }
+
+            //we don't need it, as we we populate differently in SamlSerializer
+            public override SecurityKeyIdentifierClause CreateKeyIdentifierClauseFromTokenXmlCore(XmlElement issuedTokenXml,
+                SecurityTokenReferenceStyle tokenReferenceStyle)
+            {
+                TokenReferenceStyleHelper.Validate(tokenReferenceStyle);
+
+                switch (tokenReferenceStyle)
+                {
+                    // SAML uses same reference for internal and external
+                    case SecurityTokenReferenceStyle.Internal:
+                    case SecurityTokenReferenceStyle.External:
+                        throw new NotImplementedException();
+                       // return new SamlAssertionKeyIdentifierClause(assertionId);
+                    default:
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(tokenReferenceStyle)));
+                }
+            }
+
+            public override SecurityToken ReadTokenCore(XmlDictionaryReader reader, SecurityTokenResolver tokenResolver)
+            {
+                SamlSecurityToken samlToken = _samlSerializer.ReadToken(reader, _tokenSerializer, tokenResolver);
+                return samlToken;
+            }
+
+            public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         internal abstract class BinaryTokenEntry : TokenEntry
@@ -335,8 +391,7 @@ namespace CoreWCF.Security
                                 SR.Format(SR.UnableToResolveKeyInfoForUnwrappingToken, unwrappingTokenIdentifier, tokenResolver), exception));
                         }
                     }
-                    SecurityKey unwrappingSecurityKey;
-                    byte[] unwrappedKey = SecurityUtils.DecryptKey(unwrappingToken, encryptionMethod, wrappedKey, out unwrappingSecurityKey);
+                    byte[] unwrappedKey = SecurityUtils.DecryptKey(unwrappingToken, encryptionMethod, wrappedKey, out SecurityKey unwrappingSecurityKey);
                     return new WrappedKeySecurityToken(id, unwrappedKey, encryptionMethod, unwrappingToken, unwrappingTokenIdentifier, wrappedKey, unwrappingSecurityKey);
                 }
             }

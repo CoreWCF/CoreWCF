@@ -115,13 +115,13 @@ namespace CoreWCF.IdentityModel.Claims
         //    return new Claim(ClaimTypes.DenyOnlySid, sid, Rights.PossessProperty);
         //}
 
-        //public static Claim CreateHashClaim(byte[] hash)
-        //{
-        //    if (hash == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(hash));
+        public static Claim CreateHashClaim(byte[] hash)
+        {
+            if (hash == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(hash));
 
-        //    return new Claim(ClaimTypes.Hash, SecurityUtils.CloneBuffer(hash), Rights.PossessProperty, ClaimComparer.Hash);
-        //}
+            return new Claim(ClaimTypes.Hash, SecurityUtils.CloneBuffer(hash), Rights.PossessProperty, ClaimComparer.Hash);
+        }
 
         public static Claim CreateMailAddressClaim(MailAddress mailAddress)
         {

@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Net;
 using System.Net.Security;
 
@@ -8,6 +9,8 @@ namespace CoreWCF.Channels
 {
     public class HttpsTransportBindingElement : HttpTransportBindingElement
     {
+        private MessageSecurityVersion _messageSecurityVersion;
+
         public HttpsTransportBindingElement() : base()
         {
             RequireClientCertificate = TransportDefaults.RequireClientCertificate;
@@ -17,6 +20,7 @@ namespace CoreWCF.Channels
             : base(elementToBeCloned)
         {
             RequireClientCertificate = elementToBeCloned.RequireClientCertificate;
+            _messageSecurityVersion = elementToBeCloned.MessageSecurityVersion;
         }
 
         private HttpsTransportBindingElement(HttpTransportBindingElement elementToBeCloned)
@@ -29,6 +33,22 @@ namespace CoreWCF.Channels
         public override string Scheme
         {
             get { return "https"; }
+        }
+
+        internal MessageSecurityVersion MessageSecurityVersion
+        {
+            get
+            {
+                return _messageSecurityVersion;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
+                }
+                _messageSecurityVersion = value;
+            }
         }
 
         public override BindingElement Clone()

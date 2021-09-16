@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Xml;
 using CoreWCF.Runtime;
 
 namespace CoreWCF
@@ -150,6 +151,21 @@ namespace CoreWCF
             //}
             //this.exceptionTrace.TraceEtwException(exception, eventType);
             return exception;
+        }
+
+        public Exception ThrowHelperXml(XmlReader reader, string message)
+        {
+            return ThrowHelperXml(reader, message, null);
+        }
+
+        public Exception ThrowHelperXml(XmlReader reader, string message, Exception inner)
+        {
+            IXmlLineInfo lineInfo = reader as IXmlLineInfo;
+            return ThrowHelperError(new XmlException(
+                message,
+                inner,
+                (null != lineInfo) ? lineInfo.LineNumber : 0,
+                (null != lineInfo) ? lineInfo.LinePosition : 0));
         }
 
         internal Exception ThrowHelperCallback(Exception innerException)
