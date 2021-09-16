@@ -17,6 +17,7 @@ using CoreWCF.Security.Tokens;
 using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
+using KeyInfo = System.Security.Cryptography.Xml.KeyInfo;
 
 namespace CoreWCF.Security
 {

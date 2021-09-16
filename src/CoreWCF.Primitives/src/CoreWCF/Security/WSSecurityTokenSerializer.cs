@@ -304,7 +304,14 @@ namespace CoreWCF.Security
 
         protected override bool CanReadKeyIdentifierClauseCore(XmlReader reader)
         {
-            throw new PlatformNotSupportedException();
+            try
+            {
+                return _keyInfoSerializer.CanReadKeyIdentifierClause(reader);
+            }
+            catch (Exception ex)
+            {
+                throw Fx.Exception.AsError(new MessageSecurityException(ex.Message));
+            }
         }
 
         protected override SecurityKeyIdentifierClause ReadKeyIdentifierClauseCore(XmlReader reader)

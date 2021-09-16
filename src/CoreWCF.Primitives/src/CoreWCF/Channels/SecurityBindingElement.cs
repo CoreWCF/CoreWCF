@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Xml;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
 
@@ -298,52 +299,75 @@ namespace CoreWCF.Channels
             }
         }
 
-        /*
-        protected static void SetIssuerBindingContextIfRequired(SecurityTokenParameters parameters, BindingContext issuerBindingContext)
+        public static TransportSecurityBindingElement CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters issuedTokenParameters)
         {
-            if (parameters is SslSecurityTokenParameters)
+            if (issuedTokenParameters == null)
             {
-                ((SslSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuedTokenParameters));
             }
-            else if (parameters is SspiSecurityTokenParameters)
+
+            issuedTokenParameters.RequireDerivedKeys = false;
+            TransportSecurityBindingElement result = new TransportSecurityBindingElement();
+            if (issuedTokenParameters.KeyType == SecurityKeyType.BearerKey)
             {
-                ((SspiSecurityTokenParameters)parameters).IssuerBindingContext = CreateIssuerBindingContextForNegotiation(issuerBindingContext);
+                result.EndpointSupportingTokenParameters.Signed.Add(issuedTokenParameters);
+                result.MessageSecurityVersion = MessageSecurityVersion.WSSXDefault;
             }
+            else
+            {
+                result.EndpointSupportingTokenParameters.Endorsing.Add(issuedTokenParameters);
+                result.MessageSecurityVersion = MessageSecurityVersion.Default;
+            }
+            
+            result.LocalServiceSettings.DetectReplays = false;
+            result.IncludeTimestamp = true;
+
+            return result;
         }
 
-        static void SetIssuerBindingContextIfRequired(SupportingTokenParameters supportingParameters, BindingContext issuerBindingContext)
+        public static SymmetricSecurityBindingElement CreateIssuedTokenForCertificateBindingElement(IssuedSecurityTokenParameters issuedTokenParameters)
         {
-            for (int i = 0; i < supportingParameters.Endorsing.Count; ++i)
+            if (issuedTokenParameters == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuedTokenParameters));
+
+            SymmetricSecurityBindingElement result = new SymmetricSecurityBindingElement(
+                new X509SecurityTokenParameters(
+                    X509KeyIdentifierClauseType.Thumbprint,
+                    SecurityTokenInclusionMode.Never));
+            if (issuedTokenParameters.KeyType == SecurityKeyType.BearerKey)
             {
-                SetIssuerBindingContextIfRequired(supportingParameters.Endorsing[i], issuerBindingContext);
+                result.EndpointSupportingTokenParameters.SignedEncrypted.Add(issuedTokenParameters);
+                result.MessageSecurityVersion = MessageSecurityVersion.WSSXDefault;
             }
-            for (int i = 0; i < supportingParameters.SignedEndorsing.Count; ++i)
+            else
             {
-                SetIssuerBindingContextIfRequired(supportingParameters.SignedEndorsing[i], issuerBindingContext);
+                result.EndpointSupportingTokenParameters.Endorsing.Add(issuedTokenParameters);
+                result.MessageSecurityVersion = MessageSecurityVersion.Default;
             }
-            for (int i = 0; i < supportingParameters.Signed.Count; ++i)
-            {
-                SetIssuerBindingContextIfRequired(supportingParameters.Signed[i], issuerBindingContext);
-            }
-            for (int i = 0; i < supportingParameters.SignedEncrypted.Count; ++i)
-            {
-                SetIssuerBindingContextIfRequired(supportingParameters.SignedEncrypted[i], issuerBindingContext);
-            }
+            result.RequireSignatureConfirmation = true;
+            return result;
         }
 
-        void SetIssuerBindingContextIfRequired(BindingContext issuerBindingContext)
+        public static SymmetricSecurityBindingElement CreateIssuedTokenForSslBindingElement(IssuedSecurityTokenParameters issuedTokenParameters, bool requireCancellation)
         {
-            SetIssuerBindingContextIfRequired(this.EndpointSupportingTokenParameters, issuerBindingContext);
-            SetIssuerBindingContextIfRequired(this.OptionalEndpointSupportingTokenParameters, issuerBindingContext);
-            foreach (SupportingTokenParameters parameters in this.OperationSupportingTokenParameters.Values)
+            if (issuedTokenParameters == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(issuedTokenParameters));
+
+            SymmetricSecurityBindingElement result = new SymmetricSecurityBindingElement(
+                new SslSecurityTokenParameters(false, requireCancellation));
+            if (issuedTokenParameters.KeyType == SecurityKeyType.BearerKey)
             {
-                SetIssuerBindingContextIfRequired(parameters, issuerBindingContext);
+                result.EndpointSupportingTokenParameters.SignedEncrypted.Add(issuedTokenParameters);
+                result.MessageSecurityVersion = MessageSecurityVersion.WSSXDefault;
             }
-            foreach (SupportingTokenParameters parameters in this.OptionalOperationSupportingTokenParameters.Values)
+            else
             {
-                SetIssuerBindingContextIfRequired(parameters, issuerBindingContext);
+                result.EndpointSupportingTokenParameters.Endorsing.Add(issuedTokenParameters);
+                result.MessageSecurityVersion = MessageSecurityVersion.Default;
             }
-        }*/
+            result.RequireSignatureConfirmation = true;
+            return result;
+        }
 
         internal bool RequiresChannelDemuxer(SecurityTokenParameters parameters)
         {
@@ -738,40 +762,6 @@ namespace CoreWCF.Channels
 
             return result;
         }
-
-        // this method reverses CreateMutualCertificateBindingElement() logic
-        internal static bool IsCertificateOverTransportBinding(SecurityBindingElement sbe)
-        {
-            // do not check local settings: sbe.LocalServiceSettings and sbe.LocalClientSettings
-            if (!sbe.IncludeTimestamp)
-            {
-                return false;
-            }
-
-            if (!(sbe is TransportSecurityBindingElement))
-            {
-                return false;
-            }
-
-            SupportingTokenParameters parameters = sbe.EndpointSupportingTokenParameters;
-            if (parameters.Signed.Count != 0 || parameters.SignedEncrypted.Count != 0 || parameters.Endorsing.Count != 1 || parameters.SignedEndorsing.Count != 0)
-            {
-                return false;
-            }
-
-            if (!(parameters.Endorsing[0] is X509SecurityTokenParameters x509Parameters))
-            {
-                return false;
-            }
-
-            if (x509Parameters.InclusionMode != SecurityTokenInclusionMode.AlwaysToRecipient)
-            {
-                return false;
-            }
-
-            return x509Parameters.X509ReferenceStyle == X509KeyIdentifierClauseType.Any || x509Parameters.X509ReferenceStyle == X509KeyIdentifierClauseType.Thumbprint;
-        }
-
 
         // If any changes are made to this method, please make sure that they are
         // reflected in the corresponding IsSecureConversationBinding() method.

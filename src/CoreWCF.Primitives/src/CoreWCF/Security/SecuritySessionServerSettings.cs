@@ -769,10 +769,12 @@ namespace CoreWCF.Security
             if (SessionTokenAuthenticator is SecuritySessionSecurityTokenAuthenticator securitySessionTokenAuthenticator)
             {
                 securitySessionTokenAuthenticator.SecurityServiceDispatcher = SecurityServiceDispatcher;
+            }else if(SessionTokenAuthenticator is WrappedSessionSecurityTokenAuthenticator wrappedSessionSecurityTokenAuthenticator)
+            {
+                wrappedSessionSecurityTokenAuthenticator.SetSecureServiceDispatcher(SecurityServiceDispatcher);
             }
             _acceptNewWork = true;
             SecurityUtils.OpenTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, timeoutHelper.GetCancellationToken());
-            SecuritySessionSecurityTokenAuthenticator securityAuth = (SecuritySessionSecurityTokenAuthenticator)SessionTokenAuthenticator;
             return Task.CompletedTask;
         }
 

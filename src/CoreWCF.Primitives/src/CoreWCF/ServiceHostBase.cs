@@ -122,7 +122,7 @@ namespace CoreWCF
                 }
                 else if (State == CommunicationState.Created || State == CommunicationState.Opening)
                 {
-                    return EnsureCredentials(Description);
+                    return Description.EnsureCredentials();
                 }
                 else
                 {
@@ -289,19 +289,6 @@ namespace CoreWCF
         //    return a;
         //}
 
-        private ServiceCredentials EnsureCredentials(ServiceDescription description)
-        {
-            Fx.Assert(State == CommunicationState.Created || State == CommunicationState.Opening, "");
-            ServiceCredentials c = description.Behaviors.Find<ServiceCredentials>();
-
-            if (c == null)
-            {
-                c = new ServiceCredentials();
-                description.Behaviors.Add(c);
-            }
-
-            return c;
-        }
 
         internal static string GetBaseAddressSchemes(UriSchemeKeyedCollection uriSchemeKeyedCollection)
         {
