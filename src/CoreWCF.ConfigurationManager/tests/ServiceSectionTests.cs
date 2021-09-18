@@ -42,10 +42,69 @@ namespace CoreWCF.ConfigurationManager.Tests
                 {
                     IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
 
-                    IXmlConfigEndpoint endpoint = settingHolder.GetXmlConfigEndpoint(expectedEndpointName);
+                    IXmlConfigEndpoint endpoint = GetXmlConfigEndpoinByEndpointName(settingHolder, expectedEndpointName);
                     Assert.Equal(expectedServiceName, endpoint.Service.FullName);
                     Assert.Equal(expectedContractName, endpoint.Contract.FullName);
                     Assert.Equal(expectedAddress, endpoint.Address.AbsoluteUri);
+                }
+            }
+        }
+
+        [Fact]
+        public void MultipleServiceTestWithSecurityMode()
+        {
+            string expectedServiceName = typeof(SomeService).FullName;
+            string expectedContractName = typeof(ISomeService).FullName;
+            string expectedNetTCPAddress = "net.tcp://localhost:8740/";
+            string expectedBasicHttpAddress = "http://localhost:8000/";
+            string expectedEndpointNameForBasicHttp = "SomeEndpoint";
+            string xml = $@"
+<configuration> 
+    <system.serviceModel>
+        <bindings>         
+            <netTcpBinding>
+                <binding name=""testBinding"">
+                 <security mode=""None"" />
+                 </binding>
+            </netTcpBinding>
+         <basicHttpBinding>
+        <binding name=""Basic"">
+          <security mode=""TransportWithMessageCredential"">
+             <message clientCredentialType=""Certificate""/>
+            </security >
+          </binding >
+        </basicHttpBinding >
+          </bindings> 
+        <services>            
+            <service name=""{expectedServiceName}"">
+                <endpoint address=""{expectedNetTCPAddress}""
+                          binding=""netTcpBinding""
+                          bindingConfiguration=""testBinding""
+                          contract=""{expectedContractName}"" />
+                <endpoint address=""{expectedBasicHttpAddress}""
+                          name=""{expectedEndpointNameForBasicHttp}""
+                          binding=""netTcpBinding""
+                          bindingConfiguration=""testBinding""
+                          contract=""{expectedContractName}"" />
+            </service>
+        </services>                             
+    </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+                    IXmlConfigEndpoint endpoint = GetXmlConfigEndpoinByEndpointName(settingHolder, expectedEndpointNameForBasicHttp);
+                    Assert.Equal(expectedServiceName, endpoint.Service.FullName);
+                    Assert.Equal(expectedContractName, endpoint.Contract.FullName);
+                    Assert.Equal(expectedBasicHttpAddress, endpoint.Address.AbsoluteUri);
+
+                    endpoint = GetXmlConfigEndpoinByEndpointName(settingHolder, string.Empty);
+                    Assert.Equal(expectedServiceName, endpoint.Service.FullName);
+                    Assert.Equal(expectedContractName, endpoint.Contract.FullName);
+                    Assert.Equal(expectedNetTCPAddress, endpoint.Address.AbsoluteUri);
                 }
             }
         }

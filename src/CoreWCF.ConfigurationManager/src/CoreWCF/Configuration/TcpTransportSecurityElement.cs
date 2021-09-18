@@ -36,5 +36,18 @@ namespace CoreWCF.Configuration
         //    get { return (SslProtocols)base[ConfigurationStrings.SslProtocols]; }
         //    private set { base[ConfigurationStrings.SslProtocols] = value; }
         //}
+
+        internal void ApplyConfiguration(TcpTransportSecurity security)
+        {
+            if (security == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
+            }
+
+            security.ClientCredentialType = ClientCredentialType;
+            //security.ProtectionLevel = this.ProtectionLevel;
+            //security.ExtendedProtectionPolicy = ChannelBindingUtility.BuildPolicy(this.ExtendedProtectionPolicy);
+            //security.SslProtocols = this.SslProtocols;
+        }
     }
 }

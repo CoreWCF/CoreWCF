@@ -44,5 +44,18 @@ namespace CoreWCF.Configuration
                 base[ConfigurationStrings.Realm] = value;
             }
         }
+
+        internal void ApplyConfiguration(HttpTransportSecurity security)
+        {
+            if (security == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
+            }
+
+            security.ClientCredentialType = ClientCredentialType;
+           // security.ProxyCredentialType = this.ProxyCredentialType;
+            security.Realm = Realm;
+           // security.ExtendedProtectionPolicy = ChannelBindingUtility.BuildPolicy(this.ExtendedProtectionPolicy);
+        }
     }
 }

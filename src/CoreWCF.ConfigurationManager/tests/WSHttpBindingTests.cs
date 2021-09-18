@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.InteropServices;
 using CoreWCF.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -30,7 +31,9 @@ namespace CoreWCF.ConfigurationManager.Tests
                          maxReceivedMessageSize=""{expectedMaxReceivedMessageSize}""
                          maxBufferPoolSize=""{expectedMaxBufferPoolSize}""
                          receiveTimeout=""00:10:00"">
-                    <security mode=""{expectedSecurityMode}""/>
+                    <security mode=""{expectedSecurityMode}"">
+                    <message clientCredentialType=""UserName"" />
+                     </security>
                     <readerQuotas maxDepth=""{expectedMaxDepth}"" />                    
                 </binding >
             </wsHttpBinding>                             
@@ -61,6 +64,13 @@ namespace CoreWCF.ConfigurationManager.Tests
         [Fact]
         public void WSHttpBinding_WithDefaultSetting()
         {
+            //TODO:- Check if there is a better way to skip the test
+            string frameworkDescription = RuntimeInformation.FrameworkDescription;
+            if (frameworkDescription.IndexOf(".NET Framework", StringComparison.Ordinal) >= 0)
+            {
+                return;
+            }
+
             string expectedName = "wsHttpBindingConfig";
             long expectedMaxReceivedMessageSize = 65536;
             long expectedMaxBufferPoolSize = 65536;

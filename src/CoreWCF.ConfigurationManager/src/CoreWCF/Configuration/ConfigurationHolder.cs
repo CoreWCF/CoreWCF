@@ -2,21 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using CoreWCF.Channels;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
     internal class ConfigurationHolder : IConfigurationHolder
     {
-        private readonly ConcurrentDictionary<string, Binding> _bindings = new ConcurrentDictionary<string, Binding>();
-        private readonly ConcurrentDictionary<string, ServiceEndpoint> _endpoints = new ConcurrentDictionary<string, ServiceEndpoint>();
+        private readonly IDictionary<string, Binding> _bindings = new Dictionary<string, Binding>();
+        private readonly ISet<ServiceEndpoint> _endpoints = new HashSet<ServiceEndpoint>();
         private readonly IServiceProvider _provider;
         private readonly IBindingFactory _factoryBinding;
 
-        public ConcurrentDictionary<string, ServiceEndpoint> Endpoints => _endpoints;
+        public ISet<ServiceEndpoint> Endpoints => _endpoints;
 
         public ConfigurationHolder(IServiceProvider serviceProvider, IBindingFactory factory)
         {
@@ -26,7 +24,7 @@ namespace CoreWCF.Configuration
 
         public void AddBinding(Binding binding)
         {
-            _bindings.TryAdd(binding.Name, binding);
+            _bindings.Add(binding.Name, binding);
         }
 
         public Binding ResolveBinding(string bindingType, string name)
@@ -49,24 +47,17 @@ namespace CoreWCF.Configuration
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new BindingNotFoundException());
         }
 
-        public IXmlConfigEndpoint GetXmlConfigEndpoint(string name)
+        public IXmlConfigEndpoint GetXmlConfigEndpoint(ServiceEndpoint endpoint)
         {
-            if (name == null)
+            if (endpoint == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(name);
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpoint));
             }
 
-            if (_endpoints.TryGetValue(name, out ServiceEndpoint endpoint))
-            {
-                Type contract = ServiceReflector.ResolveTypeFromName(endpoint.Contract);
-                Type service = ServiceReflector.ResolveTypeFromName(endpoint.ServiceName);
-                Binding binding = ResolveBinding(endpoint.Binding, endpoint.BindingConfiguration);
-
-                return new XmlConfigEndpoint(service, contract, binding, endpoint.Address);
-            }
-
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new EndpointNotFoundException($"Endpoint {name} not found in xml configuration"));
-
+            Type contract = ServiceReflector.ResolveTypeFromName(endpoint.Contract);
+            Type service = ServiceReflector.ResolveTypeFromName(endpoint.ServiceName);
+            Binding binding = ResolveBinding(endpoint.Binding, endpoint.BindingConfiguration);
+            return new XmlConfigEndpoint(service, contract, binding, endpoint.Address);
         }
 
         public void AddServiceEndpoint(string name, string serviceName, Uri address, string contract, string bindingType, string bindingName)
@@ -81,7 +72,7 @@ namespace CoreWCF.Configuration
                 BindingConfiguration = bindingName
             };
 
-            _endpoints.TryAdd(name, endpoint);
+            _endpoints.Add(endpoint);
         }
     }
 }

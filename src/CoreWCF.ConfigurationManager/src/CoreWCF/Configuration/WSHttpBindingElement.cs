@@ -46,6 +46,8 @@ namespace CoreWCF.Configuration
                 SendTimeout = SendTimeout,              
             };
 
+            //binding.AllowCookies = this.AllowCookies;
+            Security.ApplyConfiguration(binding.Security);
             return binding;
         }
     }

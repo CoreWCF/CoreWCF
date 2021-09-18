@@ -18,7 +18,7 @@ namespace CoreWCF.Configuration
                 }
             }
 
-            return default;
+            return Type.GetType(name, true);
         }
     }
 }

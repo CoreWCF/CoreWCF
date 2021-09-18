@@ -21,6 +21,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             TimeSpan expectedReceiveTimeout = TimeSpan.FromMinutes(10);
             TimeSpan expectedDefaultTimeout = TimeSpan.FromMinutes(1);
             BasicHttpSecurityMode expectedSecurityMode = BasicHttpSecurityMode.TransportWithMessageCredential;
+            BasicHttpMessageCredentialType clientCredType = BasicHttpMessageCredentialType.Certificate;
 
             string xml = $@"
 <configuration> 
@@ -31,7 +32,9 @@ namespace CoreWCF.ConfigurationManager.Tests
                          maxReceivedMessageSize=""{expectedMaxReceivedMessageSize}""
                          maxBufferSize=""{expectedMaxBufferSize}""
                          receiveTimeout=""00:10:00"">
-                    <security mode=""{expectedSecurityMode}""/>
+                    <security mode=""{expectedSecurityMode}"">
+                     <message clientCredentialType=""Certificate"" />
+                     </security>
                     <readerQuotas maxDepth=""{expectedMaxDepth}"" />   
                 </binding >
             </basicHttpBinding>                             
@@ -55,6 +58,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                     Assert.Equal(expectedReceiveTimeout, actualBinding.ReceiveTimeout);
                     Assert.Equal(TransferMode.Buffered, actualBinding.TransferMode);
                     Assert.Equal(expectedSecurityMode, actualBinding.Security.Mode);
+                    Assert.Equal(clientCredType, actualBinding.Security.Message.ClientCredentialType);
                     Assert.Equal(expectedMaxDepth, actualBinding.ReaderQuotas.MaxDepth);
                 }
             }
