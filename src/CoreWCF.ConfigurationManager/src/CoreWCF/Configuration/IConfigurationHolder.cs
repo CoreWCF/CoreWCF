@@ -3,16 +3,17 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
     public interface IConfigurationHolder
     {
-        ConcurrentDictionary<string, ServiceEndpoint> Endpoints { get; }
+        ISet<ServiceEndpoint> Endpoints { get; }
         void AddBinding(Binding binding);
         void AddServiceEndpoint(string name, string serviceName, Uri address, string contract, string bindingType, string bindingName);
         Binding ResolveBinding(string bindingType, string name);
-        IXmlConfigEndpoint GetXmlConfigEndpoint(string name);
+        IXmlConfigEndpoint GetXmlConfigEndpoint(ServiceEndpoint endPoint);
     }
 }

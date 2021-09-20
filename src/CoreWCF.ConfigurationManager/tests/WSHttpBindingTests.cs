@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.InteropServices;
 using CoreWCF.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -19,7 +20,8 @@ namespace CoreWCF.ConfigurationManager.Tests
             int expectedMaxDepth = 2147483647;
             TimeSpan expectedReceiveTimeout = TimeSpan.FromMinutes(10);
             TimeSpan expectedDefaultTimeout = TimeSpan.FromMinutes(1);
-            SecurityMode expectedSecurityMode = SecurityMode.TransportWithMessageCredential; 
+            SecurityMode expectedSecurityMode = SecurityMode.TransportWithMessageCredential;
+            MessageCredentialType clientCredType = MessageCredentialType.UserName;
 
             string xml = $@"
 <configuration> 
@@ -30,7 +32,9 @@ namespace CoreWCF.ConfigurationManager.Tests
                          maxReceivedMessageSize=""{expectedMaxReceivedMessageSize}""
                          maxBufferPoolSize=""{expectedMaxBufferPoolSize}""
                          receiveTimeout=""00:10:00"">
-                    <security mode=""{expectedSecurityMode}""/>
+                    <security mode=""{expectedSecurityMode}"">
+                    <message clientCredentialType=""{clientCredType}"" />
+                     </security>
                     <readerQuotas maxDepth=""{expectedMaxDepth}"" />                    
                 </binding >
             </wsHttpBinding>                             
@@ -54,11 +58,13 @@ namespace CoreWCF.ConfigurationManager.Tests
                     Assert.Equal(expectedMaxBufferPoolSize, actualBinding.MaxBufferPoolSize);
                     Assert.Equal(expectedMaxDepth, actualBinding.ReaderQuotas.MaxDepth);
                     Assert.Equal(expectedSecurityMode, actualBinding.Security.Mode);
+                    Assert.Equal(clientCredType, actualBinding.Security.Message.ClientCredentialType);
                 }
             }
         }
 
         [Fact]
+        [Trait("Category", "NetCoreOnly")]
         public void WSHttpBinding_WithDefaultSetting()
         {
             string expectedName = "wsHttpBindingConfig";

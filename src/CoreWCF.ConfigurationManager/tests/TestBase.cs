@@ -25,5 +25,18 @@ namespace CoreWCF.ConfigurationManager.Tests
             IConfigurationHolder settingHolder = provider.GetService<IConfigurationHolder>();
             return settingHolder;
         }
+
+        //Limiting this logic for test purpose.
+        protected static IXmlConfigEndpoint GetXmlConfigEndpointByEndpointName(IConfigurationHolder configHolder, string name)
+        {
+           foreach(var serviceEndPoint in configHolder.Endpoints)
+            {
+                if (string.Compare(serviceEndPoint.Name, name, true) == 0)
+                {
+                    return configHolder.GetXmlConfigEndpoint(serviceEndPoint);
+                }
+            }
+            throw new EndpointNotFoundException();
+        }
     }
 }
