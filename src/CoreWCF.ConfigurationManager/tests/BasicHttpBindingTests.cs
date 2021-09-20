@@ -33,7 +33,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                          maxBufferSize=""{expectedMaxBufferSize}""
                          receiveTimeout=""00:10:00"">
                     <security mode=""{expectedSecurityMode}"">
-                     <message clientCredentialType=""Certificate"" />
+                     <message clientCredentialType=""{clientCredType}"" />
                      </security>
                     <readerQuotas maxDepth=""{expectedMaxDepth}"" />   
                 </binding >

@@ -128,7 +128,6 @@ namespace CoreWCF.Configuration
 
             //this.ReliableSession.ApplyConfiguration(nptBinding.ReliableSession);
             Security.ApplyConfiguration(binding.Security);
-            //this.ReaderQuotas.ApplyConfiguration(nptBinding.ReaderQuotas);
             return binding;
         }
     }

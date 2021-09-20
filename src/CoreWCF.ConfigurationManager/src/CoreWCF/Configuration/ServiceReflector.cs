@@ -10,6 +10,7 @@ namespace CoreWCF.Configuration
     {
         internal static Type ResolveTypeFromName(string name)
         {
+            //First check if present in loaded assemblies
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (assembly.GetType(name) is Type found)
@@ -18,6 +19,7 @@ namespace CoreWCF.Configuration
                 }
             }
 
+            //If not present in loaded assemblies, AssemblyQualifiedName  should be "FooNameSpace.BarInterface,FooNameSpace".
             return Type.GetType(name, true);
         }
     }

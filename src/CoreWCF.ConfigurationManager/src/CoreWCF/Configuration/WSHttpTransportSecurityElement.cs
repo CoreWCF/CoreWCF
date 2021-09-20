@@ -48,11 +48,10 @@ namespace CoreWCF.Configuration
         {
             if (security == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("security");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
             }
 
             security.ClientCredentialType = ClientCredentialType;
-           // security.ProxyCredentialType = this.ProxyCredentialType;
             security.Realm = Realm;
            // security.ExtendedProtectionPolicy = ChannelBindingUtility.BuildPolicy(this.ExtendedProtectionPolicy);
         }
