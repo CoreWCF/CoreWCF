@@ -25,7 +25,7 @@ stages:
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
-          testArgs: ''
+          testArgs: '--filter Category!=NetCoreOnly'
         Linux_netcore2.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp2.1'

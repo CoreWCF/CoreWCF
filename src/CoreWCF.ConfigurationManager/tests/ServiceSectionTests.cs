@@ -42,7 +42,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                 {
                     IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
 
-                    IXmlConfigEndpoint endpoint = GetXmlConfigEndpoinByEndpointName(settingHolder, expectedEndpointName);
+                    IXmlConfigEndpoint endpoint = GetXmlConfigEndpointByEndpointName(settingHolder, expectedEndpointName);
                     Assert.Equal(expectedServiceName, endpoint.Service.FullName);
                     Assert.Equal(expectedContractName, endpoint.Contract.FullName);
                     Assert.Equal(expectedAddress, endpoint.Address.AbsoluteUri);
@@ -96,12 +96,12 @@ namespace CoreWCF.ConfigurationManager.Tests
                 using (ServiceProvider provider = CreateProvider(fs.Name))
                 {
                     IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
-                    IXmlConfigEndpoint endpoint = GetXmlConfigEndpoinByEndpointName(settingHolder, expectedEndpointNameForBasicHttp);
+                    IXmlConfigEndpoint endpoint = GetXmlConfigEndpointByEndpointName(settingHolder, expectedEndpointNameForBasicHttp);
                     Assert.Equal(expectedServiceName, endpoint.Service.FullName);
                     Assert.Equal(expectedContractName, endpoint.Contract.FullName);
                     Assert.Equal(expectedBasicHttpAddress, endpoint.Address.AbsoluteUri);
 
-                    endpoint = GetXmlConfigEndpoinByEndpointName(settingHolder, string.Empty);
+                    endpoint = GetXmlConfigEndpointByEndpointName(settingHolder, string.Empty);
                     Assert.Equal(expectedServiceName, endpoint.Service.FullName);
                     Assert.Equal(expectedContractName, endpoint.Contract.FullName);
                     Assert.Equal(expectedNetTCPAddress, endpoint.Address.AbsoluteUri);

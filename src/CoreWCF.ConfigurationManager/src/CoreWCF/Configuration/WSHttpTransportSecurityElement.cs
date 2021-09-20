@@ -14,14 +14,6 @@ namespace CoreWCF.Configuration
             set { base[ConfigurationStrings.ClientCredentialType] = value; }
         }
 
-        //[ConfigurationProperty(ConfigurationStrings.ProxyCredentialType, DefaultValue = HttpTransportSecurity.DefaultProxyCredentialType)]
-        //[ServiceModelEnumValidator(typeof(HttpProxyCredentialTypeHelper))]
-        //public HttpProxyCredentialType ProxyCredentialType
-        //{
-        //    get { return (HttpProxyCredentialType)base[ConfigurationStrings.ProxyCredentialType]; }
-        //    set { base[ConfigurationStrings.ProxyCredentialType] = value; }
-        //}
-
         //[ConfigurationProperty(ConfigurationStrings.ExtendedProtectionPolicy)]
         //public ExtendedProtectionPolicyElement ExtendedProtectionPolicy
         //{

@@ -35,7 +35,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                 using (ServiceProvider provider = CreateProvider(fs.Name))
                 {
                     IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
-                    IXmlConfigEndpoint endpoint = GetXmlConfigEndpoinByEndpointName(settingHolder, expectedEndpointName);
+                    IXmlConfigEndpoint endpoint = GetXmlConfigEndpointByEndpointName(settingHolder, expectedEndpointName);
                     Assert.Equal(expectedServiceName, endpoint.Service.FullName);
                     Assert.IsType<NetTcpBinding>(endpoint.Binding);
                     Assert.Equal("NetTcpBinding", endpoint.Binding.Name);
@@ -66,7 +66,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                 {
                     IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
 
-                    Assert.Throws<EndpointNotFoundException>(() => GetXmlConfigEndpoinByEndpointName(settingHolder, string.Empty));
+                    Assert.Throws<EndpointNotFoundException>(() => GetXmlConfigEndpointByEndpointName(settingHolder, string.Empty));
                 }
             }
         }
