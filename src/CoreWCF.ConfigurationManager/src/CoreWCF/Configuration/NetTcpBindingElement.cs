@@ -126,6 +126,8 @@ namespace CoreWCF.Configuration
                 HostNameComparisonMode = HostNameComparisonMode
             };
 
+            //this.ReliableSession.ApplyConfiguration(nptBinding.ReliableSession);
+            Security.ApplyConfiguration(binding.Security);
             return binding;
         }
     }

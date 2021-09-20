@@ -61,9 +61,9 @@ namespace CoreWCF.Configuration
         public void Configure(ServiceModelOptions options)
         {
             var configHolder = ParseConfig();
-            foreach (var endpointName in configHolder.Endpoints.Keys)
+            foreach (var serviceEndPoint in configHolder.Endpoints)
             {
-                IXmlConfigEndpoint configEndpoint = configHolder.GetXmlConfigEndpoint(endpointName);
+               IXmlConfigEndpoint configEndpoint = configHolder.GetXmlConfigEndpoint(serviceEndPoint);
                 options.ConfigureService(configEndpoint.Service, serviceConfig =>
                 {
                     serviceConfig.AddServiceEndpoint(configEndpoint.Contract, configEndpoint.Binding, configEndpoint.Address, null);

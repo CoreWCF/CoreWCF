@@ -26,5 +26,17 @@ namespace CoreWCF.Configuration
         {
             get { return (BasicHttpMessageSecurityElement)base[ConfigurationStrings.Message]; }
         }
+
+        internal void ApplyConfiguration(BasicHttpSecurity security)
+        {
+            if (security == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
+            }
+
+            security.Mode = Mode;
+            Transport.ApplyConfiguration(security.Transport);
+            Message.ApplyConfiguration(security.Message);
+        }
     }
 }
