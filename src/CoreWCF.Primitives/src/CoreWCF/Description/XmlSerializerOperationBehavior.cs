@@ -16,7 +16,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Description
 {
-    internal class XmlSerializerOperationBehavior : IOperationBehavior
+    public class XmlSerializerOperationBehavior : IOperationBehavior, IWsdlExportExtension
     {
         public XmlSerializerOperationBehavior(OperationDescription operation)
             : this(operation, null)
@@ -175,6 +175,26 @@ namespace CoreWCF.Description
             {
                 proxy.FaultFormatter = (IClientFaultFormatter)CreateFaultFormatter(proxy.FaultContractInfos);
             }
+        }
+
+        void IWsdlExportExtension.ExportEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext endpointContext)
+        {
+            if (exporter == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            if (endpointContext == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointContext));
+
+            MessageContractExporter.ExportMessageBinding(exporter, endpointContext, typeof(XmlSerializerMessageContractExporter), OperationReflector.Operation);
+        }
+
+        void IWsdlExportExtension.ExportContract(WsdlExporter exporter, WsdlContractConversionContext contractContext)
+        {
+            if (exporter == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            if (contractContext == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractContext));
+
+            new XmlSerializerMessageContractExporter(exporter, contractContext, OperationReflector.Operation, this).ExportMessageContract();
         }
 
         public Collection<XmlMapping> GetXmlMappings()
@@ -1005,18 +1025,16 @@ namespace CoreWCF.Description
         internal static XmlReflectionMember GetXmlReflectionMember(MessagePartDescription part, bool isRpc, bool isEncoded, bool isWrapped)
         {
             string ns = isRpc ? null : part.Namespace;
-            MemberInfo additionalAttributesProvider = null;
-            if (part.AdditionalAttributesProvider is MemberInfo)
-            {
-                additionalAttributesProvider = part.AdditionalAttributesProvider as MemberInfo;
-            }
+            ICustomAttributeProvider additionalAttributesProvider = null;
+            if (isEncoded || part.AdditionalAttributesProvider is MemberInfo)
+                additionalAttributesProvider = part.AdditionalAttributesProvider;
 
             XmlName memberName = string.IsNullOrEmpty(part.UniquePartName) ? null : new XmlName(part.UniquePartName, true /*isEncoded*/);
             XmlName elementName = part.XmlName;
             return GetXmlReflectionMember(memberName, elementName, ns, part.Type, additionalAttributesProvider, part.Multiple, isEncoded, isWrapped);
         }
 
-        internal static XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, MemberInfo additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
+        internal static XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, ICustomAttributeProvider additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
         {
             if (isEncoded && isMultiple)
             {

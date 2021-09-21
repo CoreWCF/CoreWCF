@@ -234,7 +234,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal Uri ListenUri { get; }
+        public Uri ListenUri { get; }
 
         internal List<Type> SupportedChannelTypes { get; }
 

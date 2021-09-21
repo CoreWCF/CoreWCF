@@ -17,7 +17,7 @@ namespace CoreWCF.Channels
 
         public BufferedMessageWriter()
         {
-            _stream = new BufferManagerOutputStream(SR.MaxSentMessageSizeExceeded);
+            _stream = new BufferManagerOutputStream(SRCommon.MaxSentMessageSizeExceeded);
             InitMessagePredictor();
         }
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Threading;
 //using System.Xml;
@@ -46,12 +47,11 @@ namespace CoreWCF.Description
             }
         }
 
-        internal static string TypeName(Type type)
+        internal static string TypeName(Type t)
         {
-            TypeInfo t = type.GetTypeInfo();
             if (t.IsGenericType || t.ContainsGenericParameters)
             {
-                Type[] args = type.GetGenericArguments();
+                Type[] args = t.GetGenericArguments();
                 int nameEnd = t.Name.IndexOf('`');
                 string result = nameEnd > 0 ? t.Name.Substring(0, nameEnd) : t.Name;
                 result += "Of";
@@ -127,20 +127,20 @@ namespace CoreWCF.Description
             return CombineUriStrings(actionBuilder.ToString(), action);
         }
 
-        //internal delegate bool DoesNameExist(string name, object nameCollection);
-        //internal static string GetUniqueName(string baseName, DoesNameExist doesNameExist, object nameCollection)
-        //{
-        //    for (int i = 0; i < Int32.MaxValue; i++)
-        //    {
-        //        string name = i > 0 ? baseName + i : baseName;
-        //        if (!doesNameExist(name, nameCollection))
-        //        {
-        //            return name;
-        //        }
-        //    }
-        //    Fx.Assert("Too Many Names");
-        //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(String.Format(CultureInfo.InvariantCulture, "Cannot generate unique name for name {0}", baseName)));
-        //}
+        internal delegate bool DoesNameExist(string name, object nameCollection);
+        internal static string GetUniqueName(string baseName, DoesNameExist doesNameExist, object nameCollection)
+        {
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                string name = i > 0 ? baseName + i : baseName;
+                if (!doesNameExist(name, nameCollection))
+                {
+                    return name;
+                }
+            }
+            Fx.Assert("Too Many Names");
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Cannot generate unique name for name {0}", baseName)));
+        }
 
         internal static void CheckUriProperty(string ns, string propName)
         {

@@ -16,30 +16,6 @@ namespace CoreWCF.Channels
 
         public abstract MessageVersion MessageVersion { get; set; }
 
-        //        internal IChannelFactory<TChannel> InternalBuildChannelFactory<TChannel>(BindingContext context)
-        //        {
-        //            if (context == null)
-        //            {
-        //                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("context"));
-        //            }
-
-        //#pragma warning suppress 56506 // brianmcn, BindingContext.BindingParameters never be null
-        //            context.BindingParameters.Add(this);
-        //            return context.BuildInnerChannelFactory<TChannel>();
-        //        }
-
-        //        internal bool InternalCanBuildChannelFactory<TChannel>(BindingContext context)
-        //        {
-        //            if (context == null)
-        //            {
-        //                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("context"));
-        //            }
-
-        //#pragma warning suppress 56506 // brianmcn, BindingContext.BindingParameters never be null
-        //            context.BindingParameters.Add(this);
-        //            return context.CanBuildInnerChannelFactory<TChannel>();
-        //        }
-
         public abstract MessageEncoderFactory CreateMessageEncoderFactory();
 
         public override T GetProperty<T>(BindingContext context)

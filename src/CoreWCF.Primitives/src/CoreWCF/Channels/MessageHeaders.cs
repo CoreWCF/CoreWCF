@@ -22,7 +22,7 @@ namespace CoreWCF.Channels
         private const int MaxRecycledArrayLength = 8;
         private static XmlDictionaryString[] s_localNames;
 
-        internal const string WildcardAction = "*";
+        public const string WildcardAction = "*";
 
         // The highest node and attribute counts reached by the BVTs were 1829 and 667 respectively.
         private const int MaxBufferedHeaderNodes = 4096;

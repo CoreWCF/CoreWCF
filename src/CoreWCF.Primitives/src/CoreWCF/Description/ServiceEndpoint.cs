@@ -61,7 +61,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal bool IsSystemEndpoint
+        public bool IsSystemEndpoint
         {
             get;
             set;
@@ -133,7 +133,11 @@ namespace CoreWCF.Description
             }
         }
 
+#if DEBUG
+        public string Id
+#else
         internal string Id
+#endif
         {
             get
             {

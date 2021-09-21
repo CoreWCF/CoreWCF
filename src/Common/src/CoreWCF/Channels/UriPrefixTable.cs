@@ -152,8 +152,8 @@ namespace CoreWCF.Channels
                 SegmentHierarchyNode<TItem> node = FindOrCreateNode(key);
                 if (node.Data != null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
-                        SR.DuplicateRegistration, uri)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SRCommon.Format(
+                        SRCommon.DuplicateRegistration, uri)));
                 }
                 node.SetData(item, key);
                 Count++;

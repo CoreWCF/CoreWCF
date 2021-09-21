@@ -187,7 +187,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal bool IsDuplex()
+        public bool IsDuplex()
         {
             for (int i = 0; i < Operations.Count; ++i)
             {

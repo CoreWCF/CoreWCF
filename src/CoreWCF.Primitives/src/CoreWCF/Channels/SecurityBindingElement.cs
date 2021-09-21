@@ -3,10 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net.Security;
 using System.Xml;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Runtime;
+using CoreWCF.Runtime.Diagnostics;
 using CoreWCF.Security;
 using CoreWCF.Security.Tokens;
 
@@ -779,7 +783,7 @@ namespace CoreWCF.Channels
         {
             if (bootstrapSecurity == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bootstrapBinding");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bootstrapSecurity));
             }
 
             SecurityBindingElement result;
@@ -838,5 +842,269 @@ namespace CoreWCF.Channels
         }
 
         //TODO other security mode
+
+        public static void ExportPolicyForTransportTokenAssertionProviders(MetadataExporter exporter, PolicyConversionContext context)
+        {
+            if (exporter == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            }
+
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            SecurityTraceRecordHelper.TraceExportChannelBindingEntry();
+
+            SecurityBindingElement binding = null;
+            ITransportTokenAssertionProvider transportTokenAssertionProvider = null;
+            BindingElementCollection bindingElementsBelowSecurity = new BindingElementCollection();
+            if ((context != null) && (context.BindingElements != null))
+            {
+                foreach (BindingElement be in context.BindingElements)
+                {
+                    if (be is SecurityBindingElement)
+                    {
+                        binding = (SecurityBindingElement)be;
+                    }
+                    else
+                    {
+                        if (binding != null || be is MessageEncodingBindingElement || be is ITransportTokenAssertionProvider)
+                        {
+                            bindingElementsBelowSecurity.Add(be);
+                        }
+                        if (be is ITransportTokenAssertionProvider)
+                        {
+                            transportTokenAssertionProvider = (ITransportTokenAssertionProvider)be;
+                        }
+                    }
+                }
+            }
+
+            // this is used when exporting bootstrap policy for secure conversation in SecurityPolicy11.CreateWsspBootstrapPolicyAssertion
+            exporter.State[SecurityPolicyStrings.SecureConversationBootstrapBindingElementsBelowSecurityKey] = bindingElementsBelowSecurity;
+
+            bool hasCompletedSuccessfully = false;
+            try
+            {
+                if (binding is TransportSecurityBindingElement)
+                {
+                    if (transportTokenAssertionProvider == null && !binding.AllowInsecureTransport)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ExportOfBindingWithTransportSecurityBindingElementAndNoTransportSecurityNotSupported));
+                    }
+
+                    ExportTransportSecurityBindingElement((TransportSecurityBindingElement)binding, transportTokenAssertionProvider, exporter, context);
+                    ExportOperationScopeSupportingTokensPolicy(binding, exporter, context);
+                }
+                else if (transportTokenAssertionProvider != null)
+                {
+                    TransportSecurityBindingElement dummyTransportBindingElement = new TransportSecurityBindingElement();
+                    if (binding == null)
+                    {
+                        dummyTransportBindingElement.IncludeTimestamp = false;
+                    }
+
+                    if (transportTokenAssertionProvider.GetType().Name.Equals("HttpsTransportBindingElement"))
+                    {
+                        // This case is handled by HttpsTransportBindingElement
+                        return;
+                    }
+
+                    ExportTransportSecurityBindingElement(dummyTransportBindingElement, transportTokenAssertionProvider, exporter, context);
+                }
+
+                hasCompletedSuccessfully = true;
+            }
+            finally
+            {
+                try
+                {
+                    exporter.State.Remove(SecurityPolicyStrings.SecureConversationBootstrapBindingElementsBelowSecurityKey);
+                }
+                catch (Exception e)
+                {
+                    // Always immediately rethrow fatal exceptions.
+                    if (hasCompletedSuccessfully || Fx.IsFatal(e)) throw;
+                }
+            }
+        }
+
+        //
+        // We will emit the wssp trust 10 assertion for all the case except for the basic http binding
+        // created through the BasicHttpBinding class.  The reason for this exception is to allow better 
+        // interop with third party when the third party doesn't understand the trust asserion
+        //
+        static bool RequiresWsspTrust(SecurityBindingElement sbe)
+        {
+            if (sbe == null)
+                return false;
+
+            return !(sbe.DoNotEmitTrust);
+        }
+
+        public static void ExportTransportSecurityBindingElement(TransportSecurityBindingElement binding, ITransportTokenAssertionProvider transportTokenAssertionProvider, MetadataExporter exporter, PolicyConversionContext policyContext)
+        {
+            WSSecurityPolicy sp = WSSecurityPolicy.GetSecurityPolicyDriver(binding.MessageSecurityVersion);
+
+            if (transportTokenAssertionProvider == null && binding.AllowInsecureTransport)
+            {
+                if ((policyContext != null) && (policyContext.BindingElements != null))
+                {
+                    foreach (BindingElement be in policyContext.BindingElements)
+                    {
+                        if (be.GetType().FullName.Equals("CoreWCF.Channels.HttpTransportBindingElement"))
+                        {
+                            throw new Exception("Work out how to do this some other way");
+                            //transportTokenAssertionProvider = new HttpsTransportBindingElement();
+                            //break;
+                        }
+
+                        if (be.GetType().FullName.Equals("CoreWCF.Channels.TcpTransportBindingElement"))
+                        {
+                            transportTokenAssertionProvider = new SslStreamSecurityBindingElement();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            XmlElement transportTokenAssertion = transportTokenAssertionProvider.GetTransportTokenAssertion();
+
+            if (transportTokenAssertion == null)
+            {
+                if (transportTokenAssertionProvider.GetType().FullName.Equals("CoreWCF.Channels.HttpsTransportBindingElement"))
+                {
+                    throw new Exception("Work out how to do this some other way");
+                    //transportTokenAssertion = sp.CreateWsspHttpsTokenAssertion(exporter, (HttpsTransportBindingElement)transportTokenAssertionProvider);
+                }
+
+                if (transportTokenAssertion == null)
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.NoTransportTokenAssertionProvided, transportTokenAssertionProvider.GetType().ToString())));
+            }
+
+            AddressingVersion addressingVersion = AddressingVersion.WSAddressing10;
+            MessageEncodingBindingElement messageEncoderBindingElement = policyContext.BindingElements.Find<MessageEncodingBindingElement>();
+            if (messageEncoderBindingElement != null)
+            {
+                addressingVersion = messageEncoderBindingElement.MessageVersion.Addressing;
+            }
+
+            AddAssertionIfNotNull(policyContext, sp.CreateWsspTransportBindingAssertion(exporter, binding, transportTokenAssertion));
+
+            Collection<XmlElement> supportingTokenAssertions = sp.CreateWsspSupportingTokensAssertion(
+                exporter,
+                binding.EndpointSupportingTokenParameters.Signed,
+                binding.EndpointSupportingTokenParameters.SignedEncrypted,
+                binding.EndpointSupportingTokenParameters.Endorsing,
+                binding.EndpointSupportingTokenParameters.SignedEndorsing,
+                binding.OptionalEndpointSupportingTokenParameters.Signed,
+                binding.OptionalEndpointSupportingTokenParameters.SignedEncrypted,
+                binding.OptionalEndpointSupportingTokenParameters.Endorsing,
+                binding.OptionalEndpointSupportingTokenParameters.SignedEndorsing,
+                addressingVersion);
+
+            AddAssertionIfNotNull(policyContext, supportingTokenAssertions);
+
+            if (supportingTokenAssertions.Count > 0
+                || HasEndorsingSupportingTokensAtOperationScope(binding))
+            {
+                AddAssertionIfNotNull(policyContext, sp.CreateWsspWssAssertion(exporter, binding));
+                if (RequiresWsspTrust(binding))
+                {
+                    AddAssertionIfNotNull(policyContext, sp.CreateWsspTrustAssertion(exporter, binding.KeyEntropyMode));
+                }
+            }
+        }
+
+        static bool HasEndorsingSupportingTokensAtOperationScope(SecurityBindingElement binding)
+        {
+            foreach (SupportingTokenParameters r in binding.OperationSupportingTokenParameters.Values)
+            {
+                if (r.Endorsing.Count > 0 || r.SignedEndorsing.Count > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static void ExportOperationScopeSupportingTokensPolicy(SecurityBindingElement binding, MetadataExporter exporter, PolicyConversionContext policyContext)
+        {
+            WSSecurityPolicy sp = WSSecurityPolicy.GetSecurityPolicyDriver(binding.MessageSecurityVersion);
+
+            if (binding.OperationSupportingTokenParameters.Count == 0 && binding.OptionalOperationSupportingTokenParameters.Count == 0)
+            {
+                return;
+            }
+
+            foreach (OperationDescription operation in policyContext.Contract.Operations)
+            {
+                foreach (MessageDescription message in operation.Messages)
+                {
+
+                    if (message.Direction == MessageDirection.Input)
+                    {
+                        SupportingTokenParameters requirements = null;
+                        SupportingTokenParameters optionalRequirements = null;
+
+                        if (binding.OperationSupportingTokenParameters.ContainsKey(message.Action))
+                        {
+                            requirements = binding.OperationSupportingTokenParameters[message.Action];
+                        }
+                        if (binding.OptionalOperationSupportingTokenParameters.ContainsKey(message.Action))
+                        {
+                            optionalRequirements = binding.OptionalOperationSupportingTokenParameters[message.Action];
+                        }
+
+                        if (requirements == null && optionalRequirements == null)
+                        {
+                            continue;
+                        }
+
+                        AddAssertionIfNotNull(policyContext, operation, sp.CreateWsspSupportingTokensAssertion(
+                            exporter,
+                            requirements == null ? null : requirements.Signed,
+                            requirements == null ? null : requirements.SignedEncrypted,
+                            requirements == null ? null : requirements.Endorsing,
+                            requirements == null ? null : requirements.SignedEndorsing,
+                            optionalRequirements == null ? null : optionalRequirements.Signed,
+                            optionalRequirements == null ? null : optionalRequirements.SignedEncrypted,
+                            optionalRequirements == null ? null : optionalRequirements.Endorsing,
+                            optionalRequirements == null ? null : optionalRequirements.SignedEndorsing));
+                    }
+                }
+            }
+        }
+
+        static void AddAssertionIfNotNull(PolicyConversionContext policyContext, XmlElement assertion)
+        {
+            if (policyContext != null && assertion != null)
+            {
+                policyContext.GetBindingAssertions().Add(assertion);
+            }
+        }
+
+        static void AddAssertionIfNotNull(PolicyConversionContext policyContext, Collection<XmlElement> assertions)
+        {
+            if (policyContext != null && assertions != null)
+            {
+                PolicyAssertionCollection existingAssertions = policyContext.GetBindingAssertions();
+                for (int i = 0; i < assertions.Count; ++i)
+                    existingAssertions.Add(assertions[i]);
+            }
+        }
+
+        static void AddAssertionIfNotNull(PolicyConversionContext policyContext, OperationDescription operation, Collection<XmlElement> assertions)
+        {
+            if (policyContext != null && assertions != null)
+            {
+                PolicyAssertionCollection existingAssertions = policyContext.GetOperationBindingAssertions(operation);
+                for (int i = 0; i < assertions.Count; ++i)
+                    existingAssertions.Add(assertions[i]);
+            }
+        }
     }
 }

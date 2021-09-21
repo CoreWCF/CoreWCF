@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
+using System.Xml;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using Microsoft.AspNetCore.Builder;
+using WsdlNS = System.Web.Services.Description;
 
 namespace CoreWCF.Channels
 {
@@ -13,7 +17,7 @@ namespace CoreWCF.Channels
     /// This TransportBindingElement is used to specify an HTTP transport for transmitting messages.
     /// </summary>
     /// <remarks>HttpTransportBindingElement is also used as a starting point for creating a custom bindings using HTTP.</remarks>
-    public class HttpTransportBindingElement : TransportBindingElement
+    public class HttpTransportBindingElement : TransportBindingElement, IWsdlExportExtension, IPolicyExportExtension
     {
         private int _maxBufferSize;
         private bool _maxBufferSizeInitialized;
@@ -159,6 +163,16 @@ namespace CoreWCF.Channels
         {
             return effectiveAuthenticationSchemes != AuthenticationSchemes.None &&
                 effectiveAuthenticationSchemes.IsNotSet(AuthenticationSchemes.Anonymous);
+        }
+
+        internal string GetWsdlTransportUri(bool useWebSocketTransport)
+        {
+            if (useWebSocketTransport)
+            {
+                return TransportPolicyConstants.WebSocketTransportUri;
+            }
+
+            return TransportPolicyConstants.HttpTransportUri;
         }
 
         /// <summary>
@@ -325,6 +339,156 @@ namespace CoreWCF.Channels
             }
         }
 
-        //  public override Type MiddlewareType => typeof(ServiceModelHttpMiddleware);
+        void IPolicyExportExtension.ExportPolicy(MetadataExporter exporter, PolicyConversionContext context)
+        {
+            if (exporter == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            }
+
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            OnExportPolicy(exporter, context);
+
+            bool createdNew;
+            MessageEncodingBindingElement encodingBindingElement = FindMessageEncodingBindingElement(context.BindingElements, out createdNew);
+            if (createdNew && encodingBindingElement is IPolicyExportExtension)
+            {
+                ((IPolicyExportExtension)encodingBindingElement).ExportPolicy(exporter, context);
+            }
+
+            WsdlExporter.AddWSAddressingAssertion(exporter, context, encodingBindingElement.MessageVersion.Addressing);
+        }
+
+        internal virtual void OnExportPolicy(MetadataExporter exporter, PolicyConversionContext policyContext)
+        {
+            List<string> assertionNames = new List<string>();
+            AuthenticationSchemes effectiveAuthenticationSchemes = HttpTransportBindingElement.GetEffectiveAuthenticationSchemes(AuthenticationScheme,
+                    policyContext.BindingParameters);
+
+            if (effectiveAuthenticationSchemes != AuthenticationSchemes.None && !(effectiveAuthenticationSchemes.IsSet(AuthenticationSchemes.Anonymous)))
+            {
+                // ATTENTION: The order of the if-statements below is essential! When importing WSDL svcutil is actually
+                // using the first assertion - and the HTTP spec requires clients to use the most secure authentication
+                // scheme supported by the client. (especially important for downlevel (3.5/4.0) clients
+                if (effectiveAuthenticationSchemes.IsSet(AuthenticationSchemes.Negotiate))
+                {
+                    assertionNames.Add(TransportPolicyConstants.NegotiateHttpAuthenticationName);
+                }
+
+                if (effectiveAuthenticationSchemes.IsSet(AuthenticationSchemes.Ntlm))
+                {
+                    assertionNames.Add(TransportPolicyConstants.NtlmHttpAuthenticationName);
+                }
+
+                if (effectiveAuthenticationSchemes.IsSet(AuthenticationSchemes.Digest))
+                {
+                    assertionNames.Add(TransportPolicyConstants.DigestHttpAuthenticationName);
+                }
+
+                if (effectiveAuthenticationSchemes.IsSet(AuthenticationSchemes.Basic))
+                {
+                    assertionNames.Add(TransportPolicyConstants.BasicHttpAuthenticationName);
+                }
+
+                if (assertionNames != null && assertionNames.Count > 0)
+                {
+                    if (assertionNames.Count == 1)
+                    {
+                        policyContext.GetBindingAssertions().Add(new XmlDocument().CreateElement(TransportPolicyConstants.HttpTransportPrefix,
+                            assertionNames[0], TransportPolicyConstants.HttpTransportNamespace));
+                    }
+                    else
+                    {
+                        XmlDocument dummy = new XmlDocument();
+                        XmlElement root = dummy.CreateElement(MetadataStrings.WSPolicy.Prefix,
+                            MetadataStrings.WSPolicy.Elements.ExactlyOne,
+                            exporter.PolicyVersion.Namespace);
+
+                        foreach (string assertionName in assertionNames)
+                        {
+                            root.AppendChild(dummy.CreateElement(TransportPolicyConstants.HttpTransportPrefix,
+                                assertionName,
+                                TransportPolicyConstants.HttpTransportNamespace));
+                        }
+
+                        policyContext.GetBindingAssertions().Add(root);
+                    }
+                }
+            }
+
+            bool useWebSocketTransport = WebSocketHelper.UseWebSocketTransport(WebSocketSettings.TransportUsage, policyContext.Contract.IsDuplex());
+            if (useWebSocketTransport && TransferMode != TransferMode.Buffered)
+            {
+                policyContext.GetBindingAssertions().Add(new XmlDocument().CreateElement(TransportPolicyConstants.WebSocketPolicyPrefix,
+                TransferMode.ToString(), TransportPolicyConstants.WebSocketPolicyNamespace));
+            }
+        }
+
+        void IWsdlExportExtension.ExportContract(WsdlExporter exporter, WsdlContractConversionContext context) { }
+
+        void IWsdlExportExtension.ExportEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext endpointContext)
+        {
+            bool createdNew;
+            MessageEncodingBindingElement encodingBindingElement = FindMessageEncodingBindingElement(endpointContext, out createdNew);
+            bool useWebSocketTransport = WebSocketHelper.UseWebSocketTransport(WebSocketSettings.TransportUsage, endpointContext.ContractConversionContext.Contract.IsDuplex());
+
+            EndpointAddress address = endpointContext.Endpoint.Address;
+            if (useWebSocketTransport)
+            {
+                address = new EndpointAddress(WebSocketHelper.GetWebSocketUri(endpointContext.Endpoint.Address.Uri), endpointContext.Endpoint.Address);
+                WsdlNS.SoapAddressBinding binding = SoapHelper.GetSoapAddressBinding(endpointContext.WsdlPort);
+                if (binding != null)
+                {
+                    binding.Location = address.Uri.AbsoluteUri;
+                }
+            }
+
+            ExportWsdlEndpoint(exporter, endpointContext, GetWsdlTransportUri(useWebSocketTransport), address, encodingBindingElement.MessageVersion.Addressing);
+        }
+
+        private MessageEncodingBindingElement FindMessageEncodingBindingElement(BindingElementCollection bindingElements, out bool createdNew)
+        {
+            createdNew = false;
+            MessageEncodingBindingElement encodingBindingElement = bindingElements.Find<MessageEncodingBindingElement>();
+            if (encodingBindingElement == null)
+            {
+                createdNew = true;
+                encodingBindingElement = new BinaryMessageEncodingBindingElement();
+            }
+            return encodingBindingElement;
+        }
+
+        private MessageEncodingBindingElement FindMessageEncodingBindingElement(WsdlEndpointConversionContext endpointContext, out bool createdNew)
+        {
+            BindingElementCollection bindingElements = endpointContext.Endpoint.Binding.CreateBindingElements();
+            return FindMessageEncodingBindingElement(bindingElements, out createdNew);
+        }
+    }
+
+    static class TransportPolicyConstants
+    {
+        public const string BasicHttpAuthenticationName = "BasicAuthentication";
+        public const string CompositeDuplex = "CompositeDuplex";
+        public const string CompositeDuplexNamespace = "http://schemas.microsoft.com/net/2006/06/duplex";
+        public const string CompositeDuplexPrefix = "cdp";
+        public const string DigestHttpAuthenticationName = "DigestAuthentication";
+        public const string HttpTransportNamespace = "http://schemas.microsoft.com/ws/06/2004/policy/http";
+        public const string HttpTransportPrefix = "http";
+        public const string HttpTransportUri = "http://schemas.xmlsoap.org/soap/http";
+        public const string NegotiateHttpAuthenticationName = "NegotiateAuthentication";
+        public const string NtlmHttpAuthenticationName = "NtlmAuthentication";
+        public const string ProtectionLevelName = "ProtectionLevel";
+        public const string RequireClientCertificateName = "RequireClientCertificate";
+        public const string SslTransportSecurityName = "SslTransportSecurity";
+        public const string StreamedName = "Streamed";
+        public const string WebSocketPolicyPrefix = "mswsp";
+        public const string WebSocketPolicyNamespace = "http://schemas.microsoft.com/soap/websocket/policy";
+        public const string WebSocketTransportUri = "http://schemas.microsoft.com/soap/websocket";
+        public const string WebSocketEnabled = "WebSocketEnabled";
+        public const string WindowsTransportSecurityName = "WindowsTransportSecurity";
     }
 }
