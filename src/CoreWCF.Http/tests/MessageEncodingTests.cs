@@ -3,7 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
+using System.Net.Http;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+using System.ServiceModel.Dispatcher;
+using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -18,6 +23,10 @@ namespace CoreWCF.Http.Tests
     {
         private readonly ITestOutputHelper _output;
 
+        private const int LargeRequestByteArrayLength = 1024;
+        private const int SmallRequestByteArrayLength = 10;
+
+
         public MessageEncodingTests(ITestOutputHelper output)
         {
             _output = output;
@@ -25,18 +34,26 @@ namespace CoreWCF.Http.Tests
 
         public static IEnumerable<object[]> GetTestVariations()
         {
-            yield return new object[] { typeof(BasicHttpBindingWithTextMessageEncodingStartup), BasicHttpBindingWithTextMessageEncodingStartup.GetClientBinding() };
-            yield return new object[] { typeof(BasicHttpBindingWithMtomMessageEncodingStartup), BasicHttpBindingWithMtomMessageEncodingStartup.GetClientBinding() };
-            yield return new object[] { typeof(WSHttpBindingWithTextMessageEncodingStartup), WSHttpBindingWithTextMessageEncodingStartup.GetClientBinding() };
-            yield return new object[] { typeof(WSHttpBindingWithMtomMessageEncodingStartup), WSHttpBindingWithMtomMessageEncodingStartup.GetClientBinding() };
-            yield return new object[] { typeof(NetHttpBindingWithTextMessageEncodingStartup), NetHttpBindingWithTextMessageEncodingStartup.GetClientBinding() };
-            yield return new object[] { typeof(NetHttpBindingWithMtomMessageEncodingStartup), NetHttpBindingWithMtomMessageEncodingStartup.GetClientBinding() };
-            yield return new object[] { typeof(NetHttpBindingWithBinaryMessageEncodingStartup), NetHttpBindingWithBinaryMessageEncodingStartup.GetClientBinding() };
+            yield return new object[] { typeof(BasicHttpBindingWithTextMessageEncodingStartup), BasicHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, null };
+            yield return new object[] { typeof(BasicHttpBindingWithMtomMessageEncodingStartup), BasicHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, new AssertMtomOptimizedEndpointBehvaior() };
+            yield return new object[] { typeof(WSHttpBindingWithTextMessageEncodingStartup), WSHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, null };
+            yield return new object[] { typeof(WSHttpBindingWithMtomMessageEncodingStartup), WSHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, new AssertMtomOptimizedEndpointBehvaior() };
+            yield return new object[] { typeof(NetHttpBindingWithTextMessageEncodingStartup), NetHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, null };
+            yield return new object[] { typeof(NetHttpBindingWithMtomMessageEncodingStartup), NetHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, new AssertMtomOptimizedEndpointBehvaior() };
+            yield return new object[] { typeof(NetHttpBindingWithBinaryMessageEncodingStartup), NetHttpBindingWithBinaryMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, null };
+
+            yield return new object[] { typeof(BasicHttpBindingWithTextMessageEncodingStartup), BasicHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength, null };
+            yield return new object[] { typeof(BasicHttpBindingWithMtomMessageEncodingStartup), BasicHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength, null };
+            yield return new object[] { typeof(WSHttpBindingWithTextMessageEncodingStartup), WSHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength, null };
+            yield return new object[] { typeof(WSHttpBindingWithMtomMessageEncodingStartup), WSHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength, null };
+            yield return new object[] { typeof(NetHttpBindingWithTextMessageEncodingStartup), NetHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength, null };
+            yield return new object[] { typeof(NetHttpBindingWithMtomMessageEncodingStartup), NetHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength, null };
+            yield return new object[] { typeof(NetHttpBindingWithBinaryMessageEncodingStartup), NetHttpBindingWithBinaryMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength, null };
         }
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void EchoByteArray(Type startupType, System.ServiceModel.Channels.Binding binding)
+        public void EchoByteArray(Type startupType, System.ServiceModel.Channels.Binding binding, int bytesCount, System.ServiceModel.Description.IEndpointBehavior endpointBehavior)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
             using (host)
@@ -44,16 +61,13 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IMessageEncodingService>(binding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/MessageEncodingService/IMessageEncodingService.svc")));
-                ClientContract.IMessageEncodingService channel = factory.CreateChannel();
-                byte[] bytes = new byte[768];
-#if NET472_OR_GREATER
-                using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+                if(endpointBehavior != null)
                 {
-                    rng.GetBytes(bytes);
+                    factory.Endpoint.EndpointBehaviors.Add(endpointBehavior);
                 }
-#else
-                RandomNumberGenerator.Fill(bytes);
-#endif
+                
+                ClientContract.IMessageEncodingService channel = factory.CreateChannel();
+                var bytes = ClientHelper.GetByteArray(bytesCount);
                 var result = channel.EchoByteArray(bytes);
                 Assert.Equal(bytes, result);
             }
@@ -187,6 +201,52 @@ namespace CoreWCF.Http.Tests
                 var binding = new NetHttpBinding(Channels.BasicHttpSecurityMode.None);
                 binding.MessageEncoding = NetHttpMessageEncoding.Binary;
                 return binding;
+            }
+        }
+
+        internal class AssertMtomOptimizedEndpointBehvaior : System.ServiceModel.Description.IEndpointBehavior
+        {
+            class AssertMtomOptimizedDelegatingHandler : DelegatingHandler
+            {
+                public AssertMtomOptimizedDelegatingHandler(HttpMessageHandler innerHandler) : base(innerHandler)
+                {
+                }
+
+                protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+                {
+                    var response = await base.SendAsync(request, cancellationToken);
+
+                    var content = await response.Content.ReadAsStringAsync();
+
+                    Assert.Contains("<xop:Include", content);
+
+                    return response;
+                }
+            }
+
+            public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
+            {
+                bindingParameters.Add(new Func<HttpClientHandler, HttpMessageHandler>(GetHttpMessageHandler));
+            }
+
+            public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
+            {
+                
+            }
+
+            public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)
+            {
+
+            }
+
+            public void Validate(ServiceEndpoint endpoint)
+            {
+
+            }
+
+            private HttpMessageHandler GetHttpMessageHandler(HttpClientHandler httpClientHandler)
+            {
+                return new AssertMtomOptimizedDelegatingHandler(httpClientHandler);
             }
         }
     }
