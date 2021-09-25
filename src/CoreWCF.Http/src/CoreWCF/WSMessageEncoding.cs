@@ -19,6 +19,7 @@ namespace CoreWCF
                 value == WSMessageEncoding.Text
                 || value == WSMessageEncoding.Mtom;
         }
+
         internal static void SyncUpEncodingBindingElementProperties(TextMessageEncodingBindingElement textEncoding, MtomMessageEncodingBindingElement mtomEncoding)
         {
             // textEncoding provides the backing store for ReaderQuotas and WriteEncoding,

@@ -894,13 +894,7 @@ namespace CoreWCF.Xml
             AdvanceToContentOnElement();
             return _xmlReader.ReadContentAsLong();
         }
-#if NO
-        public override ICollection ReadContentAsList()
-        {
-            AdvanceToContentOnElement();
-            return xmlReader.ReadContentAsList();
-        }
-#endif
+
         public override object ReadContentAsObject()
         {
             AdvanceToContentOnElement();
@@ -1589,18 +1583,10 @@ namespace CoreWCF.Xml
             {
                 return false;
             }
-#if NO
-            public override bool IsStartSubsetElement()
-            {
-                return false;
-            }
-#endif
+
             public override string LocalName
             {
-                get
-                {
-                    return (_readState == ReadState.Interactive) ? string.Empty : _parentReader.LocalName;
-                }
+                get => (_readState == ReadState.Interactive) ? string.Empty : _parentReader.LocalName;
             }
 
             public override string LookupNamespace(string ns)
@@ -2153,18 +2139,13 @@ namespace CoreWCF.Xml
 
             public override long Length
             {
-#pragma warning suppress 56503 // sowmys, required by the XmlReader
-                get { throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName))); }
+                get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
             }
 
             public override long Position
             {
-                get
-                {
-#pragma warning suppress 56503 // sowmys, required by the XmlReader
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
-                }
-                set { throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName))); }
+                get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
+                set => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
             }
 
             public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
@@ -2685,9 +2666,6 @@ namespace CoreWCF.Xml
             return value != null;
         }
 
-        //[Fx.Tag.SecurityNote(Critical = "Calls unsafe code", Safe = "Demands for FullTrust")]
-        [SecuritySafeCritical]
-        [PermissionSet(SecurityAction.Demand, Unrestricted = true)]
         private bool ProcessBuffer(int maxBuffer, ref int remaining)
         {
             unsafe
@@ -2880,24 +2858,13 @@ namespace CoreWCF.Xml
 
         public override long Length
         {
-            get
-            {
-#pragma warning suppress 56503 // sowmys, required by the Stream contract
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
-            }
+            get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
         }
 
         public override long Position
         {
-            get
-            {
-#pragma warning suppress 56503 // sowmys, required by the Stream contract
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
-            }
-            set
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
-            }
+            get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
+            set => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
         }
 
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)

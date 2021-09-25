@@ -596,12 +596,7 @@ namespace CoreWCF.Xml
             if (contentType != null)
                 _mimeWriter.WriteHeader(MimeGlobals.ContentTypeHeader, contentType);
         }
-#if NO
-        public override bool CanSubsetElements
-        {
-            get { return Writer.CanSubsetElements; }
-        }
-#endif
+
         public override void Close()
         {
             if (!_isClosed)
@@ -666,19 +661,6 @@ namespace CoreWCF.Xml
             }
         }
 
-#if NO
-        public override bool ElementSubsetting
-        {
-            get
-            {
-                return Writer.ElementSubsetting;
-            }
-            set
-            {
-                Writer.ElementSubsetting = value;
-            }
-        }
-#endif
         public override void Flush()
         {
             if (IsInitialized)
@@ -995,19 +977,6 @@ namespace CoreWCF.Xml
             Writer.WriteValue(value);
         }
 
-#if DECIMAL_FLOAT_API
-        public override void WriteValue(decimal value)
-        {
-            WriteBase64InlineIfPresent();
-            Writer.WriteValue(value);
-        }
-
-        public override void WriteValue(float value)
-        {
-            WriteBase64InlineIfPresent();
-            Writer.WriteValue(value);
-        }
-#endif
         public override void WriteValue(XmlDictionaryString value)
         {
             // Don't write whitespace after the document element
@@ -1471,47 +1440,6 @@ namespace CoreWCF.Xml
             }
             offset += count;
         }
-
-#if NO
-        internal void Write(byte value)
-        {
-            EnsureBuffer(1);
-            buffer[offset++] = value;
-        }
-
-        internal void Write(char value)
-        {
-            EnsureBuffer(1);
-            if ((ushort)value > 0xFF)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new FormatException(SR.Format(SR.MimeHeaderInvalidCharacter, value, ((int)value).ToString("X", CultureInfo.InvariantCulture)))));
-            buffer[offset++] = (byte)value;
-        }
-
-        internal void Write(int value)
-        {
-            Write(value.ToString());
-        }
-
-        internal void Write(char[] value)
-        {
-            Write(value, 0, value.Length);
-        }
-
-        internal void Write(char[] value, int index, int count)
-        {
-            EnsureBuffer(count);
-            for (int i = 0; i < count; i++)
-            {
-                char c = value[index + i];
-                if ((ushort)c > 0xFF)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new FormatException(SR.Format(SR.MimeHeaderInvalidCharacter, c, ((int)c).ToString("X", CultureInfo.InvariantCulture)))));
-                buffer[offset + i] = (byte)c;
-            }
-            offset += count;
-        }
-
-#endif
-
     }
 
     internal enum MtomBinaryDataType { Provider, Segment }

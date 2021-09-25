@@ -151,16 +151,6 @@ namespace CoreWCF.Channels
             }
         }
 
-        // public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
-        // {
-        //     return InternalBuildChannelFactory<TChannel>(context);
-        // }
-        //
-        // public override bool CanBuildChannelFactory<TChannel>(BindingContext context)
-        // {
-        //     return InternalCanBuildChannelFactory<TChannel>(context);
-        // }
-
         public override BindingElement Clone()
         {
             return new MtomMessageEncodingBindingElement(this);
