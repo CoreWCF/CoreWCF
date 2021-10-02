@@ -2345,7 +2345,6 @@ namespace CoreWCF.Security
             private async Task<(bool success, bool wasAborted)> WaitForInputSessionCloseAsync(TimeSpan timeout)
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-                //RequestContext context;
                 bool wasAborted = false;
                 try
                 {
