@@ -25,7 +25,10 @@ namespace CoreWCF.IdentityModel.Selectors
         public ReadOnlyCollection<IAuthorizationPolicy> ValidateToken(SecurityToken token)
         {
             // We don't call this internally, so we won't have problems with sync over async causing performance issues
-            return ValidateTokenAsync(token).AsTask().GetAwaiter().GetResult();
+            var validationResult = ValidateTokenAsync(token);
+            return validationResult.IsCompleted
+                ? validationResult.Result
+                : validationResult.AsTask().GetAwaiter().GetResult();
         }
 
         public async ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenAsync(SecurityToken token)

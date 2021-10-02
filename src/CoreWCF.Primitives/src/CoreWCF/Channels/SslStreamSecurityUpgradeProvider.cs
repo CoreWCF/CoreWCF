@@ -298,7 +298,12 @@ namespace CoreWCF.Channels
                 try
                 {
                     SecurityToken token = new X509SecurityToken(certificate2, true);
-                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _parent.ClientCertificateAuthenticator.ValidateTokenAsync(token).AsTask().GetAwaiter().GetResult();
+                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+                    var validationValueTask = _parent.ClientCertificateAuthenticator.ValidateTokenAsync(token);
+                    authorizationPolicies = validationValueTask.IsCompleted
+                        ? validationValueTask.Result
+                        : validationValueTask.AsTask().GetAwaiter().GetResult();
+
                     _clientSecurity = new SecurityMessageProperty
                     {
                         TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
