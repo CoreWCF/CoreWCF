@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Configuration;
+using System.Security.Authentication;
+using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
@@ -29,12 +31,24 @@ namespace CoreWCF.Configuration
         //    private set { base[ConfigurationStrings.ExtendedProtectionPolicy] = value; }
         //}
 
-        //[ConfigurationProperty(ConfigurationStrings.SslProtocols, DefaultValue = TransportDefaults.OldDefaultSslProtocols)]
-        //[ServiceModelEnumValidator(typeof(SslProtocolsHelper))]
-        //public SslProtocols SslProtocols
-        //{
-        //    get { return (SslProtocols)base[ConfigurationStrings.SslProtocols]; }
-        //    private set { base[ConfigurationStrings.SslProtocols] = value; }
-        //}
+        [ConfigurationProperty(ConfigurationStrings.SslProtocols, DefaultValue = SslProtocols.None)]
+        public SslProtocols SslProtocols
+        {
+            get { return (SslProtocols)base[ConfigurationStrings.SslProtocols]; }
+            private set { base[ConfigurationStrings.SslProtocols] = value; }
+        }
+
+        internal void ApplyConfiguration(TcpTransportSecurity security)
+        {
+            if (security == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
+            }
+
+            security.ClientCredentialType = ClientCredentialType;
+            //security.ProtectionLevel = this.ProtectionLevel;
+            //security.ExtendedProtectionPolicy = ChannelBindingUtility.BuildPolicy(this.ExtendedProtectionPolicy);
+            security.SslProtocols = this.SslProtocols;
+        }
     }
 }

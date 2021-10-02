@@ -65,6 +65,10 @@ namespace CoreWCF.Configuration
                 ReaderQuotas = ReaderQuotas.Clone(),
             };
 
+            binding.MessageEncoding = MessageEncoding;
+            //WebSocketSettings.ApplyConfiguration(netHttpBinding.WebSocketSettings);
+            // this.ReliableSession.ApplyConfiguration(netHttpBinding.ReliableSession);
+            Security.ApplyConfiguration(binding.Security);
             return binding;
         }
     }

@@ -14,5 +14,12 @@ namespace CoreWCF.Configuration
             get { return (bool)base[ConfigurationStrings.EstablishSecurityContext]; }
             set { base[ConfigurationStrings.EstablishSecurityContext] = value; }
         }
+
+        internal void ApplyConfiguration(NonDualMessageSecurityOverHttp security)
+        {
+            base.ApplyConfiguration(security);
+            security.EstablishSecurityContext = EstablishSecurityContext;
+        }
+
     }
 }

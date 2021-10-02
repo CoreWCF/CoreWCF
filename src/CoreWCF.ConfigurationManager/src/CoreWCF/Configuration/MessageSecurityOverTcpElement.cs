@@ -23,5 +23,20 @@ namespace CoreWCF.Configuration
             get { return (SecurityAlgorithmSuite)base[ConfigurationStrings.AlgorithmSuite]; }
             set { base[ConfigurationStrings.AlgorithmSuite] = value; }
         }
+
+        internal void ApplyConfiguration(MessageSecurityOverTcp security)
+        {
+            if (security == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
+            }
+
+            security.ClientCredentialType = ClientCredentialType;
+
+            if (PropertyValueOrigin.Default != ElementInformation.Properties[ConfigurationStrings.AlgorithmSuite].ValueOrigin)
+            {
+                security.AlgorithmSuite = AlgorithmSuite;
+            }
+        }
     }
 }

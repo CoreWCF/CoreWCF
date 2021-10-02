@@ -25,5 +25,17 @@ namespace CoreWCF.Configuration
         {
             get { return (MessageSecurityOverTcpElement)base[ConfigurationStrings.Message]; }
         }
+
+        internal void ApplyConfiguration(NetTcpSecurity security)
+        {
+            if (security == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
+            }
+
+            security.Mode = Mode;
+            Transport.ApplyConfiguration(security.Transport);
+            Message.ApplyConfiguration(security.Message);
+        }
     }
 }

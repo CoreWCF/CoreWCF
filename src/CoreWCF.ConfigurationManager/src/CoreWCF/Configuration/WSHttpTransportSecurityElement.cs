@@ -14,14 +14,6 @@ namespace CoreWCF.Configuration
             set { base[ConfigurationStrings.ClientCredentialType] = value; }
         }
 
-        //[ConfigurationProperty(ConfigurationStrings.ProxyCredentialType, DefaultValue = HttpTransportSecurity.DefaultProxyCredentialType)]
-        //[ServiceModelEnumValidator(typeof(HttpProxyCredentialTypeHelper))]
-        //public HttpProxyCredentialType ProxyCredentialType
-        //{
-        //    get { return (HttpProxyCredentialType)base[ConfigurationStrings.ProxyCredentialType]; }
-        //    set { base[ConfigurationStrings.ProxyCredentialType] = value; }
-        //}
-
         //[ConfigurationProperty(ConfigurationStrings.ExtendedProtectionPolicy)]
         //public ExtendedProtectionPolicyElement ExtendedProtectionPolicy
         //{
@@ -42,6 +34,18 @@ namespace CoreWCF.Configuration
                 }
                 base[ConfigurationStrings.Realm] = value;
             }
+        }
+
+        internal void ApplyConfiguration(HttpTransportSecurity security)
+        {
+            if (security == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(security));
+            }
+
+            security.ClientCredentialType = ClientCredentialType;
+            security.Realm = Realm;
+           // security.ExtendedProtectionPolicy = ChannelBindingUtility.BuildPolicy(this.ExtendedProtectionPolicy);
         }
     }
 }

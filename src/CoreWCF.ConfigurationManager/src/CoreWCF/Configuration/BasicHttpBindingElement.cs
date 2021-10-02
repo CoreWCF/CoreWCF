@@ -40,6 +40,7 @@ namespace CoreWCF.Configuration
                 ReaderQuotas = ReaderQuotas.Clone(),
             };
 
+            Security.ApplyConfiguration(binding.Security);
             return binding;
         }
     }
