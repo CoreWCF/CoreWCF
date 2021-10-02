@@ -31,15 +31,9 @@ namespace CoreWCF.Xml
             return Create(stream, new Encoding[1] { encoding }, quotas);
         }
 
-        public static XmlDictionaryReader Create(Stream stream, Encoding[] encodings, XmlDictionaryReaderQuotas quotas)
-        {
-            return Create(stream, encodings, null, quotas);
-        }
+        public static XmlDictionaryReader Create(Stream stream, Encoding[] encodings, XmlDictionaryReaderQuotas quotas) => Create(stream, encodings, null, quotas);
 
-        public static XmlDictionaryReader Create(Stream stream, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas)
-        {
-            return Create(stream, encodings, contentType, quotas, int.MaxValue, null);
-        }
+        public static XmlDictionaryReader Create(Stream stream, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas) => Create(stream, encodings, contentType, quotas, int.MaxValue, null);
 
         public static XmlDictionaryReader Create(Stream stream, Encoding[] encodings, string contentType,
             XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose)
@@ -57,15 +51,9 @@ namespace CoreWCF.Xml
             return Create(buffer, offset, count, new Encoding[1] { encoding }, quotas);
         }
 
-        public static XmlDictionaryReader Create(byte[] buffer, int offset, int count, Encoding[] encodings, XmlDictionaryReaderQuotas quotas)
-        {
-            return Create(buffer, offset, count, encodings, null, quotas);
-        }
+        public static XmlDictionaryReader Create(byte[] buffer, int offset, int count, Encoding[] encodings, XmlDictionaryReaderQuotas quotas) => Create(buffer, offset, count, encodings, null, quotas);
 
-        public static XmlDictionaryReader Create(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas)
-        {
-            return Create(buffer, offset, count, encodings, contentType, quotas, int.MaxValue, null);
-        }
+        public static XmlDictionaryReader Create(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas) => Create(buffer, offset, count, encodings, contentType, quotas, int.MaxValue, null);
 
         public static XmlDictionaryReader Create(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType,
             XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose)
@@ -124,10 +112,7 @@ namespace CoreWCF.Xml
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.MtomContentTypeInvalid, nameof(contentType)));
         }
 
-        public void SetInput(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose)
-        {
-            SetInput(new MemoryStream(buffer, offset, count), encodings, contentType, quotas, maxBufferSize, onClose);
-        }
+        public void SetInput(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose) => SetInput(new MemoryStream(buffer, offset, count), encodings, contentType, quotas, maxBufferSize, onClose);
 
         public void SetInput(Stream stream, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose)
         {
@@ -181,13 +166,7 @@ namespace CoreWCF.Xml
                 _xmlReader = XmlDictionaryReader.CreateTextReader(infosetBytes, 0, infosetByteCount, encoding, quotas, null);
         }
 
-        public override XmlDictionaryReaderQuotas Quotas
-        {
-            get
-            {
-                return _xmlReader.Quotas;
-            }
-        }
+        public override XmlDictionaryReaderQuotas Quotas => _xmlReader.Quotas;
 
         private void ReadMessageMimeVersionHeader(MimeVersionHeader header)
         {
@@ -497,45 +476,15 @@ namespace CoreWCF.Xml
             }
         }
 
-        public override int AttributeCount
-        {
-            get
-            {
-                return _xmlReader.AttributeCount;
-            }
-        }
+        public override int AttributeCount => _xmlReader.AttributeCount;
 
-        public override string BaseURI
-        {
-            get
-            {
-                return _xmlReader.BaseURI;
-            }
-        }
+        public override string BaseURI => _xmlReader.BaseURI;
 
-        public override bool CanReadBinaryContent
-        {
-            get
-            {
-                return _xmlReader.CanReadBinaryContent;
-            }
-        }
+        public override bool CanReadBinaryContent => _xmlReader.CanReadBinaryContent;
 
-        public override bool CanReadValueChunk
-        {
-            get
-            {
-                return _xmlReader.CanReadValueChunk;
-            }
-        }
+        public override bool CanReadValueChunk => _xmlReader.CanReadValueChunk;
 
-        public override bool CanResolveEntity
-        {
-            get
-            {
-                return _xmlReader.CanResolveEntity;
-            }
-        }
+        public override bool CanResolveEntity => _xmlReader.CanResolveEntity;
 
         public override void Close()
         {
@@ -559,209 +508,71 @@ namespace CoreWCF.Xml
             }
         }
 
-        public override int Depth
-        {
-            get
-            {
-                return _xmlReader.Depth;
-            }
-        }
+        public override int Depth => _xmlReader.Depth;
 
-        public override bool EOF
-        {
-            get
-            {
-                return _xmlReader.EOF;
-            }
-        }
+        public override bool EOF => _xmlReader.EOF;
 
-        public override string GetAttribute(int index)
-        {
-            return _xmlReader.GetAttribute(index);
-        }
+        public override string GetAttribute(int index) => _xmlReader.GetAttribute(index);
 
-        public override string GetAttribute(string name)
-        {
-            return _xmlReader.GetAttribute(name);
-        }
+        public override string GetAttribute(string name) => _xmlReader.GetAttribute(name);
 
-        public override string GetAttribute(string name, string ns)
-        {
-            return _xmlReader.GetAttribute(name, ns);
-        }
+        public override string GetAttribute(string name, string ns) => _xmlReader.GetAttribute(name, ns);
 
-        public override string GetAttribute(XmlDictionaryString localName, XmlDictionaryString ns)
-        {
-            return _xmlReader.GetAttribute(localName, ns);
-        }
+        public override string GetAttribute(XmlDictionaryString localName, XmlDictionaryString ns) => _xmlReader.GetAttribute(localName, ns);
 
-        public override bool HasAttributes
-        {
-            get
-            {
-                return _xmlReader.HasAttributes;
-            }
-        }
+        public override bool HasAttributes => _xmlReader.HasAttributes;
 
-        public override bool HasValue
-        {
-            get
-            {
-                return _xmlReader.HasValue;
-            }
-        }
+        public override bool HasValue => _xmlReader.HasValue;
 
-        public override bool IsDefault
-        {
-            get
-            {
-                return _xmlReader.IsDefault;
-            }
-        }
+        public override bool IsDefault => _xmlReader.IsDefault;
 
-        public override bool IsEmptyElement
-        {
-            get
-            {
-                return _xmlReader.IsEmptyElement;
-            }
-        }
+        public override bool IsEmptyElement => _xmlReader.IsEmptyElement;
 
-        public override bool IsLocalName(string localName)
-        {
-            return _xmlReader.IsLocalName(localName);
-        }
+        public override bool IsLocalName(string localName) => _xmlReader.IsLocalName(localName);
 
-        public override bool IsLocalName(XmlDictionaryString localName)
-        {
-            return _xmlReader.IsLocalName(localName);
-        }
+        public override bool IsLocalName(XmlDictionaryString localName) => _xmlReader.IsLocalName(localName);
 
-        public override bool IsNamespaceUri(string ns)
-        {
-            return _xmlReader.IsNamespaceUri(ns);
-        }
+        public override bool IsNamespaceUri(string ns) => _xmlReader.IsNamespaceUri(ns);
 
-        public override bool IsNamespaceUri(XmlDictionaryString ns)
-        {
-            return _xmlReader.IsNamespaceUri(ns);
-        }
+        public override bool IsNamespaceUri(XmlDictionaryString ns) => _xmlReader.IsNamespaceUri(ns);
 
-        public override bool IsStartElement()
-        {
-            return _xmlReader.IsStartElement();
-        }
+        public override bool IsStartElement() => _xmlReader.IsStartElement();
 
-        public override bool IsStartElement(string localName)
-        {
-            return _xmlReader.IsStartElement(localName);
-        }
+        public override bool IsStartElement(string localName) => _xmlReader.IsStartElement(localName);
 
-        public override bool IsStartElement(string localName, string ns)
-        {
-            return _xmlReader.IsStartElement(localName, ns);
-        }
+        public override bool IsStartElement(string localName, string ns) => _xmlReader.IsStartElement(localName, ns);
 
-        public override bool IsStartElement(XmlDictionaryString localName, XmlDictionaryString ns)
-        {
-            return _xmlReader.IsStartElement(localName, ns);
-        }
+        public override bool IsStartElement(XmlDictionaryString localName, XmlDictionaryString ns) => _xmlReader.IsStartElement(localName, ns);
 
-        public override string LocalName
-        {
-            get
-            {
-                return _xmlReader.LocalName;
-            }
-        }
+        public override string LocalName => _xmlReader.LocalName;
 
-        public override string LookupNamespace(string ns)
-        {
-            return _xmlReader.LookupNamespace(ns);
-        }
+        public override string LookupNamespace(string ns) => _xmlReader.LookupNamespace(ns);
 
-        public override void MoveToAttribute(int index)
-        {
-            _xmlReader.MoveToAttribute(index);
-        }
+        public override void MoveToAttribute(int index) => _xmlReader.MoveToAttribute(index);
 
-        public override bool MoveToAttribute(string name)
-        {
-            return _xmlReader.MoveToAttribute(name);
-        }
+        public override bool MoveToAttribute(string name) => _xmlReader.MoveToAttribute(name);
 
-        public override bool MoveToAttribute(string name, string ns)
-        {
-            return _xmlReader.MoveToAttribute(name, ns);
-        }
+        public override bool MoveToAttribute(string name, string ns) => _xmlReader.MoveToAttribute(name, ns);
 
-        public override bool MoveToElement()
-        {
-            return _xmlReader.MoveToElement();
-        }
+        public override bool MoveToElement() => _xmlReader.MoveToElement();
 
-        public override bool MoveToFirstAttribute()
-        {
-            return _xmlReader.MoveToFirstAttribute();
-        }
+        public override bool MoveToFirstAttribute() => _xmlReader.MoveToFirstAttribute();
 
-        public override bool MoveToNextAttribute()
-        {
-            return _xmlReader.MoveToNextAttribute();
-        }
+        public override bool MoveToNextAttribute() => _xmlReader.MoveToNextAttribute();
 
-        public override string Name
-        {
-            get
-            {
-                return _xmlReader.Name;
-            }
-        }
+        public override string Name => _xmlReader.Name;
 
-        public override string NamespaceURI
-        {
-            get
-            {
-                return _xmlReader.NamespaceURI;
-            }
-        }
+        public override string NamespaceURI => _xmlReader.NamespaceURI;
 
-        public override XmlNameTable NameTable
-        {
-            get
-            {
-                return _xmlReader.NameTable;
-            }
-        }
+        public override XmlNameTable NameTable => _xmlReader.NameTable;
 
-        public override XmlNodeType NodeType
-        {
-            get
-            {
-                return _xmlReader.NodeType;
-            }
-        }
+        public override XmlNodeType NodeType => _xmlReader.NodeType;
 
-        public override string Prefix
-        {
-            get
-            {
-                return _xmlReader.Prefix;
-            }
-        }
+        public override string Prefix => _xmlReader.Prefix;
 
-        public override char QuoteChar
-        {
-            get
-            {
-                return _xmlReader.QuoteChar;
-            }
-        }
+        public override char QuoteChar => _xmlReader.QuoteChar;
 
-        public override bool ReadAttributeValue()
-        {
-            return _xmlReader.ReadAttributeValue();
-        }
+        public override bool ReadAttributeValue() => _xmlReader.ReadAttributeValue();
 
         public override object ReadContentAs(Type returnType, IXmlNamespaceResolver namespaceResolver)
         {
@@ -903,15 +714,9 @@ namespace CoreWCF.Xml
             return _xmlReader.ReadContentAsString();
         }
 
-        public override string ReadInnerXml()
-        {
-            return _xmlReader.ReadInnerXml();
-        }
+        public override string ReadInnerXml() => _xmlReader.ReadInnerXml();
 
-        public override string ReadOuterXml()
-        {
-            return _xmlReader.ReadOuterXml();
-        }
+        public override string ReadOuterXml() => _xmlReader.ReadOuterXml();
 
         public override ReadState ReadState
         {
@@ -924,84 +729,27 @@ namespace CoreWCF.Xml
             }
         }
 
-        public override int ReadValueChunk(char[] buffer, int index, int count)
-        {
-            return _xmlReader.ReadValueChunk(buffer, index, count);
-        }
+        public override int ReadValueChunk(char[] buffer, int index, int count) => _xmlReader.ReadValueChunk(buffer, index, count);
 
-        public override void ResolveEntity()
-        {
-            _xmlReader.ResolveEntity();
-        }
+        public override void ResolveEntity() => _xmlReader.ResolveEntity();
 
-        public override XmlReaderSettings Settings
-        {
-            get
-            {
-                return _xmlReader.Settings;
-            }
-        }
+        public override XmlReaderSettings Settings => _xmlReader.Settings;
 
-        public override void Skip()
-        {
-            _xmlReader.Skip();
-        }
+        public override void Skip() => _xmlReader.Skip();
 
-        public override string this[int index]
-        {
-            get
-            {
-                return _xmlReader[index];
-            }
-        }
+        public override string this[int index] => _xmlReader[index];
 
-        public override string this[string name]
-        {
-            get
-            {
-                return _xmlReader[name];
-            }
-        }
+        public override string this[string name] => _xmlReader[name];
 
-        public override string this[string name, string ns]
-        {
-            get
-            {
-                return _xmlReader[name, ns];
-            }
-        }
+        public override string this[string name, string ns] => _xmlReader[name, ns];
 
-        public override string Value
-        {
-            get
-            {
-                return _xmlReader.Value;
-            }
-        }
+        public override string Value => _xmlReader.Value;
 
-        public override Type ValueType
-        {
-            get
-            {
-                return _xmlReader.ValueType;
-            }
-        }
+        public override Type ValueType => _xmlReader.ValueType;
 
-        public override string XmlLang
-        {
-            get
-            {
-                return _xmlReader.XmlLang;
-            }
-        }
+        public override string XmlLang => _xmlReader.XmlLang;
 
-        public override XmlSpace XmlSpace
-        {
-            get
-            {
-                return _xmlReader.XmlSpace;
-            }
-        }
+        public override XmlSpace XmlSpace => _xmlReader.XmlSpace;
 
         public bool HasLineInfo()
         {
@@ -1055,26 +803,17 @@ namespace CoreWCF.Xml
                 this.headers = headers;
             }
 
-            internal Stream Stream
-            {
-                get { return stream; }
-            }
+            internal Stream Stream => stream;
 
-            internal MimeHeaders Headers
-            {
-                get { return headers; }
-            }
+            internal MimeHeaders Headers => headers;
 
             internal bool ReferencedFromInfoset
             {
-                get { return isReferencedFromInfoset; }
-                set { isReferencedFromInfoset = value; }
+                get => isReferencedFromInfoset;
+                set => isReferencedFromInfoset = value;
             }
 
-            internal long Length
-            {
-                get { return stream.CanSeek ? stream.Length : 0; }
-            }
+            internal long Length => stream.CanSeek ? stream.Length : 0;
 
             internal byte[] GetBuffer(int maxBuffer, ref int remaining)
             {
@@ -1141,21 +880,9 @@ namespace CoreWCF.Xml
                 _finishedStream = false;
             }
 
-            public override XmlDictionaryReaderQuotas Quotas
-            {
-                get
-                {
-                    return _parentReader.Quotas;
-                }
-            }
+            public override XmlDictionaryReaderQuotas Quotas => _parentReader.Quotas;
 
-            public override XmlNodeType NodeType
-            {
-                get
-                {
-                    return (_readState == ReadState.Interactive) ? _nodeType : _parentReader.NodeType;
-                }
-            }
+            public override XmlNodeType NodeType => (_readState == ReadState.Interactive) ? _nodeType : _parentReader.NodeType;
 
             public override bool Read()
             {
@@ -1441,30 +1168,15 @@ namespace CoreWCF.Xml
                 return sb.ToString();
             }
 
-            public override int AttributeCount
-            {
-                get { return 0; }
-            }
+            public override int AttributeCount => 0;
 
-            public override string BaseURI
-            {
-                get { return _parentReader.BaseURI; }
-            }
+            public override string BaseURI => _parentReader.BaseURI;
 
-            public override bool CanReadBinaryContent
-            {
-                get { return true; }
-            }
+            public override bool CanReadBinaryContent => true;
 
-            public override bool CanReadValueChunk
-            {
-                get { return true; }
-            }
+            public override bool CanReadValueChunk => true;
 
-            public override bool CanResolveEntity
-            {
-                get { return _parentReader.CanResolveEntity; }
-            }
+            public override bool CanResolveEntity => _parentReader.CanResolveEntity;
 
             public override void Close()
             {
@@ -1481,259 +1193,103 @@ namespace CoreWCF.Xml
                 }
             }
 
-            public override int Depth
-            {
-                get
-                {
-                    return (_readState == ReadState.Interactive) ? _parentReader.Depth + 1 : _parentReader.Depth;
-                }
-            }
+            public override int Depth => (_readState == ReadState.Interactive) ? _parentReader.Depth + 1 : _parentReader.Depth;
 
-            public override bool EOF
-            {
-                get { return _readState == ReadState.EndOfFile; }
-            }
+            public override bool EOF => _readState == ReadState.EndOfFile;
 
-            public override string GetAttribute(int index)
-            {
-                return null;
-            }
+            public override string GetAttribute(int index) => null;
 
-            public override string GetAttribute(string name)
-            {
-                return null;
-            }
+            public override string GetAttribute(string name) => null;
 
-            public override string GetAttribute(string name, string ns)
-            {
-                return null;
-            }
+            public override string GetAttribute(string name, string ns) => null;
 
-            public override string GetAttribute(XmlDictionaryString localName, XmlDictionaryString ns)
-            {
-                return null;
-            }
+            public override string GetAttribute(XmlDictionaryString localName, XmlDictionaryString ns) => null;
 
-            public override bool HasAttributes
-            {
-                get { return false; }
-            }
+            public override bool HasAttributes => false;
 
-            public override bool HasValue
-            {
-                get { return _readState == ReadState.Interactive; }
-            }
+            public override bool HasValue => _readState == ReadState.Interactive;
 
-            public override bool IsDefault
-            {
-                get { return false; }
-            }
+            public override bool IsDefault => false;
 
-            public override bool IsEmptyElement
-            {
-                get { return false; }
-            }
+            public override bool IsEmptyElement => false;
 
-            public override bool IsLocalName(string localName)
-            {
-                return false;
-            }
+            public override bool IsLocalName(string localName) => false;
 
-            public override bool IsLocalName(XmlDictionaryString localName)
-            {
-                return false;
-            }
+            public override bool IsLocalName(XmlDictionaryString localName) => false;
 
-            public override bool IsNamespaceUri(string ns)
-            {
-                return false;
-            }
+            public override bool IsNamespaceUri(string ns) => false;
 
-            public override bool IsNamespaceUri(XmlDictionaryString ns)
-            {
-                return false;
-            }
+            public override bool IsNamespaceUri(XmlDictionaryString ns) => false;
 
-            public override bool IsStartElement()
-            {
-                return false;
-            }
+            public override bool IsStartElement() => false;
 
-            public override bool IsStartElement(string localName)
-            {
-                return false;
-            }
+            public override bool IsStartElement(string localName) => false;
 
-            public override bool IsStartElement(string localName, string ns)
-            {
-                return false;
-            }
+            public override bool IsStartElement(string localName, string ns) => false;
 
-            public override bool IsStartElement(XmlDictionaryString localName, XmlDictionaryString ns)
-            {
-                return false;
-            }
+            public override bool IsStartElement(XmlDictionaryString localName, XmlDictionaryString ns) => false;
 
-            public override string LocalName
-            {
-                get => (_readState == ReadState.Interactive) ? string.Empty : _parentReader.LocalName;
-            }
+            public override string LocalName => (_readState == ReadState.Interactive) ? string.Empty : _parentReader.LocalName;
 
-            public override string LookupNamespace(string ns)
-            {
-                return _parentReader.LookupNamespace(ns);
-            }
+            public override string LookupNamespace(string ns) => _parentReader.LookupNamespace(ns);
 
             public override void MoveToAttribute(int index)
             {
             }
 
-            public override bool MoveToAttribute(string name)
-            {
-                return false;
-            }
+            public override bool MoveToAttribute(string name) => false;
 
-            public override bool MoveToAttribute(string name, string ns)
-            {
-                return false;
-            }
+            public override bool MoveToAttribute(string name, string ns) => false;
 
-            public override bool MoveToElement()
-            {
-                return false;
-            }
+            public override bool MoveToElement() => false;
 
-            public override bool MoveToFirstAttribute()
-            {
-                return false;
-            }
+            public override bool MoveToFirstAttribute() => false;
 
-            public override bool MoveToNextAttribute()
-            {
-                return false;
-            }
+            public override bool MoveToNextAttribute() => false;
 
-            public override string Name
-            {
-                get
-                {
-                    return (_readState == ReadState.Interactive) ? string.Empty : _parentReader.Name;
-                }
-            }
+            public override string Name => (_readState == ReadState.Interactive) ? string.Empty : _parentReader.Name;
 
-            public override string NamespaceURI
-            {
-                get
-                {
-                    return (_readState == ReadState.Interactive) ? string.Empty : _parentReader.NamespaceURI;
-                }
-            }
+            public override string NamespaceURI => (_readState == ReadState.Interactive) ? string.Empty : _parentReader.NamespaceURI;
 
-            public override XmlNameTable NameTable
-            {
-                get { return _parentReader.NameTable; }
-            }
+            public override XmlNameTable NameTable => _parentReader.NameTable;
 
-            public override string Prefix
-            {
-                get
-                {
-                    return (_readState == ReadState.Interactive) ? string.Empty : _parentReader.Prefix;
-                }
-            }
+            public override string Prefix => (_readState == ReadState.Interactive) ? string.Empty : _parentReader.Prefix;
 
-            public override char QuoteChar
-            {
-                get { return _parentReader.QuoteChar; }
-            }
+            public override char QuoteChar => _parentReader.QuoteChar;
 
-            public override bool ReadAttributeValue()
-            {
-                return false;
-            }
+            public override bool ReadAttributeValue() => false;
 
-            public override string ReadInnerXml()
-            {
-                return ReadContentAsString();
-            }
+            public override string ReadInnerXml() => ReadContentAsString();
 
-            public override string ReadOuterXml()
-            {
-                return ReadContentAsString();
-            }
+            public override string ReadOuterXml() => ReadContentAsString();
 
-            public override ReadState ReadState
-            {
-                get { return _readState; }
-            }
+            public override ReadState ReadState => _readState;
 
             public override void ResolveEntity()
             {
             }
 
-            public override XmlReaderSettings Settings
-            {
-                get { return _parentReader.Settings; }
-            }
+            public override XmlReaderSettings Settings => _parentReader.Settings;
 
-            public override void Skip()
-            {
-                Read();
-            }
+            public override void Skip() => Read();
 
-            public override string this[int index]
-            {
-                get { return null; }
-            }
+            public override string this[int index] => null;
 
-            public override string this[string name]
-            {
-                get { return null; }
-            }
+            public override string this[string name] => null;
 
-            public override string this[string name, string ns]
-            {
-                get { return null; }
-            }
+            public override string this[string name, string ns] => null;
 
-            public override string XmlLang
-            {
-                get { return _parentReader.XmlLang; }
-            }
+            public override string XmlLang => _parentReader.XmlLang;
 
-            public override XmlSpace XmlSpace
-            {
-                get { return _parentReader.XmlSpace; }
-            }
+            public override XmlSpace XmlSpace => _parentReader.XmlSpace;
 
-            public override Type ValueType
-            {
-                get
-                {
-                    return (_readState == ReadState.Interactive) ? typeof(byte[]) : _parentReader.ValueType;
-                }
-            }
+            public override Type ValueType => (_readState == ReadState.Interactive) ? typeof(byte[]) : _parentReader.ValueType;
 
-            bool IXmlLineInfo.HasLineInfo()
-            {
-                return ((IXmlLineInfo)_parentReader).HasLineInfo();
-            }
+            bool IXmlLineInfo.HasLineInfo() => ((IXmlLineInfo)_parentReader).HasLineInfo();
 
-            int IXmlLineInfo.LineNumber
-            {
-                get
-                {
-                    return ((IXmlLineInfo)_parentReader).LineNumber;
-                }
-            }
+            int IXmlLineInfo.LineNumber => ((IXmlLineInfo)_parentReader).LineNumber;
 
-            int IXmlLineInfo.LinePosition
-            {
-                get
-                {
-                    return ((IXmlLineInfo)_parentReader).LinePosition;
-                }
-            }
+            int IXmlLineInfo.LinePosition => ((IXmlLineInfo)_parentReader).LinePosition;
         }
     }
 
@@ -1803,10 +1359,7 @@ namespace CoreWCF.Xml
             reader.Push(boundaryBytes, 0, 2);
         }
 
-        public void Close()
-        {
-            reader.Close();
-        }
+        public void Close() => reader.Close();
 
         /// Gets the content preceding the first part of the MIME multi-part message
         public string Preface
@@ -1912,10 +1465,7 @@ namespace CoreWCF.Xml
             this.stream = new BufferedReadStream(stream);
         }
 
-        public void Close()
-        {
-            stream.Close();
-        }
+        public void Close() => stream.Close();
 
         // Closes the current stream.  If the current stream is not the same as the caller, nothing is done.
         private void Close(DelimittedReadStream caller)
@@ -2095,10 +1645,7 @@ namespace CoreWCF.Xml
             return true;
         }
 
-        internal void Push(byte[] buffer, int offset, int count)
-        {
-            stream.Push(buffer, offset, count);
-        }
+        internal void Push(byte[] buffer, int offset, int count) => stream.Push(buffer, offset, count);
 
         private class DelimittedReadStream : Stream
         {
@@ -2112,25 +1659,13 @@ namespace CoreWCF.Xml
                 this.reader = reader;
             }
 
-            public override bool CanRead
-            {
-                get { return true; }
-            }
+            public override bool CanRead => true;
 
-            public override bool CanSeek
-            {
-                get { return false; }
-            }
+            public override bool CanSeek => false;
 
-            public override bool CanWrite
-            {
-                get { return false; }
-            }
+            public override bool CanWrite => false;
 
-            public override long Length
-            {
-                get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
-            }
+            public override long Length => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
 
             public override long Position
             {
@@ -2138,25 +1673,13 @@ namespace CoreWCF.Xml
                 set => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
             }
 
-            public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
-            }
+            public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
 
-            public override void Close()
-            {
-                reader.Close(this);
-            }
+            public override void Close() => reader.Close(this);
 
-            public override void EndWrite(IAsyncResult asyncResult)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
-            }
+            public override void EndWrite(IAsyncResult asyncResult) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
 
-            public override void Flush()
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
-            }
+            public override void Flush() => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
 
             public override int Read(byte[] buffer, int offset, int count)
             {
@@ -2175,20 +1698,11 @@ namespace CoreWCF.Xml
                 return reader.Read(this, buffer, offset, count);
             }
 
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
-            }
+            public override long Seek(long offset, SeekOrigin origin) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, GetType().FullName)));
 
-            public override void SetLength(long value)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
-            }
+            public override void SetLength(long value) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
 
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
-            }
+            public override void Write(byte[] buffer, int offset, int count) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, GetType().FullName)));
         }
 
     }
@@ -2321,21 +1835,9 @@ namespace CoreWCF.Xml
             this.value = value;
         }
 
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
+        public string Name => name;
 
-        public string Value
-        {
-            get
-            {
-                return value;
-            }
-        }
+        public string Value => value;
     }
 
     internal class ContentTypeHeader : MimeHeader
@@ -2613,21 +2115,9 @@ namespace CoreWCF.Xml
             this.stream = stream;
         }
 
-        public string Value
-        {
-            get
-            {
-                return value;
-            }
-        }
+        public string Value => value;
 
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
+        public string Name => name;
 
         public void Close()
         {
@@ -2831,25 +2321,13 @@ namespace CoreWCF.Xml
             this.readMore = readMore;
         }
 
-        public override bool CanWrite
-        {
-            get { return false; }
-        }
+        public override bool CanWrite => false;
 
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
+        public override bool CanSeek => false;
 
-        public override bool CanRead
-        {
-            get { return stream.CanRead; }
-        }
+        public override bool CanRead => stream.CanRead;
 
-        public override long Length
-        {
-            get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
-        }
+        public override long Length => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
 
         public override long Position
         {
@@ -2865,15 +2343,9 @@ namespace CoreWCF.Xml
             return stream.BeginRead(buffer, offset, count, callback, state);
         }
 
-        public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
-        {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, stream.GetType().FullName)));
-        }
+        public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, stream.GetType().FullName)));
 
-        public override void Close()
-        {
-            stream.Close();
-        }
+        public override void Close() => stream.Close();
 
         public override int EndRead(IAsyncResult asyncResult)
         {
@@ -2883,15 +2355,9 @@ namespace CoreWCF.Xml
             return stream.EndRead(asyncResult);
         }
 
-        public override void EndWrite(IAsyncResult asyncResult)
-        {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, stream.GetType().FullName)));
-        }
+        public override void EndWrite(IAsyncResult asyncResult) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, stream.GetType().FullName)));
 
-        public override void Flush()
-        {
-            stream.Flush();
-        }
+        public override void Flush() => stream.Flush();
 
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -2979,20 +2445,11 @@ namespace CoreWCF.Xml
             Buffer.BlockCopy(buffer, offset, storedBuffer, storedOffset, count);
         }
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
-        }
+        public override long Seek(long offset, SeekOrigin origin) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
 
-        public override void SetLength(long value)
-        {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
-        }
+        public override void SetLength(long value) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.SeekNotSupportedOnStream, stream.GetType().FullName)));
 
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, stream.GetType().FullName)));
-        }
+        public override void Write(byte[] buffer, int offset, int count) => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.WriteNotSupportedOnStream, stream.GetType().FullName)));
     }
 
     internal static class MailBnfHelper

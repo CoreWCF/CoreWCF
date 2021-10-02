@@ -20,10 +20,7 @@ namespace CoreWCF.Xml
 
     internal class XmlMtomWriter : XmlDictionaryWriter, IXmlMtomWriterInitializer
     {
-        public static XmlDictionaryWriter Create(Stream stream, Encoding encoding, int maxSizeInBytes, string startInfo)
-        {
-            return Create(stream, encoding, maxSizeInBytes, startInfo, null, null, true, true);
-        }
+        public static XmlDictionaryWriter Create(Stream stream, Encoding encoding, int maxSizeInBytes, string startInfo) => Create(stream, encoding, maxSizeInBytes, startInfo, null, null, true, true);
 
         public static XmlDictionaryWriter Create(Stream stream, Encoding encoding, int maxSizeInBytes, string startInfo, string boundary, string startUri, bool writeMessageHeaders, bool ownsStream)
         {
@@ -84,10 +81,7 @@ namespace CoreWCF.Xml
             }
         }
 
-        private bool IsInitialized
-        {
-            get { return (_initialContentTypeForRootPart == null); }
-        }
+        private bool IsInitialized => (_initialContentTypeForRootPart == null);
 
         private void Initialize(Stream stream, string startInfo, string boundary, string startUri, bool writeMessageHeaders, bool ownsStream)
         {
@@ -148,15 +142,9 @@ namespace CoreWCF.Xml
             }
         }
 
-        private static string GetBoundaryString()
-        {
-            return MimeBoundaryGenerator.Next();
-        }
+        private static string GetBoundaryString() => MimeBoundaryGenerator.Next();
 
-        internal static bool IsUTF8Encoding(Encoding encoding)
-        {
-            return encoding.WebName == "utf-8";
-        }
+        internal static bool IsUTF8Encoding(Encoding encoding) => encoding.WebName == "utf-8";
 
         private static string GetContentTypeForMimeMessage(string boundary, string startUri, string startInfo)
         {
@@ -466,10 +454,7 @@ namespace CoreWCF.Xml
             }
         }
 
-        public static string GenerateUriForMimePart(int index)
-        {
-            return string.Format(CultureInfo.InvariantCulture, "http://tempuri.org/{0}/{1}", index, DateTime.Now.Ticks);
-        }
+        public static string GenerateUriForMimePart(int index) => string.Format(CultureInfo.InvariantCulture, "http://tempuri.org/{0}/{1}", index, DateTime.Now.Ticks);
 
         private void WriteXOPBinaryParts()
         {
@@ -675,23 +660,11 @@ namespace CoreWCF.Xml
                 return Task.CompletedTask;
         }
 
-        public override string LookupPrefix(string ns)
-        {
-            return Writer.LookupPrefix(ns);
-        }
+        public override string LookupPrefix(string ns) => Writer.LookupPrefix(ns);
 
-        public override XmlWriterSettings Settings
-        {
-            get
-            {
-                return Writer.Settings;
-            }
-        }
+        public override XmlWriterSettings Settings => Writer.Settings;
 
-        public override void WriteAttributes(XmlReader reader, bool defattr)
-        {
-            Writer.WriteAttributes(reader, defattr);
-        }
+        public override void WriteAttributes(XmlReader reader, bool defattr) => Writer.WriteAttributes(reader, defattr);
 
         public override void WriteBinHex(byte[] buffer, int index, int count)
         {
@@ -864,23 +837,11 @@ namespace CoreWCF.Xml
                 CheckIfStartContentTypeAttribute(localName.Value, ns.Value);
         }
 
-        public override void WriteStartDocument()
-        {
-            Writer.WriteStartDocument();
-        }
+        public override void WriteStartDocument() => Writer.WriteStartDocument();
 
-        public override void WriteStartDocument(bool standalone)
-        {
-            Writer.WriteStartDocument(standalone);
-        }
+        public override void WriteStartDocument(bool standalone) => Writer.WriteStartDocument(standalone);
 
-        public override WriteState WriteState
-        {
-            get
-            {
-                return Writer.WriteState;
-            }
-        }
+        public override WriteState WriteState => Writer.WriteState;
 
         public override void WriteString(string text)
         {
@@ -982,31 +943,13 @@ namespace CoreWCF.Xml
             Writer.WriteValue(value);
         }
 
-        public override void WriteXmlnsAttribute(string prefix, string ns)
-        {
-            Writer.WriteXmlnsAttribute(prefix, ns);
-        }
+        public override void WriteXmlnsAttribute(string prefix, string ns) => Writer.WriteXmlnsAttribute(prefix, ns);
 
-        public override void WriteXmlnsAttribute(string prefix, XmlDictionaryString ns)
-        {
-            Writer.WriteXmlnsAttribute(prefix, ns);
-        }
+        public override void WriteXmlnsAttribute(string prefix, XmlDictionaryString ns) => Writer.WriteXmlnsAttribute(prefix, ns);
 
-        public override string XmlLang
-        {
-            get
-            {
-                return Writer.XmlLang;
-            }
-        }
+        public override string XmlLang => Writer.XmlLang;
 
-        public override XmlSpace XmlSpace
-        {
-            get
-            {
-                return Writer.XmlSpace;
-            }
-        }
+        public override XmlSpace XmlSpace => Writer.XmlSpace;
 
         private static class MimeBoundaryGenerator
         {
@@ -1155,18 +1098,9 @@ namespace CoreWCF.Xml
             return boundaryBytes;
         }
 
-        internal MimeWriterState WriteState
-        {
-            get
-            {
-                return state;
-            }
-        }
+        internal MimeWriterState WriteState => state;
 
-        internal int GetBoundarySize()
-        {
-            return boundaryBytes.Length;
-        }
+        internal int GetBoundarySize() => boundaryBytes.Length;
 
         internal void StartPreface()
         {
@@ -1388,28 +1322,13 @@ namespace CoreWCF.Xml
             }
         }
 
-        internal int Length
-        {
-            get
-            {
-                return offset;
-            }
-        }
+        internal int Length => offset;
 
-        internal byte[] GetBuffer()
-        {
-            return buffer;
-        }
+        internal byte[] GetBuffer() => buffer;
 
-        internal void Reset()
-        {
-            offset = 0;
-        }
+        internal void Reset() => offset = 0;
 
-        internal void Write(byte[] value)
-        {
-            Write(value, 0, value.Length);
-        }
+        internal void Write(byte[] value) => Write(value, 0, value.Length);
 
         internal void Write(byte[] value, int index, int count)
         {
@@ -1418,10 +1337,7 @@ namespace CoreWCF.Xml
             offset += count;
         }
 
-        internal void Write(string value)
-        {
-            Write(value, 0, value.Length);
-        }
+        internal void Write(string value) => Write(value, 0, value.Length);
 
         internal void Write(string value, int index, int count)
         {
