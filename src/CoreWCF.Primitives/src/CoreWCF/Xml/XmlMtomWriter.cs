@@ -732,12 +732,7 @@ namespace CoreWCF.Xml
             WriteBase64InlineIfPresent();
             Writer.WriteDocType(name, pubid, sysid, subset);
         }
-#if NO
-        public override void WriteElementSubset(ArraySegment<byte> buffer)
-        {
-            Writer.WriteElementSubset(buffer);
-        }
-#endif
+
         public override void WriteEndAttribute()
         {
             CheckIfEndContentTypeAttribute();

@@ -594,12 +594,7 @@ namespace CoreWCF.Xml
         {
             return _xmlReader.GetAttribute(localName, ns);
         }
-#if NO
-        public override ArraySegment<byte> GetSubset(bool advance)
-        {
-            return xmlReader.GetSubset(advance);
-        }
-#endif
+
         public override bool HasAttributes
         {
             get
@@ -671,12 +666,7 @@ namespace CoreWCF.Xml
         {
             return _xmlReader.IsStartElement(localName, ns);
         }
-#if NO
-        public override bool IsStartSubsetElement()
-        {
-            return xmlReader.IsStartSubsetElement();
-        }
-#endif
+
         public override string LocalName
         {
             get
