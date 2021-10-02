@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Policy;
@@ -14,17 +15,21 @@ namespace CoreWCF.IdentityModel.Selectors
         {
         }
 
-        protected override bool CanValidateTokenCore(SecurityToken token)
-        {
-            return token is UserNameSecurityToken;
-        }
+        protected override bool CanValidateTokenCore(SecurityToken token) => token is UserNameSecurityToken;
 
         protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
             UserNameSecurityToken userNameToken = (UserNameSecurityToken)token;
-            return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(ValidateUserNamePasswordCore(userNameToken.UserName, userNameToken.Password));
+            return ValidateUserNamePasswordCoreAsync(userNameToken.UserName, userNameToken.Password);
         }
 
-        protected abstract ReadOnlyCollection<IAuthorizationPolicy> ValidateUserNamePasswordCore(string userName, string password);
+        [Obsolete("Implementers should override ValidateUserNamePasswordCoreAsync.")]
+        protected virtual ReadOnlyCollection<IAuthorizationPolicy> ValidateUserNamePasswordCore(string userName, string password) => throw new NotImplementedException(SR.SynchronousUserNameTokenValidationIsDeprecated);
+
+        protected virtual ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateUserNamePasswordCoreAsync(string userName, string password)
+        {
+            // Default to calling sync implementation to support existing derived types which haven't overridden this method
+            return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(ValidateUserNamePasswordCore(userName, password));
+        }
     }
 }
