@@ -149,21 +149,13 @@ namespace CoreWCF.Channels
         }
 
 
-        bool IChannelBindingProvider.IsChannelBindingSupportEnabled
-        {
-            get
-            {
-                return _enableChannelBinding;
-            }
-        }
+        bool IChannelBindingProvider.IsChannelBindingSupportEnabled => _enableChannelBinding;
 
         public override StreamUpgradeAcceptor CreateUpgradeAcceptor()
         {
             ThrowIfDisposedOrNotOpen();
             return new SslStreamSecurityUpgradeAcceptor(this);
         }
-
-
 
         protected override void OnAbort()
         {
@@ -244,13 +236,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal bool IsChannelBindingSupportEnabled
-        {
-            get
-            {
-                return ((IChannelBindingProvider)_parent).IsChannelBindingSupportEnabled;
-            }
-        }
+        internal bool IsChannelBindingSupportEnabled => ((IChannelBindingProvider)_parent).IsChannelBindingSupportEnabled;
 
         protected override async Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
         {
