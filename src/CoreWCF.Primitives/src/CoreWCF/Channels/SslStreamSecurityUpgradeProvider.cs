@@ -283,7 +283,7 @@ namespace CoreWCF.Channels
                 _clientCertificate = certificate2;
                 try
                 {
-                    SecurityToken token = new X509SecurityToken(certificate2, true);
+                    SecurityToken token = new X509SecurityToken(certificate2, false);
                     ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
                     var validationValueTask = _parent.ClientCertificateAuthenticator.ValidateTokenAsync(token);
                     authorizationPolicies = validationValueTask.IsCompleted
