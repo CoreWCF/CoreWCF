@@ -194,6 +194,49 @@ namespace Helpers
             })
             .UseStartup<TStartup>();
 
+        public static IWebHostBuilder CreateHttpsWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                if (outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseKestrel(options =>
+            {
+                options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
+                {
+                    listenOptions.UseHttps(httpsOptions =>
+                    {
+#if NET472
+                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+#endif // NET472
+                    });
+                    if (Debugger.IsAttached)
+                    {
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+                options.Listen(address: IPAddress.Loopback, 8443, listenOptions =>
+                {
+                    listenOptions.UseHttps(httpsOptions =>
+                    {
+#if NET472
+                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+#endif // NET472
+                    });
+                    if (Debugger.IsAttached)
+                    {
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+            })
+            .UseStartup(startupType);
+
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)
         {
             foreach (System.ServiceModel.ICommunicationObject comObj in objects)
