@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Security;
@@ -9,6 +10,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Selectors;
@@ -30,12 +32,19 @@ namespace BasicHttp
             _output = output;
         }
 
-        [Fact, Description("transport-security-with-basic-authentication")]
-        public void BasicHttpRequestReplyWithTransportMessageEchoString()
+        public static IEnumerable<object[]> GetTestsVariations()
+        {
+            yield return new[] { typeof(BasicHttpTransportWithMessageCredentialWithUserName<CustomTestValidator>) };
+            yield return new[] { typeof(BasicHttpTransportWithMessageCredentialWithUserName<CustomAsynchronousTestValidator>) };
+        }
+
+        [Theory, Description("transport-security-with-basic-authentication")]
+        [MemberData(nameof(GetTestsVariations))]
+        public void BasicHttpRequestReplyWithTransportMessageEchoString(Type startupType)
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithUserName>(_output).Build();
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).Build();
             using (host)
             {
                 host.Start();
@@ -64,13 +73,14 @@ namespace BasicHttp
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        [UseCulture("en-US")]
         public void BasicHttpsCustomBindingRequestReplyEchoString(bool useHttps)
         {
             string testString = new string('a', 4000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
             using (host)
             {
-                String serviceUrl = (useHttps ? "https" : "http") + "://localhost:8443/BasicHttpWcfService/basichttp.svc";
+                string serviceUrl = (useHttps ? "https" : "http") + "://localhost:8443/BasicHttpWcfService/basichttp.svc";
                 host.Start();
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.Transport);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
@@ -86,7 +96,8 @@ namespace BasicHttp
                     string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
-                }catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     Assert.True(!useHttps && ex.Message.Contains("The provided URI scheme 'http' is invalid"));
                 }
@@ -136,10 +147,23 @@ namespace BasicHttp
                 {
                     return;
                 }
-                else
+
+                throw new Exception("Permission Denied");
+            }
+        }
+
+        internal class CustomAsynchronousTestValidator : UserNamePasswordValidator
+        {
+            public override async ValueTask ValidateAsync(string userName, string password)
+            {
+                // simulate a DB / API roundtrip
+                await Task.Delay(100);
+                if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    throw new Exception("Permission Denied");
+                    return;
                 }
+
+                throw new Exception("Permission Denied");
             }
         }
 
@@ -164,7 +188,8 @@ namespace BasicHttp
             }
         }
 
-        internal class BasicHttpTransportWithMessageCredentialWithUserName : StartupBasicHttpBase
+        internal class BasicHttpTransportWithMessageCredentialWithUserName<TUserNamePasswordValidator> : StartupBasicHttpBase
+            where TUserNamePasswordValidator : UserNamePasswordValidator, new()
         {
             public BasicHttpTransportWithMessageCredentialWithUserName() :
                 base(CoreWCF.Channels.BasicHttpSecurityMode.TransportWithMessageCredential, BasicHttpMessageCredentialType.UserName)
@@ -177,7 +202,7 @@ namespace BasicHttp
                 srvCredentials.UserNameAuthentication.UserNamePasswordValidationMode =
                     CoreWCF.Security.UserNamePasswordValidationMode.Custom;
                 srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator =
-                    new CustomTestValidator();
+                    new TUserNamePasswordValidator();
                 host.Description.Behaviors.Add(srvCredentials);
             }
         }

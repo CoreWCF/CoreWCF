@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 
@@ -9,7 +10,7 @@ namespace CoreWCF.Security
 {
     internal abstract class SecurityHeaderElementInferenceEngine
     {
-        public abstract void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader);
+        public abstract ValueTask ExecuteProcessingPassesAsync(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader);
 
         public abstract void MarkElements(ReceiveSecurityHeaderElementManager elementManager, bool messageSecurityMode);
 

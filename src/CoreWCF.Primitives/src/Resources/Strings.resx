@@ -8208,4 +8208,13 @@
   <data name="XmlWriterClosed" xml:space="preserve">
     <value>The XmlWriter is closed.</value>
   </data>
+  <data name="SynchronousTokenValidationIsDeprecated" xml:space="preserve">
+    <value>Implementers should implement ValidateTokenCoreAsync instead.</value>
+  </data>
+  <data name="SynchronousUserNameTokenValidationIsDeprecated" xml:space="preserve">
+    <value>Implementers should implement ValidateUserNamePasswordCoreAsync instead.</value>
+  </data>
+  <data name="SynchronousUserNamePasswordValidationIsDeprecated" xml:space="preserve">
+    <value>Implementers should implement ValidateAsync instead.</value>
+  </data>
 </root>

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
@@ -20,7 +21,7 @@ namespace CoreWCF.Security.Tokens
             return (token is SecurityContextSecurityToken);
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
             SecurityContextSecurityToken sct = (SecurityContextSecurityToken)token;
             if (!IsTimeValid(sct))
@@ -28,7 +29,7 @@ namespace CoreWCF.Security.Tokens
                 ThrowExpiredContextFaultException(sct.ContextId, sct);
             }
 
-            return sct.AuthorizationPolicies;
+            return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(sct.AuthorizationPolicies);
         }
 
         private void ThrowExpiredContextFaultException(UniqueId contextId, SecurityContextSecurityToken sct)

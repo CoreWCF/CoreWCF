@@ -361,7 +361,7 @@ namespace CoreWCF.Security
 
             protected override XmlDictionaryString LocalName { get { return XD.SecurityJan2004Dictionary.UserNameTokenElement; } }
             protected override XmlDictionaryString NamespaceUri { get { return XD.SecurityJan2004Dictionary.Namespace; } }
-            protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(USerNameSecurityToken) }; }
+            protected override Type[] GetTokenTypesCore() { return new Type[] { typeof(UserNameSecurityToken) }; }
             public override string TokenTypeUri { get { return SecurityJan2004Strings.UPTokenType; } }
             protected override string ValueTypeUri { get { return null; } }
 
@@ -373,7 +373,7 @@ namespace CoreWCF.Security
                 switch (tokenReferenceStyle)
                 {
                     case SecurityTokenReferenceStyle.Internal:
-                        return CreateDirectReference(issuedTokenXml, UtilityStrings.IdAttribute, UtilityStrings.Namespace, typeof(USerNameSecurityToken));
+                        return CreateDirectReference(issuedTokenXml, UtilityStrings.IdAttribute, UtilityStrings.Namespace, typeof(UserNameSecurityToken));
                     case SecurityTokenReferenceStyle.External:
                         // UP tokens aren't referred to externally
                         return null;
@@ -391,12 +391,12 @@ namespace CoreWCF.Security
                     id = SecurityUniqueId.Create().Value;
                 }
 
-                return new USerNameSecurityToken(userName, password, id);
+                return new UserNameSecurityToken(userName, password, id);
             }
 
             public override void WriteTokenCore(XmlDictionaryWriter writer, SecurityToken token)
             {
-                USerNameSecurityToken upToken = (USerNameSecurityToken)token;
+                UserNameSecurityToken upToken = (UserNameSecurityToken)token;
                 WriteUserNamePassword(writer, upToken.Id, upToken.UserName, upToken.Password);
             }
 
