@@ -40,7 +40,7 @@ namespace DesktopServer
 
         static void Main()
         {
-            var hostEchoService = ConfigureWcfHost<EchoService, Contract.IEchoService>("EchoService");
+            ServiceHost hostEchoService = ConfigureWcfHost<EchoService, Contract.IEchoService>("EchoService");
 
             hostEchoService.Open();
 
