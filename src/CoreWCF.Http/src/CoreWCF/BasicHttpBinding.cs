@@ -19,14 +19,14 @@ namespace CoreWCF
             _basicHttpSecurity.Mode = securityMode;
         }
 
-        internal WSMessageEncoding MessageEncoding { get; set; } = BasicHttpBindingDefaults.MessageEncoding;
+        public WSMessageEncoding MessageEncoding { get; set; } = BasicHttpBindingDefaults.MessageEncoding;
 
         internal override BasicHttpSecurity BasicHttpSecurity => _basicHttpSecurity;
 
         public BasicHttpSecurity Security
         {
             get => _basicHttpSecurity;
-
+            
             set
             {
                 _basicHttpSecurity = value ?? throw Fx.Exception.ArgumentNull(nameof(value));
@@ -46,10 +46,15 @@ namespace CoreWCF
                 bindingElements.Add(wsSecurity);
             }
             // order of BindingElements is important
-            // add encoding
+            // add encoding (text or mtom)
+            WSMessageEncodingHelper.SyncUpEncodingBindingElementProperties(TextMessageEncodingBindingElement, MtomMessageEncodingBindingElement);
             if (MessageEncoding == WSMessageEncoding.Text)
             {
                 bindingElements.Add(TextMessageEncodingBindingElement);
+            }
+            else if (MessageEncoding == WSMessageEncoding.Mtom)
+            {
+                bindingElements.Add(MtomMessageEncodingBindingElement);
             }
             // add transport (http or https)
             bindingElements.Add(GetTransport());

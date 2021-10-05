@@ -23,6 +23,10 @@ namespace CoreWCF
             {
                 MessageVersion = MessageVersion.Soap11
             };
+            MtomMessageEncodingBindingElement = new MtomMessageEncodingBindingElement
+            {
+                MessageVersion = MessageVersion.Soap11
+            };
         }
         // [System.ComponentModel.DefaultValueAttribute(false)]
         // public bool AllowCookies { get { return default(bool); } set { } }
@@ -53,6 +57,7 @@ namespace CoreWCF
             {
                 _httpTransport.MaxBufferSize = value;
                 _httpsTransport.MaxBufferSize = value;
+                MtomMessageEncodingBindingElement.MaxBufferSize = value;
             }
         }
 
@@ -71,7 +76,7 @@ namespace CoreWCF
                 }
 
                 value.CopyTo(TextMessageEncodingBindingElement.ReaderQuotas);
-                //value.CopyTo(this.mtomEncoding.ReaderQuotas);
+                value.CopyTo(MtomMessageEncodingBindingElement.ReaderQuotas);
 
                 SetReaderQuotas(value);
             }
@@ -89,7 +94,7 @@ namespace CoreWCF
             set
             {
                 TextMessageEncodingBindingElement.WriteEncoding = value;
-                //_mtomEncoding.WriteEncoding = value;
+                MtomMessageEncodingBindingElement.WriteEncoding = value;
             }
         }
 
@@ -109,6 +114,8 @@ namespace CoreWCF
         }
 
         internal TextMessageEncodingBindingElement TextMessageEncodingBindingElement { get; }
+
+        internal MtomMessageEncodingBindingElement MtomMessageEncodingBindingElement { get; }
 
         internal abstract BasicHttpSecurity BasicHttpSecurity
         {

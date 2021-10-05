@@ -11,6 +11,8 @@ namespace CoreWCF.Channels
 {
     public abstract class MessageEncoder
     {
+        private string _traceSourceString;
+
         public abstract string ContentType { get; }
 
         public abstract string MediaType { get; }
@@ -210,6 +212,16 @@ namespace CoreWCF.Channels
                     new ProtocolException(SR.Format(SR.EncoderMessageVersionMismatch, message.Version, MessageVersion)),
                     message);
             }
+        }
+
+        internal string GetTraceSourceString()
+        {
+            // if (_traceSourceString == null)
+            // {
+            //     _traceSourceString = Runtime.Diagnostics.DiagnosticTraceBase.CreateDefaultSourceString(this);
+            // }
+
+            return _traceSourceString;
         }
     }
 }
