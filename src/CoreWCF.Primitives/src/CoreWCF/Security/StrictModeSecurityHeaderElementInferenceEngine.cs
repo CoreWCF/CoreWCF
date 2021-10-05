@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace CoreWCF.Security
@@ -11,10 +12,7 @@ namespace CoreWCF.Security
 
         internal static StrictModeSecurityHeaderElementInferenceEngine Instance { get; } = new StrictModeSecurityHeaderElementInferenceEngine();
 
-        public override void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader)
-        {
-            securityHeader.ExecuteFullPass(reader);
-        }
+        public override ValueTask ExecuteProcessingPassesAsync(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader) => securityHeader.ExecuteFullPassAsync(reader);
 
         public override void MarkElements(ReceiveSecurityHeaderElementManager elementManager, bool messageSecurityMode)
         {

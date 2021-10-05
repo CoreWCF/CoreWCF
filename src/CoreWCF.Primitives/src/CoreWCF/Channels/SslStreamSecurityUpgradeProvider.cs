@@ -149,21 +149,13 @@ namespace CoreWCF.Channels
         }
 
 
-        bool IChannelBindingProvider.IsChannelBindingSupportEnabled
-        {
-            get
-            {
-                return _enableChannelBinding;
-            }
-        }
+        bool IChannelBindingProvider.IsChannelBindingSupportEnabled => _enableChannelBinding;
 
         public override StreamUpgradeAcceptor CreateUpgradeAcceptor()
         {
             ThrowIfDisposedOrNotOpen();
             return new SslStreamSecurityUpgradeAcceptor(this);
         }
-
-
 
         protected override void OnAbort()
         {
@@ -244,13 +236,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal bool IsChannelBindingSupportEnabled
-        {
-            get
-            {
-                return ((IChannelBindingProvider)_parent).IsChannelBindingSupportEnabled;
-            }
-        }
+        internal bool IsChannelBindingSupportEnabled => ((IChannelBindingProvider)_parent).IsChannelBindingSupportEnabled;
 
         protected override async Task<(Stream, SecurityMessageProperty)> OnAcceptUpgradeAsync(Stream stream)
         {
@@ -298,7 +284,12 @@ namespace CoreWCF.Channels
                 try
                 {
                     SecurityToken token = new X509SecurityToken(certificate2, false);
-                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = _parent.ClientCertificateAuthenticator.ValidateToken(token);
+                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies;
+                    var validationValueTask = _parent.ClientCertificateAuthenticator.ValidateTokenAsync(token);
+                    authorizationPolicies = validationValueTask.IsCompleted
+                        ? validationValueTask.Result
+                        : validationValueTask.AsTask().GetAwaiter().GetResult();
+
                     _clientSecurity = new SecurityMessageProperty
                     {
                         TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
@@ -322,13 +313,6 @@ namespace CoreWCF.Channels
             }
             if (_clientCertificate != null)
             {
-                SecurityToken token = new X509SecurityToken(_clientCertificate);
-                ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = SecurityUtils.NonValidatingX509Authenticator.ValidateToken(token);
-                _clientSecurity = new SecurityMessageProperty
-                {
-                    TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),
-                    ServiceSecurityContext = new ServiceSecurityContext(authorizationPolicies)
-                };
                 return _clientSecurity;
             }
             return base.GetRemoteSecurity();

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
@@ -10,11 +11,8 @@ namespace CoreWCF.Security
     {
         private bool _isNegotiationCompleted;
         private SecurityContextSecurityToken _serviceToken;
-        private readonly object _thisLock;
 
-        public NegotiationTokenAuthenticatorState() => _thisLock = new object();
-
-        public object ThisLock => _thisLock;
+        public AsyncLock AsyncLock { get; } = new AsyncLock();
 
         public bool IsNegotiationCompleted => _isNegotiationCompleted;
 

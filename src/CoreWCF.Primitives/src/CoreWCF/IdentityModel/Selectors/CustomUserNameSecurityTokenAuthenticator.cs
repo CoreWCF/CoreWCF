@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Security;
@@ -19,9 +20,9 @@ namespace CoreWCF.IdentityModel.Selectors
             _validator = validator ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(validator));
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateUserNamePasswordCore(string userName, string password)
+        protected override async ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateUserNamePasswordCoreAsync(string userName, string password)
         {
-            _validator.Validate(userName, password);
+            await _validator.ValidateAsync(userName, password);
             return SecurityUtils.CreateAuthorizationPolicies(new UserNameClaimSet(userName, _validator.GetType().Name));
         }
 

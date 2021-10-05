@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel.Policy;
@@ -59,7 +60,7 @@ namespace CoreWCF.Security
             return message;
         }
 
-        public sealed override void VerifyIncomingMessage(ref Message message, TimeSpan timeout)
+        public sealed override async ValueTask<Message> VerifyIncomingMessageAsync(Message message, TimeSpan timeout)
         {
             if (message == null)
             {
@@ -68,7 +69,9 @@ namespace CoreWCF.Security
             CommunicationObject.ThrowIfClosedOrNotOpen();
             try
             {
-                VerifyIncomingMessageCore(ref message, timeout);
+                Message verifiedMessage = await VerifyIncomingMessageCoreAsync(message, timeout);
+                return verifiedMessage;
+
             }
             catch (MessageSecurityException e)
             {
@@ -96,7 +99,7 @@ namespace CoreWCF.Security
             security.ServiceSecurityContext = new ServiceSecurityContext(security.GetInitiatorTokenAuthorizationPolicies());
         }
 
-        protected virtual void VerifyIncomingMessageCore(ref Message message, TimeSpan timeout)
+        protected virtual async ValueTask<Message> VerifyIncomingMessageCoreAsync(Message message, TimeSpan timeout)
         {
             TransportSecurityProtocolFactory factory = (TransportSecurityProtocolFactory)SecurityProtocolFactory;
             string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
@@ -111,7 +114,7 @@ namespace CoreWCF.Security
                 if ((factory.ActAsInitiator && (!factory.AddTimestamp || factory.SecurityBindingElement.EnableUnsecuredResponse))
                     || (!factory.ActAsInitiator && !factory.AddTimestamp && !expectSupportingTokens))
                 {
-                    return;
+                    return message;
                 }
                 else
                 {
@@ -151,15 +154,17 @@ namespace CoreWCF.Security
             }
             securityHeader.ReplayDetectionEnabled = factory.DetectReplays;
             securityHeader.SetTimeParameters(factory.NonceCache, factory.ReplayWindow, factory.MaxClockSkew);
-            securityHeader.Process(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), factory.ExtendedProtectionPolicy);
-            message = securityHeader.ProcessedMessage;
+            await securityHeader.ProcessAsync(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), factory.ExtendedProtectionPolicy);
+            Message processedMessage = securityHeader.ProcessedMessage;
             if (!factory.ActAsInitiator)
             {
-                AttachRecipientSecurityProperty(message, securityHeader.BasicSupportingTokens, securityHeader.EndorsingSupportingTokens, securityHeader.SignedEndorsingSupportingTokens,
+                AttachRecipientSecurityProperty(processedMessage, securityHeader.BasicSupportingTokens, securityHeader.EndorsingSupportingTokens, securityHeader.SignedEndorsingSupportingTokens,
                     securityHeader.SignedSupportingTokens, securityHeader.SecurityTokenAuthorizationPoliciesMapping);
             }
 
-            base.OnIncomingMessageVerified(message);
+            base.OnIncomingMessageVerified(processedMessage);
+
+            return processedMessage;
         }
     }
 }

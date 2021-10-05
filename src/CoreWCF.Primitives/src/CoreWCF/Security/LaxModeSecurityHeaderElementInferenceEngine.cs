@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Security.Cryptography.Xml;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace CoreWCF.Security
@@ -12,16 +13,16 @@ namespace CoreWCF.Security
 
         internal static LaxModeSecurityHeaderElementInferenceEngine Instance { get; } = new LaxModeSecurityHeaderElementInferenceEngine();
 
-        public override void ExecuteProcessingPasses(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader)
+        public override async ValueTask ExecuteProcessingPassesAsync(ReceiveSecurityHeader securityHeader, XmlDictionaryReader reader)
         {
             // pass 1
-            securityHeader.ExecuteReadingPass(reader);
+            await securityHeader.ExecuteReadingPassAsync(reader);
 
             // pass 1.5
             securityHeader.ExecuteDerivedKeyTokenStubPass(false);
 
             // pass 2
-            securityHeader.ExecuteSubheaderDecryptionPass();
+            await securityHeader.ExecuteSubheaderDecryptionPassAsync();
 
             // pass 2.5
             securityHeader.ExecuteDerivedKeyTokenStubPass(true);
@@ -30,7 +31,7 @@ namespace CoreWCF.Security
             MarkElements(securityHeader.ElementManager, securityHeader.RequireMessageProtection);
 
             // pass 3
-            securityHeader.ExecuteSignatureEncryptionProcessingPass();
+            await securityHeader.ExecuteSignatureEncryptionProcessingPassAsync();
         }
 
         public override void MarkElements(ReceiveSecurityHeaderElementManager elementManager, bool messageSecurityMode)
