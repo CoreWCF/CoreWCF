@@ -27,15 +27,15 @@ namespace CoreWCF.IdentityModel.Selectors
         [Obsolete("Implementers should override ValidateAsync.")]
         public virtual void Validate(string userName, string password) => throw new NotImplementedException(SR.SynchronousUserNamePasswordValidationIsDeprecated);
 
-        public virtual Task ValidateAsync(string userName, string password)
+        public virtual ValueTask ValidateAsync(string userName, string password)
         {
             Validate(userName, password);
-            return Task.CompletedTask;
+            return new ValueTask();
         }
 
         private class NoneUserNamePasswordValidator : UserNamePasswordValidator
         {
-            public override Task ValidateAsync(string userName, string password) => Task.CompletedTask;
+            public override ValueTask ValidateAsync(string userName, string password) => new ValueTask();
         }
     }
 }

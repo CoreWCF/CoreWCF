@@ -147,25 +147,23 @@ namespace BasicHttp
                 {
                     return;
                 }
-                else
-                {
-                    throw new Exception("Permission Denied");
-                }
+
+                throw new Exception("Permission Denied");
             }
         }
 
         internal class CustomAsynchronousTestValidator : UserNamePasswordValidator
         {
-            public override Task ValidateAsync(string userName, string password)
+            public override async ValueTask ValidateAsync(string userName, string password)
             {
+                // simulate a DB / API roundtrip
+                await Task.Delay(100);
                 if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
-                else
-                {
-                    throw new Exception("Permission Denied");
-                }
+
+                throw new Exception("Permission Denied");
             }
         }
 
