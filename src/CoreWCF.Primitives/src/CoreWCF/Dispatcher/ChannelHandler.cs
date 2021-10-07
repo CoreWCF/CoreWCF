@@ -41,7 +41,7 @@ namespace CoreWCF.Dispatcher
         private readonly bool _incrementedActivityCountInConstructor;
         private readonly AsyncManualResetEvent _asyncManualResetEvent;
         private bool _openCalled;
-        private NonReentrantAsyncLock _thisLock;
+        private AsyncLock _thisLock;
 
         internal ChannelHandler(MessageVersion messageVersion, IChannelBinder binder, ServiceThrottle throttle,
              ServiceDispatcher serviceDispatcher, bool wasChannelThrottled, SessionIdleManager idleManager)
@@ -57,7 +57,7 @@ namespace CoreWCF.Dispatcher
             _duplexBinder = binder as DuplexChannelBinder;
             _hasSession = binder.HasSession;
             _isConcurrent = ConcurrencyBehavior.IsConcurrent(channelDispatcher, _hasSession);
-            _thisLock = new NonReentrantAsyncLock();
+            _thisLock = new AsyncLock();
 
             // TODO: Work out if MultipleReceiveBinder is necessary
             //if (channelDispatcher.MaxPendingReceives > 1)
@@ -406,10 +406,15 @@ namespace CoreWCF.Dispatcher
                     if (request == null && _hasSession)
                     {
                         bool close;
-                        using (await _thisLock.TakeLockAsync())
+                        var releaser = await _thisLock.TakeLockAsync();
+                        try
                         {
                             close = !_doneReceiving;
                             _doneReceiving = true;
+                        }
+                        finally
+                        {
+                            await releaser.DisposeAsync();
                         }
 
                         if (close)
@@ -525,7 +530,8 @@ namespace CoreWCF.Dispatcher
 
             if (endpoint.DatagramChannel == null)
             {
-                using (await _serviceDispatcher.ThisLock.TakeLockAsync())
+                var releaser = await _serviceDispatcher.ThisLock.TakeLockAsync();
+                try
                 {
                     if (endpoint.DatagramChannel == null)
                     {
@@ -533,6 +539,10 @@ namespace CoreWCF.Dispatcher
                             _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
                         await InitializeServiceChannelAsync(endpoint.DatagramChannel);
                     }
+                }
+                finally
+                {
+                    await releaser.DisposeAsync();
                 }
             }
 
@@ -545,7 +555,8 @@ namespace CoreWCF.Dispatcher
 
             if (_channel == null)
             {
-                using (await _thisLock.TakeLockAsync())
+                var releaser = await _thisLock.TakeLockAsync();
+                try
                 {
                     if (_channel == null)
                     {
@@ -557,6 +568,10 @@ namespace CoreWCF.Dispatcher
                             await InitializeServiceChannelAsync(_channel);
                         }
                     }
+                }
+                finally
+                {
+                    await releaser.DisposeAsync();
                 }
             }
 

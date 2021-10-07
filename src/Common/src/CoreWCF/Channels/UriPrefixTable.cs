@@ -63,7 +63,7 @@ namespace CoreWCF.Channels
 
         public int Count { get; private set; }
 
-        public ReentrantAsyncLock AsyncLock { get; } = new ReentrantAsyncLock();
+        public AsyncLock AsyncLock { get; } = new AsyncLock();
 
         public bool IsRegistered(BaseUriWithWildcard key)
         {

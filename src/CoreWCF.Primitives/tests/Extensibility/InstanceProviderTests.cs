@@ -58,7 +58,7 @@ namespace Extensibility
         public int ReleaseInstanceCallCount { get; private set; }
         public int InstanceHashCode { get; private set; } = -1;
         public int ReleasedInstanceHashCode { get; private set; } = -2;
-        private readonly ReentrantAsyncLock _asyncLock = new ReentrantAsyncLock();
+        private readonly AsyncLock _asyncLock = new AsyncLock();
         private IDisposable _asyncLockHoldObj = null;
 
         public object GetInstance(InstanceContext instanceContext)
@@ -95,7 +95,11 @@ namespace Extensibility
 
         public async Task WaitForReleaseAsync(TimeSpan timeout)
         {
-            (await _asyncLock.TakeLockAsync(timeout))?.Dispose();
+            var relaser = (await _asyncLock.TakeLockAsync(timeout))?.DisposeAsync();
+            if (relaser != null)
+            {
+                await relaser.Value;
+            }
         }
     }
 
