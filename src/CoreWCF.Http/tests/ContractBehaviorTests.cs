@@ -93,9 +93,6 @@ namespace CoreWCF.Http.Tests
         public static ChannelFactory<T> GetChannelFactory<T>()
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            // SSM 4.9.0-rc1 https://github.com/CoreWCF/CoreWCF/pull/442#discussion_r712491578
-            GC.Collect(2);
-            GC.Collect(2);
             return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractBehaviorService.svc")));
         }
 
