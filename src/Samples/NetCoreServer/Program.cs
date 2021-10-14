@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace NetCoreServer
 {
-    class Program
+    internal static class Program
     {
         static void Main(string[] args)
         {

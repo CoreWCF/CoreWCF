@@ -1,31 +1,38 @@
 ﻿using System;
 using StandardClient;
-using CoreWCF.Samples.StandardCommon;
+using System.Threading.Tasks;
 
 namespace NetCoreClient
 {
-    class Program
+    internal static class Program
     {
-        /// <remarks>
-        /// use commanline argument localhost
-        /// or something similar to indicate the WCF Server hostname
-        /// </remarks>
-        static void Main(string[] args)
+        /// <summary>
+        /// use commanline argument localhost or something similar to indicate the WCF Server hostname
+        /// </summary>
+        private static async Task Main(string[] args)
         {
-            string hostname = args.Length >= 1 ? args[0] : null;
+            static void log(string value) => Console.WriteLine(value);
 
             Console.Title = "WCF .Net Core Client";
-            Settings settings = ClientLogic.BuildClientSettings(hostname);
+            string hostname = StartClient(args);
 
-            static void log(string value) => Console.WriteLine(value);
-            ClientLogic.InvokeEchoServiceUsingWcf(settings, log);
-
-            string rawSoapResponse = ClientLogic.InvokeEchoServiceUsingWebRequest(settings.basicHttpAddress);
+            EchoClientLogic.BuildClientSettings(hostname);
+            await EchoClientLogic.InvokeUsingWcf(log);
+            string rawSoapResponse = EchoClientLogic.InvokeWebRequest();
             Console.WriteLine($"Http SOAP Response:\n{rawSoapResponse}");
 
             Console.WriteLine("Hit enter to exit");
             Console.ReadLine();
         }
 
+        private static string StartClient(string[] args)
+        {
+            string hostname = args.Length >= 1 ? args[0] : null;
+            const string s_hostname = "localhost";
+            string title = Console.Title;
+            if (string.IsNullOrWhiteSpace(hostname)) hostname = s_hostname;
+            Console.WriteLine(title + " - " + hostname);
+            return hostname;
+        }
     }
 }

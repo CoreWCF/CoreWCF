@@ -10,7 +10,7 @@ namespace Contract
         public string Text { get; set; }
     }
 
-    [ServiceContract]
+    [ServiceContract(Namespace = "http://my.service.com/echo")]
     public interface IEchoService
     {
         [OperationContract]
