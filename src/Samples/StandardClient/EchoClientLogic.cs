@@ -2,54 +2,57 @@
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Text;
+using System.Threading.Tasks;
 using Contract;
 using CoreWCF.Samples.StandardCommon;
 
 namespace StandardClient
 {
-    public class ClientLogic
+    public class EchoClientLogic
     {
-        public static Settings BuildClientSettings(string hostname)
-        {
-            const string s_hostname = "localhost";
+        private static Settings settings;
 
-            string title = Console.Title;
-            if (string.IsNullOrWhiteSpace(hostname)) hostname = s_hostname;
-            Console.WriteLine(title + " - " + hostname);
-            Settings settings = new Settings().SetDefaults(hostname, "EchoService");
-            return settings;
+        public static void BuildClientSettings(string hostname)
+        {
+            settings = new Settings().SetDefaults(hostname, "EchoService");
         }
 
-        public static void InvokeEchoServiceUsingWcf(
-            Settings settings,
-            Action<string> log)
+        public static async Task InvokeUsingWcf(Action<string> log)
         {
             var echo = (Func<IEchoService, string>)(channel =>
                channel.Echo("Hello"));
-            var echoFault = (Func<IEchoService, bool>)(channel =>
+            var echoFault = (Func<IEchoService, Task<string>>)(async channel =>
             {
                 try
                 {
                     channel.FailEcho("Hello Fault");
+                    return "No Exception";
                 }
-                catch (FaultException<EchoFault> e)
+                catch (FaultException<EchoFault> ex)
                 {
-                    Console.WriteLine("FaultException<EchoFault>: fault with " + e.Detail.Text);
-                    ((IClientChannel)channel).Abort();
+                    return "FaultException<T>: " + ex.Detail.Text;
                 }
-                return false;
+                catch (FaultException ex)
+                {
+                    return "FaultException: " + ex.Message;
+                }
             });
 
-            log($"BasicHttp:\n\tEcho(\"Hello\") => "
+            log("Echo Operation");
+
+            log("\tBasicHttp FailEcho: => "
+                + await echoFault.WcfInvokeAsync(new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress));
+
+            log("\tBasicHttp: => "
                 + echo.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress));
 
-            log($"BasicHttp:\nFailEcho(\"Hello Fault\") => "
-                + echoFault.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress));
-
-            log($"WsHttp:\n\tEcho(\"Hello\") => "
+            log("\tWsHttp: => "
                 + echo.WcfInvoke(new WSHttpBinding(SecurityMode.None), settings.wsHttpAddress));
 
-            log($"NetHttp:\n\tEcho(\"Hello\") => "
+            log("\tWsHttp FailEcho => "
+                + echoFault.WcfInvoke(new WSHttpBinding(SecurityMode.None), settings.wsHttpAddress));
+
+            log("\tNetHttp: => "
                 + echo.WcfInvoke(new NetTcpBinding(), settings.netTcpAddress));
 
             void RunExampleWsHttpsTransportWithMessageCredential ()
@@ -57,7 +60,7 @@ namespace StandardClient
                 WSHttpBinding binding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
                 binding.ApplyDebugTimeouts();
                 binding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
-                log($"WsHttps TransportWithMessageCredential:\n\tEcho(\"Hello\") => "
+                log("\tWsHttps TransportWithMessageCredential: => "
                     + echo.WcfInvoke(binding,
                         settings.wsHttpAddressValidateUserPassword,
                         channel => {
@@ -75,28 +78,30 @@ namespace StandardClient
 
             if (settings.UseHttps)
             {
-                log($"BasicHttps:\n\tEcho(\"Hello\") => "
+                log("\tBasicHttps: => "
                     + echo.WcfInvoke(new BasicHttpsBinding(BasicHttpsSecurityMode.Transport), settings.basicHttpsAddress));
 
-                log($"WsHttps:\n\tEcho(\"Hello\") => "
+                log("\tWsHttps: => "
                     + echo.WcfInvoke(new WSHttpBinding(SecurityMode.Transport), settings.wsHttpsAddress));
 
                 RunExampleWsHttpsTransportWithMessageCredential();
             }
 
-            var echoComplex = (Func<IEchoService, string>)((IEchoService channel) =>
-               channel.ComplexEcho(new EchoMessage() { Text = "Complex Hello" }));
+            //var echoComplex = (Func<IEchoService, string>)((IEchoService channel) =>
+            //   channel.ComplexEcho(new EchoMessage() { Text = "Complex Hello" }));
 
-            log($"BasicHttp with Complex Object:\n\tEcho(\"Hello\") => "
-                + echoComplex.WcfInvoke(new NetTcpBinding(), settings.netTcpAddress));
+            //log("\tBasicHttp with Complex Object: => "
+            //    + echoComplex.WcfInvoke(new NetTcpBinding(), settings.netTcpAddress));
         }
 
         /// <summary>
         /// Creates a basic web request to the specified endpoint,
         /// sends the SOAP request and reads the response
         /// </summary>
-        public static string InvokeEchoServiceUsingWebRequest(Uri address)
+        public static string InvokeWebRequest()
         {
+            Uri address = settings.basicHttpAddress;
+
             string _soapEnvelopeContent =
 @"<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>
     <soapenv:Body>
