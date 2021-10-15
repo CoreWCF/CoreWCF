@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Xml;
 using CoreWCF.Diagnostics;
 using CoreWCF.Runtime;
@@ -11,11 +11,11 @@ namespace CoreWCF.Channels
 {
     internal class RequestReplyCorrelator : IRequestReplyCorrelator
     {
-        private readonly IDictionary<Key, object> _states;
+        private readonly Hashtable _states;
 
         internal RequestReplyCorrelator()
         {
-            _states = new Dictionary<Key, object>();
+            _states = new Hashtable();
         }
 
         void IRequestReplyCorrelator.Add<T>(Message request, T state)
@@ -24,7 +24,7 @@ namespace CoreWCF.Channels
             Type stateType = typeof(T);
             Key key = new Key(messageId, stateType);
 
-            // add the correlator key to the request, this will be needed for cleaning up the correlator table in case of 
+            // add the correlator key to the request, this will be needed for cleaning up the correlator table in case of
             // channel aborting or faulting while there are pending requests
             if (state is ICorrelatorKey value)
             {
@@ -42,13 +42,12 @@ namespace CoreWCF.Channels
             UniqueId relatesTo = GetRelatesTo(reply);
             Type stateType = typeof(T);
             Key key = new Key(relatesTo, stateType);
-            T value;
+            T value = (T)_states[key];
 
-            lock (_states)
+            if (remove)
             {
-                value = (T)_states[key];
-
-                if (remove)
+                // With HashTable, only need to lock when modifying
+                lock (_states)
                 {
                     _states.Remove(key);
                 }
@@ -58,7 +57,7 @@ namespace CoreWCF.Channels
         }
 
         // This method is used to remove the request from the correlator table when the
-        // reply is lost. This will avoid leaking the correlator table in cases where the 
+        // reply is lost. This will avoid leaking the correlator table in cases where the
         // channel faults or aborts while there are pending requests.
         internal void RemoveRequest(ICorrelatorKey request)
         {
