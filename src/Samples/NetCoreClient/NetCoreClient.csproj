@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StandardClient\Samples.StandardClient.csproj" />
+    <ProjectReference Include="..\StandardCommon\Samples.StandardCommon.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-
+    
     <!-- Required for multi-framework support for in-memory integration testing-->
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>

@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
@@ -170,6 +171,20 @@ namespace Helpers
         {
             StreamReader streamReader = new StreamReader(s, Encoding.UTF8);
             return streamReader.ReadToEnd();
+        }
+
+        public static byte[] GetByteArray(int length)
+        {
+            byte[] bytes = new byte[length];
+#if NET472_OR_GREATER
+                using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+                {
+                    rng.GetBytes(bytes);
+                }
+#else
+            RandomNumberGenerator.Fill(bytes);
+#endif
+            return bytes;
         }
 
         public static MessageContractStreamNoHeader GetMessageContractStreamNoHeader(string s)

@@ -588,13 +588,13 @@ namespace CoreWCF.Security
         {
         }
 
-        public abstract void VerifyIncomingMessage(ref Message message, TimeSpan timeout);
+        public abstract ValueTask<Message> VerifyIncomingMessageAsync(Message message, TimeSpan timeout);
 
         // subclasses that offer correlation should override this version
-        public virtual SecurityProtocolCorrelationState VerifyIncomingMessage(ref Message message, TimeSpan timeout, params SecurityProtocolCorrelationState[] correlationStates)
+        public virtual async ValueTask<(Message, SecurityProtocolCorrelationState)> VerifyIncomingMessageAsync(Message message, TimeSpan timeout, params SecurityProtocolCorrelationState[] correlationStates)
         {
-            VerifyIncomingMessage(ref message, timeout);
-            return null;
+            var verifiedMessage = await VerifyIncomingMessageAsync(message, timeout);
+            return (verifiedMessage, null);
         }
 
         protected virtual void OnIncomingMessageVerified(Message verifiedMessage)

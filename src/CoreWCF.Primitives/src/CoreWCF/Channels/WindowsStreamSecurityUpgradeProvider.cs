@@ -168,11 +168,11 @@ namespace CoreWCF.Channels
                         SR.Format(SR.NegotiationFailedIO, ioException.Message), ioException));
                 }
 
-                SecurityMessageProperty remoteSecurity = CreateClientSecurity(negotiateStream, _parent.ExtractGroupsForWindowsAccounts);
+                SecurityMessageProperty remoteSecurity = await CreateClientSecurityAsync(negotiateStream, _parent.ExtractGroupsForWindowsAccounts);
                 return (negotiateStream, remoteSecurity);
             }
 
-            private SecurityMessageProperty CreateClientSecurity(NegotiateStream negotiateStream,
+            private async Task<SecurityMessageProperty> CreateClientSecurityAsync(NegotiateStream negotiateStream,
                           bool extractGroupsForWindowsAccounts)
             {
                 IIdentity remoteIdentity = negotiateStream.RemoteIdentity;
@@ -190,7 +190,7 @@ namespace CoreWCF.Channels
                     ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                     token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
                 }
-                authorizationPolicies = authenticator.ValidateToken(token);
+                authorizationPolicies = await authenticator.ValidateTokenAsync(token);
                 SecurityMessageProperty clientSecurity = new SecurityMessageProperty
                 {
                     TransportToken = new SecurityTokenSpecification(token, authorizationPolicies),

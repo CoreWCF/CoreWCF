@@ -36,7 +36,7 @@ namespace CoreWCF.Channels
 
         protected override TimeSpan DefaultOpenTimeout
         {
-            get { return _closeTimeout; }
+            get { return _openTimeout; }
         }
 
         public virtual T GetProperty<T>() where T : class

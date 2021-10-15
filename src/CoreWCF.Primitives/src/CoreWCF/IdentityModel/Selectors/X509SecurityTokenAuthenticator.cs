@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Tokens;
@@ -52,7 +53,7 @@ namespace CoreWCF.IdentityModel.Selectors
             return token is X509SecurityToken;
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
             X509SecurityToken x509Token = (X509SecurityToken)token;
             _validator.Validate(x509Token.Certificate);
@@ -60,7 +61,7 @@ namespace CoreWCF.IdentityModel.Selectors
             X509CertificateClaimSet x509ClaimSet = new X509CertificateClaimSet(x509Token.Certificate, _cloneHandle);
             if (!MapCertificateToWindowsAccount)
             {
-                return SecurityUtils.CreateAuthorizationPolicies(x509ClaimSet, x509Token.ValidTo);
+                return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(SecurityUtils.CreateAuthorizationPolicies(x509ClaimSet, x509Token.ValidTo));
             }
 
             WindowsClaimSet windowsClaimSet;
@@ -90,7 +91,7 @@ namespace CoreWCF.IdentityModel.Selectors
             {
                 new UnconditionalPolicy(claimSets.AsReadOnly(), x509Token.ValidTo)
             };
-            return policies.AsReadOnly();
+            return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(policies.AsReadOnly());
         }
     }
 }

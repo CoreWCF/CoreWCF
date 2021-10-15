@@ -249,7 +249,8 @@ namespace CoreWCF.Http.Tests
                 cf.Endpoint.Contract.ContractBehaviors.Add(theBehavior);
                 cf.Open();
                 string expected = "IContractBehavior:ClientContract.MyMultiFacetedBehaviorAttribute;";
-                Assert.Equal(expected, BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint));
+                string actual = BehaviorInvokedVerifier.ValidateClientInvokedBehavior(cf.Endpoint);
+                Assert.Equal(expected, actual);
                 IContractBehaviorBasic_ByHand clientProxy = cf.CreateChannel();
                 string HelloStr = "ByHandImplementsOther";
                 string returnStr = clientProxy.StringMethod(HelloStr);

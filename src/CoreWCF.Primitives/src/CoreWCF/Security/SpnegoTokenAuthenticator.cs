@@ -120,7 +120,7 @@ namespace CoreWCF.Security
             return new SspiNegotiationTokenAuthenticatorState(windowsNegotiation);
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateSspiNegotiation(ISspiNegotiation sspiNegotiation)
+        protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateSspiNegotiationAsync(ISspiNegotiation sspiNegotiation)
         {
             WindowsSspiNegotiation windowsNegotiation = (WindowsSspiNegotiation)sspiNegotiation;
             if (windowsNegotiation.IsValidContext == false)
@@ -130,12 +130,12 @@ namespace CoreWCF.Security
             // SecurityTraceRecordHelper.TraceServiceSpnego(windowsNegotiation);
             if (IsClientAnonymous)
             {
-                return EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance;
+                return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance);
             }
             IIdentity identity = windowsNegotiation.GetIdentity();
             if (identity != null)
             {
-                return GetAuthorizationPolicies(identity);
+                return GetAuthorizationPoliciesAsync(identity);
             }
             else
             {
@@ -143,7 +143,7 @@ namespace CoreWCF.Security
             }
         }
 
-        private ReadOnlyCollection<IAuthorizationPolicy> GetAuthorizationPolicies(IIdentity identity)
+        private ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> GetAuthorizationPoliciesAsync(IIdentity identity)
         {
             IIdentity remoteIdentity = identity;
             SecurityToken token;
@@ -156,10 +156,9 @@ namespace CoreWCF.Security
             }
             else
             {
-                ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
                 token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
             }
-            return authenticator.ValidateToken(token);
+            return authenticator.ValidateTokenAsync(token);
         }
 
         private NegotiateInternalState GetNegotiateState() => (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();

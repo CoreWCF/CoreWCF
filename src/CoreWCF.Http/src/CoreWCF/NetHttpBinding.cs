@@ -61,7 +61,8 @@ namespace CoreWCF
                     bindingElements.Add(TextMessageEncodingBindingElement);
                     break;
                 case NetHttpMessageEncoding.Mtom:
-                    throw new PlatformNotSupportedException(nameof(NetHttpMessageEncoding.Mtom));
+                    bindingElements.Add(MtomMessageEncodingBindingElement);
+                    break;
                 default:
                     bindingElements.Add(_binaryMessageEncodingBindingElement);
                     break;
@@ -83,6 +84,7 @@ namespace CoreWCF
             MessageEncoding = NetHttpBindingDefaults.MessageEncoding;
             _binaryMessageEncodingBindingElement = new BinaryMessageEncodingBindingElement() { MessageVersion = MessageVersion.Soap12WSAddressing10 };
             TextMessageEncodingBindingElement.MessageVersion = MessageVersion.Soap12WSAddressing10;
+            MtomMessageEncodingBindingElement.MessageVersion = MessageVersion.Soap12WSAddressing10;
             WebSocketSettings.TransportUsage = NetHttpBindingDefaults.TransportUsage;
             WebSocketSettings.SubProtocol = WebSocketTransportSettings.SoapSubProtocol;
             _basicHttpSecurity = new BasicHttpSecurity();

@@ -6,14 +6,8 @@ namespace Contract
     [DataContract]
     public class EchoFault
     {
-        private string text;
-
         [DataMember]
-        public string Text
-        {
-            get { return text; }
-            set { text = value; }
-        }
+        public string Text { get; set; }
     }
 
     [ServiceContract]

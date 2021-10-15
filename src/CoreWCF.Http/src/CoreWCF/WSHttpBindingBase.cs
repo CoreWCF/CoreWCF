@@ -11,6 +11,7 @@ namespace CoreWCF
     public abstract class WSHttpBindingBase : Binding //, IBindingRuntimePreferences
     {
         private TextMessageEncodingBindingElement _textEncoding;
+        private MtomMessageEncodingBindingElement _mtomEncoding;
 
         protected WSHttpBindingBase()
             : base()
@@ -64,8 +65,11 @@ namespace CoreWCF
                 }
                 HttpTransport.MaxReceivedMessageSize = value;
                 HttpsTransport.MaxReceivedMessageSize = value;
+                _mtomEncoding.MaxBufferSize = (int)value;
             }
         }
+
+        public WSMessageEncoding MessageEncoding { get; set; }
 
         public XmlDictionaryReaderQuotas ReaderQuotas
         {
@@ -78,6 +82,7 @@ namespace CoreWCF
                 }
 
                 value.CopyTo(_textEncoding.ReaderQuotas);
+                value.CopyTo(_mtomEncoding.ReaderQuotas);
             }
         }
 
@@ -94,6 +99,7 @@ namespace CoreWCF
         //    set
         //    {
         //        _textEncoding.WriteEncoding = value;
+        //        _mtomEncoding.WriteEncoding = value;
         //    }
         //}
 
@@ -106,6 +112,10 @@ namespace CoreWCF
             HttpTransport = new HttpTransportBindingElement();
             HttpsTransport = new HttpsTransportBindingElement();
             _textEncoding = new TextMessageEncodingBindingElement
+            {
+                MessageVersion = MessageVersion.Soap12WSAddressing10
+            };
+            _mtomEncoding = new MtomMessageEncodingBindingElement
             {
                 MessageVersion = MessageVersion.Soap12WSAddressing10
             };
@@ -124,8 +134,16 @@ namespace CoreWCF
                 bindingElements.Add(wsSecurity);
             }
 
-            // add encoding
-            bindingElements.Add(_textEncoding);
+            // add encoding (text or mtom)
+            WSMessageEncodingHelper.SyncUpEncodingBindingElementProperties(_textEncoding, _mtomEncoding);
+            if (MessageEncoding == WSMessageEncoding.Text)
+            {
+                bindingElements.Add(_textEncoding);
+            }
+            else if (MessageEncoding == WSMessageEncoding.Mtom)
+            {
+                bindingElements.Add(_mtomEncoding);
+            }
 
             // add transport (http or https)
             bindingElements.Add(GetTransport());
