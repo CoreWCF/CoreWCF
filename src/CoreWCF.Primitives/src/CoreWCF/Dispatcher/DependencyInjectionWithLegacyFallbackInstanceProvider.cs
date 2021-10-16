@@ -38,16 +38,19 @@ namespace CoreWCF.Dispatcher
         }
 
         private delegate object GetInstanceDelegate(InstanceContext instanceContext, Message message);
+        private delegate void ReleaseInstanceDelegate(InstanceContext instanceContext, object instance);
 
         private readonly IServiceProvider _serviceProvider;
         private readonly Type _serviceType;
         private GetInstanceDelegate _getInstanceDelegate;
+        private ReleaseInstanceDelegate _releaseInstanceDelegate;
 
         public DependencyInjectionWithLegacyFallbackInstanceProvider(IServiceProvider serviceProvider, Type serviceType)
         {
             _serviceProvider = serviceProvider ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceProvider));
             _serviceType = serviceType ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceType));
             _getInstanceDelegate = GetInstanceFromDIWithLegacyFallback;
+            _releaseInstanceDelegate = ReleaseInstanceLegacy;
         }
 
         public object GetInstance(InstanceContext instanceContext)
@@ -62,9 +65,23 @@ namespace CoreWCF.Dispatcher
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
         {
+            _releaseInstanceDelegate(instanceContext, instance);
+        }
+
+        public void ReleaseInstanceLegacy(InstanceContext instanceContext, object instance)
+        {
             if (instance is IDisposable dispose)
             {
                 dispose.Dispose();
+            }
+        }
+
+        public void ReleaseInstanceFromDI(InstanceContext instanceContext, object instance)
+        {
+            var extension = GetScopedServiceProviderExtension(instanceContext);
+            if (extension != null)
+            {
+                extension.Dispose();
             }
         }
 
@@ -87,6 +104,7 @@ namespace CoreWCF.Dispatcher
             else
             {
                 _getInstanceDelegate = GetInstanceFromDI;
+                _releaseInstanceDelegate = ReleaseInstanceFromDI;
                 return instance;
             }
         }
@@ -94,7 +112,6 @@ namespace CoreWCF.Dispatcher
         private object GetInstanceFromDI(InstanceContext instanceContext, Message message)
         {
             ScopedServiceProviderExtension extension = GetScopedServiceProviderExtension(instanceContext);
-
             if (extension == null)
             {
                 extension = new ScopedServiceProviderExtension(_serviceProvider);

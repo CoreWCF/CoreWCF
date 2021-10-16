@@ -98,7 +98,7 @@ namespace DependencyInjection
         [Fact]
         public static void InstanceContextMode_PerCall_WithScopedDependency()
         {
-            ScopedCtorDependency.ClearInstanceCount();
+            ScopedCtorDependency.ClearCounts();
             PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ClearCounts();
             System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency, ISimpleService>(
                 (services) =>
@@ -118,14 +118,18 @@ namespace DependencyInjection
             Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ValidateCallCount);
 
             PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ClearCounts();
-            ScopedCtorDependency.ClearInstanceCount();
+            ScopedCtorDependency.ClearCounts();
 
             string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.CreationCount);
             Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.DisposalCount);
-            Assert.Equal(2, ScopedCtorDependency.InstanceCount);
+
+            ScopedCtorDependency.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
+            Assert.Equal(2, ScopedCtorDependency.CreationCount);
+            Assert.Equal(2, ScopedCtorDependency.DisposalCount);
+
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
@@ -234,16 +238,21 @@ namespace DependencyInjection
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ValidateCallCount);
 
             PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ClearCounts();
-            ScopedCtorDependency.ClearInstanceCount();
+            ScopedCtorDependency.ClearCounts();
 
             string echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             echo = channel.Echo("hello");
             ((System.ServiceModel.Channels.IChannel)channel).Close();
+
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.CreationCount);
             PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.WaitForDisposalCount(1, TimeSpan.FromSeconds(30));
             Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.DisposalCount);
-            Assert.Equal(1, ScopedCtorDependency.InstanceCount);
+
+            ScopedCtorDependency.WaitForDisposalCount(1, TimeSpan.FromSeconds(30));
+            Assert.Equal(1, ScopedCtorDependency.CreationCount);
+            Assert.Equal(1, ScopedCtorDependency.DisposalCount);
+
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
         }
@@ -303,20 +312,45 @@ namespace DependencyInjection
 
     public interface IScopedCtorDependency { }
 
-    public class ScopedCtorDependency : IScopedCtorDependency
+    public class ScopedCtorDependency : IScopedCtorDependency, IDisposable
     {
-        private static int _instanceCount = 0;
+        private static int _creationCount = 0;
+        private static int _disposalCount = 0;
+        private static readonly ManualResetEventSlim s_disposalCountWaitable = new ManualResetEventSlim(false);
 
-        public static int InstanceCount => _instanceCount;
+        public static int CreationCount => _creationCount;
+        public static int DisposalCount => _disposalCount;
 
         public ScopedCtorDependency()
         {
-            Interlocked.Increment(ref _instanceCount);
+            Interlocked.Increment(ref _creationCount);
         }
 
-        public static void ClearInstanceCount()
+        public static void ClearCounts()
         {
-            Interlocked.Exchange(ref _instanceCount, 0);
+            Interlocked.Exchange(ref _creationCount, 0);
+            Interlocked.Exchange(ref _disposalCount, 0);
+            s_disposalCountWaitable.Reset();
+        }
+
+        public void Dispose()
+        {
+            Interlocked.Increment(ref _disposalCount);
+            s_disposalCountWaitable.Set();
+        }
+
+        public static void WaitForDisposalCount(int expectedDisposals, TimeSpan maxWait)
+        {
+            DateTime maxWaitDeadline = DateTime.Now + maxWait;
+            while (DateTime.Now < maxWaitDeadline && expectedDisposals > DisposalCount)
+            {
+                // There's a small race condition here where DisposalCount could be incremented and the MRE set
+                // before we call reset. In which case we'll wait maxWait time and then the test will pass. The
+                // delay shouldn't be more than a few seconds anyway so this won't have any significant impact and
+                // it has no affect on the pass/fail of the test
+                s_disposalCountWaitable.Reset();
+                s_disposalCountWaitable.Wait(maxWaitDeadline - DateTime.Now);
+            }
         }
     }
 
