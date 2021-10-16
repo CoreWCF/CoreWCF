@@ -37,17 +37,17 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private delegate object CreateInstanceDelegateWithInstanceContext(InstanceContext instanceContext, Message message);
+        private delegate object GetInstanceDelegate(InstanceContext instanceContext, Message message);
 
         private readonly IServiceProvider _serviceProvider;
         private readonly Type _serviceType;
-        private CreateInstanceDelegateWithInstanceContext _creator;
+        private GetInstanceDelegate _getInstanceDelegate;
 
         public DependencyInjectionWithLegacyFallbackInstanceProvider(IServiceProvider serviceProvider, Type serviceType)
         {
             _serviceProvider = serviceProvider ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceProvider));
             _serviceType = serviceType ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceType));
-            _creator = InitialGetInstanceImpl;
+            _getInstanceDelegate = GetInstanceFromDIWithLegacyFallback;
         }
 
         public object GetInstance(InstanceContext instanceContext)
@@ -57,7 +57,7 @@ namespace CoreWCF.Dispatcher
 
         public object GetInstance(InstanceContext instanceContext, Message message)
         {
-            return _creator(instanceContext, message);
+            return _getInstanceDelegate(instanceContext, message);
         }
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
@@ -68,33 +68,33 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private object InitialGetInstanceImpl(InstanceContext instanceContext, Message message)
+        private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext, Message message)
         {
             var instance = GetInstanceFromDI(instanceContext, message);
             if (instance == null) // Type not in DI
             {
                 if (InvokerUtil.HasDefaultConstructor(_serviceType))
                 {
-                    _creator = (_, __) => InvokerUtil.GenerateCreateInstanceDelegate(_serviceType)();
+                    _getInstanceDelegate = (_, __) => InvokerUtil.GenerateCreateInstanceDelegate(_serviceType)();
                 }
                 else // Fallback to returning null if not in DI and no default constructor
                 {
-                    _creator = (_, __) => null;
+                    _getInstanceDelegate = (_, __) => null;
                 }
 
-                return _creator(instanceContext, message);
+                return _getInstanceDelegate(instanceContext, message);
             }
             else
             {
-                _creator = GetInstanceFromDI;
+                _getInstanceDelegate = GetInstanceFromDI;
                 return instance;
             }
         }
 
         private object GetInstanceFromDI(InstanceContext instanceContext, Message message)
         {
-            ScopedServiceProviderExtension extension;
-            extension = instanceContext.Extensions.OfType<ScopedServiceProviderExtension>().FirstOrDefault();
+            ScopedServiceProviderExtension extension = GetScopedServiceProviderExtension(instanceContext);
+
             if (extension == null)
             {
                 extension = new ScopedServiceProviderExtension(_serviceProvider);
@@ -103,5 +103,8 @@ namespace CoreWCF.Dispatcher
 
             return extension.GetService(_serviceType);
         }
+
+        private static ScopedServiceProviderExtension GetScopedServiceProviderExtension(InstanceContext instanceContext)
+            => instanceContext.Extensions.SingleOrDefault(x => x.GetType() == typeof(ScopedServiceProviderExtension)) as ScopedServiceProviderExtension;
     }
 }
