@@ -15,9 +15,7 @@ namespace CoreWCF.Dispatcher
             private readonly IServiceScope _serviceScope;
 
             public ScopedServiceProviderExtension(IServiceProvider serviceProvider)
-            {
-                _serviceScope = serviceProvider.CreateScope();
-            }
+                => _serviceScope = serviceProvider.CreateScope();
 
             public void Attach(InstanceContext owner)
             {
@@ -31,10 +29,7 @@ namespace CoreWCF.Dispatcher
 
             public object GetService(Type serviceType) => _serviceScope.ServiceProvider.GetService(serviceType);
 
-            public void Dispose()
-            {
-                _serviceScope?.Dispose();
-            }
+            public void Dispose() => _serviceScope?.Dispose();
         }
 
         private delegate object GetInstanceDelegate(InstanceContext instanceContext, Message message);
@@ -54,36 +49,19 @@ namespace CoreWCF.Dispatcher
         }
 
         public object GetInstance(InstanceContext instanceContext)
-        {
-            return GetInstance(instanceContext, null);
-        }
+            => GetInstance(instanceContext, null);
 
         public object GetInstance(InstanceContext instanceContext, Message message)
-        {
-            return _getInstanceDelegate(instanceContext, message);
-        }
+            => _getInstanceDelegate(instanceContext, message);
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
-        {
-            _releaseInstanceDelegate(instanceContext, instance);
-        }
+            => _releaseInstanceDelegate(instanceContext, instance);
 
         public void ReleaseInstanceLegacy(InstanceContext instanceContext, object instance)
-        {
-            if (instance is IDisposable dispose)
-            {
-                dispose.Dispose();
-            }
-        }
+            => (instance as IDisposable)?.Dispose();
 
         public void ReleaseInstanceFromDI(InstanceContext instanceContext, object instance)
-        {
-            var extension = GetScopedServiceProviderExtension(instanceContext);
-            if (extension != null)
-            {
-                extension.Dispose();
-            }
-        }
+            => GetScopedServiceProviderExtension(instanceContext)?.Dispose();
 
         private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext, Message message)
         {
@@ -104,6 +82,7 @@ namespace CoreWCF.Dispatcher
             else
             {
                 _getInstanceDelegate = GetInstanceFromDI;
+                // Let the ServiceScope dispose the instance properly
                 _releaseInstanceDelegate = ReleaseInstanceFromDI;
                 return instance;
             }
