@@ -40,6 +40,7 @@ namespace CoreWCF.Runtime
             Fx.Assert(timeout >= TimeSpan.Zero || timeout == Timeout.InfiniteTimeSpan,
                 $"timeout must be non-negative or {Timeout.InfiniteTimeSpan}");
 
+            _cancellationToken = CancellationToken.None;
             _cancellationTokenInitialized = false;
             _originalTimeout = timeout;
             _deadline = DateTime.MaxValue;
