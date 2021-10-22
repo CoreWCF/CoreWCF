@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Linq;
 using CoreWCF.Channels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -102,6 +101,6 @@ namespace CoreWCF.Dispatcher
         }
 
         private static ScopedServiceProviderExtension GetScopedServiceProviderExtension(InstanceContext instanceContext)
-            => instanceContext.Extensions.SingleOrDefault(x => x.GetType() == typeof(ScopedServiceProviderExtension)) as ScopedServiceProviderExtension;
+            => instanceContext.Extensions.Find<ScopedServiceProviderExtension>();
     }
 }
