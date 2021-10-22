@@ -32,7 +32,7 @@ namespace CoreWCF.Dispatcher
             public void Dispose() => _serviceScope?.Dispose();
         }
 
-        private delegate object GetInstanceDelegate(InstanceContext instanceContext, Message message);
+        private delegate object GetInstanceDelegate(InstanceContext instanceContext);
         private delegate void ReleaseInstanceDelegate(InstanceContext instanceContext, object instance);
 
         private readonly IServiceProvider _serviceProvider;
@@ -52,7 +52,7 @@ namespace CoreWCF.Dispatcher
             => GetInstance(instanceContext, null);
 
         public object GetInstance(InstanceContext instanceContext, Message message)
-            => _getInstanceDelegate(instanceContext, message);
+            => _getInstanceDelegate(instanceContext);
 
         public void ReleaseInstance(InstanceContext instanceContext, object instance)
             => _releaseInstanceDelegate(instanceContext, instance);
@@ -63,21 +63,21 @@ namespace CoreWCF.Dispatcher
         public void ReleaseInstanceFromDI(InstanceContext instanceContext, object instance)
             => GetScopedServiceProviderExtension(instanceContext)?.Dispose();
 
-        private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext, Message message)
+        private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext)
         {
-            var instance = GetInstanceFromDI(instanceContext, message);
+            var instance = GetInstanceFromDI(instanceContext);
             if (instance == null) // Type not in DI
             {
                 if (InvokerUtil.HasDefaultConstructor(_serviceType))
                 {
-                    _getInstanceDelegate = (_, __) => InvokerUtil.GenerateCreateInstanceDelegate(_serviceType)();
+                    _getInstanceDelegate = _ => InvokerUtil.GenerateCreateInstanceDelegate(_serviceType)();
                 }
                 else // Fallback to returning null if not in DI and no default constructor
                 {
-                    _getInstanceDelegate = (_, __) => null;
+                    _getInstanceDelegate = _ => null;
                 }
 
-                return _getInstanceDelegate(instanceContext, message);
+                return _getInstanceDelegate(instanceContext);
             }
             else
             {
@@ -88,7 +88,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private object GetInstanceFromDI(InstanceContext instanceContext, Message message)
+        private object GetInstanceFromDI(InstanceContext instanceContext)
         {
             ScopedServiceProviderExtension extension = GetScopedServiceProviderExtension(instanceContext);
             if (extension == null)
