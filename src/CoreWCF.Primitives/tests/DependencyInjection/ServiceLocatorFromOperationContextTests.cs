@@ -5,8 +5,9 @@ using System;
 using DispatcherClient;
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
+using CoreWCF;
 
-namespace CoreWCF.Primitives.Tests.DependencyInjection
+namespace DependencyInjection
 {
     public class ServiceLocatorFromOperationContextTests
     {
