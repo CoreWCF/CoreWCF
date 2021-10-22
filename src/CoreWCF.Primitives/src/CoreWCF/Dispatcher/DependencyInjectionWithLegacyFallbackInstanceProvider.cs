@@ -70,7 +70,8 @@ namespace CoreWCF.Dispatcher
             {
                 if (InvokerUtil.HasDefaultConstructor(_serviceType))
                 {
-                    _getInstanceDelegate = _ => InvokerUtil.GenerateCreateInstanceDelegate(_serviceType)();
+                    CreateInstanceDelegate createInstance = InvokerUtil.GenerateCreateInstanceDelegate(_serviceType);
+                    _getInstanceDelegate = _ => createInstance();
                 }
                 else // Fallback to returning null if not in DI and no default constructor
                 {
