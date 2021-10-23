@@ -11,20 +11,17 @@ namespace DependencyInjection
 {
     public class ServiceLocatorFromOperationContextTests
     {
-        Func<string, string> Reverse = input =>
-        {
-            char[] charArray = input.ToCharArray();
-            Array.Reverse(charArray);
-            return new string(charArray);
-        };  
+        Func<string, string> Identity = input => input;
+
+        const string input = "ABC";
 
         public class SimpleServiceUsingServiceLocatorFromOperationContext : ISimpleService
         {
             public string Echo(string echo)
             {
                 var serviceProvider = OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
-                var reverse = serviceProvider.GetService<Func<string, string>>();
-                return reverse(echo);
+                var identity = serviceProvider.GetService<Func<string, string>>();
+                return identity(echo);
             }
         }
 
@@ -34,14 +31,13 @@ namespace DependencyInjection
             System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<SimpleServiceUsingServiceLocatorFromOperationContext, ISimpleService>(
               (services) =>
               {
-                  services.AddSingleton(Reverse);
+                  services.AddSingleton(Identity);
                   services.AddTransient<SimpleServiceUsingServiceLocatorFromOperationContext>();
               });
             factory.Open();
             ISimpleService channel = factory.CreateChannel();
-            const string input = "ABC";
             var result = channel.Echo(input);
-            Assert.Equal("CBA", result);
+            Assert.Equal(input, result);
             factory.Close();
         }
 
@@ -51,13 +47,12 @@ namespace DependencyInjection
             System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<SimpleServiceUsingServiceLocatorFromOperationContext, ISimpleService>(
               (services) =>
               {
-                  services.AddSingleton(Reverse);
+                  services.AddSingleton(Identity);
               });
             factory.Open();
             ISimpleService channel = factory.CreateChannel();
-            const string input = "ABC";
             var result = channel.Echo(input);
-            Assert.Equal("CBA", result);
+            Assert.Equal(input, result);
             factory.Close();
         }
     }
