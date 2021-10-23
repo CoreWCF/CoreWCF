@@ -60,7 +60,11 @@ namespace CoreWCF.Dispatcher
             => (instance as IDisposable)?.Dispose();
 
         public void ReleaseServiceScope(InstanceContext instanceContext, object instance)
-            => GetScopedServiceProviderExtension(instanceContext)?.Dispose();
+        {
+            var extension = GetScopedServiceProviderExtension(instanceContext);
+            instanceContext.Extensions.Remove(extension);
+            extension.Dispose();
+        }
 
         private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext)
         {
