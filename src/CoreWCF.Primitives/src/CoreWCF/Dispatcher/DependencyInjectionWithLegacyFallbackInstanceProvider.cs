@@ -59,7 +59,7 @@ namespace CoreWCF.Dispatcher
         public void ReleaseInstanceLegacy(InstanceContext instanceContext, object instance)
             => (instance as IDisposable)?.Dispose();
 
-        public void ReleaseInstanceFromDI(InstanceContext instanceContext, object instance)
+        public void ReleaseServiceScope(InstanceContext instanceContext, object instance)
             => GetScopedServiceProviderExtension(instanceContext)?.Dispose();
 
         private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext)
@@ -77,13 +77,17 @@ namespace CoreWCF.Dispatcher
                     _getInstanceDelegate = _ => null;
                 }
 
+                // Ensure the ServiceScope created to probe DI is disposed
+                _releaseInstanceDelegate += ReleaseServiceScope;
+
                 return _getInstanceDelegate(instanceContext);
             }
             else
             {
                 _getInstanceDelegate = GetInstanceFromDI;
                 // Let the ServiceScope dispose the instance properly
-                _releaseInstanceDelegate = ReleaseInstanceFromDI;
+                _releaseInstanceDelegate = ReleaseServiceScope;
+
                 return instance;
             }
         }
