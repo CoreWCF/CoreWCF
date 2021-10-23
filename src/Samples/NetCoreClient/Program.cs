@@ -9,7 +9,7 @@ namespace NetCoreClient
         /// <summary>
         /// use commanline argument localhost or something similar to indicate the WCF Server hostname
         /// </summary>
-        private static async Task Main(string[] args)
+        internal static async Task Main(string[] args)
         {
             static void log(string value) => Console.WriteLine(value);
 

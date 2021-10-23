@@ -1,6 +1,5 @@
 ﻿using System;
 using StandardClient;
-using CoreWCF.Samples.StandardCommon;
 using System.Threading.Tasks;
 
 namespace DesktopClient
@@ -10,7 +9,7 @@ namespace DesktopClient
         /// <summary>
         /// use commanline argument localhost or something similar to indicate the WCF Server hostname
         /// </summary>
-        static async Task Main(string[] args)
+        internal static async Task Main(string[] args)
         {
             void log(string value) => Console.WriteLine(value);
             Console.Title = "WCF .Net Framework Client";
@@ -34,6 +33,5 @@ namespace DesktopClient
             Console.WriteLine(title + " - " + hostname);
             return hostname;
         }
-
     }
 }

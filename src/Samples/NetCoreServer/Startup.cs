@@ -25,6 +25,8 @@ namespace NetCoreServer
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<ServerLogic.EchoService, ServerLogic.EchoService>();
+            services.AddLogging();
             services.AddServiceModelServices();
         }
 
@@ -59,5 +61,4 @@ namespace NetCoreServer
             });
         }
     }
-
 }
