@@ -96,6 +96,11 @@ namespace CoreWCF
 
             ReflectedContractCollection reflectedContracts = new ReflectedContractCollection();
             List<Type> interfaces = ServiceReflector.GetInterfaces<TService>();
+            foreach (var attr in typeof(TService).GetCustomAttributes(typeof(ImplementsServiceContractAttribute), false))
+            {
+                interfaces.Add(((ImplementsServiceContractAttribute)attr).Type);
+            }
+
             for (int i = 0; i < interfaces.Count; i++)
             {
                 Type contractType = interfaces[i];

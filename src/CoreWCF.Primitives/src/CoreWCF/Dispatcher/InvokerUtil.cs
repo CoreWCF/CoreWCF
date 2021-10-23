@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using CoreWCF.Description;
@@ -130,11 +131,11 @@ namespace CoreWCF.Dispatcher
                     {
                         if (returnsValue)
                         {
-                            result = method.Invoke(target, paramsLocal);
+                            result = EnsureMethodInfo(method, target).Invoke(target, paramsLocal);
                         }
                         else
                         {
-                            method.Invoke(target, paramsLocal);
+                            EnsureMethodInfo(method, target).Invoke(target, paramsLocal);
                         }
                     }
                     catch (TargetInvocationException tie)
@@ -154,6 +155,28 @@ namespace CoreWCF.Dispatcher
                 return lambda;
             }
 
+            private static MethodInfo EnsureMethodInfo(MethodInfo method, object target)
+            {
+                Type targetType = target.GetType();
+                var implementedInterfaces = ((TypeInfo)targetType).ImplementedInterfaces;
+                if (implementedInterfaces.Any(x => x == method.DeclaringType) ||
+                    targetType.IsAssignableFrom(method.DeclaringType))
+                {
+                    return method;
+                }
+                                
+                var methods = targetType.GetMethods();
+                for(int i = 0; i < methods.Length; i++)
+                {
+                    if(methods[i].Name == method.Name)
+                    {
+                        return methods[i];
+                    }
+                }
+
+                throw new InvalidOperationException($"Could not find {method.Name} on type {targetType}");
+            }
+            
             //public InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
             //{
             //    ParameterInfo[] parameters = method.GetParameters();
