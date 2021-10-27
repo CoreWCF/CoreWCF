@@ -44,7 +44,8 @@ namespace CoreWCF.Dispatcher
             _serviceProvider = serviceProvider ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceProvider));
             _serviceType = serviceType ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceType));
             _getInstanceDelegate = GetInstanceFromDIWithLegacyFallback;
-            _releaseInstanceDelegate = ReleaseInstanceLegacy;
+            // Defaults to ReleaseServiceScope because in all cases we will probe the DI to find the Service.
+            _releaseInstanceDelegate = ReleaseServiceScope;
         }
 
         public object GetInstance(InstanceContext instanceContext)
@@ -62,8 +63,12 @@ namespace CoreWCF.Dispatcher
         public void ReleaseServiceScope(InstanceContext instanceContext, object instance)
         {
             var extension = GetScopedServiceProviderExtension(instanceContext);
-            instanceContext.Extensions.Remove(extension);
-            extension.Dispose();
+            // When manually creating the Service the extension is creating only during the first IInstanceProvider.GetInstance
+            if (extension != null)
+            {
+                instanceContext.Extensions.Remove(extension);
+                extension.Dispose();
+            }
         }
 
         private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext)
@@ -81,16 +86,13 @@ namespace CoreWCF.Dispatcher
                     _getInstanceDelegate = _ => null;
                 }
 
-                // Ensure the ServiceScope created to probe DI is disposed
-                _releaseInstanceDelegate += ReleaseServiceScope;
+                _releaseInstanceDelegate += ReleaseInstanceLegacy;
 
                 return _getInstanceDelegate(instanceContext);
             }
             else
             {
                 _getInstanceDelegate = GetInstanceFromDI;
-                // Let the ServiceScope dispose the instance properly
-                _releaseInstanceDelegate = ReleaseServiceScope;
 
                 return instance;
             }
