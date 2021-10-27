@@ -15,6 +15,7 @@ namespace DependencyInjection
 
         const string input = "ABC";
 
+        [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall)]
         public class SimpleServiceUsingServiceLocatorFromOperationContext : ISimpleService
         {
             public string Echo(string echo)
@@ -37,6 +38,7 @@ namespace DependencyInjection
             factory.Open();
             ISimpleService channel = factory.CreateChannel();
             var result = channel.Echo(input);
+            result = channel.Echo(input);
             Assert.Equal(input, result);
             factory.Close();
         }
@@ -52,6 +54,7 @@ namespace DependencyInjection
             factory.Open();
             ISimpleService channel = factory.CreateChannel();
             var result = channel.Echo(input);
+            result = channel.Echo(input);
             Assert.Equal(input, result);
             factory.Close();
         }
