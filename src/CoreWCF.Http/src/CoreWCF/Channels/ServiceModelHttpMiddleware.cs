@@ -13,6 +13,7 @@ namespace CoreWCF.Channels
 {
     public partial class ServiceModelHttpMiddleware
     {
+        private const string RestorePathsDelegateItemName = nameof(ServiceModelHttpMiddleware) + "_RestorePathsDelegate";
         private readonly IApplicationBuilder _app;
         private readonly IServiceBuilder _serviceBuilder;
         private readonly IDispatcherBuilder _dispatcherBuilder;
@@ -39,16 +40,13 @@ namespace CoreWCF.Channels
             var pathBase = context.Request.PathBase;
             context.Request.Path = pathBase.Add(path);
             context.Request.PathBase = "";
-
-            try
-            {
-                await _branch(context);
-            }
-            finally
+            Action restorePaths = () =>
             {
                 context.Request.PathBase = pathBase;
                 context.Request.Path = path;
-            }
+            };
+            context.Items[RestorePathsDelegateItemName] = restorePaths;
+            await _branch(context);
         }
 
         private Task BuildBranchAndInvoke(HttpContext request)
@@ -176,7 +174,19 @@ namespace CoreWCF.Channels
                 }
             }
 
-            branchApp.Use(_ => { return reqContext => _next(reqContext); });
+            branchApp.Use(_ => { return reqContext =>
+            {
+                if (reqContext.Items.TryGetValue(RestorePathsDelegateItemName, out object restorePathsDelegateAsObject))
+                {
+                    (restorePathsDelegateAsObject as Action)?.Invoke();
+                }
+                else
+                {
+                    _logger.LogWarning("RequestContext missing delegate with key " + RestorePathsDelegateItemName);
+                }
+
+                return _next(reqContext);
+            }; });
             return branchApp.Build();
         }
     }
