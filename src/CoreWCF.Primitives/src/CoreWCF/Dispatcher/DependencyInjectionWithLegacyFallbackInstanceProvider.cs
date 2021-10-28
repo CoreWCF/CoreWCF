@@ -75,8 +75,7 @@ namespace CoreWCF.Dispatcher
                 instanceContext.Extensions.Add(extension);
                 // Overwrite _getInstanceDelegate so subsequent calls pull instance from ServiceScope
                 _getInstanceDelegate = GetInstanceFromDI;
-                // Overwrite _releaseInstanceDelegate so subsequent calls release the ServiceScope and thus
-                // this instances pulled from it.
+                // Overwrite _releaseInstanceDelegate so subsequent calls release the ServiceScope and thus instances pulled from it.
                 _releaseInstanceDelegate = ReleaseServiceScope;
 
                 return instance;
