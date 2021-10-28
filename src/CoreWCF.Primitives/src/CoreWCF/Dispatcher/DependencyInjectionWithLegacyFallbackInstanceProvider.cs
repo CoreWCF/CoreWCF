@@ -44,8 +44,8 @@ namespace CoreWCF.Dispatcher
             _serviceProvider = serviceProvider ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceProvider));
             _serviceType = serviceType ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceType));
             _getInstanceDelegate = GetInstanceFromDIWithLegacyFallback;
-            // Defaults to ReleaseServiceScope because in all cases we will probe the DI to find the Service.
-            _releaseInstanceDelegate = ReleaseServiceScope;
+            // Defaults to ReleaseInstanceLegacy
+            _releaseInstanceDelegate = ReleaseInstanceLegacy;
         }
 
         public object GetInstance(InstanceContext instanceContext)
@@ -63,39 +63,51 @@ namespace CoreWCF.Dispatcher
         public void ReleaseServiceScope(InstanceContext instanceContext, object instance)
         {
             var extension = GetScopedServiceProviderExtension(instanceContext);
-            // When manually creating the Service the extension is creating only during the first IInstanceProvider.GetInstance
-            if (extension != null)
-            {
-                instanceContext.Extensions.Remove(extension);
-                extension.Dispose();
-            }
+            instanceContext.Extensions.Remove(extension);
+            extension.Dispose();
         }
 
         private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext)
         {
-            var instance = GetInstanceFromDI(instanceContext);
-            if (instance == null) // Type not in DI
+            if(TryGetInstanceFromDI(instanceContext, out object instance, out ScopedServiceProviderExtension extension))
             {
-                if (InvokerUtil.HasDefaultConstructor(_serviceType))
-                {
-                    CreateInstanceDelegate createInstance = InvokerUtil.GenerateCreateInstanceDelegate(_serviceType);
-                    _getInstanceDelegate = _ => createInstance();
-                }
-                else // Fallback to returning null if not in DI and no default constructor
-                {
-                    _getInstanceDelegate = _ => null;
-                }
-
-                _releaseInstanceDelegate += ReleaseInstanceLegacy;
-
-                return _getInstanceDelegate(instanceContext);
-            }
-            else
-            {
+                // Attach the ServiceScope used to probe DI to the current InstanceContext
+                instanceContext.Extensions.Add(extension);
+                // Overwrite _getInstanceDelegate so subsequent calls pull instance from ServiceScope
                 _getInstanceDelegate = GetInstanceFromDI;
+                // Overwrite _releaseInstanceDelegate so subsequent calls release the ServiceScope and thus
+                // this instances pulled from it.
+                _releaseInstanceDelegate = ReleaseServiceScope;
 
                 return instance;
             }
+
+            // immediately Dispose the ServiceScope used to probe DI
+            extension.Dispose();
+
+            if (InvokerUtil.HasDefaultConstructor(_serviceType))
+            {
+                CreateInstanceDelegate createInstance = InvokerUtil.GenerateCreateInstanceDelegate(_serviceType);
+                _getInstanceDelegate = _ => createInstance();
+            }
+            else // Fallback to returning null if not in DI and no default constructor
+            {
+                _getInstanceDelegate = _ => null;
+            }
+
+            return _getInstanceDelegate(instanceContext);
+        }
+
+        private bool TryGetInstanceFromDI(InstanceContext instanceContext, out object instance, out ScopedServiceProviderExtension extension)
+        {
+            extension = GetScopedServiceProviderExtension(instanceContext);
+            if (extension == null)
+            {
+                extension = new ScopedServiceProviderExtension(_serviceProvider);
+            }
+
+            instance = extension.GetService(_serviceType);
+            return instance != null;
         }
 
         private object GetInstanceFromDI(InstanceContext instanceContext)
