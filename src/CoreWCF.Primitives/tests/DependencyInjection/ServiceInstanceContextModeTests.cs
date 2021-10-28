@@ -96,7 +96,7 @@ namespace DependencyInjection
         }
 
         [Fact]
-        public static void InstanceContextMode_PerCall_WithScopedDependency()
+        public static void InstanceContextMode_PerCall_WithScopedCtorDependency()
         {
             ScopedCtorDependency.ClearCounts();
             PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ClearCounts();
