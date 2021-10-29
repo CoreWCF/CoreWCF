@@ -6,6 +6,7 @@ using DispatcherClient;
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using CoreWCF;
+using System.Linq;
 
 namespace DependencyInjection
 {
@@ -27,6 +28,7 @@ namespace DependencyInjection
             public string Echo(string echo)
             {
                 Assert.NotNull(OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>());
+                Assert.Single(OperationContext.Current.InstanceContext.Extensions.OfType<IServiceProvider>());
                 return echo;
             }
         }

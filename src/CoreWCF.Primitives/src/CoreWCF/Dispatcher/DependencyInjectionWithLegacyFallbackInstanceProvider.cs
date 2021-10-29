@@ -69,20 +69,15 @@ namespace CoreWCF.Dispatcher
 
         private object GetInstanceFromDIWithLegacyFallback(InstanceContext instanceContext)
         {
-            if(TryGetInstanceFromDI(instanceContext, out object instance, out ScopedServiceProviderExtension extension))
+            if(TryGetInstanceFromDI(instanceContext, out object instance))
             {
-                // Attach the ServiceScope used to probe DI to the current InstanceContext
-                instanceContext.Extensions.Add(extension);
                 // Overwrite _getInstanceDelegate so subsequent calls pull instance from ServiceScope
                 _getInstanceDelegate = GetInstanceFromDI;
-                // Overwrite _releaseInstanceDelegate so subsequent calls release the ServiceScope and thus instances pulled from it.
+                // Overwrite _releaseInstanceDelegate so subsequent calls release the ServiceScope and thus instance pulled from it.
                 _releaseInstanceDelegate = ReleaseServiceScope;
 
                 return instance;
             }
-
-            // immediately Dispose the ServiceScope used to probe DI
-            extension.Dispose();
 
             if (InvokerUtil.HasDefaultConstructor(_serviceType))
             {
@@ -97,16 +92,23 @@ namespace CoreWCF.Dispatcher
             return _getInstanceDelegate(instanceContext);
         }
 
-        private bool TryGetInstanceFromDI(InstanceContext instanceContext, out object instance, out ScopedServiceProviderExtension extension)
+        private bool TryGetInstanceFromDI(InstanceContext instanceContext, out object instance)
         {
-            extension = GetScopedServiceProviderExtension(instanceContext);
-            if (extension == null)
+            var extension = new ScopedServiceProviderExtension(_serviceProvider);
+            instance = extension.GetService(_serviceType);
+            bool isServiceFoundInDI = instance != null;
+            if (isServiceFoundInDI)
             {
-                extension = new ScopedServiceProviderExtension(_serviceProvider);
+                // Attach the ServiceScope used to probe DI to the current InstanceContext
+                instanceContext.Extensions.Add(extension);
+            }
+            else
+            {
+                // immediately Dispose the ServiceScope used to probe DI
+                extension.Dispose();
             }
 
-            instance = extension.GetService(_serviceType);
-            return instance != null;
+            return isServiceFoundInDI;
         }
 
         private object GetInstanceFromDI(InstanceContext instanceContext)
