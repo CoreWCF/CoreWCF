@@ -38,3 +38,12 @@ Core WCF is Copyright &copy; 2019 .NET Foundation and other contributors under t
 ### .NET Foundation
 
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
+
+### Package Status
+
+| Package                                                                                      | NuGet Stable                                                                                     | Downloads                                                                                     |
+|:---------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------:|
+| [CoreWCF.Primitives](https://www.nuget.org/packages/CoreWCF.Primitives/)                     | ![CoreWCF.Primitives](https://img.shields.io/nuget/v/CoreWCF.Primitives.svg)                     | ![CoreWCF.Primitives](https://img.shields.io/nuget/dt/CoreWCF.Primitives)                     |
+| [CoreWCF.Http](https://www.nuget.org/packages/CoreWCF.Http/)                                 | ![CoreWCF.Http](https://img.shields.io/nuget/v/CoreWCF.Http.svg)                                 | ![CoreWCF.Http](https://img.shields.io/nuget/dt/CoreWCF.Http)                                 |
+| [CoreWCF.NetTcp](https://www.nuget.org/packages/CoreWCF.NetTcp/)                             | ![CoreWCF.NetTcp](https://img.shields.io/nuget/v/CoreWCF.NetTcp.svg)                             | ![CoreWCF.NetTcp](https://img.shields.io/nuget/dt/CoreWCF.NetTcp)                             |
+| [CoreWCF.ConfigurationManager](https://www.nuget.org/packages/CoreWCF.ConfigurationManager/) | ![CoreWCF.ConfigurationManager](https://img.shields.io/nuget/v/CoreWCF.ConfigurationManager.svg) | ![CoreWCF.ConfigurationManager](https://img.shields.io/nuget/dt/CoreWCF.ConfigurationManager) |
