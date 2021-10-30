@@ -270,6 +270,7 @@ namespace CoreWCF.Description
 
         private static MessagePropertyAttribute ConvertFromServiceModelMessagePropertyAttribute(object attr)
         {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessagePropertyAttributeFullName), "Expected attribute of type S.SM.MessagePropertyAttribute");
             var messageProperty = new MessagePropertyAttribute();
             string tmpStr = GetProperty<string>(attr, nameof(MessagePropertyAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
@@ -282,6 +283,7 @@ namespace CoreWCF.Description
 
         private static MessageParameterAttribute ConvertFromServiceModelMessageParameterAttribute(object attr)
         {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageParameterAttributeFullName), "Expected attribute of type S.SM.MessageParameterAttribute");
             var messageParameter = new MessageParameterAttribute();
             string tmpStr = GetProperty<string>(attr, nameof(MessageParameterAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
@@ -294,6 +296,7 @@ namespace CoreWCF.Description
 
         private static XmlSerializerFormatAttribute ConvertFromServiceModelXmlSerializerFormatAttribute(object attr)
         {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMXmlSerializerFormatAttributeFullName), "Expected attribute of type S.SM.XmlSerializerFormatAttribute");
             var xmlSerializerFormatAttribute = new XmlSerializerFormatAttribute();
 
             xmlSerializerFormatAttribute.Style = GetProperty<OperationFormatStyle>(attr, nameof(XmlSerializerFormatAttribute.Style));
