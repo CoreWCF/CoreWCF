@@ -3,6 +3,7 @@
 
 using System;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading.Tasks;
@@ -78,15 +79,30 @@ namespace BasicHttp
             var responseBody = await response.Content.ReadAsStringAsync();
             //_output.WriteLine(responseBody);
 
-            const string expected = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+            string expected = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
                 "<s:Body><s:Fault>"
                 +"<faultcode>s:Client</faultcode>"
-                +"<faultstring xml:lang=\"en-US\">The creator of this fault did not specify a Reason.</faultstring>"
+                +"<faultstring"
+                + $"{GetXmlLangAttributeOrNot()}"
+                + ">The creator of this fault did not specify a Reason.</faultstring>"
                 +"<detail>"
                 +"<SSMCompatibilityFault xmlns=\"https://ssm-fault-contract-compatibility.com\" xmlns:a=\"http://schemas.datacontract.org/2004/07/Services\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">"
                 +"<a:Message>An error occured</a:Message></SSMCompatibilityFault></detail></s:Fault></s:Body></s:Envelope>";
 
             Assert.Equal(expected, responseBody);
+
+            string GetXmlLangAttributeOrNot()
+            {
+                const string enUsXmlLang = " xml:lang=\"en-US\"";
+#if NETCOREAPP3_1_OR_GREATER
+                return RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
+                    string.Empty
+                    : enUsXmlLang;
+#else
+                return enUsXmlLang;
+#endif
+            }
+
         }
 
         public class Startup
