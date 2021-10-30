@@ -31,7 +31,7 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicScenarioServiceMessageParameter()
+        public void BasicScenarioServiceWithCoreWCFFaultContract()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
@@ -50,7 +50,7 @@ namespace BasicHttp
 
         [Fact]
         [UseCulture("en-US")]
-        public async Task BasicScenarioServiceMessageParameterWithHttpClient()
+        public async Task BasicScenarioServiceWithCoreWCFFaultContractWithHttpClient()
         {
             var client = _factory.CreateClient();
             const string action = "http://tempuri.org/IServiceWithCoreWCFFaultContract/Identity";
