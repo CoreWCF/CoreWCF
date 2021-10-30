@@ -151,6 +151,14 @@ namespace CoreWCF.Description
                         result[i] = ConvertFromServiceModelXmlSerializerFormatAttribute(result[i]);
                     }
                 }
+                else if (attributeType == typeof(FaultContractAttribute))
+                {
+                   result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMFaultContractAttributeFullName)).ToArray();
+                   for (int i = 0; i < result.Length; i++)
+                   {
+                       result[i] = ConvertFromServiceModelFaultContractAttribute(result[i]);
+                   }
+                }
             }
             return result;
         }
@@ -293,6 +301,38 @@ namespace CoreWCF.Description
             xmlSerializerFormatAttribute.Use = GetProperty<OperationFormatUse>(attr, nameof(XmlSerializerFormatAttribute.Use));
 
             return xmlSerializerFormatAttribute;
+        }
+
+        public static FaultContractAttribute ConvertFromServiceModelFaultContractAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMFaultContractAttributeFullName), "Expected attribute of type S.SM.FaultContractAttribute");
+            bool hasProtectionLevel = GetProperty<bool>(attr, "HasProtectionLevel");
+            if (hasProtectionLevel)
+            {
+                // ProtectionLevel isn't supported yet so if it was set on the S.SM.SCA, then we can't do the mapping so throw
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new PlatformNotSupportedException("System.ServiceModel.OperationContractAttribute.ProtectionLevel"));
+            }
+
+            var detailType = GetProperty<Type>(attr, nameof(FaultContractAttribute.DetailType));
+            var faultContractAttribute = new FaultContractAttribute(detailType);
+
+            string tmpStr = GetProperty<string>(attr, nameof(FaultContractAttribute.Action));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                faultContractAttribute.Action = tmpStr;
+            }
+            tmpStr = GetProperty<string>(attr, nameof(FaultContractAttribute.Name));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                faultContractAttribute.Name = tmpStr;
+            }
+            tmpStr = GetProperty<string>(attr, nameof(FaultContractAttribute.Namespace));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                faultContractAttribute.Namespace = tmpStr;
+            }
+
+            return faultContractAttribute;
         }
 
         private static OperationContractAttribute ConvertFromServiceModelOperationContractAttribute(object attr)
