@@ -49,6 +49,7 @@ namespace BasicHttp
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public async Task BasicScenarioServiceMessageParameterWithHttpClient()
         {
             var client = _factory.CreateClient();
@@ -80,7 +81,7 @@ namespace BasicHttp
             const string expected = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
                 "<s:Body><s:Fault>"
                 +"<faultcode>s:Client</faultcode>"
-                +"<faultstring xml:lang=\"fr-FR\">The creator of this fault did not specify a Reason.</faultstring>"
+                +"<faultstring xml:lang=\"en-US\">The creator of this fault did not specify a Reason.</faultstring>"
                 +"<detail>"
                 +"<SSMCompatibilityFault xmlns=\"https://ssm-fault-contract-compatibility.com\" xmlns:a=\"http://schemas.datacontract.org/2004/07/Services\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">"
                 +"<a:Message>An error occured</a:Message></SSMCompatibilityFault></detail></s:Fault></s:Body></s:Envelope>";
