@@ -40,7 +40,7 @@ namespace DependencyInjection
         public class PerSessionSimpleServiceUsingServiceProviderFromOperationContext : AssertNotNullServiceProviderService { }
 
         [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
-        public class SingleSimpleServiceUsingServiceProviderFromOperationContext : AssertNullServiceProviderService { }
+        public class SingleSimpleServiceUsingServiceProviderFromOperationContext : AssertNotNullServiceProviderService { }
 
         [Fact]
         public void ServiceProviderShouldBeExposedThroughOperationContextInstanceContextExtensionsWhenPerCallServiceIsRegisteredWithinDI()

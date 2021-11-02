@@ -13,6 +13,25 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.ServiceBehavior)]
     public sealed class ServiceBehaviorAttribute : Attribute, IServiceBehavior
     {
+        private class ServiceProviderExtension : IExtension<InstanceContext>, IServiceProvider
+        {
+            private readonly IServiceProvider _serviceProvider;
+
+            public ServiceProviderExtension(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
+
+            public void Attach(InstanceContext owner)
+            {
+                // intentionally left blank
+            }
+
+            public void Detach(InstanceContext owner)
+            {
+                // intentionally left blank
+            }
+
+            public object GetService(Type serviceType) => _serviceProvider.GetService(serviceType);
+        }
+
         private ConcurrencyMode _concurrencyMode;
         private readonly bool _ensureOrderedDispatch = false;
         private string _configurationName;
@@ -24,6 +43,7 @@ namespace CoreWCF
         private readonly int _maxItemsInObjectGraph = DataContractSerializerDefaults.MaxItemsInObjectGraph;
         private readonly bool _automaticSessionShutdown = true;
         private IInstanceProvider _instanceProvider = null;
+        private IServiceProvider _serviceProvider = null;
         private readonly bool _useSynchronizationContext = true;
         private AddressFilterMode _addressFilterMode = AddressFilterMode.Exact;
 
@@ -105,6 +125,11 @@ namespace CoreWCF
 
                 _instanceMode = value;
             }
+        }
+
+        internal IServiceProvider ServicePovider
+        {
+            set => _serviceProvider = value;
         }
 
         public object GetWellKnownSingleton()
@@ -249,6 +274,7 @@ namespace CoreWCF
                                 }
 
                                 singleton.AutoClose = false;
+                                singleton.Extensions.Add(new ServiceProviderExtension(_serviceProvider));
                             }
                             dispatch.SingletonInstanceContext = singleton;
                         }
