@@ -9,7 +9,7 @@ namespace CoreWCF.Dispatcher
 {
     internal class DependencyInjectionWithLegacyFallbackInstanceProvider : IInstanceProvider
     {
-        class ScopedServiceProviderExtension : IExtension<InstanceContext>, IServiceProvider, IDisposable
+        private class ScopedServiceProviderExtension : IExtension<InstanceContext>, IServiceProvider, IDisposable
         {
             private readonly IServiceScope _serviceScope;
 
