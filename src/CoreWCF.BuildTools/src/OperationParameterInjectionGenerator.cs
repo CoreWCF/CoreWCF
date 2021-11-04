@@ -1,0 +1,235 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.SymbolStore;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
+namespace CoreWCF.BuildTools
+{
+    [Generator]
+    public class OperationParameterInjectionGenerator : ISourceGenerator
+    {
+        public void Execute(GeneratorExecutionContext context)
+        {
+            IEnumerable<SyntaxNode> allNodes = context.Compilation.SyntaxTrees
+                .SelectMany(x => x.GetRoot().DescendantNodes())
+                .ToImmutableArray();
+
+            var serviceContracts = FindServiceContracts(context, allNodes).ToImmutableArray();
+
+            foreach (var serviceImplAndContract in FindServiceImplAndContracts(context, allNodes, serviceContracts).ToImmutableArray())
+            {
+                var operationContracts = FindOperationContracts(context, serviceImplAndContract.contract).ToImmutableArray();
+
+                bool isErrorDiagnosticIssued = false;
+
+                foreach (var operationContract in operationContracts)
+                {
+                    var operationContractImplementation = serviceImplAndContract.service.FindImplementationForInterfaceMember(operationContract);
+
+                    if(operationContractImplementation == null)
+                    {
+                        var implementationCandidates = FindOperationContractImplementationCandidate(context, serviceImplAndContract.service, operationContract).ToImmutableArray();
+                        if(implementationCandidates.Length == 1)
+                        {
+                            if (serviceImplAndContract.isPartialClass)
+                            {
+                                GenerateOperationContractImplementation(context, serviceImplAndContract.service, serviceImplAndContract.contract, implementationCandidates[0], operationContract);
+                            }
+                            else if (!isErrorDiagnosticIssued)
+                            {
+                                context.ReportDiagnostic(DiagnosticDescriptors.ServicesShouldBePartialError(serviceImplAndContract.service.Name, serviceImplAndContract.contract.Name));
+                                isErrorDiagnosticIssued = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool GetInstanceContextMode(GeneratorExecutionContext context, INamedTypeSymbol service)
+        {
+            var CoreWCFServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceBehaviorAttribute");
+            var SSMServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceBehaviorAttribute");
+
+            var serviceBehaviorAttribute = service.GetAttributes()
+                .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, CoreWCFServiceBehaviorSymbol)
+                    || SymbolEqualityComparer.Default.Equals(x.AttributeClass, SSMServiceBehaviorSymbol))
+                .FirstOrDefault();
+
+            if(serviceBehaviorAttribute == null)
+            {
+                return false;
+            }
+
+            foreach (var argument in serviceBehaviorAttribute.NamedArguments)
+            {
+                if (argument.Key == "InstanceContextMode" && !argument.Value.IsNull)
+                {
+                    return argument.Value.Value.ToString() == "2";
+                }
+            }
+
+            return false;
+        }
+
+        private static void GenerateOperationContractImplementation(GeneratorExecutionContext context, INamedTypeSymbol service, INamedTypeSymbol contract, IMethodSymbol operationContractImplementation, IMethodSymbol operationContract)
+        {
+            var SSMServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceBehaviorAttribute");
+            var CoreWCFServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceBehaviorAttribute");
+
+            string fileName = $"{contract.Name}_{operationContract.Name}.cs";
+            var dependencies = operationContractImplementation.Parameters.Where(x => !operationContract.Parameters.Any(p =>
+                   p.IsMatchingParameter(x))).ToArray();
+
+            bool isInstanceContextModeSingle = GetInstanceContextMode(context, service);
+            
+            var builder = new StringBuilder();
+            builder.Append($@"
+namespace {service.ContainingNamespace}
+{{
+    public partial class {service.Name}
+    {{
+");
+            builder.Append($@"        public {GetReturnType()} {operationContract.Name}({GetParameters()})
+        {{
+");
+            builder.Append($@"            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
+            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+");
+            if (isInstanceContextModeSingle)
+            {
+                builder.Append($@"            using (var scope = serviceProvider.CreateScope())
+            {{
+");
+            }    
+            
+            AddDependenciesResolution();
+            AddMethodCall();
+
+            if (isInstanceContextModeSingle)
+            {
+                builder.Append($@"
+            }}");
+            }
+
+            builder.Append($@"
+        }}
+    }}
+}}
+");
+            context.AddSource(fileName, SourceText.From(builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
+
+            string GetReturnType()
+                => operationContract.ReturnsVoid ?
+                    "void"
+                    : $"{operationContract.ReturnType.ContainingNamespace}.{operationContract.ReturnType.Name}";
+
+            string GetParameters()
+                => string.Join(", ", operationContract.Parameters
+                    .Select(p => $"{p.Type.ContainingNamespace}.{p.Type.Name} {p.Name}"));
+            
+            void AddDependenciesResolution()
+            {
+                string serviceProviderName = isInstanceContextModeSingle ?
+                    "scope"
+                    : "serviceProvider";
+                string prefix =  isInstanceContextModeSingle ?
+                    "                "
+                    : "            ";
+                for (int i = 0; i < dependencies.Length; i++)
+                {
+                    builder.AppendLine($@"{prefix}var d{i} = ({dependencies[i].Type.ContainingNamespace}.{dependencies[i].Type.Name}){serviceProviderName}.GetService(typeof({dependencies[i].Type.ContainingNamespace}.{dependencies[i].Type.Name}));");
+                }
+            }
+
+            void AddMethodCall()
+            {
+                string prefix = isInstanceContextModeSingle ?
+                 "                "
+                 : "            ";
+                var dependenciesParameters = Enumerable.Range(0, dependencies.Length).Select(x => $"d{x}");
+                builder.Append($"{prefix}return {operationContract.Name}({string.Join(", ", operationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
+            }
+        }
+
+        private static IEnumerable<IMethodSymbol> FindOperationContractImplementationCandidate(GeneratorExecutionContext context, INamedTypeSymbol service, IMethodSymbol operationContract)
+        {
+            var CoreWCFInjectedAttribute = context.Compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute");
+            // Find a candidate implementation with same name as contract
+            // and with all non injected parameters
+            var implementationCandidates =
+                from serviceMethod in service.GetMembers().OfType<IMethodSymbol>()
+                where serviceMethod.Name == operationContract.Name
+                where serviceMethod.Parameters.Any(x => x.HasAttribute(CoreWCFInjectedAttribute))
+                where operationContract.Parameters.All(ocp => serviceMethod.Parameters.Any(smp => smp.IsMatchingParameter(ocp)))
+                select serviceMethod;
+            return implementationCandidates;
+        }
+
+        private static IEnumerable<IMethodSymbol> FindOperationContracts(GeneratorExecutionContext context, ITypeSymbol serviceContract)
+        {
+            var SSMOperationContractSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
+            var CoreWCFOperationContractSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
+
+            return serviceContract.GetMembers().OfType<IMethodSymbol>()
+                .Where(x => x.HasAttribute(SSMOperationContractSymbol) || x.HasAttribute(CoreWCFOperationContractSymbol));
+        }
+
+        private static IEnumerable<(INamedTypeSymbol service, INamedTypeSymbol contract, bool isPartialClass)> FindServiceImplAndContracts(GeneratorExecutionContext context,
+            IEnumerable<SyntaxNode> allNodes,
+            IEnumerable<INamedTypeSymbol> serviceContracts)
+        {
+            IEnumerable<ClassDeclarationSyntax> allClasses = allNodes
+                .Where(d => d.IsKind(SyntaxKind.ClassDeclaration))
+                .OfType<ClassDeclarationSyntax>();
+            foreach (var @class in allClasses)
+            {
+                var model = context.Compilation.GetSemanticModel(@class.SyntaxTree);
+                var typeSymbol = model.GetDeclaredSymbol(@class);
+                
+                foreach (var @interface in typeSymbol.AllInterfaces)
+                {
+                    foreach (var serviceContract in serviceContracts)
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(serviceContract, @interface))
+                        {
+                            bool isPartialClass = @class.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword));
+                            yield return (typeSymbol, serviceContract, isPartialClass);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<INamedTypeSymbol> FindServiceContracts(GeneratorExecutionContext context, IEnumerable<SyntaxNode> allNodes)
+        {
+            var SSMServiceContractSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceContractAttribute");
+            var CoreWCFServiceContractSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
+
+            IEnumerable < InterfaceDeclarationSyntax > allInterfaces = allNodes
+               .Where(d => d.IsKind(SyntaxKind.InterfaceDeclaration))
+               .OfType<InterfaceDeclarationSyntax>();
+
+            foreach (var @interface in allInterfaces)
+            {
+                var model = context.Compilation.GetSemanticModel(@interface.SyntaxTree);
+                var symbol = model.GetDeclaredSymbol(@interface);
+                if(symbol.HasAttribute(SSMServiceContractSymbol) || symbol.HasAttribute(CoreWCFServiceContractSymbol))
+                {
+                    yield return symbol;
+                }
+            }
+        }
+
+        public void Initialize(GeneratorInitializationContext context)
+        {
+
+        }
+    }
+}
