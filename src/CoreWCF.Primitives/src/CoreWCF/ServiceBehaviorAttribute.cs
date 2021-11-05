@@ -7,6 +7,7 @@ using System.ComponentModel;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
@@ -274,6 +275,7 @@ namespace CoreWCF
                                 }
 
                                 singleton.AutoClose = false;
+                                Fx.Assert(_serviceProvider != null, $"{nameof(_serviceProvider)} is null.");
                                 singleton.Extensions.Add(new ServiceProviderExtension(_serviceProvider));
                             }
                             dispatch.SingletonInstanceContext = singleton;
