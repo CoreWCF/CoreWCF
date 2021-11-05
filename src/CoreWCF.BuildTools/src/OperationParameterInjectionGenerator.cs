@@ -83,7 +83,7 @@ namespace CoreWCF.BuildTools
             var SSMServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceBehaviorAttribute");
             var CoreWCFServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceBehaviorAttribute");
 
-            string fileName = $"{contract.Name}_{operationContract.Name}.cs";
+            string fileName = $"{contract.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{contract.Name}_{operationContract.Name}.cs";
             var dependencies = operationContractImplementation.Parameters.Where(x => !operationContract.Parameters.Any(p =>
                    p.IsMatchingParameter(x))).ToArray();
 
@@ -154,7 +154,10 @@ namespace {service.ContainingNamespace}
                  "                "
                  : "            ";
                 var dependenciesParameters = Enumerable.Range(0, dependencies.Length).Select(x => $"d{x}");
-                builder.Append($"{prefix}return {operationContract.Name}({string.Join(", ", operationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
+                string @return = operationContract.ReturnsVoid ?
+                    string.Empty
+                    : "return ";
+                builder.Append($"{prefix}{@return}{operationContract.Name}({string.Join(", ", operationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
             }
         }
 
