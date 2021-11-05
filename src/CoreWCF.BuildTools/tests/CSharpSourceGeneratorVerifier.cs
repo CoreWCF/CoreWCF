@@ -16,6 +16,7 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50;
             TestState.AdditionalReferences.Add(typeof(System.ServiceModel.ServiceContractAttribute).Assembly);
             TestState.AdditionalReferences.Add(typeof(CoreWCF.ServiceContractAttribute).Assembly);
+            TestState.AdditionalReferences.Add(typeof(Microsoft.Extensions.DependencyInjection.IServiceScope).Assembly);
         }
 
         protected override CompilationOptions CreateCompilationOptions()
@@ -26,6 +27,8 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
         }
 
         public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
+
+        public Func<Diagnostic, CompilerDiagnostics, bool> DiagnosticsFilter { get; set; } = (diagnostic, __) => diagnostic.Severity >= DiagnosticSeverity.Error;
 
         private static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
         {
@@ -38,9 +41,8 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
 
         protected override ParseOptions CreateParseOptions()
             => ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
-        
+
         protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
-            => diagnostic.Id.StartsWith("COREWCF");
+            => DiagnosticsFilter(diagnostic, compilerDiagnostics);
     }
 }
-

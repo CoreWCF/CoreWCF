@@ -47,7 +47,9 @@ namespace CoreWCF.BuildTools
                                 isErrorDiagnosticIssued = true;
                             }
                         }
+                        // TODO multiple candidates..
                     }
+                    // TODO service is already implemented. should we warn when we detect a candidate
                 }
             }
         }
@@ -56,6 +58,7 @@ namespace CoreWCF.BuildTools
         {
             var CoreWCFServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceBehaviorAttribute");
             var SSMServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceBehaviorAttribute");
+            
 
             var serviceBehaviorAttribute = service.GetAttributes()
                 .Where(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, CoreWCFServiceBehaviorSymbol)
@@ -82,25 +85,44 @@ namespace CoreWCF.BuildTools
         {
             var SSMServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceBehaviorAttribute");
             var CoreWCFServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceBehaviorAttribute");
+            var TaskSymbol = context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+            var GenericTaskSymbol = context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task<object>");
 
             string fileName = $"{contract.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{contract.Name}_{operationContract.Name}.cs";
             var dependencies = operationContractImplementation.Parameters.Where(x => !operationContract.Parameters.Any(p =>
                    p.IsMatchingParameter(x))).ToArray();
 
             bool isInstanceContextModeSingle = GetInstanceContextMode(context, service);
-            
+
+            bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContract.ReturnType, TaskSymbol)
+                || ((operationContract.ReturnType is INamedTypeSymbol symbol) && symbol.IsGenericType && SymbolEqualityComparer.Default.Equals(TaskSymbol, symbol.BaseType));
+
+            string @async = shouldGenerateAsyncAwait
+                ? "async "
+                : string.Empty;
+
+            string @await = shouldGenerateAsyncAwait
+                ? "await "
+                : string.Empty;
+
+            string @return = (operationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContract.ReturnType, TaskSymbol)) ?
+                string.Empty
+                : "return ";
+
             var builder = new StringBuilder();
             builder.Append($@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
 namespace {service.ContainingNamespace}
 {{
     public partial class {service.Name}
     {{
 ");
-            builder.Append($@"        public {GetReturnType()} {operationContract.Name}({GetParameters()})
+            builder.Append($@"        public {@async}{GetReturnType()} {operationContract.Name}({GetParameters()})
         {{
 ");
-            builder.Append($@"            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
-            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            builder.Append($@"            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
 ");
             if (isInstanceContextModeSingle)
             {
@@ -128,23 +150,23 @@ namespace {service.ContainingNamespace}
             string GetReturnType()
                 => operationContract.ReturnsVoid ?
                     "void"
-                    : $"{operationContract.ReturnType.ContainingNamespace}.{operationContract.ReturnType.Name}";
+                    : $"{operationContract.ReturnType}";
 
             string GetParameters()
                 => string.Join(", ", operationContract.Parameters
-                    .Select(p => $"{p.Type.ContainingNamespace}.{p.Type.Name} {p.Name}"));
+                    .Select(p => $"{p.Type} {p.Name}"));
             
             void AddDependenciesResolution()
             {
                 string serviceProviderName = isInstanceContextModeSingle ?
-                    "scope"
+                    "scope.ServiceProvider"
                     : "serviceProvider";
                 string prefix =  isInstanceContextModeSingle ?
                     "                "
                     : "            ";
                 for (int i = 0; i < dependencies.Length; i++)
                 {
-                    builder.AppendLine($@"{prefix}var d{i} = ({dependencies[i].Type.ContainingNamespace}.{dependencies[i].Type.Name}){serviceProviderName}.GetService(typeof({dependencies[i].Type.ContainingNamespace}.{dependencies[i].Type.Name}));");
+                    builder.AppendLine($@"{prefix}var d{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
                 }
             }
 
@@ -154,10 +176,8 @@ namespace {service.ContainingNamespace}
                  "                "
                  : "            ";
                 var dependenciesParameters = Enumerable.Range(0, dependencies.Length).Select(x => $"d{x}");
-                string @return = operationContract.ReturnsVoid ?
-                    string.Empty
-                    : "return ";
-                builder.Append($"{prefix}{@return}{operationContract.Name}({string.Join(", ", operationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
+     
+                builder.Append($"{prefix}{@return}{@await}{operationContract.Name}({string.Join(", ", operationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
             }
         }
 

@@ -48,15 +48,17 @@ namespace MyProject
                     GeneratedSources =
                     {
                         (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
 {
     public partial class IdentityService
     {
-        public System.String Echo2(System.String input)
+        public string Echo2(string input)
         {
-            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
-            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var d0 = (System.Object)serviceProvider.GetService(typeof(System.Object));
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
             return Echo2(input, d0);
         }
     }
@@ -104,16 +106,18 @@ namespace MyProject
                     GeneratedSources =
                     {
                         (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
 {
     public partial class IdentityService
     {
-        public System.String Echo2(System.String input)
+        public string Echo2(string input)
         {
-            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
-            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var d0 = (System.Object)serviceProvider.GetService(typeof(System.Object));
-            var d1 = (System.String)serviceProvider.GetService(typeof(System.String));
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
+            var d1 = serviceProvider.GetService<string>();
             return Echo2(input, d0, d1);
         }
     }
@@ -163,15 +167,17 @@ namespace MyProject
                     GeneratedSources =
                     {
                         (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
 {
     public partial class IdentityService
     {
-        public void Echo2(System.String input)
+        public void Echo2(string input)
         {
-            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
-            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var d0 = (System.Object)serviceProvider.GetService(typeof(System.Object));
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
             Echo2(input, d0);
         }
     }
@@ -223,15 +229,17 @@ namespace MyProject.Implementations
                     GeneratedSources =
                     {
                         (typeof(OperationParameterInjectionGenerator), "MyProject_Contracts_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Implementations
 {
     public partial class IdentityService
     {
-        public System.String Echo2(System.String input)
+        public string Echo2(string input)
         {
-            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
-            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var d0 = (System.Object)serviceProvider.GetService(typeof(System.Object));
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
             return Echo2(input, d0);
         }
     }
@@ -279,15 +287,17 @@ namespace MyProject.Dummy
                     GeneratedSources =
                     {
                         (typeof(OperationParameterInjectionGenerator), "MyProject_Dummy_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Dummy
 {
     public partial class IdentityService
     {
-        public System.String Echo2(System.String input)
+        public string Echo2(string input)
         {
-            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
-            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var d0 = (System.Object)serviceProvider.GetService(typeof(System.Object));
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
             return Echo2(input, d0);
         }
     }
@@ -341,15 +351,17 @@ namespace MyProject.Dummy
                     GeneratedSources =
                     {
                         (typeof(OperationParameterInjectionGenerator), "MyProject_Dummy_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Dummy
 {
     public partial class IdentityService
     {
-        public System.String Echo2(System.String input)
+        public string Echo2(string input)
         {
-            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
-            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var d0 = (System.Object)serviceProvider.GetService(typeof(System.Object));
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
             return Echo2(input, d0);
         }
     }
@@ -359,6 +371,122 @@ namespace MyProject.Dummy
                 },
             };
 
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
+        public async Task TaskReturnTypeTests(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        System.Threading.Tasks.Task Echo2(string input);
+    }}
+
+    public partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public System.Threading.Tasks.Task Echo2(string input, [CoreWCF.Injected] object a) => System.Threading.Tasks.Task.FromResult(input);
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{
+    public partial class IdentityService
+    {
+        public async System.Threading.Tasks.Task Echo2(string input)
+        {
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
+            await Echo2(input, d0);
+        }
+    }
+}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
+        public async Task GenericTaskReturnTypeTests(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        System.Threading.Tasks.Task<string> Echo2(string input);
+    }}
+
+    public partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public System.Threading.Tasks.Task<string> Echo2(string input, [CoreWCF.Injected] object a) => System.Threading.Tasks.Task.FromResult(input);
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{
+    public partial class IdentityService
+    {
+        public async System.Threading.Tasks.Task<string> Echo2(string input)
+        {
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
+            return await Echo2(input, d0);
+        }
+    }
+}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+            
             await test.RunAsync();
         }
 
@@ -397,17 +525,19 @@ namespace MyProject
                     GeneratedSources =
                     {
                         (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
 {
     public partial class IdentityService
     {
-        public System.String Echo2(System.String input)
+        public string Echo2(string input)
         {
-            System.IServiceProvider serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<System.IServiceProvider>();
-            if (serviceProvider == null) throw new System.InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
             using (var scope = serviceProvider.CreateScope())
             {
-                var d0 = (System.Object)scope.GetService(typeof(System.Object));
+                var d0 = scope.ServiceProvider.GetService<object>();
                 return Echo2(input, d0);
             }
         }
@@ -459,6 +589,7 @@ namespace MyProject
                         new DiagnosticResult("COREWCF_0100", DiagnosticSeverity.Error)
                     },
                 },
+                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
             };
 
             await test.RunAsync();
