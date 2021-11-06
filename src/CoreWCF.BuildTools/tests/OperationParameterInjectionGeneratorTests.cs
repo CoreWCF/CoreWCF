@@ -1,9 +1,16 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -549,6 +556,99 @@ namespace MyProject
             };
 
             await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
+        public async Task ServiceContractFromOtherAssemblyTests(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.cs", SourceText.From(@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{
+    public partial class IdentityService
+    {
+        public string Echo2(string input)
+        {
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
+            return Echo2(input, d0);
+        }
+    }
+}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            test.TestState.AdditionalReferences.Add(BuildInMemoryAssembly());
+
+            await test.RunAsync();
+
+            MetadataReference BuildInMemoryAssembly()
+            {
+                HashSet<Assembly> referencedAssemblies = new HashSet<Assembly>()
+                {
+                    typeof(object).Assembly,
+                    Assembly.Load(new AssemblyName("netstandard")),
+                    Assembly.Load(new AssemblyName("System.Runtime")),
+                    typeof(System.ServiceModel.ServiceContractAttribute).Assembly,
+                    typeof(CoreWCF.ServiceContractAttribute).Assembly,
+                };
+
+                string code = @$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+}}
+";
+
+                CSharpCompilation compilation1 = CSharpCompilation.Create(
+                    "MyProject",
+                    new[]
+                    {
+                        CSharpSyntaxTree.ParseText(code)
+                    },
+                    referencedAssemblies.Select(assembly => MetadataReference.CreateFromFile(assembly.Location)).ToList(),
+                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                );
+
+                using MemoryStream memoryStream1 = new MemoryStream();
+                EmitResult emitResult1 = compilation1.Emit(memoryStream1);
+                memoryStream1.Position = 0;
+
+                return MetadataReference.CreateFromStream(memoryStream1);
+            }
         }
 
         [Theory]

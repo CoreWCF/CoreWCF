@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -235,7 +234,7 @@ namespace {service.ContainingNamespace}
             var SSMServiceContractSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceContractAttribute");
             var CoreWCFServiceContractSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
 
-            IEnumerable < InterfaceDeclarationSyntax > allInterfaces = allNodes
+            IEnumerable<InterfaceDeclarationSyntax> allInterfaces = allNodes
                .Where(d => d.IsKind(SyntaxKind.InterfaceDeclaration))
                .OfType<InterfaceDeclarationSyntax>();
 
@@ -248,11 +247,62 @@ namespace {service.ContainingNamespace}
                     yield return symbol;
                 }
             }
+
+            var referenceServiceContracts = new List<INamedTypeSymbol>();
+
+            foreach (var reference in context.Compilation.References.Reverse())
+            {
+                var assemblySymbol = context.Compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                var abc = new FindAllServiceContractsVisitor(referenceServiceContracts, new[]
+                {
+                    SSMServiceContractSymbol,
+                    CoreWCFServiceContractSymbol
+                });
+
+                abc.Visit(assemblySymbol.GlobalNamespace);
+            }
+
+            foreach (var serviceContract in referenceServiceContracts)
+            {
+                yield return serviceContract;
+            }
         }
 
         public void Initialize(GeneratorInitializationContext context)
         {
 
+        }
+
+
+        class FindAllServiceContractsVisitor : SymbolVisitor
+        {
+            private readonly IList<INamedTypeSymbol> _symbols;
+            private readonly IEnumerable<INamedTypeSymbol> _serviceContractSymbols;
+
+            public FindAllServiceContractsVisitor(IList<INamedTypeSymbol> symbols, IEnumerable<INamedTypeSymbol> serviceContractSymbols)
+            {
+                _symbols = symbols;
+                _serviceContractSymbols = serviceContractSymbols;
+            }
+
+            public override void VisitNamespace(INamespaceSymbol symbol)
+            {
+                foreach (var child in symbol.GetMembers())
+                {
+                    child.Accept(this);
+                }
+            }
+
+            public override void VisitNamedType(INamedTypeSymbol symbol)
+            {
+                if(symbol.TypeKind == TypeKind.Interface)
+                {
+                    if(_serviceContractSymbols.Any(x => symbol.HasAttribute(x)))
+                    {
+                        _symbols.Add(symbol);
+                    }
+                }
+            }
         }
     }
 }
