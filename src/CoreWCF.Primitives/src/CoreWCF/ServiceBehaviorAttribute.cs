@@ -249,6 +249,7 @@ namespace CoreWCF
                                 }
 
                                 singleton.AutoClose = false;
+                                singleton.IsSingleton = true;
                             }
                             dispatch.SingletonInstanceContext = singleton;
                         }

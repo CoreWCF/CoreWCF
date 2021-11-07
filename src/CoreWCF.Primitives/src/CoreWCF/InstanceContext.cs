@@ -163,14 +163,7 @@ namespace CoreWCF
             }
         }
 
-        private bool IsSingleton
-        {
-            get
-            {
-                return ((_behavior != null) &&
-                        InstanceContextProviderBase.IsProviderSingleton(_behavior.InstanceContextProvider));
-            }
-        }
+        public bool IsSingleton { get; internal set; }
 
         internal ICollection<IChannel> OutgoingChannels
         {
