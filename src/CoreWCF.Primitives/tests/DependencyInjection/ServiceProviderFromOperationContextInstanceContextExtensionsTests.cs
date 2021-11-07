@@ -77,26 +77,13 @@ namespace DependencyInjection
         }
 
         [Fact]
-        public void ServiceProviderShouldNotBeExposedThroughOperationContextInstanceContextExtensionsWhenSingleServiceIsRegisteredWithinDI()
+        public void ServiceProviderShouldBeExposedThroughOperationContextInstanceContextExtensionsWhenSingleServiceIsRegisteredWithinDI()
         {
             System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<SingleSimpleServiceUsingServiceProviderFromOperationContext, ISimpleService>(
               (services) =>
               {
                   services.AddTransient<SingleSimpleServiceUsingServiceProviderFromOperationContext>();
               });
-            factory.Open();
-            ISimpleService channel = factory.CreateChannel();
-
-            channel.Echo(input);
-            channel.Echo(input);
-
-            factory.Close();
-        }
-
-        [Fact]
-        public void ServiceProviderShouldNotBeExposedThroughOperationContextInstanceContextExtensionsWhenServiceIsNotRegisteredWithinDI()
-        {
-            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<AssertNullServiceProviderService, ISimpleService>();
             factory.Open();
             ISimpleService channel = factory.CreateChannel();
 
