@@ -26,11 +26,6 @@ namespace CoreWCF.Runtime
 
         public Task<IAsyncDisposable> TakeLockAsync()
         {
-            return TakeLockAsync(Timeout.InfiniteTimeSpan);
-        }
-
-        public Task<IAsyncDisposable> TakeLockAsync(TimeSpan timeSpan)
-        {
             if (_isDisposed)
                 throw new ObjectDisposedException(nameof(AsyncLock));
 

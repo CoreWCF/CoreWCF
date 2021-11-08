@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Channels;
@@ -58,14 +59,15 @@ namespace Extensibility
         public int ReleaseInstanceCallCount { get; private set; }
         public int InstanceHashCode { get; private set; } = -1;
         public int ReleasedInstanceHashCode { get; private set; } = -2;
-        private readonly AsyncLock _asyncLock = new AsyncLock();
-        private IDisposable _asyncLockHoldObj = null;
+        private readonly SemaphoreSlim _asyncLock = new SemaphoreSlim(1);
+        private bool _asyncLockAquired = false;
 
         public object GetInstance(InstanceContext instanceContext)
         {
-            if (_asyncLockHoldObj == null)
+            if (!_asyncLockAquired)
             {
-                _asyncLockHoldObj = _asyncLock.TakeLock();
+                _asyncLock.Wait();
+                _asyncLockAquired = true;
             }
             GetInstanceCallCount++;
             var service = new SimpleService();
@@ -75,9 +77,10 @@ namespace Extensibility
 
         public object GetInstance(InstanceContext instanceContext, Message message)
         {
-            if (_asyncLockHoldObj == null)
+            if (!_asyncLockAquired)
             {
-                _asyncLockHoldObj = _asyncLock.TakeLock();
+                _asyncLock.Wait();
+                _asyncLockAquired = true;
             }
             GetInstanceCallCount++;
             var service = new SimpleService();
@@ -89,16 +92,15 @@ namespace Extensibility
         {
             ReleasedInstanceHashCode = instance.GetHashCode();
             ReleaseInstanceCallCount++;
-            _asyncLockHoldObj?.Dispose();
-            _asyncLockHoldObj = null;
+            _asyncLock.Release();
+            _asyncLockAquired = false;
         }
 
         public async Task WaitForReleaseAsync(TimeSpan timeout)
         {
-            var relaser = (await _asyncLock.TakeLockAsync(timeout))?.DisposeAsync();
-            if (relaser != null)
+            if (await _asyncLock.WaitAsync(timeout))
             {
-                await relaser.Value;
+                _asyncLock.Release();
             }
         }
     }

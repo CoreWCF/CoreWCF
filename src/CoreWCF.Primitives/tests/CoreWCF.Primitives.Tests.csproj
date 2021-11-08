@@ -35,7 +35,4 @@
   <ItemGroup>
     <Folder Include="Properties/" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="../../Common/src/CoreWCF/Runtime/AsyncLock.cs" />
-  </ItemGroup>
 </Project>
