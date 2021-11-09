@@ -22,14 +22,4 @@ namespace CoreWCF.BuildTools
         public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attributeTypeSymbol)
             => symbol.GetAttributes().Any(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, attributeTypeSymbol));
     }
-
-    public static class MethodSymbolExtensions
-    {
-        
-    }
-
-    public static class NamedTypeAttribute
-    {
-        
-    }
 }
