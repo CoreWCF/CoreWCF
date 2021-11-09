@@ -79,6 +79,68 @@ namespace MyProject
         }
 
         [Theory]
+        [InlineData("System.ServiceModel", "internal ", "internal ")]
+        [InlineData("System.ServiceModel", "public ", "public ")]
+        [InlineData("System.ServiceModel", "", "internal ")]
+        [InlineData("CoreWCF", "internal ", "internal ")]
+        [InlineData("CoreWCF", "public ", "public ")]
+        [InlineData("CoreWCF", "", "internal ")]
+        public async Task ServiceImplementationAccessModifiersTests(string attributeNamespace, string accessModifier, string expectedAccessModifier)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    {accessModifier}partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.cs", SourceText.From($@"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{{
+    {expectedAccessModifier}partial class IdentityService
+    {{
+        public string Echo2(string input)
+        {{
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            var d0 = serviceProvider.GetService<object>();
+            return Echo2(input, d0);
+        }}
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
         [InlineData("System.ServiceModel")]
         [InlineData("CoreWCF")]
         public async Task MultipleParametersInjectedTests(string attributeNamespace)

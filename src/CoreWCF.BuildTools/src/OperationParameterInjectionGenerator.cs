@@ -108,13 +108,20 @@ namespace CoreWCF.BuildTools
                 string.Empty
                 : "return ";
 
+            string accessibilityModifier = service.DeclaredAccessibility switch
+            {
+                Accessibility.Public => "public ",
+                _ => "internal "
+            };          
+
             var builder = new StringBuilder();
+
             builder.Append($@"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace {service.ContainingNamespace}
 {{
-    public partial class {service.Name}
+    {accessibilityModifier}partial class {service.Name}
     {{
 ");
             builder.Append($@"        public {@async}{GetReturnType()} {operationContract.Name}({GetParameters()})
