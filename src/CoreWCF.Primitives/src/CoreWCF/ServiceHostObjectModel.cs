@@ -80,6 +80,8 @@ namespace CoreWCF
 
             if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
             {
+                serviceBehavior.ServicePovider = _serviceProvider;
+
                 // If using Single, then ServiceBehavior fetched/created the instance and need to set on SingletonInstance
                 Debug.Assert(serviceInstanceUsedAsABehavior != null, "Service behavior should have created a singleton instance");
                 SingletonInstance = serviceInstanceUsedAsABehavior;
