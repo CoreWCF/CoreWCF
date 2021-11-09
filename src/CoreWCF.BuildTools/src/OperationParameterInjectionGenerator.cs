@@ -85,7 +85,7 @@ namespace CoreWCF.BuildTools
             var SSMServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceBehaviorAttribute");
             var CoreWCFServiceBehaviorSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceBehaviorAttribute");
             var TaskSymbol = context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
-            var GenericTaskSymbol = context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task<object>");
+            var GenericTaskSymbol = context.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
 
             string fileName = $"{contract.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{contract.Name}_{operationContract.Name}.cs";
             var dependencies = operationContractImplementation.Parameters.Where(x => !operationContract.Parameters.Any(p =>
@@ -94,7 +94,7 @@ namespace CoreWCF.BuildTools
             bool isInstanceContextModeSingle = GetInstanceContextMode(context, service);
 
             bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContract.ReturnType, TaskSymbol)
-                || ((operationContract.ReturnType is INamedTypeSymbol symbol) && symbol.IsGenericType && SymbolEqualityComparer.Default.Equals(TaskSymbol, symbol.BaseType));
+                || SymbolEqualityComparer.Default.Equals(operationContract.ReturnType, GenericTaskSymbol);
 
             string @async = shouldGenerateAsyncAwait
                 ? "async "
