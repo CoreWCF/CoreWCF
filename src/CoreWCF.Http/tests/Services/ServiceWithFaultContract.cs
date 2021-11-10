@@ -29,6 +29,22 @@ namespace Services
         });
     }
 
+    [CoreWCF.ServiceContract(Namespace = SSMCompatibilityFault.Namespace)]
+    public interface IServiceWithCoreWCFFaultContractWithNamespaceAtServiceContractLevel
+    {
+        [CoreWCF.OperationContract]
+        [CoreWCF.FaultContract(typeof(SSMCompatibilityFault), Name = SSMCompatibilityFault.Name)]
+        string Identity(string msg);
+    }
+
+    public class ServiceWithCoreWCFFaultContractWithNamespaceAtServiceContractLevel : IServiceWithCoreWCFFaultContractWithNamespaceAtServiceContractLevel
+    {
+        public string Identity(string msg) => throw new CoreWCF.FaultException<SSMCompatibilityFault>(new SSMCompatibilityFault()
+        {
+            Message = "An error occured"
+        });
+    }
+
     [System.ServiceModel.ServiceContract]
     public interface IServiceWithSSMFaultContract
     {
@@ -38,6 +54,22 @@ namespace Services
     }
 
     public class ServiceWithSSMFaultContract : IServiceWithSSMFaultContract
+    {
+        public string Identity(string msg) => throw new CoreWCF.FaultException<SSMCompatibilityFault>(new SSMCompatibilityFault()
+        {
+            Message = "An error occured"
+        });
+    }
+
+    [System.ServiceModel.ServiceContract(Namespace = SSMCompatibilityFault.Namespace)]
+    public interface IServiceWithSSMFaultContractWithNamespaceAtServiceContractLevel
+    {
+        [System.ServiceModel.OperationContract]
+        [System.ServiceModel.FaultContract(typeof(SSMCompatibilityFault), Name = SSMCompatibilityFault.Name)]
+        string Identity(string msg);
+    }
+
+    public class ServiceWithSSMFaultContractWithNamespaceAtServiceContractLevel : IServiceWithSSMFaultContractWithNamespaceAtServiceContractLevel
     {
         public string Identity(string msg) => throw new CoreWCF.FaultException<SSMCompatibilityFault>(new SSMCompatibilityFault()
         {

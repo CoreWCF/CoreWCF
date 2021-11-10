@@ -23,11 +23,27 @@ namespace ClientContract
         string Identity(string msg);
     }
 
+    [ServiceContract(Namespace = SSMCompatibilityFault.Namespace)]
+    public interface IServiceWithCoreWCFFaultContractWithNamespaceAtServiceContractLevel
+    {
+        [OperationContract]
+        [FaultContract(typeof(SSMCompatibilityFault), Name = SSMCompatibilityFault.Name)]
+        string Identity(string msg);
+    }
+
     [ServiceContract]
     public interface IServiceWithSSMFaultContract
     {
         [OperationContract]
         [FaultContract(typeof(SSMCompatibilityFault), Name = SSMCompatibilityFault.Name, Namespace = SSMCompatibilityFault.Namespace)]
+        string Identity(string msg);
+    }
+
+    [ServiceContract(Namespace = SSMCompatibilityFault.Namespace)]
+    public interface IServiceWithSSMFaultContractWithNamespaceAtServiceContractLevel
+    {
+        [OperationContract]
+        [FaultContract(typeof(SSMCompatibilityFault), Name = SSMCompatibilityFault.Name)]
         string Identity(string msg);
     }
 }
