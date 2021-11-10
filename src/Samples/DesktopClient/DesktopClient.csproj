@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
+    <LangVersion>latestMajor</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

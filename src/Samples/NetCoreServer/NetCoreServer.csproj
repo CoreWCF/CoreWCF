@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>corewcf-samples-secrets</UserSecretsId>
+    <LangVersion>latestMajor</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

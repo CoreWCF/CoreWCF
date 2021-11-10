@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latestMajor</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />

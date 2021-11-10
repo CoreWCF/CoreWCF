@@ -8,6 +8,7 @@ namespace CoreWCF.Samples.StandardCommon
     {
         private const string DefaultHostName = "localhost";
         public bool UseHttps { get; set; } = true;
+        public Uri CustomAddress { get; set; }
         public Uri basicHttpAddress { get; set; }
         public Uri basicHttpsAddress { get; set; }
         public Uri wsHttpAddress { get; set; }
@@ -43,6 +44,7 @@ namespace CoreWCF.Samples.StandardCommon
             string baseHttpsAddress = hostname + ":8443";
             string baseTcpAddress = hostname + ":8089";
 
+            CustomAddress = AddPathPrefix(new Uri($"http://{baseHttpAddress}/custom"), serviceprefix);
             basicHttpAddress = AddPathPrefix(new Uri($"http://{baseHttpAddress}/basichttp"), serviceprefix);
             basicHttpsAddress = AddPathPrefix(new Uri($"https://{baseHttpsAddress}/basichttp"), serviceprefix);
             wsHttpAddress = AddPathPrefix(new Uri($"http://{baseHttpAddress}/wsHttp"), serviceprefix);

@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <UserSecretsId>corewcf-samples-secrets</UserSecretsId>
+    <LangVersion>latestMajor</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

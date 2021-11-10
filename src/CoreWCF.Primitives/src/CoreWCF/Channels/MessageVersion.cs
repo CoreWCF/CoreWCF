@@ -10,12 +10,14 @@ namespace CoreWCF.Channels
     public sealed class MessageVersion
     {
         private static readonly MessageVersion s_soap12Addressing10;
+        private static readonly MessageVersion s_soap12AddressingNone;
 
         static MessageVersion()
         {
             None = new MessageVersion(EnvelopeVersion.None, AddressingVersion.None);
             Soap11 = new MessageVersion(EnvelopeVersion.Soap11, AddressingVersion.None);
             s_soap12Addressing10 = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.WSAddressing10);
+            s_soap12AddressingNone = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.None);
         }
 
         private MessageVersion(EnvelopeVersion envelopeVersion, AddressingVersion addressingVersion)
@@ -46,6 +48,10 @@ namespace CoreWCF.Channels
                 if (addressingVersion == AddressingVersion.WSAddressing10)
                 {
                     return s_soap12Addressing10;
+                }
+                else if (addressingVersion == AddressingVersion.None)
+                {
+                    return s_soap12AddressingNone;
                 }
                 else
                 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,25 @@ namespace StandardClient
         public static void BuildClientSettings(string hostname)
         {
             s_settings = new Settings().SetDefaults(hostname, "EchoService");
+        }
+
+        public static CustomBinding CreateCustomBinding()
+        {
+            CustomBinding result = new();
+            TextMessageEncodingBindingElement textBindingElement = new()
+            {
+                //System.ArgumentException : Addressing Version 'AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)' is not supported. (Parameter 'addressingVersion')
+                MessageVersion = MessageVersion.CreateVersion(EnvelopeVersion.Soap12, AddressingVersion.None)
+            };
+            result.Elements.Add(textBindingElement);
+            HttpTransportBindingElement httpBindingElement = new()
+            {
+                //AllowCookies = true,
+                MaxBufferSize = int.MaxValue,
+                MaxReceivedMessageSize = int.MaxValue
+            };
+            result.Elements.Add(httpBindingElement);
+            return result;
         }
 
         public static Task InvokeUsingWcf(Action<string> log)
@@ -40,14 +60,18 @@ namespace StandardClient
 
             log("Echo Operation");
 
-            log("\tBasicHttp FailEcho: => "
-                + echoFault.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), s_settings.basicHttpAddress));
+            var customBinding = CreateCustomBinding();
 
+            log("\tBasicHttp Echo: => "
+                + echo.WcfInvoke(customBinding, s_settings.CustomAddress));
             log("\tBasicHttp: => "
                 + echo.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), s_settings.basicHttpAddress));
-
             log("\tWsHttp: => "
                 + echo.WcfInvoke(new WSHttpBinding(SecurityMode.None), s_settings.wsHttpAddress));
+            return Task.CompletedTask;
+
+            log("\tBasicHttp FailEcho: => "
+                + echoFault.WcfInvoke(new BasicHttpBinding(BasicHttpSecurityMode.None), s_settings.basicHttpAddress));
 
             log("\tWsHttp FailEcho => "
                 + echoFault.WcfInvoke(new WSHttpBinding(SecurityMode.None), s_settings.wsHttpAddress));
