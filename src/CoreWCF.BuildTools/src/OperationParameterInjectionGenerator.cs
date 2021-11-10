@@ -94,7 +94,8 @@ namespace CoreWCF.BuildTools
             bool isInstanceContextModeSingle = GetInstanceContextMode(context, service);
 
             bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContract.ReturnType, TaskSymbol)
-                || SymbolEqualityComparer.Default.Equals(operationContract.ReturnType, GenericTaskSymbol);
+                ||(operationContract.ReturnType is INamedTypeSymbol symbol && 
+                SymbolEqualityComparer.Default.Equals(symbol.ConstructedFrom, GenericTaskSymbol));
 
             string @async = shouldGenerateAsyncAwait
                 ? "async "
