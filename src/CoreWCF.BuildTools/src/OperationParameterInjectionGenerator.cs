@@ -113,7 +113,10 @@ namespace CoreWCF.BuildTools
             {
                 Accessibility.Public => "public ",
                 _ => "internal "
-            };          
+            };
+
+            const string OneTab = "    ";
+            const string ThreeTabs = OneTab + OneTab + OneTab;
 
             var builder = new StringBuilder();
 
@@ -130,23 +133,26 @@ namespace {service.ContainingNamespace}
 ");
             builder.Append($@"            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
             if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-");
-            if (isInstanceContextModeSingle)
-            {
-                builder.Append($@"            using (var scope = serviceProvider.CreateScope())
+            if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
             {{
+                using (var scope = serviceProvider.CreateScope())
+                {{
 ");
-            }    
-            
-            AddDependenciesResolution();
-            AddMethodCall();
+            AddDependenciesResolution("scope.ServiceProvider", "                    ", "d");
+            AddMethodCall("                    ", "d");
 
-            if (isInstanceContextModeSingle)
+            if (operationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContract.ReturnType, TaskSymbol))
             {
                 builder.Append($@"
-            }}");
+                    return;");
             }
 
+            builder.Append($@"
+                }}
+            }}
+");
+            AddDependenciesResolution("serviceProvider", "            ", "e");
+            AddMethodCall("            ", "e");
             builder.Append($@"
         }}
     }}
@@ -163,26 +169,17 @@ namespace {service.ContainingNamespace}
                 => string.Join(", ", operationContract.Parameters
                     .Select(p => $"{p.Type} {p.Name}"));
             
-            void AddDependenciesResolution()
-            {
-                string serviceProviderName = isInstanceContextModeSingle ?
-                    "scope.ServiceProvider"
-                    : "serviceProvider";
-                string prefix =  isInstanceContextModeSingle ?
-                    "                "
-                    : "            ";
+            void AddDependenciesResolution(string serviceProviderName, string prefix, string dependencyPrefix)
+            {              
                 for (int i = 0; i < dependencies.Length; i++)
                 {
-                    builder.AppendLine($@"{prefix}var d{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
+                    builder.AppendLine($@"{prefix}var {dependencyPrefix}{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
                 }
             }
 
-            void AddMethodCall()
+            void AddMethodCall(string prefix, string dependencyPrefix)
             {
-                string prefix = isInstanceContextModeSingle ?
-                 "                "
-                 : "            ";
-                var dependenciesParameters = Enumerable.Range(0, dependencies.Length).Select(x => $"d{x}");
+                var dependenciesParameters = Enumerable.Range(0, dependencies.Length).Select(x => $"{dependencyPrefix}{x}");
      
                 builder.Append($"{prefix}{@return}{@await}{operationContract.Name}({string.Join(", ", operationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
             }
