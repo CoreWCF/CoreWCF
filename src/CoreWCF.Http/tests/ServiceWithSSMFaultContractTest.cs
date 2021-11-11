@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Globalization;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,7 +50,6 @@ namespace BasicHttp
         }
 
         [Fact]
-        [UseCulture("en-US")]
         public async Task BasicScenarioServiceWithSSMFaultContractWithHttpClient()
         {
             var client = _factory.CreateClient();
@@ -91,17 +90,9 @@ namespace BasicHttp
 
             Assert.Equal(expected, responseBody);
 
-            string GetXmlLangAttributeOrNot()
-            {
-                const string enUsXmlLang = " xml:lang=\"en-US\"";
-#if NETCOREAPP3_1_OR_GREATER
-                return RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-                    string.Empty
-                    : enUsXmlLang;
-#else
-                return enUsXmlLang;
-#endif
-            }
+            string GetXmlLangAttributeOrNot() => CultureInfo.CurrentCulture.Name.Length == 0
+                    ? string.Empty
+                    : $@" xml:lang=""{CultureInfo.CurrentCulture.Name}""";
         }
 
         public class Startup
