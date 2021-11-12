@@ -693,13 +693,13 @@ namespace MyProject
 
             MetadataReference BuildInMemoryAssembly()
             {
-                HashSet<Assembly> referencedAssemblies = new HashSet<Assembly>()
+                List<MetadataReference>  references = new List<MetadataReference>
                 {
-                    typeof(object).Assembly,
-                    Assembly.Load(new AssemblyName("netstandard")),
-                    Assembly.Load(new AssemblyName("System.Runtime")),
-                    typeof(System.ServiceModel.ServiceContractAttribute).Assembly,
-                    typeof(CoreWCF.ServiceContractAttribute).Assembly,
+                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                    MetadataReference.CreateFromFile(Assembly.Load(new AssemblyName("netstandard")).Location),
+                    MetadataReference.CreateFromFile(Assembly.Load(new AssemblyName("System.Runtime")).Location),
+                    MetadataReference.CreateFromFile(typeof(System.ServiceModel.ServiceContractAttribute).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(CoreWCF.ServiceContractAttribute).Assembly.Location)
                 };
 
                 string code = @$"
@@ -717,18 +717,18 @@ namespace MyProject
 }}
 ";
 
-                CSharpCompilation compilation1 = CSharpCompilation.Create(
+                CSharpCompilation compilation = CSharpCompilation.Create(
                     "MyProject",
                     new[]
                     {
                         CSharpSyntaxTree.ParseText(code)
                     },
-                    referencedAssemblies.Select(assembly => MetadataReference.CreateFromFile(assembly.Location)).ToList(),
+                    references.ToArray(),
                     new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                 );
 
                 using MemoryStream memoryStream1 = new MemoryStream();
-                EmitResult emitResult1 = compilation1.Emit(memoryStream1);
+                EmitResult emitResult1 = compilation.Emit(memoryStream1);
                 memoryStream1.Position = 0;
 
                 return MetadataReference.CreateFromStream(memoryStream1);
