@@ -634,6 +634,8 @@ namespace MyProject
             await test.RunAsync();
         }
 
+// TODO: make the in-memory assembly compilation works on .NET Framework
+#if !NETFRAMEWORK
         [Theory]
         [InlineData("System.ServiceModel")]
         [InlineData("CoreWCF")]
@@ -734,6 +736,7 @@ namespace MyProject
                 return MetadataReference.CreateFromStream(memoryStream1);
             }
         }
+#endif
 
         [Theory]
         [InlineData("System.ServiceModel")]
