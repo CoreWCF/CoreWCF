@@ -8,12 +8,12 @@ namespace CoreWCF.BuildTools
     internal static class DiagnosticDescriptors
     {
         private static readonly DiagnosticDescriptor serviceShouldBePartialError = new DiagnosticDescriptor(id: "COREWCF_0100",
-                                                                              title: "Service implementation should be partial",
-                                                                              messageFormat: "Service implementation '{0}' for contract '{1}' should be partial.",
+                                                                              title: "Parent class should be partial",
+                                                                              messageFormat: "Parent class '{0}' of method '{1}' should be partial.",
                                                                               category: nameof(OperationParameterInjectionGenerator),
                                                                               DiagnosticSeverity.Error,
                                                                               isEnabledByDefault: true);
 
-        internal static Diagnostic ServicesShouldBePartialError(string serviceImplementation, string serviceContract) => Diagnostic.Create(serviceShouldBePartialError, Location.None, serviceImplementation, serviceContract);
+        internal static Diagnostic ServicesShouldBePartialError(string parentClassName, string methodName) => Diagnostic.Create(serviceShouldBePartialError, Location.None, parentClassName, methodName);
     }
 }

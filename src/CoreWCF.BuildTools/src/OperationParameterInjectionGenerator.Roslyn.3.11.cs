@@ -1,0 +1,75 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
+namespace CoreWCF.BuildTools
+{
+    public sealed partial class OperationParameterInjectionGenerator : ISourceGenerator
+    {
+        public void Initialize(GeneratorInitializationContext context)
+        {
+            context.RegisterForSyntaxNotifications(() => new SyntaxContextReceiver());
+        }
+
+        public void Execute(GeneratorExecutionContext executionContext)
+        {
+            if (executionContext.SyntaxContextReceiver is not SyntaxContextReceiver receiver || receiver.MethodDeclarationSyntaxList == null)
+            {
+                // nothing to do yet
+                return;
+            }
+
+            OperationParameterInjectionSourceGenerationContext context = new OperationParameterInjectionSourceGenerationContext(executionContext);
+            Parser parser = new(executionContext.Compilation, context);
+            SourceGenerationSpec? spec = parser.GetGenerationSpec(receiver.MethodDeclarationSyntaxList);
+            if (spec != null)
+            {
+                Emitter emitter = new(context, spec);
+                emitter.Emit();
+            }
+        }
+
+        private sealed class SyntaxContextReceiver : ISyntaxContextReceiver
+        {
+            public List<MethodDeclarationSyntax>? MethodDeclarationSyntaxList { get; private set; }
+
+            public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
+            {
+                if (Parser.IsSyntaxTargetForGeneration(context.Node))
+                {
+                    MethodDeclarationSyntax? methodDeclarationSyntax = Parser.GetSemanticTargetForGeneration(context);
+                    if (methodDeclarationSyntax != null)
+                    {
+                        (MethodDeclarationSyntaxList ??= new List<MethodDeclarationSyntax>()).Add(methodDeclarationSyntax);
+                    }
+                }
+            }
+        }
+    }
+
+    internal readonly struct OperationParameterInjectionSourceGenerationContext
+    {
+        private readonly GeneratorExecutionContext _context;
+
+        public OperationParameterInjectionSourceGenerationContext(GeneratorExecutionContext context)
+        {
+            _context = context;
+        }
+
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            _context.ReportDiagnostic(diagnostic);
+        }
+
+        public void AddSource(string hintName, SourceText sourceText)
+        {
+            _context.AddSource(hintName, sourceText);
+        }
+    }
+}
