@@ -919,5 +919,125 @@ namespace MyProject
 
             await test.RunAsync();
         }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
+        public async Task ShouldRaiseCompilationErrorWhenOperationContractIsAlreadyImplemented(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input) => input;
+        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics =
+                    {
+                        new DiagnosticResult("COREWCF_0102", DiagnosticSeverity.Error)
+                    },
+                },
+                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
+        public async Task ShouldRaiseCompilationErrorWhenParentClassImplementAnInterfaceWithoutServiceContractAttribute(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public interface IIdentityService
+    {{
+        string Echo(string input);
+
+        string Echo2(string input);
+    }}
+
+    public partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics =
+                    {
+                        new DiagnosticResult("COREWCF_0101", DiagnosticSeverity.Error)
+                    },
+                },
+                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
+        public async Task ShouldRaiseCompilationErrorWhenParentClassDoesNotImplementOrInheritAnInterfaceWithtServiceContractAttribute(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public partial class IdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics =
+                    {
+                        new DiagnosticResult("COREWCF_0101", DiagnosticSeverity.Error)
+                    },
+                },
+                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+            };
+
+            await test.RunAsync();
+        }
     }
 }

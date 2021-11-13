@@ -34,27 +34,38 @@ namespace CoreWCF.BuildTools
 
             public SourceGenerationSpec? GetGenerationSpec(IEnumerable<MethodDeclarationSyntax> methodDeclarationSyntaxList)
             {
+                var SSMOperationContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
+                var CoreWCFOperationContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
+
                 List<OperationContractSpec>? operationContractSpecs = null;
                 foreach (MethodDeclarationSyntax methodDeclarationSyntax in methodDeclarationSyntaxList)
                 {
-                    if (!methodDeclarationSyntax.HasParentPartialClass())
-                    {
-                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ServicesShouldBePartialError("", ""));
-                        continue;
-                    }
-
                     SemanticModel model = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
                     IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(methodDeclarationSyntax);
+
+                    if (!methodDeclarationSyntax.HasParentPartialClass())
+                    {
+                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldBePartialError(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                        continue;
+                    }
 
                     var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
                     if(allServiceContractCandidates.Length == 0)
                     {
-                        // raise error ParentClass does not implement any interface
+                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContract(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                        continue;
                     }
+
+                    bool atLeastOneServiceContractIsFound = false;
+                    bool missingOperationContractIsFound = false;
 
                     foreach (var serviceContractCandidate in allServiceContractCandidates)
                     {
-                        bool atLeastOneServiceContractIsFound = false;
+                        if (missingOperationContractIsFound)
+                        {
+                            break;
+                        }
+
                         foreach (var serviceImplementationAndContract in _serviceImplementationsAndContracts.Value)
                         {
                             if(SymbolEqualityComparer.Default.Equals(serviceImplementationAndContract.ServiceContract, serviceContractCandidate))
@@ -63,9 +74,6 @@ namespace CoreWCF.BuildTools
 
                                 if (!_operationContracts.ContainsKey(serviceImplementationAndContract.ServiceContract))
                                 {
-                                    var SSMOperationContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
-                                    var CoreWCFOperationContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
-
                                     _operationContracts.Add(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceContract.GetMembers().OfType<IMethodSymbol>()
                                         .Where(x => x.HasOneOfAttributes(SSMOperationContractSymbol, CoreWCFOperationContractSymbol)).ToImmutableArray());
                                 }
@@ -77,27 +85,31 @@ namespace CoreWCF.BuildTools
 
                                 if(operationContractCandidates.Length == 1)
                                 {
+                                    missingOperationContractIsFound = true;
+
                                     IMethodSymbol operationContractCandidate = operationContractCandidates[0];
                                     if (serviceImplementationAndContract.ServiceImplementation.FindImplementationForInterfaceMember(operationContractCandidate) != null)
                                     {
-                                        // raise error because there is already an implementation 
+                                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationContractShouldNotBeAlreadyImplemented(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name));
+                                        break;
                                     }
 
                                     (operationContractSpecs ??= new List<OperationContractSpec>()).Add(new OperationContractSpec
                                     {
                                         ServiceContract = serviceImplementationAndContract.ServiceContract,
                                         ServiceContractImplementation = serviceImplementationAndContract.ServiceImplementation,
-                                        MissingOperationContract = operationContractCandidates.Single(),
+                                        MissingOperationContract = operationContractCandidate,
                                         UserProvidedOperationContractImplementation = methodSymbol
                                     });
+                                    break;
                                 }
                             }
                         }
+                    }
 
-                        if (!atLeastOneServiceContractIsFound)
-                        {
-                            // raise error because ParentClass does not implement any ServiceContract
-                        }
+                    if (!atLeastOneServiceContractIsFound)
+                    {
+                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContract(methodSymbol.ContainingType.Name, methodSymbol.Name));
                     }
                 }
 
@@ -110,8 +122,8 @@ namespace CoreWCF.BuildTools
                 {
                     return new SourceGenerationSpec
                     {
-                        SSMServiceBehaviorSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.ServiceBehaviorAttribute"),
-                        CoreWCFServiceBehaviorSymbol = _compilation.GetTypeByMetadataName("CoreWCF.ServiceBehaviorAttribute"),
+                        SSMOperationContractSymbol = SSMOperationContractSymbol,
+                        CoreWCFOperationContractSymbol = CoreWCFOperationContractSymbol,
                         TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                         GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
                         CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
