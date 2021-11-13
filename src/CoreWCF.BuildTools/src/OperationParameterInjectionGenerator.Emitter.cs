@@ -34,13 +34,15 @@ namespace CoreWCF.BuildTools
 
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
-                string fileName = $"{operationContractSpec.ServiceContract.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractSpec.OperationContract.Name}.cs";
-                var dependencies = operationContractSpec.OperationContractImplementationCandidate.Parameters.Where(x => !operationContractSpec.OperationContract.Parameters.Any(p =>
+                string fileName = $"{operationContractSpec.ServiceContract.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractSpec.MissingOperationContract.Name}.cs";
+                var dependencies = operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Where(x => !operationContractSpec.MissingOperationContract.Parameters.Any(p =>
                        p.IsMatchingParameter(x))).ToArray();
 
-                bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContractSpec.OperationContract.ReturnType, _generationSpec.TaskSymbol)
-                    || (operationContractSpec.OperationContract.ReturnType is INamedTypeSymbol symbol &&
+                bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol)
+                    || (operationContractSpec.MissingOperationContract.ReturnType is INamedTypeSymbol symbol &&
                     SymbolEqualityComparer.Default.Equals(symbol.ConstructedFrom, _generationSpec.GenericTaskSymbol));
+
+                Dictionary<ITypeSymbol, string> dependencyNames = new Dictionary<ITypeSymbol, string>(SymbolEqualityComparer.Default);
 
                 string @async = shouldGenerateAsyncAwait
                     ? "async "
@@ -50,7 +52,7 @@ namespace CoreWCF.BuildTools
                     ? "await "
                     : string.Empty;
 
-                string @return = (operationContractSpec.OperationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContractSpec.OperationContract.ReturnType, _generationSpec.TaskSymbol)) ?
+                string @return = (operationContractSpec.MissingOperationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol)) ?
                     string.Empty
                     : "return ";
 
@@ -70,7 +72,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
     {accessibilityModifier}partial class {operationContractSpec.ServiceContractImplementation.Name}
     {{
 ");
-                builder.Append($@"        public {@async}{GetReturnType()} {operationContractSpec.OperationContract.Name}({GetParameters()})
+                builder.Append($@"        public {@async}{GetReturnType()} {operationContractSpec.MissingOperationContract.Name}({GetParameters()})
         {{
 ");
                 builder.Append($@"            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
@@ -83,7 +85,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 AddDependenciesResolution("scope.ServiceProvider", "                    ", "d");
                 AddMethodCall("                    ", "d");
 
-                if (operationContractSpec.OperationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContractSpec.OperationContract.ReturnType, _generationSpec.TaskSymbol))
+                if (operationContractSpec.MissingOperationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol))
                 {
                     builder.Append($@"
                     return;");
@@ -103,27 +105,43 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 _sourceGenerationContext.AddSource(fileName, SourceText.From(builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
                 string GetReturnType()
-                    => operationContractSpec.OperationContract.ReturnsVoid ?
+                    => operationContractSpec.MissingOperationContract.ReturnsVoid ?
                         "void"
-                        : $"{operationContractSpec.OperationContract.ReturnType}";
+                        : $"{operationContractSpec.MissingOperationContract.ReturnType}";
 
                 string GetParameters()
-                    => string.Join(", ", operationContractSpec.OperationContract.Parameters
+                    => string.Join(", ", operationContractSpec.MissingOperationContract.Parameters
                         .Select(p => $"{p.Type} {p.Name}"));
 
                 void AddDependenciesResolution(string serviceProviderName, string prefix, string dependencyPrefix)
                 {
                     for (int i = 0; i < dependencies.Length; i++)
                     {
+                        dependencyNames[dependencies[i].Type] = $"{dependencyPrefix}{i}";
                         builder.AppendLine($@"{prefix}var {dependencyPrefix}{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
                     }
                 }
 
                 void AddMethodCall(string prefix, string dependencyPrefix)
                 {
-                    var dependenciesParameters = Enumerable.Range(0, dependencies.Length).Select(x => $"{dependencyPrefix}{x}");
+                    builder.Append($"{prefix}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");//({string.Join(", ", operationContractSpec.OperationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
+                    for (int i = 0; i < operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Length; i++)
+                    {
+                        if (i != 0)
+                        {
+                            builder.Append(", ");
+                        }
 
-                    builder.Append($"{prefix}{@return}{@await}{operationContractSpec.OperationContract.Name}({string.Join(", ", operationContractSpec.OperationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
+                        if (operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i].HasOneOfAttributes(_generationSpec.CoreWCFInjectedSymbol))
+                        {
+                            builder.Append(dependencyNames[operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i].Type]);
+                        }
+                        else
+                        {
+                            builder.Append(operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i].Name);
+                        }
+                    }
+                    builder.Append(");");
                 }
             }
         }

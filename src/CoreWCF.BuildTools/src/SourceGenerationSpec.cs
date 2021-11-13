@@ -15,5 +15,6 @@ namespace CoreWCF.BuildTools
         public INamedTypeSymbol? CoreWCFServiceBehaviorSymbol { get; internal set; }
         public INamedTypeSymbol? TaskSymbol { get; internal set; }
         public INamedTypeSymbol? GenericTaskSymbol { get; internal set; }
+        public INamedTypeSymbol? CoreWCFInjectedSymbol { get; internal set; }
     }
 }

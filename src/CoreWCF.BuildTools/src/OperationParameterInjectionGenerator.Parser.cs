@@ -5,12 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-using Microsoft.CodeAnalysis.Text;
 
 namespace CoreWCF.BuildTools
 {
@@ -90,8 +87,8 @@ namespace CoreWCF.BuildTools
                                     {
                                         ServiceContract = serviceImplementationAndContract.ServiceContract,
                                         ServiceContractImplementation = serviceImplementationAndContract.ServiceImplementation,
-                                        OperationContract = operationContractCandidates.Single(),
-                                        OperationContractImplementationCandidate = methodSymbol
+                                        MissingOperationContract = operationContractCandidates.Single(),
+                                        UserProvidedOperationContractImplementation = methodSymbol
                                     });
                                 }
                             }
@@ -117,7 +114,7 @@ namespace CoreWCF.BuildTools
                         CoreWCFServiceBehaviorSymbol = _compilation.GetTypeByMetadataName("CoreWCF.ServiceBehaviorAttribute"),
                         TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                         GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
-
+                        CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
                         OperationContractSpecs = operationContractSpecs
                     };
                 }

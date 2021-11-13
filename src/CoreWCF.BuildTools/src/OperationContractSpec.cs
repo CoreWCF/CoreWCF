@@ -9,7 +9,7 @@ namespace CoreWCF.BuildTools
     {
         public INamedTypeSymbol? ServiceContract { get; set; }
         public INamedTypeSymbol? ServiceContractImplementation { get; set; }
-        public IMethodSymbol? OperationContract { get; set; }
-        public IMethodSymbol? OperationContractImplementationCandidate { get; set; }
+        public IMethodSymbol? MissingOperationContract { get; set; }
+        public IMethodSymbol? UserProvidedOperationContractImplementation { get; set; }
     }
 }
