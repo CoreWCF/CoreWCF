@@ -822,8 +822,7 @@ namespace CoreWCF.Security
             {
                 if (_sessionChannelDispatcher == null)
                 {
-                    var releaser = await AsyncLock.TakeLockAsync();
-                    try
+                    await using (await AsyncLock.TakeLockAsync())
                     {
                         if (_sessionChannelDispatcher == null)
                         {
@@ -854,10 +853,6 @@ namespace CoreWCF.Security
                             _settings.AddSessionChannel(_sessionToken.ContextId, _replySessionChannelDispatcher,
                                 _messageFilter);
                         }
-                    }
-                    finally
-                    {
-                        await releaser.DisposeAsync();
                     }
                 }
                 return _sessionChannelDispatcher;

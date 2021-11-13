@@ -664,8 +664,7 @@ namespace CoreWCF.Security
                             (BodyWriter replyBody, T negotiatonState) processedRequestSecurityToken = await ProcessRequestSecurityTokenAsync(request, rst);//.AsTask().GetAwaiter().GetResult();
                             negotiationState = processedRequestSecurityToken.negotiatonState;
                             replyBody = processedRequestSecurityToken.replyBody;
-                            var releaser = await negotiationState.AsyncLock.TakeLockAsync();
-                            try
+                            await using (await negotiationState.AsyncLock.TakeLockAsync())
                             {
                                 if (negotiationState.IsNegotiationCompleted)
                                 {
@@ -687,10 +686,6 @@ namespace CoreWCF.Security
 
                                 AddNegotiationChannelForIdleTracking();
                             }
-                            finally
-                            {
-                                await releaser.DisposeAsync();
-                            }
                         }
                         else
                         {
@@ -699,8 +694,7 @@ namespace CoreWCF.Security
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new SecurityNegotiationException(SR.Format(SR.CannotFindNegotiationState, context)));
                             }
 
-                            var releaser = await negotiationState.AsyncLock.TakeLockAsync();
-                            try
+                            await using (await negotiationState.AsyncLock.TakeLockAsync())
                             {
                                 replyBody = await ProcessRequestSecurityTokenResponseAsync(negotiationState, request,
                                     rstr); //.AsTask().GetAwaiter().GetResult();
@@ -720,10 +714,6 @@ namespace CoreWCF.Security
                                 {
                                     disposeState = false;
                                 }
-                            }
-                            finally
-                            {
-                                await releaser.DisposeAsync();
                             }
                         }
 

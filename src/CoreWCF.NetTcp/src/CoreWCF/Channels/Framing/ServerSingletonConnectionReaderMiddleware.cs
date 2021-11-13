@@ -48,8 +48,7 @@ namespace CoreWCF.Channels.Framing
         {
             if (_replyChannel == null)
             {
-                var releaser = await _lock.TakeLockAsync();
-                try
+                await using (await _lock.TakeLockAsync())
                 {
                     if (_replyChannel == null)
                     {
@@ -71,10 +70,6 @@ namespace CoreWCF.Channels.Framing
                         _channelDispatcher =
                             await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
                     }
-                }
-                finally
-                {
-                    await releaser.DisposeAsync();
                 }
             }
         }

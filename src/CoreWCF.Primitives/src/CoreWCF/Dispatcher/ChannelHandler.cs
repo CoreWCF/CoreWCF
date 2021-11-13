@@ -406,15 +406,10 @@ namespace CoreWCF.Dispatcher
                     if (request == null && _hasSession)
                     {
                         bool close;
-                        var releaser = await _thisLock.TakeLockAsync();
-                        try
+                        await using (await _thisLock.TakeLockAsync())
                         {
                             close = !_doneReceiving;
                             _doneReceiving = true;
-                        }
-                        finally
-                        {
-                            await releaser.DisposeAsync();
                         }
 
                         if (close)
@@ -530,8 +525,7 @@ namespace CoreWCF.Dispatcher
 
             if (endpoint.DatagramChannel == null)
             {
-                var releaser = await _serviceDispatcher.ThisLock.TakeLockAsync();
-                try
+                await using (await _serviceDispatcher.ThisLock.TakeLockAsync())
                 {
                     if (endpoint.DatagramChannel == null)
                     {
@@ -539,10 +533,6 @@ namespace CoreWCF.Dispatcher
                             _idleManager.UseIfNeeded(_binder, _serviceDispatcher.Binding.ReceiveTimeout));
                         await InitializeServiceChannelAsync(endpoint.DatagramChannel);
                     }
-                }
-                finally
-                {
-                    await releaser.DisposeAsync();
                 }
             }
 
@@ -555,8 +545,7 @@ namespace CoreWCF.Dispatcher
 
             if (_channel == null)
             {
-                var releaser = await _thisLock.TakeLockAsync();
-                try
+                await using (await _thisLock.TakeLockAsync())
                 {
                     if (_channel == null)
                     {
@@ -568,10 +557,6 @@ namespace CoreWCF.Dispatcher
                             await InitializeServiceChannelAsync(_channel);
                         }
                     }
-                }
-                finally
-                {
-                    await releaser.DisposeAsync();
                 }
             }
 
