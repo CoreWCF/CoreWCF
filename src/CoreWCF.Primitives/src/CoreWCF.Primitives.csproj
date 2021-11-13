@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>CoreWCF.Primitives</AssemblyName>
@@ -29,7 +29,7 @@
   <ItemGroup>
     <Content Include="$(OutputPath)\CoreWCF.BuildTools.dll">
       <Pack>true</Pack>
-      <PackagePath>analyzer/dotnet/cs</PackagePath>
+      <PackagePath>analyzers/dotnet/cs</PackagePath>
       <Visible>false</Visible>
     </Content>
   </ItemGroup>
