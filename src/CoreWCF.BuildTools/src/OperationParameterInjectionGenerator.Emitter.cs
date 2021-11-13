@@ -114,6 +114,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                         .Select(p => p.RefKind switch
                             {
                                 RefKind.Ref => $"ref {p.Type} {p.Name}",
+                                RefKind.Out => $"out {p.Type} {p.Name}",
                                 _ => $"{p.Type} {p.Name}",
                             }));
 
@@ -146,6 +147,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                             builder.Append(parameter.RefKind switch
                             {
                                 RefKind.Ref => $"ref {parameter.Name}",
+                                RefKind.Out => $"out {parameter.Name}",
                                 _ => parameter.Name,
                             });
                         }
