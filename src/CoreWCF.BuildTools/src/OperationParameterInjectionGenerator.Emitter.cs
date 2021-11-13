@@ -111,7 +111,11 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
 
                 string GetParameters()
                     => string.Join(", ", operationContractSpec.MissingOperationContract.Parameters
-                        .Select(p => $"{p.Type} {p.Name}"));
+                        .Select(p => p.RefKind switch
+                            {
+                                RefKind.Ref => $"ref {p.Type} {p.Name}",
+                                _ => $"{p.Type} {p.Name}",
+                            }));
 
                 void AddDependenciesResolution(string serviceProviderName, string prefix, string dependencyPrefix)
                 {
@@ -127,18 +131,23 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                     builder.Append($"{prefix}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");
                     for (int i = 0; i < operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Length; i++)
                     {
+                        IParameterSymbol parameter = operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i];
                         if (i != 0)
                         {
                             builder.Append(", ");
                         }
 
-                        if (operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i].HasOneOfAttributes(_generationSpec.CoreWCFInjectedSymbol))
+                        if (parameter.HasOneOfAttributes(_generationSpec.CoreWCFInjectedSymbol))
                         {
-                            builder.Append(dependencyNames[operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i].Type]);
+                            builder.Append(dependencyNames[parameter.Type]);
                         }
                         else
                         {
-                            builder.Append(operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i].Name);
+                            builder.Append(parameter.RefKind switch
+                            {
+                                RefKind.Ref => $"ref {parameter.Name}",
+                                _ => parameter.Name,
+                            });
                         }
                     }
                     builder.Append(");");
