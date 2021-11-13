@@ -34,7 +34,7 @@ namespace CoreWCF.BuildTools
 
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
-                string fileName = $"{operationContractSpec.ServiceContract.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractSpec.MissingOperationContract.Name}.cs";
+                string fileName = $"{operationContractSpec.ServiceContract.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractSpec.MissingOperationContract.Name}.g.cs";
                 var dependencies = operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Where(x => !operationContractSpec.MissingOperationContract.Parameters.Any(p =>
                        p.IsMatchingParameter(x))).ToArray();
 
