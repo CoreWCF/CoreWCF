@@ -536,7 +536,7 @@ namespace CoreWCF.Dispatcher
             {
                 val = part.ReadObject(reader);
             }
-            catch (InvalidOperationException e)
+            catch (System.InvalidOperationException e)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameter, part.Description.Namespace, part.Description.Name), e));

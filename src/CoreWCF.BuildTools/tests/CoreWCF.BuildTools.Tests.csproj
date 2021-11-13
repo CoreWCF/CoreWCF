@@ -7,10 +7,6 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <LangVersion>8.0</LangVersion>
-    <!-- Required for multi-framework support for in-memory integration testing-->
-    <!--<OutputType>Exe</OutputType>
-    <GenerateProgramFile>false</GenerateProgramFile>
-    <PreserveCompilationContext>true</PreserveCompilationContext>-->
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.msbuild" Version="2.9.0">

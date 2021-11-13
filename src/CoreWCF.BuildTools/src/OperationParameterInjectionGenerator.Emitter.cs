@@ -124,7 +124,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
 
                 void AddMethodCall(string prefix, string dependencyPrefix)
                 {
-                    builder.Append($"{prefix}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");//({string.Join(", ", operationContractSpec.OperationContract.Parameters.Select(x => x.Name).Union(dependenciesParameters))});");
+                    builder.Append($"{prefix}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");
                     for (int i = 0; i < operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Length; i++)
                     {
                         if (i != 0)

@@ -19,7 +19,9 @@ namespace CoreWCF.BuildTools
             private readonly OperationParameterInjectionSourceGenerationContext _sourceGenerationContext;
             private readonly Lazy<IEnumerable<SyntaxNode>> _allNodes;
             private readonly Lazy<IEnumerable<(INamedTypeSymbol ServiceImplementation, INamedTypeSymbol ServiceContract)>> _serviceImplementationsAndContracts;
-            private IDictionary<INamedTypeSymbol, ImmutableArray<IMethodSymbol>> _operationContracts;
+            private readonly IDictionary<INamedTypeSymbol, ImmutableArray<IMethodSymbol>> _operationContracts;
+            private readonly INamedTypeSymbol? _sSMOperationContractSymbol;
+            private readonly INamedTypeSymbol? _coreWCFOperationContractSymbol;
 
             public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext sourceGenerationContext)
             {
@@ -30,108 +32,113 @@ namespace CoreWCF.BuildTools
                     .ToImmutableArray());
                 _serviceImplementationsAndContracts = new Lazy<IEnumerable<(INamedTypeSymbol ServiceImplementation, INamedTypeSymbol ServiceContract)>>(() => FindServiceImplementationAndContracts(_allNodes.Value));
                 _operationContracts = new Dictionary<INamedTypeSymbol, ImmutableArray<IMethodSymbol>>(SymbolEqualityComparer.Default);
+                _sSMOperationContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
+                _coreWCFOperationContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
+            }
+
+            private OperationContractSpec? GetOperationContractSpec(MethodDeclarationSyntax methodDeclarationSyntax)
+            {
+                SemanticModel model = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
+                IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(methodDeclarationSyntax);
+
+                if (!methodDeclarationSyntax.HasParentPartialClass())
+                {
+                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldBePartialError(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                    return null;
+                }
+
+                var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
+                if (allServiceContractCandidates.Length == 0)
+                {
+                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContract(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                    return null;
+                }
+
+                bool atLeastOneServiceContractIsFound = false;
+
+                foreach (var serviceContractCandidate in allServiceContractCandidates)
+                {
+                    foreach (var serviceImplementationAndContract in _serviceImplementationsAndContracts.Value)
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(serviceImplementationAndContract.ServiceContract, serviceContractCandidate))
+                        {
+                            atLeastOneServiceContractIsFound = true;
+
+                            if (!_operationContracts.ContainsKey(serviceImplementationAndContract.ServiceContract))
+                            {
+                                _operationContracts.Add(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceContract.GetMembers().OfType<IMethodSymbol>()
+                                    .Where(x => x.HasOneOfAttributes(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)).ToImmutableArray());
+                            }
+
+                            var operationContractCandidates = _operationContracts[serviceImplementationAndContract.ServiceContract]
+                                .Where(x => x.Name == methodSymbol.Name)
+                                .Where(x => x.Parameters.All(occp => methodSymbol.Parameters.Any(msp => msp.IsMatchingParameter(occp))))
+                                .ToImmutableArray();
+
+                            if(operationContractCandidates.Length == 0)
+                            {
+                                // 
+                            }
+                            else if (operationContractCandidates.Length == 1)
+                            {
+                                IMethodSymbol operationContractCandidate = operationContractCandidates[0];
+                                if (serviceImplementationAndContract.ServiceImplementation.FindImplementationForInterfaceMember(operationContractCandidate) != null)
+                                {
+                                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationContractShouldNotBeAlreadyImplemented(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name));
+                                    return null;
+                                }
+
+                                return new OperationContractSpec
+                                {
+                                    ServiceContract = serviceImplementationAndContract.ServiceContract,
+                                    ServiceContractImplementation = serviceImplementationAndContract.ServiceImplementation,
+                                    MissingOperationContract = operationContractCandidate,
+                                    UserProvidedOperationContractImplementation = methodSymbol
+                                };
+                            }
+                            else
+                            {
+                                //
+                            }
+                        }
+                    }
+                }
+
+                if (!atLeastOneServiceContractIsFound)
+                {
+                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContract(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                }
+
+                return null;
             }
 
             public SourceGenerationSpec? GetGenerationSpec(IEnumerable<MethodDeclarationSyntax> methodDeclarationSyntaxList)
             {
-                var SSMOperationContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
-                var CoreWCFOperationContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
-
                 List<OperationContractSpec>? operationContractSpecs = null;
+
                 foreach (MethodDeclarationSyntax methodDeclarationSyntax in methodDeclarationSyntaxList)
                 {
-                    SemanticModel model = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
-                    IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(methodDeclarationSyntax);
-
-                    if (!methodDeclarationSyntax.HasParentPartialClass())
+                    OperationContractSpec? operationContractSpec = GetOperationContractSpec(methodDeclarationSyntax);
+                    if (operationContractSpec != null)
                     {
-                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldBePartialError(methodSymbol.ContainingType.Name, methodSymbol.Name));
-                        continue;
-                    }
-
-                    var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
-                    if(allServiceContractCandidates.Length == 0)
-                    {
-                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContract(methodSymbol.ContainingType.Name, methodSymbol.Name));
-                        continue;
-                    }
-
-                    bool atLeastOneServiceContractIsFound = false;
-                    bool missingOperationContractIsFound = false;
-
-                    foreach (var serviceContractCandidate in allServiceContractCandidates)
-                    {
-                        if (missingOperationContractIsFound)
-                        {
-                            break;
-                        }
-
-                        foreach (var serviceImplementationAndContract in _serviceImplementationsAndContracts.Value)
-                        {
-                            if(SymbolEqualityComparer.Default.Equals(serviceImplementationAndContract.ServiceContract, serviceContractCandidate))
-                            {
-                                atLeastOneServiceContractIsFound = true;
-
-                                if (!_operationContracts.ContainsKey(serviceImplementationAndContract.ServiceContract))
-                                {
-                                    _operationContracts.Add(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceContract.GetMembers().OfType<IMethodSymbol>()
-                                        .Where(x => x.HasOneOfAttributes(SSMOperationContractSymbol, CoreWCFOperationContractSymbol)).ToImmutableArray());
-                                }
-                                
-                                var operationContractCandidates = _operationContracts[serviceImplementationAndContract.ServiceContract]
-                                    .Where(x => x.Name == methodSymbol.Name)
-                                    .Where(x => x.Parameters.All(occp => methodSymbol.Parameters.Any(msp => msp.IsMatchingParameter(occp))))
-                                    .ToImmutableArray();
-
-                                if(operationContractCandidates.Length == 1)
-                                {
-                                    missingOperationContractIsFound = true;
-
-                                    IMethodSymbol operationContractCandidate = operationContractCandidates[0];
-                                    if (serviceImplementationAndContract.ServiceImplementation.FindImplementationForInterfaceMember(operationContractCandidate) != null)
-                                    {
-                                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationContractShouldNotBeAlreadyImplemented(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name));
-                                        break;
-                                    }
-
-                                    (operationContractSpecs ??= new List<OperationContractSpec>()).Add(new OperationContractSpec
-                                    {
-                                        ServiceContract = serviceImplementationAndContract.ServiceContract,
-                                        ServiceContractImplementation = serviceImplementationAndContract.ServiceImplementation,
-                                        MissingOperationContract = operationContractCandidate,
-                                        UserProvidedOperationContractImplementation = methodSymbol
-                                    });
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (!atLeastOneServiceContractIsFound)
-                    {
-                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContract(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                        (operationContractSpecs ??= new List<OperationContractSpec>()).Add(operationContractSpec);
                     }
                 }
 
-                if(operationContractSpecs == null)
+                if (operationContractSpecs == null)
                 {
                     return null;
                 }
 
-                if (operationContractSpecs.Count > 0)
+                return new SourceGenerationSpec
                 {
-                    return new SourceGenerationSpec
-                    {
-                        SSMOperationContractSymbol = SSMOperationContractSymbol,
-                        CoreWCFOperationContractSymbol = CoreWCFOperationContractSymbol,
-                        TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
-                        GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
-                        CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
-                        OperationContractSpecs = operationContractSpecs
-                    };
-                }
-
-                return null;
+                    SSMOperationContractSymbol = _sSMOperationContractSymbol,
+                    CoreWCFOperationContractSymbol = _coreWCFOperationContractSymbol,
+                    TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
+                    GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
+                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
+                    OperationContractSpecs = operationContractSpecs
+                };
             }
 
             private IEnumerable<(INamedTypeSymbol service, INamedTypeSymbol contract)> FindServiceImplementationAndContracts(
