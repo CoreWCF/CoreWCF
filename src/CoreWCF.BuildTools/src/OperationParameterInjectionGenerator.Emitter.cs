@@ -92,6 +92,18 @@ namespace CoreWCF.BuildTools
                     _ => "internal "
                 };
 
+                string returnType = operationContractSpec.MissingOperationContract.ReturnsVoid
+                    ? "void"
+                    : $"{operationContractSpec.MissingOperationContract.ReturnType}";
+
+                string parameters = string.Join(", ", operationContractSpec.MissingOperationContract.Parameters
+                    .Select(p => p.RefKind switch
+                    {
+                        RefKind.Ref => $"ref {p.Type} {p.Name}",
+                        RefKind.Out => $"out {p.Type} {p.Name}",
+                        _ => $"{p.Type} {p.Name}",
+                    }));
+
                 var indentor = new Indentor();
                 var builder = new StringBuilder();
 
@@ -104,7 +116,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 builder.AppendLine($@"{indentor}{accessibilityModifier}partial class {operationContractSpec.ServiceContractImplementation.Name}");
                 builder.AppendLine($@"{indentor}{{");
                 indentor.Increment();
-                builder.AppendLine($@"{indentor}public {@async}{GetReturnType()} {operationContractSpec.MissingOperationContract.Name}({GetParameters()})");
+                builder.AppendLine($@"{indentor}public {@async}{returnType} {operationContractSpec.MissingOperationContract.Name}({parameters})");
                 builder.AppendLine($@"{indentor}{{");
                 indentor.Increment();
                 builder.AppendLine($@"{indentor}var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();");
@@ -115,9 +127,10 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 builder.AppendLine($@"{indentor}using (var scope = serviceProvider.CreateScope())");
                 builder.AppendLine($@"{indentor}{{");
                 indentor.Increment();
-   
-                AddDependenciesResolution("scope.ServiceProvider", "d");
-                AddMethodCall("d");
+
+                string dependencyNamePrefix = "d";
+                AddDependenciesResolution("scope.ServiceProvider");
+                AddMethodCall();
 
                 if (operationContractSpec.MissingOperationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol))
                 {
@@ -128,9 +141,10 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 builder.AppendLine($@"{indentor}}}");
                 indentor.Decrement();
                 builder.AppendLine($@"{indentor}}}");
-   
-                AddDependenciesResolution("serviceProvider", "e");
-                AddMethodCall("e");
+
+                dependencyNamePrefix = "e";
+                AddDependenciesResolution("serviceProvider");
+                AddMethodCall();
 
                 indentor.Decrement();
                 builder.AppendLine($@"{indentor}}}");
@@ -139,34 +153,18 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 indentor.Decrement();
                 builder.AppendLine($@"{indentor}}}");
 
-                var generated = builder.ToString();
+                _sourceGenerationContext.AddSource(fileName, SourceText.From(builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
-                _sourceGenerationContext.AddSource(fileName, SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256));
-
-                string GetReturnType()
-                    => operationContractSpec.MissingOperationContract.ReturnsVoid ?
-                        "void"
-                        : $"{operationContractSpec.MissingOperationContract.ReturnType}";
-
-                string GetParameters()
-                    => string.Join(", ", operationContractSpec.MissingOperationContract.Parameters
-                        .Select(p => p.RefKind switch
-                            {
-                                RefKind.Ref => $"ref {p.Type} {p.Name}",
-                                RefKind.Out => $"out {p.Type} {p.Name}",
-                                _ => $"{p.Type} {p.Name}",
-                            }));
-
-                void AddDependenciesResolution(string serviceProviderName, string dependencyPrefix)
+                void AddDependenciesResolution(string serviceProviderName)
                 {
                     for (int i = 0; i < dependencies.Length; i++)
                     {
-                        dependencyNames[dependencies[i].Type] = $"{dependencyPrefix}{i}";
-                        builder.AppendLine($@"{indentor}var {dependencyPrefix}{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
+                        dependencyNames[dependencies[i].Type] = $"{dependencyNamePrefix}{i}";
+                        builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
                     }
                 }
 
-                void AddMethodCall(string dependencyPrefix)
+                void AddMethodCall()
                 {
                     builder.Append($"{indentor}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");
                     for (int i = 0; i < operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Length; i++)
