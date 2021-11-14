@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Testing
 {
-    public abstract class IncrementalSourceGeneratorTest<TVerifier> : AnalyzerTest<TVerifier>
+    public abstract class IncrementalGeneratorTest<TVerifier> : AnalyzerTest<TVerifier>
         where TVerifier : IVerifier, new()
     {
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing
         /// <param name="document">The <see cref="Document"/> to be converted to a string.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="SourceText"/> containing the syntax of the <see cref="Document"/> after formatting.</returns>
-        private static async Task<SourceText> GetSourceTextFromDocumentAsync(Microsoft.CodeAnalysis.Document document, CancellationToken cancellationToken)
+        private static async Task<SourceText> GetSourceTextFromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var simplifiedDoc = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             var formatted = await Formatter.FormatAsync(simplifiedDoc, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);

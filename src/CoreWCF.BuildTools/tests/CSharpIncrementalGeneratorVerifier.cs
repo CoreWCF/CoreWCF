@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
-public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
+public static class CSharpIncrementalGeneratorVerifier<TSourceGenerator>
     where TSourceGenerator : IIncrementalGenerator, new()
 {
-    public class Test : CSharpIncrementalSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+    public class Test : CSharpIncrementalGeneratorTest<TSourceGenerator, XUnitVerifier>
     {
         public Test()
         {

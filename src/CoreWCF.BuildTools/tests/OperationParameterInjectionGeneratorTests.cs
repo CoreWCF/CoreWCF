@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using VerifyCS = CSharpSourceGeneratorVerifier<CoreWCF.BuildTools.OperationParameterInjectionGenerator>;
+using VerifyCS = CSharpIncrementalGeneratorVerifier<CoreWCF.BuildTools.OperationParameterInjectionGenerator>;
 
 namespace CoreWCF.BuildTools.Tests
 {
