@@ -23,7 +23,7 @@ namespace CoreWCF.BuildTools.Tests
         [Theory]
         [InlineData("System.ServiceModel")]
         [InlineData("CoreWCF")]
-        public async Task DirectorTests(string attributeNamespace)
+        public async Task SimpleTests(string attributeNamespace)
         {
             var test = new VerifyCS.Test
             {
@@ -1101,10 +1101,8 @@ namespace MyProject
             await test.RunAsync();
         }
 
-        [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ShouldRaiseCompilationErrorWhenParentClassImplementAnInterfaceWithoutServiceContractAttribute(string attributeNamespace)
+        [Fact]
+        public async Task ShouldRaiseCompilationErrorWhenParentClassImplementAnInterfaceWithoutServiceContractAttribute()
         {
             var test = new VerifyCS.Test
             {
@@ -1142,10 +1140,8 @@ namespace MyProject
             await test.RunAsync();
         }
 
-        [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ShouldRaiseCompilationErrorWhenParentClassDoesNotImplementOrInheritAnInterfaceWithtServiceContractAttribute(string attributeNamespace)
+        [Fact]
+        public async Task ShouldRaiseCompilationErrorWhenParentClassDoesNotImplementOrInheritAnInterfaceWithtServiceContractAttribute()
         {
             var test = new VerifyCS.Test
             {

@@ -40,6 +40,10 @@ namespace CoreWCF.BuildTools
             {
                 SemanticModel model = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
                 IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(methodDeclarationSyntax);
+                if(methodSymbol == null)
+                {
+                    return null;
+                }
 
                 if (!methodDeclarationSyntax.HasParentPartialClass())
                 {
@@ -50,7 +54,7 @@ namespace CoreWCF.BuildTools
                 var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
                 if (allServiceContractCandidates.Length == 0)
                 {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContract(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name));
                     return null;
                 }
 
@@ -75,16 +79,12 @@ namespace CoreWCF.BuildTools
                                 .Where(x => x.Parameters.All(occp => methodSymbol.Parameters.Any(msp => msp.IsMatchingParameter(occp))))
                                 .ToImmutableArray();
 
-                            if(operationContractCandidates.Length == 0)
-                            {
-                                // 
-                            }
-                            else if (operationContractCandidates.Length == 1)
+                            if (operationContractCandidates.Length == 1)
                             {
                                 IMethodSymbol operationContractCandidate = operationContractCandidates[0];
                                 if (serviceImplementationAndContract.ServiceImplementation.FindImplementationForInterfaceMember(operationContractCandidate) != null)
                                 {
-                                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationContractShouldNotBeAlreadyImplemented(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name));
+                                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationContractShouldNotBeAlreadyImplementedError(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name));
                                     return null;
                                 }
 
@@ -96,17 +96,13 @@ namespace CoreWCF.BuildTools
                                     UserProvidedOperationContractImplementation = methodSymbol
                                 };
                             }
-                            else
-                            {
-                                //
-                            }
                         }
                     }
                 }
 
                 if (!atLeastOneServiceContractIsFound)
                 {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContract(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name));
                 }
 
                 return null;
@@ -130,14 +126,13 @@ namespace CoreWCF.BuildTools
                     return null;
                 }
 
-                return new SourceGenerationSpec
+                return new SourceGenerationSpec(operationContractSpecs)
                 {
                     SSMOperationContractSymbol = _sSMOperationContractSymbol,
                     CoreWCFOperationContractSymbol = _coreWCFOperationContractSymbol,
                     TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                     GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
-                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
-                    OperationContractSpecs = operationContractSpecs
+                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute")
                 };
             }
 
@@ -153,15 +148,20 @@ namespace CoreWCF.BuildTools
                 foreach (var @class in allClasses)
                 {
                     var model = _compilation.GetSemanticModel(@class.SyntaxTree);
-                    var typeSymbol = model.GetDeclaredSymbol(@class);
+                    var namedTypeSymbol = model.GetDeclaredSymbol(@class);
 
-                    foreach (var @interface in typeSymbol.AllInterfaces)
+                    if(namedTypeSymbol == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var @interface in namedTypeSymbol.AllInterfaces)
                     {
                         foreach (var serviceContract in serviceContracts)
                         {
                             if (SymbolEqualityComparer.Default.Equals(serviceContract, @interface))
                             {
-                                yield return (typeSymbol, serviceContract);
+                                yield return (namedTypeSymbol, serviceContract);
                             }
                         }
                     }
@@ -181,6 +181,11 @@ namespace CoreWCF.BuildTools
                 {
                     var model = _compilation.GetSemanticModel(@interface.SyntaxTree);
                     var symbol = model.GetDeclaredSymbol(@interface);
+                    if (symbol == null)
+                    {
+                        continue;
+                    }
+
                     if (symbol.HasOneOfAttributes(SSMServiceContractSymbol, CoreWCFServiceContractSymbol))
                     {
                         yield return symbol;
@@ -189,9 +194,14 @@ namespace CoreWCF.BuildTools
 
                 var referenceServiceContracts = new List<INamedTypeSymbol>();
 
-                foreach (var reference in _compilation.References.Reverse())
+                foreach (var reference in _compilation.References)
                 {
                     var assemblySymbol = _compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                    if(assemblySymbol == null)
+                    {
+                        continue;
+                    }
+                    
                     var visitor = new FindAllServiceContractsVisitor(referenceServiceContracts, new INamedTypeSymbol?[]
                     {
                         SSMServiceContractSymbol,

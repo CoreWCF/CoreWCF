@@ -12,9 +12,9 @@ namespace CoreWCF.BuildTools
     internal class FindAllServiceContractsVisitor : SymbolVisitor
     {
         private readonly IList<INamedTypeSymbol> _symbols;
-        private readonly INamedTypeSymbol[] _serviceContractSymbols;
+        private readonly INamedTypeSymbol?[] _serviceContractSymbols;
 
-        public FindAllServiceContractsVisitor(IList<INamedTypeSymbol> symbols, params INamedTypeSymbol[] serviceContractSymbols)
+        public FindAllServiceContractsVisitor(IList<INamedTypeSymbol> symbols, params INamedTypeSymbol?[] serviceContractSymbols)
         {
             _symbols = symbols;
             _serviceContractSymbols = serviceContractSymbols;

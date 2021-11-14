@@ -41,7 +41,7 @@ namespace CoreWCF.BuildTools
                     3 => ____________,
                     4 => ________________,
                     5 => ____________________,
-                    _ => throw new IndexOutOfRangeException(),
+                    _ => throw new InvalidOperationException(),
                 };
             }
 
@@ -72,7 +72,7 @@ namespace CoreWCF.BuildTools
                     || (operationContractSpec.MissingOperationContract.ReturnType is INamedTypeSymbol symbol &&
                     SymbolEqualityComparer.Default.Equals(symbol.ConstructedFrom, _generationSpec.GenericTaskSymbol));
 
-                Dictionary<ITypeSymbol, string> dependencyNames = new Dictionary<ITypeSymbol, string>(SymbolEqualityComparer.Default);
+                Dictionary<ITypeSymbol, string> dependencyNames = new(SymbolEqualityComparer.Default);
 
                 string @async = shouldGenerateAsyncAwait
                     ? "async "
@@ -129,8 +129,8 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 indentor.Increment();
 
                 string dependencyNamePrefix = "d";
-                AddDependenciesResolution("scope.ServiceProvider");
-                AddMethodCall();
+                AppendResolveDependencies("scope.ServiceProvider");
+                AppendInvokeUserProvidedImplementation();
 
                 if (operationContractSpec.MissingOperationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol))
                 {
@@ -143,8 +143,8 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 builder.AppendLine($@"{indentor}}}");
 
                 dependencyNamePrefix = "e";
-                AddDependenciesResolution("serviceProvider");
-                AddMethodCall();
+                AppendResolveDependencies("serviceProvider");
+                AppendInvokeUserProvidedImplementation();
 
                 indentor.Decrement();
                 builder.AppendLine($@"{indentor}}}");
@@ -155,7 +155,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
 
                 _sourceGenerationContext.AddSource(fileName, SourceText.From(builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
-                void AddDependenciesResolution(string serviceProviderName)
+                void AppendResolveDependencies(string serviceProviderName)
                 {
                     for (int i = 0; i < dependencies.Length; i++)
                     {
@@ -164,7 +164,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                     }
                 }
 
-                void AddMethodCall()
+                void AppendInvokeUserProvidedImplementation()
                 {
                     builder.Append($"{indentor}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");
                     for (int i = 0; i < operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Length; i++)
